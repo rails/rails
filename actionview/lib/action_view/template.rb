@@ -385,7 +385,7 @@ module ActionView
              
                     def rails_ehtml
                       zelf = self
-                      local_eval = lambda do |exek|
+                      htmtr = lambda do |exek|
                         zelf.eval(exek)
                       end
                       
