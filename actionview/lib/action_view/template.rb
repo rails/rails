@@ -406,11 +406,11 @@ module ActionView
           </div>
         HTML
         
-        
-        if start_appending
-          i+=1
-          next unless i > 3
-        end
+              #
+        # if start_appending
+        #   i+=1
+        #   # next unless i > 3
+        # end
  
       
         
