@@ -378,11 +378,6 @@ module ActionView
               # finished_if_statement_on_construction_site do 🚧 # ∆ syntax highlilghting should put the whole code blocks background to yelllow
                 if started_appending > 3 && started_appending < 7
                   §(USING_APPEND_OVER_SAFE_APPEND) do # ∆
-                    
-                    # def $_proto(string)
-                 #      return string
-                 #    end
-             
                     def rails_ehtml
                       zelf = self
                       htmtr = lambda do |exek|
