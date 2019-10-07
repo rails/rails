@@ -375,7 +375,7 @@ module ActionView
 
           
             Stick('3') do
-              if started_appending > 4 && started_appending < 7
+              if started_appending > 3 && started_appending < 7
                 byebug
                 banal_source_inspect.push("@output_buffer.safe_append = '<div>' + debug_inspect.compact.map(&:receiver).map(&:class).map(&:inspect).inspect + '</div>'")
               end
