@@ -362,17 +362,20 @@ module ActionView
         
         §(
           ESSENTIAL_LOCAL_VARIABLE_DEFAULT_INITIALIZATION,
-          default_assignment: Stick('started_appending'),
-          reassignment: Stick('started_appending||='),
+          default_assignment: Stick('1'),
+          reassignment: Stick('2'),
           would_not_be_working_without_default_assignment: Stick('if started_appending')
           
           ) do # saave __FILE__ and LOC of sticks? OR AST position?
-          started_appending = false
+            
+          
+          Stick('1', started_appending = false)
+          
           source.split(';').each.with_index do |source_line| # => map
             banal_source_inspect.push(source_line)
           
-            Stick('||=') do
-              started_appending ||= true if source_line =~ /@output_buffer/ # or equals, oonly sets it once when start_appending is stil lfalse and right hand condition evaluates to true
+            Stick('2') do
+              started_appending = true if source_line =~ /@output_buffer/ # or equals, oonly sets it once when start_appending is stil lfalse and right hand condition evaluates to true
             end
             # require 'byebug'
             # byebug
@@ -381,7 +384,9 @@ module ActionView
             # ezii_inspect
           
             Stick('if started_appending') do
-              banal_source_inspect.push("@output_buffer.safe_append = '<div>' + debug_inspect.to_s + '</div>'") if started_appending
+              if started_appending
+                banal_source_inspect.push("@output_buffer.safe_append = '<div>' + debug_inspect.to_s + '</div>'")
+              end
             end
           end# flatten.join(';') # mid?
         end
