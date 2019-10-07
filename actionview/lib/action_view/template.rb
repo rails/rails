@@ -397,15 +397,15 @@ module ActionView
                     end
                     
                     rails_ehtml do |htmtr, html|
-                      html(%Q{<div class='tweezer-docking'>})
-                        html(%Q{<div class='tweezer-digestable'>})
-                          htmtr(lambda { banal_source_inspect.push("@output_buffer.append  = '<div>' + debug_inspect.compact.map(&:receiver).map(&:class).map(&:inspect).inspect + '</div>'") })
-                        html(%Q{</div>})
+                      html.call(%Q{<div class='tweezer-docking'>})
+                        html.call(%Q{<div class='tweezer-digestable'>})
+                          htmtr.call(lambda { banal_source_inspect.push("@output_buffer.append  = '<div>' + debug_inspect.compact.map(&:receiver).map(&:class).map(&:inspect).inspect + '</div>'") })
+                        html.call(%Q{</div>})
                     
-                        html(%Q{<div>})
-                          htmtr(lambda { banal_source_inspect.push(source_line) })
-                        html(%Q{</div>})
-                      html(%Q{</div>})
+                        html.call(%Q{<div>})
+                          htmtr.call(lambda { banal_source_inspect.push(source_line) })
+                        html.call(%Q{</div>})
+                      html.call(%Q{</div>})
                     end
                   end
                 else
