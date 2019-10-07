@@ -279,7 +279,7 @@ GEM
     hiredis (0.6.3-java)
     http_parser.rb (0.6.0)
     httpclient (2.8.3)
-    i18n (1.6.0)
+    i18n (1.7.0)
       concurrent-ruby (~> 1.0)
     image_processing (1.7.1)
       mini_magick (~> 4.0)
