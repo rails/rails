@@ -250,7 +250,7 @@ Rails follows a simple set of coding style conventions:
 * Indent and no blank line after private/protected.
 * Use Ruby >= 1.9 syntax for hashes. Prefer `{ a: :b }` over `{ :a => :b }`.
 * Prefer `&&`/`||` over `and`/`or`.
-* Prefer class << self over self.method for class methods.
+* Prefer `class << self` over `self.method` for class methods.
 * Use `my_method(my_arg)` not `my_method( my_arg )` or `my_method my_arg`.
 * Use `a = b` and not `a=b`.
 * Use `assert_not` methods instead of `refute`.
