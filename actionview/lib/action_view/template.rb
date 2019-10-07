@@ -364,7 +364,7 @@ module ActionView
             reassignment: Stick('2: once a line of source is matched against /@output_buffer/, startt appending'),
             would_not_be_working_without_default_assignment: Stick('3: actually start appending')
         ) do  
-          Stick('1', (started_appending = 0) and (stopped_appending = 0))
+          Stick('1', started_appending = 0, stopped_appending = 0)
           
           source.split(';').each.with_index do |source_line|
           
