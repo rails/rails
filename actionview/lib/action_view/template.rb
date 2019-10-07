@@ -4,9 +4,13 @@ require "active_support/core_ext/kernel/singleton_class"
 require "thread"
 require "delegate"
 
+
+EZII_INTROSPECT_LINE = [] # => ladder call, ladder("DEBUG c ARCHIVE MAGIC LINES")
 module ActionView
   # = Action View Template
   class Template
+    include ActionView::Helpers::JavaScriptHelper
+    
     extend ActiveSupport::Autoload
 
     def self.finalize_compiled_template_methods
@@ -334,8 +338,62 @@ module ActionView
           raise WrongEncodingError.new(source, Encoding.default_internal)
         end
 
+
+        require 'debug_inspector'
+
+
+        # start_appending = false
+        
+        source.split(';').each.with_index do |source_line| # => map
+          
+          # start_appending ||= true if source_line =~ /@output_buffer\..*append/ # or equals, oonly sets it once when start_appending is stil lfalse and right hand condition evaluates to true
+          # require 'byebug'
+          # byebug
+          
+          
+          # if start_appending
+            # i+=1
+            # next unless i > 3
+            magic_archive_debug_inspect_line_start = <<~HTML
+               <!-- <div onClick="alert('#{escape_javascript(source_line.gsub('\'', ''))}')"> -->
+                 <div>
+            HTML
+            
+            # @output_buffer.safe_append =
+            
+            magic_archive_debug_inspect_line_end = <<~HTML
+              </div>
+            HTML
+            
+            # fail
+          # end
+          
+          # begin
+    #         eval(source_line)
+    #       rescue Exception => e
+    #         e.backtrace
+    #       end
+            
+            # RubyVM::DebugInspector.open { |dc|
+        #       locs = dc.backtrace_locations
+        #       locs.size.times do |i|
+        #         dc.frame_binding(i)
+        
+        
+        #       end
+        
+          
+          # s = eval(source_line, __FILE__, 0) rescue nil.to_s
+          
+          s = '<div>' + source_line + '</div>'
+        
+          EZII_INTROSPECT_LINE << [magic_archive_debug_inspect_line_start, (s), magic_archive_debug_inspect_line_end].join
+        end# flatten.join(';') # mid?
+        
+        byebug
         begin
-          mod.module_eval(source, identifier, 0)
+          # check git diff, module_eval(source, linenubmer, file) was here before
+          mod.module_eval(source, __FILE__, 0) # actuallly show the lline number and fille of the tempalte soource
         rescue SyntaxError
           # Account for when code in the template is not syntactically valid; e.g. if we're using
           # ERB and the user writes <%= foo( %>, attempting to call a helper `foo` and interpolate
