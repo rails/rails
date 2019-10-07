@@ -403,7 +403,7 @@ module ActionView
                         htmt(%Q{</div>})
                     
                         htmt(%Q{<div>})
-                          jield(lambda { banal_source_inspect.push(source_line) }}
+                          jield(lambda { banal_source_inspect.push(source_line) })
                         htmt(%Q{</div>})
                       htmt(%Q{</div>})
                     end
