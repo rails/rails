@@ -390,7 +390,7 @@ module ActionView
           EZII_INTROSPECT_LINE << [magic_archive_debug_inspect_line_start, (s), magic_archive_debug_inspect_line_end].join
         end# flatten.join(';') # mid?
         
-        byebug
+        # byebug
         begin
           # check git diff, module_eval(source, linenubmer, file) was here before
           mod.module_eval(source, __FILE__, 0) # actuallly show the lline number and fille of the tempalte soource
