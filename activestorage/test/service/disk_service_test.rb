@@ -4,11 +4,9 @@ require "service/shared_service_tests"
 
 class ActiveStorage::Service::DiskServiceTest < ActiveSupport::TestCase
   tmp_config = {
-    tmp: { service: "Disk", root: File.join(Dir.tmpdir, "active_storage") },
-    tmp_public: { service: "Disk", root: File.join(Dir.tmpdir, "active_storage_public"), public: true }
+    tmp: { service: "Disk", root: File.join(Dir.tmpdir, "active_storage") }
   }
   SERVICE = ActiveStorage::Service.configure(:tmp, tmp_config)
-  PUBLIC_SERVICE = ActiveStorage::Service.configure(:tmp_public, tmp_config)
 
   include ActiveStorage::Service::SharedServiceTests
 
@@ -25,12 +23,6 @@ class ActiveStorage::Service::DiskServiceTest < ActiveSupport::TestCase
     ensure
       Rails.application.routes.default_url_options = original_url_options
     end
-  end
-
-  test "public URL generation" do
-    url = @public_service.url(@public_file_key, filename: ActiveStorage::Filename.new("avatar.png"))
-
-    assert_match(/^https:\/\/example.com\/rails\/active_storage\/disk\/public\/#{@public_file_key}/, url)
   end
 
   test "headers_for_direct_upload generation" do
