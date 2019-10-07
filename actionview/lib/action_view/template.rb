@@ -382,18 +382,22 @@ module ActionView
                       html = lambda { |string|
                         banal_source_inspect.push("@output_buffer.safe_append = " + string.inspect) # string.to_string_for_ruby_code_string
                       }
-                      
+                                          
                       yield(html) # htm typescript ruby, htm typescript
                     end
                     
                     rails_ehtml do |html|
                       html.call(%Q{<div class='tweezer-docking'>})
                         html.call(%Q{<div class='tweezer-digestable'>})
-                          banal_source_inspect.push("@output_buffer.append  = '<div>' + debug_inspect.compact.map(&:receiver).map(&:class).map(&:inspect).inspect + '</div>'")
+                          html.call('<div>')
+                            banal_source_inspect.push("@output_buffer.append  = debug_inspect.compact.map(&:receiver).map(&:class).map(&:inspect).inspect")
+                          html.call('</div>')
                         html.call(%Q{</div>})
                     
                         html.call(%Q{<div>})
-                          banal_source_inspect.push(source_line)
+                          html.call('<div>')
+                            banal_source_inspect.push(source_line)
+                          html.call('</div>')
                         html.call(%Q{</div>})
                       html.call(%Q{</div>})
                     end
