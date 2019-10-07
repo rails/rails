@@ -369,7 +369,7 @@ module ActionView
           source.split(';').each.with_index do |source_line|
           
             Stick('2') do
-              source_line =~ /@output_buffer/ ? stopping_threshold +=1 ; stopping_threshold -= 1
+              source_line =~ /@output_buffer/ ? stopping_threshold +=1 : stopping_threshold -= 1
             end
 
           
