@@ -364,19 +364,20 @@ module ActionView
             reassignment: Stick('2: once a line of source is matched against /@output_buffer/, startt appending'),
             would_not_be_working_without_default_assignment: Stick('3: actually start appending')
         ) do  
-          Stick('1', started_appending = 0)
+          Stick('1', started_appending = 0;  stopped_appending = 0)
           
           source.split(';').each.with_index do |source_line|
           
             Stick('2') do
-              started_appending += 1 if source_line =~ /@output_buffer/
+              started_appending += 1 and stopped_appending -=1 source_line =~ /@output_buffer/
+              stopped_appending +=1 and started_appending -= 1 unless source_line =~ /@output_buffer/
             end
 
           
             Stick('3') do
               
               # finished_if_statement_on_construction_site do 🚧 # ∆ syntax highlilghting should put the whole code blocks background to yelllow
-                if started_appending > 4 && started_appending < 7
+                if (started_appending > 4 && started_appending < 6) && (stopped_appending < 2)
                   §(USING_APPEND_OVER_SAFE_APPEND) do # ∆
                     def rails_ehtml                      
                       html = lambda { |string|
