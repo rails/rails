@@ -492,7 +492,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       get "/projects/status(.:format)"
     end
 
-    # without dup, additional (and possibly unwanted) values will be present in the options (eg. :host)
+    # without dup, additional (and possibly unwanted) values will be present in the options (e.g. :host)
     original_options = { controller: "projects", action: "status" }
     options = original_options.dup
 

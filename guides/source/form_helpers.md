@@ -963,7 +963,7 @@ end
 ```
 
 If the hash of attributes for an object contains the key `_destroy` with a value that
-evaluates to `true` (eg. 1, '1', true, or 'true') then the object will be destroyed.
+evaluates to `true` (e.g. 1, '1', true, or 'true') then the object will be destroyed.
 This form allows users to remove addresses:
 
 ```erb

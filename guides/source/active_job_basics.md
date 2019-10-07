@@ -453,7 +453,7 @@ class GuestsCleanupJob < ApplicationJob
 end
 ```
 
-If the exception is not rescued within the job, eg. as shown above, then the job is referred to as "failed".
+If the exception is not rescued within the job, e.g. as shown above, then the job is referred to as "failed".
 
 ### Retrying or Discarding failed jobs
 

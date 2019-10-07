@@ -153,7 +153,7 @@ We are happy to have people volunteer to translate the Rails guides. Just follow
 
 Note that translations are not submitted to the Rails repository. As detailed above, your work happens in a fork. This is so because in practice documentation maintenance via patches is only sustainable in English.
 
-To generate the guides in HTML format cd into the *guides* directory then run (eg. for it-IT):
+To generate the guides in HTML format cd into the *guides* directory then run (e.g. for it-IT):
 
 ```bash
 $ bundle install

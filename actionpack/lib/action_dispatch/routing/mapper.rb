@@ -560,7 +560,7 @@ module ActionDispatch
         #   Constrains parameters with a hash of regular expressions
         #   or an object that responds to <tt>matches?</tt>. In addition, constraints
         #   other than path can also be specified with any object
-        #   that responds to <tt>===</tt> (eg. String, Array, Range, etc.).
+        #   that responds to <tt>===</tt> (e.g. String, Array, Range, etc.).
         #
         #     match 'path/:id', constraints: { id: /[A-Z]\d{5}/ }, via: :get
         #
