@@ -431,6 +431,7 @@ module ActionView
 
 
           end
+        }
       end
 
       def handle_render_error(view, e)
