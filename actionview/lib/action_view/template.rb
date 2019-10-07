@@ -378,7 +378,7 @@ module ActionView
           
             Stick('3') do
               if started_appending > 5 && started_appending < 20
-                banal_source_inspect.push("@output_buffer.safe_append = '<div>' + debug_inspect.to_s + '</div>'")
+                # banal_source_inspect.push("@output_buffer.safe_append = '<div>' + debug_inspect.to_s + '</div>'")
               end
             end
           end
