@@ -472,7 +472,7 @@ Direct Uploads
 Active Storage, with its included JavaScript library, supports uploading
 directly from the client to the cloud.
 
-### Direct upload installation
+### Usage
 
 1. Include `activestorage.js` in your application's JavaScript bundle.
 
@@ -495,7 +495,73 @@ directly from the client to the cloud.
     ```ruby
     <%= form.file_field :attachments, multiple: true, direct_upload: true %>
     ```
-3. That's it! Uploads begin upon form submission.
+
+3. Configure CORS on third-party storage services to allow direct upload requests.
+
+4. That's it! Uploads begin upon form submission.
+
+### Cross-Origin Resource Sharing (CORS) configuration
+
+To make direct uploads to a third-party service work, you’ll need to configure the service to allow cross-origin requests from your app. Consult the CORS documentation for your service:
+
+* [S3](https://docs.aws.amazon.com/AmazonS3/latest/dev/cors.html#how-do-i-enable-cors)
+* [Google Cloud Storage](https://cloud.google.com/storage/docs/configuring-cors)
+* [Azure Storage](https://docs.microsoft.com/en-us/rest/api/storageservices/cross-origin-resource-sharing--cors--support-for-the-azure-storage-services)
+
+Take care to allow:
+
+* All origins from which your app is accessed
+* The `PUT` request method
+* The following headers:
+  * `Origin`
+  * `Content-Type`
+  * `Content-MD5`
+  * `Content-Disposition` (except for Azure Storage)
+  * `x-ms-blob-content-disposition` (for Azure Storage only)
+  * `x-ms-blob-type` (for Azure Storage only)
+
+#### Example: S3 CORS configuration
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<CORSConfiguration xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+<CORSRule>
+    <AllowedOrigin>https://www.example.com</AllowedOrigin>
+    <AllowedMethod>PUT</AllowedMethod>
+    <AllowedHeader>Origin</AllowedHeader>
+    <AllowedHeader>Content-Type</AllowedHeader>
+    <AllowedHeader>Content-MD5</AllowedHeader>
+    <AllowedHeader>Content-Disposition</AllowedHeader>
+    <MaxAgeSeconds>3600</MaxAgeSeconds>
+</CORSRule>
+</CORSConfiguration>
+```
+
+#### Example: Google Cloud Storage CORS configuration
+
+```json
+[
+  {
+    "origin": ["https://www.example.com"],
+    "method": ["PUT"],
+    "responseHeader": ["Origin", "Content-Type", "Content-MD5", "Content-Disposition"],
+    "maxAgeSeconds": 3600
+  }
+]
+```
+
+#### Example: Azure Storage CORS configuration
+
+```xml
+<Cors>
+  <CorsRule>
+    <AllowedOrigins>https://www.example.com</AllowedOrigins>
+    <AllowedMethods>PUT</AllowedMethods>
+    <AllowedHeaders>Origin, Content-Type, Content-MD5, x-ms-blob-content-disposition, x-ms-blob-type</AllowedHeaders>
+    <MaxAgeInSeconds>3600</MaxAgeInSeconds>
+  </CorsRule>
+<Cors>
+```
 
 ### Direct upload JavaScript events
 
