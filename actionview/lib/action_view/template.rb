@@ -384,7 +384,7 @@ module ActionView
                   byebug
                   def rails_ehtml                      
                     html = lambda { |string|
-                      banal_source_inspect.push("@output_buffer.safe_append = " + '"' + string + '"' ) # string.to_string_for_ruby_code_string
+                      banal_source_inspect.push("@output_buffer.safe_append = " + '\'' + string + '\'' + '.freeze' ) # string.to_string_for_ruby_code_string
                     }
                                         
                     yield(html) # htm typescript ruby, htm typescript
@@ -393,17 +393,17 @@ module ActionView
                   rails_ehtml do |html|
                     html.call(%Q{<div class='tweezer-docking'>})
                       html.call(%Q{<div class='tweezer-digestable'>})
-                        html.call('<div>')
+                        html.call(%Q{<div>})
                           §(USING_APPEND_OVER_SAFE_APPEND) do # ∆
                             banal_source_inspect.push("@output_buffer.append  = debug_inspect.compact.map(&:receiver).map(&:class).map(&:inspect).inspect")
                           end
-                        html.call('</div>')
+                        html.call(%Q{</div>})
                       html.call(%Q{</div>})
                   
                       html.call(%Q{<div>})
-                        html.call('<div>')
+                        html.call(%Q{<div>})
                           banal_source_inspect.push(source_line)
-                        html.call('</div>')
+                        html.call(%Q{</div>})
                       html.call(%Q{</div>})
                     html.call(%Q{</div>})
                   end
