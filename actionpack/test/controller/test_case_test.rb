@@ -990,6 +990,12 @@ XML
     post :render_json, body: { foo: "heyo" }.to_json, as: :json
     assert_equal({ "foo" => "heyo" }, response.parsed_body)
   end
+
+  def test_chunked_request
+    @request.headers["Transfer-Encoding"] = "chunked"
+    post :test_params, params: { foo: "heyo" }, xhr: true
+    assert_equal("foo=heyo", @request.raw_post)
+  end
 end
 
 class ResponseDefaultHeadersTest < ActionController::TestCase

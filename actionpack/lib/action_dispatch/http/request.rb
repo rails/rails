@@ -321,10 +321,21 @@ module ActionDispatch
     def raw_post
       unless has_header? "RAW_POST_DATA"
         raw_post_body = body
-        set_header("RAW_POST_DATA", raw_post_body.read(content_length))
+        set_header("RAW_POST_DATA",
+          if chunked?
+            raw_post_body.rewind if raw_post_body.respond_to?(:rewind)
+            raw_post_body.read
+          else
+            raw_post_body.read(content_length)
+          end
+        )
         raw_post_body.rewind if raw_post_body.respond_to?(:rewind)
       end
       get_header "RAW_POST_DATA"
+    end
+
+    def chunked?
+      headers["Transfer-Encoding"] =~ /chunked/i
     end
 
     # The request body is an IO input stream. If the RAW_POST_DATA environment
