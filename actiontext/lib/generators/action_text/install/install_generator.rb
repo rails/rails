@@ -9,7 +9,7 @@ module ActionText
       source_root File.expand_path("templates", __dir__)
 
       def install_javascript_dependencies
-        template "#{__dir__}/../../../../../railties/lib/rails/generators/rails/app/templates/bin/yarn.tt",
+        template "#{GEM_ROOT}/../railties/lib/rails/generators/rails/app/templates/bin/yarn.tt",
                  "bin/yarn"
 
         say "Installing JavaScript dependencies"
@@ -47,7 +47,7 @@ module ActionText
       def create_actiontext_files
         template "actiontext.scss", "app/assets/stylesheets/actiontext.scss"
 
-        copy_file "#{__dir__}/../../../../app/views/active_storage/blobs/_blob.html.erb",
+        copy_file "#{GEM_ROOT}/app/views/active_storage/blobs/_blob.html.erb",
                   "app/views/active_storage/blobs/_blob.html.erb"
       end
 
@@ -57,15 +57,19 @@ module ActionText
         run "rake action_text:install:migrations"
       end
 
+      hook_for :test_framework
+
+      private
+
+      GEM_ROOT = "#{__dir__}/../../../.."
+
       def js_dependencies
-        package_contents = File.read(Pathname.new("#{__dir__}/../../../../package.json"))
+        package_contents = File.read(Pathname.new("#{GEM_ROOT}/package.json"))
         js_package = JSON.load(package_contents)
 
         js_package["peerDependencies"].dup.merge \
           js_package["name"] => "^#{js_package["version"]}"
       end
-
-      hook_for :test_framework
     end
   end
 end
