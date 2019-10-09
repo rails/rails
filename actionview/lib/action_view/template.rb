@@ -356,7 +356,7 @@ module ActionView
 
 
 
-
+        banal_source_inspect_raw = source
         # start_appending = false
         def banal_source_inspect; @source_drop ||= []; end
         
@@ -368,7 +368,7 @@ module ActionView
         ) do  
           Stick('1', stopping_threshold = 5)
           
-          source.split(';').each.with_index do |source_line|
+          banal_source_inspect_raw.split(';').each.with_index do |source_line|
           
             Stick('2') do
               source_line =~ /@output_buffer/ ? stopping_threshold +=1 : stopping_threshold -= 1
