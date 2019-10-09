@@ -391,8 +391,8 @@ module ActionView
                   end
                   
                   rails_ehtml do |html|
-                    html.call(%Q{<div class='tweezer-docking'>})
-                      html.call(%Q{<div class='tweezer-digestable'>})
+                    html.call(%Q{<div class="tweezer-docking">})
+                      html.call(%Q{<div class="tweezer-digestable">})
                         html.call(%Q{<div>})
                           §(USING_APPEND_OVER_SAFE_APPEND) do # ∆
                             banal_source_inspect.push("@output_buffer.append  = debug_inspect.compact.map(&:receiver).map(&:class).map(&:inspect).inspect")
