@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "tmpdir"
+require "action_mailer/ses_mailer"
 
 module ActionMailer
   # This module handles everything related to mail delivery, from registering
@@ -34,6 +35,8 @@ module ActionMailer
         arguments: "-i"
 
       add_delivery_method :test, Mail::TestMailer
+
+      add_delivery_method :ses, SESMailer
     end
 
     # Helpers for creating and wrapping delivery behavior, used by DeliveryMethods.

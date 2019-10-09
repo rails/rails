@@ -92,6 +92,11 @@ end
 gem "aws-sdk-sns", require: false
 gem "webmock"
 
+# Action Mailer
+group :mailer do
+  gem "aws-sdk-ses", require: false
+end
+
 group :ujs do
   gem "qunit-selenium"
   gem "webdrivers"

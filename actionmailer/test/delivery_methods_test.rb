@@ -45,6 +45,11 @@ class DefaultsDeliveryMethodsTest < ActiveSupport::TestCase
     }
     assert_equal settings, ActionMailer::Base.sendmail_settings
   end
+
+  test "default ses settings" do
+    settings = {}
+    assert_equal settings, ActionMailer::Base.ses_settings
+  end
 end
 
 class CustomDeliveryMethodsTest < ActiveSupport::TestCase
