@@ -186,6 +186,7 @@ module ApplicationTests
 
     test "sprockets cache is not shared between environments" do
       app_file "app/assets/images/rails.png", "notactuallyapng"
+      remove_file "app/assets/stylesheets/application.css"
       app_file "app/assets/stylesheets/application.css.erb", "body { background: '<%= asset_path('rails.png') %>'; }"
       add_to_env_config "production", 'config.assets.prefix = "production_assets"'
 
@@ -234,6 +235,7 @@ module ApplicationTests
 
     test "precompile creates a manifest file with all the assets listed" do
       app_file "app/assets/images/rails.png", "notactuallyapng"
+      remove_file "app/assets/stylesheets/application.css"
       app_file "app/assets/stylesheets/application.css.erb", "<%= asset_path('rails.png') %>"
       app_file "app/assets/javascripts/application.js", "alert();"
 
@@ -278,6 +280,7 @@ module ApplicationTests
 
     test "precompile properly refers files referenced with asset_path" do
       app_file "app/assets/images/rails.png", "notactuallyapng"
+      remove_file "app/assets/stylesheets/application.css"
       app_file "app/assets/stylesheets/application.css.erb", "p { background-image: url(<%= asset_path('rails.png') %>) }"
 
       precompile!
@@ -289,6 +292,7 @@ module ApplicationTests
     test "precompile shouldn't use the digests present in manifest.json" do
       app_file "app/assets/images/rails.png", "notactuallyapng"
 
+      remove_file "app/assets/stylesheets/application.css"
       app_file "app/assets/stylesheets/application.css.erb", "p { background-image: url(<%= asset_path('rails.png') %>) }"
 
       precompile! RAILS_ENV: "production"
@@ -307,6 +311,7 @@ module ApplicationTests
 
     test "precompile appends the MD5 hash to files referenced with asset_path and run in production with digest true" do
       app_file "app/assets/images/rails.png", "notactuallyapng"
+      remove_file "app/assets/stylesheets/application.css"
       app_file "app/assets/stylesheets/application.css.erb", "p { background-image: url(<%= asset_path('rails.png') %>) }"
 
       precompile! RAILS_ENV: "production"
