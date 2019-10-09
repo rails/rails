@@ -1034,7 +1034,9 @@ module ActiveRecord
       end
 
       def connection_pool_list
-        owner_to_config.values.compact.map(&:connection_pool)
+        owner_to_config.values.compact.map do |db_config|
+          PoolManager.instance.pool_for(db_config)
+        end
       end
       alias :connection_pools :connection_pool_list
 
@@ -1057,7 +1059,7 @@ module ActiveRecord
         owner_to_config[spec.name] = db_config
 
         message_bus.instrument("!connection.active_record", payload) do
-          db_config.connection_pool
+          PoolManager.instance.pool_for(db_config)
         end
       end
 
@@ -1124,7 +1126,7 @@ module ActiveRecord
       # re-establishing the connection.
       def remove_connection(spec_name)
         if db_config = owner_to_config.delete(spec_name)
-          db_config.disconnect!
+          PoolManager.instance.disconnect_pool_for(db_config)
           db_config.configuration_hash
         end
       end
@@ -1133,11 +1135,64 @@ module ActiveRecord
       # This makes retrieving the connection pool O(1) once the process is warm.
       # When a connection is established or removed, we invalidate the cache.
       def retrieve_connection_pool(spec_name)
-        owner_to_config[spec_name]&.connection_pool
+        db_config = owner_to_config[spec_name]
+        return unless db_config
+
+        PoolManager.instance.pool_for(db_config)
       end
 
       private
         attr_reader :owner_to_config
     end
+
+    class PoolManager # :nodoc:
+      include Mutex_m
+      include Singleton
+
+      def config_to_pool
+        @config_to_pool ||= {}
+      end
+
+      def discard_pools!
+        @config_to_pool.each_key do |db_config|
+          discard_pool_for(db_config)
+        end
+      end
+
+      def pool_for(db_config)
+        ActiveSupport::ForkTracker.check!
+
+        config_to_pool[db_config] || synchronize do
+          config_to_pool[db_config] ||= ConnectionAdapters::ConnectionPool.new(db_config)
+        end
+      end
+
+      def disconnect_pool_for(db_config)
+        ActiveSupport::ForkTracker.check!
+
+        return unless config_to_pool.key?(db_config)
+
+        synchronize do
+          pool = config_to_pool[db_config]
+          pool.automatic_reconnect = false
+          pool.disconnect!
+        end
+
+        nil
+      end
+
+      def discard_pool_for(db_config)
+        return unless config_to_pool.key?(db_config)
+
+        synchronize do
+          pool = config_to_pool.delete(db_config)
+          pool.discard!
+        end
+      end
+    end
   end
+end
+
+ActiveSupport::ForkTracker.after_fork do
+  ActiveRecord::ConnectionAdapters::PoolManager.instance.discard_pools!
 end
