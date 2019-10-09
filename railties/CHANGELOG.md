@@ -1,3 +1,7 @@
+* Generators that inherit from NamedBase respect `--force` option
+
+  *Josh Brody*
+
 * Support using environment variable to set pidfile
 
   *Ben Thorner*
