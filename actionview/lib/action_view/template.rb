@@ -368,17 +368,19 @@ module ActionView
         ) do  
           Stick('1', stopping_threshold = 5)
           
-          banal_source_inspect_raw.split(';').each.with_index do |source_line|
+          rend = banal_source_inspect_raw.split(';').length - 2
+          rstart = 2
+          banal_source_inspect_raw.split(';').each.with_index do |source_line, i|
           
-            Stick('2') do
-              source_line =~ /@output_buffer/ ? stopping_threshold +=1 : stopping_threshold -= 1
-            end
+            # Stick('2') do
+#               source_line =~ /@output_buffer/ ? stopping_threshold +=1 : stopping_threshold -= 1
+#             end
 
           
             Stick('3') do
               
               # finished_if_statement_on_construction_site do 🚧 # ∆ syntax highlilghting should put the whole code blocks background to yelllow
-                if stopping_threshold < 9 && stopping_threshold > 7
+                if i < rend && i > rstart
                   byebug
                   def rails_ehtml                      
                     html = lambda { |string|
