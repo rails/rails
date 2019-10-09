@@ -300,18 +300,13 @@ As you see, that still uses `String#camelize` as fallback. If you instead prefer
 
 ```ruby
 # config/initializers/zeitwerk.rb
-inflector = Class.new(Zeitwerk::Inflector) do
-  def camelize(basename, _abspath)
-    basename == "html_parser" ? "HTMLParser" : super
-  end
-end.new
-
 Rails.autoloaders.each do |autoloader|
-  autoloader.inflector = inflector
+  autoloader.inflector = Zeitwerk::Inflector.new
+  autoloader.inflector.inflect("html_parser" => "HTMLParser")
 end
 ```
 
-Please, check the [Zeitwerk documentation](https://github.com/fxn/zeitwerk#custom-inflector) for further details.
+You can even define a custom inflector for full flexibility. Please, check the [Zeitwerk documentation](https://github.com/fxn/zeitwerk#custom-inflector) for further details.
 
 Troubleshooting
 ---------------
