@@ -620,6 +620,11 @@ class InverseBelongsToTests < ActiveRecord::TestCase
     assert_equal i.topic, iz.topic, "Interest topics should be the same after changes to parent-owned instance"
   end
 
+  def test_does_not_trigger_association_callbacks_on_set_when_the_inverse_is_a_has_many
+    man = interests(:trainspotting).man_with_callbacks
+    assert_not_predicate man, :add_callback_called?
+  end
+
   def test_child_instance_should_be_shared_with_replaced_via_accessor_parent
     f = Face.first
     m = Man.new(name: "Charles")
@@ -715,6 +720,11 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
     assert_equal i.topic, iz.topic, "Interest topics should be the same after changes to child"
     iz.topic = "Cow tipping"
     assert_equal i.topic, iz.topic, "Interest topics should be the same after changes to parent-owned instance"
+  end
+
+  def test_does_not_trigger_association_callbacks_on_set_when_the_inverse_is_a_has_many
+    man = interests(:llama_wrangling).polymorphic_man_with_callbacks
+    assert_not_predicate man, :add_callback_called?
   end
 
   def test_trying_to_access_inverses_that_dont_exist_shouldnt_raise_an_error
