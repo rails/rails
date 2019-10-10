@@ -63,17 +63,17 @@ module ActionView
           ).src
           
            # 000 as the start of a new id schema for variables
-           src_001 = %{
-              @output_buffer.safe_append = (
-                '
-                  <div onClick="alert(\\'#{template.inspect}\\')">
-                '.freeze
-              )
-            }
-            
-            src_002 = '@output_buffer.safe_append = (\'</div>\'.freeze)'
-            
-            src_003 = (src_001 + ';' + src_000 + ';' + src_002 + ';' + '@output_buffer')
+           # src_001 = %{
+    #           @output_buffer.safe_append = (
+    #             '
+    #               <div onClick="alert(\\'#{template.inspect}\\')">
+    #             '.freeze
+    #           )
+    #         }
+    #
+    #         src_002 = '@output_buffer.safe_append = (\'</div>\'.freeze)'
+    #
+    #         src_003 = (src_001 + ';' + src_000 + ';' + src_002 + ';' + '@output_buffer')
         end
 
       private
