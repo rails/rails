@@ -109,7 +109,8 @@ module ActiveRecord
         end
 
         def invertible_for?(record)
-          inverse_reflection_for(record)
+          inverse = inverse_reflection_for(record)
+          inverse && (inverse.has_one? || ActiveRecord::Base.has_many_inversing)
         end
 
         def stale_state

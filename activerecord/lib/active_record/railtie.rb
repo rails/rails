@@ -28,6 +28,7 @@ module ActiveRecord
 
     config.active_record.use_schema_cache_dump = true
     config.active_record.maintain_test_schema = true
+    config.active_record.has_many_inversing = false
 
     config.active_record.sqlite3 = ActiveSupport::OrderedOptions.new
     config.active_record.sqlite3.represent_boolean_as_integer = nil

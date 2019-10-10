@@ -2144,42 +2144,6 @@ module ApplicationTests
       assert_equal({}, Rails.application.config.my_custom_config)
     end
 
-    test "represent_boolean_as_integer is deprecated" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
-        Rails.application.config.active_record.sqlite3.represent_boolean_as_integer = true
-      RUBY
-
-      app_file "app/models/post.rb", <<-RUBY
-        class Post < ActiveRecord::Base
-        end
-      RUBY
-
-      app "development"
-      assert_deprecated do
-        force_lazy_load_hooks { Post }
-      end
-    end
-
-    test "represent_boolean_as_integer raises when the value is false" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
-        Rails.application.config.active_record.sqlite3.represent_boolean_as_integer = false
-      RUBY
-
-      app_file "app/models/post.rb", <<-RUBY
-        class Post < ActiveRecord::Base
-        end
-      RUBY
-
-      app "development"
-      assert_raises(RuntimeError) do
-        force_lazy_load_hooks { Post }
-      end
-    end
-
     test "config_for containing ERB tags should evaluate" do
       app_file "config/custom.yml", <<-RUBY
       development:
@@ -2287,6 +2251,18 @@ module ApplicationTests
       assert_equal "https://example.org/", last_response.location
     end
 
+    test "ActiveSupport::MessageEncryptor.use_authenticated_message_encryption can be configured via config.active_support.use_authenticated_message_encryption" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/new_framework_defaults_6_1.rb", <<-RUBY
+        Rails.application.config.active_record.has_many_inversing = true
+      RUBY
+
+      app "development"
+
+      assert_equal true, ActiveRecord::Base.has_many_inversing
+    end
+
     test "ActiveSupport::MessageEncryptor.use_authenticated_message_encryption is true by default for new apps" do
       app "development"
 
@@ -2301,18 +2277,6 @@ module ApplicationTests
       assert_equal false, ActiveSupport::MessageEncryptor.use_authenticated_message_encryption
     end
 
-    test "ActiveSupport::MessageEncryptor.use_authenticated_message_encryption can be configured via config.active_support.use_authenticated_message_encryption" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
-        Rails.application.config.active_support.use_authenticated_message_encryption = true
-      RUBY
-
-      app "development"
-
-      assert_equal true, ActiveSupport::MessageEncryptor.use_authenticated_message_encryption
-    end
-
     test "ActiveSupport::Digest.hash_digest_class is Digest::SHA1 by default for new apps" do
       app "development"
 
@@ -2325,18 +2289,6 @@ module ApplicationTests
       app "development"
 
       assert_equal Digest::MD5, ActiveSupport::Digest.hash_digest_class
-    end
-
-    test "ActiveSupport::Digest.hash_digest_class can be configured via config.active_support.use_sha1_digests" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
-        Rails.application.config.active_support.use_sha1_digests = true
-      RUBY
-
-      app "development"
-
-      assert_equal Digest::SHA1, ActiveSupport::Digest.hash_digest_class
     end
 
     test "custom serializers should be able to set via config.active_job.custom_serializers in an initializer" do
@@ -2359,18 +2311,6 @@ module ApplicationTests
     test "ActionView::Helpers::FormTagHelper.default_enforce_utf8 is true in an upgraded app" do
       remove_from_config '.*config\.load_defaults.*\n'
       add_to_config 'config.load_defaults "5.2"'
-
-      app "development"
-
-      assert_equal true, ActionView::Helpers::FormTagHelper.default_enforce_utf8
-    end
-
-    test "ActionView::Helpers::FormTagHelper.default_enforce_utf8 can be configured via config.action_view.default_enforce_utf8" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
-        Rails.application.config.action_view.default_enforce_utf8 = true
-      RUBY
 
       app "development"
 
@@ -2411,18 +2351,6 @@ module ApplicationTests
       app "development"
 
       assert_equal false, ActiveJob::Base.return_false_on_aborted_enqueue
-    end
-
-    test "ActiveJob::Base.return_false_on_aborted_enqueue can be configured in the new framework defaults" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
-        Rails.application.config.active_job.return_false_on_aborted_enqueue = true
-      RUBY
-
-      app "development"
-
-      assert_equal true, ActiveJob::Base.return_false_on_aborted_enqueue
     end
 
     test "ActiveStorage.queues[:analysis] is :active_storage_analysis by default" do
@@ -2466,18 +2394,6 @@ module ApplicationTests
       app "development"
 
       assert_equal true, ActionDispatch::Response.return_only_media_type_on_content_type
-    end
-
-    test "ActionDispatch::Response.return_only_media_type_on_content_type can be configured in the new framework defaults" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
-        Rails.application.config.action_dispatch.return_only_media_type_on_content_type = false
-      RUBY
-
-      app "development"
-
-      assert_equal false, ActionDispatch::Response.return_only_media_type_on_content_type
     end
 
     test "ActionMailbox.logger is Rails.logger by default" do
@@ -2564,18 +2480,6 @@ module ApplicationTests
       app "development"
 
       assert_equal ActionMailer::DeliveryJob, ActionMailer::Base.delivery_job
-    end
-
-    test "ActionMailer::Base.delivery_job can be configured in the new framework defaults" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
-        Rails.application.config.action_mailer.delivery_job = "ActionMailer::MailDeliveryJob"
-      RUBY
-
-      app "development"
-
-      assert_equal ActionMailer::MailDeliveryJob, ActionMailer::Base.delivery_job
     end
 
     test "ActiveRecord::Base.filter_attributes should equal to filter_parameters" do
