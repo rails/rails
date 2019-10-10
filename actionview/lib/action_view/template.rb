@@ -370,7 +370,8 @@ module ActionView
     
         
     
-        banal_source_inspect_raw = banal_source_inspect_raw.split(/(?<=@output_buffer[^;]+);/).reject do  |source_line|
+        banal_source_inspect_raw = banal_source_inspect_raw.split(/(@output_buffer[^;]+);/).reject do  |source_line|
+          byebug
           [  
             (source_line =~ /\A@output_buffer.safe_append=(['"])[^\1]\Z/),
             (source_line =~ /\A['"].freeze\Z/),
