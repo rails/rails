@@ -410,7 +410,7 @@ module ActionView
           # check git diff, module_eval(source, linenubmer, file) was here before
           # actuallly show the lline number and fille of the tempalte soource
           mod.module_eval(banal_source_inspect.join(';'))
-        rescue SyntaxError
+        rescue Exception => e
           byebug
           
           # Account for when code in the template is not syntactically valid; e.g. if we're using
