@@ -249,14 +249,14 @@ module ApplicationTests
     end
 
     test "the manifest file should be saved by default in the same assets folder" do
-      app_file "app/assets/javascripts/application.js", "alert();"
+      app_file "app/assets/stylesheets/test.css", "a{color: red}"
       add_to_config "config.assets.prefix = '/x'"
 
       precompile!
 
       manifest = Dir["#{app_path}/public/x/.sprockets-manifest-*.json"].first
       assets = ActiveSupport::JSON.decode(File.read(manifest))
-      assert_match(/application-([0-z]+)\.js/, assets["assets"]["application.js"])
+      assert_match(/test-([0-z]+)\.css/, assets["assets"]["test.css"])
     end
 
     test "assets do not require any assets group gem when manifest file is present" do
