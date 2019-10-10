@@ -88,9 +88,9 @@ module ActionView
           if value.is_a?(Array)
             value = escape ? safe_join(value, " ") : value.join(" ")
           else
-            value = escape ? ERB::Util.unwrapped_html_escape(value).dup : value.to_s.dup
+            value = escape ? ERB::Util.unwrapped_html_escape(value) : value.to_s
           end
-          value.gsub!('"', "&quot;")
+          value = value.gsub('"', "&quot;") if value.include?('"')
           %(#{key}="#{value}")
         end
 
