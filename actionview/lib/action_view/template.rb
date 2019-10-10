@@ -381,7 +381,11 @@ module ActionView
             rails_ehtml do |html|
               html.call(%Q{<div class="tweezer-docking" style="display: none;">}, banal_source_inspect)
                 html.call(%Q{<div class="tweezer-digestable">}, banal_source_inspect)
-                  html.call(%Q{<div>}, banal_source_inspect)
+                  §(USING_APPEND_OVER_SAFE_APPEND) do
+                    banal_source_inspect.push("@output_buffer.append  = " + source_line.inspect)
+                  end
+                  
+                  html.call(%Q{<div class="tweezeer-digestable-popup">}, banal_source_inspect)
                     §(USING_APPEND_OVER_SAFE_APPEND) do
                       banal_source_inspect.push("@output_buffer.append  = debug_inspect.compact.map(&:receiver).map(&:class).map(&:inspect).inspect")
                     end
