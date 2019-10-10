@@ -368,21 +368,12 @@ module ActionView
         banal_source_inspect_raw = source
         # SourceLine.new
     
-        
-    
-        banal_source_inspect_raw = banal_source_inspect_raw.split(/(@output_buffer[^;]+);/).reject do  |source_line|
-          [  
-            (source_line =~ /\A@output_buffer.safe_append=(['"])[^\1]\Z/),
-            (source_line =~ /\A['"].freeze\Z/),
-            (source_line =~ /\A@output_buffer\.safe_append='" style="display: none\Z/),
-            (source_line =~ /\A">\s*'\.freeze\Z/)
-          ].any?
-        end
+        banal_source_inspect_raw = banal_source_inspect_raw.split(';')
       
         rend = banal_source_inspect_raw.length - 2
         rstart = 2
         banal_source_inspect_raw.each.with_index do |source_line, i|   
-          if i < rend && i > rstart && source_line =~ /@output_buffer.*\Z/
+          if i < rend && i > rstart && source_line =~  (/\A@output_buffer\.(?:safe)?_?append\([^\)]+\);\Z/)
             rails_ehtml do |html|
               html.call(%Q{<div class="tweezer-docking">}, banal_source_inspect)
                 html.call(%Q{<div class="tweezer-digestable">}, banal_source_inspect)
