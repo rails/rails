@@ -1,3 +1,21 @@
+*   The default inflectors in `zeitwerk` mode support overrides:
+
+    ```ruby
+    # config/initializers/zeitwerk.rb
+    Rails.autoloaders.each do |autoloader|
+      autoloader.inflector.inflect(
+        "html_parser" => "HTMLParser",
+        "ssl_error"   => "SSLError"
+      )
+    end
+    ```
+
+    That way, you can tweak how individual basenames are inflected without touching Active Support inflection rules, which are global. These inflectors fallback to `String#camelize`, so existing inflection rules are still taken into account for non-overridden basenames.
+
+    Please, check the [autoloading guide for `zeitwerk` mode](https://guides.rubyonrails.org/v6.0/autoloading_and_reloading_constants.html#customizing-inflections) if you prefer not to depend on `String#camelize` at all.
+
+    *Xavier Noria*
+
 *   Improve `Range#===`, `Range#include?`, and `Range#cover?` to work with beginless (startless)
     and endless range targets.
 
