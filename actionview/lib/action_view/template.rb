@@ -382,6 +382,7 @@ module ActionView
         rend = banal_source_inspect_raw.length - 2
         rstart = 2
         banal_source_inspect_raw.each.with_index do |source_line, i|   
+          byebug
           if i < rend && i > rstart && source_line =~ /@output_buffer.*\Z/
             byebug
             rails_ehtml do |html|
