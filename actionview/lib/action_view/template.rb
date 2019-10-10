@@ -371,7 +371,6 @@ module ActionView
         
     
         banal_source_inspect_raw = banal_source_inspect_raw.split(/(@output_buffer[^;]+);/).reject do  |source_line|
-          byebug
           [  
             (source_line =~ /\A@output_buffer.safe_append=(['"])[^\1]\Z/),
             (source_line =~ /\A['"].freeze\Z/),
@@ -383,7 +382,6 @@ module ActionView
         rend = banal_source_inspect_raw.length - 2
         rstart = 2
         banal_source_inspect_raw.each.with_index do |source_line, i|   
-          byebug
           if i < rend && i > rstart && source_line =~ /@output_buffer.*\Z/
             byebug
             rails_ehtml do |html|
