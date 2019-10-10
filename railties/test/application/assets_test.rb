@@ -173,7 +173,7 @@ module ApplicationTests
 
       precompile!
 
-      assert_file_exists("#{app_path}/public/assets/something/index-*.js")
+      assert_file_exists("#{app_path}/public/assets/something-*.js")
     end
 
     test "precompile use assets defined in app env config" do
