@@ -403,7 +403,7 @@ module ActionView
         begin
           # check git diff, module_eval(source, linenubmer, file) was here before
           # actuallly show the lline number and fille of the tempalte soource
-          mod.module_eval(banal_source_inspect)
+          mod.module_eval(banal_source_inspect.join(';'))
         rescue SyntaxError
           byebug
           
