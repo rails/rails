@@ -50,6 +50,14 @@ class RedisAdapterTest::Connector < ActionCable::TestCase
     end
   end
 
+  test "doesn't add default id if it is specified to nil" do
+    config = { url: 1, host: 2, port: 3, db: 4, password: 5, id: nil }
+
+    assert_called_with ::Redis, :new, [ config ] do
+      connect config
+    end
+  end
+
   def connect(config)
     ActionCable::SubscriptionAdapter::Redis.redis_connector.call(config)
   end
