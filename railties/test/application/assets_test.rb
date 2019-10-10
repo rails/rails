@@ -43,6 +43,7 @@ module ApplicationTests
 
     def assert_file_exists(filename)
       globbed = Dir[filename]
+      assert Dir.exist?(File.dirname(filename)), "Directory #{File.dirname(filename)} does not exist"
       assert globbed.one?, "Found #{globbed.size} files matching #{filename}. All files in the directory: #{Dir.entries(File.dirname(filename)).inspect}"
     end
 
@@ -432,6 +433,7 @@ module ApplicationTests
 
       precompile!
 
+      assert_file_exists("#{app_path}/public/assets/application-*.js")
       assert_match(/Post;/, File.read(Dir["#{app_path}/public/assets/application-*.js"].first))
     end
 
