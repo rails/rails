@@ -355,7 +355,7 @@ class FinderTest < ActiveRecord::TestCase
     #   limit of 3 and offset of 9, then you should find that there
     #   will be only 2 results, regardless of the limit.
     devs = Developer.all
-    last_devs = Developer.limit(3).offset(9).find devs.map(&:id)
+    last_devs = Developer.limit(3).offset(9).find(devs.map(&:id).sort)
     assert_equal 2, last_devs.size
     assert_equal "fixture_10", last_devs[0].name
     assert_equal "Jamis", last_devs[1].name
