@@ -20,6 +20,12 @@ module ActiveSupport
       end
     end
 
+    class NoContentChangesError < RuntimeError
+      def initialize
+        super "No changes were made to the file."
+      end
+    end
+
     CIPHER = "aes-128-gcm"
 
     def self.generate_key
@@ -67,7 +73,9 @@ module ActiveSupport
 
         updated_contents = tmp_path.binread
 
-        write(updated_contents) if updated_contents != contents
+        raise NoContentChangesError if updated_contents == contents
+
+        write(updated_contents)
       ensure
         FileUtils.rm(tmp_path) if tmp_path&.exist?
       end

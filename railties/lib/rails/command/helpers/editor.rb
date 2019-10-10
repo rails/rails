@@ -28,6 +28,8 @@ module Rails
             say "Aborted changing file: nothing saved."
           rescue ActiveSupport::EncryptedFile::MissingKeyError => error
             say error.message
+          rescue ActiveSupport::EncryptedFile::MissingKeyError => error
+            say "File not saved: #{error.message}"
           end
       end
     end

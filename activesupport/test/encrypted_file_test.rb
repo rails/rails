@@ -53,6 +53,15 @@ class EncryptedFileTest < ActiveSupport::TestCase
     end
   end
 
+  test "raise NoContentChangesError when file content is not changed" do
+    @encrypted_file.write @content
+    assert_raise(ActiveSupport::EncryptedFile::NoContentChangesError) do
+      @encrypted_file.change do |file|
+        file.write(@content)
+      end
+    end
+  end
+
   test "respects existing content_path symlink" do
     @encrypted_file.write(@content)
 

@@ -36,9 +36,8 @@ module Rails
 
         catch_editing_exceptions do
           change_credentials_in_system_editor
+          say "File encrypted and saved."
         end
-
-        say "File encrypted and saved."
       rescue ActiveSupport::MessageEncryptor::InvalidMessage
         say "Couldn't decrypt #{content_path}. Perhaps you passed the wrong key?"
       end
