@@ -427,6 +427,8 @@ module ActionView
           # ERB and the user writes <%= foo( %>, attempting to call a helper `foo` and interpolate
           # the result into the template, but missing an end parenthesis.
           raise SyntaxErrorInTemplate.new(self, original_source)
+        ensure
+          byebug
         end
       end
       
