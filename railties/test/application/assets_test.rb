@@ -121,7 +121,7 @@ module ApplicationTests
       end
     end
 
-    test "precompile application.js and application.css and all other non JS/CSS files" do
+    test "precompile application.js and application.css and all other non JS/CSS files if manifest requests" do
       app_file "app/assets/javascripts/application.js", "alert();"
       app_file "app/assets/stylesheets/application.css", "body{}"
 
@@ -133,6 +133,12 @@ module ApplicationTests
 
       app_file "app/assets/javascripts/something.else.js.erb", "alert();"
       app_file "app/assets/stylesheets/something.else.css.erb", "body{}"
+
+      app_file "app/assets/config/manifest.js", <<~JS
+        //= link_tree ../images
+        //= link_directory ../stylesheets .css
+        //= link_directory ../javascripts .js
+      JS
 
       images_should_compile = ["a.png", "happyface.png", "happy_face.png", "happy.face.png",
                                "happy-face.png", "happy.happy_face.png", "happy_happy.face.png",
@@ -260,6 +266,7 @@ module ApplicationTests
 
     test "assets do not require any assets group gem when manifest file is present" do
       app_file "app/assets/javascripts/application.js", "alert();"
+      app_file "app/assets/config/manifest.js", "//= link application.js"
       add_to_env_config "production", "config.public_file_server.enabled = true"
 
       precompile! RAILS_ENV: "production"
@@ -429,6 +436,7 @@ module ApplicationTests
       app_file "app/models/post.rb", "class Post; end"
       app_file "app/assets/javascripts/application.js", "//= require_tree ."
       app_file "app/assets/javascripts/xmlhr.js.erb", "<%= Post.name %>"
+      app_file "app/assets/config/manifest.js", "//= link application.js"
 
       precompile!
 
@@ -516,6 +524,11 @@ module ApplicationTests
         app_file "app/assets/javascripts/application.js", "//= require_tree ."
         app_file "app/assets/javascripts/xmlhr.js", "function f1() { alert(); }"
         app_file "app/views/posts/index.html.erb", "<%= javascript_include_tag 'application' %>"
+        app_file "app/assets/config/manifest.js", <<~JS
+          //= link_tree ../images
+          //= link_directory ../stylesheets .css
+          //= link_directory ../javascripts .js
+        JS
 
         app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
