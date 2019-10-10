@@ -60,16 +60,15 @@ module ActionText
       hook_for :test_framework
 
       private
+        GEM_ROOT = "#{__dir__}/../../../.."
 
-      GEM_ROOT = "#{__dir__}/../../../.."
+        def js_dependencies
+          package_contents = File.read(Pathname.new("#{GEM_ROOT}/package.json"))
+          js_package = JSON.load(package_contents)
 
-      def js_dependencies
-        package_contents = File.read(Pathname.new("#{GEM_ROOT}/package.json"))
-        js_package = JSON.load(package_contents)
-
-        js_package["peerDependencies"].dup.merge \
-          js_package["name"] => "^#{js_package["version"]}"
-      end
+          js_package["peerDependencies"].dup.merge \
+            js_package["name"] => "^#{js_package["version"]}"
+        end
     end
   end
 end
