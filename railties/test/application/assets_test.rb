@@ -489,9 +489,9 @@ module ApplicationTests
       class ::PostsController < ActionController::Base; end
 
       get "/posts", {}, { "HTTPS" => "off" }
-      assert_match('src="http://example.com/assets/application.self.js', last_response.body)
+      assert_match('src="http://example.com/assets/application.debug.js', last_response.body)
       get "/posts", {}, { "HTTPS" => "on" }
-      assert_match('src="https://example.com/assets/application.self.js', last_response.body)
+      assert_match('src="https://example.com/assets/application.debug.js', last_response.body)
     end
 
     test "asset urls should be protocol-relative if no request is in scope" do
