@@ -15,6 +15,7 @@ require "active_support/core_ext/name_error"
 require "active_support/core_ext/string/starts_ends_with"
 require "active_support/dependencies/interlock"
 require "active_support/inflector"
+require "active_support/time"
 
 module ActiveSupport #:nodoc:
   module Dependencies #:nodoc:
