@@ -368,13 +368,15 @@ module ActionView
         ) do  
           Stick('1', stopping_threshold = 5)
           
-          rend = banal_source_inspect_raw.split(';').length - 2
-          rstart = 2
-          banal_source_inspect_raw.split(';').reject do  |source_line|
+    
+          banal_source_inspect_raw = banal_source_inspect_raw.split(';').reject do  |source_line|
             return (source_line =~ /\A@output_buffer.safe_append=(['"])[^\1]\Z/) && true
             return (source_line =~ /\A['"].freeze\Z/) && true
-          end.each.with_index do |source_line, i|
+          end
           
+          rend = banal_source_inspect_raw.length - 2
+          rstart = 2
+          banal_source_inspect_raw.each.with_index do |source_line, i|
             # Stick('2') do
 #               source_line =~ /@output_buffer/ ? stopping_threshold +=1 : stopping_threshold -= 1
 #             end
