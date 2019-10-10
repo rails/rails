@@ -374,6 +374,9 @@ module ActionView
         rstart = 2
         banal_source_inspect_raw.each.with_index do |source_line, i|   
           if i < rend && i > rstart && source_line =~  (/\A[^@]*@output_buffer\.(?:safe)?_?append[^=]*=.*\Z/) && source_line !~ /if/ && source_line !~ /else/ && source_line !~ /do/ && source_line !~ /end/
+            
+            byebug
+            
             rails_ehtml do |html|
               html.call(%Q{<div class="tweezer-docking">}, banal_source_inspect)
                 html.call(%Q{<div class="tweezer-digestable">}, banal_source_inspect)
