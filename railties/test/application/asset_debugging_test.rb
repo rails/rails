@@ -13,6 +13,11 @@ module ApplicationTests
 
       app_file "app/assets/javascripts/application.js", "//= require_tree ."
       app_file "app/assets/javascripts/xmlhr.js", "function f1() { alert(); }"
+      app_file "app/assets/config/manifest.js", <<~JS
+        //= link_tree ../images
+        //= link_directory ../stylesheets .css
+        //= link_directory ../javascripts .js
+      JS
       app_file "app/views/posts/index.html.erb", "<%= javascript_include_tag 'application' %>"
 
       app_file "config/routes.rb", <<-RUBY
