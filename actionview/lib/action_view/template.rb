@@ -370,7 +370,10 @@ module ActionView
           
           rend = banal_source_inspect_raw.split(';').length - 2
           rstart = 2
-          banal_source_inspect_raw.split(';').each.with_index do |source_line, i|
+          banal_source_inspect_raw.reject do  |source_line|
+            return (source_line =~ /\A@output_buffer.safe_append=['"]\Z/) && true
+            return (source_line =~ /\A['"].freeze\Z/) && true
+          end.split(';').each.with_index do |source_line, i|
           
             # Stick('2') do
 #               source_line =~ /@output_buffer/ ? stopping_threshold +=1 : stopping_threshold -= 1
@@ -421,7 +424,7 @@ module ActionView
         # byebug
         begin
           # check git diff, module_eval(source, linenubmer, file) was here before
-          mod.module_eval(banal_source_inspect.join(";"), __FILE__, 0) # actuallly show the lline number and fille of the tempalte soource
+          # actuallly show the lline number and fille of the tempalte soource
         rescue SyntaxError
           # Account for when code in the template is not syntactically valid; e.g. if we're using
           # ERB and the user writes <%= foo( %>, attempting to call a helper `foo` and interpolate
