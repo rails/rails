@@ -238,14 +238,13 @@ module ApplicationTests
       app_file "app/assets/images/rails.png", "notactuallyapng"
       remove_file "app/assets/stylesheets/application.css"
       app_file "app/assets/stylesheets/application.css.erb", "<%= asset_path('rails.png') %>"
-      app_file "app/assets/javascripts/application.js", "alert();"
 
       precompile!
 
       manifest = Dir["#{app_path}/public/assets/.sprockets-manifest-*.json"].first
       assets = ActiveSupport::JSON.decode(File.read(manifest))
-      assert_match(/application-([0-z]+)\.js/, assets["assets"]["application.js"])
       assert_match(/application-([0-z]+)\.css/, assets["assets"]["application.css"])
+      assert_match(/rails-([0-z]+)\.png/, assets["assets"]["rails.png"])
     end
 
     test "the manifest file should be saved by default in the same assets folder" do
