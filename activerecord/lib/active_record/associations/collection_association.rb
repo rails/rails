@@ -290,7 +290,7 @@ module ActiveRecord
         when Array
           super
         else
-          add_to_target(record)
+          add_to_target(record, true)
         end
       end
 
