@@ -410,10 +410,12 @@ module ActionView
                   banal_source_inspect.push(source_line)
                 end
                 
-                byebug
               # end
             end
           end
+      
+          byebug
+      
         end
         
         # byebug
