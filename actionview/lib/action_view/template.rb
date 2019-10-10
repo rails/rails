@@ -372,8 +372,8 @@ module ActionView
           [  
             (source_line =~ /\A@output_buffer.safe_append=(['"])[^\1]\Z/),
             (source_line =~ /\A['"].freeze\Z/),
-            (source_line =~ /@output_buffer.safe_append='" style="display: none/),
-            (source_line =~ /">      '.freeze/)
+            (source_line =~ /\A@output_buffer\.safe_append='" style="display: none\Z/),
+            (source_line =~ /\A">\s*'\.freeze\Z/)
           ].any?
         end
       
