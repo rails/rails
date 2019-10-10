@@ -1,3 +1,19 @@
+*   `t.timestamp 'column_name' null: true, default -> { "CURRENT_TIMESTAMP" }` migration now create nullable column
+
+    Before:
+    
+    ```ruby
+    t.timestamp 'column_name', null: true, default -> { "CURRENT_TIMESTAMP" } #=> generate NOT NULL column
+    ```
+
+    After:
+    
+    ```ruby
+    t.timestamp 'column_name', null: true, default -> { "CURRENT_TIMESTAMP" } #=> generate NULL column
+    ```
+ 
+    *Shinpei Maruyama*
+
 *   Add support for `belongs_to` to `has_many` inversing.
 
     *Gannon McGibbon*

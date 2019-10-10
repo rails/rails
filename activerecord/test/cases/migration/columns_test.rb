@@ -321,6 +321,16 @@ module ActiveRecord
       ensure
         connection.drop_table :my_table, if_exists: true
       end
+
+      def test_add_column_with_default_value_and_null_true
+        connection.create_table "my_table", force: true do |t|
+          t.timestamp :time, null: true, default: -> { "CURRENT_TIMESTAMP" }
+        end
+
+        assert connection.columns("my_table").find { |c| c.name == "time" }.null, "Column 'time' must allow nulls"
+      ensure
+        connection.drop_table :my_table, if_exists: true
+      end
     end
   end
 end
