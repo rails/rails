@@ -380,7 +380,7 @@ module ActionView
             Stick('3') do
               
               # finished_if_statement_on_construction_site do 🚧 # ∆ syntax highlilghting should put the whole code blocks background to yelllow
-                if i < rend && i > rstart
+                if i < rend && i > rstart && source_line !~ /\${.*}/ && source_line !~ /<button>/ && source_line !~ /\//
                   byebug
                   def rails_ehtml                      
                     html = lambda { |string|
