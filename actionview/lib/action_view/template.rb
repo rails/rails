@@ -375,28 +375,28 @@ module ActionView
       
         rend = banal_source_inspect_raw.length - 2
         rstart = 2
-        banal_source_inspect_raw.each.with_index do |source_line, i|  
-          
-        if i < rend && i > rstart && source_line =~ /@output_buffer.*\Z/
-          rails_ehtml do |html|
-            html.call(%Q{<div class="tweezer-docking">}, banal_source_inspect)
-              html.call(%Q{<div class="tweezer-digestable">}, banal_source_inspect)
-                html.call(%Q{<div>}, banal_source_inspect)
-                  §(USING_APPEND_OVER_SAFE_APPEND) do
-                    banal_source_inspect.push("@output_buffer.append  = debug_inspect.compact.map(&:receiver).map(&:class).map(&:inspect).inspect")
-                  end
+        banal_source_inspect_raw.each.with_index do |source_line, i|   
+          if i < rend && i > rstart && source_line =~ /@output_buffer.*\Z/
+            rails_ehtml do |html|
+              html.call(%Q{<div class="tweezer-docking">}, banal_source_inspect)
+                html.call(%Q{<div class="tweezer-digestable">}, banal_source_inspect)
+                  html.call(%Q{<div>}, banal_source_inspect)
+                    §(USING_APPEND_OVER_SAFE_APPEND) do
+                      banal_source_inspect.push("@output_buffer.append  = debug_inspect.compact.map(&:receiver).map(&:class).map(&:inspect).inspect")
+                    end
+                  html.call(%Q{</div>}, banal_source_inspect)
                 html.call(%Q{</div>}, banal_source_inspect)
-              html.call(%Q{</div>}, banal_source_inspect)
       
-              html.call(%Q{<div>}, banal_source_inspect)
                 html.call(%Q{<div>}, banal_source_inspect)
-                  banal_source_inspect.push(source_line)
+                  html.call(%Q{<div>}, banal_source_inspect)
+                    banal_source_inspect.push(source_line)
+                  html.call(%Q{</div>}, banal_source_inspect)
                 html.call(%Q{</div>}, banal_source_inspect)
               html.call(%Q{</div>}, banal_source_inspect)
-            html.call(%Q{</div>}, banal_source_inspect)
+            end
+          else
+            banal_source_inspect.push(source_line)
           end
-        else
-          banal_source_inspect.push(source_line)
         end
                         
         # byebug
