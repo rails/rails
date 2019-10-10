@@ -373,7 +373,7 @@ module ActionView
         rend = banal_source_inspect_raw.length - 2
         rstart = 2
         banal_source_inspect_raw.each.with_index do |source_line, i|   
-          byebug
+          # byebug
           if (i < rend) && (i > rstart) && (source_line =~  (/\A[^@]*@output_buffer\.(?:safe)?_?append[^=]*=.*\Z/) && (source_line !~ /\Wif\W/)) && (source_line !~ /\Welse\W/) && (source_line !~ /\Wdo\W/) && (source_line !~ /\Wend\W/)
               
             # byebug
