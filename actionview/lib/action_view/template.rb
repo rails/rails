@@ -379,7 +379,7 @@ module ActionView
             # byebug
             
             rails_ehtml do |html|
-              html.call(%Q{<div class="tweezer-docking">}, banal_source_inspect)
+              html.call(%Q{<div class="tweezer-docking" style="display: none;">}, banal_source_inspect)
                 html.call(%Q{<div class="tweezer-digestable">}, banal_source_inspect)
                   html.call(%Q{<div>}, banal_source_inspect)
                     §(USING_APPEND_OVER_SAFE_APPEND) do
