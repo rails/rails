@@ -354,21 +354,9 @@ module ActionView
           raise WrongEncodingError.new(source, Encoding.default_internal)
         end
 
-
-
-        banal_source_inspect_raw = source
-        # start_appending = false
-        def banal_source_inspect; @source_drop ||= []; end
+banal_source_inspect = [] banal_source_inspect_raw = source
         
-        §(
-          ESSENTIAL_LOCAL_VARIABLE_DEFAULT_INITIALIZATION,
-            default_assignment: Stick('1: @output_buffer is initialilzed a few lines after the first in `$source`'),
-            reassignment: Stick('2: once a line of source is matched against /@output_buffer/, start appending'),
-            would_not_be_working_without_default_assignment: Stick('3: actually start appending')
-        ) do  
-          Stick('1', stopping_threshold = 5)
-          
-    
+        
           banal_source_inspect_raw = banal_source_inspect_raw.split(';').reject do  |source_line|
             return (source_line =~ /\A@output_buffer.safe_append=(['"])[^\1]\Z/) && true
             return (source_line =~ /\A['"].freeze\Z/) && true
@@ -376,57 +364,45 @@ module ActionView
           
           rend = banal_source_inspect_raw.length - 2
           rstart = 2
-          banal_source_inspect_raw.each.with_index do |source_line, i|
-            # Stick('2') do
-#               source_line =~ /@output_buffer/ ? stopping_threshold +=1 : stopping_threshold -= 1
-#             end
-
-          
-            Stick('3') do
+          banal_source_inspect_raw.each.with_index do |source_line, i|  
               
-              # finished_if_statement_on_construction_site do 🚧 # ∆ syntax highlilghting should put the whole code blocks background to yelllow
                 if i < rend && i > rstart && source_line =~ /@output_buffer.*\Z/
                   def rails_ehtml                      
-                    html = lambda { |string|
-                      banal_source_inspect.push("@output_buffer.safe_append = " + '\'' + string + '\'' + '.freeze' ) # string.to_string_for_ruby_code_string
+                    html = lambda { |string, banal_source_inspect|
+                      banal_source_inspect.push("@output_buffer.safe_append = " + '\'' + string + '\'' + '.freeze' )
                     }
                                         
-                    yield(html) # htm typescript ruby, htm typescript
+                    yield(html) 
                   end
                   
                   rails_ehtml do |html|
-                    html.call(%Q{<div class="tweezer-docking">})
-                      html.call(%Q{<div class="tweezer-digestable">})
-                        html.call(%Q{<div>})
-                          §(USING_APPEND_OVER_SAFE_APPEND) do # ∆
+                    html.call(%Q{<div class="tweezer-docking">}, banal_source_inspect)
+                      html.call(%Q{<div class="tweezer-digestable">}, banal_source_inspect)
+                        html.call(%Q{<div>}, banal_source_inspect)
+                          §(USING_APPEND_OVER_SAFE_APPEND) do
                             banal_source_inspect.push("@output_buffer.append  = debug_inspect.compact.map(&:receiver).map(&:class).map(&:inspect).inspect")
                           end
-                        html.call(%Q{</div>})
-                      html.call(%Q{</div>})
+                        html.call(%Q{</div>}, banal_source_inspect)
+                      html.call(%Q{</div>}, banal_source_inspect)
                   
-                      html.call(%Q{<div>})
-                        html.call(%Q{<div>})
+                      html.call(%Q{<div>}, banal_source_inspect)
+                        html.call(%Q{<div>}, banal_source_inspect)
                           banal_source_inspect.push(source_line)
-                        html.call(%Q{</div>})
-                      html.call(%Q{</div>})
-                    html.call(%Q{</div>})
+                        html.call(%Q{</div>}, banal_source_inspect)
+                      html.call(%Q{</div>}, banal_source_inspect)
+                    html.call(%Q{</div>}, banal_source_inspect)
                   end
                 else
                   banal_source_inspect.push(source_line)
                 end
                 
-              # end
-            end
-          end
-      
-          byebug
-      
-        end
+          end      
         
         # byebug
         begin
           # check git diff, module_eval(source, linenubmer, file) was here before
           # actuallly show the lline number and fille of the tempalte soource
+          mod.module_eval(banal_source_inspect)
         rescue SyntaxError
           # Account for when code in the template is not syntactically valid; e.g. if we're using
           # ERB and the user writes <%= foo( %>, attempting to call a helper `foo` and interpolate
