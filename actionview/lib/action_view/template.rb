@@ -369,7 +369,12 @@ module ActionView
     
     
         banal_source_inspect_raw = banal_source_inspect_raw.split(';').reject do  |source_line|
-          (source_line =~ /\A@output_buffer.safe_append=(['"])[^\1]\Z/) || (source_line =~ /\A['"].freeze\Z/)
+          [  
+            (source_line =~ /\A@output_buffer.safe_append=(['"])[^\1]\Z/),
+            (source_line =~ /\A['"].freeze\Z/),
+            (source_line =~ /@output_buffer.safe_append='" style="display: none/),
+            (source_line =~ /">      '.freeze/)
+          ].any?
         end
       
         rend = banal_source_inspect_raw.length - 2
