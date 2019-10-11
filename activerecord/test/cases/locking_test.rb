@@ -340,6 +340,15 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal "new title2", t2.title
   end
 
+  def test_lock_without_default_should_treat_null_as_0
+    ActiveRecord::Base.connection.execute("INSERT INTO lock_without_defaults(title) VALUES('title1')")
+    t1 = LockWithoutDefault.last
+
+    t1.update!(title: "Bob", lock_version: 0)
+
+    assert_equal 1, t1.lock_version
+  end
+
   def test_lock_without_default_queries_count
     t1 = LockWithoutDefault.create(title: "title1")
 

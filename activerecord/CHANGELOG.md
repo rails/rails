@@ -1,3 +1,9 @@
+*   Treat `NULL` database values as equivalent to `0` for optimistic locking to avoid a bogus `ActiveRecord::StaleObjectError`.
+
+    Fixes #36264
+
+    *Mario de la Ossa*
+
 *   Add support for `belongs_to` to `has_many` inversing.
 
     *Gannon McGibbon*
