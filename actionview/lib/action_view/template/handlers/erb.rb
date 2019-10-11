@@ -54,12 +54,26 @@ module ActionView
 
           # Always make sure we return a String in the default_internal
           erb.encode!
-
-          self.class.erb_implementation.new(
+          
+          
+          src_000 = self.class.erb_implementation.new(
             erb,
             escape: (self.class.escape_ignore_list.include? template.type),
             trim: (self.class.erb_trim_mode == "-")
           ).src
+          
+           # 000 as the start of a new id schema for variables
+           # src_001 = %{
+    #           @output_buffer.safe_append = (
+    #             '
+    #               <div onClick="alert(\\'#{template.inspect}\\')">
+    #             '.freeze
+    #           )
+    #         }
+    #
+    #         src_002 = '@output_buffer.safe_append = (\'</div>\'.freeze)'
+    #
+    #         src_003 = (src_001 + ';' + src_000 + ';' + src_002 + ';' + '@output_buffer')
         end
 
       private

@@ -3,10 +3,30 @@
 require "active_support/core_ext/kernel/singleton_class"
 require "thread"
 require "delegate"
+require 'debug_inspector'
+# require 'brainz'
 
+# BRAINZ_OUTPUT_BUFFER_INDEX_RANGE_RAILS_AV = Brainz::Brainz.new
+
+class Object
+  # require 'debug_inspector'
+  
+  def debug_inspect
+    RubyVM::DebugInspector.open { |dc|
+      locs = dc.backtrace_locations
+      locs.size.times.map do |i|
+        dc.frame_binding(i)
+      end
+    }
+  end
+end
+
+EZII_INTROSPECT_LINE = [] # => ladder call, ladder("DEBUG c ARCHIVE MAGIC LINES")
 module ActionView
   # = Action View Template
   class Template
+    include ActionView::Helpers::JavaScriptHelper
+    
     extend ActiveSupport::Autoload
 
     def self.finalize_compiled_template_methods
@@ -307,6 +327,16 @@ module ActionView
       # encode the source into <tt>Encoding.default_internal</tt>.
       # In general, this means that templates will be UTF-8 inside of Rails,
       # regardless of the original source encoding.
+      
+      def rails_ehtml                      
+        html = lambda { |string, banal_source_inspect|
+          banal_source_inspect.push("@output_buffer.safe_append = " + '\'' + string + '\'' + '.freeze' )
+        }
+                          
+        yield(html) 
+      end
+    
+    
       def compile(mod)
         source = encode!
         code = @handler.call(self, source)
@@ -334,15 +364,115 @@ module ActionView
           raise WrongEncodingError.new(source, Encoding.default_internal)
         end
 
+        banal_source_inspect = [] 
+        banal_source_inspect_raw = source
+        # SourceLine.new
+    
+        banal_source_inspect_raw = banal_source_inspect_raw.split(';')
+      
+        rend = banal_source_inspect_raw.length - 2
+        rstart = 2
+        banal_source_inspect_raw.each.with_index do |source_line, i|   
+          # byebug
+          if (i < rend) && (i > rstart) && (source_line =~  (/\A[^@]*@output_buffer\.(?:safe)?_?append[^=]*='[^']+'\.freeze\Z/) && (source_line !~ /\Wif\W/)) && (source_line !~ /\Welse\W/) && (source_line !~ /\Wdo\W/) && (source_line !~ /\Wend\W/)
+              
+            # byebug
+            
+            rails_ehtml do |html|
+              html.call(%Q{<div class="tweezer-docking" style="display: none;">}, banal_source_inspect)
+                html.call(%Q{<div class="tweezer-digestable">}, banal_source_inspect)
+                  §(USING_APPEND_OVER_SAFE_APPEND) do
+                    banal_source_inspect.push("@output_buffer.append  = " + source_line.inspect)
+                  end
+                  
+                  html.call(%Q{<div class="tweezeer-digestable-popup">}, banal_source_inspect)
+                    §(USING_APPEND_OVER_SAFE_APPEND) do
+                      banal_source_inspect.push("@output_buffer.append  = debug_inspect.compact.map(&:receiver).map(&:class).map(&:inspect).inspect")
+                    end
+                  html.call(%Q{</div>}, banal_source_inspect)
+                html.call(%Q{</div>}, banal_source_inspect)
+      
+                html.call(%Q{<div>}, banal_source_inspect)
+                  html.call(%Q{<div>}, banal_source_inspect)
+                    banal_source_inspect.push(source_line)
+                  html.call(%Q{</div>}, banal_source_inspect)
+                html.call(%Q{</div>}, banal_source_inspect)
+              html.call(%Q{</div>}, banal_source_inspect)
+            end
+          else
+            banal_source_inspect.push(source_line)
+          end
+        end
+                        
+        # byebug
         begin
-          mod.module_eval(source, identifier, 0)
-        rescue SyntaxError
+          # check git diff, module_eval(source, linenubmer, file) was here before
+          # actuallly show the lline number and fille of the tempalte soource
+          mod.module_eval(banal_source_inspect.join(';'))
+        rescue Exception => e
+          # byebug
+          
+          raise e
           # Account for when code in the template is not syntactically valid; e.g. if we're using
           # ERB and the user writes <%= foo( %>, attempting to call a helper `foo` and interpolate
           # the result into the template, but missing an end parenthesis.
-          raise SyntaxErrorInTemplate.new(self, original_source)
+          # raise SyntaxErrorInTemplate.new(self, original_source)
+        # ensure
         end
       end
+      
+      
+      
+      
+      
+      
+      
+    
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      def ezii_inspect
+        magic_archive_debug_inspect_line_start = <<~HTML
+           <!-- <div onClick="alert('#{escape_javascript(source_line.gsub('\'', ''))}')"> -->
+             <div>
+        HTML
+        
+        
+        magic_archive_debug_inspect_line_end = <<~HTML
+          </div>
+        HTML
+        
+              #
+        # if start_appending
+        #   i+=1
+        #   # next unless i > 3
+        # end
+ 
+      
+        
+        # s = eval(source_line, __FILE__, 0) rescue nil.to_s
+        
+        s = '<div>' + source_line + '</div>'
+      
+        EZII_INTROSPECT_LINE << [magic_archive_debug_inspect_line_start, (s), magic_archive_debug_inspect_line_end].join
+      end
+  
 
       def handle_render_error(view, e)
         if e.is_a?(Template::Error)
@@ -388,3 +518,11 @@ module ActionView
       end
   end
 end
+
+
+# BRAINZ_OUTPUT_BUFFER_INDEX_RANGE_RAILS_AV.teach do |iteration, error|
+#   THAT = that
+#   def ______statistics_BRAINZ_OUTPUT_BUFFER_INDEX_RANGE_RAILS_AV(count_of_lines, count_of_bytes)
+#
+#   end
+# end

@@ -1,41 +1,54 @@
-# frozen_string_literal: true
-
-version = File.read(File.expand_path("../RAILS_VERSION", __dir__)).strip
+# -*- encoding: utf-8 -*-
+# stub: actionpack 6.1.0.alpha ruby lib
 
 Gem::Specification.new do |s|
-  s.platform    = Gem::Platform::RUBY
-  s.name        = "actionpack"
-  s.version     = version
-  s.summary     = "Web-flow and rendering framework putting the VC in MVC (part of Rails)."
-  s.description = "Web apps on Rails. Simple, battle-tested conventions for building and testing MVC web applications. Works with any Rack-compatible server."
+  s.name = "actionpack".freeze
+  s.version = "6.1.0.alpha"
 
-  s.required_ruby_version = ">= 2.5.0"
+  s.required_rubygems_version = Gem::Requirement.new("> 1.3.1".freeze) if s.respond_to? :required_rubygems_version=
+  s.metadata = { "changelog_uri" => "https://github.com/rails/rails/blob/v6.1.0.alpha/actionpack/CHANGELOG.md", "source_code_uri" => "https://github.com/rails/rails/tree/v6.1.0.alpha/actionpack" } if s.respond_to? :metadata=
+  s.require_paths = ["lib".freeze]
+  s.authors = ["David Heinemeier Hansson".freeze]
+  s.date = "2019-10-05"
+  s.description = "Web apps on Rails. Simple, battle-tested conventions for building and testing MVC web applications. Works with any Rack-compatible server.".freeze
+  s.email = "david@loudthinking.com".freeze
+  s.files = ["CHANGELOG.md".freeze, "MIT-LICENSE".freeze, "README.rdoc".freeze, "lib/abstract_controller".freeze, "lib/abstract_controller.rb".freeze, "lib/abstract_controller/asset_paths.rb".freeze, "lib/abstract_controller/base.rb".freeze, "lib/abstract_controller/caching".freeze, "lib/abstract_controller/caching.rb".freeze, "lib/abstract_controller/caching/fragments.rb".freeze, "lib/abstract_controller/callbacks.rb".freeze, "lib/abstract_controller/collector.rb".freeze, "lib/abstract_controller/error.rb".freeze, "lib/abstract_controller/helpers.rb".freeze, "lib/abstract_controller/logger.rb".freeze, "lib/abstract_controller/railties".freeze, "lib/abstract_controller/railties/routes_helpers.rb".freeze, "lib/abstract_controller/rendering.rb".freeze, "lib/abstract_controller/translation.rb".freeze, "lib/abstract_controller/url_for.rb".freeze, "lib/action_controller".freeze, "lib/action_controller.rb".freeze, "lib/action_controller/api".freeze, "lib/action_controller/api.rb".freeze, "lib/action_controller/api/api_rendering.rb".freeze, "lib/action_controller/base.rb".freeze, "lib/action_controller/caching.rb".freeze, "lib/action_controller/form_builder.rb".freeze, "lib/action_controller/log_subscriber.rb".freeze, "lib/action_controller/metal".freeze, "lib/action_controller/metal.rb".freeze, "lib/action_controller/metal/basic_implicit_render.rb".freeze, "lib/action_controller/metal/conditional_get.rb".freeze, "lib/action_controller/metal/content_security_policy.rb".freeze, "lib/action_controller/metal/cookies.rb".freeze, "lib/action_controller/metal/data_streaming.rb".freeze, "lib/action_controller/metal/default_headers.rb".freeze, "lib/action_controller/metal/etag_with_flash.rb".freeze, "lib/action_controller/metal/etag_with_template_digest.rb".freeze, "lib/action_controller/metal/exceptions.rb".freeze, "lib/action_controller/metal/feature_policy.rb".freeze, "lib/action_controller/metal/flash.rb".freeze, "lib/action_controller/metal/force_ssl.rb".freeze, "lib/action_controller/metal/head.rb".freeze, "lib/action_controller/metal/helpers.rb".freeze, "lib/action_controller/metal/http_authentication.rb".freeze, "lib/action_controller/metal/implicit_render.rb".freeze, "lib/action_controller/metal/instrumentation.rb".freeze, "lib/action_controller/metal/live.rb".freeze, "lib/action_controller/metal/logging.rb".freeze, "lib/action_controller/metal/mime_responds.rb".freeze, "lib/action_controller/metal/parameter_encoding.rb".freeze, "lib/action_controller/metal/params_wrapper.rb".freeze, "lib/action_controller/metal/redirecting.rb".freeze, "lib/action_controller/metal/renderers.rb".freeze, "lib/action_controller/metal/rendering.rb".freeze, "lib/action_controller/metal/request_forgery_protection.rb".freeze, "lib/action_controller/metal/rescue.rb".freeze, "lib/action_controller/metal/streaming.rb".freeze, "lib/action_controller/metal/strong_parameters.rb".freeze, "lib/action_controller/metal/testing.rb".freeze, "lib/action_controller/metal/url_for.rb".freeze, "lib/action_controller/railtie.rb".freeze, "lib/action_controller/railties".freeze, "lib/action_controller/railties/helpers.rb".freeze, "lib/action_controller/renderer.rb".freeze, "lib/action_controller/template_assertions.rb".freeze, "lib/action_controller/test_case.rb".freeze, "lib/action_dispatch".freeze, "lib/action_dispatch.rb".freeze, "lib/action_dispatch/http".freeze, "lib/action_dispatch/http/cache.rb".freeze, "lib/action_dispatch/http/content_disposition.rb".freeze, "lib/action_dispatch/http/content_security_policy.rb".freeze, "lib/action_dispatch/http/feature_policy.rb".freeze, "lib/action_dispatch/http/filter_parameters.rb".freeze, "lib/action_dispatch/http/filter_redirect.rb".freeze, "lib/action_dispatch/http/headers.rb".freeze, "lib/action_dispatch/http/mime_negotiation.rb".freeze, "lib/action_dispatch/http/mime_type.rb".freeze, "lib/action_dispatch/http/mime_types.rb".freeze, "lib/action_dispatch/http/parameter_filter.rb".freeze, "lib/action_dispatch/http/parameters.rb".freeze, "lib/action_dispatch/http/rack_cache.rb".freeze, "lib/action_dispatch/http/request.rb".freeze, "lib/action_dispatch/http/response.rb".freeze, "lib/action_dispatch/http/upload.rb".freeze, "lib/action_dispatch/http/url.rb".freeze, "lib/action_dispatch/journey".freeze, "lib/action_dispatch/journey.rb".freeze, "lib/action_dispatch/journey/formatter.rb".freeze, "lib/action_dispatch/journey/gtg".freeze, "lib/action_dispatch/journey/gtg/builder.rb".freeze, "lib/action_dispatch/journey/gtg/simulator.rb".freeze, "lib/action_dispatch/journey/gtg/transition_table.rb".freeze, "lib/action_dispatch/journey/nfa".freeze, "lib/action_dispatch/journey/nfa/builder.rb".freeze, "lib/action_dispatch/journey/nfa/dot.rb".freeze, "lib/action_dispatch/journey/nfa/simulator.rb".freeze, "lib/action_dispatch/journey/nfa/transition_table.rb".freeze, "lib/action_dispatch/journey/nodes".freeze, "lib/action_dispatch/journey/nodes/node.rb".freeze, "lib/action_dispatch/journey/parser.rb".freeze, "lib/action_dispatch/journey/parser.y".freeze, "lib/action_dispatch/journey/parser_extras.rb".freeze, "lib/action_dispatch/journey/path".freeze, "lib/action_dispatch/journey/path/pattern.rb".freeze, "lib/action_dispatch/journey/route.rb".freeze, "lib/action_dispatch/journey/router".freeze, "lib/action_dispatch/journey/router.rb".freeze, "lib/action_dispatch/journey/router/utils.rb".freeze, "lib/action_dispatch/journey/routes.rb".freeze, "lib/action_dispatch/journey/scanner.rb".freeze, "lib/action_dispatch/journey/visitors.rb".freeze, "lib/action_dispatch/journey/visualizer".freeze, "lib/action_dispatch/journey/visualizer/fsm.css".freeze, "lib/action_dispatch/journey/visualizer/fsm.js".freeze, "lib/action_dispatch/journey/visualizer/index.html.erb".freeze, "lib/action_dispatch/middleware".freeze, "lib/action_dispatch/middleware/actionable_exceptions.rb".freeze, "lib/action_dispatch/middleware/callbacks.rb".freeze, "lib/action_dispatch/middleware/cookies.rb".freeze, "lib/action_dispatch/middleware/debug_exceptions.rb".freeze, "lib/action_dispatch/middleware/debug_locks.rb".freeze, "lib/action_dispatch/middleware/debug_view.rb".freeze, "lib/action_dispatch/middleware/exception_wrapper.rb".freeze, "lib/action_dispatch/middleware/executor.rb".freeze, "lib/action_dispatch/middleware/flash.rb".freeze, "lib/action_dispatch/middleware/host_authorization.rb".freeze, "lib/action_dispatch/middleware/public_exceptions.rb".freeze, "lib/action_dispatch/middleware/reloader.rb".freeze, "lib/action_dispatch/middleware/remote_ip.rb".freeze, "lib/action_dispatch/middleware/request_id.rb".freeze, "lib/action_dispatch/middleware/session".freeze, "lib/action_dispatch/middleware/session/abstract_store.rb".freeze, "lib/action_dispatch/middleware/session/cache_store.rb".freeze, "lib/action_dispatch/middleware/session/cookie_store.rb".freeze, "lib/action_dispatch/middleware/session/mem_cache_store.rb".freeze, "lib/action_dispatch/middleware/show_exceptions.rb".freeze, "lib/action_dispatch/middleware/ssl.rb".freeze, "lib/action_dispatch/middleware/stack.rb".freeze, "lib/action_dispatch/middleware/static.rb".freeze, "lib/action_dispatch/middleware/templates".freeze, "lib/action_dispatch/middleware/templates/rescues".freeze, "lib/action_dispatch/middleware/templates/rescues/_actions.html.erb".freeze, "lib/action_dispatch/middleware/templates/rescues/_actions.text.erb".freeze, "lib/action_dispatch/middleware/templates/rescues/_request_and_response.html.erb".freeze, "lib/action_dispatch/middleware/templates/rescues/_request_and_response.text.erb".freeze, "lib/action_dispatch/middleware/templates/rescues/_source.html.erb".freeze, "lib/action_dispatch/middleware/templates/rescues/_source.text.erb".freeze, "lib/action_dispatch/middleware/templates/rescues/_trace.html.erb".freeze, "lib/action_dispatch/middleware/templates/rescues/_trace.text.erb".freeze, "lib/action_dispatch/middleware/templates/rescues/blocked_host.html.erb".freeze, "lib/action_dispatch/middleware/templates/rescues/blocked_host.text.erb".freeze, "lib/action_dispatch/middleware/templates/rescues/diagnostics.html.erb".freeze, "lib/action_dispatch/middleware/templates/rescues/diagnostics.text.erb".freeze, "lib/action_dispatch/middleware/templates/rescues/invalid_statement.html.erb".freeze, "lib/action_dispatch/middleware/templates/rescues/invalid_statement.text.erb".freeze, "lib/action_dispatch/middleware/templates/rescues/layout.erb".freeze, "lib/action_dispatch/middleware/templates/rescues/missing_exact_template.html.erb".freeze, "lib/action_dispatch/middleware/templates/rescues/missing_exact_template.text.erb".freeze, "lib/action_dispatch/middleware/templates/rescues/missing_template.html.erb".freeze, "lib/action_dispatch/middleware/templates/rescues/missing_template.text.erb".freeze, "lib/action_dispatch/middleware/templates/rescues/routing_error.html.erb".freeze, "lib/action_dispatch/middleware/templates/rescues/routing_error.text.erb".freeze, "lib/action_dispatch/middleware/templates/rescues/template_error.html.erb".freeze, "lib/action_dispatch/middleware/templates/rescues/template_error.text.erb".freeze, "lib/action_dispatch/middleware/templates/rescues/unknown_action.html.erb".freeze, "lib/action_dispatch/middleware/templates/rescues/unknown_action.text.erb".freeze, "lib/action_dispatch/middleware/templates/routes".freeze, "lib/action_dispatch/middleware/templates/routes/_route.html.erb".freeze, "lib/action_dispatch/middleware/templates/routes/_table.html.erb".freeze, "lib/action_dispatch/railtie.rb".freeze, "lib/action_dispatch/request".freeze, "lib/action_dispatch/request/session.rb".freeze, "lib/action_dispatch/request/utils.rb".freeze, "lib/action_dispatch/routing".freeze, "lib/action_dispatch/routing.rb".freeze, "lib/action_dispatch/routing/endpoint.rb".freeze, "lib/action_dispatch/routing/inspector.rb".freeze, "lib/action_dispatch/routing/mapper.rb".freeze, "lib/action_dispatch/routing/polymorphic_routes.rb".freeze, "lib/action_dispatch/routing/redirection.rb".freeze, "lib/action_dispatch/routing/route_set.rb".freeze, "lib/action_dispatch/routing/routes_proxy.rb".freeze, "lib/action_dispatch/routing/url_for.rb".freeze, "lib/action_dispatch/system_test_case.rb".freeze, "lib/action_dispatch/system_testing".freeze, "lib/action_dispatch/system_testing/browser.rb".freeze, "lib/action_dispatch/system_testing/driver.rb".freeze, "lib/action_dispatch/system_testing/server.rb".freeze, "lib/action_dispatch/system_testing/test_helpers".freeze, "lib/action_dispatch/system_testing/test_helpers/screenshot_helper.rb".freeze, "lib/action_dispatch/system_testing/test_helpers/setup_and_teardown.rb".freeze, "lib/action_dispatch/testing".freeze, "lib/action_dispatch/testing/assertion_response.rb".freeze, "lib/action_dispatch/testing/assertions".freeze, "lib/action_dispatch/testing/assertions.rb".freeze, "lib/action_dispatch/testing/assertions/response.rb".freeze, "lib/action_dispatch/testing/assertions/routing.rb".freeze, "lib/action_dispatch/testing/integration.rb".freeze, "lib/action_dispatch/testing/request_encoder.rb".freeze, "lib/action_dispatch/testing/test_process.rb".freeze, "lib/action_dispatch/testing/test_request.rb".freeze, "lib/action_dispatch/testing/test_response.rb".freeze, "lib/action_pack".freeze, "lib/action_pack.rb".freeze, "lib/action_pack/gem_version.rb".freeze, "lib/action_pack/version.rb".freeze]
+  s.homepage = "https://rubyonrails.org".freeze
+  s.licenses = ["MIT".freeze]
+  s.required_ruby_version = Gem::Requirement.new(">= 2.5.0".freeze)
+  s.requirements = ["none".freeze]
+  s.rubygems_version = "3.0.3".freeze
+  s.summary = "Web-flow and rendering framework putting the VC in MVC (part of Rails).".freeze
 
-  s.license = "MIT"
+  s.installed_by_version = "3.0.3" if s.respond_to? :installed_by_version
 
-  s.author   = "David Heinemeier Hansson"
-  s.email    = "david@loudthinking.com"
-  s.homepage = "https://rubyonrails.org"
+  if s.respond_to? :specification_version then
+    s.specification_version = 4
 
-  s.files        = Dir["CHANGELOG.md", "README.rdoc", "MIT-LICENSE", "lib/**/*"]
-  s.require_path = "lib"
-  s.requirements << "none"
-
-  s.metadata = {
-    "source_code_uri" => "https://github.com/rails/rails/tree/v#{version}/actionpack",
-    "changelog_uri"   => "https://github.com/rails/rails/blob/v#{version}/actionpack/CHANGELOG.md"
-  }
-
-  # NOTE: Please read our dependency guidelines before updating versions:
-  # https://edgeguides.rubyonrails.org/security.html#dependency-management-and-cves
-
-  s.add_dependency "activesupport", version
-
-  s.add_dependency "rack",      "~> 2.0"
-  s.add_dependency "rack-test", ">= 0.6.3"
-  s.add_dependency "rails-html-sanitizer", "~> 1.0", ">= 1.2.0"
-  s.add_dependency "rails-dom-testing", "~> 2.0"
-  s.add_dependency "actionview", version
-
-  s.add_development_dependency "activemodel", version
+    if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
+      s.add_runtime_dependency(%q<activesupport>.freeze, ["= 6.1.0.alpha"])
+      s.add_runtime_dependency(%q<rack>.freeze, ["~> 2.0"])
+      s.add_runtime_dependency(%q<rack-test>.freeze, [">= 0.6.3"])
+      s.add_runtime_dependency(%q<rails-html-sanitizer>.freeze, ["~> 1.0", ">= 1.2.0"])
+      s.add_runtime_dependency(%q<rails-dom-testing>.freeze, ["~> 2.0"])
+      s.add_runtime_dependency(%q<actionview>.freeze, ["= 6.1.0.alpha"])
+      s.add_development_dependency(%q<activemodel>.freeze, ["= 6.1.0.alpha"])
+    else
+      s.add_dependency(%q<activesupport>.freeze, ["= 6.1.0.alpha"])
+      s.add_dependency(%q<rack>.freeze, ["~> 2.0"])
+      s.add_dependency(%q<rack-test>.freeze, [">= 0.6.3"])
+      s.add_dependency(%q<rails-html-sanitizer>.freeze, ["~> 1.0", ">= 1.2.0"])
+      s.add_dependency(%q<rails-dom-testing>.freeze, ["~> 2.0"])
+      s.add_dependency(%q<actionview>.freeze, ["= 6.1.0.alpha"])
+      s.add_dependency(%q<activemodel>.freeze, ["= 6.1.0.alpha"])
+    end
+  else
+    s.add_dependency(%q<activesupport>.freeze, ["= 6.1.0.alpha"])
+    s.add_dependency(%q<rack>.freeze, ["~> 2.0"])
+    s.add_dependency(%q<rack-test>.freeze, [">= 0.6.3"])
+    s.add_dependency(%q<rails-html-sanitizer>.freeze, ["~> 1.0", ">= 1.2.0"])
+    s.add_dependency(%q<rails-dom-testing>.freeze, ["~> 2.0"])
+    s.add_dependency(%q<actionview>.freeze, ["= 6.1.0.alpha"])
+    s.add_dependency(%q<activemodel>.freeze, ["= 6.1.0.alpha"])
+  end
 end

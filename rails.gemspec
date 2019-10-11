@@ -1,38 +1,73 @@
-# frozen_string_literal: true
-
-version = File.read(File.expand_path("RAILS_VERSION", __dir__)).strip
+# -*- encoding: utf-8 -*-
+# stub: rails 6.1.0.alpha ruby lib
 
 Gem::Specification.new do |s|
-  s.platform    = Gem::Platform::RUBY
-  s.name        = "rails"
-  s.version     = version
-  s.summary     = "Full-stack web application framework."
-  s.description = "Ruby on Rails is a full-stack web framework optimized for programmer happiness and sustainable productivity. It encourages beautiful code by favoring convention over configuration."
+  s.name = "rails".freeze
+  s.version = "6.1.0.alpha"
 
-  s.required_ruby_version     = ">= 2.5.0"
-  s.required_rubygems_version = ">= 1.8.11"
+  s.required_rubygems_version = Gem::Requirement.new(">= 1.8.11".freeze) if s.respond_to? :required_rubygems_version=
+  s.require_paths = ["lib".freeze]
+  s.authors = ["David Heinemeier Hansson".freeze]
+  s.date = "2019-10-05"
+  s.description = "Ruby on Rails is a full-stack web framework optimized for programmer happiness and sustainable productivity. It encourages beautiful code by favoring convention over configuration.".freeze
+  s.email = "david@loudthinking.com".freeze
+  s.files = ["README.md".freeze]
+  s.homepage = "https://rubyonrails.org".freeze
+  s.licenses = ["MIT".freeze]
+  s.required_ruby_version = Gem::Requirement.new(">= 2.5.0".freeze)
+  s.rubygems_version = "3.0.3".freeze
+  s.summary = "Full-stack web application framework.".freeze
 
-  s.license = "MIT"
+  s.installed_by_version = "3.0.3" if s.respond_to? :installed_by_version
 
-  s.author   = "David Heinemeier Hansson"
-  s.email    = "david@loudthinking.com"
-  s.homepage = "https://rubyonrails.org"
+  if s.respond_to? :specification_version then
+    s.specification_version = 4
 
-  s.files = ["README.md"]
-
-  s.add_dependency "activesupport", version
-  s.add_dependency "actionpack",    version
-  s.add_dependency "actionview",    version
-  s.add_dependency "activemodel",   version
-  s.add_dependency "activerecord",  version
-  s.add_dependency "actionmailer",  version
-  s.add_dependency "activejob",     version
-  s.add_dependency "actioncable",   version
-  s.add_dependency "activestorage", version
-  s.add_dependency "actionmailbox", version
-  s.add_dependency "actiontext",    version
-  s.add_dependency "railties",      version
-
-  s.add_dependency "bundler",         ">= 1.3.0"
-  s.add_dependency "sprockets-rails", ">= 2.0.0"
+    if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
+      s.add_runtime_dependency(%q<activesupport>.freeze, ["= 6.1.0.alpha"])
+      s.add_runtime_dependency(%q<actionpack>.freeze, ["= 6.1.0.alpha"])
+      s.add_runtime_dependency(%q<actionview>.freeze, ["= 6.1.0.alpha"])
+      s.add_runtime_dependency(%q<activemodel>.freeze, ["= 6.1.0.alpha"])
+      s.add_runtime_dependency(%q<activerecord>.freeze, ["= 6.1.0.alpha"])
+      s.add_runtime_dependency(%q<actionmailer>.freeze, ["= 6.1.0.alpha"])
+      s.add_runtime_dependency(%q<activejob>.freeze, ["= 6.1.0.alpha"])
+      s.add_runtime_dependency(%q<actioncable>.freeze, ["= 6.1.0.alpha"])
+      s.add_runtime_dependency(%q<activestorage>.freeze, ["= 6.1.0.alpha"])
+      s.add_runtime_dependency(%q<actionmailbox>.freeze, ["= 6.1.0.alpha"])
+      s.add_runtime_dependency(%q<actiontext>.freeze, ["= 6.1.0.alpha"])
+      s.add_runtime_dependency(%q<railties>.freeze, ["= 6.1.0.alpha"])
+      s.add_runtime_dependency(%q<bundler>.freeze, [">= 1.3.0"])
+      s.add_runtime_dependency(%q<sprockets-rails>.freeze, [">= 2.0.0"])
+    else
+      s.add_dependency(%q<activesupport>.freeze, ["= 6.1.0.alpha"])
+      s.add_dependency(%q<actionpack>.freeze, ["= 6.1.0.alpha"])
+      s.add_dependency(%q<actionview>.freeze, ["= 6.1.0.alpha"])
+      s.add_dependency(%q<activemodel>.freeze, ["= 6.1.0.alpha"])
+      s.add_dependency(%q<activerecord>.freeze, ["= 6.1.0.alpha"])
+      s.add_dependency(%q<actionmailer>.freeze, ["= 6.1.0.alpha"])
+      s.add_dependency(%q<activejob>.freeze, ["= 6.1.0.alpha"])
+      s.add_dependency(%q<actioncable>.freeze, ["= 6.1.0.alpha"])
+      s.add_dependency(%q<activestorage>.freeze, ["= 6.1.0.alpha"])
+      s.add_dependency(%q<actionmailbox>.freeze, ["= 6.1.0.alpha"])
+      s.add_dependency(%q<actiontext>.freeze, ["= 6.1.0.alpha"])
+      s.add_dependency(%q<railties>.freeze, ["= 6.1.0.alpha"])
+      s.add_dependency(%q<bundler>.freeze, [">= 1.3.0"])
+      s.add_dependency(%q<sprockets-rails>.freeze, [">= 2.0.0"])
+    end
+  else
+    s.add_dependency(%q<activesupport>.freeze, ["= 6.1.0.alpha"])
+    s.add_dependency(%q<actionpack>.freeze, ["= 6.1.0.alpha"])
+    s.add_dependency(%q<actionview>.freeze, ["= 6.1.0.alpha"])
+    s.add_dependency(%q<activemodel>.freeze, ["= 6.1.0.alpha"])
+    s.add_dependency(%q<activerecord>.freeze, ["= 6.1.0.alpha"])
+    s.add_dependency(%q<actionmailer>.freeze, ["= 6.1.0.alpha"])
+    s.add_dependency(%q<activejob>.freeze, ["= 6.1.0.alpha"])
+    s.add_dependency(%q<actioncable>.freeze, ["= 6.1.0.alpha"])
+    s.add_dependency(%q<activestorage>.freeze, ["= 6.1.0.alpha"])
+    s.add_dependency(%q<actionmailbox>.freeze, ["= 6.1.0.alpha"])
+    s.add_dependency(%q<actiontext>.freeze, ["= 6.1.0.alpha"])
+    s.add_dependency(%q<railties>.freeze, ["= 6.1.0.alpha"])
+    s.add_dependency(%q<bundler>.freeze, [">= 1.3.0"])
+    s.add_dependency(%q<sprockets-rails>.freeze, [">= 2.0.0"])
+  end
 end

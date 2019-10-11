@@ -1,6 +1,5 @@
-# frozen_string_literal: true
-
-version = File.read(File.expand_path("../RAILS_VERSION", __dir__)).strip
+# -*- encoding: utf-8 -*-
+# stub: activesupport 6.1.0.alpha ruby lib
 
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
