@@ -1329,6 +1329,12 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal [0, 1, 1], posts.map(&:author_id).sort
   end
 
+  def test_eager_load_for_no_has_many_with_limit_and_joins_for_has_many
+    relation = Post.eager_load(:author).joins(:comments)
+    assert_equal 5, relation.to_a.size
+    assert_equal relation.limit(5).to_a.size, relation.to_a.size
+  end
+
   def test_find_one_message_on_primary_key
     e = assert_raises(ActiveRecord::RecordNotFound) do
       Car.find(0)
