@@ -145,6 +145,10 @@ module ActiveSupport
         target.inspect
       end
 
+      # Don't give a deprecation warning on methods that IRB may invoke
+      # during tab-completion.
+      delegate :hash, :instance_methods, to: :target
+
       # Returns the class of the new constant.
       #
       #   PLANETS_POST_2006 = %w(mercury venus earth mars jupiter saturn uranus neptune)

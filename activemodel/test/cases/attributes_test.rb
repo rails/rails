@@ -107,5 +107,12 @@ module ActiveModel
 
       assert_equal attributes, new_attributes
     end
+
+    test "can't modify attributes if frozen" do
+      data = ModelForAttributesTest.new
+      data.freeze
+      assert data.frozen?
+      assert_raise(FrozenError) { data.integer_field = 1 }
+    end
   end
 end

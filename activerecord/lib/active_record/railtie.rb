@@ -82,10 +82,11 @@ module ActiveRecord
       ActiveSupport.on_load(:active_record) { LogSubscriber.backtrace_cleaner = ::Rails.backtrace_cleaner }
     end
 
-    initializer "active_record.migration_error" do
+    initializer "active_record.migration_error" do |app|
       if config.active_record.delete(:migration_error) == :page_load
         config.app_middleware.insert_after ::ActionDispatch::Callbacks,
-          ActiveRecord::Migration::CheckPending
+          ActiveRecord::Migration::CheckPending,
+          file_watcher: app.config.file_watcher
       end
     end
 

@@ -221,7 +221,7 @@ The full set of methods that can be used in this block are as follows:
   or not. Defaults to `true`.
 * `scaffold_controller` different from `resource_controller`, defines which generator to use for generating a _scaffolded_ controller when using `rails generate scaffold`. Defaults to `:scaffold_controller`.
 * `stylesheets` turns on the hook for stylesheets in generators. Used in Rails for when the `scaffold` generator is run, but this hook can be used in other generates as well. Defaults to `true`.
-* `stylesheet_engine` configures the stylesheet engine (for eg. sass) to be used when generating assets. Defaults to `:css`.
+* `stylesheet_engine` configures the stylesheet engine (for e.g. sass) to be used when generating assets. Defaults to `:css`.
 * `scaffold_stylesheet` creates `scaffold.css` when generating a scaffolded resource. Defaults to `true`.
 * `test_framework` defines which test framework to use. Defaults to `false` and will use minitest by default.
 * `template_engine` defines which template engine to use, such as ERB or Haml. Defaults to `:erb`.
@@ -1200,7 +1200,7 @@ That environment is no different than the default ones, start a server with `rai
 ### Deploy to a subdirectory (relative URL root)
 
 By default Rails expects that your application is running at the root
-(eg. `/`). This section explains how to run your application inside a directory.
+(e.g. `/`). This section explains how to run your application inside a directory.
 
 Let's assume we want to deploy our application to "/app1". Rails needs to know
 this directory to generate the appropriate routes:

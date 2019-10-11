@@ -47,6 +47,12 @@ module ActionDispatch
         process(:head, path, **args)
       end
 
+      # Performs an OPTIONS request with the given parameters. See ActionDispatch::Integration::Session#process
+      # for more details.
+      def options(path, **args)
+        process(:options, path, **args)
+      end
+
       # Follow a single redirect response. If the last response was not a
       # redirect, an exception will be raised. Otherwise, the redirect is
       # performed on the location header. If the redirection is a 307 redirect,

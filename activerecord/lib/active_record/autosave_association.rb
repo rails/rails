@@ -127,6 +127,14 @@ module ActiveRecord
   # Now it _is_ removed from the database:
   #
   #   Comment.find_by(id: id).nil? # => true
+  #
+  # === Caveats
+  #
+  # Note that autosave will only trigger for already-persisted association records
+  # if the records themselves have been changed. This is to protect against
+  # <tt>SystemStackError</tt> caused by circular association validations. The one
+  # exception is if a custom validation context is used, in which case the validations
+  # will always fire on the associated records.
   module AutosaveAssociation
     extend ActiveSupport::Concern
 
@@ -279,8 +287,9 @@ module ActiveRecord
         end
       end
 
-      # go through nested autosave associations that are loaded in memory (without loading
-      # any new ones), and return true if is changed for autosave
+      # Go through nested autosave associations that are loaded in memory (without loading
+      # any new ones), and return true if any are changed for autosave.
+      # Returns false if already called to prevent an infinite loop.
       def nested_records_changed_for_autosave?
         @_nested_records_changed_for_autosave_already_called ||= false
         return false if @_nested_records_changed_for_autosave_already_called

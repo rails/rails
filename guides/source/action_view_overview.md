@@ -1505,6 +1505,76 @@ strip_tags("<b>Bold</b> no more!  <a href='more.html'>See more</a>")
 
 NB: The output may still contain unescaped '<', '>', '&' characters and confuse browsers.
 
+### UrlHelper
+
+Provides methods to make links and get URLs that depend on the routing subsystem.
+
+#### url_for
+
+Returns the URL for the set of `options` provided.
+
+##### Examples
+
+```ruby
+url_for @profile
+# => /profiles/1
+
+url_for [ @hotel, @booking, page: 2, line: 3 ]
+# => /hotels/1/bookings/1?line=3&page=2
+```
+
+#### link_to
+
+Links to a URL derived from `url_for` under the hood. Primarily used to
+create RESTful resource links, which for this example, boils down to
+when passing models to `link_to`.
+
+**Examples**
+
+```ruby
+link_to "Profile", @profile
+# => <a href="/profiles/1">Profile</a>
+```
+
+You can use a block as well if your link target can't fit in the name parameter. ERB example:
+
+```html+erb
+<%= link_to @profile do %>
+  <strong><%= @profile.name %></strong> -- <span>Check it out!</span>
+<% end %>
+```
+
+would output:
+
+```html
+<a href="/profiles/1">
+  <strong>David</strong> -- <span>Check it out!</span>
+</a>
+```
+
+See [the API Doc for more info](https://api.rubyonrails.org/v6.0/classes/ActionView/Helpers/UrlHelper.html#method-i-link_to)
+
+#### button_to
+
+Generates a form that submits to the passed URL. The form has a submit button
+with the value of the `name`.
+
+##### Examples
+
+```html+erb
+<%= button_to "Sign in", sign_in_path %>
+```
+
+would roughly output something like:
+
+```
+<form method="post" action="/sessions" class="button_to">
+  <input type="submit" value="Sign in" />
+</form>
+```
+
+See [the API Doc for more info](https://api.rubyonrails.org/v6.0/classes/ActionView/Helpers/UrlHelper.html#method-i-button_to)
+
 ### CsrfHelper
 
 Returns meta tags "csrf-param" and "csrf-token" with the name of the cross-site

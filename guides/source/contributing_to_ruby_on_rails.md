@@ -153,7 +153,7 @@ We are happy to have people volunteer to translate the Rails guides. Just follow
 
 Note that translations are not submitted to the Rails repository. As detailed above, your work happens in a fork. This is so because in practice documentation maintenance via patches is only sustainable in English.
 
-To generate the guides in HTML format cd into the *guides* directory then run (eg. for it-IT):
+To generate the guides in HTML format cd into the *guides* directory then run (e.g. for it-IT):
 
 ```bash
 $ bundle install
@@ -250,10 +250,10 @@ Rails follows a simple set of coding style conventions:
 * Indent and no blank line after private/protected.
 * Use Ruby >= 1.9 syntax for hashes. Prefer `{ a: :b }` over `{ :a => :b }`.
 * Prefer `&&`/`||` over `and`/`or`.
-* Prefer class << self over self.method for class methods.
+* Prefer `class << self` over `self.method` for class methods.
 * Use `my_method(my_arg)` not `my_method( my_arg )` or `my_method my_arg`.
 * Use `a = b` and not `a=b`.
-* Use assert\_not methods instead of refute.
+* Use `assert_not` methods instead of `refute`.
 * Prefer `method { do_stuff }` instead of `method{do_stuff}` for single-line blocks.
 * Follow the conventions in the source you see used already.
 
