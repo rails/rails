@@ -1083,14 +1083,22 @@ module ActiveRecord
         end
       end
 
-      def valid_association_list(associations)
+      def select_association_list(associations)
+        result = []
         associations.each do |association|
           case association
           when Hash, Symbol, Array
-            # valid
+            result << association
           else
-            raise ArgumentError, "only Hash, Symbol and Array are allowed"
+            yield if block_given?
           end
+        end
+        result
+      end
+
+      def valid_association_list(associations)
+        select_association_list(associations) do
+          raise ArgumentError, "only Hash, Symbol and Array are allowed"
         end
       end
 

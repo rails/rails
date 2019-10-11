@@ -1337,9 +1337,15 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_eager_load_for_no_has_many_with_limit_and_joins_for_has_many
-    relation = Post.eager_load(:author).joins(:comments)
+    relation = Post.eager_load(:author).joins(comments: :post)
     assert_equal 5, relation.to_a.size
-    assert_equal relation.limit(5).to_a.size, relation.to_a.size
+    assert_equal 5, relation.limit(5).to_a.size
+  end
+
+  def test_eager_load_for_no_has_many_with_limit_and_left_joins_for_has_many
+    relation = Post.eager_load(:author).left_joins(comments: :post)
+    assert_equal 11, relation.to_a.size
+    assert_equal 11, relation.limit(11).to_a.size
   end
 
   def test_find_one_message_on_primary_key

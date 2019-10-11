@@ -384,8 +384,16 @@ module ActiveRecord
         )
         relation = except(:includes, :eager_load, :preload).joins!(join_dependency)
 
-        reflections = join_dependency.reflections + joins_values.map { |joins_value| reflect_on_association(joins_value) }.reject(&:blank?)
-        if eager_loading && !using_limitable_reflections?(reflections)
+        if eager_loading && !(
+            using_limitable_reflections?(join_dependency.reflections) &&
+            using_limitable_reflections?(
+              construct_join_dependency(
+                select_association_list(joins_values).concat(
+                  select_association_list(left_outer_joins_values)
+                ), nil
+              ).reflections
+            )
+        )
           if has_limit_or_offset?
             limited_ids = limited_ids_for(relation)
             limited_ids.empty? ? relation.none! : relation.where!(primary_key => limited_ids)
