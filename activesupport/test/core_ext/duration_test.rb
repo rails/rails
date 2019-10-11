@@ -174,6 +174,14 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal 1 + 1.second, 1.second + 1, "Duration + Numeric should == Numeric + Duration"
   end
 
+  def test_date_plus_ago_minus_returns_consistent_type
+    date = Date.today
+    assert_kind_of Time, (date + 1.hour)
+    assert_kind_of Time, (date + 0.hours)
+    assert_kind_of Time, (date - 1.hour)
+    assert_kind_of Time, (date - 0.hours)
+  end
+
   def test_time_plus_duration_returns_same_time_datatype
     twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Moscow"], Time.utc(2016, 4, 28, 00, 45))
     now = Time.now.utc
@@ -263,6 +271,14 @@ class DurationTest < ActiveSupport::TestCase
     end
   ensure
     Time.zone = nil
+  end
+
+  def test_date_since_and_ago_returns_consistent_type
+    date = Date.today
+    assert_kind_of Time, 1.hour.since(date)
+    assert_kind_of Time, 0.hours.since(date)
+    assert_kind_of Time, 1.hour.ago(date)
+    assert_kind_of Time, 0.hours.ago(date)
   end
 
   def test_before_and_afer

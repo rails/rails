@@ -1,3 +1,7 @@
+*   `ActiveSupport::Duration#+`, `-`, `since` and `ago` returns Time consistently for Date object
+
+    *Junichi Ito*
+    
 *   Improve `Range#===`, `Range#include?`, and `Range#cover?` to work with beginless (startless)
     and endless range targets.
 

@@ -403,7 +403,7 @@ module ActiveSupport
 
     private
       def sum(sign, time = ::Time.current)
-        parts.inject(time) do |t, (type, number)|
+        (parts.presence || { seconds: 0 }).inject(time) do |t, (type, number)|
           if t.acts_like?(:time) || t.acts_like?(:date)
             if type == :seconds
               t.since(sign * number)
