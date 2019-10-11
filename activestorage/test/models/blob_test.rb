@@ -170,8 +170,8 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     blob = create_blob
 
     freeze_time do
-      assert_equal expected_url_for(blob), blob.service_url
-      assert_equal expected_url_for(blob, disposition: :attachment), blob.service_url(disposition: :attachment)
+      assert_equal expected_url_for(blob), blob.url
+      assert_equal expected_url_for(blob, disposition: :attachment), blob.url(disposition: :attachment)
     end
   end
 
@@ -179,8 +179,8 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     blob = create_blob(content_type: "text/html")
 
     freeze_time do
-      assert_equal expected_url_for(blob, disposition: :attachment, content_type: "application/octet-stream"), blob.service_url
-      assert_equal expected_url_for(blob, disposition: :attachment, content_type: "application/octet-stream"), blob.service_url(disposition: :inline)
+      assert_equal expected_url_for(blob, disposition: :attachment, content_type: "application/octet-stream"), blob.url
+      assert_equal expected_url_for(blob, disposition: :attachment, content_type: "application/octet-stream"), blob.url(disposition: :inline)
     end
   end
 
@@ -188,8 +188,8 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     blob = create_blob(content_type: "application/zip")
 
     freeze_time do
-      assert_equal expected_url_for(blob, disposition: :attachment, content_type: "application/zip"), blob.service_url
-      assert_equal expected_url_for(blob, disposition: :attachment, content_type: "application/zip"), blob.service_url(disposition: :inline)
+      assert_equal expected_url_for(blob, disposition: :attachment, content_type: "application/zip"), blob.url
+      assert_equal expected_url_for(blob, disposition: :attachment, content_type: "application/zip"), blob.url(disposition: :inline)
     end
   end
 
@@ -198,10 +198,10 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     new_filename = ActiveStorage::Filename.new("new.txt")
 
     freeze_time do
-      assert_equal expected_url_for(blob), blob.service_url
-      assert_equal expected_url_for(blob, filename: new_filename), blob.service_url(filename: new_filename)
-      assert_equal expected_url_for(blob, filename: new_filename), blob.service_url(filename: "new.txt")
-      assert_equal expected_url_for(blob, filename: blob.filename), blob.service_url(filename: nil)
+      assert_equal expected_url_for(blob), blob.url
+      assert_equal expected_url_for(blob, filename: new_filename), blob.url(filename: new_filename)
+      assert_equal expected_url_for(blob, filename: new_filename), blob.url(filename: "new.txt")
+      assert_equal expected_url_for(blob, filename: blob.filename), blob.url(filename: nil)
     end
   end
 
@@ -218,7 +218,7 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
       thumb_mode: "crop"
     ]
     assert_called_with(blob.service, :url, arguments) do
-      blob.service_url(thumb_size: "300x300", thumb_mode: "crop")
+      blob.url(thumb_size: "300x300", thumb_mode: "crop")
     end
   end
 
