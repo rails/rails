@@ -408,6 +408,7 @@ module ActiveRecord
     def initialize_dup(other) # :nodoc:
       @attributes = @attributes.deep_dup
       @attributes.reset(@primary_key)
+      @skip_dup_attributes = true
 
       _run_initialize_callbacks
 

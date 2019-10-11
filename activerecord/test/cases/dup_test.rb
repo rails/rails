@@ -64,6 +64,13 @@ module ActiveRecord
       assert_equal "Aaron", duped.author_name
     end
 
+    def test_dup_with_custom_attributes
+      topic = Topic.select("topics.*, 1 as extra").first
+      duped = topic.dup
+      assert_respond_to topic, :extra, "Original responds to extra"
+      assert_respond_to duped, :extra, "Duplicate responds to extra"
+    end
+
     def test_dup_with_changes
       dbtopic = Topic.first
       topic = Topic.new

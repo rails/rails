@@ -129,12 +129,14 @@ module ActiveModel
     end
 
     def initialize_dup(other) # :nodoc:
+      @skip_dup_attributes = false
       super
-      if self.class.respond_to?(:_default_attributes)
+      if !@skip_dup_attributes && self.class.respond_to?(:_default_attributes)
         @attributes = self.class._default_attributes.map do |attr|
           attr.with_value_from_user(@attributes.fetch_value(attr.name))
         end
       end
+      remove_instance_variable :@skip_dup_attributes
       @mutations_from_database = nil
     end
 
