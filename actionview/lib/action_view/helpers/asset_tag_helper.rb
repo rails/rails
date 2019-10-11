@@ -87,6 +87,7 @@ module ActionView
         options = sources.extract_options!.stringify_keys
         path_options = options.extract!("protocol", "extname", "host", "skip_pipeline").symbolize_keys
         early_hints_links = []
+        indent = " " * (options["indent_size"] || 2)
 
         sources_tags = sources.uniq.map { |source|
           href = path_to_javascript(source, path_options)
@@ -98,7 +99,7 @@ module ActionView
             tag_options["nonce"] = content_security_policy_nonce
           end
           content_tag("script", "", tag_options)
-        }.join("\n").html_safe
+        }.join("\n#{indent}").html_safe
 
         request.send_early_hints("Link" => early_hints_links.join("\n")) if respond_to?(:request) && request
 
@@ -137,6 +138,7 @@ module ActionView
         options = sources.extract_options!.stringify_keys
         path_options = options.extract!("protocol", "host", "skip_pipeline").symbolize_keys
         early_hints_links = []
+        indent = " " * (options["indent_size"] || 2)
 
         sources_tags = sources.uniq.map { |source|
           href = path_to_stylesheet(source, path_options)
@@ -147,7 +149,7 @@ module ActionView
             "href" => href
           }.merge!(options)
           tag(:link, tag_options)
-        }.join("\n").html_safe
+        }.join("\n#{indent}").html_safe
 
         request.send_early_hints("Link" => early_hints_links.join("\n")) if respond_to?(:request) && request
 

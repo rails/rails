@@ -477,7 +477,7 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_stylesheet_link_tag_should_not_output_the_same_asset_twice
-    assert_dom_equal %(<link href="/stylesheets/wellington.css" media="screen" rel="stylesheet" />\n<link href="/stylesheets/amsterdam.css" media="screen" rel="stylesheet" />), stylesheet_link_tag("wellington", "wellington", "amsterdam")
+    assert_dom_equal %(<link href="/stylesheets/wellington.css" media="screen" rel="stylesheet" />\n  <link href="/stylesheets/amsterdam.css" media="screen" rel="stylesheet" />), stylesheet_link_tag("wellington", "wellington", "amsterdam")
   end
 
   def test_stylesheet_link_tag_with_relative_protocol
