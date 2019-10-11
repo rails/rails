@@ -69,9 +69,14 @@ module ActiveModel
 
       if base.class.respond_to?(:i18n_scope)
         i18n_scope = base.class.i18n_scope.to_s
+        unindexed_attribute = attribute.to_s.remove(/\[\d\]/)
+
         defaults = base.class.lookup_ancestors.flat_map do |klass|
-          [ :"#{i18n_scope}.errors.models.#{klass.model_name.i18n_key}.attributes.#{attribute}.#{type}",
-            :"#{i18n_scope}.errors.models.#{klass.model_name.i18n_key}.#{type}" ]
+          [
+            :"#{i18n_scope}.errors.models.#{klass.model_name.i18n_key}.attributes.#{attribute}.#{type}",
+            :"#{i18n_scope}.errors.models.#{klass.model_name.i18n_key}.attributes.#{unindexed_attribute}.#{type}",
+            :"#{i18n_scope}.errors.models.#{klass.model_name.i18n_key}.#{type}"
+          ]
         end
         defaults << :"#{i18n_scope}.errors.messages.#{type}"
 
