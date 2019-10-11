@@ -406,9 +406,8 @@ module ActiveRecord
 
     ##
     def initialize_dup(other) # :nodoc:
-      @attributes = @attributes.deep_dup
+      clone_attributes
       @attributes.reset(@primary_key)
-      @skip_dup_attributes = true
 
       _run_initialize_callbacks
 
@@ -575,6 +574,11 @@ module ActiveRecord
     end
 
     private
+      def clone_attributes
+        # this is here only if someone composes a class uses AR::Core without AM::Dirty As AM::Dirty will override this method
+        @attributes = @attributes.deep_dup
+      end
+
       # +Array#flatten+ will call +#to_ary+ (recursively) on each of the elements of
       # the array, and then rescues from the possible +NoMethodError+. If those elements are
       # +ActiveRecord::Base+'s, then this triggers the various +method_missing+'s that we have,

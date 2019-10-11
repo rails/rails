@@ -129,14 +129,10 @@ module ActiveModel
     end
 
     def initialize_dup(other) # :nodoc:
-      @skip_dup_attributes = false
       super
-      if !@skip_dup_attributes && self.class.respond_to?(:_default_attributes)
-        @attributes = self.class._default_attributes.map do |attr|
-          attr.with_value_from_user(@attributes.fetch_value(attr.name))
-        end
-      end
-      remove_instance_variable :@skip_dup_attributes
+
+      clone_attributes
+
       @mutations_from_database = nil
     end
 
@@ -242,6 +238,24 @@ module ActiveModel
     end
 
     private
+      def clone_attributes
+        return if instance_variable_defined? :@clone_attributes
+        @clone_attributes = true # mark that we have performed the clone
+
+        if self.class.respond_to?(:_default_attributes)
+          orig_attributes = @attributes
+          # core attributes copied against the defaults
+          @attributes = self.class._default_attributes.map do |attr|
+            attr.with_value_from_user(@attributes.fetch_value(attr.name))
+          end
+          # custom attributes it doesn't matter
+          (orig_attributes.keys - @attributes.keys).each do |name|
+            attr = orig_attributes[name]
+            @attributes[name] = attr.with_value_from_user(@attributes.fetch_value(attr.name))
+          end
+        end
+      end
+
       def clear_attribute_change(attr_name)
         mutations_from_database.forget_change(attr_name.to_s)
       end
