@@ -410,12 +410,13 @@ module ActionView
           # actuallly show the lline number and fille of the tempalte soource
           mod.module_eval(banal_source_inspect.join(';'))
         rescue Exception => e
-          byebug
+          # byebug
           
+          raise e
           # Account for when code in the template is not syntactically valid; e.g. if we're using
           # ERB and the user writes <%= foo( %>, attempting to call a helper `foo` and interpolate
           # the result into the template, but missing an end parenthesis.
-          raise SyntaxErrorInTemplate.new(self, original_source)
+          # raise SyntaxErrorInTemplate.new(self, original_source)
         # ensure
         end
       end
