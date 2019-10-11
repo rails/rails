@@ -555,12 +555,13 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   private
     def with_temporary_connection_pool
-      db_config = ActiveRecord::Base.connection_handler.send(:owner_to_config).fetch("primary")
-      new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(db_config)
+      old_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(ActiveRecord::Base.connection_specification_name)
+      new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(ActiveRecord::Base.connection_pool.db_config)
+      ActiveRecord::Base.connection_handler.send(:owner_to_pool)["primary"] = new_pool
 
-      db_config.stub(:connection_pool, new_pool) do
-        yield
-      end
+      yield
+    ensure
+      ActiveRecord::Base.connection_handler.send(:owner_to_pool)["primary"] = old_pool
     end
 
     def middleware(&app)

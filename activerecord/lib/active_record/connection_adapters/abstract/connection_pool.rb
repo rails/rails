@@ -22,20 +22,22 @@ module ActiveRecord
   module ConnectionAdapters
     module AbstractPool # :nodoc:
       def get_schema_cache(connection)
-        self.schema_cache ||= SchemaCache.new(connection)
-        schema_cache.connection = connection
-        schema_cache
+        @schema_cache ||= SchemaCache.new(connection)
+        @schema_cache.connection = connection
+        @schema_cache
       end
 
       def set_schema_cache(cache)
-        self.schema_cache = cache
+        @schema_cache = cache
       end
     end
 
     class NullPool # :nodoc:
       include ConnectionAdapters::AbstractPool
 
-      attr_accessor :schema_cache
+      def initialize
+        @schema_cache = nil
+      end
     end
 
     # Connection pool base class for managing Active Record database
@@ -369,10 +371,8 @@ module ActiveRecord
       include QueryCache::ConnectionPoolConfiguration
       include ConnectionAdapters::AbstractPool
 
-      attr_accessor :automatic_reconnect, :checkout_timeout
+      attr_accessor :automatic_reconnect, :checkout_timeout, :schema_cache
       attr_reader :db_config, :size, :reaper
-
-      delegate :schema_cache, :schema_cache=, to: :db_config
 
       # Creates a new ConnectionPool object. +spec+ is a ConnectionSpecification
       # object which describes database connection information (e.g. adapter,
@@ -998,15 +998,35 @@ module ActiveRecord
     # about the model. The model needs to pass a specification name to the handler,
     # in order to look up the correct connection pool.
     class ConnectionHandler
-      FINALIZER = lambda { |_| ActiveSupport::ForkTracker.check! }
-      private_constant :FINALIZER
+      def self.create_owner_to_pool # :nodoc:
+        Concurrent::Map.new(initial_capacity: 2) do |h, k|
+          # Discard the parent's connection pools immediately; we have no need
+          # of them
+          discard_unowned_pools(h)
+
+          h[k] = Concurrent::Map.new(initial_capacity: 2)
+        end
+      end
+
+      def self.unowned_pool_finalizer(pid_map) # :nodoc:
+        lambda do |_|
+          discard_unowned_pools(pid_map)
+        end
+      end
+
+      def self.discard_unowned_pools(pid_map) # :nodoc:
+        pid_map.each do |pid, pools|
+          pools.values.compact.each(&:discard!) unless pid == Process.pid
+        end
+      end
 
       def initialize
         # These caches are keyed by spec.name (ConnectionSpecification#name).
-        @owner_to_config = Concurrent::Map.new(initial_capacity: 2)
+        @owner_to_pool = ConnectionHandler.create_owner_to_pool
 
-        # Backup finalizer: if the forked child skipped Kernel#fork the early discard has not occurred
-        ObjectSpace.define_finalizer self, FINALIZER
+        # Backup finalizer: if the forked child never needed a pool, the above
+        # early discard has not occurred
+        ObjectSpace.define_finalizer self, ConnectionHandler.unowned_pool_finalizer(@owner_to_pool)
       end
 
       def prevent_writes # :nodoc:
@@ -1030,11 +1050,11 @@ module ActiveRecord
       end
 
       def connection_pool_names # :nodoc:
-        owner_to_config.keys
+        owner_to_pool.keys
       end
 
       def connection_pool_list
-        owner_to_config.values.compact.map(&:connection_pool)
+        owner_to_pool.values.compact
       end
       alias :connection_pools :connection_pool_list
 
@@ -1054,11 +1074,11 @@ module ActiveRecord
           payload[:config] = db_config.configuration_hash
         end
 
-        owner_to_config[spec.name] = db_config
-
         message_bus.instrument("!connection.active_record", payload) do
-          db_config.connection_pool
+          owner_to_pool[spec.name] = ConnectionAdapters::ConnectionPool.new(db_config)
         end
+
+        owner_to_pool[spec.name]
       end
 
       # Returns true if there are any active connections among the connection
@@ -1123,21 +1143,42 @@ module ActiveRecord
       # can be used as an argument for #establish_connection, for easily
       # re-establishing the connection.
       def remove_connection(spec_name)
-        if db_config = owner_to_config.delete(spec_name)
-          db_config.disconnect!
-          db_config.configuration_hash
+        if pool = owner_to_pool.delete(spec_name)
+          pool.automatic_reconnect = false
+          pool.disconnect!
+          pool.db_config.configuration_hash
         end
       end
 
-      # Retrieving the connection pool happens a lot, so we cache it in @owner_to_config.
+      # Retrieving the connection pool happens a lot, so we cache it in @owner_to_pool.
       # This makes retrieving the connection pool O(1) once the process is warm.
       # When a connection is established or removed, we invalidate the cache.
       def retrieve_connection_pool(spec_name)
-        owner_to_config[spec_name]&.connection_pool
+        owner_to_pool.fetch(spec_name) do
+          # Check if a connection was previously established in an ancestor process,
+          # which may have been forked.
+          if ancestor_pool = pool_from_any_process_for(spec_name)
+            # A connection was established in an ancestor process that must have
+            # subsequently forked. We can't reuse the connection, but we can copy
+            # the specification and establish a new connection with it.
+            establish_connection(ancestor_pool.db_config.configuration_hash.merge(name: spec_name)).tap do |pool|
+              pool.schema_cache = ancestor_pool.schema_cache if ancestor_pool.schema_cache
+            end
+          else
+            owner_to_pool[spec_name] = nil
+          end
+        end
       end
 
       private
-        attr_reader :owner_to_config
+        def owner_to_pool
+          @owner_to_pool[Process.pid]
+        end
+
+        def pool_from_any_process_for(spec_name)
+          owner_to_pool = @owner_to_pool.values.reverse.find { |v| v[spec_name] }
+          owner_to_pool && owner_to_pool[spec_name]
+        end
     end
   end
 end

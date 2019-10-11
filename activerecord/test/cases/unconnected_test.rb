@@ -13,7 +13,10 @@ class TestUnconnectedAdapter < ActiveRecord::TestCase
     @specification = ActiveRecord::Base.remove_connection
 
     # Clear out connection info from other pids (like a fork parent) too
-    ActiveRecord::DatabaseConfigurations::DatabaseConfig.discard_pools!
+    pool_map = ActiveRecord::Base.connection_handler.instance_variable_get(:@owner_to_pool)
+    (pool_map.keys - [Process.pid]).each do |other_pid|
+      pool_map.delete(other_pid)
+    end
   end
 
   teardown do
