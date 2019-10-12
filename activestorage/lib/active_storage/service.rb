@@ -136,7 +136,7 @@ module ActiveStorage
     end
 
     def public?
-      !!@public
+      @public
     end
 
     private
