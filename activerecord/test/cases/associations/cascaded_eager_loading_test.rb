@@ -190,4 +190,15 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
     assert_equal 3, authors[1].posts.size
     assert_equal 3, authors[0].posts.collect { |post| post.categorizations.size }.inject(0) { |sum, i| sum + i }
   end
+
+  # Regression test for https://github.com/rails/rails/issues/37446
+  def test_preloaded_records_are_not_duplicated
+    author = Author.first
+    expected = Post.where(author: author)
+      .includes(author: :first_posts).map { |post| post.author.first_posts.size }
+    actual = author.posts
+      .includes(author: :first_posts).map { |post| post.author.first_posts.size }
+
+    assert_equal expected, actual
+  end
 end
