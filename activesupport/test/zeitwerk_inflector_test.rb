@@ -36,7 +36,7 @@ class ZeitwerkInflectorTest < ActiveSupport::TestCase
     assert_equal "SSLError", camelize("ssl_error")
   end
 
-  test "overrides take precendence" do
+  test "overrides take precedence" do
     # Precondition, ensure we are testing something.
     assert_equal "MysqlAdapter", camelize("mysql_adapter")
 
