@@ -112,7 +112,7 @@ module ActiveRecord
           association.flat_map { |parent, child|
             grouped_records(parent, records, polymorphic_parent).flat_map do |reflection, reflection_records|
               loaders = preloaders_for_reflection(reflection, reflection_records, scope)
-              recs = loaders.flat_map(&:preloaded_records)
+              recs = loaders.flat_map(&:preloaded_records).uniq
               child_polymorphic_parent = reflection && reflection.options[:polymorphic]
               loaders.concat Array.wrap(child).flat_map { |assoc|
                 preloaders_on assoc, recs, scope, child_polymorphic_parent
