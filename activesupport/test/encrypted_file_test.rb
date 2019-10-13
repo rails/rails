@@ -56,4 +56,23 @@ class EncryptedFileTest < ActiveSupport::TestCase
       ).read
     end
   end
+
+  test "keep the symlink" do
+    @encrypted_file.write("")
+
+    link_path = File.join(Dir.tmpdir, "link_content.txt.enc")
+    File.symlink(@encrypted_file.content_path, link_path)
+
+    begin
+      link_encrypted_file = ActiveSupport::EncryptedFile.new(
+        content_path: link_path, key_path: @key_path, env_key: "CONTENT_KEY", raise_if_missing_key: true
+      )
+      link_encrypted_file.write(@content)
+
+      assert File.symlink?(link_path)
+      assert_equal @content, @encrypted_file.read
+    ensure
+      FileUtils.rm_rf link_path
+    end
+  end
 end
