@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_storage/downloader"
-
 # A blob is a record that contains the metadata about a file and a key for where that file resides on the service.
 # Blobs can be created in two ways:
 #
