@@ -40,6 +40,8 @@ ActiveStorage.verifier = ActiveSupport::MessageVerifier.new("Testing")
 class ActiveSupport::TestCase
   self.file_fixture_path = File.expand_path("fixtures/files", __dir__)
 
+  include ActiveRecord::TestFixtures
+
   setup do
     ActiveStorage::Current.host = "https://example.com"
   end

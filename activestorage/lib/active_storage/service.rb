@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_storage/log_subscriber"
+require "active_storage/downloader"
 require "action_dispatch"
 require "action_dispatch/http/content_disposition"
 
