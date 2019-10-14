@@ -1,3 +1,7 @@
+*   Fixed the performance regression for `primary_keys` introduced MySQL 8.0.
+
+    *Hiroyuki Ishii*
+
 *   `insert`, `insert_all`, `upsert`, and `upsert_all` now clear the query cache.
 
     *Eugene Kenny*

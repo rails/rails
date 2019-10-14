@@ -440,11 +440,11 @@ module ActiveRecord
 
         query_values(<<~SQL, "SCHEMA")
           SELECT column_name
-          FROM information_schema.key_column_usage
-          WHERE constraint_name = 'PRIMARY'
+          FROM information_schema.statistics
+          WHERE index_name = 'PRIMARY'
             AND table_schema = #{scope[:schema]}
             AND table_name = #{scope[:name]}
-          ORDER BY ordinal_position
+          ORDER BY seq_in_index
         SQL
       end
 
