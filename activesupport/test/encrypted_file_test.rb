@@ -75,4 +75,21 @@ class EncryptedFileTest < ActiveSupport::TestCase
       FileUtils.rm_rf link_path
     end
   end
+
+  test "create a new file at the link destination when content_path is dead-symlink" do
+    link_path = File.join(Dir.tmpdir, "dead_symlink.txt.enc")
+    File.symlink(@content_path, link_path)
+
+    begin
+      link_encrypted_file = ActiveSupport::EncryptedFile.new(
+        content_path: link_path, key_path: @key_path, env_key: "CONTENT_KEY", raise_if_missing_key: true
+      )
+      link_encrypted_file.write(@content)
+
+      assert File.exist?(@content_path)
+      assert_equal @content, @encrypted_file.read
+    ensure
+      FileUtils.rm_rf link_path
+    end
+  end
 end
