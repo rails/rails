@@ -701,6 +701,8 @@ module ActiveSupport
 
           __update_callbacks(name) do |target, chain|
             filters.each do |filter|
+              next if (options[:if] == options[:unless]) && (options.key?(:if) || options.key?(:unless))
+
               callback = chain.find { |c| c.matches?(type, filter) }
 
               if !callback && options[:raise]

@@ -82,6 +82,16 @@ module CallbacksTest
     def no; false; end
   end
 
+  class PersonUnSkipper < Person
+    skip_callback :save, :before, :before_save_method, if: :yes, unless: :yes
+    skip_callback :save, :after,  :after_save_method, unless: :yes, if: :yes
+    skip_callback :save, :after,  :after_save_method, if: :no, unless: :no
+    skip_callback :save, :before, :before_save_method, unless: :no, if: :no
+    skip_callback :save, :before, CallbackClass, if: :yes, unless: :yes
+    def yes; true; end
+    def no; false; end
+  end
+
   class PersonForProgrammaticSkipping < Person
   end
 
@@ -545,6 +555,24 @@ module CallbacksTest
       assert_equal [], person.history
       person.save
       assert_equal [
+        [:after_save, :block],
+        [:after_save, :class],
+        [:after_save, :object],
+        [:after_save, :proc],
+        [:after_save, :symbol]
+      ], person.history
+    end
+
+    def test_skip_skip_callback
+      person = PersonUnSkipper.new
+      assert_equal [], person.history
+      person.save
+      assert_equal [
+        [:before_save, :symbol],
+        [:before_save, :proc],
+        [:before_save, :object],
+        [:before_save, :class],
+        [:before_save, :block],
         [:after_save, :block],
         [:after_save, :class],
         [:after_save, :object],
