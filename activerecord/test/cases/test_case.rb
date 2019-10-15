@@ -79,6 +79,14 @@ module ActiveRecord
       model.reset_column_information
       model.column_names.include?(column_name.to_s)
     end
+
+    def with_has_many_inversing
+      old = ActiveRecord::Base.has_many_inversing
+      ActiveRecord::Base.has_many_inversing = true
+      yield
+    ensure
+      ActiveRecord::Base.has_many_inversing = old
+    end
   end
 
   class PostgreSQLTestCase < TestCase
