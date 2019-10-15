@@ -50,17 +50,6 @@ module ApplicationTests
       assert_equal "test.rails", ActionMailer::Base.default_url_options[:host]
     end
 
-    test "Default to HTTPS for ActionMailer URLs when force_ssl is on" do
-      app_file "config/environments/development.rb", <<-RUBY
-        Rails.application.configure do
-          config.force_ssl = true
-        end
-      RUBY
-
-      require "#{app_path}/config/environment"
-      assert_equal "https", ActionMailer::Base.default_url_options[:protocol]
-    end
-
     test "includes URL helpers as action methods" do
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
@@ -181,6 +170,17 @@ module ApplicationTests
       add_to_config "config.encoding = '#{charset}'"
       require "#{app_path}/config/environment"
       assert_equal charset, ActionDispatch::Response.default_charset
+    end
+
+    test "URL builder is configured to use HTTPS when force_ssl is on" do
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure do
+          config.force_ssl = true
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+      assert_equal true, ActionDispatch::Http::URL.secure_protocol
     end
 
     # AS
