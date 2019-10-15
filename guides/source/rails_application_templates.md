@@ -235,10 +235,10 @@ CODE
 
 ### yes?(question) or no?(question)
 
-These methods let you ask questions from templates and decide the flow based on the user's answer. Let's say you want to Freeze Rails only if the user wants to:
+These methods let you ask questions from templates and decide the flow based on the user's answer. Let's say you want to prompt the user to run migrations:
 
 ```ruby
-rails_command("rails:freeze:gems") if yes?("Freeze rails gems?")
+rails_command("db:migrate") if yes?("Run database migrations?")
 # no?(question) acts just the opposite.
 ```
 
