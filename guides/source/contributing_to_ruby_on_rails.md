@@ -380,9 +380,19 @@ $ SEED=15002 bundle exec ruby -w -Itest test/mail_layout_test.rb
 First, create the databases you'll need. You can find a list of the required
 table names, usernames, and passwords in `activerecord/test/config.example.yml`.
 
-For MySQL and PostgreSQL, running the SQL statements `create database
-activerecord_unittest` and `create database activerecord_unittest2` is
-sufficient. This is not necessary for SQLite3.
+For MySQL and PostgreSQL, it is suficient to run:
+
+```bash
+$ cd activerecord
+$ bundle exec rake db:mysql:build
+```
+Or:
+
+```bash
+$ cd activerecord
+$ bundle exec rake db:postgresql:build
+```
+This is not necessary for SQLite3.
 
 This is how you run the Active Record test suite only for SQLite3:
 
