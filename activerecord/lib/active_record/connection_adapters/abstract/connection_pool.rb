@@ -950,6 +950,60 @@ module ActiveRecord
         end
     end
 
+    class Role
+      include Mutex_m
+
+      attr_reader :db_config
+
+      INSTANCES = ObjectSpace::WeakMap.new
+      private_constant :INSTANCES
+
+      class << self
+        def discard_pools!
+          INSTANCES.each_key(&:discard_pool!)
+        end
+      end
+
+      def initialize(db_config)
+        super()
+        @db_config = db_config
+        @pool = nil
+        INSTANCES[self] = self
+      end
+
+      def disconnect!
+        ActiveSupport::ForkTracker.check!
+
+        return unless @pool
+
+        synchronize do
+          return unless @pool
+
+          @pool.automatic_reconnect = false
+          @pool.disconnect!
+        end
+
+        nil
+      end
+
+      def pool
+        ActiveSupport::ForkTracker.check!
+
+        @pool || synchronize { @pool ||= ConnectionAdapters::ConnectionPool.new(db_config) }
+      end
+
+      def discard_pool!
+        return unless @pool
+
+        synchronize do
+          return unless @pool
+
+          @pool.discard!
+          @pool = nil
+        end
+      end
+    end
+
     # ConnectionHandler is a collection of ConnectionPool objects. It is used
     # for keeping separate connection pools that connect to different databases.
     #
@@ -1003,7 +1057,7 @@ module ActiveRecord
 
       def initialize
         # These caches are keyed by spec.name (ConnectionSpecification#name).
-        @owner_to_config = Concurrent::Map.new(initial_capacity: 2)
+        @owner_to_role = Concurrent::Map.new(initial_capacity: 2)
 
         # Backup finalizer: if the forked child skipped Kernel#fork the early discard has not occurred
         ObjectSpace.define_finalizer self, FINALIZER
@@ -1030,11 +1084,11 @@ module ActiveRecord
       end
 
       def connection_pool_names # :nodoc:
-        owner_to_config.keys
+        owner_to_role.keys
       end
 
       def connection_pool_list
-        owner_to_config.values.compact.map(&:connection_pool)
+        owner_to_role.values.compact.map(&:pool)
       end
       alias :connection_pools :connection_pool_list
 
@@ -1054,10 +1108,10 @@ module ActiveRecord
           payload[:config] = db_config.configuration_hash
         end
 
-        owner_to_config[spec.name] = db_config
+        role = owner_to_role[spec.name] = Role.new(db_config)
 
         message_bus.instrument("!connection.active_record", payload) do
-          db_config.connection_pool
+          role.pool
         end
       end
 
@@ -1123,21 +1177,21 @@ module ActiveRecord
       # can be used as an argument for #establish_connection, for easily
       # re-establishing the connection.
       def remove_connection(spec_name)
-        if db_config = owner_to_config.delete(spec_name)
-          db_config.disconnect!
-          db_config.configuration_hash
+        if role = owner_to_role.delete(spec_name)
+          role.disconnect!
+          role.db_config.configuration_hash
         end
       end
 
-      # Retrieving the connection pool happens a lot, so we cache it in @owner_to_config.
+      # Retrieving the connection pool happens a lot, so we cache it in @owner_to_role.
       # This makes retrieving the connection pool O(1) once the process is warm.
       # When a connection is established or removed, we invalidate the cache.
       def retrieve_connection_pool(spec_name)
-        owner_to_config[spec_name]&.connection_pool
+        owner_to_role[spec_name]&.pool
       end
 
       private
-        attr_reader :owner_to_config
+        attr_reader :owner_to_role
     end
   end
 end
