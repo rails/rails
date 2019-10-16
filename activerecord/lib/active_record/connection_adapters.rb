@@ -9,7 +9,7 @@ module ActiveRecord
     end
 
     autoload :Column
-    autoload :ConnectionSpecification
+    autoload :Role
     autoload :Resolver
 
     autoload_at "active_record/connection_adapters/abstract/schema_definitions" do

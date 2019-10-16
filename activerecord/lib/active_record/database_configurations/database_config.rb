@@ -8,8 +8,6 @@ module ActiveRecord
     class DatabaseConfig # :nodoc:
       attr_reader :env_name, :spec_name
 
-      attr_accessor :schema_cache
-
       def initialize(env_name, spec_name)
         @env_name = env_name
         @spec_name = spec_name
@@ -61,5 +59,3 @@ module ActiveRecord
     end
   end
 end
-
-ActiveSupport::ForkTracker.after_fork { ActiveRecord::ConnectionAdapters::Role.discard_pools! }

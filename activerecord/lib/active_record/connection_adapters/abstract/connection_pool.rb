@@ -370,20 +370,21 @@ module ActiveRecord
       include ConnectionAdapters::AbstractPool
 
       attr_accessor :automatic_reconnect, :checkout_timeout
-      attr_reader :db_config, :size, :reaper
+      attr_reader :db_config, :size, :reaper, :role
 
-      delegate :schema_cache, :schema_cache=, to: :db_config
+      delegate :schema_cache, :schema_cache=, to: :role
 
-      # Creates a new ConnectionPool object. +spec+ is a ConnectionSpecification
+      # Creates a new ConnectionPool object. +role+ is a Role
       # object which describes database connection information (e.g. adapter,
       # host name, username, password, etc), as well as the maximum size for
       # this ConnectionPool.
       #
       # The default ConnectionPool maximum size is 5.
-      def initialize(db_config)
+      def initialize(role)
         super()
 
-        @db_config = db_config
+        @role = role
+        @db_config = role.db_config
 
         @checkout_timeout = db_config.checkout_timeout
         @idle_timeout = db_config.idle_timeout
@@ -950,60 +951,6 @@ module ActiveRecord
         end
     end
 
-    class Role # :nodoc:
-      include Mutex_m
-
-      attr_reader :db_config
-
-      INSTANCES = ObjectSpace::WeakMap.new
-      private_constant :INSTANCES
-
-      class << self
-        def discard_pools!
-          INSTANCES.each_key(&:discard_pool!)
-        end
-      end
-
-      def initialize(db_config)
-        super()
-        @db_config = db_config
-        @pool = nil
-        INSTANCES[self] = self
-      end
-
-      def disconnect!
-        ActiveSupport::ForkTracker.check!
-
-        return unless @pool
-
-        synchronize do
-          return unless @pool
-
-          @pool.automatic_reconnect = false
-          @pool.disconnect!
-        end
-
-        nil
-      end
-
-      def pool
-        ActiveSupport::ForkTracker.check!
-
-        @pool || synchronize { @pool ||= ConnectionAdapters::ConnectionPool.new(db_config) }
-      end
-
-      def discard_pool!
-        return unless @pool
-
-        synchronize do
-          return unless @pool
-
-          @pool.discard!
-          @pool = nil
-        end
-      end
-    end
-
     # ConnectionHandler is a collection of ConnectionPool objects. It is used
     # for keeping separate connection pools that connect to different databases.
     #
@@ -1056,7 +1003,7 @@ module ActiveRecord
       private_constant :FINALIZER
 
       def initialize
-        # These caches are keyed by spec.name (ConnectionSpecification#name).
+        # These caches are keyed by role.connection_specification_name (Role#connection_specification_name).
         @owner_to_role = Concurrent::Map.new(initial_capacity: 2)
 
         # Backup finalizer: if the forked child skipped Kernel#fork the early discard has not occurred
@@ -1094,21 +1041,21 @@ module ActiveRecord
 
       def establish_connection(config)
         resolver = Resolver.new(Base.configurations)
-        spec = resolver.spec(config)
-        db_config = spec.db_config
+        role = resolver.resolve_role(config)
+        db_config = role.db_config
 
-        remove_connection(spec.name)
+        remove_connection(role.connection_specification_name)
 
         message_bus = ActiveSupport::Notifications.instrumenter
         payload = {
           connection_id: object_id
         }
-        if spec
-          payload[:spec_name] = spec.name
+        if role
+          payload[:spec_name] = role.connection_specification_name
           payload[:config] = db_config.configuration_hash
         end
 
-        role = owner_to_role[spec.name] = Role.new(db_config)
+        role = owner_to_role[role.connection_specification_name] = Role.new(role.connection_specification_name, db_config)
 
         message_bus.instrument("!connection.active_record", payload) do
           role.pool

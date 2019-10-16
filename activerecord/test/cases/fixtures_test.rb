@@ -1415,7 +1415,7 @@ class MultipleDatabaseFixturesTest < ActiveRecord::TestCase
   private
     def with_temporary_connection_pool
       role = ActiveRecord::Base.connection_handler.send(:owner_to_role).fetch("primary")
-      new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(role.db_config)
+      new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(role)
 
       role.stub(:pool, new_pool) do
         yield
