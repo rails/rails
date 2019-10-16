@@ -950,7 +950,7 @@ module ActiveRecord
         end
     end
 
-    class Role
+    class Role # :nodoc:
       include Mutex_m
 
       attr_reader :db_config
