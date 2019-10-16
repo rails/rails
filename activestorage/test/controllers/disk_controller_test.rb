@@ -7,7 +7,7 @@ class ActiveStorage::DiskControllerTest < ActionDispatch::IntegrationTest
   test "showing blob inline" do
     blob = create_blob(filename: "hello.jpg", content_type: "image/jpg")
 
-    get blob.service_url
+    get blob.url
     assert_response :ok
     assert_equal "inline; filename=\"hello.jpg\"; filename*=UTF-8''hello.jpg", response.headers["Content-Disposition"]
     assert_equal "image/jpg", response.headers["Content-Type"]
@@ -16,7 +16,7 @@ class ActiveStorage::DiskControllerTest < ActionDispatch::IntegrationTest
 
   test "showing blob as attachment" do
     blob = create_blob
-    get blob.service_url(disposition: :attachment)
+    get blob.url(disposition: :attachment)
     assert_response :ok
     assert_equal "attachment; filename=\"hello.txt\"; filename*=UTF-8''hello.txt", response.headers["Content-Disposition"]
     assert_equal "text/plain", response.headers["Content-Type"]
@@ -25,7 +25,7 @@ class ActiveStorage::DiskControllerTest < ActionDispatch::IntegrationTest
 
   test "showing blob range" do
     blob = create_blob
-    get blob.service_url, headers: { "Range" => "bytes=5-9" }
+    get blob.url, headers: { "Range" => "bytes=5-9" }
     assert_response :partial_content
     assert_equal "attachment; filename=\"hello.txt\"; filename*=UTF-8''hello.txt", response.headers["Content-Disposition"]
     assert_equal "text/plain", response.headers["Content-Type"]
@@ -36,14 +36,13 @@ class ActiveStorage::DiskControllerTest < ActionDispatch::IntegrationTest
     blob = create_blob
     blob.delete
 
-    get blob.service_url
+    get blob.url
   end
 
   test "showing blob with invalid key" do
     get rails_disk_service_url(encoded_key: "Invalid key", filename: "hello.txt")
     assert_response :not_found
   end
-
 
   test "directly uploading blob with integrity" do
     data = "Something else entirely!"

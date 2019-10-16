@@ -139,7 +139,7 @@ By default, guides that have not been modified are not processed, so `ONLY` is r
 
 To force processing all the guides, pass `ALL=1`.
 
-If you want to generate guides in a language other than English, you can keep them in a separate directory under `source` (eg. `source/es`) and use the `GUIDES_LANGUAGE` environment variable:
+If you want to generate guides in a language other than English, you can keep them in a separate directory under `source` (e.g. `source/es`) and use the `GUIDES_LANGUAGE` environment variable:
 
 ```
 bundle exec rake guides:generate GUIDES_LANGUAGE=es

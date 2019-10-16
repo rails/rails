@@ -17,7 +17,7 @@ module Rails
     def start
       ENV["RAILS_ENV"] ||= @options[:environment] || environment
 
-      case config[:adapter]
+      case db_config.adapter
       when /^(jdbc)?mysql/
         args = {
           host: "--host",
@@ -38,7 +38,7 @@ module Rails
           args << "-p"
         end
 
-        args << config[:database]
+        args << db_config.database
 
         find_cmd_and_exec(["mysql", "mysql5"], *args)
 
@@ -47,14 +47,14 @@ module Rails
         ENV["PGHOST"]     = config[:host] if config[:host]
         ENV["PGPORT"]     = config[:port].to_s if config[:port]
         ENV["PGPASSWORD"] = config[:password].to_s if config[:password] && @options[:include_password]
-        find_cmd_and_exec("psql", config[:database])
+        find_cmd_and_exec("psql", db_config.database)
 
       when "sqlite3"
         args = []
 
         args << "-#{@options[:mode]}" if @options[:mode]
         args << "-header" if @options[:header]
-        args << File.expand_path(config[:database], Rails.respond_to?(:root) ? Rails.root : nil)
+        args << File.expand_path(db_config.database, Rails.respond_to?(:root) ? Rails.root : nil)
 
         find_cmd_and_exec("sqlite3", *args)
 
@@ -64,7 +64,7 @@ module Rails
         if config[:username]
           logon = config[:username].dup
           logon << "/#{config[:password]}" if config[:password] && @options[:include_password]
-          logon << "@#{config[:database]}" if config[:database]
+          logon << "@#{db_config.database}" if db_config.database
         end
 
         find_cmd_and_exec("sqlplus", logon)
@@ -72,7 +72,7 @@ module Rails
       when "sqlserver"
         args = []
 
-        args += ["-D", "#{config[:database]}"] if config[:database]
+        args += ["-D", "#{db_config.database}"] if db_config.database
         args += ["-U", "#{config[:username]}"] if config[:username]
         args += ["-P", "#{config[:password]}"] if config[:password]
 
@@ -85,23 +85,29 @@ module Rails
         find_cmd_and_exec("sqsh", *args)
 
       else
-        abort "Unknown command-line client for #{config[:database]}."
+        abort "Unknown command-line client for #{db_config.database}."
       end
     end
 
     def config
-      @config ||= begin
-        # We need to check whether the user passed the database the
-        # first time around to show a consistent error message to people
-        # relying on 2-level database configuration.
-        if @options[:database] && configurations[database].blank?
-          raise ActiveRecord::AdapterNotSpecified, "'#{database}' database is not configured. Available configuration: #{configurations.inspect}"
-        elsif configurations[environment].blank? && configurations[database].blank?
-          raise ActiveRecord::AdapterNotSpecified, "'#{environment}' database is not configured. Available configuration: #{configurations.inspect}"
-        else
-          (configurations[database] || configurations[environment].presence).symbolize_keys
-        end
+      db_config.configuration_hash
+    end
+
+    def db_config
+      return @db_config if @db_config
+
+      # We need to check whether the user passed the database the
+      # first time around to show a consistent error message to people
+      # relying on 2-level database configuration.
+
+      @db_config = configurations.configs_for(env_name: environment, spec_name: database)
+
+      unless @db_config
+        raise ActiveRecord::AdapterNotSpecified,
+          "'#{database}' database is not configured for '#{environment}'. Available configuration: #{configurations.inspect}"
       end
+
+      @db_config
     end
 
     def environment

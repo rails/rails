@@ -285,6 +285,17 @@ module ActiveRecord
         replace_on_target(record, index, skip_callbacks, &block)
       end
 
+      def target=(record)
+        return super unless ActiveRecord::Base.has_many_inversing
+
+        case record
+        when Array
+          super
+        else
+          add_to_target(record, true)
+        end
+      end
+
       def scope
         scope = super
         scope.none! if null_scope?

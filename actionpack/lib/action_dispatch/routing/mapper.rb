@@ -560,7 +560,7 @@ module ActionDispatch
         #   Constrains parameters with a hash of regular expressions
         #   or an object that responds to <tt>matches?</tt>. In addition, constraints
         #   other than path can also be specified with any object
-        #   that responds to <tt>===</tt> (eg. String, Array, Range, etc.).
+        #   that responds to <tt>===</tt> (e.g. String, Array, Range, etc.).
         #
         #     match 'path/:id', constraints: { id: /[A-Z]\d{5}/ }, via: :get
         #
@@ -747,6 +747,14 @@ module ActionDispatch
         #   delete 'broccoli', to: 'food#broccoli'
         def delete(*args, &block)
           map_method(:delete, args, &block)
+        end
+
+        # Define a route that only recognizes HTTP OPTIONS.
+        # For supported arguments, see match[rdoc-ref:Base#match]
+        #
+        #   options 'carrots', to: 'food#carrots'
+        def options(*args, &block)
+          map_method(:options, args, &block)
         end
 
         private
@@ -2078,7 +2086,7 @@ module ActionDispatch
         # of routing helpers, e.g:
         #
         #   direct :homepage do
-        #     "http://www.rubyonrails.org"
+        #     "https://rubyonrails.org"
         #   end
         #
         #   direct :commentable do |model|

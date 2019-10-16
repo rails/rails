@@ -6,14 +6,12 @@ require "database/setup"
 if SERVICE_CONFIGURATIONS[:s3] && SERVICE_CONFIGURATIONS[:s3][:access_key_id].present?
   class ActiveStorage::S3DirectUploadsControllerTest < ActionDispatch::IntegrationTest
     setup do
-      Rails.configuration.active_storage.service = "s3"
       @old_service = ActiveStorage::Blob.service
       ActiveStorage::Blob.service = ActiveStorage::Service.configure(:s3, SERVICE_CONFIGURATIONS)
     end
 
     teardown do
       ActiveStorage::Blob.service = @old_service
-      Rails.configuration.active_storage.service = "local"
     end
 
     test "creating new direct upload" do
@@ -41,7 +39,6 @@ end
 if SERVICE_CONFIGURATIONS[:gcs]
   class ActiveStorage::GCSDirectUploadsControllerTest < ActionDispatch::IntegrationTest
     setup do
-      Rails.configuration.active_storage.service = "gcs"
       @config = SERVICE_CONFIGURATIONS[:gcs]
 
       @old_service = ActiveStorage::Blob.service
@@ -50,7 +47,6 @@ if SERVICE_CONFIGURATIONS[:gcs]
 
     teardown do
       ActiveStorage::Blob.service = @old_service
-      Rails.configuration.active_storage.service = "local"
     end
 
     test "creating new direct upload" do
@@ -77,7 +73,6 @@ end
 if SERVICE_CONFIGURATIONS[:azure]
   class ActiveStorage::AzureStorageDirectUploadsControllerTest < ActionDispatch::IntegrationTest
     setup do
-      Rails.configuration.active_storage.service = "azure"
       @config = SERVICE_CONFIGURATIONS[:azure]
 
       @old_service = ActiveStorage::Blob.service
@@ -86,7 +81,6 @@ if SERVICE_CONFIGURATIONS[:azure]
 
     teardown do
       ActiveStorage::Blob.service = @old_service
-      Rails.configuration.active_storage.service = "local"
     end
 
     test "creating new direct upload" do

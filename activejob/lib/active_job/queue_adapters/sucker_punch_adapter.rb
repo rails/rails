@@ -10,7 +10,7 @@ module ActiveJob
     # This reduces the cost of hosting on a service like Heroku along
     # with the memory footprint of having to maintain additional jobs if
     # hosting on a dedicated server. All queues can run within a
-    # single application (eg. Rails, Sinatra, etc.) process.
+    # single application (e.g. Rails, Sinatra, etc.) process.
     #
     # Read more about Sucker Punch {here}[https://github.com/brandonhilkert/sucker_punch].
     #

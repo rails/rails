@@ -888,7 +888,7 @@ module ActionView
       #
       # Now, when you use a form element with the <tt>_destroy</tt> parameter,
       # with a value that evaluates to +true+, you will destroy the associated
-      # model (eg. 1, '1', true, or 'true'):
+      # model (e.g. 1, '1', true, or 'true'):
       #
       #   <%= form_for @person do |person_form| %>
       #     ...
@@ -977,7 +977,7 @@ module ActionView
       # This will allow you to specify which models to destroy in the
       # attributes hash by adding a form element for the <tt>_destroy</tt>
       # parameter with a value that evaluates to +true+
-      # (eg. 1, '1', true, or 'true'):
+      # (e.g. 1, '1', true, or 'true'):
       #
       #   <%= form_for @person do |person_form| %>
       #     ...
@@ -2038,7 +2038,7 @@ module ActionView
       #
       # Now, when you use a form element with the <tt>_destroy</tt> parameter,
       # with a value that evaluates to +true+, you will destroy the associated
-      # model (eg. 1, '1', true, or 'true'):
+      # model (e.g. 1, '1', true, or 'true'):
       #
       #   <%= form_for @person do |person_form| %>
       #     ...
@@ -2127,7 +2127,7 @@ module ActionView
       # This will allow you to specify which models to destroy in the
       # attributes hash by adding a form element for the <tt>_destroy</tt>
       # parameter with a value that evaluates to +true+
-      # (eg. 1, '1', true, or 'true'):
+      # (e.g. 1, '1', true, or 'true'):
       #
       #   <%= form_for @person do |person_form| %>
       #     ...

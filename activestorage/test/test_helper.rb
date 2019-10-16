@@ -35,13 +35,14 @@ end
 
 require "tmpdir"
 
-Rails.configuration.active_storage.service_configurations = SERVICE_CONFIGURATIONS.deep_stringify_keys.merge(
+Rails.configuration.active_storage.service_configurations = SERVICE_CONFIGURATIONS.merge(
   "local" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests") },
+  "local_public" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests"), "public" => true },
   "disk_mirror_1" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests_1") },
   "disk_mirror_2" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests_2") },
   "disk_mirror_3" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests_3") },
   "mirror" => { "service" => "Mirror", "primary" => "local", "mirrors" => ["disk_mirror_1", "disk_mirror_2", "disk_mirror_3"] }
-)
+).deep_stringify_keys
 
 Rails.configuration.active_storage.service = "local"
 
@@ -50,6 +51,8 @@ ActiveStorage.verifier = ActiveSupport::MessageVerifier.new("Testing")
 
 class ActiveSupport::TestCase
   self.file_fixture_path = File.expand_path("fixtures/files", __dir__)
+
+  include ActiveRecord::TestFixtures
 
   setup do
     ActiveStorage::Current.host = "https://example.com"
@@ -101,14 +104,12 @@ class ActiveSupport::TestCase
 
     def with_service(service_name)
       service = ActiveStorage::ServiceRegistry.fetch(service_name)
-      ActiveStorage::Blob.service, previous_service = service, ActiveStorage::Blob.service
-
-      Rails.configuration.active_storage.service, previous_service_name = service_name, Rails.configuration.active_storage.service
+      previous_service = ActiveStorage::Blob.service
+      ActiveStorage::Blob.service =  service
 
       yield
     ensure
       ActiveStorage::Blob.service = previous_service
-      Rails.configuration.active_storage.service = previous_service_name
     end
 end
 

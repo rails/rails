@@ -61,8 +61,12 @@ module ActiveStorage
             service_name: attachment_service_name
           )
         when Hash
-          args = attachable.reverse_merge(record: record, service_name: attachment_service_name)
-          ActiveStorage::Blob.build_after_unfurling(**args)
+          ActiveStorage::Blob.build_after_unfurling(
+            **attachable.reverse_merge(
+              record: record,
+              service_name: attachment_service_name
+            )
+          )
         when String
           ActiveStorage::Blob.find_signed(attachable, record: record)
         else

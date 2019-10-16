@@ -583,23 +583,20 @@ module ActiveSupport
         # Reads multiple entries from the cache implementation. Subclasses MAY
         # implement this method.
         def read_multi_entries(names, **options)
-          results = {}
-          names.each do |name|
-            key     = normalize_key(name, options)
-            version = normalize_version(name, options)
-            entry   = read_entry(key, **options)
+          names.each_with_object({}) do |name, results|
+            key   = normalize_key(name, options)
+            entry = read_entry(key, **options)
 
-            if entry
-              if entry.expired?
-                delete_entry(key, **options)
-              elsif entry.mismatched?(version)
-                # Skip mismatched versions
-              else
-                results[name] = entry.value
-              end
+            next unless entry
+
+            version = normalize_version(name, options)
+
+            if entry.expired?
+              delete_entry(key, **options)
+            elsif !entry.mismatched?(version)
+              results[name] = entry.value
             end
           end
-          results
         end
 
         # Writes multiple entries to the cache implementation. Subclasses MAY

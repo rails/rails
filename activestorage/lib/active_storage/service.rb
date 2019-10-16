@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_storage/log_subscriber"
+require "active_storage/downloader"
 require "action_dispatch"
 require "action_dispatch/http/content_disposition"
 
@@ -40,6 +41,7 @@ module ActiveStorage
   class Service
     extend ActiveSupport::Autoload
     autoload :Configurator
+    attr_accessor :name
 
     class << self
       # Configure an Active Storage service by name from a set of configurations,
@@ -55,8 +57,10 @@ module ActiveStorage
       # Passes the configurator and all of the service's config as keyword args.
       #
       # See MirrorService for an example.
-      def build(configurator:, service: nil, **service_config) #:nodoc:
-        new(**service_config)
+      def build(configurator:, name:, service: nil, **service_config) #:nodoc:
+        new(**service_config).tap do |service_instance|
+          service_instance.name = name
+        end
       end
     end
 
@@ -104,8 +108,19 @@ module ActiveStorage
     # Returns a signed, temporary URL for the file at the +key+. The URL will be valid for the amount
     # of seconds specified in +expires_in+. You must also provide the +disposition+ (+:inline+ or +:attachment+),
     # +filename+, and +content_type+ that you wish the file to be served with on request.
-    def url(key, expires_in:, disposition:, filename:, content_type:)
-      raise NotImplementedError
+    def url(key, **options)
+      instrument :url, key: key do |payload|
+        generated_url =
+          if public?
+            public_url(key, **options)
+          else
+            private_url(key, **options)
+          end
+
+        payload[:url] = generated_url
+
+        generated_url
+      end
     end
 
     # Returns a signed, temporary URL that a direct upload file can be PUT to on the +key+.
@@ -121,7 +136,20 @@ module ActiveStorage
       {}
     end
 
+    def public?
+      @public
+    end
+
     private
+      def private_url(key, expires_in:, filename:, disposition:, content_type:, **)
+        raise NotImplementedError
+      end
+
+      def public_url(key, **)
+        raise NotImplementedError
+      end
+
+
       def instrument(operation, payload = {}, &block)
         ActiveSupport::Notifications.instrument(
           "service_#{operation}.active_storage",

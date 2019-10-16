@@ -146,7 +146,7 @@ Or install everything through ports (these packages are located under the
 `databases` folder).
 
 NOTE: If you run into troubles during the installation of MySQL, please see
-[the MySQL documentation](https://dev.mysql.com/doc/refman/8.0/en/freebsd-installation.html).
+[the MySQL documentation](https://dev.mysql.com/doc/refman/en/freebsd-installation.html).
 
 ### Database Configuration
 

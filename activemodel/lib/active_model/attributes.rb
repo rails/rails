@@ -48,6 +48,7 @@ module ActiveModel
           ) do |temp_method_name, attr_name_expr|
             generated_attribute_methods.module_eval <<-RUBY, __FILE__, __LINE__ + 1
               def #{temp_method_name}(value)
+                raise FrozenError, "can't modify frozen #{self.class.name}" if frozen?
                 name = #{attr_name_expr}
                 write_attribute(name, value)
               end

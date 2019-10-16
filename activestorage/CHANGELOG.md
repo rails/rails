@@ -1,3 +1,17 @@
+*   Permanent URLs for public storage blobs.
+
+    Services can be configured in `config/storage.yml` with a new key
+    `public: true | false` to indicate whether a service holds public
+    blobs or private blobs. Public services will always return a permanent URL.
+
+    Deprecates `Blob#service_url` in favor of `Blob#url`.
+
+    *Peter Zhu*
+
+*   Make services aware of configuration names.
+
+    *Gannon McGibbon*
+
 *   The `Content-Type` header is set on image variants when they're uploaded to third-party storage services.
 
     *Kyle Ribordy*

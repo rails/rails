@@ -4,6 +4,7 @@ require "abstract_unit"
 require "minitest/mock"
 require "rails/command"
 require "rails/commands/dbconsole/dbconsole_command"
+require "active_record/database_configurations"
 
 class Rails::DBConsoleTest < ActiveSupport::TestCase
   def setup
@@ -231,7 +232,7 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
         Rails::Command.invoke(:dbconsole, ["--db", "i_do_not_exist"])
       end
 
-      assert_includes e.message, "'i_do_not_exist' database is not configured."
+      assert_includes e.message, "'i_do_not_exist' database is not configured for 'test'."
     end
   end
 
@@ -241,7 +242,7 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
         Rails::Command.invoke(:dbconsole)
       end
 
-      assert_includes e.message, "'test' database is not configured."
+      assert_includes e.message, "'primary' database is not configured for 'test'."
     end
   end
 
@@ -294,8 +295,10 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     attr_reader :dbconsole
 
     def start(config = {}, argv = [])
+      hash_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("test", "primary", config)
+
       @dbconsole = make_dbconsole.new(parse_arguments(argv))
-      @dbconsole.stub(:config, config) do
+      @dbconsole.stub(:db_config, hash_config) do
         capture_abort { @dbconsole.start }
       end
     end

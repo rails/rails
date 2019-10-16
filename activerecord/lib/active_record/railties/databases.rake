@@ -332,7 +332,7 @@ db_namespace = namespace :db do
   end
 
   namespace :fixtures do
-    desc "Loads fixtures into the current environment's database. Load specific fixtures using FIXTURES=x,y. Load from subdirectory in test/fixtures using FIXTURES_DIR=z. Specify an alternative path (eg. spec/fixtures) using FIXTURES_PATH=spec/fixtures."
+    desc "Loads fixtures into the current environment's database. Load specific fixtures using FIXTURES=x,y. Load from subdirectory in test/fixtures using FIXTURES_DIR=z. Specify an alternative path (e.g. spec/fixtures) using FIXTURES_PATH=spec/fixtures."
     task load: :load_config do
       require "active_record/fixtures"
 
@@ -354,7 +354,7 @@ db_namespace = namespace :db do
       ActiveRecord::FixtureSet.create_fixtures(fixtures_dir, fixture_files)
     end
 
-    # desc "Search for a fixture given a LABEL or ID. Specify an alternative path (eg. spec/fixtures) using FIXTURES_PATH=spec/fixtures."
+    # desc "Search for a fixture given a LABEL or ID. Specify an alternative path (e.g. spec/fixtures) using FIXTURES_PATH=spec/fixtures."
     task identify: :load_config do
       require "active_record/fixtures"
 

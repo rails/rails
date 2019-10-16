@@ -514,7 +514,7 @@ module ActiveRecord
     #
     # To enforce the object's +before_destroy+ and +after_destroy+
     # callbacks or any <tt>:dependent</tt> association
-    # options, use <tt>#destroy</tt>.
+    # options, use #destroy.
     def delete
       _delete_row if persisted?
       @destroyed = true

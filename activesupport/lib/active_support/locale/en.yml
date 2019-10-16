@@ -47,7 +47,7 @@ en:
       # If set to true, precision will mean the number of significant digits instead
       # of the number of decimal digits (1234 with precision 2 becomes 1200, 1.23543 becomes 1.2)
       significant: false
-      # If set, the zeros after the decimal separator will always be stripped (eg.: 1.200 will be 1.2)
+      # If set, the zeros after the decimal separator will always be stripped (e.g.: 1.200 will be 1.2)
       strip_insignificant_zeros: false
 
     # Used in NumberHelper.number_to_currency()

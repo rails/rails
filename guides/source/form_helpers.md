@@ -39,7 +39,7 @@ When called without arguments like this, it creates a form tag which, when submi
 </form>
 ```
 
-You'll notice that the HTML contains an `input` element with type `hidden`. This `input` is important, because non-GET form cannot be successfully submitted without it.
+You'll notice that the HTML contains an `input` element with type `hidden`. This `input` is important, because non-GET forms cannot be successfully submitted without it.
 The hidden input element with the name `authenticity_token` is a security feature of Rails called **cross-site request forgery protection**, and form helpers generate it for every non-GET form (provided that this security feature is enabled). You can read more about this in the [Securing Rails Applications](security.html#cross-site-request-forgery-csrf) guide.
 
 ### A Generic Search Form
@@ -317,7 +317,7 @@ form_with(model: @article, url: article_path(@article), method: "patch")
 form_with(model: @article)
 ```
 
-Notice how the short-style `form_with` invocation is conveniently the same, regardless of the record being new or existing. Record identification is smart enough to figure out if the record is new by asking `record.new_record?`. It also selects the correct path to submit to, and the name based on the class of the object.
+Notice how the short-style `form_with` invocation is conveniently the same, regardless of the record being new or existing. Record identification is smart enough to figure out if the record is new by asking `record.persisted?`. It also selects the correct path to submit to, and the name based on the class of the object.
 
 WARNING: When you're using STI (single-table inheritance) with your models, you can't rely on record identification on a subclass if only their parent class is declared a resource. You will have to specify `:url`, and `:scope` (the model name) explicitly.
 
@@ -963,7 +963,7 @@ end
 ```
 
 If the hash of attributes for an object contains the key `_destroy` with a value that
-evaluates to `true` (eg. 1, '1', true, or 'true') then the object will be destroyed.
+evaluates to `true` (e.g. 1, '1', true, or 'true') then the object will be destroyed.
 This form allows users to remove addresses:
 
 ```erb

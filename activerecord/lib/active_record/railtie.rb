@@ -28,6 +28,7 @@ module ActiveRecord
 
     config.active_record.use_schema_cache_dump = true
     config.active_record.maintain_test_schema = true
+    config.active_record.has_many_inversing = false
 
     config.active_record.sqlite3 = ActiveSupport::OrderedOptions.new
     config.active_record.sqlite3.represent_boolean_as_integer = nil
@@ -82,10 +83,11 @@ module ActiveRecord
       ActiveSupport.on_load(:active_record) { LogSubscriber.backtrace_cleaner = ::Rails.backtrace_cleaner }
     end
 
-    initializer "active_record.migration_error" do
+    initializer "active_record.migration_error" do |app|
       if config.active_record.delete(:migration_error) == :page_load
         config.app_middleware.insert_after ::ActionDispatch::Callbacks,
-          ActiveRecord::Migration::CheckPending
+          ActiveRecord::Migration::CheckPending,
+          file_watcher: app.config.file_watcher
       end
     end
 

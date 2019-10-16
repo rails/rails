@@ -35,10 +35,12 @@ module ActiveSupport
       end
 
       def hook!
-        ::Object.prepend(CoreExtPrivate)
-        ::Kernel.prepend(CoreExtPrivate)
-        ::Kernel.singleton_class.prepend(CoreExt)
-        ::Process.singleton_class.prepend(CoreExt)
+        if Process.respond_to?(:fork)
+          ::Object.prepend(CoreExtPrivate)
+          ::Kernel.prepend(CoreExtPrivate)
+          ::Kernel.singleton_class.prepend(CoreExt)
+          ::Process.singleton_class.prepend(CoreExt)
+        end
       end
 
       def after_fork(&block)

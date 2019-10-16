@@ -10,7 +10,9 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     @user = User.create!(name: "Josh")
   end
 
-  teardown { ActiveStorage::Blob.all.each(&:delete) }
+  teardown do
+    ActiveStorage::Blob.all.each(&:delete)
+  end
 
   test "attaching existing blobs to an existing record" do
     @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
@@ -588,7 +590,7 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     end
   end
 
-  test "attaching a new blob from an uploaded file with a custom_ ervice" do
+  test "attaching a new blob from an uploaded file with a custom service" do
     with_service("mirror") do
       @user.highlights.attach fixture_file_upload("racecar.jpg")
       @user.vlogs.attach fixture_file_upload("racecar.jpg")

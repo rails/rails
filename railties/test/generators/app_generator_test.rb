@@ -212,7 +212,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_new_application_doesnt_need_defaults
     run_generator
-    assert_no_file "config/initializers/new_framework_defaults_6_0.rb"
+    assert_no_file "config/initializers/new_framework_defaults_6_1.rb"
   end
 
   def test_new_application_load_defaults
@@ -269,14 +269,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root]
 
-    assert_no_file "#{app_root}/config/initializers/new_framework_defaults_6_0.rb"
+    assert_no_file "#{app_root}/config/initializers/new_framework_defaults_6_1.rb"
 
     stub_rails_application(app_root) do
       generator = Rails::Generators::AppGenerator.new ["rails"], { update: true }, { destination_root: app_root, shell: @shell }
       generator.send(:app_const)
       quietly { generator.send(:update_config_files) }
 
-      assert_file "#{app_root}/config/initializers/new_framework_defaults_6_0.rb"
+      assert_file "#{app_root}/config/initializers/new_framework_defaults_6_1.rb"
     end
   end
 

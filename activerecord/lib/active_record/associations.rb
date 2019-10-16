@@ -2,7 +2,6 @@
 
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/string/conversions"
-require "active_support/core_ext/module/remove_method"
 
 module ActiveRecord
   class AssociationNotFoundError < ConfigurationError #:nodoc:
@@ -701,9 +700,8 @@ module ActiveRecord
       # inverse detection only works on #has_many, #has_one, and
       # #belongs_to associations.
       #
-      # Extra options on the associations, as defined in the
-      # <tt>AssociationReflection::INVALID_AUTOMATIC_INVERSE_OPTIONS</tt>
-      # constant, or a custom scope, will also prevent the association's inverse
+      # <tt>:foreign_key</tt> and <tt>:through</tt> options on the associations,
+      # or a custom scope, will also prevent the association's inverse
       # from being found automatically.
       #
       # The automatic guessing of the inverse association uses a heuristic based

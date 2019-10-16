@@ -41,6 +41,12 @@ module ActiveRecord
   #   Conversation.where(status: [:active, :archived])
   #   Conversation.where.not(status: :active)
   #
+  # Defining scopes can be disabled by setting +:_scopes+ to +false+.
+  #
+  #   class Conversation < ActiveRecord::Base
+  #     enum status: [ :active, :archived ], _scopes: false
+  #   end
+  #
   # You can set the default value from the database declaration, like:
   #
   #   create_table :conversations do |t|

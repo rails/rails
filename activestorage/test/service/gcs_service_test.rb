@@ -9,6 +9,10 @@ if SERVICE_CONFIGURATIONS[:gcs]
 
     include ActiveStorage::Service::SharedServiceTests
 
+    test "name" do
+      assert_equal :gcs, @service.name
+    end
+
     test "direct upload" do
       key      = SecureRandom.base58(24)
       data     = "Something else entirely!"

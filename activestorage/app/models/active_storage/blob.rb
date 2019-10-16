@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_storage/downloader"
-
 # A blob is a record that contains the metadata about a file and a key for where that file resides on the service.
 # Blobs can be created in two ways:
 #
@@ -39,7 +37,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
   scope :unattached, -> { left_joins(:attachments).where(ActiveStorage::Attachment.table_name => { blob_id: nil }) }
 
   after_initialize do
-    self.service_name ||= Rails.configuration.active_storage.service
+    self.service_name ||= self.class.service.name
   end
 
   before_destroy(prepend: true) do
@@ -170,17 +168,19 @@ class ActiveStorage::Blob < ActiveRecord::Base
     )
   end
 
-
-  # Returns the URL of the blob on the service. This URL is intended to be short-lived for security and not used directly
-  # with users. Instead, the +service_url+ should only be exposed as a redirect from a stable, possibly authenticated URL.
-  # Hiding the +service_url+ behind a redirect also gives you the power to change services without updating all URLs. And
-  # it allows permanent URLs that redirect to the +service_url+ to be cached in the view.
+  # Returns the URL of the blob on the service. This returns a permanent URL for public files, and returns a
+  # short-lived URL for private files. Private files are for security and not used directly with users, instead,
+  # the URL should only be exposed as a redirect from a stable, possibly authenticated URL. Hiding the
+  # URL behind a redirect also gives you the power to change services without updating all URLs.
   def service_url(expires_in: ActiveStorage.service_urls_expire_in, disposition: :inline, filename: nil, **options)
     filename = ActiveStorage::Filename.wrap(filename || self.filename)
 
     service.url key, expires_in: expires_in, filename: filename, content_type: content_type_for_service_url,
       disposition: forced_disposition_for_service_url || disposition, **options
   end
+
+  alias_method :service_url, :url
+  deprecate service_url: :url
 
   # Returns a URL that can be used to directly upload a file for this blob on the service. This URL is intended to be
   # short-lived for security and only generated on-demand by the client-side JavaScript responsible for doing the uploading.

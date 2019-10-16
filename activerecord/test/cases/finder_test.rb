@@ -389,7 +389,7 @@ class FinderTest < ActiveRecord::TestCase
     #   limit of 3 and offset of 9, then you should find that there
     #   will be only 2 results, regardless of the limit.
     devs = Developer.all
-    last_devs = Developer.limit(3).offset(9).find devs.map(&:id)
+    last_devs = Developer.limit(3).offset(9).find(devs.map(&:id).sort)
     assert_equal 2, last_devs.size
     assert_equal "fixture_10", last_devs[0].name
     assert_equal "Jamis", last_devs[1].name
@@ -1334,6 +1334,18 @@ class FinderTest < ActiveRecord::TestCase
     ).to_a
     assert_equal 3, posts.size
     assert_equal [0, 1, 1], posts.map(&:author_id).sort
+  end
+
+  def test_eager_load_for_no_has_many_with_limit_and_joins_for_has_many
+    relation = Post.eager_load(:author).joins(comments: :post)
+    assert_equal 5, relation.to_a.size
+    assert_equal 5, relation.limit(5).to_a.size
+  end
+
+  def test_eager_load_for_no_has_many_with_limit_and_left_joins_for_has_many
+    relation = Post.eager_load(:author).left_joins(comments: :post)
+    assert_equal 11, relation.to_a.size
+    assert_equal 11, relation.limit(11).to_a.size
   end
 
   def test_find_one_message_on_primary_key

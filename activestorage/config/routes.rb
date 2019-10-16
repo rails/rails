@@ -8,6 +8,7 @@ Rails.application.routes.draw do
     get "/representations/:signed_blob_id/:variation_key/*filename" => "active_storage/representations#show", as: :rails_blob_representation
     get "/representations_proxy/:signed_blob_id/:variation_key/*filename" => "active_storage/representations#proxy", as: :rails_blob_representation_proxy
 
+    get  "/disk/public/:key/*filename" => "active_storage/public_disk#show", as: :rails_disk_service_public
     get  "/disk/:encoded_key/*filename" => "active_storage/disk#show", as: :rails_disk_service
     put  "/disk/:encoded_token" => "active_storage/disk#update", as: :update_rails_disk_service
     post "/direct_uploads" => "active_storage/direct_uploads#create", as: :rails_direct_uploads

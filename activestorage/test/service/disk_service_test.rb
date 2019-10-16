@@ -3,9 +3,14 @@
 require "service/shared_service_tests"
 
 class ActiveStorage::Service::DiskServiceTest < ActiveSupport::TestCase
-  SERVICE = ActiveStorage::Service::DiskService.new(root: File.join(Dir.tmpdir, "active_storage"))
+  tmp_config = { tmp: { service: "Disk", root: File.join(Dir.tmpdir, "active_storage") } }
+  SERVICE = ActiveStorage::Service.configure(:tmp, tmp_config)
 
   include ActiveStorage::Service::SharedServiceTests
+
+  test "name" do
+    assert_equal :tmp, @service.name
+  end
 
   test "URL generation" do
     original_url_options = Rails.application.routes.default_url_options.dup
