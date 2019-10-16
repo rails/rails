@@ -380,7 +380,7 @@ $ SEED=15002 bundle exec ruby -w -Itest test/mail_layout_test.rb
 First, create the databases you'll need. You can find a list of the required
 table names, usernames, and passwords in `activerecord/test/config.example.yml`.
 
-For MySQL and PostgreSQL, it is suficient to run:
+For MySQL and PostgreSQL, it is sufficient to run:
 
 ```bash
 $ cd activerecord
