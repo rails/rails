@@ -17,8 +17,7 @@ class Class
   def descendants
     descendants = []
     ObjectSpace.each_object(singleton_class) do |k|
-      next if k.singleton_class?
-      descendants.unshift k unless k == self
+      descendants.unshift k unless k.singleton_class? || k == self
     end
     descendants
   end
