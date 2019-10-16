@@ -377,7 +377,7 @@ module Arel
         mgr.from table
         mgr.orders << Arel::Nodes::Ascending.new(Arel.sql("foo"))
         mgr.ast.grep(Arel::Nodes::OuterJoin)
-        mgr.to_sql.must_be_like %{ SELECT * FROM "users" ORDER BY foo ASC }
+        _(mgr.to_sql).must_be_like %{ SELECT * FROM "users" ORDER BY foo ASC }
       end
     end
 
