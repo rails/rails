@@ -133,7 +133,9 @@ user.avatar.variant(resize: "100x100").deliver(:proxy)
 When using the proxy option to deliver assets you can set the host. This is useful if your CDN is setup to operate on a different domain.
 
 ```ruby
-config.active_storage.proxy_delivery_method = ActiveStorage::DeliveryMethod::Proxy.new(host: 'https://cdn.domain.com')
+config.active_storage.delivery_methods = {
+  proxy: ActiveStorage::DeliveryMethod::Proxy.new(host: 'cdn.domain.com')
+}
 ```
 
 ## Direct uploads

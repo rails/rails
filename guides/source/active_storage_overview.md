@@ -467,8 +467,23 @@ The delivery method can be configured to meet the needs of your application. The
 The delivery method can be changed globally by setting `config.active_storage.default_delivery_method = :proxy`. You can also change the delivery method in the model `has_one_attached :avatar, delivery_method: :proxy` and view `user.avatar.variant(resize: "100x100").deliver(:proxy)`.
 
 ### Changing delivery host
-When delivering assets via proxy you can set `config.active_storage.proxy_delivery_method = ActiveStorage::DeliveryMethod::Proxy.new(host: 'https://cdn.domain.com')` to point your assets to your CDN domain.
-    
+When delivering assets via proxy you can set the host to point your assets to your CDN domain.
+```ruby
+config.active_storage.delivery_methods = {
+  proxy: ActiveStorage::DeliveryMethod::Proxy.new(host: 'cdn.domain.com')
+}
+```
+
+### Custom delivery methods
+You can setup custom instances of the built in proxy class. This is useful if you have multiple CDNs.
+```ruby
+config.active_storage.delivery_methods = {
+  img_cdn: ActiveStorage::DeliveryMethod::Proxy.new(host: 'image_cdn.domain.com'),
+  video_cdn: ActiveStorage::DeliveryMethod::Proxy.new(host: 'video_cdn.domain.com')
+}
+```
+
+It's also possible to create your own delivery methods by implementing the interface ActiveStorage::DeliveryMethod.
 
 Transforming Images
 -------------------

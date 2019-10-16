@@ -907,13 +907,23 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
   The default is `1.year`.
 
-* `config.active_storage.proxy_delivery_method` Sets the proxy delivery method.
+* `config.active_storage.delivery_methods` Gets merged into the default delivery methods.
 
   ```ruby
-  config.active_storage.proxy_delivery_method = ActiveStorage::DeliveryMethod::Proxy.new(host: 'https://cdn.domain.com')
+  config.active_storage.delivery_methods = {
+    img_cdn: ActiveStorage::DeliveryMethod::Proxy.new(host: 'image_cdn.domain.com'),
+    video_cdn: ActiveStorage::DeliveryMethod::Proxy.new(host: 'video_cdn.domain.com')
+  }
   ```
 
-  The default is `nil`.
+  The default is
+  ```ruby
+  {
+    redirect: ActiveStorage::DeliveryMethod::Redirect.new,
+    proxy: ActiveStorage::DeliveryMethod::Proxy.new
+  }
+  ```
+
 ### Results of `load_defaults`
 
 #### With '5.0':
