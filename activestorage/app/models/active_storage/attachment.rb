@@ -31,7 +31,7 @@ class ActiveStorage::Attachment < ActiveRecord::Base
   end
 
   def url(override_delivery_method = record.public_send("#{name}_delivery_method"))
-    blob.url(override_delivery_method)
+    blob.delivery_method_url(override_delivery_method)
   end
 
   def variant(transformations)
