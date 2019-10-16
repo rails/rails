@@ -28,10 +28,9 @@ class Class
   #
   #   Foo.subclasses # => [Bar]
   def subclasses
-    subclasses, chain = [], descendants
-    chain.each do |k|
-      subclasses << k unless chain.any? { |c| c > k }
+    chain = descendants
+    chain.reject do |k|
+      chain.any? { |c| c > k }
     end
-    subclasses
   end
 end
