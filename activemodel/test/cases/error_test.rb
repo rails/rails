@@ -158,7 +158,7 @@ class ErrorTest < ActiveModel::TestCase
     I18n.backend.store_translations(:en, activemodel: { errors: { models: { 'error_test/manager': {
       attributes: { reports: { name: { presence: "must be present" } } } } } } })
 
-    error = ActiveModel::Error.new(Manager.new, :'reports[0].name', :presence)
+    error = ActiveModel::Error.new(Manager.new, :'reports[123].name', :presence)
 
     assert_equal "must be present", error.message
   end
