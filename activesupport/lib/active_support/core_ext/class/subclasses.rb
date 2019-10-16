@@ -15,12 +15,9 @@ class Class
   #   class D < C; end
   #   C.descendants # => [B, A, D]
   def descendants
-    descendants = []
-    ObjectSpace.each_object(singleton_class) do |k|
-      next if k.singleton_class?
-      descendants.unshift k unless k == self
+    ObjectSpace.each_object(singleton_class).reject do |k|
+      k.singleton_class? || k == self
     end
-    descendants
   end
 
   # Returns an array with the direct children of +self+.
