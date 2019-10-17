@@ -126,7 +126,7 @@ module ActiveRecord
         while record = ite.shift
           if @run_commit_callbacks
             trigger_callbacks = record.trigger_transactional_callbacks?
-            should_run_callbacks = !already_run_callbacks[record] && trigger_callbacks
+            should_run_callbacks = (record.changed? || !already_run_callbacks[record]) && trigger_callbacks
             already_run_callbacks[record] ||= trigger_callbacks
             record.committed!(should_run_callbacks: should_run_callbacks)
           else
