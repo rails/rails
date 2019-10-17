@@ -88,6 +88,9 @@ module ActiveRecord
             else
               key
             end
+            if association_key_type == :citext || owner_key_type == :citext
+              key.to_s.upcase
+            end
           end
 
           def association_key_type
