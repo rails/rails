@@ -274,4 +274,9 @@ class SafeBufferTest < ActiveSupport::TestCase
     assert_equal "123foo 456bar", b
     assert_not_predicate b, :html_safe?
   end
+
+  test "Should support Enumerator" do
+    a = "aaa".html_safe.gsub!(/a/).with_index { |m, i| i }
+    assert_equal "012", a
+  end
 end
