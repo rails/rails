@@ -1,3 +1,7 @@
+*   Support symbolic links for `content_path` in `ActiveSupport::EncryptedFile`.
+
+    *Takumi Shotoku*
+
 *   Improve `Range#===`, `Range#include?`, and `Range#cover?` to work with beginless (startless)
     and endless range targets.
 
