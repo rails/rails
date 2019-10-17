@@ -2,12 +2,15 @@
 
 require "active_support/core_ext/module/redefine_method"
 require "active_support/core_ext/time/calculations"
+require "active_support/core_ext/module/delegation"
 require "concurrent/map"
 
 module ActiveSupport
   module Testing
     class SimpleStubs # :nodoc:
       Stub = Struct.new(:object, :method_name, :original_method)
+
+      delegate :present?, to: :@stubs
 
       def initialize
         @stubs = Concurrent::Map.new { |h, k| h[k] = {} }
@@ -164,8 +167,26 @@ module ActiveSupport
       #   Time.current # => Wed, 24 Nov 2004 01:04:44 EST -05:00
       #   travel_back
       #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
+      #
+      # This method also accepts a block, which brings the stubs back at the end of the block:
+      #
+      #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
+      #   travel_to Time.zone.local(2004, 11, 24, 01, 04, 44)
+      #   Time.current # => Wed, 24 Nov 2004 01:04:44 EST -05:00
+      #   travel_back do
+      #     Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
+      #   end
+      #   Time.current # => Wed, 24 Nov 2004 01:04:44 EST -05:00
       def travel_back
+        return simple_stubs.unstub_all! unless block_given?
+
+        had_stubs = simple_stubs.present?
+        stubed_time = Time.current
+
         simple_stubs.unstub_all!
+        yield
+      ensure
+        travel_to(stubed_time) if had_stubs
       end
       alias_method :unfreeze_time, :travel_back
 
