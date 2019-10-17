@@ -28,9 +28,8 @@ class Class
   #
   #   Foo.subclasses # => [Bar]
   def subclasses
-    chain = descendants
-    chain.reject do |k|
-      chain.any? { |c| c > k }
+    descendants.find_all do |k|
+      k.superclass == self
     end
   end
 end
