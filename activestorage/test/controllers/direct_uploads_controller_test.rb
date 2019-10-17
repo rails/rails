@@ -113,6 +113,7 @@ class ActiveStorage::DiskDirectUploadsControllerTest < ActionDispatch::Integrati
 
     @response.parsed_body.tap do |details|
       assert_equal ActiveStorage::Blob.find(details["id"]), ActiveStorage::Blob.find_signed(details["signed_id"])
+      assert_equal "local", details["service_name"]
       assert_equal "hello.txt", details["filename"]
       assert_equal 6, details["byte_size"]
       assert_equal checksum, details["checksum"]
@@ -133,6 +134,24 @@ class ActiveStorage::DiskDirectUploadsControllerTest < ActionDispatch::Integrati
     @response.parsed_body.tap do |details|
       assert_nil details["blob"]
       assert_not_nil details["id"]
+    end
+  end
+
+  test "creating new direct upload with non-default service" do
+    checksum = Digest::MD5.base64digest("Hello")
+
+    post rails_direct_uploads_url, params: {
+      blob: {
+        filename: "hello.txt",
+        byte_size: 6,
+        checksum: checksum,
+        content_type: "text/plain",
+        service_name: "local_public",
+      }
+    }
+
+    @response.parsed_body.tap do |details|
+      assert_equal "local_public", details["service_name"]
     end
   end
 

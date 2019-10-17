@@ -11,7 +11,9 @@ class ActiveStorage::DirectUploadsController < ActiveStorage::BaseController
 
   private
     def blob_args
-      params.require(:blob).permit(:filename, :byte_size, :checksum, :content_type, :metadata).to_h.symbolize_keys
+      params.require(:blob).permit(
+        :filename, :byte_size, :checksum, :content_type, :metadata, :service_name,
+      ).to_h.symbolize_keys
     end
 
     def direct_upload_json(blob)
