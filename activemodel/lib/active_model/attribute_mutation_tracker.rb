@@ -82,7 +82,7 @@ module ActiveModel
   end
 
   class ForcedMutationTracker < AttributeMutationTracker # :nodoc:
-    def initialize(attributes, forced_changes = {})
+    def initialize(model, forced_changes = {})
       super
       @finalized_changes = nil
     end
@@ -131,7 +131,7 @@ module ActiveModel
       end
 
       def fetch_value(attr_name)
-        attributes.send(:_read_attribute, attr_name)
+        model.send(:_read_attribute, attr_name)
       end
 
       def clone_value(attr_name)
