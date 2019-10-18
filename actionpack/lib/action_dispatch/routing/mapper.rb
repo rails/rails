@@ -346,7 +346,7 @@ module ActionDispatch
           end
 
           def split_to(to)
-            if /#/.match?(to)
+            if to && /#/.match?(to)
               to.split("#")
             else
               []
@@ -355,7 +355,7 @@ module ActionDispatch
 
           def add_controller_module(controller, modyoule)
             if modyoule && !controller.is_a?(Regexp)
-              if %r{\A/}.match?(controller)
+              if controller && controller.start_with?("/")
                 controller[1..-1]
               else
                 [modyoule, controller].compact.join("/")

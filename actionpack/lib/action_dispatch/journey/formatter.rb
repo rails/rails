@@ -151,7 +151,7 @@ module ActionDispatch
                 missing_keys << key
               end
             else
-              unless /\A#{tests[key]}\Z/.match?(parts[key])
+              if parts[key].nil? || !/\A#{tests[key]}\Z/.match?(parts[key])
                 missing_keys ||= []
                 missing_keys << key
               end
