@@ -1,3 +1,8 @@
+*   Update `ActiveSupport::Messages::Metadata#fresh?` to work for cookies with expiry set when
+    `ActiveSupport.parse_json_times = true`.
+
+    *Christian Gregg*
+
 ## Rails 6.0.2 (December 13, 2019) ##
 
 *   Eager load translations during initialization.

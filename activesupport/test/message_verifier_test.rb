@@ -61,6 +61,15 @@ class MessageVerifierTest < ActiveSupport::TestCase
     ActiveSupport.use_standard_json_time_format = prev
   end
 
+  def test_verify_with_parse_json_times
+    previous = [ ActiveSupport.parse_json_times, Time.zone ]
+    ActiveSupport.parse_json_times, Time.zone = true, "UTC"
+
+    assert_equal "hi", @verifier.verify(@verifier.generate("hi", expires_at: Time.now.utc + 10))
+  ensure
+    ActiveSupport.parse_json_times, Time.zone = previous
+  end
+
   def test_raise_error_when_argument_class_is_not_loaded
     # To generate the valid message below:
     #

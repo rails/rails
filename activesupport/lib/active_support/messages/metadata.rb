@@ -64,7 +64,7 @@ module ActiveSupport
         end
 
         def fresh?
-          @expires_at.nil? || Time.now.utc < Time.iso8601(@expires_at)
+          @expires_at.nil? || Time.now.utc < @expires_at
         end
     end
   end
