@@ -6,7 +6,8 @@ module ActiveSupport
   module Messages #:nodoc:
     class Metadata #:nodoc:
       def initialize(message, expires_at = nil, purpose = nil)
-        @message, @expires_at, @purpose = message, expires_at, purpose
+        @message, @purpose = message, purpose
+        @expires_at = expires_at.is_a?(String) ? Time.iso8601(expires_at) : expires_at
       end
 
       def as_json(options = {})
