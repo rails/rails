@@ -92,6 +92,23 @@ class MessageVerifierTest < ActiveSupport::TestCase
     assert_equal @data, @verifier.verify(signed_message)
   end
 
+  def test_verify_with_parse_json_times
+    prev = ActiveSupport.parse_json_times
+    prev_zone = Time.zone
+
+    ActiveSupport.parse_json_times = true
+    Time.zone = ActiveSupport::TimeZone.new("UTC")
+
+    time = Time.now.iso8601
+    json = { _rails: { message: ::Base64.strict_encode64("hi"), exp: time, pur: nil } }.to_json
+
+    ActiveSupport::Messages::Metadata.verify(json, nil)
+  ensure
+    ActiveSupport.parse_json_times = prev
+    Time.zone = prev_zone
+  end
+
+
   def test_rotating_secret
     old_message = ActiveSupport::MessageVerifier.new("old", digest: "SHA1").generate("old")
 
