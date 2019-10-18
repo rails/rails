@@ -11,7 +11,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   class ReplyWithCallbacks < ActiveRecord::Base
     self.table_name = :topics
 
-    belongs_to :topic, foreign_key: "parent_id"
+    belongs_to :topic, class_name: "TopicWithCallbacks", touch: true, foreign_key: "parent_id"
 
     validates_presence_of :content
 
@@ -84,6 +84,37 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     def do_after_rollback(on)
       blocks = @after_rollback[on] if defined?(@after_rollback)
       blocks.each { |b| b.call(self) } if blocks
+    end
+  end
+
+  class SoftDeleteTopic < TopicWithCallbacks
+    after_destroy :do_after_destroy
+    before_destroy :mark_soft_delete
+    after_commit :do_after_commit_for_destroy, on: :destroy
+
+
+    private
+
+    def do_after_destroy
+      assign_attributes({updated_at: Time.now})
+    end
+
+    def mark_soft_delete
+      @soft_delete = true
+    end
+
+    def destroy_row
+      relation = self.class.where(self.class.primary_key => id)
+      relation.update_all({updated_at: Time.now})
+    end
+
+    def freeze
+      super unless @soft_delete
+      self
+    end
+
+    def do_after_commit_for_destroy
+      history << :commit_on_destroy
     end
   end
 
@@ -474,6 +505,20 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     pet.save
 
     assert flag
+  end
+
+  def test_after_commit_for_soft_deletion
+    topic = SoftDeleteTopic.create!(title: "New topic", written_on: Date.today)
+    reply = topic.replies.create
+
+    SoftDeleteTopic.transaction do
+      reply.destroy! if reply
+      topic = SoftDeleteTopic.find(reply.parent_id)
+      topic.destroy!
+    end
+
+    assert_predicate topic, :destroyed?
+    assert_equal [:commit_on_destroy], topic.history
   end
 
   private
