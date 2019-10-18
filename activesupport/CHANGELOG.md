@@ -1,3 +1,8 @@
+*   Update `ActiveSupport::Messages::Metadata#fresh?` to work for cookies with expiry set when
+    `ActiveSupport.parse_json_times = true`.
+
+    *Christian Gregg*
+
 *   Support symbolic links for `content_path` in `ActiveSupport::EncryptedFile`.
 
     *Takumi Shotoku*
