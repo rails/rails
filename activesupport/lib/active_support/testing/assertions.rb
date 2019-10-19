@@ -179,7 +179,7 @@ module ActiveSupport
         unless from == UNTRACKED
           error = "#{expression.inspect} isn't #{from.inspect}"
           error = "#{message}.\n#{error}" if message
-          assert from === before, error
+          assert_not_equal before, after, error
         end
 
         after = exp.call
@@ -187,7 +187,11 @@ module ActiveSupport
         error = "#{expression.inspect} didn't change"
         error = "#{error}. It was already #{to}" if before == to
         error = "#{message}.\n#{error}" if message
-        assert before != after, error
+        if before.nil?
+           assert_nil after, error
+        else
+           assert_equal before, after, error
+        end
 
         unless to == UNTRACKED
           error = "#{expression.inspect} didn't change to as expected\n"
