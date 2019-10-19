@@ -188,9 +188,9 @@ module ActiveSupport
         error = "#{error}. It was already #{to}" if before == to
         error = "#{message}.\n#{error}" if message
         if before.nil?
-           assert_nil after, error
+          assert_nil after, error
         else
-           assert_equal before, after, error
+          assert_equal before, after, error
         end
 
         unless to == UNTRACKED
