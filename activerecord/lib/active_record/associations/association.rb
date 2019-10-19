@@ -192,11 +192,11 @@ module ActiveRecord
         set_inverse_instance(record)
       end
 
-      def create(attributes = {}, &block)
+      def create(attributes = nil, &block)
         _create_record(attributes, &block)
       end
 
-      def create!(attributes = {}, &block)
+      def create!(attributes = nil, &block)
         _create_record(attributes, true, &block)
       end
 

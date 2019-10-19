@@ -101,7 +101,7 @@ module ActiveRecord
         end
       end
 
-      def build(attributes = {}, &block)
+      def build(attributes = nil, &block)
         if attributes.is_a?(Array)
           attributes.collect { |attr| build(attr, &block) }
         else
