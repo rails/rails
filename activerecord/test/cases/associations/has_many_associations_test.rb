@@ -216,6 +216,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     bulb = car.bulbs.create
     assert_equal "defaulty", bulb.name
+
+    bulb = car.bulbs.create!
+    assert_equal "defaulty", bulb.name
   end
 
   def test_build_and_create_from_association_should_respect_passed_attributes_over_default_scope
@@ -227,11 +230,30 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     bulb = car.bulbs.create(name: "exotic")
     assert_equal "exotic", bulb.name
 
+    bulb = car.bulbs.create!(name: "exotic")
+    assert_equal "exotic", bulb.name
+
     bulb = car.awesome_bulbs.build(frickinawesome: false)
     assert_equal false, bulb.frickinawesome
 
     bulb = car.awesome_bulbs.create(frickinawesome: false)
     assert_equal false, bulb.frickinawesome
+
+    bulb = car.awesome_bulbs.create!(frickinawesome: false)
+    assert_equal false, bulb.frickinawesome
+  end
+
+  def test_build_and_create_from_association_should_respect_unscope_over_default_scope
+    car = Car.create(name: "honda")
+
+    bulb = car.bulbs.unscope(where: :name).build
+    assert_nil bulb.name
+
+    bulb = car.bulbs.unscope(where: :name).create
+    assert_nil bulb.name
+
+    bulb = car.bulbs.unscope(where: :name).create!
+    assert_nil bulb.name
   end
 
   def test_build_from_association_should_respect_scope
@@ -2504,6 +2526,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
         assert_equal 0, Client.count
       end
     end
+    assert_equal "lol", client.name
     assert_equal [client], firm.clients_of_firm
   end
 
@@ -2515,6 +2538,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
         assert_equal 0, Client.count
       end
     end
+    assert_equal "lol", client.name
     assert_equal [client], firm.clients_of_firm
     assert_equal [client], firm.reload.clients_of_firm
   end
@@ -2527,6 +2551,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
         assert_equal 0, Client.count
       end
     end
+    assert_equal "lol", client.name
     assert_equal [client], firm.clients_of_firm
     assert_equal [client], firm.reload.clients_of_firm
   end
