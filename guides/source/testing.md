@@ -1112,7 +1112,7 @@ end
 
 Now you can try running all the tests and they should pass.
 
-NOTE: If you followed the steps in the [Basic Authentication](https://guides.rubyonrails.org/getting_started.html#basic-authentication) section, you'll need to add authorization to every request header to get all the tests passing:
+NOTE: If you followed the steps in the [Basic Authentication](getting_started.html#basic-authentication) section, you'll need to add authorization to every request header to get all the tests passing:
 
 ```ruby
 post articles_url, params: { article: { body: 'Rails is awesome!', title: 'Hello Rails' } }, headers: { Authorization: ActionController::HttpAuthentication::Basic.encode_credentials('dhh', 'secret') }
