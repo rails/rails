@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "shellwords"
 require "active_support/core_ext/string/strip"
 
 module Rails
@@ -221,13 +222,17 @@ module Rails
       # the generator or an Array that is joined.
       #
       #   generate(:authenticated, "user session")
-      def generate(what, *args)
-        log :generate, what
-
+      def generate(*args)
         options = args.extract_options!
-        argument = args.flat_map(&:to_s).join(" ")
+        args = Shellwords.split(args.join(" "))
 
-        execute_command :rails, "generate #{what} #{argument}", options
+        log :generate, args.first
+
+        in_root do
+          silence_warnings do
+            ::Rails::Command.invoke("generate", args, options)
+          end
+        end
       end
 
       # Runs the supplied rake task (invoked with 'rake ...')

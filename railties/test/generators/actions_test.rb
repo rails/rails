@@ -378,22 +378,24 @@ class ActionsTest < Rails::Generators::TestCase
     assert_file "config/initializers/constants.rb", code.strip_heredoc
   end
 
-  def test_generate_should_run_script_generate_with_argument_and_options
+  test "generate" do
     run_generator
     action :generate, "model", "MyModel"
     assert_file "app/models/my_model.rb", /MyModel/
   end
 
-  def test_generate_aborts_when_subprocess_fails_if_requested
+  test "generate with concatenated arguments" do
     run_generator
-    content = capture(:stderr) do
-      assert_raises SystemExit do
-        action :generate, "model", "MyModel:ADsad", abort_on_failure: true
-        action :generate, "model", "MyModel"
-      end
+    action :generate, "model MyModel name:string"
+    assert_file "app/models/my_model.rb", /MyModel/
+  end
+
+  test "generate should raise on failure" do
+    run_generator
+    error = assert_raises do
+      action :generate, "model", "1234567890"
     end
-    assert_match(/wrong constant name MyModel:aDsad/, content)
-    assert_no_file "app/models/my_model.rb"
+    assert_match(/1234567890/, error.message)
   end
 
   test "rake should run rake with the default environment" do
@@ -435,6 +437,14 @@ class ActionsTest < Rails::Generators::TestCase
   test "rake with capture option should run rake with capture" do
     assert_runs "rake log:clear", capture: true do
       action :rake, "log:clear", capture: true
+    end
+  end
+
+  test "rake with abort_on_failure option should raise on failure" do
+    capture(:stderr) do
+      assert_raises SystemExit do
+        action :rake, "invalid", abort_on_failure: true
+      end
     end
   end
 
@@ -480,6 +490,15 @@ class ActionsTest < Rails::Generators::TestCase
     assert_runs "rails log:clear", capture: true do
       with_rails_env nil do
         action :rails_command, "log:clear", capture: true
+      end
+    end
+  end
+
+  test "rails_command with abort_on_failure option should raise on failure" do
+    run_generator
+    capture(:stderr) do
+      assert_raises SystemExit do
+        action :rails_command, "invalid", abort_on_failure: true
       end
     end
   end
