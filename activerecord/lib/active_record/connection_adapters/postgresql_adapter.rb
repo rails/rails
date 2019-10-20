@@ -150,6 +150,10 @@ module ActiveRecord
         database_version >= 110_000
       end
 
+      def supports_covering_indexes?
+        true
+      end
+
       def supports_partial_index?
         true
       end

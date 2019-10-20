@@ -73,6 +73,25 @@ class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
     assert_raise ArgumentError do
       add_index(:people, :last_name, algorithm: :copy)
     end
+
+    expected = %(CREATE  INDEX  "index_people_on_first_name_last_name" ON people("first_name") INCLUDE ("last_name"))
+    assert_equal expected, add_index(:people, :first_name, includes: :last_name)
+    assert_equal expected, add_index(:people, "first_name", includes: :last_name)
+    assert_equal expected, add_index(:people, :first_name, includes: [:last_name])
+    assert_equal expected, add_index(:people, :first_name, includes: ["last_name"])
+    expected = %(CREATE  INDEX  "index_people_on_first_name_last_name_state" ON people("first_name") INCLUDE ("last_name", "state"))
+    assert_equal expected, add_index(:people, :first_name, includes: [:last_name, :state])
+    assert_equal expected, add_index(:people, :first_name, includes: ["last_name", :state])
+    [[], nil, ""].each do |unsupported_object|
+      assert_raise ArgumentError do
+        assert_equal expected, add_index(:people, :first_name, includes: unsupported_object)
+      end
+    end
+    ActiveRecord::Base.connection.stub(:database_version, 109_999) do
+      assert_raise NotImplementedError do
+        add_index(:people, :first_name, includes: :last_name)
+      end
+    end
   end
 
   def test_remove_index

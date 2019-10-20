@@ -749,6 +749,10 @@
 
     *Hiroyuki Ishii*
 
+*   Fixed the performance regression for `primary_keys` introduced MySQL 8.0.
+
+    *Hiroyuki Ishii*
+
 *   Add support for `belongs_to` to `has_many` inversing.
 
     *Gannon McGibbon*

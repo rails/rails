@@ -901,7 +901,9 @@ module ActiveRecord
 
       def index_name(table_name, options) #:nodoc:
         if Hash === options
-          if options[:column]
+          if options[:includes]
+            "index_#{table_name}_on_#{Array(options[:column]) * '_'}_#{Array(options[:includes]) * '_'}"
+          elsif options[:column]
             "index_#{table_name}_on_#{Array(options[:column]) * '_and_'}"
           elsif options[:name]
             options[:name]
@@ -1390,7 +1392,13 @@ module ActiveRecord
           column_names = index_column_names(column_name || options[:column])
 
           if column_names.present?
-            checks << lambda { |i| index_name(table_name, i.columns) == index_name(table_name, column_names) }
+            checks << lambda do |i|
+              if options[:includes].present?
+                i.columns.map(&:to_sym) == column_names + Array.wrap(options[:includes])
+              else
+                index_name(table_name, i.columns) == index_name(table_name, column_names)
+              end
+            end
           end
 
           raise ArgumentError, "No name or columns specified" if checks.none?

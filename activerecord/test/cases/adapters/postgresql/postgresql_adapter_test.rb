@@ -273,6 +273,22 @@ module ActiveRecord
         end
       end
 
+      def test_index_with_includes
+        with_example_table do
+          @connection.add_index "ex", "data", includes: "number"
+          index = @connection.indexes("ex").find { |idx| idx.name == "index_ex_on_data_number" }
+          assert_equal ["data", "number"], index.columns.sort
+          @connection.remove_index "ex", ["data", "number"]
+          assert_not @connection.indexes("ex").find { |idx| idx.name == "index_ex_on_data_number" }
+
+          @connection.add_index "ex", "data", includes: ["id", "number"]
+          index = @connection.indexes("ex").find { |idx| idx.name == "index_ex_on_data_id_number" }
+          assert_equal ["data", "id", "number"], index.columns.sort
+          @connection.remove_index "ex", ["data", "id", "number"]
+          assert_not @connection.indexes("ex").find { |idx| idx.name == "index_ex_on_data_id_number" }
+        end
+      end
+
       def test_columns_for_distinct_zero_orders
         assert_equal "posts.id",
           @connection.columns_for_distinct("posts.id", [])

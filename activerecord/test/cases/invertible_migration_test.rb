@@ -198,6 +198,28 @@ module ActiveRecord
       end
     end
 
+    class RevertCoveringIndexesMigration1 < SilentMigration
+      def change
+        create_table(:albums) do |t|
+          t.column :title, :string
+          t.column :band, :string
+          t.column :duration, :integer
+        end
+      end
+    end
+
+    class RevertCoveringIndexesMigration2 < SilentMigration
+      def change
+        add_index :albums, :title, includes: :band
+      end
+    end
+
+    class RevertCoveringIndexesMigration3 < SilentMigration
+      def change
+        add_index :albums, :title, includes: [:band, :duration]
+      end
+    end
+
     class RevertCustomForeignKeyTable < SilentMigration
       def change
         change_table(:horses) do |t|
@@ -220,7 +242,7 @@ module ActiveRecord
     end
 
     teardown do
-      %w[horses new_horses].each do |table|
+      %w[albums horses new_horses].each do |table|
         if ActiveRecord::Base.connection.table_exists?(table)
           ActiveRecord::Base.connection.drop_table(table)
         end
@@ -331,6 +353,26 @@ module ActiveRecord
       assert migration.connection.table_exists?("horses")
       migration.migrate :down
       assert_not migration.connection.table_exists?("horses")
+    end
+
+    if ActiveRecord::Base.connection.supports_covering_indexes?
+      def test_migrate_revert_covering_indexes
+        RevertCoveringIndexesMigration1.new.migrate :up
+
+        migration1 = RevertCoveringIndexesMigration2.new
+        revert1 = RevertWholeMigration.new(RevertCoveringIndexesMigration2)
+        migration1.migrate :up
+        assert_equal ["index_albums_on_title_band"], migration1.connection.indexes(:albums).map(&:name)
+        revert1.migrate :up
+        assert_equal [], migration1.connection.indexes(:albums)
+
+        migration2 = RevertCoveringIndexesMigration3.new
+        revert2 = RevertWholeMigration.new(RevertCoveringIndexesMigration3)
+        migration2.migrate :up
+        assert_equal ["index_albums_on_title_band_duration"], migration2.connection.indexes(:albums).map(&:name)
+        revert2.migrate :up
+        assert_equal [], migration2.connection.indexes(:albums)
+      end
     end
 
     def test_migrate_revert_change_column_default

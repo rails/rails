@@ -290,6 +290,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support covering indices?
+      def supports_covering_indexes?
+        false
+      end
+
       # Does this adapter support partial indices?
       def supports_partial_index?
         false

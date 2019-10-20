@@ -109,6 +109,7 @@ module ActiveRecord
             comment = row[5]
 
             using, expressions, where = inddef.scan(/ USING (\w+?) \((.+?)\)(?: WHERE (.+))?\z/m).flatten
+            includes = inddef.scan(/(?:\G(?!\A) *, *"?| INCLUDE +\()\K\w+(?=[^()]*\))/)
 
             orders = {}
             opclasses = {}
@@ -144,7 +145,8 @@ module ActiveRecord
               opclasses: opclasses,
               where: where,
               using: using.to_sym,
-              comment: comment.presence
+              comment: comment.presence,
+              includes: includes
             )
           end
         end

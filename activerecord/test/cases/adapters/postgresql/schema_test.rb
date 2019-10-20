@@ -592,6 +592,39 @@ class SchemaIndexOpclassTest < ActiveRecord::PostgreSQLTestCase
   end
 end
 
+class SchemaIndexIncludesTest < ActiveRecord::PostgreSQLTestCase
+  include SchemaDumpingHelper
+
+  setup do
+    @connection = ActiveRecord::Base.connection
+    @connection.create_table "trains" do |t|
+      t.string :name
+      t.string :position
+      t.text :description
+    end
+  end
+
+  teardown do
+    @connection.drop_table "trains", if_exists: true
+  end
+
+  def test_includes_is_dumped
+    @connection.execute "CREATE INDEX trains_name_description ON trains(name) INCLUDE (description)"
+
+    output = dump_table_schema "trains"
+
+    assert_match(/includes: \["description"\]/, output)
+  end
+
+  def test_multiple_columns_includes_is_dumped
+    @connection.execute "CREATE INDEX trains_name_description_position ON trains(name) INCLUDE (description, position)"
+
+    output = dump_table_schema "trains"
+
+    assert_match(/includes: \["description", "position"\]/, output)
+  end
+end
+
 class SchemaIndexNullsOrderTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
 

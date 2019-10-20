@@ -216,6 +216,7 @@ HEADER
         index_parts << "using: #{index.using.inspect}" if !@connection.default_index_type?(index)
         index_parts << "type: #{index.type.inspect}" if index.type
         index_parts << "comment: #{index.comment.inspect}" if index.comment
+        index_parts << "includes: #{index.includes.inspect}" if index.includes.present?
         index_parts
       end
 
