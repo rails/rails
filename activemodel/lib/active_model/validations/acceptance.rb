@@ -17,7 +17,8 @@ module ActiveModel
       private
 
         def setup!(klass)
-          klass.include(LazilyDefineAttributes.new(klass)) unless klass.ancestors.any?(LazilyDefineAttributes)
+          define_attributes = LazilyDefineAttributes.new(attributes)
+          klass.include(define_attributes) unless klass.included_modules.include?(define_attributes)
         end
 
         def acceptable_option?(value)
@@ -25,20 +26,20 @@ module ActiveModel
         end
 
         class LazilyDefineAttributes < Module
-          attr_reader :removed
+          def initialize(attributes)
+            @attributes = attributes.map(&:to_s)
+          end
 
-          def initialize(klass)
-            @klass = klass
-            @removed = false
+          def included(klass)
             mod = self
 
             define_method(:respond_to_missing?) do |method_name, include_private = false|
-              mod.define_attributes
+              mod.define_on(klass)
               super(method_name, include_private) || mod.matches?(method_name)
             end
 
             define_method(:method_missing) do |method_name, *args, &block|
-              mod.define_attributes
+              mod.define_on(klass)
               if mod.matches?(method_name)
                 send(method_name, *args, &block)
               else
@@ -49,35 +50,26 @@ module ActiveModel
 
           def matches?(method_name)
             attr_name = method_name.to_s.chomp("=")
-            attributes.any? { |name| name.to_s == attr_name }
+            attributes.any? { |name| name == attr_name }
           end
 
-          def define_attributes
+          def define_on(klass)
+            remove_method :respond_to_missing?
+            remove_method :method_missing
+
             attr_readers = attributes.reject { |name| klass.attribute_method?(name) }
             attr_writers = attributes.reject { |name| klass.attribute_method?("#{name}=") }
-
-            remove_methods
 
             attr_reader(*attr_readers)
             attr_writer(*attr_writers)
           end
 
-          def self.===(other)
-            super && !other.removed
+          def ==(other)
+            self.class == other.class && attributes == other.attributes
           end
 
-          private
-            attr_reader :klass
-
-            def attributes
-              @attributes ||= klass.validators.grep(AcceptanceValidator).flat_map(&:attributes).uniq
-            end
-
-            def remove_methods
-              remove_method :respond_to_missing?
-              remove_method :method_missing
-              @removed = true
-            end
+          protected
+            attr_reader :attributes
         end
     end
 

@@ -93,9 +93,15 @@ class AcceptanceValidationTest < ActiveModel::TestCase
 
   def test_lazy_attribute_module_included_only_once
     klass = define_test_class(Topic)
-    assert_difference -> { klass.ancestors.count }, 1 do
-      2.times { klass.validates_acceptance_of(:something_to_accept) }
-      2.times { klass.validates_acceptance_of(:something_else_to_accept) }
+    assert_difference -> { klass.ancestors.count }, 2 do
+      2.times do
+        klass.validates_acceptance_of(:something_to_accept)
+        assert klass.new.respond_to?(:something_to_accept)
+      end
+      2.times do
+        klass.validates_acceptance_of(:something_else_to_accept)
+        assert klass.new.respond_to?(:something_else_to_accept)
+      end
     end
   end
 
