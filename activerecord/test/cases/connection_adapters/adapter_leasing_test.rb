@@ -40,7 +40,8 @@ module ActiveRecord
 
       def test_close
         db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("test", "primary", {})
-        pool = Pool.new(db_config)
+        role = ActiveRecord::ConnectionAdapters::Role.new("primary", db_config)
+        pool = Pool.new(role)
         pool.insert_connection_for_test! @adapter
         @adapter.pool = pool
 

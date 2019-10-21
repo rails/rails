@@ -4,23 +4,23 @@ require "cases/helper"
 
 module ActiveRecord
   module ConnectionAdapters
-    class ConnectionSpecification
+    class Role
       class ResolverTest < ActiveRecord::TestCase
-        def resolve(spec, config = {})
+        def resolve(role, config = {})
           configs = ActiveRecord::DatabaseConfigurations.new(config)
           resolver = ConnectionAdapters::Resolver.new(configs)
-          resolver.resolve(spec, spec).configuration_hash
+          resolver.resolve(role, role).configuration_hash
         end
 
-        def spec(spec, config = {})
+        def resolve_role(role, config = {})
           configs = ActiveRecord::DatabaseConfigurations.new(config)
           resolver = ConnectionAdapters::Resolver.new(configs)
-          resolver.spec(spec)
+          resolver.resolve_role(role)
         end
 
         def test_url_invalid_adapter
           error = assert_raises(LoadError) do
-            spec "ridiculous://foo?encoding=utf8"
+            resolve_role "ridiculous://foo?encoding=utf8"
           end
 
           assert_match "Could not load the 'ridiculous' Active Record adapter. Ensure that the adapter is spelled correctly in config/database.yml and that you've added the necessary adapter gem to your Gemfile.", error.message
@@ -28,7 +28,7 @@ module ActiveRecord
 
         def test_error_if_no_adapter_method
           error = assert_raises(AdapterNotFound) do
-            spec "abstract://foo?encoding=utf8"
+            resolve_role "abstract://foo?encoding=utf8"
           end
 
           assert_match "database configuration specifies nonexistent abstract adapter", error.message
@@ -38,121 +38,121 @@ module ActiveRecord
         # checks that the adapter file can be required in.
 
         def test_url_from_environment
-          spec = resolve :production, "production" => "abstract://foo?encoding=utf8"
+          role = resolve :production, "production" => "abstract://foo?encoding=utf8"
           assert_equal({
             adapter:  "abstract",
             host:     "foo",
             encoding: "utf8",
             name:     "production"
-          }, spec)
+          }, role)
         end
 
         def test_url_sub_key
-          spec = resolve :production, "production" => { "url" => "abstract://foo?encoding=utf8" }
+          role = resolve :production, "production" => { "url" => "abstract://foo?encoding=utf8" }
           assert_equal({
             adapter:  "abstract",
             host:     "foo",
             encoding: "utf8",
             name:     "production"
-          }, spec)
+          }, role)
         end
 
         def test_url_sub_key_merges_correctly
           hash = { "url" => "abstract://foo?encoding=utf8&", "adapter" => "sqlite3", "host" => "bar", "pool" => "3" }
-          spec = resolve :production, "production" => hash
+          role = resolve :production, "production" => hash
           assert_equal({
             adapter:  "abstract",
             host:     "foo",
             encoding: "utf8",
             pool:     "3",
             name:     "production"
-          }, spec)
+          }, role)
         end
 
         def test_url_host_no_db
-          spec = resolve "abstract://foo?encoding=utf8"
+          role = resolve "abstract://foo?encoding=utf8"
           assert_equal({
             adapter:  "abstract",
             host:     "foo",
             encoding: "utf8"
-          }, spec)
+          }, role)
         end
 
         def test_url_missing_scheme
-          spec = resolve "foo"
-          assert_equal({ database: "foo" }, spec)
+          role = resolve "foo"
+          assert_equal({ database: "foo" }, role)
         end
 
         def test_url_host_db
-          spec = resolve "abstract://foo/bar?encoding=utf8"
+          role = resolve "abstract://foo/bar?encoding=utf8"
           assert_equal({
             adapter:  "abstract",
             database: "bar",
             host:     "foo",
             encoding: "utf8"
-          }, spec)
+          }, role)
         end
 
         def test_url_port
-          spec = resolve "abstract://foo:123?encoding=utf8"
+          role = resolve "abstract://foo:123?encoding=utf8"
           assert_equal({
             adapter:  "abstract",
             port:     123,
             host:     "foo",
             encoding: "utf8"
-          }, spec)
+          }, role)
         end
 
         def test_encoded_password
           password = "am@z1ng_p@ssw0rd#!"
           encoded_password = URI.encode_www_form_component(password)
-          spec = resolve "abstract://foo:#{encoded_password}@localhost/bar"
-          assert_equal password, spec[:password]
+          role = resolve "abstract://foo:#{encoded_password}@localhost/bar"
+          assert_equal password, role[:password]
         end
 
         def test_url_with_authority_for_sqlite3
-          spec = resolve "sqlite3:///foo_test"
-          assert_equal("/foo_test", spec[:database])
+          role = resolve "sqlite3:///foo_test"
+          assert_equal("/foo_test", role[:database])
         end
 
         def test_url_absolute_path_for_sqlite3
-          spec = resolve "sqlite3:/foo_test"
-          assert_equal("/foo_test", spec[:database])
+          role = resolve "sqlite3:/foo_test"
+          assert_equal("/foo_test", role[:database])
         end
 
         def test_url_relative_path_for_sqlite3
-          spec = resolve "sqlite3:foo_test"
-          assert_equal("foo_test", spec[:database])
+          role = resolve "sqlite3:foo_test"
+          assert_equal("foo_test", role[:database])
         end
 
         def test_url_memory_db_for_sqlite3
-          spec = resolve "sqlite3::memory:"
-          assert_equal(":memory:", spec[:database])
+          role = resolve "sqlite3::memory:"
+          assert_equal(":memory:", role[:database])
         end
 
         def test_url_sub_key_for_sqlite3
-          spec = resolve :production, "production" => { "url" => "sqlite3:foo?encoding=utf8" }
+          role = resolve :production, "production" => { "url" => "sqlite3:foo?encoding=utf8" }
           assert_equal({
             adapter:  "sqlite3",
             database: "foo",
             encoding: "utf8",
             name:     "production"
-          }, spec)
+          }, role)
         end
 
-        def test_spec_name_on_key_lookup
-          spec = spec(:readonly, "readonly" => { "adapter" => "sqlite3" })
-          assert_equal "readonly", spec.name
+        def test_role_connection_specification_name_on_key_lookup
+          role = resolve_role(:readonly, "readonly" => { "adapter" => "sqlite3" })
+          assert_equal "readonly", role.connection_specification_name
         end
 
-        def test_spec_name_with_inline_config
-          spec = spec("adapter" => "sqlite3")
-          assert_equal "primary", spec.name, "should default to primary id"
+        def test_role_connection_specification_name_with_inline_config
+          role = resolve_role("adapter" => "sqlite3")
+          assert_equal "primary", role.connection_specification_name, "should default to primary id"
         end
 
-        def test_spec_with_invalid_type
+        def test_role_with_invalid_type
           assert_raises TypeError do
-            spec(Object.new)
+            resolve_role(Object.new)
           end
         end
       end

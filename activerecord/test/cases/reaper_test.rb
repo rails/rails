@@ -59,8 +59,8 @@ module ActiveRecord
 
       def test_pool_has_reaper
         config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
-        spec = ConnectionSpecification.new("primary", config)
-        pool = ConnectionPool.new(spec.db_config)
+        role = Role.new("primary", config)
+        pool = ConnectionPool.new(role)
 
         assert pool.reaper
       ensure
@@ -68,10 +68,10 @@ module ActiveRecord
       end
 
       def test_reaping_frequency_configuration
-        spec = duplicated_spec
-        spec.db_config.configuration_hash[:reaping_frequency] = "10.01"
+        role = duplicated_role
+        role.db_config.configuration_hash[:reaping_frequency] = "10.01"
 
-        pool = ConnectionPool.new(spec.db_config)
+        pool = ConnectionPool.new(role)
 
         assert_equal 10.01, pool.reaper.frequency
       ensure
@@ -79,10 +79,10 @@ module ActiveRecord
       end
 
       def test_connection_pool_starts_reaper
-        spec = duplicated_spec
-        spec.db_config.configuration_hash[:reaping_frequency] = "0.0001"
+        role = duplicated_role
+        role.db_config.configuration_hash[:reaping_frequency] = "0.0001"
 
-        pool = ConnectionPool.new(spec.db_config)
+        pool = ConnectionPool.new(role)
 
         conn, child = new_conn_in_thread(pool)
 
@@ -97,11 +97,11 @@ module ActiveRecord
       end
 
       def test_reaper_works_after_pool_discard
-        spec = duplicated_spec
-        spec.db_config.configuration_hash[:reaping_frequency] = "0.0001"
+        role = duplicated_role
+        role.db_config.configuration_hash[:reaping_frequency] = "0.0001"
 
         2.times do
-          pool = ConnectionPool.new(spec.db_config)
+          pool = ConnectionPool.new(role)
 
           conn, child = new_conn_in_thread(pool)
 
@@ -119,8 +119,8 @@ module ActiveRecord
       # This doesn't test the reaper directly, but we want to test the action
       # it would take on a discarded pool
       def test_reap_flush_on_discarded_pool
-        spec = duplicated_spec
-        pool = ConnectionPool.new(spec.db_config)
+        role = duplicated_role
+        pool = ConnectionPool.new(role)
 
         pool.discard!
         pool.reap
@@ -128,14 +128,14 @@ module ActiveRecord
       end
 
       def test_connection_pool_starts_reaper_in_fork
-        spec = duplicated_spec
-        spec.db_config.configuration_hash[:reaping_frequency] = "0.0001"
+        role = duplicated_role
+        role.db_config.configuration_hash[:reaping_frequency] = "0.0001"
 
-        pool = ConnectionPool.new(spec.db_config)
+        pool = ConnectionPool.new(role)
         pool.checkout
 
         pid = fork do
-          pool = ConnectionPool.new(spec.db_config)
+          pool = ConnectionPool.new(role)
 
           conn, child = new_conn_in_thread(pool)
           child.terminate
@@ -173,10 +173,10 @@ module ActiveRecord
       end
 
       private
-        def duplicated_spec
+        def duplicated_role
           old_config = ActiveRecord::Base.connection_pool.db_config.configuration_hash
           db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("arunit", "primary", old_config.dup)
-          ConnectionSpecification.new("primary", db_config)
+          Role.new("primary", db_config)
         end
 
         def new_conn_in_thread(pool)
