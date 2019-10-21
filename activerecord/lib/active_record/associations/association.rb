@@ -239,7 +239,7 @@ module ActiveRecord
         end
 
         def scope_for_association
-          @enable_scoping ? klass.all : klass.scope_for_association
+          @enable_scoping ? klass.unscoped.all : klass.scope_for_association
         end
 
         def scope_for_create
