@@ -17,23 +17,23 @@ module ActiveRecord
 
     def build(attributes = nil, &block)
       block = _deprecated_scope_block("new", &block)
-      @association.enable_scoping do
-        scoping { @association.build(attributes, &block) }
+      @association.scoping(self) do
+        @association.build(attributes, &block)
       end
     end
     alias new build
 
     def create(attributes = nil, &block)
       block = _deprecated_scope_block("create", &block)
-      @association.enable_scoping do
-        scoping { @association.create(attributes, &block) }
+      @association.scoping(self) do
+        @association.create(attributes, &block)
       end
     end
 
     def create!(attributes = nil, &block)
       block = _deprecated_scope_block("create!", &block)
-      @association.enable_scoping do
-        scoping { @association.create!(attributes, &block) }
+      @association.scoping(self) do
+        @association.create!(attributes, &block)
       end
     end
 
