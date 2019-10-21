@@ -94,28 +94,27 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
 
     private
+      def do_after_destroy
+        assign_attributes({ updated_at: Time.now })
+      end
 
-    def do_after_destroy
-      assign_attributes({updated_at: Time.now})
-    end
+      def mark_soft_delete
+        @soft_delete = true
+      end
 
-    def mark_soft_delete
-      @soft_delete = true
-    end
+      def destroy_row
+        relation = self.class.where(self.class.primary_key => id)
+        relation.update_all({ updated_at: Time.now })
+      end
 
-    def destroy_row
-      relation = self.class.where(self.class.primary_key => id)
-      relation.update_all({updated_at: Time.now})
-    end
+      def freeze
+        super unless @soft_delete
+        self
+      end
 
-    def freeze
-      super unless @soft_delete
-      self
-    end
-
-    def do_after_commit_for_destroy
-      history << :commit_on_destroy
-    end
+      def do_after_commit_for_destroy
+        history << :commit_on_destroy
+      end
   end
 
   def setup
@@ -512,7 +511,7 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     reply = topic.replies.create
 
     SoftDeleteTopic.transaction do
-      reply.destroy! if reply
+      reply.destroy!
       topic = SoftDeleteTopic.find(reply.parent_id)
       topic.destroy!
     end
