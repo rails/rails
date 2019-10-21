@@ -1055,7 +1055,7 @@ module ActiveRecord
           payload[:config] = db_config.configuration_hash
         end
 
-        role = owner_to_role[role.connection_specification_name] = Role.new(role.connection_specification_name, db_config)
+        owner_to_role[role.connection_specification_name] = role
 
         message_bus.instrument("!connection.active_record", payload) do
           role.pool
