@@ -41,7 +41,7 @@ module ActiveRecord
         reflection.check_validity!
 
         @owner, @reflection = owner, reflection
-        @enable_scoping = false
+        @_scope = nil
 
         reset
         reset_scope
@@ -98,7 +98,7 @@ module ActiveRecord
       end
 
       def scope
-        target_scope.merge!(association_scope)
+        @_scope&.spawn || target_scope.merge!(association_scope)
       end
 
       def reset_scope
@@ -198,11 +198,11 @@ module ActiveRecord
         _create_record(attributes, true, &block)
       end
 
-      def enable_scoping
-        @enable_scoping = true
-        yield
+      def scoping(relation, &block)
+        @_scope = relation
+        relation.scoping(&block)
       ensure
-        @enable_scoping = false
+        @_scope = nil
       end
 
       private
@@ -235,11 +235,7 @@ module ActiveRecord
         # Can be overridden (i.e. in ThroughAssociation) to merge in other scopes (i.e. the
         # through association's scope)
         def target_scope
-          AssociationRelation.create(klass, self).merge!(scope_for_association)
-        end
-
-        def scope_for_association
-          @enable_scoping ? klass.all : klass.scope_for_association
+          AssociationRelation.create(klass, self).merge!(klass.scope_for_association)
         end
 
         def scope_for_create

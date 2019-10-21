@@ -254,6 +254,15 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     bulb = car.bulbs.unscope(where: :name).create!
     assert_nil bulb.name
+
+    bulb = car.awesome_bulbs.unscope(where: :frickinawesome).build
+    assert_equal false, bulb.frickinawesome
+
+    bulb = car.awesome_bulbs.unscope(where: :frickinawesome).create
+    assert_equal false, bulb.frickinawesome
+
+    bulb = car.awesome_bulbs.unscope(where: :frickinawesome).create!
+    assert_equal false, bulb.frickinawesome
   end
 
   def test_build_from_association_should_respect_scope
