@@ -350,10 +350,10 @@ For example:
 
 ```bash
 => Booting Puma
-=> Rails 5.1.0 application starting in development on http://0.0.0.0:3000
-=> Run `rails server -h` for more startup options
+=> Rails 6.0.0 application starting in development
+=> Run `rails server --help` for more startup options
 Puma starting in single mode...
-* Version 3.4.0 (ruby 2.3.1-p112), codename: Owl Bowl Brawl
+* Version 3.12.1 (ruby 2.5.7-p206), codename: Llamas in Pajamas
 * Min threads: 5, max threads: 5
 * Environment: development
 * Listening on tcp://localhost:3000
