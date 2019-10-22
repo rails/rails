@@ -217,7 +217,7 @@ This will fire up Puma, a web server distributed with Rails by default. To see
 your application in action, open a browser window and navigate to
 <http://localhost:3000>. You should see the Rails default information page:
 
-![Welcome aboard screenshot](images/getting_started/rails_welcome.png)
+![Yay! You're on Rails! screenshot](images/getting_started/rails_welcome.png)
 
 TIP: To stop the web server, hit Ctrl+C in the terminal window where it's
 running. To verify the server has stopped you should see your command prompt
@@ -226,9 +226,9 @@ dollar sign `$`. In development mode, Rails does not generally require you to
 restart the server; changes you make in files will be automatically picked up by
 the server.
 
-The "Welcome aboard" page is the _smoke test_ for a new Rails application: it
-makes sure that you have your software configured correctly enough to serve a
-page.
+The "Yay! You're on Rails!" page is the _smoke test_ for a new Rails
+application: it makes sure that you have your software configured correctly
+enough to serve a page.
 
 ### Say "Hello", Rails
 
@@ -291,7 +291,7 @@ of code:
 Now that we have made the controller and view, we need to tell Rails when we
 want "Hello, Rails!" to show up. In our case, we want it to show up when we
 navigate to the root URL of our site, <http://localhost:3000>. At the moment,
-"Welcome aboard" is occupying that spot.
+"Yay! You're on Rails!" is occupying that spot.
 
 Next, you have to tell Rails where your actual home page is located.
 
