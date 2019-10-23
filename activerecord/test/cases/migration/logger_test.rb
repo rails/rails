@@ -10,6 +10,7 @@ module ActiveRecord
 
       Migration = Struct.new(:name, :version) do
         def disable_ddl_transaction; false end
+        def with_connection_pool(pool); yield; end
         def migrate(direction)
           # do nothing
         end

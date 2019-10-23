@@ -666,6 +666,7 @@ module ActiveRecord
       @name       = name
       @version    = version
       @connection = nil
+      @connection_pool = nil
     end
 
     self.verbose = true
@@ -829,7 +830,7 @@ module ActiveRecord
       end
 
       time = nil
-      ActiveRecord::Base.connection_pool.with_connection do |conn|
+      connection_pool.with_connection do |conn|
         time = Benchmark.measure do
           exec_migration(conn, direction)
         end
@@ -892,7 +893,7 @@ module ActiveRecord
     end
 
     def connection
-      @connection || ActiveRecord::Base.connection
+      @connection || connection_pool.connection
     end
 
     def method_missing(method, *arguments, &block)
@@ -991,7 +992,19 @@ module ActiveRecord
       }
     end
 
+    def with_connection_pool(pool) # :nodoc:
+      old_pool = @connection_pool
+      @connection_pool = pool
+      yield
+    ensure
+      @connection_pool = old_pool
+    end
+
     private
+      def connection_pool
+        @connection_pool || ActiveRecord::Base.connection_pool
+      end
+
       def execute_block
         if connection.respond_to? :execute_block
           super # use normal delegation to record the block
@@ -1017,7 +1030,7 @@ module ActiveRecord
       File.basename(filename)
     end
 
-    delegate :migrate, :announce, :write, :disable_ddl_transaction, to: :migration
+    delegate :migrate, :announce, :write, :disable_ddl_transaction, :with_connection_pool, to: :migration
 
     private
       def migration
@@ -1290,7 +1303,7 @@ module ActiveRecord
       # Stores the current environment in the database.
       def record_environment
         return if down?
-        ActiveRecord::InternalMetadata[:environment] = ActiveRecord::Base.connection.migration_context.current_environment
+        ActiveRecord::InternalMetadata[:environment] = @schema_migration.connection.migration_context.current_environment
       end
 
       def ran?(migration)
@@ -1309,7 +1322,9 @@ module ActiveRecord
         Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
 
         ddl_transaction(migration) do
-          migration.migrate(@direction)
+          migration.with_connection_pool(@schema_migration.connection_pool) do
+            migration.migrate(@direction)
+          end
           record_version_state_after_migrating(migration.version)
         end
       rescue => e
@@ -1360,23 +1375,23 @@ module ActiveRecord
       # Wrap the migration in a transaction only if supported by the adapter.
       def ddl_transaction(migration)
         if use_transaction?(migration)
-          Base.transaction { yield }
+          @schema_migration.transaction { yield }
         else
           yield
         end
       end
 
       def use_transaction?(migration)
-        !migration.disable_ddl_transaction && Base.connection.supports_ddl_transactions?
+        !migration.disable_ddl_transaction && @schema_migration.connection.supports_ddl_transactions?
       end
 
       def use_advisory_lock?
-        Base.connection.advisory_locks_enabled?
+        @schema_migration.connection.advisory_locks_enabled?
       end
 
       def with_advisory_lock
         lock_id = generate_migrator_advisory_lock_id
-        AdvisoryLockBase.establish_connection(ActiveRecord::Base.connection_db_config) unless AdvisoryLockBase.connected?
+        AdvisoryLockBase.establish_connection(@schema_migration.connection_db_config) unless AdvisoryLockBase.connected?
         connection = AdvisoryLockBase.connection
         got_lock = connection.get_advisory_lock(lock_id)
         raise ConcurrentMigrationError unless got_lock
@@ -1392,7 +1407,7 @@ module ActiveRecord
 
       MIGRATOR_SALT = 2053462845
       def generate_migrator_advisory_lock_id
-        db_name_hash = Zlib.crc32(Base.connection.current_database)
+        db_name_hash = Zlib.crc32(@schema_migration.connection.current_database)
         MIGRATOR_SALT * db_name_hash
       end
   end
