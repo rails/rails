@@ -361,6 +361,10 @@ module ActiveRecord
         @has_pg_hint_plan
       end
 
+      def supports_common_table_expressions?
+        true
+      end
+
       def supports_lazy_transactions?
         true
       end

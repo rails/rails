@@ -144,6 +144,10 @@ module ActiveRecord
         true
       end
 
+      def supports_common_table_expressions?
+        database_version >= "3.8.3"
+      end
+
       def supports_insert_on_conflict?
         database_version >= "3.24.0"
       end

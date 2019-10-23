@@ -223,6 +223,20 @@ module ActiveRecord
       end
     end
 
+    if ActiveRecord::Base.connection.supports_common_table_expressions?
+      def test_doesnt_error_when_a_read_query_with_a_cte_is_called_while_preventing_writes
+        @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')")
+
+        @connection_handler.while_preventing_writes do
+          result = @connection.select_all(<<~SQL)
+            WITH matching_subscribers AS (SELECT subscribers.* FROM subscribers WHERE nick = '138853948594')
+            SELECT * FROM matching_subscribers
+          SQL
+          assert_equal 1, result.length
+        end
+      end
+    end
+
     def test_uniqueness_violations_are_translated_to_specific_exception
       @connection.execute "INSERT INTO subscribers(nick) VALUES('me')"
       error = assert_raises(ActiveRecord::RecordNotUnique) do

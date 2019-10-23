@@ -416,6 +416,10 @@ module ActiveRecord
         false
       end
 
+      def supports_common_table_expressions?
+        false
+      end
+
       def supports_lazy_transactions?
         false
       end
