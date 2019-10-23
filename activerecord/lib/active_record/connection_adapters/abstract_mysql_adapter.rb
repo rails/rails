@@ -109,6 +109,14 @@ module ActiveRecord
         !mariadb? && database_version >= "5.7.7"
       end
 
+      def supports_common_table_expressions?
+        if mariadb?
+          database_version >= "10.2.1"
+        else
+          database_version >= "8.0.1"
+        end
+      end
+
       def supports_advisory_locks?
         true
       end
