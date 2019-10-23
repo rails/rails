@@ -457,6 +457,17 @@ module ActiveRecord
         end
       end
 
+      def test_doesnt_error_when_a_read_query_with_a_cte_is_called_while_preventing_writes
+        with_example_table do
+          @connection.execute("INSERT INTO ex (data) VALUES ('138853948594')")
+
+          @connection_handler.while_preventing_writes do
+            sql = "WITH matching_ex_values AS (SELECT * FROM ex WHERE data = '138853948594') SELECT * FROM matching_ex_values"
+            assert_equal 1, @connection.execute(sql).entries.count
+          end
+        end
+      end
+
       private
 
         def with_example_table(definition = "id serial primary key, number integer, data character varying(255)", &block)
