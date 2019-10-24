@@ -133,11 +133,18 @@ module ActiveRecord
             accessor_key = "#{accessor_prefix}#{key}#{accessor_suffix}"
 
             define_method("#{accessor_key}=") do |value|
+              type = self.class.attribute_types[accessor_key]
+              if type
+                value = type.cast(value)
+                value = type.serialize(value)
+              end
               write_store_attribute(store_attribute, key, value)
             end
 
             define_method(accessor_key) do
-              read_store_attribute(store_attribute, key)
+              type = self.class.attribute_types[accessor_key]
+              value = read_store_attribute(store_attribute, key)
+              type ? type.deserialize(value) : value
             end
 
             define_method("#{accessor_key}_changed?") do
