@@ -335,7 +335,7 @@ module ActionView
           # We can use the matches found by the regex and sort by their index in
           # details.
           match = filename.match(regex)
-          EXTENSIONS.keys.reverse.map do |ext|
+          EXTENSIONS.keys.map do |ext|
             if ext == :variants && details[ext] == :any
               match[ext].nil? ? 0 : 1
             elsif match[ext].nil?

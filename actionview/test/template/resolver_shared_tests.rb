@@ -146,6 +146,16 @@ module ResolverSharedTests
     assert_same en[0], fr[1]
   end
 
+  def test_templates_sort_by_formats
+    with_file "test/hello_world.html.erb", "Hello HTML!"
+    with_file "test/hello_world.json.jbuilder", "Hello JSON!"
+
+    templates = resolver.find_all("hello_world", "test", false, locale: [], formats: [:json, :js, :html, :text], variants: :any, handlers: [:erb, :jbuilder])
+
+    assert_equal 2, templates.size
+    assert_equal "Hello JSON!", templates[0].source
+  end
+
   def test_virtual_path_is_preserved_with_dot
     with_file "test/hello_world.html.erb", "Hello html!"
 
