@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# This is private interface.
+# This is a private interface.
 #
 # Rails components cherry pick from Active Support as needed, but there are a
 # few features that are used for sure in some way or another and it is not worth
