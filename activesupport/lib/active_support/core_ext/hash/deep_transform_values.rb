@@ -21,7 +21,7 @@ class Hash
   end
 
   private
-    # support methods for deep transforming nested hashes and arrays
+    # Support methods for deep transforming nested hashes and arrays.
     def _deep_transform_values_in_object(object, &block)
       case object
       when Hash
