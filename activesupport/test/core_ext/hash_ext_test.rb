@@ -36,6 +36,8 @@ class HashExtTest < ActiveSupport::TestCase
     assert_respond_to h, :deep_transform_keys!
     assert_respond_to h, :deep_transform_values
     assert_respond_to h, :deep_transform_values!
+    assert_respond_to h, :deep_transform_pairs
+    assert_respond_to h, :deep_transform_pairs!
     assert_respond_to h, :symbolize_keys
     assert_respond_to h, :symbolize_keys!
     assert_respond_to h, :deep_symbolize_keys
@@ -104,6 +106,13 @@ class HashExtTest < ActiveSupport::TestCase
     transformed_hash.deep_transform_values! { |value| value.to_s }
     assert_equal({ "a" => { b: { "c" => "3" } } }, transformed_hash)
     assert_equal({ "a" => { b: { "c" => 3 } } }, @nested_mixed)
+  end
+
+  def test_deep_transform_pairs
+    expected = { "A" => [1], "B" => [2] }
+    actual = @strings.deep_transform_pairs(key_block: -> (k) { k.upcase }, value_block: -> (v) { Array[v] })
+
+    assert_equal(expected, actual)
   end
 
   def test_symbolize_keys
