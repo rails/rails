@@ -13,7 +13,7 @@ module ActiveSupport
       def convert
         @number = Float(number)
 
-        # for backwards compatibility with those that didn't add strip_insignificant_zeros to their locale files
+        # For backwards compatibility with those that didn't add strip_insignificant_zeros to their locale files.
         unless options.key?(:strip_insignificant_zeros)
           options[:strip_insignificant_zeros] = true
         end
