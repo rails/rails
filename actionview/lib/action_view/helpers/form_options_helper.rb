@@ -143,7 +143,7 @@ module ActionView
       #
       # The HTML specification says when +multiple+ parameter passed to select and all options got deselected
       # web browsers do not send any value to server. Unfortunately this introduces a gotcha:
-      # if an +User+ model has many +roles+ and have +role_ids+ accessor, and in the form that edits roles of the user
+      # if a +User+ model has many +roles+ and have +role_ids+ accessor, and in the form that edits roles of the user
       # the user deselects all roles from +role_ids+ multiple select box, no +role_ids+ parameter is sent. So,
       # any mass-assignment idiom like
       #
