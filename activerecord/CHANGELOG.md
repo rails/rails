@@ -1,3 +1,7 @@
+*   `where(attr => [])` now loads an empty result without making a query.
+
+    *John Hawthorn*
+
 *   Fixed the performance regression for `primary_keys` introduced MySQL 8.0.
 
     *Hiroyuki Ishii*
