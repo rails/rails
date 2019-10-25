@@ -143,7 +143,7 @@ module ActiveRecord
               value = read_store_attribute(store_attribute, key)
               return value unless defined?(super)
               
-              self[accessor_key] = value
+              @attributes.write_from_database(accessor_key, value)
               super()
             end
 
