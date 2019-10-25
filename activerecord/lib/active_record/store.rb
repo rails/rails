@@ -134,7 +134,7 @@ module ActiveRecord
 
             define_method("#{accessor_key}=") do |value|
               return write_store_attribute(store_attribute, key, value) unless defined?(super)
-              
+
               super(value)
               write_store_attribute(store_attribute, key, @attributes[accessor_key].value_for_database)
             end
@@ -142,7 +142,7 @@ module ActiveRecord
             define_method(accessor_key) do
               value = read_store_attribute(store_attribute, key)
               return value unless defined?(super)
-              
+
               @attributes.write_from_database(accessor_key, value)
               super()
             end
