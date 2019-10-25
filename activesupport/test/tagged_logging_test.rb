@@ -83,6 +83,17 @@ class TaggedLoggingTest < ActiveSupport::TestCase
     assert_equal "Dull story\n[OMG] Cool story\n[BCX] Funky time\n", @output.string
   end
 
+  test "can create fibers with the same tags" do
+    @logger.tagged("BCX") do
+      Fiber.new do
+        @logger.info "Dull story"
+        @logger.tagged("OMG") { @logger.info "Cool story" }
+      end.resume
+      @logger.info "Funky time"
+    end
+    assert_equal "[BCX] Dull story\n[BCX] [OMG] Cool story\n[BCX] Funky time\n", @output.string
+  end
+
   test "keeps each tag in their own instance" do
     other_output = StringIO.new
     other_logger = ActiveSupport::TaggedLogging.new(MyLogger.new(other_output))

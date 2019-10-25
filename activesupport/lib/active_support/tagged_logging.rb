@@ -51,7 +51,8 @@ module ActiveSupport
       def current_tags
         # We use our object ID here to avoid conflicting with other instances
         thread_key = @thread_key ||= "activesupport_tagged_logging_tags:#{object_id}"
-        Thread.current[thread_key] ||= []
+        Thread.current.thread_variable_set(thread_key, []) unless Thread.current.thread_variable_get(thread_key)
+        Thread.current.thread_variable_get(thread_key)
       end
 
       def tags_text
