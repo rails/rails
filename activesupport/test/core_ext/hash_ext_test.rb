@@ -110,9 +110,62 @@ class HashExtTest < ActiveSupport::TestCase
 
   def test_deep_transform_pairs
     expected = { "A" => [1], "B" => [2] }
-    actual = @strings.deep_transform_pairs(key_block: -> (k) { k.upcase }, value_block: -> (v) { Array[v] })
+    actual = @strings.deep_transform_pairs(key_block: -> (key) { key.upcase }, value_block: -> (value) { Array[value] })
 
     assert_equal(expected, actual)
+  end
+
+  def test_deep_transform_pairs_v2
+    expected = { "A" => [1], "B" => [2] }
+
+    actual = @strings.deep_transform_pairs_v2 do
+      on_key do |key|
+        key.upcase
+      end
+
+      on_value do |value|
+        Array[value]
+      end
+    end
+    assert_equal(expected, actual)
+
+    expected = { "A" => 1, "B" => 2 }
+
+    actual = @strings.deep_transform_pairs_v2 do
+      on_key do |key|
+        key.upcase
+      end
+    end
+    assert_equal(expected, actual)
+
+    expected = { "a" => 1, "b" => 2 }
+
+    actual = @strings.deep_transform_pairs_v2 do
+      # Not passing a block to `on_key` or `on_value` has no effect on the Hash.
+    end
+    assert_equal(expected, actual)
+  end
+
+  def test_deep_transform_pairs!
+    expected = { "A" => [1], "B" => [2] }
+    @strings.deep_transform_pairs!(key_block: -> (key) { key.upcase }, value_block: -> (value) { Array[value] })
+
+    assert_equal(expected, @strings)
+  end
+
+  def test_deep_transform_pairs_v2!
+    expected = { "A" => [1], "B" => [2] }
+
+    @strings.deep_transform_pairs_v2! do
+      on_key do |key|
+        key.upcase
+      end
+
+      on_value do |value|
+        Array[value]
+      end
+    end
+    assert_equal(expected, @strings)
   end
 
   def test_symbolize_keys
