@@ -133,17 +133,18 @@ module ActiveRecord
             accessor_key = "#{accessor_prefix}#{key}#{accessor_suffix}"
 
             define_method("#{accessor_key}=") do |value|
-              value = super(value) if defined?(super)
-              write_store_attribute(store_attribute, key, value)
+              return write_store_attribute(store_attribute, key, value) unless defined?(super)
+              
+              super(value)
+              write_store_attribute(store_attribute, key, @attributes[accessor_key].value_for_database)
             end
 
             define_method(accessor_key) do
               value = read_store_attribute(store_attribute, key)
-              if defined?(super)
-                self[accessor_key] = value
-                value = super()
-              end
-              value
+              return value unless defined?(super)
+              
+              self[accessor_key] = value
+              super()
             end
 
             define_method("#{accessor_key}_changed?") do
