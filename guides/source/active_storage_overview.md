@@ -520,6 +520,8 @@ Take care to allow:
   * `x-ms-blob-content-disposition` (for Azure Storage only)
   * `x-ms-blob-type` (for Azure Storage only)
 
+No CORS configuration is required for the Disk service since it shares your app’s origin.
+
 #### Example: S3 CORS configuration
 
 ```xml
