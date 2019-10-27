@@ -2057,7 +2057,7 @@ is either a passed default or returned in a block.
 post = Post.new(title: "hey there", body: "what's up?")
 
 %i( title body ).index_with { |attr_name| post.public_send(attr_name) }
-# => { title: "hey", body: "what's up?" }
+# => { title: "hey there", body: "what's up?" }
 
 WEEKDAYS.index_with(Interval.all_day)
 # => { monday: [ 0, 1440 ], … }
