@@ -68,7 +68,7 @@ module ActiveRecord
         attributes.flat_map do |key, value|
           if value.is_a?(Hash) && !table.has_column?(key)
             associated_predicate_builder(key).expand_from_hash(value)
-          elsif table.associated_with?(key)
+          elsif table.associated_with?(key) && association_stuff?(value)
             # Find the foreign key when using queries such as:
             # Post.where(author: author)
             #
@@ -136,6 +136,10 @@ module ActiveRecord
 
       def handler_for(object)
         @handlers.detect { |klass, _| klass === object }.last
+      end
+
+      def association_stuff?(value)
+        value.is_a?(Array) || value.is_a?(Base) || value.is_a?(Relation) || value.nil?
       end
   end
 end

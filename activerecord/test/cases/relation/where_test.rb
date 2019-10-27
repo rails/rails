@@ -87,6 +87,17 @@ module ActiveRecord
       assert_equal Post.where(author_id: nil).to_sql, Post.where(author: nil).to_sql
     end
 
+    def test_association_stuff
+      sql = Post.where(author: 123).to_sql
+      if current_adapter?(:Mysql2Adapter)
+        assert_no_match(/`posts`\.`author_id`/, sql)
+        assert_match(/`posts`\.`author`/, sql)
+      else
+        assert_no_match(/"posts"\."author_id"/, sql)
+        assert_match(/"posts"\."author"/, sql)
+      end
+    end
+
     def test_belongs_to_array_value_where
       assert_equal Post.where(author_id: [1, 2]).to_sql, Post.where(author: [1, 2]).to_sql
     end

@@ -1,3 +1,8 @@
+*   `where statement with associated table name check if the value is association stuff.
+    Fixes #37531
+
+    *Hiroaki Osawa*
+
 *   `where(attr => [])` now loads an empty result without making a query.
 
     *John Hawthorn*
