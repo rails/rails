@@ -2730,6 +2730,23 @@ Active Record does not accept unknown options when building associations, for ex
 
 NOTE: Defined in `active_support/core_ext/hash/keys.rb`.
 
+### Working with Values
+
+#### `deep_transform_values` and `deep_transform_values!`
+
+The method `deep_transform_values` returns a new hash with all values converted by the block operation. This includes the values from the root hash and from all nested hashes and arrays.
+
+```ruby
+hash = { person: { name: 'Rob', age: '28' } }
+
+hash.deep_transform_values{ |value| value.to_s.upcase }
+# => {person: {name: "ROB", age: "28"}}
+```
+
+There's also the bang variant `deep_transform_values!` that destructively converts all values by using the block operation.
+
+NOTE: Defined in `active_support/core_ext/hash/deep_transform_values.rb`.
+
 ### Slicing
 
 The method `slice!` replaces the hash with only the given keys and returns a hash containing the removed key/value pairs.
