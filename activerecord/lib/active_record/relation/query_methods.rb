@@ -161,6 +161,24 @@ module ActiveRecord
       self
     end
 
+    # Forces eager grouping by performing a LEFT OUTER JOIN on +args+:
+    #
+    #   Post.eager_group(:comments_average_rating)
+    #   # SELECT "posts".* FROM "posts";
+    #   # SELECT AVG("comments"."rating") AS average_comments_rating, post_id AS post_id
+    #   # FROM "comments"
+    #   # WHERE "comments"."post_id" IN (1, 2, 3)
+    #   # GROUP BY post_id;
+    def eager_group(*args)
+      check_if_method_has_arguments!("eager_group", args)
+      spawn.eager_group!(*args)
+    end
+
+    def eager_group!(*args) # :nodoc:
+      self.eager_group_values += args
+      self
+    end
+
     # Allows preloading of +args+, in the same way that #includes does:
     #
     #   User.preload(:posts)

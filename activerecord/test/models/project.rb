@@ -25,6 +25,9 @@ class Project < ActiveRecord::Base
     ActiveRecord::Base.belongs_to_required_by_default = previous_value
   end
 
+  define_eager_group :developers_average_salary, :developers, :average, :salary
+  define_eager_group :developers_total_salary, :developers, :sum, :salary
+
   attr_accessor :developers_log
   after_initialize :set_developers_log
 

@@ -174,6 +174,8 @@ class Post < ActiveRecord::Base
   has_many :lazy_readers_unscope_skimmers, -> { skimmers_or_not }, class_name: "LazyReader"
   has_many :lazy_people_unscope_skimmers, through: :lazy_readers_unscope_skimmers, source: :person
 
+  define_eager_group :special_comments_count, :comments, :count, :*, -> { where(type: "SpecialComment") }
+
   def self.top(limit)
     ranked_by_comments.limit_by(limit)
   end

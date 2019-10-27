@@ -9,4 +9,6 @@ class College < ARUnit2Model
   with_options dependent: :destroy do |assoc|
     assoc.has_many :students, -> { where(active: true) }
   end
+
+  define_eager_group :students_count, :students, :count, :*
 end

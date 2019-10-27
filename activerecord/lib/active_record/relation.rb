@@ -3,7 +3,7 @@
 module ActiveRecord
   # = Active Record \Relation
   class Relation
-    MULTI_VALUE_METHODS  = [:includes, :eager_load, :preload, :select, :group,
+    MULTI_VALUE_METHODS  = [:includes, :eager_load, :eager_group, :preload, :select, :group,
                             :order, :joins, :left_outer_joins, :references,
                             :extending, :unscope, :optimizer_hints, :annotate]
 
@@ -827,6 +827,7 @@ module ActiveRecord
             end
 
           preload_associations(@records) unless skip_preloading_value
+          EagerGroup::Preloader.new(klass, @records, eager_group_values).run if eager_group_values.present?
 
           @records.each(&:readonly!) if readonly_value
 

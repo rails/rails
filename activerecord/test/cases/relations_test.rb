@@ -28,7 +28,7 @@ require "models/edge"
 require "models/subscriber"
 
 class RelationTest < ActiveRecord::TestCase
-  fixtures :authors, :author_addresses, :topics, :entrants, :developers, :people, :companies, :developers_projects, :accounts, :categories, :categorizations, :categories_posts, :posts, :comments, :tags, :taggings, :cars, :minivans
+  fixtures :authors, :author_addresses, :topics, :entrants, :developers, :people, :companies, :developers_projects, :projects, :accounts, :categories, :categorizations, :categories_posts, :posts, :comments, :tags, :taggings, :cars, :minivans
 
   def test_do_not_double_quote_string_id
     van = Minivan.last
@@ -531,6 +531,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_raises(ArgumentError) { Topic.reorder() }
     assert_raises(ArgumentError) { Topic.order() }
     assert_raises(ArgumentError) { Topic.eager_load() }
+    assert_raises(ArgumentError) { Topic.eager_group() }
     assert_raises(ArgumentError) { Topic.reselect() }
     assert_raises(ArgumentError) { Topic.unscope() }
     assert_raises(ArgumentError) { Topic.joins() }
@@ -547,6 +548,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_nothing_raised { Topic.reorder([]) }
     assert_nothing_raised { Topic.order([]) }
     assert_nothing_raised { Topic.eager_load([]) }
+    assert_nothing_raised { Topic.eager_group([]) }
     assert_nothing_raised { Topic.reselect([]) }
     assert_nothing_raised { Topic.unscope([]) }
     assert_nothing_raised { Topic.joins([]) }
@@ -753,6 +755,31 @@ class RelationTest < ActiveRecord::TestCase
     authors = Author.all
     assert_equal david, authors.find_by_id_and_name(david.id, david.name)
     assert_equal david, authors.find_by_id_and_name!(david.id, david.name)
+  end
+
+  def test_find_with_has_many_eager_group
+    assert_queries(2) do
+      posts = Post.where("comments_count > 0").eager_group(:special_comments_count).order("id asc").to_a
+      assert_equal 1, posts.last.special_comments_count
+    end
+  end
+
+  def test_find_with_has_many_through_eager_group
+    assert_queries(2) do
+      authors = Author.eager_group(:comments_count).order("id asc").to_a
+      assert_equal 10, authors.first.comments_count
+      assert_equal 0, authors.last.comments_count
+    end
+  end
+
+  def test_find_with_has_and_belongs_to_many_eager_group
+    assert_queries(3) do
+      projects = Project.eager_group(:developers_average_salary, :developers_total_salary).order("id asc").to_a
+      assert_equal 239000/3, projects.first.developers_average_salary.to_i
+      assert_equal 239000, projects.first.developers_total_salary
+      assert_equal 80000, projects.last.developers_average_salary
+      assert_equal 80000, projects.last.developers_total_salary
+    end
   end
 
   def test_dynamic_find_by_attributes_bang
