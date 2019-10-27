@@ -1151,6 +1151,24 @@ In above examples "dear" gets cut first, but then `:separator` prevents it.
 
 NOTE: Defined in `active_support/core_ext/string/filters.rb`.
 
+### `truncate_bytes`
+
+The method `truncate_bytes` returns a copy of its receiver truncated to at most `bytesize` bytes:
+
+```ruby
+"👍👍👍👍".truncate_bytes(15)
+# => "👍👍👍…"
+```
+
+Ellipsis can be customized with the `:omission` option:
+
+```ruby
+"👍👍👍👍".truncate_bytes(15, omission: "🖖")
+# => "👍👍🖖"
+```
+
+NOTE: Defined in `active_support/core_ext/string/filters.rb`.
+
 ### `truncate_words`
 
 The method `truncate_words` returns a copy of its receiver truncated after a given number of words:
