@@ -1151,6 +1151,24 @@ In above examples "dear" gets cut first, but then `:separator` prevents it.
 
 NOTE: Defined in `active_support/core_ext/string/filters.rb`.
 
+### `truncate_bytes`
+
+The method `truncate_bytes` returns a copy of its receiver truncated to at most `bytesize` bytes:
+
+```ruby
+"👍👍👍👍".truncate_bytes(15)
+# => "👍👍👍…"
+```
+
+Ellipsis can be customized with the `:omission` option:
+
+```ruby
+"👍👍👍👍".truncate_bytes(15, omission: "🖖")
+# => "👍👍🖖"
+```
+
+NOTE: Defined in `active_support/core_ext/string/filters.rb`.
+
 ### `truncate_words`
 
 The method `truncate_words` returns a copy of its receiver truncated after a given number of words:
@@ -2038,8 +2056,10 @@ The method `index_with` generates a hash with the elements of an enumerable as k
 is either a passed default or returned in a block.
 
 ```ruby
-%i( title body created_at ).index_with { |attr_name| post.public_send(attr_name) }
-# => { title: "hey", body: "what's up?", … }
+post = Post.new(title: "hey there", body: "what's up?")
+
+%i( title body ).index_with { |attr_name| post.public_send(attr_name) }
+# => { title: "hey there", body: "what's up?" }
 
 WEEKDAYS.index_with(Interval.all_day)
 # => { monday: [ 0, 1440 ], … }
@@ -2711,6 +2731,23 @@ The method `assert_valid_keys` receives an arbitrary number of arguments, and ch
 Active Record does not accept unknown options when building associations, for example. It implements that control via `assert_valid_keys`.
 
 NOTE: Defined in `active_support/core_ext/hash/keys.rb`.
+
+### Working with Values
+
+#### `deep_transform_values` and `deep_transform_values!`
+
+The method `deep_transform_values` returns a new hash with all values converted by the block operation. This includes the values from the root hash and from all nested hashes and arrays.
+
+```ruby
+hash = { person: { name: 'Rob', age: '28' } }
+
+hash.deep_transform_values{ |value| value.to_s.upcase }
+# => {person: {name: "ROB", age: "28"}}
+```
+
+There's also the bang variant `deep_transform_values!` that destructively converts all values by using the block operation.
+
+NOTE: Defined in `active_support/core_ext/hash/deep_transform_values.rb`.
 
 ### Slicing
 
