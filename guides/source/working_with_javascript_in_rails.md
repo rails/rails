@@ -44,9 +44,13 @@ to vanilla JavaScript as well.
 As an example, here's some CoffeeScript code that makes an Ajax request using
 the jQuery library:
 
-```coffeescript
-$.ajax(url: "/test").done (html) ->
-  $("#results").append html
+```
+    Rails.ajax({
+      url: "/test",
+      success: function(data) {
+         document.querySelector('#results').insertAdjacentHTML('beforeend', data.html);
+       }
+    });
 ```
 
 This code fetches data from "/test", and then appends the result to the `div`
@@ -517,9 +521,10 @@ However, because Turbolinks overrides the normal page loading process, the
 event that this relies upon will not be fired. If you have code that looks like
 this, you must change your code to do this instead:
 
-```coffeescript
-$(document).on "turbolinks:load", ->
-  alert "page has loaded!"
+```
+document.addEventListener("turbolinks:load", function() {
+    alert("page has loaded!")
+})
 ```
 
 For more details, including other events you can bind to, check out [the
