@@ -507,9 +507,10 @@ attribute to the tag:
 When writing CoffeeScript, you'll often want to do some sort of processing upon
 page load. With jQuery, you'd write something like this:
 
-```coffeescript
-$(document).ready ->
-  alert "page has loaded!"
+```
+window.addEventListener('load', (event) => {
+    alert("page has loaded!")
+});
 ```
 
 However, because Turbolinks overrides the normal page loading process, the
