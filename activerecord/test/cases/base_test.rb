@@ -1503,6 +1503,10 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "Developer: name", loaded_developer.name
   end
 
+  test "when assigning new ignored columns it invalidates cache for column names" do
+    assert_not_includes ColumnNamesCachedDeveloper.column_names, "name"
+  end
+
   test "ignored columns not included in SELECT" do
     query = Developer.all.to_sql.downcase
 
