@@ -1,7 +1,8 @@
 import Subscription from "./subscription"
 
-// Collection class for creating (and internally managing) channel subscriptions. The only method intended to be triggered by the user
-// us ActionCable.Subscriptions#create, and it should be called through the consumer like so:
+// Collection class for creating (and internally managing) channel subscriptions.
+// The only method intended to be triggered by the user is ActionCable.Subscriptions#create,
+// and it should be called through the consumer like so:
 //
 //   App = {}
 //   App.cable = ActionCable.createConsumer("ws://example.com/accounts/1")
