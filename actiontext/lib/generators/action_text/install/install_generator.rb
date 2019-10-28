@@ -9,8 +9,7 @@ module ActionText
       source_root File.expand_path("templates", __dir__)
 
       def install_javascript_dependencies
-        template "#{GEM_ROOT}/../railties/lib/rails/generators/rails/app/templates/bin/yarn.tt",
-                 "bin/yarn"
+        run "rake app:update:bin"
 
         say "Installing JavaScript dependencies"
         run "yarn add #{js_dependencies.map { |name, version| "#{name}@#{version}" }.join(" ")}",
