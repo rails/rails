@@ -280,6 +280,21 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_upsert_all_works_with_partitioned_indexes
+    skip unless supports_insert_on_duplicate_update? && supports_insert_conflict_target? && supports_partitioned_indexes?
+
+    require "models/measurement"
+
+    Measurement.upsert_all([{ city_id: "1", logdate: 1.days.ago, peaktemp: 1, unitsales: 1 },
+                            { city_id: "2", logdate: 2.days.ago, peaktemp: 2, unitsales: 2 },
+                            { city_id: "2", logdate: 3.days.ago, peaktemp: 0, unitsales: 0 }],
+                            unique_by: %i[logdate city_id])
+    assert_equal [[1.day.ago.to_date, 1, 1]],
+                 Measurement.where(city_id: 1).pluck(:logdate, :peaktemp, :unitsales)
+    assert_equal [[2.days.ago.to_date, 2, 2], [3.days.ago.to_date, 0, 0]],
+                 Measurement.where(city_id: 2).pluck(:logdate, :peaktemp, :unitsales)
+  end
+
   private
     def capture_log_output
       output = StringIO.new

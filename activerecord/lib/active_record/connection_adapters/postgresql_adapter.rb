@@ -157,6 +157,10 @@ module ActiveRecord
         true
       end
 
+      def supports_partitioned_indexes?
+        database_version >= 110_000
+      end
+
       def supports_partial_index?
         true
       end
