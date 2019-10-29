@@ -64,8 +64,9 @@ module ActiveSupport
             values
           end
 
-          def write_entry(key, value, **options)
-            @data[key] = value
+          def write_entry(key, entry, **options)
+            entry.dup_value!
+            @data[key] = entry
             true
           end
 
