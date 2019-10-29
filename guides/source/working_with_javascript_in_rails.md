@@ -41,16 +41,14 @@ Rails ships with CoffeeScript by default, and so the rest of the examples
 in this guide will be in CoffeeScript. All of these lessons, of course, apply
 to vanilla JavaScript as well.
 
-As an example, here's some CoffeeScript code that makes an Ajax request using
-the jQuery library:
+As an example, here's some JavaScript code that makes an Ajax request:
 
 ```
-    Rails.ajax({
-      url: "/test",
-      success: function(data) {
-         document.querySelector('#results').insertAdjacentHTML('beforeend', data.html);
-       }
-    });
+    fetch("/test")
+      .then(data => data.text())
+      .then(data => {
+        document.querySelector('#results').insertAdjacentHTML('beforeend', data);
+      })
 ```
 
 This code fetches data from "/test", and then appends the result to the `div`
@@ -509,7 +507,7 @@ attribute to the tag:
 ### Page Change Events
 
 When writing CoffeeScript, you'll often want to do some sort of processing upon
-page load. With jQuery, you'd write something like this:
+page load. With vanilla JavaScript, you'd write something like this:
 
 ```
 window.addEventListener('load', (event) => {
