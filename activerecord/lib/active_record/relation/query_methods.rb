@@ -64,7 +64,10 @@ module ActiveRecord
 
       private
         def not_behaves_as_nor?(opts)
-          opts.is_a?(Hash) && opts.size > 1
+          return false unless opts.is_a?(Hash)
+
+          opts.any? { |k, v| v.is_a?(Hash) && v.size > 1 } ||
+            opts.size > 1
         end
     end
 
