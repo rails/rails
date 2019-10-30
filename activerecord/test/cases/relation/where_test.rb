@@ -181,6 +181,18 @@ module ActiveRecord
       assert_equal all - expected, only.sort_by(&:id).map(&:estimate_of)
     end
 
+    def test_where_not_association_as_nor_is_deprecated
+      treasure = Treasure.create!(name: "my_treasure")
+      PriceEstimate.create!(estimate_of: treasure, price: 2, currency: "USD")
+      PriceEstimate.create(estimate_of: treasure, price: 2, currency: "EUR")
+
+      assert_deprecated do
+        result = Treasure.joins(:price_estimates).where.not(price_estimates: { price: 2, currency: "USD" })
+
+        assert_predicate result, :empty?
+      end
+    end
+
     def test_polymorphic_nested_array_where
       treasure = Treasure.new
       treasure.id = 1
