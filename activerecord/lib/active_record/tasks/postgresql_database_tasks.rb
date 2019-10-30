@@ -86,6 +86,10 @@ module ActiveRecord
         run_cmd("psql", args, "loading")
       end
 
+      def database_exists?
+        ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.database_exists?(configuration_hash)
+      end
+
       private
         attr_reader :db_config, :configuration_hash
 

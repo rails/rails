@@ -55,6 +55,9 @@ module ActiveRecord
       LOCAL_HOSTS = ["127.0.0.1", "localhost"]
 
       def check_protected_environments!
+
+        return unless adapter_instance(current_config).database_exists?
+
         unless ENV["DISABLE_DATABASE_ENVIRONMENT_CHECK"]
           current = ActiveRecord::Base.connection.migration_context.current_environment
           stored  = ActiveRecord::Base.connection.migration_context.last_stored_environment
@@ -100,7 +103,7 @@ module ActiveRecord
       end
 
       def env
-        @env ||= Rails.env
+        @env ||= ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
       end
 
       def spec
@@ -462,6 +465,11 @@ module ActiveRecord
 
         def verbose?
           ENV["VERBOSE"] ? ENV["VERBOSE"] != "false" : true
+        end
+
+        def adapter_instance(configuration)
+          db_config = resolve_configuration(configuration)
+          database_adapter_for(db_config)
         end
 
         # Create a new instance for the specified db configuration object

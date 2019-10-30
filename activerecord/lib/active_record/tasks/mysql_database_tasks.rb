@@ -67,6 +67,10 @@ module ActiveRecord
         run_cmd("mysql", args, "loading")
       end
 
+      def database_exists?
+        ActiveRecord::ConnectionAdapters::Mysql2Adapter.database_exists?(configuration_hash)
+      end
+
       private
         attr_reader :db_config, :configuration_hash
 

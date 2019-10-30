@@ -15,18 +15,14 @@ module ActiveRecord
       end
 
       def create
-        raise DatabaseAlreadyExists if File.exist?(db_config.database)
+        raise DatabaseAlreadyExists if database_exists?
 
         establish_connection(db_config)
         connection
       end
 
       def drop
-        require "pathname"
-        path = Pathname.new(db_config.database)
-        file = path.absolute? ? path.to_s : File.join(root, path)
-
-        FileUtils.rm(file)
+        FileUtils.rm(database_file)
       rescue Errno::ENOENT => error
         raise NoDatabaseError.new(error.message)
       end
@@ -62,8 +58,23 @@ module ActiveRecord
         `sqlite3 #{flags} #{db_config.database} < "#{filename}"`
       end
 
+      def database_exists?
+        ActiveRecord::ConnectionAdapters::SQLite3Adapter.database_exists?(database: database_file)
+      end
+
       private
         attr_reader :db_config, :root
+
+        def database_file
+          database = db_config.database
+          if database == ":memory:"
+            database
+          else
+            require "pathname"
+            path = Pathname.new database
+            path.absolute? ? path.to_s : File.join(root, path)
+          end
+        end
 
         def run_cmd(cmd, args, out)
           fail run_cmd_error(cmd, args) unless Kernel.system(cmd, *args, out: out)

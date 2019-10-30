@@ -48,9 +48,36 @@ module ActiveRecord
   }
 
   class DatabaseTasksUtilsTask < ActiveRecord::TestCase
+    def teardown
+      ActiveRecord::Tasks::DatabaseTasks.current_config = nil
+    end
+
+    if current_adapter?(:SQLite3Adapter) && !in_memory_db?
+      def test_checking_the_protected_environment_does_not_create_a_new_db_if_does_not_exist
+        current_env = ActiveRecord::Base.connection.migration_context.current_environment
+        database    = "non_existent_database.sqlite3"
+
+        @configurations = {
+          current_env.to_sym => {
+            "database" => database,
+            "adapter" => "sqlite3"
+          }
+        }
+
+        with_stubbed_configurations_establish_connection do
+          ActiveRecord::Tasks::DatabaseTasks.stub(:root, "") do
+            ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
+          end
+        end
+
+        assert_not File.exist?(database), "Expected #{database} to not exist"
+      end
+    end
+
     def test_raises_an_error_when_called_with_protected_environment
       protected_environments = ActiveRecord::Base.protected_environments
       current_env            = ActiveRecord::Base.connection.migration_context.current_environment
+      @configurations        = { current_env.to_sym => ActiveRecord::Base.configurations["arunit"] }
 
       InternalMetadata[:environment] = current_env
 
@@ -61,13 +88,18 @@ module ActiveRecord
         returns: 1
       ) do
         assert_not_includes protected_environments, current_env
-        # Assert no error
-        ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
 
-        ActiveRecord::Base.protected_environments = [current_env]
+        with_stubbed_configurations_establish_connection do
+          ActiveRecord::Tasks::DatabaseTasks.stub(:root, "") do
+            # Assert no error
+            ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
 
-        assert_raise(ActiveRecord::ProtectedEnvironmentError) do
-          ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
+            ActiveRecord::Base.protected_environments = [current_env]
+
+            assert_raise(ActiveRecord::ProtectedEnvironmentError) do
+              ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
+            end
+          end
         end
       end
     ensure
@@ -75,8 +107,9 @@ module ActiveRecord
     end
 
     def test_raises_an_error_when_called_with_protected_environment_which_name_is_a_symbol
-      protected_environments = ActiveRecord::Base.protected_environments
       current_env            = ActiveRecord::Base.connection.migration_context.current_environment
+      protected_environments = ActiveRecord::Base.protected_environments
+      @configurations        = { current_env.to_sym => ActiveRecord::Base.configurations["arunit"] }
 
       InternalMetadata[:environment] = current_env
 
@@ -87,12 +120,17 @@ module ActiveRecord
         returns: 1
       ) do
         assert_not_includes protected_environments, current_env
-        # Assert no error
-        ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
 
-        ActiveRecord::Base.protected_environments = [current_env.to_sym]
-        assert_raise(ActiveRecord::ProtectedEnvironmentError) do
-          ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
+        with_stubbed_configurations_establish_connection do
+          ActiveRecord::Tasks::DatabaseTasks.stub(:root, "") do
+            # Assert no error
+            ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
+
+            ActiveRecord::Base.protected_environments = [current_env.to_sym]
+            assert_raise(ActiveRecord::ProtectedEnvironmentError) do
+              ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
+            end
+          end
         end
       end
     ensure
@@ -100,18 +138,38 @@ module ActiveRecord
     end
 
     def test_raises_an_error_if_no_migrations_have_been_made
+      current_env            = ActiveRecord::Base.connection.migration_context.current_environment
+      @configurations        = { current_env.to_sym => ActiveRecord::Base.configurations["arunit"] }
+
       ActiveRecord::InternalMetadata.stub(:table_exists?, false) do
         assert_called_on_instance_of(
           ActiveRecord::MigrationContext,
           :current_version,
           returns: 1
         ) do
-          assert_raise(ActiveRecord::NoEnvironmentInSchemaError) do
-            ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
+          with_stubbed_configurations_establish_connection do
+            ActiveRecord::Tasks::DatabaseTasks.stub(:root, "") do
+              assert_raise(ActiveRecord::NoEnvironmentInSchemaError) do
+                ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
+              end
+            end
           end
         end
       end
     end
+
+    private
+
+      def with_stubbed_configurations_establish_connection
+        old_configurations = ActiveRecord::Base.configurations
+        ActiveRecord::Base.configurations = @configurations
+
+        ActiveRecord::Base.connection_handler.stub(:establish_connection, nil) do
+          yield
+        end
+      ensure
+        ActiveRecord::Base.configurations = old_configurations
+      end
   end
 
   class DatabaseTasksCurrentConfigTask < ActiveRecord::TestCase
