@@ -15,9 +15,11 @@
 # update a blob's metadata on a subsequent pass, but you should not update the key or change the uploaded file.
 # If you need to create a derivative or otherwise change the blob, simply create a new blob and purge the old one.
 class ActiveStorage::Blob < ActiveRecord::Base
-  require_dependency "active_storage/blob/analyzable"
-  require_dependency "active_storage/blob/identifiable"
-  require_dependency "active_storage/blob/representable"
+  unless Rails.autoloaders.zeitwerk_enabled?
+    require_dependency "active_storage/blob/analyzable"
+    require_dependency "active_storage/blob/identifiable"
+    require_dependency "active_storage/blob/representable"
+  end
 
   include Analyzable
   include Identifiable
