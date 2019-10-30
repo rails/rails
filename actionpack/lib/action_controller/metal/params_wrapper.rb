@@ -280,7 +280,7 @@ module ActionController
 
       def _perform_parameter_wrapping
         wrapped_hash = _wrap_parameters request.request_parameters
-        wrapped_keys = request.request_parameters.keys
+        wrapped_keys = request.request_parameters.except(*LogSubscriber::INTERNAL_PARAMS).keys
         wrapped_filtered_hash = _wrap_parameters request.filtered_parameters.slice(*wrapped_keys)
 
         # This will make the wrapped hash accessible from controller and view.

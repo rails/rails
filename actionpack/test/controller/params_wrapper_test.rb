@@ -79,6 +79,14 @@ class ParamsWrapperTest < ActionController::TestCase
     end
   end
 
+  def test_internal_parameters_are_filtered_out
+    with_default_wrapper_options do
+      @request.env["CONTENT_TYPE"] = "application/json"
+      post :parse, params: { "username" => "sikachu", "action" => "something" }
+      assert_equal({ "controller" => "params_wrapper_test/users", "action" => "parse", "username" => "sikachu", "user" => { "username" => "sikachu" } }, @request.filtered_parameters)
+    end
+  end
+
   def test_specify_wrapper_name
     with_default_wrapper_options do
       UsersController.wrap_parameters :person
