@@ -889,31 +889,11 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
 * `config.active_storage.draw_routes` can be used to toggle Active Storage route generation. The default is `true`.
 
-### Results of `load_defaults`
+### Results of `config.load_defaults`
 
-#### With '5.0':
+`config.load_defaults` sets new defaults up to and including the version passed. Such that passing, say, '6.0' also gets the new defaults from every version before it.
 
-- `config.action_controller.per_form_csrf_tokens`: `true`
-- `config.action_controller.forgery_protection_origin_check`: `true`
-- `ActiveSupport.to_time_preserves_timezone`: `true`
-- `config.active_record.belongs_to_required_by_default`: `true`
-- `config.ssl_options`: `{ hsts: { subdomains: true } }`
-
-#### With '5.1':
-
-- `config.assets.unknown_asset_fallback`: `false`
-- `config.action_view.form_with_generates_remote_forms`: `true`
-
-#### With '5.2':
-
-- `config.active_record.cache_versioning`: `true`
-- `config.action_dispatch.use_authenticated_cookie_encryption`: `true`
-- `config.active_support.use_authenticated_message_encryption`: `true`
-- `config.active_support.use_sha1_digests`: `true`
-- `config.action_controller.default_protect_from_forgery`: `true`
-- `config.action_view.form_with_generates_ids`: `true`
-
-#### With '6.0':
+#### For '6.0', new defaults from previous versions below and:
 
 - `config.autoloader`: `:zeitwerk`
 - `config.action_view.default_enforce_utf8`: `false`
@@ -925,6 +905,28 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 - `config.active_storage.queues.purge`: `:active_storage_purge`
 - `config.active_storage.replace_on_assign_to_many`: `true`
 - `config.active_record.collection_cache_versioning`: `true`
+
+#### For '5.2', new defaults from previous versions below and:
+
+- `config.active_record.cache_versioning`: `true`
+- `config.action_dispatch.use_authenticated_cookie_encryption`: `true`
+- `config.active_support.use_authenticated_message_encryption`: `true`
+- `config.active_support.use_sha1_digests`: `true`
+- `config.action_controller.default_protect_from_forgery`: `true`
+- `config.action_view.form_with_generates_ids`: `true`
+
+#### For '5.1', new defaults from previous versions below and:
+
+- `config.assets.unknown_asset_fallback`: `false`
+- `config.action_view.form_with_generates_remote_forms`: `true`
+
+#### For '5.0':
+
+- `config.action_controller.per_form_csrf_tokens`: `true`
+- `config.action_controller.forgery_protection_origin_check`: `true`
+- `ActiveSupport.to_time_preserves_timezone`: `true`
+- `config.active_record.belongs_to_required_by_default`: `true`
+- `config.ssl_options`: `{ hsts: { subdomains: true } }`
 
 ### Configuring a Database
 
