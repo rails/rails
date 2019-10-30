@@ -48,7 +48,7 @@ Rails is opinionated software. It makes the assumption that there is a "best"
 way to do things, and it's designed to encourage that way - and in some cases to
 discourage alternatives. If you learn "The Rails Way" you'll probably discover a
 tremendous increase in productivity. If you persist in bringing old habits from
-other languages to your Rails development, and trying to use patterns you
+other languages to your Rails development and trying to use patterns you
 learned elsewhere, you may have a less happy experience.
 
 The Rails philosophy includes two major guiding principles:
@@ -64,7 +64,7 @@ The Rails philosophy includes two major guiding principles:
 Creating a New Rails Project
 ----------------------------
 The best way to read this guide is to follow it step by step. All steps are
-essential to run this example application and no additional code or steps are
+essential to run this example application, and no additional code or steps are
 needed.
 
 By following along with this guide, you'll create a Rails project called
@@ -189,7 +189,7 @@ of the files and folders that Rails created by default:
 Hello, Rails!
 -------------
 
-To begin with, let's get some text up on screen quickly. To do this, you need to
+To begin with, let's get some text up on the screen quickly. To do this, you need to
 get your Rails application server running.
 
 ### Starting up the Web Server
@@ -362,7 +362,7 @@ end
 
 If you run `rails routes`, you'll see that it has defined routes for all the
 standard RESTful actions.  The meaning of the prefix column (and other columns)
-will be seen later, but for now notice that Rails has inferred the
+will be seen later, but for now, notice that Rails has inferred the
 singular form `article` and makes meaningful use of the distinction.
 
 ```bash
@@ -394,7 +394,7 @@ styling for it afterwards.
 Firstly, you need a place within the application to create a new article. A
 great place for that would be at `/articles/new`. With the route already
 defined, requests can now be made to `/articles/new` in the application.
-Navigate to <http://localhost:3000/articles/new> and you'll see a routing
+Navigate to <http://localhost:3000/articles/new>, and you'll see a routing
 error:
 
 ![Another routing error, uninitialized constant ArticlesController](images/getting_started/routing_error_no_controller.png)
@@ -432,7 +432,7 @@ If you refresh <http://localhost:3000/articles/new> now, you'll get a new error:
 
 This error indicates that Rails cannot find the `new` action inside the
 `ArticlesController` that you just generated. This is because when controllers
-are generated in Rails they are empty by default, unless you tell it
+are generated in Rails they are empty by default unless you tell it
 your desired actions during the generation process.
 
 To manually define an action inside a controller, all you need to do is to
@@ -462,7 +462,7 @@ Let's look at the full error message again:
 >ArticlesController#new is missing a template for request formats: text/html
 
 >NOTE!
->Unless told otherwise, Rails expects an action to render a template with the same name, contained in a folder named after its controller. If this controller is an API responding with 204 (No Content), which does not require a template, then this error will occur when trying to access it via browser, since we expect an HTML template to be rendered for such requests. If that's the case, carry on.
+>Unless told otherwise, Rails expects an action to render a template with the same name, contained in a folder named after its controller. If this controller is an API responding with 204 (No Content), which does not require a template, then this error will occur when trying to access it via a browser, since we expect an HTML template to be rendered for such requests. If that's the case, carry on.
 
 The message identifies which template is missing. In this case, it's the
 `articles/new` template. Rails will first look for this template. If not found,
@@ -587,7 +587,7 @@ familiar error:
 You now need to create the `create` action within the `ArticlesController` for
 this to work.
 
-NOTE: By default `form_with` submits forms using Ajax thereby skipping full page
+NOTE: By default, `form_with` submits forms using Ajax thereby skipping full page
 redirects. To make this guide easier to get into we've disabled that with
 `local: true` for now.
 
@@ -654,7 +654,7 @@ run this command in your terminal:
 $ rails generate model Article title:string text:text
 ```
 
-With that command we told Rails that we want an `Article` model, together
+With that command, we told Rails that we want an `Article` model, together
 with a _title_ attribute of type string, and a _text_ attribute
 of type text. Those attributes are automatically added to the `articles`
 table in the database and mapped to the `Article` model.
@@ -696,7 +696,7 @@ end
 The above migration creates a method named `change` which will be called when
 you run this migration. The action defined in this method is also reversible,
 which means Rails knows how to reverse the change made by this migration,
-in case you want to reverse it later. When you run this migration it will create
+in case you want to reverse it later. When you run this migration, it will create
 an `articles` table with one string column and a text column. It also creates
 two timestamp fields to allow Rails to track article creation and update times.
 
@@ -844,7 +844,7 @@ class ArticlesController < ApplicationController
   # snippet for brevity
 ```
 
-A couple of things to note. We use `Article.find` to find the article we're
+A couple of things to note: we use `Article.find` to find the article we're
 interested in, passing in `params[:id]` to get the `:id` parameter from the
 request. We also use an instance variable (prefixed with `@`) to hold a
 reference to the article object. We do this because Rails will pass all instance
@@ -1733,7 +1733,7 @@ that particular article.
 
 Once we have made the new comment, we send the user back to the original article
 using the `article_path(@article)` helper. As we have already seen, this calls
-the `show` action of the `ArticlesController` which in turn renders the
+the `show` action of the `ArticlesController`, which in turn renders the
 `show.html.erb` template. This is where we want the comment to show, so let's
 add that to the `app/views/articles/show.html.erb`.
 
