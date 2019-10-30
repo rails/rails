@@ -2988,7 +2988,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_has_many_preloading_with_duplicate_records
     posts = Post.joins(:comments).preload(:comments).order(:id).to_a
-    assert_equal [1, 2], posts.first.comments.map(&:id)
+    assert_equal [1, 2], posts.first.comments.map(&:id).sort
   end
 
   private
