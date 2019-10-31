@@ -409,7 +409,7 @@ GEM
       resque (>= 1.26)
       rufus-scheduler (~> 3.2)
     retriable (3.1.2)
-    rubocop (0.75.0)
+    rubocop (0.76.0)
       jaro_winkler (~> 1.5.1)
       parallel (~> 1.10)
       parser (>= 2.6)
