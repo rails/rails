@@ -139,7 +139,11 @@ module ActiveRecord
       end
 
       def association_stuff?(value)
-        [Array, Base, Relation, NilClass].any? { |klass| value.is_a?(klass) }
+        case value
+        when Base, Relation, Array, NilClass then true
+        else
+          false
+        end
       end
   end
 end
