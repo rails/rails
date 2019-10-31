@@ -139,7 +139,7 @@ module ActiveRecord
       end
 
       def association_stuff?(value)
-        value.is_a?(Array) || value.is_a?(Base) || value.is_a?(Relation) || value.nil?
+        [Array, Base, Relation, NilClass].any? { |klass| value.is_a?(klass) }
       end
   end
 end
