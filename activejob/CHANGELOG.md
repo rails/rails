@@ -1,3 +1,8 @@
+## Rails 6.0.1.rc1 (October 31, 2019) ##
+
+*   No changes.
+
+
 ## Rails 6.0.0 (August 16, 2019) ##
 
 *   `assert_enqueued_with` and `assert_performed_with` can now test jobs with relative delay.

@@ -1,3 +1,20 @@
+## Rails 6.0.1.rc1 (October 31, 2019) ##
+
+*   `ActionDispatch::SystemTestCase` now inherits from `ActiveSupport::TestCase`
+    rather than `ActionDispatch::IntegrationTest`. This permits running jobs in
+    system tests.
+
+    *George Claghorn*, *Edouard Chin*
+
+*   Registered MIME types may contain extra flags:
+
+    ```ruby
+    Mime::Type.register "text/html; fragment", :html_fragment
+    ```
+
+    *Aaron Patterson*
+
+
 ## Rails 6.0.0 (August 16, 2019) ##
 
 *   No changes.

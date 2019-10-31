@@ -9,8 +9,8 @@ module ActiveJob
   module VERSION
     MAJOR = 6
     MINOR = 0
-    TINY  = 0
-    PRE   = nil
+    TINY  = 1
+    PRE   = "rc1"
 
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join(".")
   end

@@ -1,3 +1,19 @@
+## Rails 6.0.1.rc1 (October 31, 2019) ##
+
+*   `ActiveSupport::SafeBuffer` supports `Enumerator` methods.
+
+    *Shugo Maeda*
+
+*   The Redis cache store fails gracefully when the server returns a "max number
+    of clients reached" error.
+
+    *Brandon Medenwald*
+
+*   Fixed that mutating a value returned by a memory cache store would
+    unexpectedly change the cached value.
+
+    *Jonathan Hyman*
+
 *   The default inflectors in `zeitwerk` mode support overrides:
 
     ```ruby
@@ -24,6 +40,7 @@
 *   Don't use `Process#clock_gettime(CLOCK_PROCESS_CPUTIME_ID)` on Solaris
 
     *Iain Beeston*
+
 
 ## Rails 6.0.0 (August 16, 2019) ##
 
@@ -75,6 +92,7 @@
     `object` be a method which would otherwise add them. Fixes #36522.
 
     *Aaron Lipman*
+
 
 ## Rails 6.0.0.rc2 (July 22, 2019) ##
 

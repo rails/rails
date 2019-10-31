@@ -1,3 +1,55 @@
+## Rails 6.0.1.rc1 (October 31, 2019) ##
+
+*    Common Table Expressions are allowed on read-only Postgresql connections.
+
+     *Chris Morris*
+
+*    New record instantiation respects `unscope`.
+
+     *Ryuta Kamizono*
+
+*    Fixed a case where `find_in_batches` could halt too early.
+
+     *Takayuki Nakata*
+
+*    Autosaved associations always perform validations when a custom validation
+     context is used.
+
+     *Tekin Suleyman*
+
+*    `sql.active_record` notifications now include the `:connection` in
+     their payloads.
+
+     *Eugene Kenny*
+
+*    A rollback encountered in an `after_commit` callback does not reset
+     previously-committed record state.
+
+     *Ryuta Kamizono*
+
+*    Fixed that join order was lost when eager-loading.
+
+     *Ryuta Kamizono*
+
+*   `DESCRIBE` queries are allowed on read-only connections.
+
+    *Dylan Thacker-Smith*
+
+*   Fixed that records that had been `inspect`ed could not be marshaled.
+
+    *Eugene Kenny*
+
+*   The connection pool reaper thread is respawned in forked processes. This
+    fixes that idle connections in forked processes wouldn't be reaped.
+
+    *John Hawthorn*
+
+*   The memoized result of `ActiveRecord::Relation#take` is properly cleared
+    when `ActiveRecord::Relation#reset` or `ActiveRecord::Relation#reload`
+    is called.
+
+    *Anmol Arora*
+
 *   Fixed the performance regression for `primary_keys` introduced MySQL 8.0.
 
     *Hiroyuki Ishii*
