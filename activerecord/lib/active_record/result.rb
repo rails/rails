@@ -169,7 +169,11 @@ module ActiveRecord
                   index += 1
                 end
 
-                template = hash
+                # It's possible to select the same column twice, in which case
+                # we can't use a template
+                template = hash if hash.length == length
+
+                hash
               end
             }
           end
