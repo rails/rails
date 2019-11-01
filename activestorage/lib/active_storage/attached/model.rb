@@ -50,7 +50,7 @@ module ActiveStorage
 
           def #{name}=(attachable)
             attachment_changes["#{name}"] =
-              if attachable.nil?
+              if attachable.blank?
                 ActiveStorage::Attached::Changes::DeleteOne.new("#{name}", self)
               else
                 ActiveStorage::Attached::Changes::CreateOne.new("#{name}", self, attachable)
@@ -119,6 +119,7 @@ module ActiveStorage
 
           def #{name}=(attachables)
             if ActiveStorage.replace_on_assign_to_many
+              attachables = attachables.reject(&:blank?) if attachables.respond_to?(:reject)
               attachment_changes["#{name}"] =
                 if Array(attachables).none?
                   ActiveStorage::Attached::Changes::DeleteMany.new("#{name}", self)

@@ -175,6 +175,14 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert_not ActiveStorage::Blob.service.exist?(@user.highlights.second.key)
   end
 
+  test "updating an existing record with empty strings to detach existing blobs" do
+    @user.highlights.attach [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ]
+
+    @user.update! highlights: [@user.highlights.first.blob.signed_id, ""]
+    assert_equal "funky.jpg", @user.highlights.first.filename.to_s
+    assert @user.highlights.second.blank?
+  end
+
   test "replacing existing, dependent attachments on an existing record via assign and attach" do
     [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |old_blobs|
       @user.highlights.attach old_blobs

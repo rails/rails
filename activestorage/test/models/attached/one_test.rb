@@ -145,6 +145,13 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     assert_not ActiveStorage::Blob.service.exist?(@user.avatar.key)
   end
 
+  test "updating an existing record with empty string to detach existing blob" do
+    @user.avatar.attach create_blob(filename: "funky.jpg")
+
+    @user.update! avatar: ""
+    assert_not @user.avatar.attached?
+  end
+
   test "successfully replacing an existing, dependent attachment on an existing record" do
     create_blob(filename: "funky.jpg").tap do |old_blob|
       @user.avatar.attach old_blob
