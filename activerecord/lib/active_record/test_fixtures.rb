@@ -192,7 +192,11 @@ module ActiveRecord
         ActiveRecord::Base.connection_handlers.values.each do |handler|
           if handler != writing_handler
             handler.connection_pool_names.each do |name|
-              handler.send(:owner_to_role)[name] = writing_handler.send(:owner_to_role)[name]
+              writing_role_manager = writing_handler.send(:owner_to_role_manager)[name]
+              writing_role = writing_role_manager.get_role(:default)
+
+              role_manager = handler.send(:owner_to_role_manager)[name]
+              role_manager.set_role(:default, writing_role)
             end
           end
         end
