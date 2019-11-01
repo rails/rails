@@ -238,7 +238,7 @@ module ApplicationTests
               Book.first
             end
           RUBY
-          app_file('Rakefile', dummy_task, 'a+')
+          app_file("Rakefile", dummy_task, "a+")
 
           generate_models_for_animals
 
