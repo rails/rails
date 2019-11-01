@@ -15,7 +15,15 @@ jobs:
     - name: Install required package
       run: |
         sudo apt-get install libmysqlclient-dev libpq-dev libsqlite3-dev libncurses5-dev
+    - name: Cache gems
+      uses: actions/cache@preview
+      with:
+        path: vendor/bundle
+        key: ${{ runner.os }}-gem-${{ hashFiles('**/Gemfile.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-gem-
     - name: Build and run RuboCop
       run: |
+        bundle config path vendor/bundle
         bundle install --jobs 4 --retry 3
         bundle exec rubocop --parallel
