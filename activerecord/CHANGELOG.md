@@ -1,6 +1,6 @@
 ## Rails 6.0.1.rc1 (October 31, 2019) ##
 
-*    Common Table Expressions are allowed on read-only Postgresql connections.
+*    Common Table Expressions are allowed on read-only connections.
 
      *Chris Morris*
 
