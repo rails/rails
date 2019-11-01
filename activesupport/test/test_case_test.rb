@@ -208,7 +208,7 @@ class AssertionsTest < ActiveSupport::TestCase
       end
     end
 
-    assert_equal "\"@object.num\" didn't change. It was already 0", error.message
+    assert_equal "\"@object.num\" didn't change. It was already 0.\nExpected 0 to not be equal to 0.", error.message
   end
 
   def test_assert_changes_with_wrong_to_option
@@ -293,7 +293,7 @@ class AssertionsTest < ActiveSupport::TestCase
       end
     end
 
-    assert_equal "@object.num should not change.\n\"@object.num\" did change to 1", error.message
+    assert_equal "@object.num should not change.\n\"@object.num\" did change to 1.\nExpected: 0\n  Actual: 1", error.message
   end
 end
 

@@ -187,7 +187,7 @@ module ActiveSupport
         error = "#{expression.inspect} didn't change"
         error = "#{error}. It was already #{to}" if before == to
         error = "#{message}.\n#{error}" if message
-        assert before != after, error
+        assert_not_equal before, after, error
 
         unless to == UNTRACKED
           error = "#{expression.inspect} didn't change to as expected\n"
@@ -221,7 +221,12 @@ module ActiveSupport
 
         error = "#{expression.inspect} did change to #{after}"
         error = "#{message}.\n#{error}" if message
-        assert before == after, error
+
+        if before.nil?
+          assert_nil after, error
+        else
+          assert_equal before, after, error
+        end
 
         retval
       end
