@@ -65,3 +65,8 @@ another_first_firm_client:
   client_of: 1
   name: Apex
   firm_name: 37signals
+
+recursive_association_fk:
+  id: 15
+  type: Firm
+  name: RVshare

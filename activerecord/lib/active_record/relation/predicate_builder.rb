@@ -85,7 +85,9 @@ module ActiveRecord
 
             klass ||= AssociationQueryValue
             queries = klass.new(associated_table, value).queries.map do |query|
-              expand_from_hash(query).reduce(&:and)
+              # If the query produced is identical to attributes don't go any deeper.
+              # Prevents stack level too deep errors when association and foreign_key are identical.
+              query == attributes ? build(table.arel_attribute(key), value) : expand_from_hash(query).reduce(&:and)
             end
             queries.reduce(&:or)
           elsif table.aggregated_with?(key)

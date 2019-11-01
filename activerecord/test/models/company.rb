@@ -12,6 +12,7 @@ class Company < AbstractCompany
   has_one :dummy_account, foreign_key: "firm_id", class_name: "Account"
   has_many :contracts
   has_many :developers, through: :contracts
+  has_many :comments, foreign_key: 'company'
 
   attribute :metadata, :json
 

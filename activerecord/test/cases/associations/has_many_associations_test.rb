@@ -2991,6 +2991,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [1, 2], posts.first.comments.map(&:id)
   end
 
+  def test_has_many_association_with_same_foreign_key_name
+    assert_nothing_raised do
+      firm = Firm.find(15)
+      assert_not_nil(firm.comments.first)
+    end
+  end
+
   private
     def force_signal37_to_load_all_clients_of_firm
       companies(:first_firm).clients_of_firm.load_target
