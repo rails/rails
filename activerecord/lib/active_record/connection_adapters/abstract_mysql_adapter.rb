@@ -510,6 +510,7 @@ module ActiveRecord
           sql << " ON DUPLICATE KEY UPDATE #{no_op_column}=#{no_op_column}"
         elsif insert.update_duplicates?
           sql << " ON DUPLICATE KEY UPDATE "
+          sql << insert.touch_updated_at_unless { |column| "#{column}<=>VALUES(#{column})" }
           sql << insert.updatable_columns.map { |column| "#{column}=VALUES(#{column})" }.join(",")
         end
 

@@ -119,6 +119,10 @@ ActiveRecord::Schema.define do
     t.datetime :published_on
     t.index [:author_id, :name], unique: true
     t.index :isbn, where: "published_on IS NOT NULL", unique: true
+
+    t.datetime :created_at
+    t.datetime :updated_at
+    t.date :updated_on
   end
 
   create_table :booleans, force: true do |t|
