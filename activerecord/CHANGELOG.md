@@ -1,3 +1,7 @@
+*   Specifying `implicit_order_column` now subsorts the records by primary key if available to ensure deterministic results.
+
+    *Paweł Urbanek*
+
 *   `where(attr => [])` now loads an empty result without making a query.
 
     *John Hawthorn*
