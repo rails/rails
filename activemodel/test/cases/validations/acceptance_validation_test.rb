@@ -122,7 +122,13 @@ class AcceptanceValidationTest < ActiveModel::TestCase
     klass = define_test_class(Topic)
     klass.validates_acceptance_of(:terms_of_service)
     topic = klass.new
-    assert topic.respond_to?(:terms_of_service)
+    threads = []
+    2.times do
+      threads << Thread.new do
+        assert topic.respond_to?(:terms_of_service)
+      end
+    end
+    threads.each(&:join)
   end
 
   private

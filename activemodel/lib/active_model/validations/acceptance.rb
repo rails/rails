@@ -31,6 +31,7 @@ module ActiveModel
           end
 
           def included(klass)
+            @lock = Mutex.new
             mod = self
 
             define_method(:respond_to_missing?) do |method_name, include_private = false|
@@ -54,14 +55,20 @@ module ActiveModel
           end
 
           def define_on(klass)
-            remove_method :respond_to_missing?
-            remove_method :method_missing
+            @lock&.synchronize do
+              return unless @lock
 
-            attr_readers = attributes.reject { |name| klass.attribute_method?(name) }
-            attr_writers = attributes.reject { |name| klass.attribute_method?("#{name}=") }
+              attr_readers = attributes.reject { |name| klass.attribute_method?(name) }
+              attr_writers = attributes.reject { |name| klass.attribute_method?("#{name}=") }
 
-            attr_reader(*attr_readers)
-            attr_writer(*attr_writers)
+              attr_reader(*attr_readers)
+              attr_writer(*attr_writers)
+
+              remove_method :respond_to_missing?
+              remove_method :method_missing
+
+              @lock = nil
+            end
           end
 
           def ==(other)
