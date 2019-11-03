@@ -1,3 +1,19 @@
+*   Support cookie migration in distributed settings.
+
+    In a distributed configuration like rolling update, users may observe
+    both old and new instances during deployment.
+    Users may be served by a new instance and then by an old instance.
+
+    That means, when the server changed `cookies_serializer` from `:marshal`
+    to `:hybrid` or the server changed `use_authenticated_cookie_encryption`
+    from `false` to `true`, users may lose their sessions if they
+    access the server during deployment.
+
+    We added fallbacks to properly downgrade the cookie format when necessary
+    during deployment.
+
+    *Masaki Hara*
+
 *   Fix possible information leak / session hijacking vulnerability.
 
     The `ActionDispatch::Session::MemcacheStore` is still vulnerable given it requires the
