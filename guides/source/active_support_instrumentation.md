@@ -141,6 +141,7 @@ Action Controller
 | `:method`       | HTTP request verb                                         |
 | `:path`         | Request path                                              |
 | `:status`       | HTTP status code                                          |
+| `:location`     | Location response header                                  |
 | `:view_runtime` | Amount spent in view in ms                                |
 | `:db_runtime`   | Amount spent executing database queries in ms             |
 
