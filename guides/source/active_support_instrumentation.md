@@ -140,6 +140,7 @@ Action Controller
 | `:format`       | html/js/json/xml etc                                      |
 | `:method`       | HTTP request verb                                         |
 | `:path`         | Request path                                              |
+| `:uuid`         | Globally-unique request ID (X-Request-Id response header) |
 | `:status`       | HTTP status code                                          |
 | `:location`     | Location response header                                  |
 | `:view_runtime` | Amount spent in view in ms                                |
