@@ -94,7 +94,7 @@ module Rails
     end
 
     def db_config
-      return @db_config if @db_config
+      return @db_config if defined?(@db_config)
 
       # We need to check whether the user passed the database the
       # first time around to show a consistent error message to people
