@@ -1,6 +1,6 @@
 *   `process_action.action_controller` notifications now include the following in their payloads:
 
-    * `:uuid` - the request's globally-unique ID (the `X-Request-Id` response header by default)
+    * `:request` - the `ActionDispatch::Request`
     * `:location` - the `Location` response header
 
     *George Claghorn*

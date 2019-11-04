@@ -25,7 +25,7 @@ module ActionController
         format: request.format.ref,
         method: request.request_method,
         path: request.fullpath,
-        uuid: request.uuid
+        request: request
       }
 
       ActiveSupport::Notifications.instrument("start_processing.action_controller", raw_payload)

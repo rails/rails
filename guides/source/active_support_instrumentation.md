@@ -140,7 +140,7 @@ Action Controller
 | `:format`       | html/js/json/xml etc                                      |
 | `:method`       | HTTP request verb                                         |
 | `:path`         | Request path                                              |
-| `:uuid`         | Globally-unique request ID (X-Request-Id response header) |
+| `:request`      | The `ActionDispatch::Request`                             |
 | `:status`       | HTTP status code                                          |
 | `:location`     | Location response header                                  |
 | `:view_runtime` | Amount spent in view in ms                                |
@@ -155,6 +155,7 @@ Action Controller
   format: :html,
   method: "GET",
   path: "/posts",
+  request: #<ActionDispatch::Request:0x00007ff1cb9bd7b8>,
   status: 200,
   view_runtime: 46.848,
   db_runtime: 0.157
