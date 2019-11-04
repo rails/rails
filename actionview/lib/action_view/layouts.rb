@@ -281,7 +281,11 @@ module ActionView
       def _write_layout_method # :nodoc:
         silence_redefinition_of_method(:_layout)
 
-        prefixes = /\blayouts/.match?(_implied_layout_name) ? [] : ["layouts"]
+        prefixes = if _implied_layout_name && /\blayouts/.match?(_implied_layout_name)
+          []
+        else
+          ["layouts"]
+        end
         default_behavior = "lookup_context.find_all('#{_implied_layout_name}', #{prefixes.inspect}, false, [], { formats: formats }).first || super"
         name_clause = if name
           default_behavior
