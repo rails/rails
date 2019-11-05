@@ -1,4 +1,4 @@
-## Rails 6.0.1.rc1 (October 31, 2019) ##
+## Rails 6.0.1 (November 5, 2019) ##
 
 *   `ActiveSupport::SafeBuffer` supports `Enumerator` methods.
 
