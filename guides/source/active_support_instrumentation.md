@@ -11,8 +11,8 @@ After reading this guide, you will know:
 
 * What instrumentation can provide.
 * The hooks inside the Rails framework for instrumentation.
-* Adding a subscriber to a hook.
-* Building a custom instrumentation implementation.
+* How to add a subscriber to a hook.
+* How to build a custom instrumentation implementation.
 
 --------------------------------------------------------------------------------
 
