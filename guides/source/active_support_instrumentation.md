@@ -10,8 +10,8 @@ In this guide, you will learn how to use the instrumentation API inside of Activ
 After reading this guide, you will know:
 
 * What instrumentation can provide.
-* The hooks inside the Rails framework for instrumentation.
 * How to add a subscriber to a hook.
+* The hooks inside the Rails framework for instrumentation.
 * How to build a custom instrumentation implementation.
 
 --------------------------------------------------------------------------------
@@ -24,6 +24,82 @@ The instrumentation API provided by Active Support allows developers to provide 
 For example, there is a hook provided within Active Record that is called every time Active Record uses an SQL query on a database. This hook could be **subscribed** to, and used to track the number of queries during a certain action. There's another hook around the processing of an action of a controller. This could be used, for instance, to track how long a specific action has taken.
 
 You are even able to [create your own events](#creating-custom-events) inside your application which you can later subscribe to.
+
+Subscribing to an event
+-----------------------
+
+Subscribing to an event is easy. Use `ActiveSupport::Notifications.subscribe` with a block to
+listen to any notification.
+
+The block receives the following arguments:
+
+* The name of the event
+* Time when it started
+* Time when it finished
+* A unique ID for the instrumenter that fired the event
+* The payload (described in future sections)
+
+```ruby
+ActiveSupport::Notifications.subscribe "process_action.action_controller" do |name, started, finished, unique_id, data|
+  # your own custom stuff
+  Rails.logger.info "#{name} Received! (started: #{started}, finished: #{finished})" # process_action.action_controller Received (started: 2019-05-05 13:43:57 -0800, finished: 2019-05-05 13:43:58 -0800)
+end
+```
+
+If you are concerned about the accuracy of `started` and `finished` to compute a precise elapsed time then use `ActiveSupport::Notifications.monotonic_subscribe`. The given block would receive the same arguments as above but the `started` and `finished` will have values with an accurate monotonic time instead of wall-clock time.
+
+```ruby
+ActiveSupport::Notifications.monotonic_subscribe "process_action.action_controller" do |name, started, finished, unique_id, data|
+  # your own custom stuff
+  Rails.logger.info "#{name} Received! (started: #{started}, finished: #{finished})" # process_action.action_controller Received (started: 1560978.425334, finished: 1560979.429234)
+end
+```
+
+Defining all those block arguments each time can be tedious. You can easily create an `ActiveSupport::Notifications::Event`
+from block arguments like this:
+
+```ruby
+ActiveSupport::Notifications.subscribe "process_action.action_controller" do |*args|
+  event = ActiveSupport::Notifications::Event.new *args
+
+  event.name      # => "process_action.action_controller"
+  event.duration  # => 10 (in milliseconds)
+  event.payload   # => {:extra=>information}
+
+  Rails.logger.info "#{event} Received!"
+end
+```
+
+You may also pass block with only one argument, it will yield an event object to the block:
+
+```ruby
+ActiveSupport::Notifications.subscribe "process_action.action_controller" do |event|
+  event.name      # => "process_action.action_controller"
+  event.duration  # => 10 (in milliseconds)
+  event.payload   # => {:extra=>information}
+
+  Rails.logger.info "#{event} Received!"
+end
+```
+
+Most times you only care about the data itself. Here is a shortcut to just get the data.
+
+```ruby
+ActiveSupport::Notifications.subscribe "process_action.action_controller" do |*args|
+  data = args.extract_options!
+  data # { extra: :information }
+end
+```
+
+You may also subscribe to events matching a regular expression. This enables you to subscribe to
+multiple events at once. Here's how to subscribe to everything from `ActionController`.
+
+```ruby
+ActiveSupport::Notifications.subscribe /action_controller/ do |*args|
+  # inspect all ActionController events
+end
+```
+
 
 Rails framework hooks
 ---------------------
@@ -627,81 +703,6 @@ Rails
 | ------------ | ------------------------------- |
 | `:message`   | The deprecation warning         |
 | `:callstack` | Where the deprecation came from |
-
-Subscribing to an event
------------------------
-
-Subscribing to an event is easy. Use `ActiveSupport::Notifications.subscribe` with a block to
-listen to any notification.
-
-The block receives the following arguments:
-
-* The name of the event
-* Time when it started
-* Time when it finished
-* A unique ID for the instrumenter that fired the event
-* The payload (described in previous sections)
-
-```ruby
-ActiveSupport::Notifications.subscribe "process_action.action_controller" do |name, started, finished, unique_id, data|
-  # your own custom stuff
-  Rails.logger.info "#{name} Received! (started: #{started}, finished: #{finished})" # process_action.action_controller Received (started: 2019-05-05 13:43:57 -0800, finished: 2019-05-05 13:43:58 -0800)
-end
-```
-
-If you are concerned about the accuracy of `started` and `finished` to compute a precise elapsed time then use `ActiveSupport::Notifications.monotonic_subscribe`. The given block would receive the same arguments as above but the `started` and `finished` will have values with an accurate monotonic time instead of wall-clock time.
-
-```ruby
-ActiveSupport::Notifications.monotonic_subscribe "process_action.action_controller" do |name, started, finished, unique_id, data|
-  # your own custom stuff
-  Rails.logger.info "#{name} Received! (started: #{started}, finished: #{finished})" # process_action.action_controller Received (started: 1560978.425334, finished: 1560979.429234)
-end
-```
-
-Defining all those block arguments each time can be tedious. You can easily create an `ActiveSupport::Notifications::Event`
-from block arguments like this:
-
-```ruby
-ActiveSupport::Notifications.subscribe "process_action.action_controller" do |*args|
-  event = ActiveSupport::Notifications::Event.new *args
-
-  event.name      # => "process_action.action_controller"
-  event.duration  # => 10 (in milliseconds)
-  event.payload   # => {:extra=>information}
-
-  Rails.logger.info "#{event} Received!"
-end
-```
-
-You may also pass block with only one argument, it will yield an event object to the block:
-
-```ruby
-ActiveSupport::Notifications.subscribe "process_action.action_controller" do |event|
-  event.name      # => "process_action.action_controller"
-  event.duration  # => 10 (in milliseconds)
-  event.payload   # => {:extra=>information}
-
-  Rails.logger.info "#{event} Received!"
-end
-```
-
-Most times you only care about the data itself. Here is a shortcut to just get the data.
-
-```ruby
-ActiveSupport::Notifications.subscribe "process_action.action_controller" do |*args|
-  data = args.extract_options!
-  data # { extra: :information }
-end
-```
-
-You may also subscribe to events matching a regular expression. This enables you to subscribe to
-multiple events at once. Here's you could subscribe to everything from `ActionController`.
-
-```ruby
-ActiveSupport::Notifications.subscribe /action_controller/ do |*args|
-  # inspect all ActionController events
-end
-```
 
 Creating custom events
 ----------------------
