@@ -1,4 +1,4 @@
-## Rails 6.0.1.rc1 (October 31, 2019) ##
+## Rails 6.0.1 (November 5, 2019) ##
 
 *   The `zeitwerk:check` Rake task reports files outside the app's root
     directory, as in engines loaded from gems.
