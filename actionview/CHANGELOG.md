@@ -1,3 +1,10 @@
+## Rails 6.0.1 (November 5, 2019) ##
+
+*   UJS avoids `Element.closest()` for IE 9 compatibility.
+
+    *George Claghorn*
+
+
 ## Rails 6.0.0 (August 16, 2019) ##
 
 *   ActionView::Helpers::SanitizeHelper: support rails-html-sanitizer 1.1.0.

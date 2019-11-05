@@ -1,3 +1,25 @@
+## Rails 6.0.1 (November 5, 2019) ##
+
+*   The `zeitwerk:check` Rake task reports files outside the app's root
+    directory, as in engines loaded from gems.
+
+    *Xavier Noria*
+
+*   Fixed a possible error when using the evented file update checker.
+
+    *Yuji Yaginuma*
+
+*   The sqlite3 database files created by the parallel testing feature are
+    included in the default `.gitignore` file for newly-generated apps.
+
+    *Yasuo Honda*
+
+*   `rails new` generates a `.keep` file in `tmp/pids`. This fixes starting
+    a server via `rackup` instead of `rails server`.
+
+    *Rafael Mendonça França*
+
+
 ## Rails 6.0.0 (August 16, 2019) ##
 
 *   `Rails.autoloaders.log!` is a logging shortcut to get the activity of the

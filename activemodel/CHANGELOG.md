@@ -1,3 +1,8 @@
+## Rails 6.0.1 (November 5, 2019) ##
+
+*   No changes.
+
+
 ## Rails 6.0.0 (August 16, 2019) ##
 
 *   No changes.

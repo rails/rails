@@ -1,3 +1,16 @@
+## Rails 6.0.1 (November 5, 2019) ##
+
+*   `ActiveStorage::AnalyzeJob`s are discarded on `ActiveRecord::RecordNotFound` errors.
+
+    *George Claghorn*
+
+*   Blobs are recorded in the database before being uploaded to the service.
+    This fixes that generated blob keys could silently collide, leading to
+    data loss.
+
+    *Julik Tarkhanov*
+
+
 ## Rails 6.0.0 (August 16, 2019) ##
 
 *   No changes.
