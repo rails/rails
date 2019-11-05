@@ -2,7 +2,7 @@
 
 module ActiveRecord
   module ConnectionAdapters
-    class Role # :nodoc:
+    class PoolConfig # :nodoc:
       include Mutex_m
 
       attr_reader :db_config, :connection_specification_name
@@ -60,4 +60,4 @@ module ActiveRecord
   end
 end
 
-ActiveSupport::ForkTracker.after_fork { ActiveRecord::ConnectionAdapters::Role.discard_pools! }
+ActiveSupport::ForkTracker.after_fork { ActiveRecord::ConnectionAdapters::PoolConfig.discard_pools! }

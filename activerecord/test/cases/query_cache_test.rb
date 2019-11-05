@@ -555,10 +555,10 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   private
     def with_temporary_connection_pool
-      role = ActiveRecord::Base.connection_handler.send(:owner_to_role_manager).fetch("primary").get_role(:default)
-      new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(role)
+      pool_config = ActiveRecord::Base.connection_handler.send(:owner_to_pool_manager).fetch("primary").get_pool_config(:default)
+      new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(pool_config)
 
-      role.stub(:pool, new_pool) do
+      pool_config.stub(:pool, new_pool) do
         yield
       end
     end

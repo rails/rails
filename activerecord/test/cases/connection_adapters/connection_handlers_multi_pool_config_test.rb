@@ -5,7 +5,7 @@ require "models/person"
 
 module ActiveRecord
   module ConnectionAdapters
-    class ConnectionHandlersMultiRoleTest < ActiveRecord::TestCase
+    class ConnectionHandlersMultiPoolConfigTest < ActiveRecord::TestCase
       self.use_transactional_tests = false
 
       fixtures :people
@@ -22,7 +22,7 @@ module ActiveRecord
       end
 
       unless in_memory_db?
-        def test_establish_connection_with_roles
+        def test_establish_connection_with_pool_configs
           previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
 
           config = {
@@ -34,10 +34,10 @@ module ActiveRecord
           @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
 
           @writing_handler.establish_connection(:primary)
-          @writing_handler.establish_connection(:primary, :role_two)
+          @writing_handler.establish_connection(:primary, :pool_config_two)
 
           default_pool = @writing_handler.retrieve_connection_pool("primary", :default)
-          other_pool = @writing_handler.retrieve_connection_pool("primary", :role_two)
+          other_pool = @writing_handler.retrieve_connection_pool("primary", :pool_config_two)
 
           assert_not_nil default_pool
           assert_not_equal default_pool, other_pool
@@ -62,13 +62,13 @@ module ActiveRecord
           @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
 
           @writing_handler.establish_connection(:primary)
-          @writing_handler.establish_connection(:primary, :role_two)
+          @writing_handler.establish_connection(:primary, :pool_config_two)
 
           # remove default
           @writing_handler.remove_connection("primary")
 
           assert_nil @writing_handler.retrieve_connection_pool("primary")
-          assert_not_nil @writing_handler.retrieve_connection_pool("primary", :role_two)
+          assert_not_nil @writing_handler.retrieve_connection_pool("primary", :pool_config_two)
         ensure
           ActiveRecord::Base.configurations = @prev_configs
           ActiveRecord::Base.establish_connection(:arunit)
@@ -87,18 +87,19 @@ module ActiveRecord
           @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
 
           @writing_handler.establish_connection(:primary)
-          @writing_handler.establish_connection(:primary, :role_two)
+          @writing_handler.establish_connection(:primary, :pool_config_two)
 
           # connect to default
           @writing_handler.connection_pool_list.first.checkout
 
           assert @writing_handler.connected?("primary")
           assert @writing_handler.connected?("primary", :default)
-          assert_not @writing_handler.connected?("primary", :role_two)
+          assert_not @writing_handler.connected?("primary", :pool_config_two)
         ensure
           ActiveRecord::Base.configurations = @prev_configs
           ActiveRecord::Base.establish_connection(:arunit)
           ENV["RAILS_ENV"] = previous_env
+          FileUtils.rm_rf "db"
         end
       end
     end
