@@ -23,7 +23,7 @@ The instrumentation API provided by Active Support allows developers to provide 
 
 For example, there is a hook provided within Active Record that is called every time Active Record uses an SQL query on a database. This hook could be **subscribed** to, and used to track the number of queries during a certain action. There's another hook around the processing of an action of a controller. This could be used, for instance, to track how long a specific action has taken.
 
-You are even able to create your own events inside your application which you can later subscribe to.
+You are even able to [create your own events](#creating-custom-events) inside your application which you can later subscribe to.
 
 Rails framework hooks
 ---------------------
