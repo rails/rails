@@ -281,7 +281,7 @@ module ActionView #:nodoc:
         ActiveSupport::Deprecation.warn <<~eowarn.squish
           ActionView::Base instances must implement `compiled_method_container`
           or use the class method `with_empty_template_cache` for constructing
-          an ActionView::Base instances that has an empty cache.
+          an ActionView::Base instance that has an empty cache.
         eowarn
       end
 
