@@ -2,6 +2,44 @@
 
 module ActiveRecord
   module Associations
+    module Callbacks # :nodoc:
+      extend ActiveSupport::Concern
+      include ActiveSupport::Callbacks
+
+      included do
+        options = {
+          skip_after_callbacks_if_terminated: true,
+          scope: [:kind, :name]
+        }
+
+        define_callbacks(:association_add, options)
+        define_callbacks(:association_remove, options)
+        set_callback(:association_add, :before, :before_add_callback, unless: :skip_callbacks?)
+        set_callback(:association_add, :after, :after_add_callback, unless: :skip_callbacks?)
+        set_callback(:association_remove, :before, :before_remove_callback)
+        set_callback(:association_remove, :after, :after_remove_callback)
+      end
+
+      def skip_callbacks?
+        @skip_callbacks
+      end
+
+      def before_add_callback
+        callback(:before_add, @record)
+      end
+
+      def after_add_callback
+        callback(:after_add, @record)
+      end
+
+      def before_remove_callback
+        @records.each { |record| callback(:before_remove, record) }
+      end
+
+      def after_remove_callback
+        @records.each { |record| callback(:after_remove, record) }
+      end
+    end
     # = Active Record Association Collection
     #
     # CollectionAssociation is an abstract class that provides common stuff to
@@ -26,6 +64,8 @@ module ActiveRecord
     # If you need to work on all current children, new and existing records,
     # +load_target+ and the +loaded+ flag are your friends.
     class CollectionAssociation < Association #:nodoc:
+      include Callbacks
+
       # Implements the reader method, e.g. foo.items for Foo.has_many :items
       def reader
         if stale_target?
@@ -389,13 +429,14 @@ module ActiveRecord
         end
 
         def remove_records(existing_records, records, method)
-          records.each { |record| callback(:before_remove, record) }
+          @records = records
 
-          delete_records(existing_records, method) if existing_records.any?
-          @target -= records
-          @association_ids = nil
-
-          records.each { |record| callback(:after_remove, record) }
+          run_callbacks(:association_remove) do
+            delete_records(existing_records, method) if existing_records.any?
+            @target -= records
+            @association_ids = nil
+            records
+          end
         end
 
         # Delete the given records from the association,
@@ -445,24 +486,25 @@ module ActiveRecord
         end
 
         def replace_on_target(record, index, skip_callbacks)
-          callback(:before_add, record) unless skip_callbacks
+          @skip_callbacks = skip_callbacks
+          @record = record
 
-          set_inverse_instance(record)
+          run_callbacks(:association_add) do
+            set_inverse_instance(record)
 
-          @_was_loaded = true
+            @_was_loaded = true
 
-          yield(record) if block_given?
+            yield(record) if block_given?
 
-          if index
-            target[index] = record
-          elsif @_was_loaded || !loaded?
-            @association_ids = nil
-            target << record
+            if index
+              target[index] = record
+            elsif @_was_loaded || !loaded?
+              @association_ids = nil
+              target << record
+            end
+
+            record
           end
-
-          callback(:after_add, record) unless skip_callbacks
-
-          record
         ensure
           @_was_loaded = nil
         end
