@@ -56,6 +56,15 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     end
   end
 
+  test "edit command modifies file specified by overridden content and key paths" do
+    assert_match(/access_key_id: 123/, run_edit_command)
+
+    Dir.chdir(app_path) do
+      assert File.exist?("config/master.key")
+      assert File.exist?("config/credentials.yml.enc")
+    end
+  end
+
   test "edit command modifies file specified by environment option" do
     assert_match(/access_key_id: 123/, run_edit_command(environment: "production"))
     Dir.chdir(app_path) do

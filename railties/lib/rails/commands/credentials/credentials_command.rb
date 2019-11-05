@@ -99,13 +99,34 @@ module Rails
           end
         end
 
-
         def content_path
-          @content_path ||= options[:environment] ? "config/credentials/#{options[:environment]}.yml.enc" : "config/credentials.yml.enc"
+          @content_path ||= get_environment_content_path || get_custom_credentials_content_path || "config/credentials.yml.enc"
         end
 
         def key_path
-          options[:environment] ? "config/credentials/#{options[:environment]}.key" : "config/master.key"
+          get_environment_key_path || get_custom_credentials_key_path || "config/master.key"
+        end
+
+        def get_custom_credentials_content_path
+          content_path = Rails.application.credentials.content_path
+          extract_relative_project_file_path_string(content_path) if content_path
+        end
+
+        def get_custom_credentials_key_path
+          key_path = Rails.application.credentials.key_path
+          extract_relative_project_file_path_string(key_path) if key_path
+        end
+
+        def extract_relative_project_file_path_string(path)
+          path.to_s.remove(Dir.pwd)[1..-1]
+        end
+
+        def get_environment_content_path
+          "config/credentials/#{options[:environment]}.yml.enc" if options[:environment]
+        end
+
+        def get_environment_key_path
+          "config/credentials/#{options[:environment]}.key" if options[:environment]
         end
 
         def extract_environment_from_path(path)
