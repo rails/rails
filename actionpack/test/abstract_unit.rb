@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 $:.unshift File.expand_path("lib", __dir__)
-$:.unshift File.expand_path("fixtures/helpers", __dir__)
-$:.unshift File.expand_path("fixtures/alternate_helpers", __dir__)
 
 require "active_support/core_ext/kernel/reporting"
 
@@ -34,6 +32,11 @@ module Rails
     def root; end
   end
 end
+
+ActiveSupport::Dependencies.autoload_paths += [
+  File.expand_path("fixtures/helpers", __dir__),
+  File.expand_path("fixtures/alternate_helpers", __dir__),
+]
 
 ActiveSupport::Dependencies.hook!
 

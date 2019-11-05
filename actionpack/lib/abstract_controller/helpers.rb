@@ -17,7 +17,7 @@ module AbstractController
         @path  = "helpers/#{path}.rb"
         set_backtrace error.backtrace
 
-        if /^#{path}(\.rb)?$/.match?(error.path)
+        if !error.respond_to?(:path) || /^#{path}(\.rb)?$/.match?(error.path)
           super("Missing helper file helpers/%s.rb" % path)
         else
           raise error
@@ -152,21 +152,14 @@ module AbstractController
           case arg
           when String, Symbol
             file_name = "#{arg.to_s.underscore}_helper"
-            begin
-              require_dependency(file_name)
-            rescue LoadError => e
-              raise AbstractController::Helpers::MissingHelperError.new(e, file_name)
-            end
-
             mod_name = file_name.camelize
             begin
               mod_name.constantize
-            rescue LoadError
-              # dependencies.rb gives a similar error message but its wording is
-              # not as clear because it mentions autoloading. To the user all it
-              # matters is that a helper module couldn't be loaded, autoloading
-              # is an internal mechanism that should not leak.
-              raise NameError, "Couldn't find #{mod_name}, expected it to be defined in helpers/#{file_name}.rb"
+            rescue NameError, LoadError => error
+              if error.message.match?(/Unable to autoload constant .*, expected .* to define it/i)
+                raise NameError, "Couldn't find #{mod_name}, expected it to be defined in helpers/#{file_name}.rb"
+              end
+              raise AbstractController::Helpers::MissingHelperError.new(error, file_name)
             end
           when Module
             arg

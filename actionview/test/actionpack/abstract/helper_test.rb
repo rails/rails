@@ -3,6 +3,7 @@
 require "abstract_unit"
 
 ActionController::Base.helpers_path = File.expand_path("../../fixtures/helpers", __dir__)
+ActiveSupport::Dependencies.autoload_paths += [File.expand_path("../../fixtures/helpers", __dir__)]
 
 module AbstractController
   module Testing
@@ -54,7 +55,7 @@ module AbstractController
       include ActionController::Helpers
 
       path = File.expand_path("../../fixtures/helpers_missing", __dir__)
-      $:.unshift(path)
+      ActiveSupport::Dependencies.autoload_paths += [path]
       self.helpers_path = path
     end
 
@@ -111,7 +112,7 @@ module AbstractController
     class InvalidHelpersTest < ActiveSupport::TestCase
       def test_controller_raise_error_about_real_require_problem
         e = assert_raise(LoadError) { AbstractInvalidHelpers.helper(:invalid_require) }
-        assert_equal "No such file to load -- very_invalid_file_name.rb", e.message
+        assert_equal "cannot load such file -- very_invalid_file_name", e.message
       end
 
       def test_controller_raise_error_about_missing_helper
