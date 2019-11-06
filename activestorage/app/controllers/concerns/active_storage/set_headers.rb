@@ -4,13 +4,12 @@ module ActiveStorage::SetHeaders #:nodoc:
   extend ActiveSupport::Concern
 
   private
-    def set_headers
+    def set_headers(blob)
+      expires_in ActiveStorage.proxy_urls_expire_in, public: true
 
-    end
-
-    def disposition(blob, disposition_override = nil)
-      ActionDispatch::Http::ContentDisposition.format(
-        disposition: disposition_override || "inline",
+      response.headers["Content-Type"] = blob.content_type
+      response.headers["Content-Disposition"] = ActionDispatch::Http::ContentDisposition.format(
+        disposition: params[:disposition] || "inline",
         filename: blob.filename.sanitized
       )
     end
