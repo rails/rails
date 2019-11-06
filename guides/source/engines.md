@@ -1523,6 +1523,7 @@ To hook into the initialization process of one of the following classes use the 
 | `ActionController::Base`             | `action_controller`                  |
 | `ActionController::TestCase`         | `action_controller_test_case`        |
 | `ActionDispatch::IntegrationTest`    | `action_dispatch_integration_test`   |
+| `ActionDispatch::Response`           | `action_dispatch_response`           |
 | `ActionDispatch::Request`            | `action_dispatch_request`            |
 | `ActionDispatch::SystemTestCase`     | `action_dispatch_system_test_case`   |
 | `ActionMailbox::Base`                | `action_mailbox`                     |
