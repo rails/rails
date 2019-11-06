@@ -483,10 +483,6 @@ module Rails
     end
 
     console do
-      require "pp"
-    end
-
-    console do
       unless ::Kernel.private_method_defined?(:y)
         require "psych/y"
       end
