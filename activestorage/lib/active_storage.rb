@@ -71,8 +71,6 @@ module ActiveStorage
 
   mattr_accessor :proxy_urls_expire_in, default: 365.days
 
-  mattr_accessor :routes_prefix,          default: "/rails/active_storage"
-
   module Transformers
     extend ActiveSupport::Autoload
 
