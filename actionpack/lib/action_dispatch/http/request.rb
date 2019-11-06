@@ -428,3 +428,5 @@ module ActionDispatch
       end
   end
 end
+
+ActiveSupport.run_load_hooks :action_dispatch_request, ActionDispatch::Request
