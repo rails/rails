@@ -69,7 +69,7 @@ module ActiveStorage
   mattr_accessor :delivery_methods,        default: {}
   mattr_accessor :default_delivery_method, default: :redirect
 
-  mattr_accessor :proxy_urls_expire_in, default: 525600.minutes
+  mattr_accessor :proxy_urls_expire_in, default: 365.days
 
   mattr_accessor :routes_prefix,          default: "/rails/active_storage"
 
