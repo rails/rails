@@ -122,7 +122,7 @@ class User < ActiveRecord::Base
 
   has_one_attached :avatar
   has_one_attached :cover_photo, dependent: false, service: :local
-  has_one_attached :proxied_image, delivery_method: :proxy
+  has_one_attached :proxied_image
 
   has_many_attached :highlights
   has_many_attached :vlogs, dependent: false, service: :local
