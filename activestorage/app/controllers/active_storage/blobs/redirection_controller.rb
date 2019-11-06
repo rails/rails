@@ -4,25 +4,11 @@
 # Note: These URLs are publicly accessible. If you need to enforce access protection beyond the
 # security-through-obscurity factor of the signed blob references, you'll need to implement your own
 # authenticated redirection controller.
-class ActiveStorage::BlobsController < ActiveStorage::BaseController
+class ActiveStorage::Blogs::RedirectionController < ActiveStorage::BaseController
   include ActiveStorage::SetBlob
-  include ActiveStorage::Disposition
 
   def show
     expires_in ActiveStorage.service_urls_expire_in
     redirect_to @blob.url(disposition: params[:disposition])
-  end
-
-  def proxy
-    expires_in ActiveStorage.proxy_urls_expire_in, public: true
-
-    response.headers["Content-Type"] = @blob.content_type
-    response.headers["Content-Disposition"] = disposition(@blob, params[:disposition])
-
-    @blob.download do |chunk|
-      response.stream.write(chunk)
-    end
-  ensure
-    response.stream.close
   end
 end

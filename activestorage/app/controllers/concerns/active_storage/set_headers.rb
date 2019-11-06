@@ -1,9 +1,13 @@
 # frozen_string_literal: true
 
-module ActiveStorage::Disposition #:nodoc:
+module ActiveStorage::SetHeaders #:nodoc:
   extend ActiveSupport::Concern
 
   private
+    def set_headers
+
+    end
+
     def disposition(blob, disposition_override = nil)
       ActionDispatch::Http::ContentDisposition.format(
         disposition: disposition_override || "inline",
