@@ -39,10 +39,6 @@ class ActiveStorage::Variation
     end
   end
 
-  def url(method, representation)
-    ActiveStorage.delivery_methods.fetch(method).representation_url(representation)
-  end
-
   def initialize(transformations)
     @transformations = transformations.deep_symbolize_keys
   end

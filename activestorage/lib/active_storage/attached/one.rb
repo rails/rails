@@ -4,7 +4,6 @@ module ActiveStorage
   # Representation of a single attachment to a model.
   class Attached::One < Attached
     delegate_missing_to :attachment, allow_nil: true
-    attr_accessor :delivery_method
 
     # Returns the associated attachment record.
     #

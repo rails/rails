@@ -40,16 +40,12 @@ module ActiveStorage
       #     has_one_attached :avatar, service: :s3
       #   end
       #
-      def has_one_attached(name, dependent: :purge_later, service: nil, delivery_method: ActiveStorage.default_delivery_method)
+      def has_one_attached(name, dependent: :purge_later, service: nil)
         validate_service_configuration(name, service)
 
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
           def #{name}
             @active_storage_attached_#{name} ||= ActiveStorage::Attached::One.new("#{name}", self)
-          end
-
-          def #{name}_delivery_method
-            :#{delivery_method}
           end
 
           def #{name}=(attachable)
@@ -113,16 +109,12 @@ module ActiveStorage
       #     has_many_attached :photos, service: :s3
       #   end
       #
-      def has_many_attached(name, dependent: :purge_later, service: nil, delivery_method: ActiveStorage.default_delivery_method)
+      def has_many_attached(name, dependent: :purge_later, service: nil)
         validate_service_configuration(name, service)
 
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
           def #{name}
             @active_storage_attached_#{name} ||= ActiveStorage::Attached::Many.new("#{name}", self)
-          end
-
-          def #{name}_delivery_method
-            :#{delivery_method}
           end
 
           def #{name}=(attachables)

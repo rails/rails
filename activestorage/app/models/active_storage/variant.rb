@@ -55,11 +55,11 @@ require "ostruct"
 class ActiveStorage::Variant
   WEB_IMAGE_CONTENT_TYPES = %w[ image/png image/jpeg image/jpg image/gif ]
 
-  attr_reader :blob, :variation, :delivery_method
+  attr_reader :blob, :variation
   delegate :service, to: :blob
 
-  def initialize(blob, variation_or_variation_key, delivery_method = nil)
-    @blob, @variation, @delivery_method = blob, ActiveStorage::Variation.wrap(variation_or_variation_key), delivery_method
+  def initialize(blob, variation_or_variation_key)
+    @blob, @variation = blob, ActiveStorage::Variation.wrap(variation_or_variation_key)
   end
 
   # Returns the variant instance itself after it's been processed or an existing processing has been found on the service.
@@ -73,8 +73,8 @@ class ActiveStorage::Variant
     "variants/#{blob.key}/#{Digest::SHA256.hexdigest(variation.key)}"
   end
 
-  def url(method = delivery_method)
-    variation.url(method, self)
+  def url(delivery_method = ActiveStorage.default_delivery_method)
+    ActiveStorage.delivery_methods.fetch(delivery_method).representation_url(representation)
   end
 
   # Returns the URL of the variant on the service. This URL is intended to be short-lived for security and not used directly

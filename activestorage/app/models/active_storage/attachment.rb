@@ -30,16 +30,8 @@ class ActiveStorage::Attachment < ActiveRecord::Base
     blob&.purge_later
   end
 
-  def url(override_delivery_method = record.public_send("#{name}_delivery_method"))
-    blob.delivery_method_url(override_delivery_method)
-  end
-
-  def variant(transformations)
-    blob.variant(transformations, record.public_send("#{name}_delivery_method"))
-  end
-
-  def preview(transformations)
-    blob.preview(transformations, record.public_send("#{name}_delivery_method"))
+  def url(delivery_method = ActiveStorage.default_delivery_method)
+    ActiveStorage.delivery_methods.fetch(delivery_method).blob_url(signed_id, filename)
   end
 
   private

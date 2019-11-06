@@ -130,10 +130,6 @@ class ActiveStorage::Blob < ActiveRecord::Base
     self[:key] ||= self.class.generate_unique_secure_token(length: MINIMUM_TOKEN_LENGTH)
   end
 
-  def delivery_method_url(method = ActiveStorage.default_delivery_method)
-    ActiveStorage.delivery_methods.fetch(method).blob_url(signed_id, filename)
-  end
-
   # Returns an ActiveStorage::Filename instance of the filename that can be
   # queried for basename, extension, and a sanitized version of the filename
   # that's safe to use in URLs.
@@ -159,13 +155,6 @@ class ActiveStorage::Blob < ActiveRecord::Base
   # Returns true if the content_type of this blob is in the text range, like text/plain.
   def text?
     content_type.start_with?("text")
-  end
-
-  def disposition(disposition_override = nil)
-    ActionDispatch::Http::ContentDisposition.format(
-      disposition: disposition_override || "inline",
-      filename: filename.sanitized
-    )
   end
 
   # Returns the URL of the blob on the service. This returns a permanent URL for public files, and returns a

@@ -2,11 +2,11 @@
 
 Rails.application.routes.draw do
   scope ActiveStorage.routes_prefix do
-    get "/blobs/:signed_id/*filename" => "active_storage/blobs#show", as: :rails_service_blob
-    get "/blobs_proxy/:signed_id/*filename" => "active_storage/blobs#proxy", as: :rails_blob_proxy
+    get "/blobs/redirect/:signed_id/*filename" => "active_storage/blobs#show", as: :rails_service_blob
+    get "/blobs/proxy/:signed_id/*filename" => "active_storage/blobs#proxy", as: :rails_blob_proxy
 
-    get "/representations/:signed_blob_id/:variation_key/*filename" => "active_storage/representations#show", as: :rails_blob_representation
-    get "/representations_proxy/:signed_blob_id/:variation_key/*filename" => "active_storage/representations#proxy", as: :rails_blob_representation_proxy
+    get "/representations/:signed_blob_id/:variation_key/*filename" => "active_storage/representations/redirection#show", as: :rails_blob_representation
+    get "/representations/proxy/:signed_blob_id/:variation_key/*filename" => "active_storage/representations/proxy#show", as: :rails_blob_representation_proxy
 
     get  "/disk/public/:key/*filename" => "active_storage/public_disk#show", as: :rails_disk_service_public
     get  "/disk/:encoded_key/*filename" => "active_storage/disk#show", as: :rails_disk_service

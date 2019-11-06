@@ -6,6 +6,7 @@
 # authenticated redirection controller.
 class ActiveStorage::BlobsController < ActiveStorage::BaseController
   include ActiveStorage::SetBlob
+  include ActiveStorage::Disposition
 
   def show
     expires_in ActiveStorage.service_urls_expire_in
@@ -16,7 +17,7 @@ class ActiveStorage::BlobsController < ActiveStorage::BaseController
     expires_in ActiveStorage.proxy_urls_expire_in, public: true
 
     response.headers["Content-Type"] = @blob.content_type
-    response.headers["Content-Disposition"] = @blob.disposition(params[:disposition])
+    response.headers["Content-Disposition"] = disposition(@blob, params[:disposition])
 
     @blob.download do |chunk|
       response.stream.write(chunk)

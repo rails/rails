@@ -30,10 +30,10 @@
 class ActiveStorage::Preview
   class UnprocessedError < StandardError; end
 
-  attr_reader :blob, :variation, :delivery_method
+  attr_reader :blob, :variation
 
-  def initialize(blob, variation_or_variation_key, delivery_method = nil)
-    @blob, @variation, @delivery_method = blob, ActiveStorage::Variation.wrap(variation_or_variation_key), delivery_method
+  def initialize(blob, variation_or_variation_key)
+    @blob, @variation = blob, ActiveStorage::Variation.wrap(variation_or_variation_key)
   end
 
   # Processes the preview if it has not been processed yet. Returns the receiving Preview instance for convenience:
@@ -70,9 +70,8 @@ class ActiveStorage::Preview
     "variants/#{image.key}/#{Digest::SHA256.hexdigest(variation.key)}"
   end
 
-  # Proxies the url method to the variation.
-  def url(method = delivery_method)
-    variation.url(method, self)
+  def url(delivery_method = ActiveStorage.default_delivery_method)
+    ActiveStorage.delivery_methods.fetch(delivery_method).representation_url(representation)
   end
 
   private
