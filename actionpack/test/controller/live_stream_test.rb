@@ -160,7 +160,7 @@ module ActionController
         response.headers["Content-Type"] = "text/event-stream"
         response.stream.write "before load"
         sleep 0.01
-        silence_warning do
+        silence_warnings do
           ::LoadMe
         end
         response.stream.close
