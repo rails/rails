@@ -10,6 +10,7 @@ module ActiveJob
 
     included do
       cattr_accessor :logger, default: ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(STDOUT))
+      class_attribute :log_arguments, instance_accessor: false, default: true
 
       around_enqueue { |_, block| tag_logger(&block) }
       around_perform { |job, block| tag_logger(job.class.name, job.job_id, &block) }

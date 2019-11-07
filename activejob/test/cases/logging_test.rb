@@ -9,6 +9,7 @@ require "jobs/overridden_logging_job"
 require "jobs/nested_job"
 require "jobs/rescue_job"
 require "jobs/retry_job"
+require "jobs/disable_log_job"
 require "models/person"
 
 class LoggingTest < ActiveSupport::TestCase
@@ -119,6 +120,18 @@ class LoggingTest < ActiveSupport::TestCase
       assert_match(/enqueued at /, @logger.messages)
       assert_match(/Dummy, here is it: Dummy/, @logger.messages)
       assert_match(/Performed LoggingJob \(Job ID: .*?\) from .*? in .*ms/, @logger.messages)
+    end
+  end
+
+  def test_perform_disabled_job_logging
+    perform_enqueued_jobs do
+      DisableLogJob.perform_later "Dummy"
+      assert_no_match(/Enqueued DisableLogJob \(Job ID: .*?\) from .*? with arguments:.*Dummy/, @logger.messages)
+      assert_no_match(/Performing DisableLogJob \(Job ID: .*?\) from .*? with arguments:.*Dummy/, @logger.messages)
+
+      assert_match(/enqueued at /, @logger.messages)
+      assert_match(/Dummy, here is it: Dummy/, @logger.messages)
+      assert_match(/Performed DisableLogJob \(Job ID: .*?\) from .*? in .*ms/, @logger.messages)
     end
   end
 
