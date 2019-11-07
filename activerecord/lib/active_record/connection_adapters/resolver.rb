@@ -2,7 +2,7 @@
 
 module ActiveRecord
   module ConnectionAdapters
-    # Builds a Role from user input.
+    # Builds a PoolConfig from user input.
     class Resolver # :nodoc:
       attr_reader :configurations
 
@@ -11,17 +11,17 @@ module ActiveRecord
         @configurations = configurations
       end
 
-      # Returns an instance of Role for a given adapter.
+      # Returns an instance of PoolConfig for a given adapter.
       # Accepts a hash one layer deep that contains all connection information.
       #
       # == Example
       #
       #   config = { "production" => { "host" => "localhost", "database" => "foo", "adapter" => "sqlite3" } }
-      #   role = Resolver.new(config).resolve_role(:production)
-      #   role.db_config.configuration_hash
+      #   pool_config = Resolver.new(config).resolve_pool_config(:production)
+      #   pool_config.db_config.configuration_hash
       #   # => { host: "localhost", database: "foo", adapter: "sqlite3" }
       #
-      def resolve_role(config)
+      def resolve_pool_config(config)
         pool_name = config if config.is_a?(Symbol)
 
         db_config = resolve(config, pool_name)
@@ -53,7 +53,7 @@ module ActiveRecord
           raise AdapterNotFound, "database configuration specifies nonexistent #{db_config.adapter} adapter"
         end
 
-        Role.new(db_config.configuration_hash.delete(:name) || "primary", db_config)
+        PoolConfig.new(db_config.configuration_hash.delete(:name) || "primary", db_config)
       end
 
       # Returns fully resolved connection, accepts hash, string or symbol.

@@ -192,7 +192,11 @@ module ActiveRecord
         ActiveRecord::Base.connection_handlers.values.each do |handler|
           if handler != writing_handler
             handler.connection_pool_names.each do |name|
-              handler.send(:owner_to_role)[name] = writing_handler.send(:owner_to_role)[name]
+              writing_pool_manager = writing_handler.send(:owner_to_pool_manager)[name]
+              writing_pool_config = writing_pool_manager.get_pool_config(:default)
+
+              pool_manager = handler.send(:owner_to_pool_manager)[name]
+              pool_manager.set_pool_config(:default, writing_pool_config)
             end
           end
         end
