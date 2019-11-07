@@ -459,7 +459,7 @@ The schema dumper adds two additional configuration options:
     Rendered recordings/threads/_thread.html.erb in 1.5 ms [cache miss]
     ```
 
-  By default it is set to `false` which results in following output:
+    By default it is set to `false` which results in following output:
 
     ```
     Rendered messages/_message.html.erb in 1.2 ms [cache hit]
