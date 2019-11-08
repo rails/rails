@@ -77,7 +77,7 @@ module ActiveJob
       end
 
       def args_info(job)
-        if job.arguments.any?
+        if job.class.log_arguments? && job.arguments.any?
           " with arguments: " +
             job.arguments.map { |arg| format(arg).inspect }.join(", ")
         else

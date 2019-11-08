@@ -805,6 +805,8 @@ There are a few configuration options available in Active Support:
 
 * `config.active_job.return_false_on_aborted_enqueue` change the return value of `#enqueue` to false instead of the job instance when the enqueuing is aborted. Defaults to `false`.
 
+* `config.active_job.log_arguments` controls if the arguments of a job are logged. Defaults to `true`.
+
 ### Configuring Action Cable
 
 * `config.action_cable.url` accepts a string for the URL for where
