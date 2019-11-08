@@ -4964,7 +4964,7 @@ class TestOptionalScopesWithOrWithoutParams < ActionDispatch::IntegrationTest
     app.draw do
       scope module: "test_optional_scopes_with_or_without_params" do
         scope "(:locale)", locale: /en|es/ do
-          get "home", to: "home#index"
+          get "home", controller: :home, action: :index
           get "with_param/:foo", to: "home#with_param", as: "with_param"
           get "without_param", to: "home#without_param"
         end
