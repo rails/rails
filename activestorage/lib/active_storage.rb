@@ -65,6 +65,8 @@ module ActiveStorage
 
   mattr_accessor :replace_on_assign_to_many, default: false
 
+  mattr_accessor :sanitize_filename_with, default: "-"
+
   module Transformers
     extend ActiveSupport::Autoload
 

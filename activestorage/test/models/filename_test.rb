@@ -29,6 +29,18 @@ class ActiveStorage::FilenameTest < ActiveSupport::TestCase
     end
   end
 
+  test "with non-default ActiveStore.sanitize_filename_with" do
+    ActiveStorage.sanitize_filename_with = "_"
+
+    "%$|:;/\t\r\n\\".each_char do |character|
+      filename = ActiveStorage::Filename.new("foo#{character}bar.pdf")
+      assert_equal "foo_bar.pdf", filename.sanitized
+      assert_equal "foo_bar.pdf", filename.to_s
+    end
+  ensure
+    ActiveStorage.sanitize_filename_with = "-"
+  end
+
   test "sanitize transcodes to valid UTF-8" do
     { (+"\xF6").force_encoding(Encoding::ISO8859_1) => "ö",
       (+"\xC3").force_encoding(Encoding::ISO8859_1) => "Ã",

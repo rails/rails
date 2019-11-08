@@ -53,9 +53,9 @@ class ActiveStorage::Filename
   #   ActiveStorage::Filename.new("foo:bar.jpg").sanitized # => "foo-bar.jpg"
   #   ActiveStorage::Filename.new("foo/bar.jpg").sanitized # => "foo-bar.jpg"
   #
-  # Characters considered unsafe for storage (e.g. \, $, and the RTL override character) are replaced with a dash.
+  # Characters considered unsafe for storage (e.g. \, $, and the RTL override character) are replaced with a dash (or specified via config.active_storage.sanitize_filename_with).
   def sanitized
-    @filename.encode(Encoding::UTF_8, invalid: :replace, undef: :replace, replace: "�").strip.tr("\u{202E}%$|:;/\t\r\n\\", "-")
+    @filename.encode(Encoding::UTF_8, invalid: :replace, undef: :replace, replace: "�").strip.tr("\u{202E}%$|:;/\t\r\n\\", ActiveStorage.sanitize_filename_with)
   end
 
   # Returns the sanitized version of the filename.
