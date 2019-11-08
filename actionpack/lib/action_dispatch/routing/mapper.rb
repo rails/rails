@@ -350,7 +350,7 @@ module ActionDispatch
 
           def add_controller_module(controller, modyoule)
             if modyoule && !controller.is_a?(Regexp)
-              if controller && controller.start_with?("/")
+              if controller && controller.to_s.start_with?("/")
                 controller[1..-1]
               else
                 [modyoule, controller].compact.join("/")
