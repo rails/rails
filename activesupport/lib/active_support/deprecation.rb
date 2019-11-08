@@ -41,6 +41,7 @@ module ActiveSupport
       # By default, warnings are not silenced and debugging is off.
       self.silenced = false
       self.debug = false
+      @silenced_thread = Concurrent::ThreadLocalVar.new(false)
     end
   end
 end
