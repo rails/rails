@@ -65,4 +65,13 @@ class CacheStoreSettingTest < ActiveSupport::TestCase
     assert_kind_of(ActiveSupport::Cache::FileStore, store)
     assert_equal "/path/to/cache/directory", store.cache_path
   end
+
+  def test_redis_cache_store_with_ordered_options
+    options = ActiveSupport::OrderedOptions.new
+    options.update namespace: "foo"
+
+    store = ActiveSupport::Cache.lookup_store :redis_cache_store, options
+    assert_kind_of(ActiveSupport::Cache::RedisCacheStore, store)
+    assert_equal "foo", store.options[:namespace]
+  end
 end
