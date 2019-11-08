@@ -204,7 +204,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
 
   def unfurl(io, identify: true) #:nodoc:
     self.checksum     = compute_checksum_in_chunks(io)
-    self.content_type = extract_content_type(io) if content_type.nil? || identify
+    self.content_type = extract_content_type(io) if content_type.blank? || identify
     self.byte_size    = io.size
     self.identified   = true
   end
