@@ -88,21 +88,19 @@ When your application receives its first request to this page, Rails will write
 a new cache entry with a unique key. A key looks something like this:
 
 ```
-views/products/1-201505056193031061005000/bea67108094918eeba42cd4a6e786901
+views/products/index.html.erb:bea67108094918eeba42cd4a6e786901/products/1
 ```
 
-The number in the middle is the `product_id` followed by the timestamp value in
-the `updated_at` attribute of the product record. Rails uses the timestamp value
-to make sure it is not serving stale data. If the value of `updated_at` has
-changed, a new key will be generated. Then Rails will write a new cache to that
-key, and the old cache written to the old key will never be used again. This is
-called key-based expiration.
+`products/1` is a stable key but a cache version, derived from the product
+record, is stored in the cache entry. When the product `updated_at` is touched,
+the `cache_version` changes. Rails will check it when pulling the entry from the
+cache and write the new information to the same cache key. This is called recyclable
+key-based expiration.
 
-Cache fragments will also be expired when the view fragment changes (e.g., the
-HTML in the view changes). The string of characters at the end of the key is a
-template tree digest. It is a hash digest computed based on the contents of the
-view fragment you are caching. If you change the view fragment, the digest will
-change, expiring the existing file.
+The string of characters in the middle is a template tree digest. It is a hash
+digest computed based on the contents of the entire template file. If
+you change the template file (e.g., the HTML changes), the digest will change,
+expiring the existing file.
 
 TIP: Cache stores like Memcached will automatically delete old cache files.
 
