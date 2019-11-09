@@ -378,7 +378,9 @@ module ActiveRecord
         end
 
         def remove_records(existing_records, records, method)
-          records.each { |record| callback(:before_remove, record) }
+          catch(:abort) do
+            records.each { |record| callback(:before_remove, record) }
+          end || return
 
           delete_records(existing_records, method) if existing_records.any?
           @target -= records
@@ -434,7 +436,9 @@ module ActiveRecord
         end
 
         def replace_on_target(record, index, skip_callbacks)
-          callback(:before_add, record) unless skip_callbacks
+          catch(:abort) do
+            callback(:before_add, record)
+          end || return unless skip_callbacks
 
           set_inverse_instance(record)
 
