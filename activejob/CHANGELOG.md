@@ -7,7 +7,7 @@
           end
         end
 
-    When dealing with sensitive arugments as password and tokens it is now possible to configure the job
+    When dealing with sensitive arguments as password and tokens it is now possible to configure the job
     to not put the sensitive argument in the logs.
 
     *Rafael Mendonça França*
