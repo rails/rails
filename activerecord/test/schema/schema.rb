@@ -1117,6 +1117,7 @@ ActiveRecord::Schema.define do
 
   create_table :non_primary_keys, force: true, id: false do |t|
     t.integer :id
+    t.datetime :created_at
   end
 end
 
