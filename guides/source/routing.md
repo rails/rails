@@ -912,7 +912,7 @@ resolve("Basket") { [:basket] }
 ```
 
 ``` erb
-<%= form_for @basket do |form| %>
+<%= form_with model: @basket do |form| %>
   <!-- basket form -->
 <% end %>
 ```
