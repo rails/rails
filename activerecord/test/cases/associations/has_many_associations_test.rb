@@ -2439,6 +2439,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     post.images << image
 
     assert_equal [image], post.images
+    assert_equal post, image.imageable
   end
 
   def test_build_with_polymorphic_has_many_does_not_allow_to_override_type_and_id

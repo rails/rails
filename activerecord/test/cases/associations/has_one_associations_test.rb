@@ -691,6 +691,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     post.reload
 
     assert_equal image, post.main_image
+    assert_equal post, image.imageable
   end
 
   test "dangerous association name raises ArgumentError" do
