@@ -7,7 +7,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     def self.valid_options(options)
-      super + [:polymorphic, :touch, :counter_cache, :optional, :default]
+      super + [:polymorphic, :counter_cache, :optional, :default]
     end
 
     def self.valid_dependent_options
