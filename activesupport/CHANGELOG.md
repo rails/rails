@@ -1,3 +1,7 @@
+*   Add block support to `ActiveSupport::Testing::TimeHelpers#travel_back`.
+
+    *Tim Masliuchenko*
+
 *   Update `ActiveSupport::Messages::Metadata#fresh?` to work for cookies with expiry set when
     `ActiveSupport.parse_json_times = true`.
 
