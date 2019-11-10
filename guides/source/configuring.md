@@ -879,13 +879,9 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
 * `config.active_storage.replace_on_assign_to_many` determines whether assigning to a collection of attachments declared with `has_many_attached` replaces any existing attachments or appends to them. The default is `true`.
 
-<<<<<<< HEAD
-### Results of `load_defaults`
-=======
 * `config.active_storage.draw_routes` can be used to toggle Active Storage route generation. The default is `true`.
 
 ### Results of `config.load_defaults`
->>>>>>> b2864a2069... Merge pull request #37595
 
 `config.load_defaults` sets new defaults up to and including the version passed. Such that passing, say, '6.0' also gets the new defaults from every version before it.
 
