@@ -904,7 +904,7 @@ And then finally, add the view for this action, located at
 `app/views/articles/index.html.erb`:
 
 ```html+erb
-<h1>Listing articles</h1>
+<h1>Listing Articles</h1>
 
 <table>
   <tr>
@@ -1157,7 +1157,7 @@ new articles. Create a file called `app/views/articles/edit.html.erb` and make
 it look as follows:
 
 ```html+erb
-<h1>Edit article</h1>
+<h1>Edit Article</h1>
 
 <%= form_with(model: @article, local: true) do |form| %>
 
@@ -1349,7 +1349,7 @@ Now, let's update the `app/views/articles/new.html.erb` view to use this new
 partial, rewriting it completely:
 
 ```html+erb
-<h1>New article</h1>
+<h1>New Article</h1>
 
 <%= render 'form' %>
 
@@ -1359,7 +1359,7 @@ partial, rewriting it completely:
 Then do the same for the `app/views/articles/edit.html.erb` view:
 
 ```html+erb
-<h1>Edit article</h1>
+<h1>Edit Article</h1>
 
 <%= render 'form' %>
 
