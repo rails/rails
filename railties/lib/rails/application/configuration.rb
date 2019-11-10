@@ -71,6 +71,7 @@ module Rails
         @add_autoload_paths_to_load_path         = true
       end
 
+      # Loads default configurations. See {the result of the method for each version}[https://guides.rubyonrails.org/configuring.html#results-of-config-load-defaults].
       def load_defaults(target_version)
         case target_version.to_s
         when "5.0"
