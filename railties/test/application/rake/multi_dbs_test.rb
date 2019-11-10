@@ -354,7 +354,7 @@ module ApplicationTests
           use_postgresql(multi_db: true)
           generate_models_for_animals
 
-          rails "db:create:animals", "db:migrate:animals", "db:create:primary", "db:migrate:primary", "db:schema:dump"
+          rails "db:create:animals", "db:create:primary", "db:migrate:animals", "db:migrate:primary", "db:schema:dump"
           rails "db:drop:primary"
           Dog.create!
           output = rails("db:prepare")
@@ -384,6 +384,28 @@ module ApplicationTests
       ensure
         ENV["RAILS_ENV"] = @old_rails_env
         ENV["RACK_ENV"] = @old_rack_env
+      end
+
+      test "db:migrate:namespace does not dump structure file when dump_schema_after_migration is not set" do
+        add_to_config("config.active_record.dump_schema_after_migration = false")
+
+        Dir.chdir(app_path) do
+          generate_models_for_animals
+          rails "db:migrate:primary", "db:migrate:animals"
+          assert_not File.exist?("db/schema.rb"), "should not dump schema when configured not to"
+          assert_not File.exist?("db/animals_schema.rb"), "should not dump schema when configured not to"
+        end
+      end
+
+      test "db:migrate:namespace dumps structure file when dump_schema_after_migration is set" do
+        add_to_config("config.active_record.dump_schema_after_migration = true")
+
+        Dir.chdir(app_path) do
+          generate_models_for_animals
+          rails "db:migrate:primary", "db:migrate:animals"
+          assert_match(/create_table \"books\"/, File.read("db/schema.rb"))
+          assert_match(/create_table \"dogs\"/, File.read("db/animals_schema.rb"))
+        end
       end
     end
   end

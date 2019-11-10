@@ -112,6 +112,7 @@ db_namespace = namespace :db do
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, spec_name: spec_name)
         ActiveRecord::Base.establish_connection(db_config)
         ActiveRecord::Tasks::DatabaseTasks.migrate
+        db_namespace["_dump"].invoke
       end
     end
 
