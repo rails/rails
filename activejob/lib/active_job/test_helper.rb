@@ -127,6 +127,12 @@ module ActiveJob
 
         actual_count = new_count - original_count
       else
+        ActiveSupport::Deprecation.warn(<<~MSG.squish)
+          Using `assert_enqueued_jobs` outside of block
+          is deprecated and will be removed in Rails 6.2.
+          Use block syntax.
+        MSG
+
         actual_count = enqueued_jobs_with(only: only, except: except, queue: queue)
       end
 
@@ -279,6 +285,12 @@ module ActiveJob
 
         performed_jobs_size = new_count - original_count
       else
+        ActiveSupport::Deprecation.warn(<<~MSG.squish)
+          Using `assert_performed_jobs` outside of block
+          is deprecated and will be removed in Rails 6.2.
+          Use block syntax.
+        MSG
+
         performed_jobs_size = performed_jobs_with(only: only, except: except, queue: queue)
       end
 
@@ -391,6 +403,12 @@ module ActiveJob
 
         jobs = enqueued_jobs.drop(original_enqueued_jobs_count)
       else
+        ActiveSupport::Deprecation.warn(<<~MSG.squish)
+          Using `assert_enqueued_with` outside of block
+          is deprecated and will be removed in Rails 6.2.
+          Use block syntax.
+        MSG
+
         jobs = enqueued_jobs
       end
 
@@ -470,6 +488,12 @@ module ActiveJob
 
         jobs = performed_jobs.drop(original_performed_jobs_count)
       else
+        ActiveSupport::Deprecation.warn(<<~MSG.squish)
+          Using `assert_performed_with` outside of block
+          is deprecated and will be removed in Rails 6.2.
+          Use block syntax.
+        MSG
+
         jobs = performed_jobs
       end
 
@@ -551,7 +575,15 @@ module ActiveJob
     # If the +:at+ option is specified, then only run jobs enqueued to run
     # immediately or before the given time
     def perform_enqueued_jobs(only: nil, except: nil, queue: nil, at: nil, &block)
-      return flush_enqueued_jobs(only: only, except: except, queue: queue, at: at) unless block_given?
+      unless block_given?
+        ActiveSupport::Deprecation.warn(<<~MSG.squish)
+          Using `perform_enqueued_jobs` outside of block
+          is deprecated and will be removed in Rails 6.2.
+          Use block syntax.
+        MSG
+
+        return flush_enqueued_jobs(only: only, except: except, queue: queue, at: at)
+      end
 
       validate_option(only: only, except: except)
 
