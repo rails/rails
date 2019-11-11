@@ -327,14 +327,14 @@ module ActiveRecord
 
     # Returns a cache version that can be used together with the cache key to form
     # a recyclable caching scheme. The cache version is built with the number of records
-    # matching the query, and the timestamp of the last updated record. When a new record
-    # comes to match the query, or any of the existing records is updated or deleted,
-    # the cache version changes.
+    # matching the query, the timestamp of the last updated record and the timestamp of
+    # the first updated record. When a new record comes to match the query, or any of
+    # the existing records is updated or deleted, the cache version changes.
     #
     # If the collection is loaded, the method will iterate through the records
     # to generate the timestamp, otherwise it will trigger one SQL query like:
     #
-    #    SELECT COUNT(*), MAX("products"."updated_at") FROM "products" WHERE (name like '%Cosmic Encounter%')
+    #    SELECT COUNT(*), MAX("products"."updated_at"), MIN("products"."updated_at") FROM "products" WHERE (name like '%Cosmic Encounter%')
     def cache_version(timestamp_column = :updated_at)
       if collection_cache_versioning
         @cache_versions ||= {}
@@ -346,22 +346,23 @@ module ActiveRecord
       if loaded? || distinct_value
         size = records.size
         if size > 0
-          timestamp = max_by(&timestamp_column)._read_attribute(timestamp_column)
+          max_timestamp = max_by(&timestamp_column)._read_attribute(timestamp_column)
+          min_timestamp = min_by(&timestamp_column)._read_attribute(timestamp_column)
         end
       else
         collection = eager_loading? ? apply_join_dependency : self
 
         column = connection.visitor.compile(arel_attribute(timestamp_column))
-        select_values = "COUNT(*) AS #{connection.quote_column_name("size")}, MAX(%s) AS timestamp"
+        select_values = "COUNT(*) AS #{connection.quote_column_name("size")}, MAX(%{column}) AS max_timestamp, MIN(%{column}) AS min_timestamp"
 
         if collection.has_limit_or_offset?
           query = collection.select("#{column} AS collection_cache_key_timestamp")
           subquery_alias = "subquery_for_cache_key"
           subquery_column = "#{subquery_alias}.collection_cache_key_timestamp"
-          arel = query.build_subquery(subquery_alias, select_values % subquery_column)
+          arel = query.build_subquery(subquery_alias, select_values % { column: subquery_column })
         else
           query = collection.unscope(:order)
-          query.select_values = [select_values % column]
+          query.select_values = [select_values % { column: column }]
           arel = query.arel
         end
 
@@ -369,16 +370,18 @@ module ActiveRecord
 
         if result
           column_type = klass.type_for_attribute(timestamp_column)
-          timestamp = column_type.deserialize(result["timestamp"])
+          max_timestamp = column_type.deserialize(result["max_timestamp"])
+          min_timestamp = column_type.deserialize(result["min_timestamp"])
           size = result["size"]
         else
-          timestamp = nil
+          max_timestamp = nil
+          min_timestamp = nil
           size = 0
         end
       end
 
-      if timestamp
-        "#{size}-#{timestamp.utc.to_s(cache_timestamp_format)}"
+      if max_timestamp
+        "#{size}-#{max_timestamp.utc.to_s(cache_timestamp_format)}-#{min_timestamp.utc.to_s(cache_timestamp_format)}"
       else
         "#{size}"
       end
