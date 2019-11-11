@@ -210,6 +210,7 @@ module Rails
             active_support.hash_digest_class = OpenSSL::Digest::SHA256
             active_support.key_generator_hash_digest_class = OpenSSL::Digest::SHA256
             active_support.remove_deprecated_time_with_zone_name = true
+            active_support.use_rfc4122_namespaced_uuids = true
           end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
