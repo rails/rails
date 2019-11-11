@@ -24,8 +24,7 @@ module ActiveRecord
 
       def resolve_spec(spec, config)
         configs = ActiveRecord::DatabaseConfigurations.new(config)
-        resolver = ConnectionAdapters::Resolver.new(configs)
-        resolver.resolve(spec, spec).configuration_hash
+        configs.resolve(spec, spec).configuration_hash
       end
 
       def test_invalid_string_config
