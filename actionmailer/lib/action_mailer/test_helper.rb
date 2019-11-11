@@ -90,6 +90,14 @@ module ActionMailer
     #     end
     #   end
     def assert_enqueued_emails(number, &block)
+      unless block_given?
+        ActiveSupport::Deprecation.warn(<<~MSG.squish)
+          Using `assert_enqueued_emails` outside of block
+          is deprecated and will be removed in Rails 6.2.
+          Use block syntax.
+        MSG
+      end
+
       assert_enqueued_jobs(number, only: ->(job) { delivery_job_filter(job) }, &block)
     end
 
@@ -124,6 +132,14 @@ module ActionMailer
     #     end
     #   end
     def assert_enqueued_email_with(mailer, method, args: nil, queue: "mailers", &block)
+      unless block_given?
+        ActiveSupport::Deprecation.warn(<<~MSG.squish)
+          Using `assert_enqueued_email_with` outside of block
+          is deprecated and will be removed in Rails 6.2.
+          Use block syntax.
+        MSG
+      end
+
       args = if args.is_a?(Hash)
         [mailer.to_s, method.to_s, "deliver_now", params: args, args: []]
       else
