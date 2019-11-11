@@ -36,8 +36,8 @@ class ParameterFilterTest < ActiveSupport::TestCase
       before_filter["barg"] = { :bargain => "gain", "blah" => "bar", "bar" => { "bargain" => { "blah" => "foo", "hello" => "world" } } }
       after_filter["barg"]  = { :bargain => "niag", "blah" => "[FILTERED]", "bar" => { "bargain" => { "blah" => "[FILTERED]", "hello" => "world!" } } }
 
-      before_filter["array_elements"] = %w(element1 element2)
-      after_filter["array_elements"] = %w(ELEMENT1 ELEMENT2)
+      before_filter["array_elements"] = ["element1", ["element2"], [["element3"]], [{ name: "element4" }], { name: "element5" }]
+      after_filter["array_elements"] = ["element1", ["element2"], [["element3"]], [{ name: "element4" }], { name: "element5" }]
 
       assert_equal after_filter, parameter_filter.filter(before_filter)
     end

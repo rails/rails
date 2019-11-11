@@ -1,3 +1,7 @@
+*   Don't recursive call for value local variable that type is Array in `ActiveSupport::ParameterFilter::CompiledFilter#value_for_key`
+
+    *Yuji Kamijima*
+
 *   Add block support to `ActiveSupport::Testing::TimeHelpers#travel_back`.
 
     *Tim Masliuchenko*
