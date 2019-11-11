@@ -860,10 +860,11 @@ NOTE: In the above case it would make more sense to use the `content_type` sette
 HTTP Authentications
 --------------------
 
-Rails comes with two built-in HTTP authentication mechanisms:
+Rails comes with three built-in HTTP authentication mechanisms:
 
 * Basic Authentication
 * Digest Authentication
+* Token Authentication
 
 ### HTTP Basic Authentication
 
@@ -898,6 +899,30 @@ end
 ```
 
 As seen in the example above, the `authenticate_or_request_with_http_digest` block takes only one argument - the username. And the block returns the password. Returning `false` or `nil` from the `authenticate_or_request_with_http_digest` will cause authentication failure.
+
+### Token authentication
+
+HTTP token authentication is a scheme to enable the usage of Bearer tokens in the HTTP `Authorization` header. There are many token formats available and describing them is outside the scope of this document.
+
+As an example, suppose you want to use an authentication token that has been issued in advance to perform authentication and access. Implementing token authentication with Rails is quite easy and only requires using one method, `authenticate_or_request_with_http_token`.
+
+```ruby
+class PostsController < ApplicationController
+  TOKEN = "secret"
+
+  before_action :authenticate
+
+  private
+
+    def authenticate
+      authenticate_or_request_with_http_token do |token, options|
+        ActiveSupport::SecurityUtils.secure_compare(token, TOKEN)
+      end
+    end
+end
+```
+
+As seen in the example above, the `authenticate_or_request_with_http_token` block takes two arguments - the token and a `Hash` containing the options that were parsed from the HTTP `Authorization` header. The block should return `true` if the authentication is successful. Returning `false` or `nil` on it will cause an authentication failure.
 
 Streaming and File Downloads
 ----------------------------
