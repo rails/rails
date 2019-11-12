@@ -1,3 +1,12 @@
+*   Include the IDs of the first and last records of a collection when
+    generating cache keys for Active Record relations using a limit or
+    offset. Update signatures of `ActiveRecord::Relation#cache_version`,
+    `ActiveRecord::Relation#cache_key` and related methods to use keyword
+    arguments instead of positional arguments, add deprecation notices where
+    appropriate. Fixes #31996, #34408 and #37555.
+
+    *Aaron Lipman*
+
 *   Connections can be granularly switched for abstract classes when `connected_to` is called.
 
     This change allows `connected_to` to switch a `role` and/or `shard` for a single abstract class instead of all classes globally. Applications that want to use the new feature need to set `config.active_record.legacy_connection_handling` to `false` in their application configuration.

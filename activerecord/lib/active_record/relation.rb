@@ -304,83 +304,131 @@ module ActiveRecord
     #    Product.where("name like ?", "%Cosmic Encounter%").cache_key
     #    # => "products/query-1850ab3d302391b85b8693e941286659-1-20150714212553907087000"
     #
-    # You can also pass a custom timestamp column to fetch the timestamp of the
-    # last updated record.
+    # You can pass a custom timestamp column to fetch the timestamp of the
+    # most-recently updated record.
     #
-    #   Product.where("name like ?", "%Game%").cache_key(:last_reviewed_at)
-    def cache_key(timestamp_column = "updated_at")
+    #    Product.where("name like ?", "%Game%").cache_key(timestamp_column: :last_reviewed_at)
+    #
+    # You can also specify a column other than a model's primary ID to generate
+    # the first & last ID segments of the cache_version for collections using a
+    # limit or offset.
+    #
+    #    Product.where("name like ?", "%Game%").cache_key(id_column: :upc)
+    def cache_key(deprecated_timestamp_column = nil, id_column: primary_key, timestamp_column: "updated_at")
+      if deprecated_timestamp_column
+        ActiveSupport::Deprecation.warn("Passing a timestamp column as a positional argument to ActiveRecord::Relation#cache_key is deprecated. Please use a `:timestamp_column` keyword argument instead.")
+        timestamp_column = deprecated_timestamp_column
+      end
+
       @cache_keys ||= {}
-      @cache_keys[timestamp_column] ||= klass.collection_cache_key(self, timestamp_column)
+      @cache_keys[[id_column, timestamp_column]] ||= klass.collection_cache_key(self, id_column: id_column, timestamp_column: timestamp_column)
     end
 
-    def compute_cache_key(timestamp_column = :updated_at) # :nodoc:
+    def compute_cache_key(id_column: primary_key, timestamp_column: :updated_at) # :nodoc:
       query_signature = ActiveSupport::Digest.hexdigest(to_sql)
       key = "#{klass.model_name.cache_key}/query-#{query_signature}"
 
       if collection_cache_versioning
         key
       else
-        "#{key}-#{compute_cache_version(timestamp_column)}"
+        "#{key}-#{compute_cache_version(id_column: id_column, timestamp_column: timestamp_column)}"
       end
     end
     private :compute_cache_key
 
     # Returns a cache version that can be used together with the cache key to form
     # a recyclable caching scheme. The cache version is built with the number of records
-    # matching the query, and the timestamp of the last updated record. When a new record
-    # comes to match the query, or any of the existing records is updated or deleted,
-    # the cache version changes.
+    # matching the query, and the timestamp of the last updated record. When a
+    # new record comes to match the query, or any of the existing records is updated or
+    # deleted, the cache version changes.
     #
     # If the collection is loaded, the method will iterate through the records
     # to generate the timestamp, otherwise it will trigger one SQL query like:
     #
-    #    SELECT COUNT(*), MAX("products"."updated_at") FROM "products" WHERE (name like '%Cosmic Encounter%')
-    def cache_version(timestamp_column = :updated_at)
+    #    SELECT COUNT(*), MAX(products.updated_at) FROM products WHERE (name like '%Cosmic Encounter%')
+    #
+    # If the collection uses a limit or offset, the cache version will include the
+    # collection's first and last IDs to ensure proper expiration. When using Postgres
+    # or SQLite, first & last IDs will be determined via common table expressions:
+    #
+    #    WITH
+    #      cache_key_collection AS (SELECT id AS collection_cache_key_id, updated_at AS collection_cache_key_timestamp FROM products ORDER BY name ASC LIMIT 5),
+    #      cache_key_aggregates AS (SELECT COUNT(*) AS collection_size, MAX(collection_cache_key_timestamp) AS timestamp FROM cache_key_collection)
+    #    SELECT
+    #      collection_size,
+    #      timestamp,
+    #      (SELECT collection_cache_key_id FROM cache_key_collection LIMIT 1) AS first_id,
+    #      (SELECT collection_cache_key_id FROM cache_key_collection LIMIT 1 OFFSET GREATEST(collection_size - 1, 0) AS last_id
+    #    FROM cache_key_aggregates
+    #
+    # When using MySQL, first and last IDs will be determined via user variables:
+    #
+    #    SET @first_id := @last_id := NULL;
+    #    SELECT
+    #      COUNT(*) AS collection_size,
+    #      MAX(collection_cache_key_timestamp) AS timestamp,
+    #      @first_id AS first_id,
+    #      @last_id AS last_id
+    #    FROM (
+    #      SELECT
+    #        COALESCE(@first_id, @first_id := id),
+    #        @last_id := id,
+    #        updated_at AS collection_cache_key_timestamp
+    #      FROM products
+    #      ORDER BY name ASC LIMIT 5
+    #    ) subquery_for_cache_key
+    def cache_version(deprecated_timestamp_column = nil, id_column: primary_key, timestamp_column: :updated_at)
+      if deprecated_timestamp_column
+        ActiveSupport::Deprecation.warn("Passing a timestamp column as a positional argument to ActiveRecord::Relation#cache_version is deprecated. Please use a `:timestamp_column` keyword argument instead.")
+        timestamp_column = deprecated_timestamp_column
+      end
+
       if collection_cache_versioning
         @cache_versions ||= {}
-        @cache_versions[timestamp_column] ||= compute_cache_version(timestamp_column)
+        @cache_versions[[id_column, timestamp_column]] ||= compute_cache_version(id_column: id_column, timestamp_column: timestamp_column)
       end
     end
 
-    def compute_cache_version(timestamp_column) # :nodoc:
+    def compute_cache_version(id_column: primary_key, timestamp_column: "updated_at") # :nodoc:
       timestamp_column = timestamp_column.to_s
+      size = 0
+      first_id = nil
+      last_id = nil
+      timestamp = nil
 
       if loaded? || distinct_value
         size = records.size
+
         if size > 0
-          timestamp = records.map { |record| record.read_attribute(timestamp_column) }.max
+          timestamp = records.map { |record| record.read_attribute(timestamp_column) }.max.utc.to_s(cache_timestamp_format)
+
+          if has_limit_or_offset?
+            first_id = first.read_attribute(id_column)
+            last_id = last.read_attribute(id_column)
+          end
         end
       else
         collection = eager_loading? ? apply_join_dependency : self
+        arel = connection.cache_version_query(collection, id_column: id_column, timestamp_column: timestamp_column)
 
-        column = connection.visitor.compile(table[timestamp_column])
-        select_values = "COUNT(*) AS #{connection.quote_column_name("size")}, MAX(%s) AS timestamp"
-
-        if collection.has_limit_or_offset?
-          query = collection.select("#{column} AS collection_cache_key_timestamp")
-          subquery_alias = "subquery_for_cache_key"
-          subquery_column = "#{subquery_alias}.collection_cache_key_timestamp"
-          arel = query.build_subquery(subquery_alias, select_values % subquery_column)
-        else
-          query = collection.unscope(:order)
-          query.select_values = [select_values % column]
-          arel = query.arel
+        connection_pool.with_connection do
+          connection.set_cache_version_vars if has_limit_or_offset?
+          size, timestamp, first_id, last_id = connection.select_rows(arel, nil).first
         end
 
-        size, timestamp = connection.select_rows(arel, nil).first
-
-        if size
+        if size > 0
           column_type = klass.type_for_attribute(timestamp_column)
-          timestamp = column_type.deserialize(timestamp)
-        else
-          size = 0
+          timestamp = column_type.deserialize(timestamp).utc.to_s(cache_timestamp_format)
         end
       end
 
-      if timestamp
-        "#{size}-#{timestamp.utc.to_s(cache_timestamp_format)}"
+      case
+      when size.zero?
+        "0"
+      when first_id
+        "#{size}-#{first_id}-#{last_id}-#{timestamp}"
       else
-        "#{size}"
+        "#{size}-#{timestamp}"
       end
     end
     private :compute_cache_version

@@ -89,6 +89,11 @@ ActiveRecord::Schema.define do
     t.integer     :value
   end
 
+  create_table :bagels, force: true do |t|
+    t.string :topping
+    t.timestamps null: false
+  end
+
   create_table :binaries, force: true do |t|
     t.string :name
     t.binary :data
@@ -635,6 +640,7 @@ ActiveRecord::Schema.define do
   create_table :movies, force: true, id: false do |t|
     t.primary_key :movieid
     t.string      :name
+    t.timestamps null: false
   end
 
   create_table :notifications, force: true do |t|

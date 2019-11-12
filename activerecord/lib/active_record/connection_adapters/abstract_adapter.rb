@@ -597,6 +597,17 @@ module ActiveRecord
       def check_version # :nodoc:
       end
 
+      def cache_version_query(collection, id_column: nil, timestamp_column: :updated_at) # :nodoc:
+        timestamp_col = visitor.compile(collection.table[timestamp_column])
+        select_values = "COUNT(*) AS collection_size, MAX(#{timestamp_col}) AS timestamp"
+        query = collection.unscope(:order)
+        query.select_values = [select_values]
+        query.arel
+      end
+
+      def set_cache_version_vars # :nodoc:
+      end
+
       private
         def type_map
           @type_map ||= Type::TypeMap.new.tap do |mapping|
