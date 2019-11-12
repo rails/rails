@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "singleton"
+require "concurrent/atomic/thread_local_var"
 
 module ActiveSupport
   # \Deprecation specifies the API used by Rails to deprecate methods, instance
