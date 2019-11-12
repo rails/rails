@@ -122,6 +122,22 @@ module ActiveRecord
         @connection = nil
       end
 
+      def cache_version_query(collection, id_column: collection.primary_key, timestamp_column: :updated_at) # :nodoc:
+        timestamp_col = visitor.compile(collection.arel_attribute(timestamp_column))
+        id_col = visitor.compile(collection.arel_attribute(id_column))
+
+        if collection.has_limit_or_offset?
+          query = collection.select("COALESCE(@first_id, @first_id := #{id_col}), @last_id := #{id_col}, #{timestamp_col} AS collection_cache_key_timestamp")
+          Arel::Nodes::SqlLiteral.new "SELECT COUNT(*) AS collection_size, @first_id AS first_id, @last_id AS last_id, MAX(collection_cache_key_timestamp) AS timestamp FROM (#{query.to_sql}) AS subquery_for_cache_key"
+        else
+          super
+        end
+      end
+
+      def set_cache_version_vars # :nodoc:
+        execute("SET @first_id := @last_id := NULL")
+      end
+
       private
         def connect
           @connection = Mysql2::Client.new(@config)

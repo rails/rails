@@ -1,3 +1,12 @@
+*   Include the IDs of the first and last records of a collection when
+    generating cache keys for Active Record relations using a limit or
+    offset. Update signatures of `ActiveRecord::Relation#cache_version`,
+    `ActiveRecord::Relation#cache_key` and related methods to use keyword
+    arguments instead of positional arguments, add deprecation notices where
+    appropriate. Fixes #31996, #34408 and #37555.
+
+    *Aaron Lipman*
+
 *   Add `ActiveRecord::Validations::NumericalityValidator` with
     support for casting floats using a database columns' precision value.
 
@@ -7,7 +16,7 @@
     ActiveRecord::Relation#cache_key_with_version. This method will be used by
     ActionController::ConditionalGet to ensure that when collection cache versioning
     is enabled, requests using ConditionalGet don't return the same ETag header
-    after a collection is modified. Fixes #38078.
+    after a collection is modified. Fixes #38078
 
     *Aaron Lipman*
 

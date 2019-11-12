@@ -7,10 +7,12 @@ require "models/project"
 require "models/topic"
 require "models/post"
 require "models/comment"
+require "models/movie"
+require "models/bagel"
 
 module ActiveRecord
   class CollectionCacheKeyTest < ActiveRecord::TestCase
-    fixtures :developers, :projects, :developers_projects, :topics, :comments, :posts
+    fixtures :developers, :projects, :developers_projects, :topics, :comments, :posts, :movies
 
     test "collection_cache_key on model" do
       assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, Developer.collection_cache_key)
@@ -18,7 +20,7 @@ module ActiveRecord
 
     test "cache_key for relation" do
       developers = Developer.where(salary: 100000).order(updated_at: :desc)
-      last_developer_timestamp = developers.first.updated_at
+      max_developer_timestamp = developers.first.updated_at
 
       assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, developers.cache_key)
 
@@ -26,47 +28,59 @@ module ActiveRecord
 
       assert_equal ActiveSupport::Digest.hexdigest(developers.to_sql), $1
       assert_equal developers.count.to_s, $2
-      assert_equal last_developer_timestamp.to_s(ActiveRecord::Base.cache_timestamp_format), $3
+      assert_equal max_developer_timestamp.to_s(ActiveRecord::Base.cache_timestamp_format), $3
     end
 
     test "cache_key for relation with limit" do
       developers = Developer.where(salary: 100000).order(updated_at: :desc).limit(5)
-      last_developer_timestamp = developers.first.updated_at
+      first_developer_id = developers.first.id
+      last_developer_id = developers.last.id
+      max_developer_timestamp = developers.first.updated_at
 
-      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, developers.cache_key)
+      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)-(\d+)-(\d+)\z/, developers.cache_key)
 
-      /\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/ =~ developers.cache_key
+      /\Adevelopers\/query-(\h+)-(\d+)-(\d+)-(\d+)-(\d+)\z/ =~ developers.cache_key
 
       assert_equal ActiveSupport::Digest.hexdigest(developers.to_sql), $1
       assert_equal developers.count.to_s, $2
-      assert_equal last_developer_timestamp.to_s(ActiveRecord::Base.cache_timestamp_format), $3
+      assert_equal first_developer_id.to_s, $3
+      assert_equal last_developer_id.to_s, $4
+      assert_equal max_developer_timestamp.to_s(ActiveRecord::Base.cache_timestamp_format), $5
     end
 
     test "cache_key for relation with custom select and limit" do
       developers = Developer.where(salary: 100000).order(updated_at: :desc).limit(5)
       developers_with_select = developers.select("developers.*")
-      last_developer_timestamp = developers.first.updated_at
+      first_developer_id = developers.first.id
+      last_developer_id = developers.last.id
+      max_developer_timestamp = developers.first.updated_at
 
-      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, developers_with_select.cache_key)
+      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)-(\d+)-(\d+)\z/, developers_with_select.cache_key)
 
-      /\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/ =~ developers_with_select.cache_key
+      /\Adevelopers\/query-(\h+)-(\d+)-(\d+)-(\d+)-(\d+)\z/ =~ developers_with_select.cache_key
 
       assert_equal ActiveSupport::Digest.hexdigest(developers_with_select.to_sql), $1
       assert_equal developers.count.to_s, $2
-      assert_equal last_developer_timestamp.to_s(ActiveRecord::Base.cache_timestamp_format), $3
+      assert_equal first_developer_id.to_s, $3
+      assert_equal last_developer_id.to_s, $4
+      assert_equal max_developer_timestamp.to_s(ActiveRecord::Base.cache_timestamp_format), $5
     end
 
     test "cache_key for loaded relation" do
       developers = Developer.where(salary: 100000).order(updated_at: :desc).limit(5).load
-      last_developer_timestamp = developers.first.updated_at
+      first_developer_id = developers.first.id
+      last_developer_id = developers.last.id
+      max_developer_timestamp = developers.first.updated_at
 
-      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, developers.cache_key)
+      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)-(\d+)-(\d+)\z/, developers.cache_key)
 
-      /\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/ =~ developers.cache_key
+      /\Adevelopers\/query-(\h+)-(\d+)-(\d+)-(\d+)-(\d+)\z/ =~ developers.cache_key
 
       assert_equal ActiveSupport::Digest.hexdigest(developers.to_sql), $1
       assert_equal developers.count.to_s, $2
-      assert_equal last_developer_timestamp.to_s(ActiveRecord::Base.cache_timestamp_format), $3
+      assert_equal first_developer_id.to_s, $3
+      assert_equal last_developer_id.to_s, $4
+      assert_equal max_developer_timestamp.to_s(ActiveRecord::Base.cache_timestamp_format), $5
     end
 
     test "cache_key for relation with table alias" do
@@ -80,7 +94,7 @@ module ActiveRecord
         predicate_builder: predicate_builder
       )
       developers = developers.where(salary: 100000).order(updated_at: :desc)
-      last_developer_timestamp = developers.first.updated_at
+      max_developer_timestamp = developers.first.updated_at
 
       assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, developers.cache_key)
 
@@ -88,7 +102,7 @@ module ActiveRecord
 
       assert_equal ActiveSupport::Digest.hexdigest(developers.to_sql), $1
       assert_equal developers.count.to_s, $2
-      assert_equal last_developer_timestamp.to_s(ActiveRecord::Base.cache_timestamp_format), $3
+      assert_equal max_developer_timestamp.to_s(ActiveRecord::Base.cache_timestamp_format), $3
     end
 
     test "cache_key for relation with includes" do
@@ -135,12 +149,27 @@ module ActiveRecord
     test "cache_key with custom timestamp column" do
       topics = Topic.where("title like ?", "%Topic%")
       last_topic_timestamp = topics(:fifth).written_on.utc.to_s(:usec)
-      assert_match(last_topic_timestamp, topics.cache_key(:written_on))
+      assert_match(last_topic_timestamp, topics.cache_key(timestamp_column: :written_on))
     end
 
     test "cache_key with unknown timestamp column" do
       topics = Topic.where("title like ?", "%Topic%")
-      assert_raises(ActiveRecord::StatementInvalid) { topics.cache_key(:published_at) }
+      assert_raises(ActiveRecord::StatementInvalid) { topics.cache_key(timestamp_column: :published_at) }
+    end
+
+    test "cache_key with custom id column" do
+      movies = Movie.where("name like ?", "G%").limit(2)
+      first_movie_id = movies.first.id
+      last_movie_id = movies.last.id
+      /\Amovies\/query-(\h+)-(\d+)-(\d+)-(\d+)-(\d+)\z/ =~ movies.cache_key(id_column: :movieid)
+
+      assert_equal first_movie_id.to_s, $3
+      assert_equal last_movie_id.to_s, $4
+    end
+
+    test "cache_key with unknown id column" do
+      movies = Movie.where("name like ?", "G%").limit(2)
+      assert_raises(ActiveRecord::StatementInvalid) { movies.cache_key(id_column: :nonexistent_id) }
     end
 
     test "collection proxy provides a cache_key" do
@@ -170,13 +199,13 @@ module ActiveRecord
     test "cache_key with a relation having distinct and order" do
       developers = Developer.distinct.order(:salary).limit(5)
 
-      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, developers.cache_key)
+      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)-(\d+)-(\d+)\z/, developers.cache_key)
     end
 
     test "cache_key with a relation having custom select and order" do
       developers = Developer.select("name AS dev_name").order("dev_name DESC").limit(5)
 
-      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, developers.cache_key)
+      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)-(\d+)-(\d+)\z/, developers.cache_key)
     end
 
     test "cache_key should be stable when using collection_cache_versioning" do
@@ -194,14 +223,40 @@ module ActiveRecord
     test "cache_version for relation" do
       with_collection_cache_versioning do
         developers = Developer.where(salary: 100000).order(updated_at: :desc)
-        last_developer_timestamp = developers.first.updated_at
+        max_developer_timestamp = developers.first.updated_at
 
         assert_match(/(\d+)-(\d+)\z/, developers.cache_version)
 
         /(\d+)-(\d+)\z/ =~ developers.cache_version
 
         assert_equal developers.count.to_s, $1
-        assert_equal last_developer_timestamp.to_s(ActiveRecord::Base.cache_timestamp_format), $2
+        assert_equal max_developer_timestamp.to_s(ActiveRecord::Base.cache_timestamp_format), $2
+      end
+    end
+
+    test "cache_versions change when paginated records are reordered" do
+      with_collection_cache_versioning do
+        ["everything", "montreal spice", "onion", "plain", "poppy", "sesame"].each { |topping| Bagel.create topping: topping }
+        bagels = Bagel.order(:topping).limit(3).offset(3)
+        cache_version_1 = bagels.cache_version
+        Bagel.find_by(topping: "plain").update(topping: "cinnamon sugar")
+        bagels = Bagel.order(:topping).limit(3).offset(3)
+        cache_version_2 = bagels.cache_version
+
+        assert_not_equal(cache_version_1, cache_version_2)
+      end
+    end
+
+    test "cache_version changes after record from collection with limit or offset is destroyed" do
+      with_collection_cache_versioning do
+        6.times { Bagel.create }
+        bagels = Bagel.order(created_at: :desc).limit(3)
+        cache_version_1 = bagels.cache_version
+        bagels.second.destroy
+        bagels = Bagel.order(created_at: :desc).limit(3)
+        cache_version_2 = bagels.cache_version
+
+        assert_not_equal(cache_version_1, cache_version_2)
       end
     end
 
