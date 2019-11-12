@@ -722,7 +722,7 @@ module ActionView
         end
 
         def method_tag(method)
-          tag("input", type: "hidden", name: "_method", value: method.to_s)
+          tag("input", type: "hidden", name: "_method", value: method.to_s, autocomplete: "off")
         end
 
         # Returns an array of hashes each containing :name and :value keys
