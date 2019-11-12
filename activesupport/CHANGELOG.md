@@ -332,7 +332,7 @@
 
     *Jan Habermann*, *Xavier Noria*
 
-*   Deprecate `ActiveSupport::Multibyte::Unicode#pack_graphemes(array)` and `ActiveSuppport::Multibyte::Unicode#unpack_graphemes(string)`
+*   Deprecate `ActiveSupport::Multibyte::Unicode#pack_graphemes(array)` and `ActiveSupport::Multibyte::Unicode#unpack_graphemes(string)`
     in favor of `array.flatten.pack("U*")` and `string.scan(/\X/).map(&:codepoints)`, respectively.
 
     *Francesco Rodríguez*
@@ -350,7 +350,7 @@
 
     *Edouard Chin*
 
-*   Deprecate `ActiveSupport::Multibyte::Unicode#normalize` and `ActiveSuppport::Multibyte::Chars#normalize`
+*   Deprecate `ActiveSupport::Multibyte::Unicode#normalize` and `ActiveSupport::Multibyte::Chars#normalize`
     in favor of `String#unicode_normalize`
 
     *Francesco Rodríguez*
