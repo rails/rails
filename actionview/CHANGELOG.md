@@ -44,6 +44,11 @@
 
     *Edward Rudd*
 
+*   `ActionView::TemplateRender.render(file: )` now renders the file directly,
+    without using any handlers, using the new `Template::RawFile` class.
+
+    *John Hawthorn*, *Cliff Pruitt*
+
 
 ## Rails 6.0.0.beta3 (March 11, 2019) ##
 
