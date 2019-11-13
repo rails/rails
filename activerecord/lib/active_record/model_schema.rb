@@ -415,8 +415,7 @@ module ActiveRecord
         @content_columns ||= columns.reject do |c|
           c.name == primary_key ||
           c.name == inheritance_column ||
-          c.name.end_with?("_id") ||
-          c.name.end_with?("_count")
+          c.name.end_with?("_id", "_count")
         end
       end
 
