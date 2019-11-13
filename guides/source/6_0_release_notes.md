@@ -300,6 +300,15 @@ Please refer to the [Changelog][action-view] for detailed changes.
 *   Deprecate calling private model methods from the `options_from_collection_for_select` view helper.
     ([Pull Request](https://github.com/rails/rails/pull/33547))
 
+*   Deprecate `ActionView::TemplateRender.render(file: )` handling relative paths.
+    Paths should now be absolute.
+    ([Pull Request](https://github.com/rails/rails/pull/35688))
+
+*   Deprecate single arity template handlers. The `call` method of
+    `ActionView::Template::Handlers` subclasses should now accept two parameters,
+    the view object and the source for the view object.
+    ([Pull Request](https://github.com/rails/rails/pull/35119))
+
 ### Notable changes
 
 *   Clear ActionView cache in development only on file changes, speeding up
@@ -336,6 +345,10 @@ Please refer to the [Changelog][action-view] for detailed changes.
 
 *   Add I18n key style support for locale keys to submit tags.
     ([Pull Request](https://github.com/rails/rails/pull/26799))
+
+*   `ActionView::TemplateRender.render(file: )` now renders the file directly,
+    without using any handlers, using the new `Template::RawFile` class.
+    ([Pull Request](https://github.com/rails/rails/pull/35688))
 
 Action Mailer
 -------------

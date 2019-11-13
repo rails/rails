@@ -44,6 +44,11 @@
 
     *Edward Rudd*
 
+*   `ActionView::TemplateRender.render(file: )` now renders the file directly,
+    without using any handlers, using the new `Template::RawFile` class.
+
+    *John Hawthorn*, *Cliff Pruitt*
+
 
 ## Rails 6.0.0.beta3 (March 11, 2019) ##
 
@@ -76,6 +81,11 @@
     Fixes #34974.
 
     *Mark Edmondson*
+
+*   Single arity template handlers are deprecated.  Template handlers must
+    now accept two parameters, the view object and the source for the view object.
+
+    *tenderlove*
 
 
 ## Rails 6.0.0.beta1 (January 18, 2019) ##
