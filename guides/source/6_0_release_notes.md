@@ -304,6 +304,11 @@ Please refer to the [Changelog][action-view] for detailed changes.
     Paths should now be absolute.
     ([Pull Request](https://github.com/rails/rails/pull/35688))
 
+*   Deprecate single arity template handlers. The `call` method of
+    `ActionView::Template::Handlers` subclasses should now accept two parameters,
+    the view object and the source for the view object.
+    ([Pull Request](https://github.com/rails/rails/pull/35119))
+
 ### Notable changes
 
 *   Clear ActionView cache in development only on file changes, speeding up

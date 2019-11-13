@@ -82,6 +82,11 @@
 
     *Mark Edmondson*
 
+*   Single arity template handlers are deprecated.  Template handlers must
+    now accept two parameters, the view object and the source for the view object.
+
+    *tenderlove*
+
 
 ## Rails 6.0.0.beta1 (January 18, 2019) ##
 
