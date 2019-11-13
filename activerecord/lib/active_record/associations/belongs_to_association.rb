@@ -89,6 +89,16 @@ module ActiveRecord
         end
 
         def find_target?
+          # Here we only check for the presence of the foreign key attribute, which
+          # returns false even when the FK column does not exist at all.
+          # Perhaps we should check first whether foreign_key_column_present?
+          # and raise an error?
+
+          # For the other scenario where the model class is gone / not defined anymore,
+          # I think the simple fix would be to justk check for 'klass' before checking
+          # for 'foreign_key_present?'. This makes sure that the checking for klass definition
+          # takes precedence and the error is raised.
+
           !loaded? && foreign_key_present? && klass
         end
 

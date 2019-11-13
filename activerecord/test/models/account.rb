@@ -44,3 +44,17 @@ class SubAccount < Account
   end
   private_class_method :instantiate_instance_of
 end
+
+class AccountWithInvalidAssociations < Account
+  # Should raise an error since the :topic_id FK column does not exist
+  belongs_to :topic, required: false
+  # Should raise an error since the :other_bar_id FK column does not exist
+  belongs_to :other_topic, class_name: "Topic", required: false
+  # Should raise an error since the :topic_id FK column does not exist
+  belongs_to :other_topic_2, class_name: "Topic", foreign_key: "topic_id", required: false
+
+  # Should raise an error of AccountWithInvalidAssociations::Bar not found
+  belongs_to :bar, required: false
+  # Should raise an error of AccountWithInvalidAssociations::Bar not found
+  belongs_to :other_bar, class_name: "Bar", required: false
+end

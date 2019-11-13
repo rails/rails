@@ -1365,6 +1365,41 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
       end
     end
   end
+
+  def test_raise_error_when_foreign_key_missing
+    client = AccountWithInvalidAssociations.new
+
+    error = assert_raises { client.topic }
+    assert_equal "foreign key column clients.topic_id does not exist", error.message
+  end
+
+  def test_with_custom_association_name_raise_error_when_foreign_key_missing
+    client = AccountWithInvalidAssociations.new
+
+    error = assert_raises { client.other_topic }
+    assert_equal "foreign key column clients.other_topic_id does not exist", error.message
+  end
+
+  def test_with_configured_foreign_key_name_raise_error_when_foreign_key_missing
+    client = AccountWithInvalidAssociations.new
+
+    error = assert_raises { client.other_topic_2 }
+    assert_equal "foreign key column clients.topic_id does not exist", error.message
+  end
+
+  def test_raise_error_when_association_model_class_not_defined
+    client = AccountWithInvalidAssociations.new
+
+    error = assert_raises { client.bar }
+    assert_equal "uninitialized constant AccountWithInvalidAssociations::Bar", error.message
+  end
+
+  def test_raise_error_when_configured_model_class_for_association_not_defined
+    client = AccountWithInvalidAssociations.new
+
+    error = assert_raises { client.other_bar }
+    assert_equal "uninitialized constant AccountWithInvalidAssociations::Bar", error.message
+  end
 end
 
 class BelongsToWithForeignKeyTest < ActiveRecord::TestCase
