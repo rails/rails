@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/module/deprecation"
+
 module ActionView #:nodoc:
   # = Action View PathSet
   #
