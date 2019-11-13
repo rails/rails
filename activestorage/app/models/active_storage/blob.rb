@@ -33,7 +33,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
   store :metadata, accessors: [ :analyzed, :identified ], coder: ActiveRecord::Coders::JSON
 
   class_attribute :services, default: {}
-  class_attribute :service
+  class_attribute :service, instance_accessor: false
 
   has_many :attachments
 
