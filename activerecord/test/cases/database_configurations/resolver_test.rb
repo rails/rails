@@ -8,19 +8,12 @@ module ActiveRecord
       class ResolverTest < ActiveRecord::TestCase
         def resolve(pool_config, config = {})
           configs = ActiveRecord::DatabaseConfigurations.new(config)
-          resolver = ConnectionAdapters::Resolver.new(configs)
-          resolver.resolve(pool_config, pool_config).configuration_hash
-        end
-
-        def resolve_pool_config(pool_config, config = {})
-          configs = ActiveRecord::DatabaseConfigurations.new(config)
-          resolver = ConnectionAdapters::Resolver.new(configs)
-          resolver.resolve_pool_config(pool_config)
+          configs.resolve(pool_config, pool_config).configuration_hash
         end
 
         def test_url_invalid_adapter
           error = assert_raises(LoadError) do
-            resolve_pool_config "ridiculous://foo?encoding=utf8"
+            Base.connection_handler.establish_connection "ridiculous://foo?encoding=utf8"
           end
 
           assert_match "Could not load the 'ridiculous' Active Record adapter. Ensure that the adapter is spelled correctly in config/database.yml and that you've added the necessary adapter gem to your Gemfile.", error.message
@@ -28,7 +21,7 @@ module ActiveRecord
 
         def test_error_if_no_adapter_method
           error = assert_raises(AdapterNotFound) do
-            resolve_pool_config "abstract://foo?encoding=utf8"
+            Base.connection_handler.establish_connection "abstract://foo?encoding=utf8"
           end
 
           assert_match "database configuration specifies nonexistent abstract adapter", error.message
@@ -79,8 +72,9 @@ module ActiveRecord
         end
 
         def test_url_missing_scheme
-          pool_config = resolve "foo"
-          assert_equal({ database: "foo" }, pool_config)
+          assert_raises ActiveRecord::DatabaseConfigurations::InvalidConfigurationError do
+            resolve "foo"
+          end
         end
 
         def test_url_host_db
@@ -140,19 +134,9 @@ module ActiveRecord
           }, pool_config)
         end
 
-        def test_pool_config_connection_specification_name_on_key_lookup
-          pool_config = resolve_pool_config(:readonly, "readonly" => { "adapter" => "sqlite3" })
-          assert_equal "readonly", pool_config.connection_specification_name
-        end
-
-        def test_pool_config_connection_specification_name_with_inline_config
-          pool_config = resolve_pool_config("adapter" => "sqlite3")
-          assert_equal "primary", pool_config.connection_specification_name, "should default to primary id"
-        end
-
         def test_pool_config_with_invalid_type
           assert_raises TypeError do
-            resolve_pool_config(Object.new)
+            Base.connection_handler.establish_connection(Object.new)
           end
         end
       end

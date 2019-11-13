@@ -106,6 +106,39 @@ module ActiveRecord
       [config.env_name, config.configuration_hash]
     end
 
+    # Returns fully resolved connection, accepts hash, string or symbol.
+    # Always returns a DatabaseConfiguration::DatabaseConfig
+    #
+    # == Examples
+    #
+    # Symbol representing current environment.
+    #
+    #   DatabaseConfigurations.new("production" => {}).resolve(:production)
+    #   # => DatabaseConfigurations::HashConfig.new(env_name: "production", config: {})
+    #
+    # One layer deep hash of connection values.
+    #
+    #   DatabaseConfigurations.new({}).resolve("adapter" => "sqlite3")
+    #   # => DatabaseConfigurations::HashConfig.new(config: {"adapter" => "sqlite3"})
+    #
+    # Connection URL.
+    #
+    #   DatabaseConfigurations.new({}).resolve("postgresql://localhost/foo")
+    #   # => DatabaseConfigurations::UrlConfig.new(config: {"adapter" => "postgresql", "host" => "localhost", "database" => "foo"})
+    def resolve(config, pool_name = nil) # :nodoc:
+      return config if DatabaseConfigurations::DatabaseConfig === config
+
+      case config
+      when Symbol
+        resolve_symbol_connection(config, pool_name)
+      when Hash, String
+        env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call.to_s
+        build_db_config_from_raw_config(env, "primary", config)
+      else
+        raise TypeError, "Invalid type for configuration. Expected Symbol, String, or Hash. Got #{config.inspect}"
+      end
+    end
+
     private
       def env_with_configs(env = nil)
         if env
@@ -140,6 +173,36 @@ module ActiveRecord
         config.map do |spec_name, sub_config|
           build_db_config_from_raw_config(env_name, spec_name.to_s, sub_config)
         end
+      end
+
+      def resolve_symbol_connection(env_name, pool_name)
+        db_config = find_db_config(env_name)
+
+        if db_config
+          config = db_config.configuration_hash.merge(name: pool_name.to_s)
+          DatabaseConfigurations::HashConfig.new(db_config.env_name, db_config.spec_name, config)
+        else
+          raise AdapterNotSpecified, <<~MSG
+            The `#{env_name}` database is not configured for the `#{ActiveRecord::ConnectionHandling::DEFAULT_ENV.call}` environment.
+
+              Available databases configurations are:
+
+              #{build_configuration_sentence}
+          MSG
+        end
+      end
+
+      def build_configuration_sentence
+        configs = configs_for(include_replicas: true)
+
+        configs.group_by(&:env_name).map do |env, config|
+          namespaces = config.map(&:spec_name)
+          if namespaces.size > 1
+            "#{env}: #{namespaces.join(", ")}"
+          else
+            env
+          end
+        end.join("\n")
       end
 
       def build_db_config_from_raw_config(env_name, spec_name, config)

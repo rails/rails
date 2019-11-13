@@ -256,9 +256,7 @@ module ActiveRecord
         pool_name = primary_class? ? "primary" : name
         self.connection_specification_name = pool_name
 
-        resolver = ConnectionAdapters::Resolver.new(Base.configurations)
-
-        db_config = resolver.resolve(config_or_env, pool_name)
+        db_config = Base.configurations.resolve(config_or_env, pool_name)
         db_config.configuration_hash[:name] = pool_name
         db_config
       end

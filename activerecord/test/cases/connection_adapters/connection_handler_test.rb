@@ -31,8 +31,7 @@ module ActiveRecord
         old_config = ActiveRecord::Base.configurations
         config = { "readonly" => { "adapter" => "sqlite3", "pool" => "5" } }
         ActiveRecord::Base.configurations = config
-        resolver = ConnectionAdapters::Resolver.new(ActiveRecord::Base.configurations)
-        config_hash = resolver.resolve(config["readonly"], "readonly").configuration_hash
+        config_hash = ActiveRecord::Base.configurations.resolve(config["readonly"], "readonly").configuration_hash
         config_hash[:name] = "readonly"
         @handler.establish_connection(config_hash)
 
