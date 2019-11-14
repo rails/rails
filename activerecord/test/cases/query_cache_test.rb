@@ -105,7 +105,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
         thread_1_connection = ActiveRecord::Base.connection
         ActiveRecord::Base.clear_active_connections!
-        assert_cache :off, thread_1_connection
+        assert_cache :empty, thread_1_connection
 
         started = Concurrent::Event.new
         checked = Concurrent::Event.new
@@ -138,7 +138,7 @@ class QueryCacheTest < ActiveRecord::TestCase
         checked.set
         thread.join
 
-        assert_cache :off, thread_2_connection
+        assert_cache :empty, thread_2_connection
       }.call({})
 
       ActiveRecord::Base.connection_pool.connections.each do |conn|
@@ -580,6 +580,8 @@ class QueryCacheTest < ActiveRecord::TestCase
       when :dirty
         assert connection.query_cache_enabled, "cache should be on"
         assert_not connection.query_cache.empty?, "cache should be dirty"
+      when :empty
+        assert connection.query_cache.empty?, "cache should be empty"
       else
         raise "unknown state"
       end
