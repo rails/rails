@@ -528,7 +528,15 @@ Module.new do
       sh "yarn install"
     end
   end
-  FileUtils.cp("#{assets_path}/package.json", "#{app_template_path}/package.json")
+
+  # Fix relative file paths
+  package_json = File.read("#{assets_path}/package.json")
+  package_json.gsub!(%r{"file:(\.\./[^"]+)"}) do
+    path = Pathname.new($1).expand_path(assets_path).relative_path_from(Pathname.new(app_template_path))
+    "\"file:#{path}\""
+  end
+  File.write("#{app_template_path}/package.json", package_json)
+
   FileUtils.cp("#{assets_path}/config/webpacker.yml", "#{app_template_path}/config/webpacker.yml")
   FileUtils.cp_r("#{assets_path}/config/webpack", "#{app_template_path}/config/webpack")
   FileUtils.ln_s("#{assets_path}/node_modules", "#{app_template_path}/node_modules")
