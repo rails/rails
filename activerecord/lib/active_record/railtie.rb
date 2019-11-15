@@ -59,6 +59,7 @@ module ActiveRecord
       require "active_record/base"
       unless ActiveSupport::Logger.logger_outputs_to?(Rails.logger, STDERR, STDOUT)
         console = ActiveSupport::Logger.new(STDERR)
+        console.level = Rails.logger.level
         Rails.logger.extend ActiveSupport::Logger.broadcast console
       end
       ActiveRecord::Base.verbose_query_logs = false
