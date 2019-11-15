@@ -3,9 +3,15 @@
   "private": true,
   "dependencies": {
     "@rails/webpacker": "^4.0.2",
-    "activetext": "file:../.."
+    "activetext": "file:../..",
+    "snyk": "^1.244.0"
   },
   "devDependencies": {
     "webpack-dev-server": "^3.2.1"
-  }
+  },
+  "scripts": {
+    "snyk-protect": "snyk protect",
+    "prepare": "yarn run snyk-protect"
+  },
+  "snyk": true
 }
