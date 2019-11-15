@@ -76,6 +76,67 @@ class QueryCacheTest < ActiveRecord::TestCase
     ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
   end
 
+  def test_query_cache_with_multiple_handlers_and_forked_processes
+    ActiveRecord::Base.connection_handlers = {
+      writing: ActiveRecord::Base.default_connection_handler,
+      reading: ActiveRecord::ConnectionAdapters::ConnectionHandler.new
+    }
+
+    ActiveRecord::Base.connected_to(role: :reading) do
+      ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations["arunit"])
+    end
+
+    rd, wr = IO.pipe
+    rd.binmode
+    wr.binmode
+
+    pid = fork {
+      rd.close
+      status = 0
+
+      middleware { |env|
+        begin
+          assert_cache :clean
+
+          # first request dirties cache
+          ActiveRecord::Base.connected_to(role: :reading) do
+            Post.first
+            assert_cache :dirty
+          end
+
+          # should clear the cache
+          Post.create!(title: "a new post", body: "and a body")
+
+          # fails because cache is still dirty
+          ActiveRecord::Base.connected_to(role: :reading) do
+            assert_cache :clean
+            Post.first
+          end
+
+        rescue Minitest::Assertion => e
+          wr.write Marshal.dump e
+          status = 1
+        end
+      }.call({})
+
+      wr.close
+      exit!(status)
+    }
+
+    wr.close
+
+    Process.waitpid pid
+    if !$?.success?
+      raise Marshal.load(rd.read)
+    else
+      assert_predicate $?, :success?
+    end
+
+    rd.close
+  ensure
+    ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+  end
+
   def test_query_cache_across_threads
     with_temporary_connection_pool do
       if in_memory_db?
