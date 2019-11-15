@@ -1037,7 +1037,7 @@ class PersistenceTest < ActiveRecord::TestCase
   def test_reload_via_querycache
     ActiveRecord::Base.connection.enable_query_cache!
     ActiveRecord::Base.connection.clear_query_cache
-    assert ActiveRecord::Base.connection.query_cache_enabled, "cache should be on"
+    assert ActiveRecord::Base.connection.query_cache_enabled?, "cache should be on"
     parrot = Parrot.create(name: "Shane")
 
     # populate the cache with the SELECT result

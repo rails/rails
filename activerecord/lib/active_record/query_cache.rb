@@ -29,7 +29,7 @@ module ActiveRecord
       pools = []
 
       ActiveRecord::Base.connection_handlers.each do |key, handler|
-        pools.concat(handler.connection_pool_list.reject { |p| p.query_cache_enabled }.each { |p| p.enable_query_cache! })
+        pools.concat(handler.connection_pool_list.reject { |p| p.query_cache_enabled? }.each { |p| p.enable_query_cache! })
       end
 
       pools

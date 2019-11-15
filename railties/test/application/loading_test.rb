@@ -394,7 +394,7 @@ class LoadingTest < ActiveSupport::TestCase
         class OmgController < ActionController::Metal
           ActiveSupport.run_load_hooks(:action_controller, self)
           def show
-            if ActiveRecord::Base.connection.query_cache_enabled
+            if ActiveRecord::Base.connection.query_cache_enabled?
               self.response_body = ["Query cache is enabled."]
             else
               self.response_body = ["Expected ActiveRecord::Base.connection.query_cache_enabled to be true"]
@@ -427,7 +427,7 @@ class LoadingTest < ActiveSupport::TestCase
         class OmgController < ActionController::Metal
           ActiveSupport.run_load_hooks(:action_controller, self)
           def show
-            if ActiveRecord::Base.connection.query_cache_enabled
+            if ActiveRecord::Base.connection.query_cache_enabled?
               self.response_body = ["Query cache is enabled."]
             else
               self.response_body = ["Expected ActiveRecord::Base.connection.query_cache_enabled to be true"]

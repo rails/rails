@@ -41,15 +41,18 @@ module ActiveRecord
           connection.clear_query_cache if active_connection?
         end
 
-        def query_cache_enabled
+        def query_cache_enabled?
           @query_cache_enabled[connection_cache_key(current_thread)]
         end
+
+        alias :query_cache_enabled :query_cache_enabled?
+        deprecate :query_cache_enabled
       end
 
       attr_reader :query_cache
 
-      QC_ON  = Struct.new(:query_cache_enabled).new(true)
-      QC_OFF = Struct.new(:query_cache_enabled).new(false)
+      QC_ON  = Struct.new(:query_cache_enabled?).new(true)
+      QC_OFF = Struct.new(:query_cache_enabled?).new(false)
 
       def initialize(*)
         super
@@ -71,12 +74,11 @@ module ActiveRecord
       end
 
       def query_cache_enabled?
-        @query_cache_setting.query_cache_enabled
+        @query_cache_setting.query_cache_enabled?
       end
 
-      def query_cache_enabled
-        query_cache_enabled?
-      end
+      alias :query_cache_enabled :query_cache_enabled?
+      deprecate :query_cache_enabled
 
       def disable_query_cache!
         @query_cache_setting = QC_OFF

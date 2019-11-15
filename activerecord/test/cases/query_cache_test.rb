@@ -40,6 +40,12 @@ class QueryCacheTest < ActiveRecord::TestCase
     super
   end
 
+  def test_deprecated_predicate
+    assert_deprecated do
+      ActiveRecord::Base.connection.query_cache_enabled
+    end
+  end
+
   def test_exceptional_middleware_clears_and_disables_cache_on_error
     assert_cache :off
 
@@ -67,8 +73,8 @@ class QueryCacheTest < ActiveRecord::TestCase
 
     mw = middleware { |env|
       ro_conn = ActiveRecord::Base.connection_handlers[:reading].connection_pool_list.first.connection
-      assert_predicate ActiveRecord::Base.connection, :query_cache_enabled
-      assert_predicate ro_conn, :query_cache_enabled
+      assert_predicate ActiveRecord::Base.connection, :query_cache_enabled?
+      assert_predicate ro_conn, :query_cache_enabled?
     }
 
     mw.call({})
@@ -467,9 +473,9 @@ class QueryCacheTest < ActiveRecord::TestCase
       assert_not ActiveRecord::Base.connection_handler.active_connections? # sanity check
 
       middleware {
-        assert_predicate ActiveRecord::Base.connection, :query_cache_enabled
+        assert_predicate ActiveRecord::Base.connection, :query_cache_enabled?
       }.call({})
-      assert_not_predicate ActiveRecord::Base.connection, :query_cache_enabled
+      assert_not_predicate ActiveRecord::Base.connection, :query_cache_enabled?
     end
   end
 
@@ -478,12 +484,12 @@ class QueryCacheTest < ActiveRecord::TestCase
       ActiveRecord::Base.clear_active_connections!
 
       middleware {
-        assert ActiveRecord::Base.connection_pool.query_cache_enabled
-        assert ActiveRecord::Base.connection.query_cache_enabled
+        assert ActiveRecord::Base.connection_pool.query_cache_enabled?
+        assert ActiveRecord::Base.connection.query_cache_enabled?
 
         Thread.new {
-          assert_not ActiveRecord::Base.connection_pool.query_cache_enabled
-          assert_not ActiveRecord::Base.connection.query_cache_enabled
+          assert_not ActiveRecord::Base.connection_pool.query_cache_enabled?
+          assert_not ActiveRecord::Base.connection.query_cache_enabled?
         }.join
       }.call({})
     end
@@ -492,8 +498,8 @@ class QueryCacheTest < ActiveRecord::TestCase
   def test_query_cache_is_enabled_on_all_connection_pools
     middleware {
       ActiveRecord::Base.connection_handler.connection_pool_list.each do |pool|
-        assert pool.query_cache_enabled
-        assert pool.connection.query_cache_enabled
+        assert pool.query_cache_enabled?
+        assert pool.connection.query_cache_enabled?
       end
     }.call({})
   end
@@ -572,13 +578,13 @@ class QueryCacheTest < ActiveRecord::TestCase
     def assert_cache(state, connection = ActiveRecord::Base.connection)
       case state
       when :off
-        assert_not connection.query_cache_enabled, "cache should be off"
+        assert_not connection.query_cache_enabled?, "cache should be off"
         assert connection.query_cache.empty?, "cache should be empty"
       when :clean
-        assert connection.query_cache_enabled, "cache should be on"
+        assert connection.query_cache_enabled?, "cache should be on"
         assert connection.query_cache.empty?, "cache should be empty"
       when :dirty
-        assert connection.query_cache_enabled, "cache should be on"
+        assert connection.query_cache_enabled?, "cache should be on"
         assert_not connection.query_cache.empty?, "cache should be dirty"
       when :empty
         assert connection.query_cache.empty?, "cache should be empty"
@@ -609,19 +615,19 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
 
   def test_find
     assert_called(Task.connection, :clear_query_cache) do
-      assert_not Task.connection.query_cache_enabled
+      assert_not Task.connection.query_cache_enabled?
       Task.cache do
-        assert Task.connection.query_cache_enabled
+        assert Task.connection.query_cache_enabled?
         Task.find(1)
 
         Task.uncached do
-          assert_not Task.connection.query_cache_enabled
+          assert_not Task.connection.query_cache_enabled?
           Task.find(1)
         end
 
-        assert Task.connection.query_cache_enabled
+        assert Task.connection.query_cache_enabled?
       end
-      assert_not Task.connection.query_cache_enabled
+      assert_not Task.connection.query_cache_enabled?
     end
   end
 
