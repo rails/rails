@@ -541,6 +541,7 @@ Module.new do
   FileUtils.cp_r("#{assets_path}/config/webpack", "#{app_template_path}/config/webpack")
   FileUtils.ln_s("#{assets_path}/node_modules", "#{app_template_path}/node_modules")
   FileUtils.chdir(app_template_path) do
+    sh "yarn install"
     sh "bin/rails webpacker:binstubs"
   end
 
