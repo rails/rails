@@ -11,14 +11,14 @@ module ActiveRecord
             :rollback_to_savepoint, :rollback_db_transaction, :exec_insert_all
 
           base.set_callback :checkout, :after, :configure_query_cache!
-          base.set_callback :checkin, :after, :disable_query_cache!
+          base.set_callback :checkin, :after, :clear_query_cache
         end
 
         def dirties_query_cache(base, *method_names)
           method_names.each do |method_name|
             base.class_eval <<-end_code, __FILE__, __LINE__ + 1
               def #{method_name}(*)
-                ActiveRecord::Base.clear_query_caches_for_current_thread if @query_cache_enabled
+                ActiveRecord::Base.clear_query_caches_for_current_thread if query_cache_enabled?
                 super
               end
             end_code
@@ -34,12 +34,11 @@ module ActiveRecord
 
         def enable_query_cache!
           @query_cache_enabled[connection_cache_key(current_thread)] = true
-          connection.enable_query_cache! if active_connection?
         end
 
         def disable_query_cache!
           @query_cache_enabled.delete connection_cache_key(current_thread)
-          connection.disable_query_cache! if active_connection?
+          connection.clear_query_cache if active_connection?
         end
 
         def query_cache_enabled
@@ -47,38 +46,49 @@ module ActiveRecord
         end
       end
 
-      attr_reader :query_cache, :query_cache_enabled
+      attr_reader :query_cache
+
+      QC_ON  = Struct.new(:query_cache_enabled).new(true)
+      QC_OFF = Struct.new(:query_cache_enabled).new(false)
 
       def initialize(*)
         super
         @query_cache         = Hash.new { |h, sql| h[sql] = {} }
-        @query_cache_enabled = false
+        @query_cache_setting = pool
       end
 
       # Enable the query cache within the block.
       def cache
-        old, @query_cache_enabled = @query_cache_enabled, true
+        old, @query_cache_setting = @query_cache_setting, QC_ON
         yield
       ensure
-        @query_cache_enabled = old
-        clear_query_cache unless @query_cache_enabled
+        @query_cache_setting = old
+        clear_query_cache unless query_cache_enabled?
       end
 
       def enable_query_cache!
-        @query_cache_enabled = true
+        @query_cache_setting = QC_ON
+      end
+
+      def query_cache_enabled?
+        @query_cache_setting.query_cache_enabled
+      end
+
+      def query_cache_enabled
+        query_cache_enabled?
       end
 
       def disable_query_cache!
-        @query_cache_enabled = false
+        @query_cache_setting = QC_OFF
         clear_query_cache
       end
 
       # Disable the query cache within the block.
       def uncached
-        old, @query_cache_enabled = @query_cache_enabled, false
+        old, @query_cache_setting = @query_cache_setting, QC_OFF
         yield
       ensure
-        @query_cache_enabled = old
+        @query_cache_setting = old
       end
 
       # Clears the query cache.
@@ -94,7 +104,7 @@ module ActiveRecord
       end
 
       def select_all(arel, name = nil, binds = [], preparable: nil)
-        if @query_cache_enabled && !locked?(arel)
+        if query_cache_enabled? && !locked?(arel)
           arel = arel_from_relation(arel)
           sql, binds = to_sql_and_binds(arel, binds)
 
@@ -147,7 +157,7 @@ module ActiveRecord
         end
 
         def configure_query_cache!
-          enable_query_cache! if pool.query_cache_enabled
+          @query_cache_setting = pool
         end
     end
   end

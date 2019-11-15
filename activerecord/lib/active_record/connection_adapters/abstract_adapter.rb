@@ -80,6 +80,7 @@ module ActiveRecord
       end
 
       def initialize(connection, logger = nil, config = {}) # :nodoc:
+        @pool                = ActiveRecord::ConnectionAdapters::NullPool.new
         super()
 
         @connection          = connection
@@ -87,7 +88,6 @@ module ActiveRecord
         @instrumenter        = ActiveSupport::Notifications.instrumenter
         @logger              = logger
         @config              = config
-        @pool                = ActiveRecord::ConnectionAdapters::NullPool.new
         @idle_since          = Concurrent.monotonic_time
         @visitor = arel_visitor
         @statements = build_statement_pool
