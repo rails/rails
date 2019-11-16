@@ -24,6 +24,10 @@ module Rails
       add_runtime_options!
       strict_args_position!
 
+      def self.exit_on_failure? # :nodoc:
+        false
+      end
+
       # Returns the source root for this generator using default_source_root as default.
       def self.source_root(path = nil)
         @_source_root = path if path
