@@ -143,7 +143,7 @@ module ActiveSupport
 
         if clock_gettime_supported?
           def now_cpu
-            Process.clock_gettime(Process::CLOCK_PROCESS_CPUTIME_ID)
+            Process.clock_gettime(Process::CLOCK_THREAD_CPUTIME_ID)
           end
         else
           def now_cpu
