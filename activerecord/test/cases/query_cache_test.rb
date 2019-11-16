@@ -40,6 +40,25 @@ class QueryCacheTest < ActiveRecord::TestCase
     super
   end
 
+  def test_writes_should_always_clear_cache
+    assert_cache :off
+
+    mw = middleware { |env|
+      Post.first
+      query_cache = ActiveRecord::Base.connection.query_cache
+      assert_equal 1, query_cache.length, query_cache.keys
+      Post.connection.uncached do
+        # should clear the cache
+        Post.create!(title: "a new post", body: "and a body")
+      end
+      query_cache = ActiveRecord::Base.connection.query_cache
+      assert_equal 0, query_cache.length, query_cache.keys
+    }
+    mw.call({})
+
+    assert_cache :off
+  end
+
   def test_exceptional_middleware_clears_and_disables_cache_on_error
     assert_cache :off
 
