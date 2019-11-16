@@ -16,7 +16,7 @@ jobs:
       run: |
         sudo apt-get install libmysqlclient-dev libpq-dev libsqlite3-dev libncurses5-dev
     - name: Cache gems
-      uses: actions/cache@preview
+      uses: actions/cache@v1
       with:
         path: vendor/bundle
         key: ${{ runner.os }}-gem-${{ hashFiles('**/Gemfile.lock') }}
