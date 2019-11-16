@@ -31,7 +31,8 @@ module ActiveRecord
               ActiveSupport::Deprecation.warn(<<~MSG.squish)
                 Class level methods will no longer inherit scoping from `#{scope._deprecated_scope_source}`
                 in Rails 6.1. To continue using the scoped relation, pass it into the block directly.
-                To instead access the full set of models, as Rails 6.1 will, use `#{name}.unscoped`.
+                To instead access the full set of models, as Rails 6.1 will, use `#{name}.unscoped`,
+                or `#{name}.default_scoped` if a model has default scopes.
               MSG
             end
 
