@@ -56,7 +56,7 @@ module ActiveSupport
       attr_accessor :payload
 
       def self.clock_gettime_supported? # :nodoc:
-        defined?(Process::CLOCK_PROCESS_CPUTIME_ID) &&
+        defined?(Process::CLOCK_THREAD_CPUTIME_ID) &&
           !Gem.win_platform? &&
           !RUBY_PLATFORM.match?(/solaris/i)
       end
