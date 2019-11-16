@@ -17,6 +17,10 @@ module Rails
       include Actions
 
       class << self
+        def exit_on_failure? # :nodoc:
+          false
+        end
+
         # Returns true when the app is a Rails engine.
         def engine?
           defined?(ENGINE_ROOT)
