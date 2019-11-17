@@ -171,6 +171,13 @@ module ActiveRecord
         assert_not_includes actual, :url
       end
 
+      def test_url_with_equals_in_query_value
+        config   = { "default_env" => { "url" => "postgresql://localhost/foo?options=-cmyoption=on" } }
+        actual   = resolve_config(config)
+        expected = { options: "-cmyoption=on", adapter: "postgresql", database: "foo", host: "localhost" }
+        assert_equal expected, actual
+      end
+
       def test_hash
         config = { "production" => { "adapter" => "postgres", "database" => "foo" } }
         actual = resolve_config(config, "production")
