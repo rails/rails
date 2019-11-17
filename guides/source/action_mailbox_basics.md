@@ -288,37 +288,22 @@ $ bin/rails generate mailbox forwards
 # app/mailboxes/forwards_mailbox.rb
 class ForwardsMailbox < ApplicationMailbox
   # Callbacks specify prerequisites to processing
-  before_processing :require_forward
+  before_processing :ensure_sender_is_a_user
 
   def process
-    if forwarder.buckets.one?
-      record_forward
-    else
-      stage_forward_and_request_more_details
-    end
+    user.forwards.create(subject: mail.subject, content: mail.content)
   end
 
   private
-    def require_forward
-      unless message.forward?
+    def ensure_sender_is_a_user
+      unless user
         # Use Action Mailers to bounce incoming emails back to sender – this halts processing
-        bounce_with Forwards::BounceMailer.missing_forward(
-          inbound_email, forwarder: forwarder
-        )
+        bounce_with UserRequiredMailer.missing(inbound_email)
       end
     end
 
-    def forwarder
-      @forwarder ||= Person.where(email_address: mail.from)
-    end
-
-    def record_forward
-      forwarder.buckets.first.record \
-        Forward.new forwarder: forwarder, subject: message.subject, content: mail.content
-    end
-
-    def stage_forward_and_request_more_details
-      Forwards::RoutingMailer.choose_project(mail).deliver_now
+    def user
+      @user ||= User.where(email_address: mail.from)
     end
 end
 ```
