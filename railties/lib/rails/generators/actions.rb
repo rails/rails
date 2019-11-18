@@ -254,7 +254,12 @@ module Rails
       # Make an entry in Rails routing file <tt>config/routes.rb</tt>
       #
       #   route "root 'welcome#index'"
-      def route(routing_code)
+      #   route "root 'admin#index'", namespace: :admin
+      def route(routing_code, namespace: nil)
+        routing_code = Array(namespace).reverse.reduce(routing_code) do |code, ns|
+          "namespace :#{ns} do\n#{indent(code, 2)}\nend"
+        end
+
         log :route, routing_code
         sentinel = /\.routes\.draw do\s*\n/m
 
@@ -327,12 +332,7 @@ module Rails
         # Returns optimized string with indentation
         def optimize_indentation(value, amount = 0) # :doc:
           return "#{value}\n" unless value.is_a?(String)
-
-          if value.lines.size > 1
-            value.strip_heredoc.indent(amount)
-          else
-            "#{value.strip.indent(amount)}\n"
-          end
+          "#{value.strip_heredoc.indent(amount).chomp}\n"
         end
 
         # Indent the +Gemfile+ to the depth of @indentation

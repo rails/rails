@@ -525,6 +525,30 @@ class ActionsTest < Rails::Generators::TestCase
     assert_file "config/routes.rb", content
   end
 
+  test "route with namespace option should nest route" do
+    run_generator
+    action :route, "get 'foo'\nget 'bar'", namespace: :baz
+    assert_routes <<~ROUTING_CODE.chomp
+      namespace :baz do
+        get 'foo'
+        get 'bar'
+      end
+    ROUTING_CODE
+  end
+
+  test "route with namespace option array should deeply nest route" do
+    run_generator
+    action :route, "get 'foo'\nget 'bar'", namespace: %w[baz qux]
+    assert_routes <<~ROUTING_CODE.chomp
+      namespace :baz do
+        namespace :qux do
+          get 'foo'
+          get 'bar'
+        end
+      end
+    ROUTING_CODE
+  end
+
   def test_readme
     run_generator
     assert_called(Rails::Generators::AppGenerator, :source_root, times: 2, returns: destination_root) do
