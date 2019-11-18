@@ -59,6 +59,7 @@ class Comment < ActiveRecord::Base
 end
 
 class SpecialComment < Comment
+  has_one :author, through: :post
   default_scope { where(deleted_at: nil) }
 
   def self.what_are_you
