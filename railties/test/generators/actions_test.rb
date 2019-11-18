@@ -494,57 +494,35 @@ class ActionsTest < Rails::Generators::TestCase
     end
   end
 
-  def test_route_should_add_data_to_the_routes_block_in_config_routes
+  test "route should add route" do
     run_generator
-    route_command = "route '/login', controller: 'sessions', action: 'new'"
-    action :route, route_command
-    assert_file "config/routes.rb", /#{Regexp.escape(route_command)}/
+    route_commands = ["get 'foo'", "get 'bar'", "get 'baz'"]
+    route_commands.each do |route_command|
+      action :route, route_command
+    end
+    assert_routes route_commands
   end
 
-  def test_route_should_be_idempotent
+  test "route should indent routing code" do
     run_generator
-    route_path = File.expand_path("config/routes.rb", destination_root)
+    route_commands = ["get 'foo'", "get 'bar'", "get 'baz'"]
+    action :route, route_commands.join("\n")
+    assert_routes route_commands
+  end
 
-    # runs first time, not asserting
-    action :route, "root 'welcome#index'"
-    content_1 = File.read(route_path)
+  test "route should be idempotent" do
+    run_generator
+    route_command = "root 'welcome#index'"
+
+    # runs first time
+    action :route, route_command
+    assert_routes route_command
+
+    content = File.read(File.expand_path("config/routes.rb", destination_root))
 
     # runs second time
-    action :route, "root 'welcome#index'"
-    content_2 = File.read(route_path)
-
-    assert_equal content_1, content_2
-  end
-
-  def test_route_should_add_data_with_an_new_line
-    run_generator
-    action :route, "root 'welcome#index'"
-    route_path = File.expand_path("config/routes.rb", destination_root)
-    content = File.read(route_path)
-
-    # Remove all of the comments and blank lines from the routes file
-    content.gsub!(/^  \#.*\n/, "")
-    content.gsub!(/^\n/, "")
-
-    File.write(route_path, content)
-
-    routes = <<-F
-Rails.application.routes.draw do
-  root 'welcome#index'
-end
-F
-
-    assert_file "config/routes.rb", routes
-
-    action :route, "resources :product_lines"
-
-    routes = <<-F
-Rails.application.routes.draw do
-  resources :product_lines
-  root 'welcome#index'
-end
-F
-    assert_file "config/routes.rb", routes
+    action :route, route_command
+    assert_file "config/routes.rb", content
   end
 
   def test_readme
@@ -583,5 +561,19 @@ F
   private
     def action(*args, &block)
       capture(:stdout) { generator.send(*args, &block) }
+    end
+
+    def assert_routes(*route_commands)
+      route_regexps = route_commands.flatten.map do |route_command|
+        %r{
+          ^#{Regexp.escape("Rails.application.routes.draw do")}\n
+            (?:[ ]{2}.+\n|\n)*
+            #{Regexp.escape(route_command.indent(2))}\n
+            (?:[ ]{2}.+\n|\n)*
+          end\n
+        }x
+      end
+
+      assert_file "config/routes.rb", *route_regexps
     end
 end
