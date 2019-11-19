@@ -51,7 +51,7 @@ module ApplicationTests
           rails("restart")
 
           assert_output("Restarting", master)
-          assert_output("Listening", primary)
+          assert_output("Listening", master)
         ensure
           kill(pid) if pid
         end
