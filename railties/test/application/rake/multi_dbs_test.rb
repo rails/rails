@@ -231,6 +231,23 @@ module ApplicationTests
         end
       end
 
+      test "db:migrate set back connection to its original state" do
+        Dir.chdir(app_path) do
+          dummy_task = <<~RUBY
+            task foo: :environment do
+              Book.first
+            end
+          RUBY
+          app_file("Rakefile", dummy_task, "a+")
+
+          generate_models_for_animals
+
+          assert_nothing_raised do
+            rails("db:migrate", "foo")
+          end
+        end
+      end
+
       test "db:migrate and db:schema:dump and db:schema:load works on all databases" do
         require "#{app_path}/config/environment"
         db_migrate_and_schema_dump_and_load "schema"

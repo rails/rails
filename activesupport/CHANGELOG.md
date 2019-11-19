@@ -1,3 +1,16 @@
+*   Add block support to `ActiveSupport::Testing::TimeHelpers#travel_back`.
+
+    *Tim Masliuchenko*
+
+*   Update `ActiveSupport::Messages::Metadata#fresh?` to work for cookies with expiry set when
+    `ActiveSupport.parse_json_times = true`.
+
+    *Christian Gregg*
+
+*   Support symbolic links for `content_path` in `ActiveSupport::EncryptedFile`.
+
+    *Takumi Shotoku*
+
 *   Improve `Range#===`, `Range#include?`, and `Range#cover?` to work with beginless (startless)
     and endless range targets.
 

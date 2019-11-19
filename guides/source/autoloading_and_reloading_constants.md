@@ -171,7 +171,7 @@ Similarly, in the Rails console, if you have a user instance and reload:
 > reload!
 ```
 
-the `user` object is instance of a stale class object. Ruby gives you a new class if you evaluate `User` again, but does not update the class `user` is instance of.
+the `user` object is an instance of a stale class object. Ruby gives you a new class if you evaluate `User` again, but does not update the class `user` is an instance of.
 
 Another use case of this gotcha is subclassing reloadable classes in a place that is not reloaded:
 

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/array/wrap"
-
 module ActiveRecord
   module Associations
     # = Active Record Associations
@@ -43,6 +41,7 @@ module ActiveRecord
         reflection.check_validity!
 
         @owner, @reflection = owner, reflection
+        @_scope = nil
 
         reset
         reset_scope
@@ -99,7 +98,7 @@ module ActiveRecord
       end
 
       def scope
-        target_scope.merge!(association_scope)
+        @_scope&.spawn || target_scope.merge!(association_scope)
       end
 
       def reset_scope
@@ -191,12 +190,19 @@ module ActiveRecord
         set_inverse_instance(record)
       end
 
-      def create(attributes = {}, &block)
+      def create(attributes = nil, &block)
         _create_record(attributes, &block)
       end
 
-      def create!(attributes = {}, &block)
+      def create!(attributes = nil, &block)
         _create_record(attributes, true, &block)
+      end
+
+      def scoping(relation, &block)
+        @_scope = relation
+        relation.scoping(&block)
+      ensure
+        @_scope = nil
       end
 
       private

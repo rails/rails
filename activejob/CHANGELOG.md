@@ -1,3 +1,17 @@
+*   Add an option to disable logging of the job arguments when enqueuing and executing the job.
+
+        class SensitiveJob < ApplicationJob
+          self.log_arguments = false
+
+          def perform(my_sensitive_argument)
+          end
+        end
+
+    When dealing with sensitive arguments as password and tokens it is now possible to configure the job
+    to not put the sensitive argument in the logs.
+
+    *Rafael Mendonça França*
+
 *   Changes in `queue_name_prefix` of a job no longer affects all other jobs. Fixes #37084.
 
     *Lucas Mansur*

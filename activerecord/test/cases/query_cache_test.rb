@@ -40,6 +40,25 @@ class QueryCacheTest < ActiveRecord::TestCase
     super
   end
 
+  def test_writes_should_always_clear_cache
+    assert_cache :off
+
+    mw = middleware { |env|
+      Post.first
+      query_cache = ActiveRecord::Base.connection.query_cache
+      assert_equal 1, query_cache.length, query_cache.keys
+      Post.connection.uncached do
+        # should clear the cache
+        Post.create!(title: "a new post", body: "and a body")
+      end
+      query_cache = ActiveRecord::Base.connection.query_cache
+      assert_equal 0, query_cache.length, query_cache.keys
+    }
+    mw.call({})
+
+    assert_cache :off
+  end
+
   def test_exceptional_middleware_clears_and_disables_cache_on_error
     assert_cache :off
 
@@ -74,6 +93,70 @@ class QueryCacheTest < ActiveRecord::TestCase
     mw.call({})
   ensure
     ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+  end
+
+
+  if Process.respond_to?(:fork) && !in_memory_db?
+    def test_query_cache_with_multiple_handlers_and_forked_processes
+      ActiveRecord::Base.connection_handlers = {
+        writing: ActiveRecord::Base.default_connection_handler,
+        reading: ActiveRecord::ConnectionAdapters::ConnectionHandler.new
+      }
+
+      ActiveRecord::Base.connected_to(role: :reading) do
+        ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations["arunit"])
+      end
+
+      rd, wr = IO.pipe
+      rd.binmode
+      wr.binmode
+
+      pid = fork {
+        rd.close
+        status = 0
+
+        middleware { |env|
+          begin
+            assert_cache :clean
+
+            # first request dirties cache
+            ActiveRecord::Base.connected_to(role: :reading) do
+              Post.first
+              assert_cache :dirty
+            end
+
+            # should clear the cache
+            Post.create!(title: "a new post", body: "and a body")
+
+            # fails because cache is still dirty
+            ActiveRecord::Base.connected_to(role: :reading) do
+              assert_cache :clean
+              Post.first
+            end
+
+          rescue Minitest::Assertion => e
+            wr.write Marshal.dump e
+            status = 1
+          end
+        }.call({})
+
+        wr.close
+        exit!(status)
+      }
+
+      wr.close
+
+      Process.waitpid pid
+      if !$?.success?
+        raise Marshal.load(rd.read)
+      else
+        assert_predicate $?, :success?
+      end
+
+      rd.close
+    ensure
+      ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+    end
   end
 
   def test_query_cache_across_threads
@@ -555,10 +638,10 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   private
     def with_temporary_connection_pool
-      db_config = ActiveRecord::Base.connection_handler.send(:owner_to_config).fetch("primary")
-      new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(db_config)
+      pool_config = ActiveRecord::Base.connection_handler.send(:owner_to_pool_manager).fetch("primary").get_pool_config(:default)
+      new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(pool_config)
 
-      db_config.stub(:connection_pool, new_pool) do
+      pool_config.stub(:pool, new_pool) do
         yield
       end
     end

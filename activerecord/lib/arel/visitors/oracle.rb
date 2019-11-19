@@ -104,7 +104,7 @@ module Arel # :nodoc: all
           return o if o.orders.empty?
           return o unless o.cores.any? do |core|
             core.projections.any? do |projection|
-              /FIRST_VALUE/.match?(projection)
+              /FIRST_VALUE/ === projection
             end
           end
           # Previous version with join and split broke ORDER BY clause

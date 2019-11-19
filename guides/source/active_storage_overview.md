@@ -237,6 +237,29 @@ Mirror services are compatible with direct uploads. New files are directly
 uploaded to the primary service. When a directly-uploaded file is attached to a
 record, a background job is enqueued to copy it to the secondary services.
 
+### Public access
+
+By default, Active Storage assumes private access to services. This means generating signed, single-use URLs for blobs. If you'd rather make blobs publicly accessible, specify `public: true` in your app's `config/storage.yml`:
+
+```yaml
+gcs: &gcs
+  service: GCS
+  project: ""
+
+private_gcs:
+  <<: *gcs
+  credentials: <%= Rails.root.join("path/to/private_keyfile.json") %>
+  bucket: ""
+
+public_gcs:
+  <<: *gcs
+  credentials: <%= Rails.root.join("path/to/public_keyfile.json") %>
+  bucket: ""
+  public: true
+```
+
+Make sure your buckets are properly configured for public access. See docs on how to enable public read permissions for [Amazon S3](https://docs.aws.amazon.com/AmazonS3/latest/user-guide/block-public-access-bucket.html), [Google Cloud Storage](https://cloud.google.com/storage/docs/access-control/making-data-public#buckets), and [Microsoft Azure](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-manage-access-to-resources#set-container-public-access-level-in-the-azure-portal) storage services.
+
 Attaching Files to Records
 --------------------------
 
@@ -402,7 +425,7 @@ Linking to Files
 
 Generate a permanent URL for the blob that points to the application. Upon
 access, a redirect to the actual service endpoint is returned. This indirection
-decouples the public URL from the actual one, and allows, for example, mirroring
+decouples the service URL from the actual one, and allows, for example, mirroring
 attachments in different services for high-availability. The redirection has an
 HTTP expiration of 5 min.
 
@@ -591,6 +614,8 @@ Take care to allow:
   * `Content-Disposition` (except for Azure Storage)
   * `x-ms-blob-content-disposition` (for Azure Storage only)
   * `x-ms-blob-type` (for Azure Storage only)
+
+No CORS configuration is required for the Disk service since it shares your app’s origin.
 
 #### Example: S3 CORS configuration
 

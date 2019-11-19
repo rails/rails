@@ -47,7 +47,9 @@ module ActiveRecord
       set_callback :checkin, :after, :enable_lazy_transactions!
 
       def self.type_cast_config_to_integer(config)
-        if config.is_a?(Integer)
+        if config.nil?
+          config
+        elsif config.is_a?(Integer)
           config
         elsif SIMPLE_INT.match?(config)
           config.to_i
@@ -380,6 +382,10 @@ module ActiveRecord
 
       # Does this adapter support optimizer hints?
       def supports_optimizer_hints?
+        false
+      end
+
+      def supports_common_table_expressions?
         false
       end
 

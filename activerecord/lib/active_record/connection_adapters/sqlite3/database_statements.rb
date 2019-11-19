@@ -4,7 +4,9 @@ module ActiveRecord
   module ConnectionAdapters
     module SQLite3
       module DatabaseStatements
-        READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp(:begin, :commit, :explain, :select, :pragma, :release, :savepoint, :rollback) # :nodoc:
+        READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp(
+          :begin, :commit, :explain, :select, :pragma, :release, :savepoint, :rollback, :with
+        ) # :nodoc:
         private_constant :READ_QUERY
 
         def write_query?(sql) # :nodoc:
@@ -85,7 +87,9 @@ module ActiveRecord
         end
 
         private
-          def execute_batch(sql, name = nil)
+          def execute_batch(statements, name = nil)
+            sql = combine_multi_statements(statements)
+
             if preventing_writes? && write_query?(sql)
               raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
             end
@@ -110,11 +114,8 @@ module ActiveRecord
             end.compact
           end
 
-          def build_truncate_statements(*table_names)
-            truncate_tables = table_names.map do |table_name|
-              "DELETE FROM #{quote_table_name(table_name)}"
-            end
-            combine_multi_statements(truncate_tables)
+          def build_truncate_statement(table_name)
+            "DELETE FROM #{quote_table_name(table_name)}"
           end
       end
     end

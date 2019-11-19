@@ -456,8 +456,7 @@ module ActiveRecord
 
       private
         def resolve_configuration(configuration)
-          resolver = ConnectionAdapters::Resolver.new(ActiveRecord::Base.configurations)
-          resolver.resolve(configuration)
+          Base.configurations.resolve(configuration)
         end
 
         def verbose?

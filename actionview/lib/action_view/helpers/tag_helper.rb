@@ -24,8 +24,14 @@ module ActionView
                               visible).to_set
 
       BOOLEAN_ATTRIBUTES.merge(BOOLEAN_ATTRIBUTES.map(&:to_sym))
+      BOOLEAN_ATTRIBUTES.freeze
 
-      TAG_PREFIXES = ["aria", "data", :aria, :data].to_set
+      TAG_PREFIXES = ["aria", "data", :aria, :data].to_set.freeze
+
+      TAG_TYPES = {}
+      TAG_TYPES.merge! BOOLEAN_ATTRIBUTES.index_with(:boolean)
+      TAG_TYPES.merge! TAG_PREFIXES.index_with(:prefix)
+      TAG_TYPES.freeze
 
       PRE_CONTENT_STRINGS             = Hash.new { "" }
       PRE_CONTENT_STRINGS[:textarea]  = "\n"
@@ -61,13 +67,14 @@ module ActionView
           output = +""
           sep    = " "
           options.each_pair do |key, value|
-            if TAG_PREFIXES.include?(key) && value.is_a?(Hash)
+            type = TAG_TYPES[key]
+            if type == :prefix && value.is_a?(Hash)
               value.each_pair do |k, v|
                 next if v.nil?
                 output << sep
                 output << prefix_tag_option(key, k, v, escape)
               end
-            elsif BOOLEAN_ATTRIBUTES.include?(key)
+            elsif type == :boolean
               if value
                 output << sep
                 output << boolean_tag_option(key)
@@ -88,9 +95,9 @@ module ActionView
           if value.is_a?(Array)
             value = escape ? safe_join(value, " ") : value.join(" ")
           else
-            value = escape ? ERB::Util.unwrapped_html_escape(value).dup : value.to_s.dup
+            value = escape ? ERB::Util.unwrapped_html_escape(value) : value.to_s
           end
-          value.gsub!('"', "&quot;")
+          value = value.gsub('"', "&quot;") if value.include?('"')
           %(#{key}="#{value}")
         end
 

@@ -20,6 +20,7 @@ module ActionController
       raw_payload = {
         controller: self.class.name,
         action: action_name,
+        request: request,
         params: request.filtered_parameters,
         headers: request.headers,
         format: request.format.ref,
@@ -31,7 +32,8 @@ module ActionController
 
       ActiveSupport::Notifications.instrument("process_action.action_controller", raw_payload) do |payload|
         result = super
-        payload[:status] = response.status
+        payload[:response] = response
+        payload[:status]   = response.status
         result
       ensure
         append_info_to_payload(payload)

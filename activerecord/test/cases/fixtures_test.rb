@@ -1414,10 +1414,10 @@ class MultipleDatabaseFixturesTest < ActiveRecord::TestCase
 
   private
     def with_temporary_connection_pool
-      db_config = ActiveRecord::Base.connection_handler.send(:owner_to_config).fetch("primary")
-      new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(db_config)
+      pool_config = ActiveRecord::Base.connection_handler.send(:owner_to_pool_manager).fetch("primary").get_pool_config(:default)
+      new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(pool_config)
 
-      db_config.stub(:connection_pool, new_pool) do
+      pool_config.stub(:pool, new_pool) do
         yield
       end
     end

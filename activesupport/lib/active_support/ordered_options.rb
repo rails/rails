@@ -56,6 +56,10 @@ module ActiveSupport
     def respond_to_missing?(name, include_private)
       true
     end
+
+    def extractable_options?
+      true
+    end
   end
 
   # +InheritableOptions+ provides a constructor to build an +OrderedOptions+

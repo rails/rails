@@ -1,3 +1,7 @@
+*   Fix ActionMailer assertions don't work for parameterized mail with legacy delivery job.
+
+    *bogdanvlviv*
+
 *   Added `email_address_with_name` to properly escape addresses with names.
 
     *Sunny Ripert*

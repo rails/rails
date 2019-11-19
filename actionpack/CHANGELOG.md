@@ -1,3 +1,10 @@
+*   `process_action.action_controller` notifications now include the following in their payloads:
+
+    * `:request` - the `ActionDispatch::Request`
+    * `:response` - the `ActionDispatch::Response`
+
+    *George Claghorn*
+
 *   Updated `ActionDispatch::Request.remote_ip` setter to clear set the instance
     `remote_ip` to `nil` before setting the header that the value is derived
     from.

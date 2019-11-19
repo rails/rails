@@ -1,3 +1,15 @@
+*   Calling methods like `establish_connection` with a `Hash` which is invalid (eg: no `adapter`) will now raise an error the same way as connections defined in `config/database.yml`.
+
+    *John Crepezzi*
+
+*   Specifying `implicit_order_column` now subsorts the records by primary key if available to ensure deterministic results.
+
+    *Paweł Urbanek*
+
+*   `where(attr => [])` now loads an empty result without making a query.
+
+    *John Hawthorn*
+
 *   Fixed the performance regression for `primary_keys` introduced MySQL 8.0.
 
     *Hiroyuki Ishii*

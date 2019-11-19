@@ -555,7 +555,7 @@ directory at `app/views/blorgh/comments` and in it a new file called
 
 ```html+erb
 <h3>New comment</h3>
-<%= form_with(model: [@article, @article.comments.build], local: true) do |form| %>
+<%= form_with model: [@article, @article.comments.build], local: true do |form| %>
   <p>
     <%= form.label :text %><br>
     <%= form.text_area :text %>
@@ -1523,6 +1523,8 @@ To hook into the initialization process of one of the following classes use the 
 | `ActionController::Base`             | `action_controller`                  |
 | `ActionController::TestCase`         | `action_controller_test_case`        |
 | `ActionDispatch::IntegrationTest`    | `action_dispatch_integration_test`   |
+| `ActionDispatch::Response`           | `action_dispatch_response`           |
+| `ActionDispatch::Request`            | `action_dispatch_request`            |
 | `ActionDispatch::SystemTestCase`     | `action_dispatch_system_test_case`   |
 | `ActionMailbox::Base`                | `action_mailbox`                     |
 | `ActionMailbox::InboundEmail`        | `action_mailbox_inbound_email`       |

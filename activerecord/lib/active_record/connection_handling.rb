@@ -47,8 +47,8 @@ module ActiveRecord
     # The exceptions AdapterNotSpecified, AdapterNotFound and +ArgumentError+
     # may be returned on an error.
     def establish_connection(config_or_env = nil)
-      config_hash = resolve_config_for_connection(config_or_env)
-      connection_handler.establish_connection(config_hash)
+      db_config = resolve_config_for_connection(config_or_env)
+      connection_handler.establish_connection(db_config)
     end
 
     # Connects a model to the databases specified. The +database+ keyword
@@ -69,10 +69,10 @@ module ActiveRecord
       connections = []
 
       database.each do |role, database_key|
-        config_hash = resolve_config_for_connection(database_key)
+        db_config = resolve_config_for_connection(database_key)
         handler = lookup_connection_handler(role.to_sym)
 
-        connections << handler.establish_connection(config_hash)
+        connections << handler.establish_connection(db_config)
       end
 
       connections
@@ -124,10 +124,10 @@ module ActiveRecord
           role = role.to_sym
         end
 
-        config_hash = resolve_config_for_connection(database)
+        db_config = resolve_config_for_connection(database)
         handler = lookup_connection_handler(role)
 
-        handler.establish_connection(config_hash)
+        handler.establish_connection(db_config)
 
         with_handler(role, &blk)
       elsif role
@@ -174,20 +174,6 @@ module ActiveRecord
     def with_handler(handler_key, &blk) # :nodoc:
       handler = lookup_connection_handler(handler_key)
       swap_connection_handler(handler, &blk)
-    end
-
-    def resolve_config_for_connection(config_or_env) # :nodoc:
-      raise "Anonymous class is not allowed." unless name
-
-      config_or_env ||= DEFAULT_ENV.call.to_sym
-      pool_name = primary_class? ? "primary" : name
-      self.connection_specification_name = pool_name
-
-      resolver = ConnectionAdapters::Resolver.new(Base.configurations)
-      config_hash = resolver.resolve(config_or_env, pool_name).configuration_hash
-      config_hash[:name] = pool_name
-
-      config_hash
     end
 
     # Clears the query cache for all connections associated with the current thread.
@@ -263,6 +249,18 @@ module ActiveRecord
       :clear_all_connections!, :flush_idle_connections!, to: :connection_handler
 
     private
+      def resolve_config_for_connection(config_or_env)
+        raise "Anonymous class is not allowed." unless name
+
+        config_or_env ||= DEFAULT_ENV.call.to_sym
+        pool_name = primary_class? ? "primary" : name
+        self.connection_specification_name = pool_name
+
+        db_config = Base.configurations.resolve(config_or_env, pool_name)
+        db_config.configuration_hash[:name] = pool_name
+        db_config
+      end
+
       def swap_connection_handler(handler, &blk) # :nodoc:
         old_handler, ActiveRecord::Base.connection_handler = ActiveRecord::Base.connection_handler, handler
         yield

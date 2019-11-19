@@ -15,9 +15,11 @@
 # update a blob's metadata on a subsequent pass, but you should not update the key or change the uploaded file.
 # If you need to create a derivative or otherwise change the blob, simply create a new blob and purge the old one.
 class ActiveStorage::Blob < ActiveRecord::Base
-  require_dependency "active_storage/blob/analyzable"
-  require_dependency "active_storage/blob/identifiable"
-  require_dependency "active_storage/blob/representable"
+  unless Rails.autoloaders.zeitwerk_enabled?
+    require_dependency "active_storage/blob/analyzable"
+    require_dependency "active_storage/blob/identifiable"
+    require_dependency "active_storage/blob/representable"
+  end
 
   include Analyzable
   include Identifiable
@@ -30,7 +32,8 @@ class ActiveStorage::Blob < ActiveRecord::Base
   has_secure_token :key, length: MINIMUM_TOKEN_LENGTH
   store :metadata, accessors: [ :analyzed, :identified ], coder: ActiveRecord::Coders::JSON
 
-  class_attribute :service
+  class_attribute :services, default: {}
+  class_attribute :service, instance_accessor: false
 
   has_many :attachments
 
@@ -47,8 +50,8 @@ class ActiveStorage::Blob < ActiveRecord::Base
   validates :service_name, presence: true
 
   validate do
-    if service_name_changed? && service_name
-      ActiveStorage::ServiceRegistry.fetch(service_name) do
+    if service_name_changed? && service_name.present?
+      services.fetch(service_name) do
         errors.add(:service_name, :invalid)
       end
     end
@@ -264,7 +267,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
 
   # Returns an instance of service, which can be configured globally or per attachment
   def service
-    ActiveStorage::ServiceRegistry.fetch(service_name)
+    services.fetch(service_name)
   end
 
   private
