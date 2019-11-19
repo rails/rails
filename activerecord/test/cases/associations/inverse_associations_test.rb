@@ -536,13 +536,6 @@ class InverseHasManyTests < ActiveRecord::TestCase
       assert_predicate Man.joins(:interests).includes(:interests).first.interests, :any?
     end
   end
-
-  def reset_callbacks(target, type)
-    old_callbacks = target.send(:get_callbacks, type).deep_dup
-    yield
-  ensure
-    target.send(:set_callbacks, type, old_callbacks) if old_callbacks
-  end
 end
 
 class InverseBelongsToTests < ActiveRecord::TestCase

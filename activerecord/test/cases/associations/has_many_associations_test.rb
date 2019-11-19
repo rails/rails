@@ -2636,7 +2636,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   test "prevent double insertion of new object when the parent association loaded in the after save callback" do
-    reset_callbacks(:save, Bulb) do
+    reset_callbacks(Bulb, :save) do
       Bulb.after_save { |record| record.car.bulbs.load }
 
       car = Car.create!
@@ -2647,7 +2647,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   test "prevent double firing the before save callback of new object when the parent association saved in the callback" do
-    reset_callbacks(:save, Bulb) do
+    reset_callbacks(Bulb, :save) do
       count = 0
       Bulb.before_save { |record| record.car.save && count += 1 }
 
@@ -2702,7 +2702,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_loading_association_in_validate_callback_doesnt_affect_persistence
-    reset_callbacks(:validation, Bulb) do
+    reset_callbacks(Bulb, :validation) do
       Bulb.after_validation { |record| record.car.bulbs.load }
 
       car = Car.create!(name: "Car")
@@ -2727,19 +2727,5 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     def force_signal37_to_load_all_clients_of_firm
       companies(:first_firm).clients_of_firm.load_target
-    end
-
-    def reset_callbacks(kind, klass)
-      old_callbacks = {}
-      old_callbacks[klass] = klass.send("_#{kind}_callbacks").dup
-      klass.subclasses.each do |subclass|
-        old_callbacks[subclass] = subclass.send("_#{kind}_callbacks").dup
-      end
-      yield
-    ensure
-      klass.send("_#{kind}_callbacks=", old_callbacks[klass])
-      klass.subclasses.each do |subclass|
-        subclass.send("_#{kind}_callbacks=", old_callbacks[subclass])
-      end
     end
 end
