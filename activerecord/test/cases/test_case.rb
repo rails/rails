@@ -79,6 +79,20 @@ module ActiveRecord
       model.reset_column_information
       model.column_names.include?(column_name.to_s)
     end
+
+    def reset_callbacks(klass, kind)
+      old_callbacks = {}
+      old_callbacks[klass] = klass.send("_#{kind}_callbacks").dup
+      klass.subclasses.each do |subclass|
+        old_callbacks[subclass] = subclass.send("_#{kind}_callbacks").dup
+      end
+      yield
+    ensure
+      klass.send("_#{kind}_callbacks=", old_callbacks[klass])
+      klass.subclasses.each do |subclass|
+        subclass.send("_#{kind}_callbacks=", old_callbacks[subclass])
+      end
+    end
   end
 
   class PostgreSQLTestCase < TestCase

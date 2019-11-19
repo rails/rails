@@ -626,6 +626,21 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal [comments(:does_it_hurt)], assert_no_queries { author.special_post_comments }
   end
 
+  def test_preloading_with_has_one_through_an_sti_with_after_initialize
+    author_a = Author.create!(name: "A")
+    author_b = Author.create!(name: "B")
+    post_a = StiPost.create!(author: author_a, title: "TITLE", body: "BODY")
+    post_b = SpecialPost.create!(author: author_b, title: "TITLE", body: "BODY")
+    comment_a = SpecialComment.create!(post: post_a, body: "TEST")
+    comment_b = SpecialComment.create!(post: post_b, body: "TEST")
+    reset_callbacks(StiPost, :initialize) do
+      StiPost.after_initialize { author }
+      SpecialComment.where(id: [comment_a.id, comment_b.id]).includes(:author).each do |comment|
+        assert comment.author
+      end
+    end
+  end
+
   def test_preloading_has_many_through_with_implicit_source
     authors = Author.includes(:very_special_comments).to_a
     assert_no_queries do
