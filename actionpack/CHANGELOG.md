@@ -1,3 +1,7 @@
+*   Add `params.member?` to mimic Hash behavior
+
+    *Younes Serraj*
+
 *   `process_action.action_controller` notifications now include the following in their payloads:
 
     * `:request` - the `ActionDispatch::Request`
