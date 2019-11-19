@@ -1129,8 +1129,10 @@ you attempt to do just that on the new article form
 We've covered the "CR" part of CRUD. Now let's focus on the "U" part, updating
 articles.
 
-The first step we'll take is adding an `edit` action to the `ArticlesController`,
-generally between the `new` and `create` actions, as shown:
+The first step we'll take is adding an `edit` action to the 
+`ArticlesController`(keep in mind that we're using `edit` to render a view, for 
+the actual updating function, we'll add an `update` action later), generally 
+between the `new` and `create` actions, as shown:
 
 ```ruby
 def new
@@ -1214,6 +1216,10 @@ Next, we need to create the `update` action in
 Add it between the `create` action and the `private` method:
 
 ```ruby
+def edit
+  @article = Article.find(params[:id])
+end
+
 def create
   @article = Article.new(article_params)
 
