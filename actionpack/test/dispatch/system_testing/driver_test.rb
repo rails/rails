@@ -133,4 +133,10 @@ class DriverTest < ActiveSupport::TestCase
   ensure
     ::Selenium::WebDriver::Chrome::Service.driver_path = original_driver_path
   end
+
+  test "does not preload if :rack_test is set" do
+    assert_not_called_on_instance_of(ActionDispatch::SystemTesting::Browser, :preload) do
+      ActionDispatch::SystemTesting::Driver.new(:rack_test, using: :chrome)
+    end
+  end
 end

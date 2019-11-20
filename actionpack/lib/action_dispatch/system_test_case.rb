@@ -118,6 +118,7 @@ module ActionDispatch
 
     def initialize(*) # :nodoc:
       super
+      self.class.driven_by(:selenium) unless self.class.driver?
       self.class.driver.use
     end
 
@@ -156,8 +157,6 @@ module ActionDispatch
 
       self.driver = SystemTesting::Driver.new(driver, **driver_options, &capabilities)
     end
-
-    driven_by :selenium
 
     private
       def url_helpers
