@@ -10,7 +10,7 @@ module ActionDispatch
         @options = options[:options]
         @capabilities = capabilities
 
-        @browser.preload
+        @browser.preload unless name == :rack_test
       end
 
       def use
