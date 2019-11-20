@@ -165,6 +165,7 @@ module ActionDispatch
           if ActionDispatch.test_app
             Class.new do
               include ActionDispatch.test_app.routes.url_helpers
+              include ActionDispatch.test_app.routes.mounted_helpers
 
               def url_options
                 default_url_options.reverse_merge(host: Capybara.app_host || Capybara.current_session.server_url)
