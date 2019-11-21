@@ -1130,9 +1130,8 @@ We've covered the "CR" part of CRUD. Now let's focus on the "U" part, updating
 articles.
 
 The first step we'll take is adding an `edit` action to the 
-`ArticlesController`(keep in mind that we're using `edit` to render a view, for 
-the actual updating function, we'll add an `update` action later), generally 
-between the `new` and `create` actions, as shown:
+`ArticlesController`, generally between the `new` and `create` 
+actions, as shown:
 
 ```ruby
 def new
@@ -1153,6 +1152,10 @@ def create
   end
 end
 ```
+
+NOTE:  We're using `edit` to render a view. For the actual
+saving of the changes to the Article, we'll add an `update` action later.
+
 
 The view will contain a form similar to the one we used when creating
 new articles. Create a file called `app/views/articles/edit.html.erb` and make
