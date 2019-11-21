@@ -1,3 +1,7 @@
+*   Allow attributes to be fetched from Arel node groupings.
+
+    *Jeff Emminger*, *Gannon McGibbon*
+
 *   Calling methods like `establish_connection` with a `Hash` which is invalid (eg: no `adapter`) will now raise an error the same way as connections defined in `config/database.yml`.
 
     *John Crepezzi*
