@@ -4,9 +4,15 @@
   "dependencies": {
     "@rails/webpacker": "^4.0.2",
     "actiontext": "file:../..",
-    "trix": "^1.1.1"
+    "trix": "^1.1.1",
+    "snyk": "^1.251.0"
   },
   "devDependencies": {
     "webpack-dev-server": "^3.3.1"
-  }
+  },
+  "scripts": {
+    "snyk-protect": "snyk protect",
+    "prepare": "yarn run snyk-protect"
+  },
+  "snyk": true
 }
