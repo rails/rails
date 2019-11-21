@@ -621,7 +621,7 @@ See [#19034](https://github.com/rails/rails/pull/19034) for more details.
 continue using these methods in your controller tests, add `gem 'rails-controller-testing'` to
 your `Gemfile`.
 
-If you are using Rspec for testing, please see the extra configuration required in the gem's
+If you are using RSpec for testing, please see the extra configuration required in the gem's
 documentation.
 
 #### New behavior when uploading files
