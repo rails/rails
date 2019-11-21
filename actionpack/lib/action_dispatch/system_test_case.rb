@@ -122,6 +122,7 @@ module ActionDispatch
       @proxy_route = if ActionDispatch.test_app
         Class.new do
           include ActionDispatch.test_app.routes.url_helpers
+          include ActionDispatch.test_app.routes.mounted_helpers
 
           def url_options
             default_url_options.merge(host: Capybara.app_host)
