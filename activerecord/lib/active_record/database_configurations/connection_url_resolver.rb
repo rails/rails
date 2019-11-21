@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/enumerable"
+
 module ActiveRecord
   class DatabaseConfigurations
     # Expands a connection string into a hash.
