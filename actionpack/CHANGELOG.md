@@ -1,3 +1,8 @@
+*   `redirect_to.action_controller` notifications now include the `ActionDispatch::Request` in
+    their payloads as `:request`.
+
+    *Austin Story*
+
 *   `respond_to#any` no longer returns a response's Content-Type based on the
     request format but based on the block given.
 
