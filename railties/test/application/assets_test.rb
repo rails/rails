@@ -131,7 +131,7 @@ module ApplicationTests
       app_file "app/assets/javascripts/something.else.js.erb", "alert();"
       app_file "app/assets/stylesheets/something.else.css.erb", "body{}"
 
-      app_file "app/assets/config/manifest.js", <<~JS
+      app_file "app/assets/config/manifest.js", <<-JS.strip_heredoc
         //= link_tree ../images
         //= link_directory ../stylesheets .css
         //= link_directory ../javascripts .js
@@ -176,7 +176,11 @@ module ApplicationTests
 
       precompile!
 
-      assert_file_exists("#{app_path}/public/assets/something-*.js")
+      if sprockets_4?
+        assert_file_exists("#{app_path}/public/assets/something-*.js")
+      else
+        assert_file_exists("#{app_path}/public/assets/something/index-*.js")
+      end
     end
 
     test "precompile use assets defined in app env config" do
@@ -251,14 +255,22 @@ module ApplicationTests
     end
 
     test "the manifest file should be saved by default in the same assets folder" do
-      app_file "app/assets/stylesheets/test.css", "a{color: red}"
+      if sprockets_4?
+        app_file "app/assets/stylesheets/test.css", "a{color: red}"
+      else
+        app_file "app/assets/javascripts/application.js", "alert();"
+      end
       add_to_config "config.assets.prefix = '/x'"
 
       precompile!
 
       manifest = Dir["#{app_path}/public/x/.sprockets-manifest-*.json"].first
       assets = ActiveSupport::JSON.decode(File.read(manifest))
-      assert_match(/test-([0-z]+)\.css/, assets["assets"]["test.css"])
+      if sprockets_4?
+        assert_match(/test-([0-z]+)\.css/, assets["assets"]["test.css"])
+      else
+        assert_match(/application-([0-z]+)\.js/, assets["assets"]["application.js"])
+      end
     end
 
     test "assets do not require any assets group gem when manifest file is present" do
@@ -486,9 +498,17 @@ module ApplicationTests
       class ::PostsController < ActionController::Base; end
 
       get "/posts", {}, { "HTTPS" => "off" }
-      assert_match('src="http://example.com/assets/application.debug.js', last_response.body)
+      if sprockets_4?
+        assert_match('src="http://example.com/assets/application.debug.js', last_response.body)
+      else
+        assert_match('src="http://example.com/assets/application.self.js', last_response.body)
+      end
       get "/posts", {}, { "HTTPS" => "on" }
-      assert_match('src="https://example.com/assets/application.debug.js', last_response.body)
+      if sprockets_4?
+        assert_match('src="https://example.com/assets/application.debug.js', last_response.body)
+      else
+        assert_match('src="https://example.com/assets/application.self.js', last_response.body)
+      end
     end
 
     test "asset urls should be protocol-relative if no request is in scope" do
@@ -516,6 +536,10 @@ module ApplicationTests
     end
 
     private
+
+      def sprockets_4?
+        Sprockets::VERSION >= "4.0.0"
+      end
 
       def app_with_assets_in_view
         app_file "app/assets/javascripts/application.js", "//= require_tree ."
