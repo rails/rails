@@ -180,11 +180,13 @@ INFO. Additional keys may be added by the caller.
 | ----------- | ------------------ |
 | `:status`   | HTTP response code |
 | `:location` | URL to redirect to |
+| `:request`  | The `ActionDispatch::Request` |
 
 ```ruby
 {
   status: 302,
-  location: "http://localhost:3000/posts/new"
+  location: "http://localhost:3000/posts/new",
+  request: #<ActionDispatch::Request:0x00007ff1cb9bd7b8>
 }
 ```
 

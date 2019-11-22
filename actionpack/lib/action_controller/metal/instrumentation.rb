@@ -66,6 +66,7 @@ module ActionController
         result = super
         payload[:status]   = response.status
         payload[:location] = response.filtered_location
+        payload[:request] = request
         result
       end
     end
