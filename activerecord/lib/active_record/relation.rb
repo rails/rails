@@ -547,6 +547,29 @@ module ActiveRecord
       records.each(&:destroy).tap { reset }
     end
 
+    # Destroys the records by instantiating each
+    # record and calling its {#destroy!}[rdoc-ref:Persistence#destroy!] method.
+    # Each object's callbacks are executed (including <tt>:dependent</tt> association options).
+    # Returns the collection of objects that were destroyed; each will be frozen, to
+    # reflect that no changes should be made (since they can't be persisted).
+    # If the <tt>before_destroy</tt> callback throws +:abort+ the action is cancelled
+    # and #destroy_all! raises ActiveRecord::RecordNotDestroyed.
+    # See ActiveRecord::Callbacks for further details.
+    #
+    # Note: Instantiation, callback execution, and deletion of each
+    # record can be time consuming when you're removing many records at
+    # once. It generates at least one SQL +DELETE+ query per record (or
+    # possibly more, to enforce your callbacks). If you want to delete many
+    # rows quickly, without concern for their associations or callbacks, use
+    # #delete_all instead.
+    #
+    # ==== Examples
+    #
+    #   Person.where(age: 0..18).destroy_all!
+    def destroy_all!
+      records.each(&:destroy!).tap { reset }
+    end
+
     # Deletes the records without instantiating the records
     # first, and hence not calling the {#destroy}[rdoc-ref:Persistence#destroy]
     # method nor invoking callbacks.

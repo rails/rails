@@ -1,3 +1,7 @@
+*   Add `#destroy_all!` method to `ActiveRecord::Relation`
+
+    *Shodai Suzuki*
+
 *   Allow attributes to be fetched from Arel node groupings.
 
     *Jeff Emminger*, *Gannon McGibbon*

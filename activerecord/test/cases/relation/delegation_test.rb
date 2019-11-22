@@ -56,7 +56,7 @@ module ActiveRecord
         :first_or_create, :first_or_create!, :first_or_initialize,
         :find_or_create_by, :find_or_create_by!, :find_or_initialize_by,
         :create_or_find_by, :create_or_find_by!,
-        :destroy_all, :delete_all, :update_all, :touch_all, :delete_by, :destroy_by
+        :destroy_all, :destroy_all!, :delete_all, :update_all, :touch_all, :delete_by, :destroy_by
       ]
 
     def test_delegate_querying_methods
