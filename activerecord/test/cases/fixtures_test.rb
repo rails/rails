@@ -1353,13 +1353,6 @@ class MultipleDatabaseFixturesTest < ActiveRecord::TestCase
       rw_conn = ActiveRecord::Base.connection
       ro_conn = ActiveRecord::Base.connection_handlers[:reading].connection_pool_list.first.connection
 
-      assert_not_equal rw_conn, ro_conn
-
-      enlist_fixture_connections
-
-      rw_conn = ActiveRecord::Base.connection
-      ro_conn = ActiveRecord::Base.connection_handlers[:reading].connection_pool_list.first.connection
-
       assert_equal rw_conn, ro_conn
     end
   ensure
