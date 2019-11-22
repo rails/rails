@@ -36,7 +36,11 @@ module SidekiqJobsManager
       $stderr.sync = true
 
       logfile = Rails.root.join("log/sidekiq.log").to_s
-      Sidekiq.logger = Sidekiq::Logger.new(logfile)
+      if defined?(Sidekiq::Logger)
+        Sidekiq.logger = Sidekiq::Logger.new(logfile)
+      else
+        Sidekiq::Logging.initialize_logger
+      end
 
       self_read, self_write = IO.pipe
       trap "TERM" do
