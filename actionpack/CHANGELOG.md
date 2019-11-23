@@ -1,3 +1,34 @@
+*  `respond_to#any` no longer returns a response's Content-Type based on the
+   request format but based on the block given.
+
+   Example:
+
+   ```ruby
+     def my_action
+       respond_to do |format|
+         format.any { render(json: { foo: 'bar' }) }
+       end
+     end
+
+     get('my_action.csv')
+   ```
+   The previous behaviour was to respond with a `text/csv` Content-Type which
+   is inaccurate since a JSON response is being rendered.
+   Now it correctly returns a `application/json` Content-Type.
+
+   * Edouard Chin*
+
+*   Replaces (back)slashes in failure screenshot image paths with dashes.
+
+    If a failed test case contained a slash or a backslash, a screenshot would be created in a
+    nested directory, causing issues with `tmp:clear`.
+
+    *Damir Zekic*
+
+*   Add `params.member?` to mimic Hash behavior
+
+    *Younes Serraj*
+
 *   `process_action.action_controller` notifications now include the following in their payloads:
 
     * `:request` - the `ActionDispatch::Request`

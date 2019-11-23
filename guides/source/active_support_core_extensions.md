@@ -2093,14 +2093,27 @@ to_visit << node if visited.exclude?(node)
 
 NOTE: Defined in `active_support/core_ext/enumerable.rb`.
 
-### `without`
+### `including`
 
-The method `without` returns a copy of an enumerable with the specified elements
+The method `including` returns a new enumerable that includes the passed elements:
+
+```ruby
+[ 1, 2, 3 ].including(4, 5)                    # => [ 1, 2, 3, 4, 5 ]
+["David", "Rafael"].including %w[ Aaron Todd ] # => ["David", "Rafael", "Aaron", "Todd"]
+```
+
+NOTE: Defined in `active_support/core_ext/enumerable.rb`.
+
+### `excluding`
+
+The method `excluding` returns a copy of an enumerable with the specified elements
 removed:
 
 ```ruby
-["David", "Rafael", "Aaron", "Todd"].without("Aaron", "Todd") # => ["David", "Rafael"]
+["David", "Rafael", "Aaron", "Todd"].excluding("Aaron", "Todd") # => ["David", "Rafael"]
 ```
+
+`excluding` is aliased to `without`.
 
 NOTE: Defined in `active_support/core_ext/enumerable.rb`.
 
@@ -2132,6 +2145,22 @@ Similarly, `from` returns the tail from the element at the passed index to the e
 %w(a b c d).from(2)  # => ["c", "d"]
 %w(a b c d).from(10) # => []
 [].from(0)           # => []
+```
+
+The method `including` returns a new array that includes the passed elements:
+
+```ruby
+[ 1, 2, 3 ].including(4, 5)          # => [ 1, 2, 3, 4, 5 ]
+[ [ 0, 1 ] ].including([ [ 1, 0 ] ]) # => [ [ 0, 1 ], [ 1, 0 ] ]
+```
+
+The method `excluding` returns a copy of the Array excluding the specified elements.
+This is an optimization of `Enumerable#excluding` that uses `Array#-`
+instead of `Array#reject` for performance reasons.
+
+```ruby
+["David", "Rafael", "Aaron", "Todd"].excluding("Aaron", "Todd") # => ["David", "Rafael"]
+[ [ 0, 1 ], [ 1, 0 ] ].excluding([ [ 1, 0 ] ])                  # => [ [ 0, 1 ] ]
 ```
 
 The methods `second`, `third`, `fourth`, and `fifth` return the corresponding element, as do `second_to_last` and `third_to_last` (`first` and `last` are built-in). Thanks to social wisdom and positive constructiveness all around, `forty_two` is also available.
