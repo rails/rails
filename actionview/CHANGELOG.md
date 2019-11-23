@@ -1,3 +1,18 @@
+*   `ActionView::CollectionCaching#cache_collection_render` now respects
+    `config.action_controller.perform_caching`
+
+    ```
+    <%= render partial: 'products/product', collection: @products, cached: true %>
+    ```
+
+    Before:
+      It would always return the cached partial.
+      Even if `config.action_controller.perform_caching == false`
+    After:
+      It will return the cached partial only if `config.action_controller.perform_caching == true`
+
+    *Santiago Bartesaghi*
+
 *   `ActionView::Helpers::FormOptionsHelper#select` should mark option for `nil` as selected.
 
     ```ruby
