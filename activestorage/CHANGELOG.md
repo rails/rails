@@ -1,3 +1,8 @@
+## Rails 5.2.4.rc1 (November 22, 2019) ##
+
+*   No changes.
+
+
 ## Rails 5.2.3 (March 27, 2019) ##
 
 *   No changes.

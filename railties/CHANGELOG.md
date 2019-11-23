@@ -1,3 +1,5 @@
+## Rails 5.2.4.rc1 (November 22, 2019) ##
+
 *   Use original `bundler` environment variables during the process of generating a new rails project.
 
     *Marco Costa*

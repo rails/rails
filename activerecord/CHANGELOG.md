@@ -1,3 +1,5 @@
+## Rails 5.2.4.rc1 (November 22, 2019) ##
+
 *   Fix circular `autosave: true` causes invalid records to be saved.
 
     Prior to the fix, when there was a circular series of `autosave: true`
