@@ -79,7 +79,7 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
     end
     assert_match("private method `last_read=' called", ex.message)
   ensure
-    Topic.private_method_defined?(:last_read=) and Topic.remove_method(:last_read=)
+    Topic.private_method_defined?(:last_read=) && Topic.remove_method(:last_read=)
   end
 
   def test_multiparameter_attributes_on_time
@@ -327,7 +327,7 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
     end
     assert_match("private method `written_on=' called", ex.message)
   ensure
-    Topic.private_method_defined?(:written_on=) and Topic.remove_method(:written_on=)
+    Topic.private_method_defined?(:written_on=) && Topic.remove_method(:written_on=)
   end
 
   def test_multiparameter_attributes_setting_date_attribute
