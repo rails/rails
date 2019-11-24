@@ -181,7 +181,7 @@ module ActiveStorage
 
     def changed_for_autosave? #:nodoc:
       super || attachment_changes.any?
-    end 
+    end
 
     def reload(*) #:nodoc:
       super.tap { @attachment_changes = nil }
