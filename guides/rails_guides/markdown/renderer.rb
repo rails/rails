@@ -12,7 +12,7 @@ module RailsGuides
 #{ERB::Util.h(code)}
 </pre>
 </div>
-HTML
+        HTML
       end
 
       def link(url, title, content)
