@@ -889,7 +889,6 @@ class AdminsController < ApplicationController
   before_action :authenticate
 
   private
-
     def authenticate
       authenticate_or_request_with_http_digest do |username|
         USERS[username]
@@ -900,7 +899,7 @@ end
 
 As seen in the example above, the `authenticate_or_request_with_http_digest` block takes only one argument - the username. And the block returns the password. Returning `false` or `nil` from the `authenticate_or_request_with_http_digest` will cause authentication failure.
 
-### HTTP Token authentication
+### HTTP Token Authentication
 
 HTTP token authentication is a scheme to enable the usage of Bearer tokens in the HTTP `Authorization` header. There are many token formats available and describing them is outside the scope of this document.
 
@@ -913,7 +912,6 @@ class PostsController < ApplicationController
   before_action :authenticate
 
   private
-
     def authenticate
       authenticate_or_request_with_http_token do |token, options|
         ActiveSupport::SecurityUtils.secure_compare(token, TOKEN)
@@ -944,7 +942,6 @@ class ClientsController < ApplicationController
   end
 
   private
-
     def generate_pdf(client)
       Prawn::Document.new do
         text client.name, align: :center
@@ -1156,7 +1153,6 @@ class ApplicationController < ActionController::Base
   rescue_from ActiveRecord::RecordNotFound, with: :record_not_found
 
   private
-
     def record_not_found
       render plain: "404 Not Found", status: 404
     end
@@ -1170,7 +1166,6 @@ class ApplicationController < ActionController::Base
   rescue_from User::NotAuthorized, with: :user_not_authorized
 
   private
-
     def user_not_authorized
       flash[:error] = "You don't have access to this section."
       redirect_back(fallback_location: root_path)
@@ -1187,7 +1182,6 @@ class ClientsController < ApplicationController
   end
 
   private
-
     # If the user is not authorized, just throw the exception.
     def check_authorization
       raise User::NotAuthorized unless current_user.admin?
