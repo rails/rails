@@ -36,7 +36,7 @@
 
     *Juanito Fatas*
 
-*   Added `phone_to` helper method to create a link from mobile numbers
+*   Added `phone_to` helper method to create a link from mobile numbers.
 
     *Pietro Moro*
 
@@ -49,7 +49,7 @@
 
     *Guilherme Mansur*, *Gannon McGibbon*
 
-*   `RenderingHelper` supports rendering objects that `respond_to?` `:render_in`
+*   `RenderingHelper` supports rendering objects that `respond_to?` `:render_in`.
 
     *Joel Hawksley*, *Natasha Umer*, *Aaron Patterson*, *Shawn Allen*, *Emily Plummer*, *Diana Mounter*, *John Hawthorn*, *Nathan Herald*, *Zaid Zawaideh*, *Zach Ahn*
 

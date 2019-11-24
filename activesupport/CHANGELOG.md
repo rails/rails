@@ -34,22 +34,21 @@
         small_duration_from_int = ActiveSupport::Duration.build(9)
 
         large_duration_from_string > small_duration_from_string
-            => false
+        # => false
 
         small_duration_from_string == small_duration_from_int
-            => false
+        # => false
 
         small_duration_from_int < large_duration_from_string
-            => ArgumentError (comparison of ActiveSupport::Duration::Scalar
-                    with ActiveSupport::Duration failed)
+        # => ArgumentError (comparison of ActiveSupport::Duration::Scalar with ActiveSupport::Duration failed)
 
         large_duration_from_string > small_duration_from_int
-            => ArgumentError (comparison of String with ActiveSupport::Duration failed)
+        # => ArgumentError (comparison of String with ActiveSupport::Duration failed)
 
     After:
 
         small_duration_from_string = ActiveSupport::Duration.build('9')
-            => TypeError (can't build an ActiveSupport::Duration from a String)
+        # => TypeError (can't build an ActiveSupport::Duration from a String)
 
     *Alexei Emam*
 
@@ -62,7 +61,7 @@
 
     *Wojciech Wnętrzak*
 
-*   Allow initializing `thread_mattr_*` attributes via `:default` option
+*   Allow initializing `thread_mattr_*` attributes via `:default` option.
 
         class Scraper
           thread_mattr_reader :client, default: Api::Client.new
@@ -71,11 +70,11 @@
     *Guilherme Mansur*
 
 *   Add `compact_blank` for those times when you want to remove #blank? values from
-    an Enumerable (also `compact_blank!` on Hash, Array, ActionController::Parameters)
+    an Enumerable (also `compact_blank!` on Hash, Array, ActionController::Parameters).
 
     *Dana Sherson*
 
-*   Make ActiveSupport::Logger Fiber-safe. Fixes #36752.
+*   Make ActiveSupport::Logger Fiber-safe.
 
     Use `Fiber.current.__id__` in `ActiveSupport::Logger#local_level=` in order
     to make log level local to Ruby Fibers in addition to Threads.
@@ -84,14 +83,14 @@
 
         logger = ActiveSupport::Logger.new(STDOUT)
         logger.level = 1
-        p "Main is debug? #{logger.debug?}"
+        puts "Main is debug? #{logger.debug?}"
 
         Fiber.new {
           logger.local_level = 0
-          p "Thread is debug? #{logger.debug?}"
+          puts "Thread is debug? #{logger.debug?}"
         }.resume
 
-        p "Main is debug? #{logger.debug?}"
+        puts "Main is debug? #{logger.debug?}"
 
     Before:
 
@@ -104,6 +103,8 @@
         Main is debug? false
         Thread is debug? true
         Main is debug? false
+
+    Fixes #36752.
 
     *Alexander Varnin*
 

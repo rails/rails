@@ -1,22 +1,24 @@
-*  `respond_to#any` no longer returns a response's Content-Type based on the
-   request format but based on the block given.
+*   `respond_to#any` no longer returns a response's Content-Type based on the
+    request format but based on the block given.
 
-   Example:
+    Example:
 
-   ```ruby
-     def my_action
-       respond_to do |format|
-         format.any { render(json: { foo: 'bar' }) }
-       end
-     end
+    ```ruby
+      def my_action
+        respond_to do |format|
+          format.any { render(json: { foo: 'bar' }) }
+        end
+      end
 
-     get('my_action.csv')
-   ```
-   The previous behaviour was to respond with a `text/csv` Content-Type which
-   is inaccurate since a JSON response is being rendered.
-   Now it correctly returns a `application/json` Content-Type.
+      get('my_action.csv')
+    ```
 
-   * Edouard Chin*
+    The previous behaviour was to respond with a `text/csv` Content-Type which
+    is inaccurate since a JSON response is being rendered.
+
+    Now it correctly returns a `application/json` Content-Type.
+
+    *Edouard Chin*
 
 *   Replaces (back)slashes in failure screenshot image paths with dashes.
 
@@ -25,7 +27,7 @@
 
     *Damir Zekic*
 
-*   Add `params.member?` to mimic Hash behavior
+*   Add `params.member?` to mimic Hash behavior.
 
     *Younes Serraj*
 
@@ -40,7 +42,7 @@
     `remote_ip` to `nil` before setting the header that the value is derived
     from.
 
-    Fixes https://github.com/rails/rails/issues/37383
+    Fixes #37383.
 
     *Norm Provost*
 
@@ -75,7 +77,7 @@
 
     https://github.com/rails/rails/pull/36213
 
-    Fixes #25842
+    Fixes #25842.
 
     *Stan Lo*
 
@@ -92,7 +94,7 @@
 
     *Alberto Fernández-Capel*
 
-*   Add DSL for configuring HTTP Feature Policy
+*   Add DSL for configuring HTTP Feature Policy.
 
     This new DSL provides a way to configure an HTTP Feature Policy at a
     global or per-controller level. Full details of HTTP Feature Policy
@@ -100,9 +102,9 @@
 
     https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy
 
-    Example global policy
+    Example global policy:
 
-    ```
+    ```ruby
     Rails.application.config.feature_policy do |f|
       f.camera      :none
       f.gyroscope   :none
@@ -113,9 +115,9 @@
     end
     ```
 
-    Example controller level policy
+    Example controller level policy:
 
-    ```
+    ```ruby
     class PagesController < ApplicationController
       feature_policy do |p|
         p.geolocation "https://example.com"

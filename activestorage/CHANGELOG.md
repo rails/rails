@@ -16,7 +16,7 @@
 
     *Kyle Ribordy*
 
-*   Allow storage services to be configured per attachment
+*   Allow storage services to be configured per attachment.
 
     ```ruby
     class User < ActiveRecord::Base

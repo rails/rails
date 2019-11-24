@@ -126,7 +126,7 @@
 
     *Edu Depetris*
 
-*   Make currency symbols optional for money column type in PostgreSQL
+*   Make currency symbols optional for money column type in PostgreSQL.
 
     *Joel Schneider*
 

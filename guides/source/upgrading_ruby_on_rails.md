@@ -100,7 +100,7 @@ If your application relies on the previous incorrect behaviour, you are encourag
 which formats your action accepts, i.e.
 
 ```ruby
-   format.any(:xml, :json) { render request.format.to_sym => @people }
+  format.any(:xml, :json) { render request.format.to_sym => @people }
 ```
 
 
