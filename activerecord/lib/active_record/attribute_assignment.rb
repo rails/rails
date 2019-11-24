@@ -49,7 +49,7 @@ module ActiveRecord
           else
             values = values_with_empty_parameters
           end
-          send("#{name}=", values)
+          public_send("#{name}=", values)
         rescue => ex
           errors << AttributeAssignmentError.new("error on assignment #{values_with_empty_parameters.values.inspect} to #{name} (#{ex.message})", ex, name)
         end

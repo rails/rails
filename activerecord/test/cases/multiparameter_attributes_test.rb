@@ -65,6 +65,23 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
     assert_nil topic.last_read
   end
 
+  def test_multiparameter_attributes_on_date_with_private_writer
+    Topic.module_eval do
+      private
+        def last_read=(value)
+          super
+        end
+    end
+    ex = assert_raise(ActiveRecord::MultiparameterAssignmentErrors) do
+      attributes = { "last_read(1i)" => "2004", "last_read(2i)" => "6", "last_read(3i)" => "24" }
+      topic = Topic.find(1)
+      topic.attributes = attributes
+    end
+    assert_match("private method `last_read=' called", ex.message)
+  ensure
+    Topic.private_method_defined?(:last_read=) and Topic.remove_method(:last_read=)
+  end
+
   def test_multiparameter_attributes_on_time
     with_timezone_config default: :local do
       attributes = {
@@ -291,6 +308,26 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
       topic.attributes = attributes
       assert_equal Time.local(2004, 6, 24, 16, 24, 0), topic.written_on
     end
+  end
+
+  def test_multiparameter_attributes_on_time_with_private_writer
+    Topic.module_eval do
+      private
+        def written_on=(value)
+          super
+        end
+    end
+    ex = assert_raise(ActiveRecord::MultiparameterAssignmentErrors) do
+      attributes = {
+        "written_on(1i)" => "2004", "written_on(2i)" => "6", "written_on(3i)" => "24",
+        "written_on(4i)" => "16", "written_on(5i)" => "24", "written_on(6i)" => "00"
+      }
+      topic = Topic.find(1)
+      topic.attributes = attributes
+    end
+    assert_match("private method `written_on=' called", ex.message)
+  ensure
+    Topic.private_method_defined?(:written_on=) and Topic.remove_method(:written_on=)
   end
 
   def test_multiparameter_attributes_setting_date_attribute
