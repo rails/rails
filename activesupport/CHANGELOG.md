@@ -16,7 +16,7 @@
 
     *Allen Hsu*, *Andrew Hodgkinson*
 
-*   Don't use `Process#clock_gettime(CLOCK_PROCESS_CPUTIME_ID)` on Solaris
+*   Don't use `Process#clock_gettime(CLOCK_THREAD_CPUTIME_ID)` on Solaris.
 
     *Iain Beeston*
 
