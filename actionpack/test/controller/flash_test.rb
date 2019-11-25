@@ -80,6 +80,14 @@ class FlashTest < ActionController::TestCase
       redirect_to "/somewhere", notice: "Good luck in the somewheres!"
     end
 
+    def redirect_with_alert_implicitly_translated
+      redirect_to "/nowhere", alert: true
+    end
+
+    def redirect_with_notice_implicitly_translated
+      redirect_to "/somewhere", notice: true
+    end
+
     def render_with_flash_now_alert
       flash.now.alert = "Beware the nowheres now!"
       render inline: "hello"
@@ -100,6 +108,21 @@ class FlashTest < ActionController::TestCase
   end
 
   tests TestController
+
+  setup do
+    I18n.backend.store_translations(:en,
+      flash_test: {
+        test: {
+          redirect_with_alert_implicitly_translated: {
+            alert: "Beware the implicitly translated nowheres!"
+          },
+          redirect_with_notice_implicitly_translated: {
+            notice: "Good luck in the implicitly translated somewheres!"
+          }
+        }
+      }
+    )
+  end
 
   def test_flash
     get :set_flash
@@ -195,6 +218,16 @@ class FlashTest < ActionController::TestCase
   def test_redirect_to_with_notice
     get :redirect_with_notice
     assert_equal "Good luck in the somewheres!", @controller.send(:flash)[:notice]
+  end
+
+  def test_redirect_to_with_alert_implicitly_translated
+    get :redirect_with_alert_implicitly_translated
+    assert_equal "Beware the implicitly translated nowheres!", @controller.send(:flash)[:alert]
+  end
+
+  def test_redirect_to_with_notice_implicitly_translated
+    get :redirect_with_notice_implicitly_translated
+    assert_equal "Good luck in the implicitly translated somewheres!", @controller.send(:flash)[:notice]
   end
 
   def test_render_with_flash_now_alert

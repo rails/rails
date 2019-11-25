@@ -47,7 +47,7 @@ module ActionController #:nodoc:
       def redirect_to(options = {}, response_options_and_flash = {}) #:doc:
         self.class._flash_types.each do |flash_type|
           if type = response_options_and_flash.delete(flash_type)
-            flash[flash_type] = type
+            flash[flash_type] = type == true ? t(".#{flash_type}") : type
           end
         end
 
