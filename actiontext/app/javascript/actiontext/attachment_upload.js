@@ -20,7 +20,7 @@ export class AttachmentUpload {
 
   directUploadDidComplete(error, attributes) {
     if (error) {
-      var uploadFailed = new CustomEvent("actiontext-attachment-error", {"detail": {"error": error }});
+      var uploadFailed = new CustomEvent("trix-attachment-error", {"detail": {"error": error }});
       this.element.dispatchEvent(uploadFailed);
     } else {
       this.attachment.setAttributes({
