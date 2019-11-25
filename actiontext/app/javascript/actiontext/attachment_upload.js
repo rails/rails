@@ -20,8 +20,8 @@ export class AttachmentUpload {
 
   directUploadDidComplete(error, attributes) {
     if (error) {
-      var uploadFailed = new CustomEvent("trix-attachment-error", {"detail": {"error": error }});
-      this.element.dispatchEvent(uploadFailed);
+      let uploadFailed = new CustomEvent("trix-attachment-error", {"detail": {"error": error }})
+      this.element.dispatchEvent(uploadFailed)
     } else {
       this.attachment.setAttributes({
         sgid: attributes.attachable_sgid,
