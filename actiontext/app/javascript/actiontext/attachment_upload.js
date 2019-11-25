@@ -20,7 +20,8 @@ export class AttachmentUpload {
 
   directUploadDidComplete(error, attributes) {
     if (error) {
-      throw new Error(`Direct upload failed: ${error}`)
+      var uploadFailed = new CustomEvent("actiontext-attachment-error", {"detail": {"error": error }});
+      document.dispatchEvent(uploadFailed);
     }
 
     this.attachment.setAttributes({
