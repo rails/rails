@@ -1,3 +1,7 @@
+*   Allow escaping of literal colon characters in `sanitize_sql_*` methods when named bind variables are used
+
+    *Justin Bull*
+
 *   Fix `#previously_new_record?` to return true for destroyed records.
 
     Before, if a record was created and then destroyed, `#previously_new_record?` would return true.
