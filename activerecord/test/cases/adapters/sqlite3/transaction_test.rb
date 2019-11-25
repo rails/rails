@@ -107,7 +107,7 @@ class SQLite3TransactionTest < ActiveRecord::SQLite3TestCase
 
     def with_connection(options = {})
       conn_options = options.reverse_merge(
-        database: in_memory_db? ? 'file::memory:' : ActiveRecord::Base.configurations["arunit"][:database]
+        database: in_memory_db? ? "file::memory:" : ActiveRecord::Base.configurations["arunit"][:database]
       )
       conn = ActiveRecord::Base.sqlite3_connection(conn_options)
 
