@@ -250,7 +250,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
     service.delete_prefixed("variants/#{key}/") if image?
   end
 
-  # Deletes the file on the service and then destroys the blob record. This is the recommended way to dispose of unwanted
+  # Destroys the blob record and then deletes the file on the service. This is the recommended way to dispose of unwanted
   # blobs. Note, though, that deleting the file off the service will initiate an HTTP connection to the service, which may
   # be slow or prevented, so you should not use this method inside a transaction or in callbacks. Use #purge_later instead.
   def purge
