@@ -21,13 +21,13 @@ export class AttachmentUpload {
   directUploadDidComplete(error, attributes) {
     if (error) {
       var uploadFailed = new CustomEvent("actiontext-attachment-error", {"detail": {"error": error }});
-      document.dispatchEvent(uploadFailed);
+      this.element.dispatchEvent(uploadFailed);
+    } else {
+      this.attachment.setAttributes({
+        sgid: attributes.attachable_sgid,
+        url: this.createBlobUrl(attributes.signed_id, attributes.filename)
+      })
     }
-
-    this.attachment.setAttributes({
-      sgid: attributes.attachable_sgid,
-      url: this.createBlobUrl(attributes.signed_id, attributes.filename)
-    })
   }
 
   createBlobUrl(signedId, filename) {
