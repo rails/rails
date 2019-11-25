@@ -325,6 +325,10 @@ module ActiveRecord
         sql
       end
 
+      def shared_cache? # :nodoc:
+        @config.fetch(:flags, 0).anybits?(::SQLite3::Constants::Open::SHAREDCACHE)
+      end
+
       def get_database_version # :nodoc:
         SQLite3Adapter::Version.new(query_value("SELECT sqlite_version(*)"))
       end
