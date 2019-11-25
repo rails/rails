@@ -181,6 +181,11 @@ class SanitizeTest < ActiveRecord::TestCase
     assert_equal "#{ActiveRecord::Base.connection.quote('10')}::integer '2009-01-01'::date", l.call
   end
 
+  def test_named_bind_with_literal_colons
+    assert_equal "TO_TIMESTAMP('2017/08/02 10:59:00', 'YYYY/MM/DD HH12:MI:SS')", bind("TO_TIMESTAMP(:date, 'YYYY/MM/DD HH12\\:MI\\:SS')", date: "2017/08/02 10:59:00")
+    assert_raise(ActiveRecord::PreparedStatementInvalid) { bind "TO_TIMESTAMP(:date, 'YYYY/MM/DD HH12:MI:SS')", date: "2017/08/02 10:59:00" }
+  end
+
   private
     def bind(statement, *vars)
       if vars.first.is_a?(Hash)
