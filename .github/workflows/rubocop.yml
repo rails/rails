@@ -23,8 +23,9 @@ jobs:
         key: ${{ runner.os }}-gem-${{ hashFiles('**/Gemfile.lock') }}
         restore-keys: |
           ${{ runner.os }}-gem-
-    - name: Build and run RuboCop
+    - name: Install gems
       run: |
         bundle config path vendor/bundle
         bundle install --jobs 4 --retry 3
-        bundle exec rubocop --parallel
+    - name: Run RuboCop
+      run: bundle exec rubocop --parallel
