@@ -95,6 +95,8 @@ module Rails
     def bin_when_updating
       bin
 
+      generate_spring_binstubs
+
       if options[:skip_javascript]
         remove_file "bin/yarn"
       end
