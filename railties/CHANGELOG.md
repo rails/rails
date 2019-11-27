@@ -1,8 +1,13 @@
+*   Fix the collision check for the scaffold generator.
+
+    *Ryan Robeson*
+
 *   Configuration files for environments (`config/environments/*.rb`) are
     now able to modify `autoload_paths`, `autoload_once_paths`, and
     `eager_load_paths`.
 
     *Allen Hsu* & *Xavier Noria*
+
 
 ## Rails 6.0.1 (November 5, 2019) ##
 

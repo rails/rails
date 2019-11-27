@@ -1,3 +1,8 @@
+*   Allow using mountable engine route helpers in System Tests.
+
+    *Chalo Fernandez*
+
+
 ## Rails 6.0.1 (November 5, 2019) ##
 
 *   `ActionDispatch::SystemTestCase` now inherits from `ActiveSupport::TestCase`

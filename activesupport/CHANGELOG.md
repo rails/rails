@@ -1,3 +1,12 @@
+*   Eager load translations during initialization.
+
+    *Diego Plentz*
+
+*   Use per-thread CPU time clock on `ActiveSupport::Notifications`.
+
+    *George Claghorn*
+
+
 ## Rails 6.0.1 (November 5, 2019) ##
 
 *   `ActiveSupport::SafeBuffer` supports `Enumerator` methods.

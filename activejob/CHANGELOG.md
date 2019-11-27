@@ -1,3 +1,13 @@
+*   Allow Sidekiq access to the underlying job class.
+
+    By having access to the Active Job class, Sidekiq can get access to any `sidekiq_options` which
+    have been set on that Active Job type and serialize those options into Redis.
+
+    https://github.com/mperham/sidekiq/blob/master/Changes.md#60
+
+    *Mike Perham*
+
+
 ## Rails 6.0.1 (November 5, 2019) ##
 
 *   No changes.

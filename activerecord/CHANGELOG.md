@@ -1,3 +1,41 @@
+*   Share the same connection pool for primary and replica databases in the
+    transactional tests for the same database.
+
+    *Edouard Chin*
+
+*   Fix the preloader when one record is fetched using `after_initialize`
+    but not the entire colection.
+
+    *Bradley Price*
+
+*   Fix collection callbacks not terminating when `:abort` is thrown.
+
+    *Edouard Chin*, *Ryuta Kamizono*
+
+*   Correctly deprecate `where.not` working as NOR for relations.
+
+    12a9664 deprecated where.not working as NOR, however
+    doing a relation query like `where.not(relation: { ... })`
+    wouldn't be properly deprecated and `where.not` would work as
+    NAND instead.
+
+    *Edouard Chin*
+
+*   Fix `db:migrate` task with multiple databases to restore the connection
+    to the previous database.
+
+    The migrate task iterates and establish a connection over each db
+    resulting in the last one to be used by subsequent rake tasks.
+    We should reestablish a connection to the connection that was
+    established before the migrate tasks was run
+
+    *Edouard Chin*
+
+*   Fix multi-threaded issue for `AcceptanceValidator`.
+
+    *Ryuta Kamizono*
+
+
 ## Rails 6.0.1 (November 5, 2019) ##
 
 *    Common Table Expressions are allowed on read-only connections.
