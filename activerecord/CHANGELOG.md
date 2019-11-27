@@ -1,3 +1,5 @@
+## Rails 6.0.2.rc1 (November 27, 2019) ##
+
 *   Share the same connection pool for primary and replica databases in the
     transactional tests for the same database.
 

@@ -9,8 +9,8 @@ module ActionText
   module VERSION
     MAJOR = 6
     MINOR = 0
-    TINY  = 1
-    PRE   = nil
+    TINY  = 2
+    PRE   = "rc1"
 
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join(".")
   end

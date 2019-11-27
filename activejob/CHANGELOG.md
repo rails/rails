@@ -1,3 +1,5 @@
+## Rails 6.0.2.rc1 (November 27, 2019) ##
+
 *   Allow Sidekiq access to the underlying job class.
 
     By having access to the Active Job class, Sidekiq can get access to any `sidekiq_options` which

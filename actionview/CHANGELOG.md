@@ -1,3 +1,8 @@
+## Rails 6.0.2.rc1 (November 27, 2019) ##
+
+*   No changes.
+
+
 ## Rails 6.0.1 (November 5, 2019) ##
 
 *   UJS avoids `Element.closest()` for IE 9 compatibility.
