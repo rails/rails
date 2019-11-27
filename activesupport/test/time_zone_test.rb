@@ -647,6 +647,14 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal(-18_000, zone.utc_offset)
   end
 
+  def test_all_current_offsets_in_tzinfo_are_available
+    # Fails if new offsets are added to IANA timezone database and are not yet added to
+    # ActiveSupport::TimeZone::MAPPING, or if your operating system's timezone packages are outdated
+    tz_offsets = TZInfo::Timezone.all.map { |tz| tz.current_period.utc_offset }.uniq
+    as_offsets = tz_offsets.select { |offset| ActiveSupport::TimeZone[offset] }
+    assert_equal tz_offsets.count, as_offsets.count
+  end
+
   def test_utc_offset_is_not_cached_when_current_period_gets_stale
     tz = ActiveSupport::TimeZone.create("Moscow")
     travel_to(Time.utc(2014, 10, 25, 21)) do # 1 hour before TZ change
@@ -790,7 +798,7 @@ class TimeZoneTest < ActiveSupport::TestCase
 
   def test_country_zones_with_and_without_mappings
     assert_includes ActiveSupport::TimeZone.country_zones("au"), ActiveSupport::TimeZone["Adelaide"]
-    assert_includes ActiveSupport::TimeZone.country_zones("au"), ActiveSupport::TimeZone["Australia/Lord_Howe"]
+    assert_includes ActiveSupport::TimeZone.country_zones("au"), ActiveSupport::TimeZone["Australia/Broken_Hill"]
   end
 
   def test_country_zones_with_multiple_mappings

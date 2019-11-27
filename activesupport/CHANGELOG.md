@@ -1,3 +1,7 @@
+*   Add missing timezone offsets to `ActiveSupport::TimeZone`.
+
+    *Guy C*
+
 *   Deprecate using `Range#include?` method to check the inclusion of a value
     in a date time range. It is recommended to use `Range#cover?` method
     instead of `Range#include?` to check the inclusion of a value

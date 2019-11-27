@@ -30,6 +30,7 @@ module ActiveSupport
     # Keys are Rails TimeZone names, values are TZInfo identifiers.
     MAPPING = {
       "International Date Line West" => "Etc/GMT+12",
+      "Marquesas"                    => "Pacific/Marquesas",
       "Midway Island"                => "Pacific/Midway",
       "American Samoa"               => "Pacific/Pago_Pago",
       "Hawaii"                       => "Pacific/Honolulu",
@@ -157,6 +158,7 @@ module ActiveSupport
       "Sapporo"                      => "Asia/Tokyo",
       "Tokyo"                        => "Asia/Tokyo",
       "Yakutsk"                      => "Asia/Yakutsk",
+      "Eucla"                        => "Australia/Eucla",
       "Darwin"                       => "Australia/Darwin",
       "Adelaide"                     => "Australia/Adelaide",
       "Canberra"                     => "Australia/Melbourne",
@@ -164,6 +166,7 @@ module ActiveSupport
       "Sydney"                       => "Australia/Sydney",
       "Brisbane"                     => "Australia/Brisbane",
       "Hobart"                       => "Australia/Hobart",
+      "Lord Howe"                    => "Australia/Lord_Howe",
       "Vladivostok"                  => "Asia/Vladivostok",
       "Guam"                         => "Pacific/Guam",
       "Port Moresby"                 => "Pacific/Port_Moresby",
@@ -179,7 +182,8 @@ module ActiveSupport
       "Nuku'alofa"                   => "Pacific/Tongatapu",
       "Tokelau Is."                  => "Pacific/Fakaofo",
       "Chatham Is."                  => "Pacific/Chatham",
-      "Samoa"                        => "Pacific/Apia"
+      "Samoa"                        => "Pacific/Apia",
+      "Kiritimati"                   => "Pacific/Kiritimati"
     }
 
     UTC_OFFSET_WITH_COLON = "%s%02d:%02d" # :nodoc:
