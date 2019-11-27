@@ -619,7 +619,7 @@ module ActiveRecord
             end
 
             if valid_inverse_reflection?(reflection)
-              return inverse_name
+              inverse_name
             end
           end
         end
