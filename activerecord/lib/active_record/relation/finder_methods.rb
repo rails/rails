@@ -171,7 +171,13 @@ module ActiveRecord
     def last(limit = nil)
       return find_last(limit) if loaded? || has_limit_or_offset?
 
-      result = ordered_relation.limit(limit)
+      ordered_including_default_order = if implicit_order_column && primary_key && implicit_order_column != primary_key
+        ordered_relation.order(arel_attribute(implicit_order_column).asc, arel_attribute(primary_key).asc)
+      else
+        ordered_relation.order(arel_attribute(implicit_order_column || primary_key).asc)
+      end
+
+      result = ordered_including_default_order.limit(limit)
       result = result.reverse_order!
 
       limit ? result.reverse : result.first
