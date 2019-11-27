@@ -7,3 +7,7 @@ blackbeard:
 ashley:
   owner_id: 2
   name: ashley
+
+loretta:
+  owner_id: 3
+  name: Loretta
