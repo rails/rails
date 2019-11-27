@@ -1,3 +1,5 @@
+## Rails 5.2.4 (November 27, 2019) ##
+
 *   Make ActiveSupport::Logger Fiber-safe. Fixes #36752.
 
     Use `Fiber.current.__id__` in `ActiveSupport::Logger#local_level=` in order

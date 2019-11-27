@@ -1,3 +1,8 @@
+## Rails 5.2.4 (November 27, 2019) ##
+
+*   No changes.
+
+
 ## Rails 5.2.3 (March 27, 2019) ##
 
 *   Allow using `public` and `no-cache` together in the the Cache Control header.
