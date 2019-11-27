@@ -416,7 +416,9 @@ module ActionView
       def collection_from_options
         if @options.key?(:collection)
           collection = @options[:collection]
-          collection ? collection.to_a : []
+          raise ArgumentError.new("collection can't be nil") if collection.nil?
+
+          collection.to_a
         end
       end
 
