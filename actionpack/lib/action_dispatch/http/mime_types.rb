@@ -45,7 +45,7 @@ Mime::Type.register "application/x-www-form-urlencoded", :url_encoded_form
 # http://www.json.org/JSONRequest.html
 Mime::Type.register "application/json", :json, %w( text/x-json application/jsonrequest )
 
-Mime::Type.register "application/wasm", :wasm, %w, [] %w(wasm)
+Mime::Type.register "application/wasm", :wasm, [], %w(wasm)
 
 Mime::Type.register "application/pdf", :pdf, [], %w(pdf)
 Mime::Type.register "application/zip", :zip, [], %w(zip)
