@@ -182,7 +182,7 @@ module ActiveRecord
 
       # Executes the truncate statement.
       def truncate(table_name, name = nil)
-        execute(build_truncate_statements(table_name), name)
+        execute(build_truncate_statement(table_name), name)
       end
 
       def truncate_tables(*table_names) # :nodoc:
@@ -190,9 +190,8 @@ module ActiveRecord
 
         with_multi_statements do
           disable_referential_integrity do
-            Array(build_truncate_statements(*table_names)).each do |sql|
-              execute_batch(sql, "Truncate Tables")
-            end
+            statements = build_truncate_statements(table_names)
+            execute_batch(statements, "Truncate Tables")
           end
         end
       end
@@ -363,14 +362,12 @@ module ActiveRecord
       def insert_fixtures_set(fixture_set, tables_to_delete = [])
         fixture_inserts = build_fixture_statements(fixture_set)
         table_deletes = tables_to_delete.map { |table| "DELETE FROM #{quote_table_name(table)}" }
-        total_sql = Array(combine_multi_statements(table_deletes + fixture_inserts))
+        statements = table_deletes + fixture_inserts
 
         with_multi_statements do
           disable_referential_integrity do
             transaction(requires_new: true) do
-              total_sql.each do |sql|
-                execute_batch(sql, "Fixtures Load")
-              end
+              execute_batch(statements, "Fixtures Load")
             end
           end
         end
@@ -406,8 +403,10 @@ module ActiveRecord
       end
 
       private
-        def execute_batch(sql, name = nil)
-          execute(sql, name)
+        def execute_batch(statements, name = nil)
+          statements.each do |statement|
+            execute(statement, name)
+          end
         end
 
         DEFAULT_INSERT_VALUE = Arel.sql("DEFAULT").freeze
@@ -467,11 +466,14 @@ module ActiveRecord
           end.compact
         end
 
-        def build_truncate_statements(*table_names)
-          truncate_tables = table_names.map do |table_name|
-            "TRUNCATE TABLE #{quote_table_name(table_name)}"
+        def build_truncate_statement(table_name)
+          "TRUNCATE TABLE #{quote_table_name(table_name)}"
+        end
+
+        def build_truncate_statements(table_names)
+          table_names.map do |table_name|
+            build_truncate_statement(table_name)
           end
-          combine_multi_statements(truncate_tables)
         end
 
         def with_multi_statements
