@@ -249,11 +249,9 @@ module ActionView
     end
 
     # Build path relative to template location
-    def build_path(relative_path:)
-      return relative_path if !relative_path.start_with?(".")
-
+    def build_relative_path_to(destination_path)
       current_dirname = Pathname.new(@virtual_path).dirname
-      Pathname.new(current_dirname + relative_path)
+      Pathname.new(current_dirname + destination_path)
     end
 
 

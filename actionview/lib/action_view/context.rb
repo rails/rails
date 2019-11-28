@@ -13,7 +13,6 @@ module ActionView
   # defined below).
   module Context
     attr_accessor :output_buffer, :view_flow
-    attr_reader :current_template
 
     # Prepares the context by setting the appropriate instance variables.
     def _prepare_context

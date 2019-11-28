@@ -270,6 +270,8 @@ module ActionView #:nodoc:
       _old_output_buffer, _old_virtual_path, _old_template = @output_buffer, @virtual_path, @current_template
       @current_template = template
       @output_buffer = buffer
+      @lookup_context.current_template = template
+
       send(method, locals, buffer, &block)
     ensure
       @output_buffer, @virtual_path, @current_template = _old_output_buffer, _old_virtual_path, _old_template

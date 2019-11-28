@@ -208,7 +208,7 @@ module RenderTestCases
     assert File.exist?(File.expand_path("../../../actionpack/test/fixtures/_top_level_partial_only.erb", __dir__))
 
     assert_raises ActionView::Template::Error do
-      assert_equal "partial html", @view.render(template: "test/html_template_with_partial_outside")
+      @view.render(template: "test/html_template_with_partial_outside")
     end
   end
 
