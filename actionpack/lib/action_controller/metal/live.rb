@@ -136,11 +136,11 @@ module ActionController
       attr_accessor :ignore_disconnect
 
       def initialize(response)
+        super(response, SizedQueue.new(10))
         @error_callback = lambda { true }
         @cv = new_cond
         @aborted = false
         @ignore_disconnect = false
-        super(response, SizedQueue.new(10))
       end
 
       def write(string)
