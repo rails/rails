@@ -12,8 +12,7 @@ module ActionText
         run "rake app:update:bin"
 
         say "Installing JavaScript dependencies"
-        run "yarn add #{js_dependencies.map { |name, version| "#{name}@#{version}" }.join(" ")}",
-          abort_on_failure: true, capture: true
+        run "yarn add #{js_dependencies.map { |name, version| "#{name}@#{version}" }.join(" ")}"
       end
 
       def append_dependencies_to_package_file
