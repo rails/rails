@@ -4,7 +4,11 @@ class AbortBeforeEnqueueJob < ActiveJob::Base
   MyError = Class.new(StandardError)
 
   before_enqueue :throw_or_raise
+  after_enqueue { self.flag = "after_enqueue" }
   before_perform { throw(:abort) }
+  after_perform { self.flag = "after_perform" }
+
+  attr_accessor :flag
 
   def perform
     raise "This should never be called"
