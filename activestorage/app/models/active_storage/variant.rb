@@ -74,7 +74,7 @@ class ActiveStorage::Variant
   end
 
   def url(delivery_method = ActiveStorage.default_delivery_method)
-    ActiveStorage.delivery_methods.fetch(delivery_method).representation_url(representation)
+    ActiveStorage.delivery_methods.fetch(delivery_method).representation_url(self)
   end
 
   # Returns the URL of the variant on the service. This URL is intended to be short-lived for security and not used directly

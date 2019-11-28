@@ -5,7 +5,7 @@ Rails.application.routes.draw do
     get "/blobs/redirect/:signed_id/*filename" => "active_storage/blobs/redirection#show", as: :rails_service_blob
     get "/blobs/proxy/:signed_id/*filename" => "active_storage/blobs/proxy#show", as: :rails_blob_proxy
 
-    get "/representations/:signed_blob_id/:variation_key/*filename" => "active_storage/representations/redirection#show", as: :rails_blob_representation
+    get "/representations/redirect/:signed_blob_id/:variation_key/*filename" => "active_storage/representations/redirection#show", as: :rails_blob_representation
     get "/representations/proxy/:signed_blob_id/:variation_key/*filename" => "active_storage/representations/proxy#show", as: :rails_blob_representation_proxy
 
     get  "/disk/public/:key/*filename" => "active_storage/public_disk#show", as: :rails_disk_service_public

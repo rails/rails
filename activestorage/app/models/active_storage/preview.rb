@@ -71,7 +71,7 @@ class ActiveStorage::Preview
   end
 
   def url(delivery_method = ActiveStorage.default_delivery_method)
-    ActiveStorage.delivery_methods.fetch(delivery_method).representation_url(representation)
+    ActiveStorage.delivery_methods.fetch(delivery_method).representation_url(self)
   end
 
   private
