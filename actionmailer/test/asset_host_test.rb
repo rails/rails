@@ -29,7 +29,7 @@ class AssetHostTest < ActionMailer::TestCase
 
   def test_asset_host_as_one_argument_proc
     AssetHostMailer.config.asset_host = Proc.new { |source|
-      if source.starts_with?("/images")
+      if source.start_with?("/images")
         "http://images.example.com"
       end
     }
