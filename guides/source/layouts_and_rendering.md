@@ -279,7 +279,7 @@ TIP: `send_file` is often a faster and better option if a layout isn't required.
 
 #### Options for `render`
 
-Calls to the `render` method generally accept five options:
+Calls to the `render` method generally accept six options:
 
 * `:content_type`
 * `:layout`
