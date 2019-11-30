@@ -74,6 +74,7 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal "2 weeks",                         1.fortnight.inspect
     assert_equal "0 seconds",                       (10 % 5.seconds).inspect
     assert_equal "10 minutes",                      (10.minutes + 0.seconds).inspect
+    assert_equal "3600 seconds",                    (1.day / 24).inspect
   end
 
   def test_inspect_locale

@@ -372,7 +372,7 @@ module ActiveSupport
     alias :before :ago
 
     def inspect #:nodoc:
-      return "0 seconds" if parts.empty?
+      return "#{value} seconds" if parts.empty?
 
       parts.
         sort_by { |unit,  _ | PARTS.index(unit) }.
