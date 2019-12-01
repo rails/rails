@@ -1,4 +1,4 @@
-import { DirectUpload } from "@rails/activestorage"
+import { DirectUpload, dispatchEvent } from "@rails/activestorage"
 
 export class AttachmentUpload {
   constructor(attachment, element) {
@@ -20,8 +20,7 @@ export class AttachmentUpload {
 
   directUploadDidComplete(error, attributes) {
     if (error) {
-      let uploadFailed = new CustomEvent("trix-attachment-error", {"detail": {"error": error, "attachment": this.attachment }})
-      this.element.dispatchEvent(uploadFailed)
+      this.dispatchError(error)
     } else {
       this.attachment.setAttributes({
         sgid: attributes.attachable_sgid,
@@ -34,6 +33,18 @@ export class AttachmentUpload {
     return this.blobUrlTemplate
       .replace(":signed_id", signedId)
       .replace(":filename", encodeURIComponent(filename))
+  }
+
+  dispatch(name, detail = {}) {
+    detail.attachment = this.attachment
+    return dispatchEvent(this.element, `direct-upload:${name}`, { detail })
+  }
+
+  dispatchError(error) {
+    const event = this.dispatch("error", { error })
+    if (!event.defaultPrevented) {
+      throw new Error(`Direct upload failed: ${error}`)
+    }
   }
 
   get directUploadUrl() {
