@@ -1,6 +1,7 @@
 import { start } from "./ujs"
 import { DirectUpload } from "./direct_upload"
-export { start, DirectUpload }
+import { dispatchEvent } from "./helpers"
+export { start, DirectUpload, dispatchEvent }
 
 function autostart() {
   if (window.ActiveStorage) {
