@@ -482,6 +482,8 @@ What is described above are the defaults with a newly generated Rails app. There
 
 See also [Autoloading in the Test Environment](#autoloading-in-the-test-environment).
 
+`config.autoload_paths` is not changeable from environment-specific configuration files.
+
 The value of `autoload_paths` can be inspected. In a just-generated application
 it is (edited):
 
