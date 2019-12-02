@@ -161,9 +161,9 @@ class ActiveStorage::Blob < ActiveRecord::Base
   end
 
   # Returns the URL of the blob on the service. This returns a permanent URL for public files, and returns a
-  # short-lived URL for private files. Private files are for security and not used directly with users, instead,
+  # short-lived URL for private files. Private files are signed, and not for public use. Instead,
   # the URL should only be exposed as a redirect from a stable, possibly authenticated URL. Hiding the
-  # URL behind a redirect also gives you the power to change services without updating all URLs.
+  # URL behind a redirect also allows you to change services without updating all URLs.
   def url(expires_in: ActiveStorage.service_urls_expire_in, disposition: :inline, filename: nil, **options)
     filename = ActiveStorage::Filename.wrap(filename || self.filename)
 
