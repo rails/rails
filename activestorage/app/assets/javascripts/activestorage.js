@@ -936,6 +936,7 @@
   }
   setTimeout(autostart, 1);
   exports.DirectUpload = DirectUpload;
+  exports.dispatchEvent = dispatchEvent;
   exports.start = start;
   Object.defineProperty(exports, "__esModule", {
     value: true
