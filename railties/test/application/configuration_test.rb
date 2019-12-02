@@ -2055,6 +2055,22 @@ module ApplicationTests
       end
     end
 
+    test "config_for does not assume config is a hash" do
+      app_file "config/custom.yml", <<~RUBY
+        development:
+          - foo
+          - bar
+      RUBY
+
+      add_to_config <<~RUBY
+        config.my_custom_config = config_for('custom')
+      RUBY
+
+      app "development"
+
+      assert_equal %w( foo bar ), Rails.application.config.my_custom_config
+    end
+
     test "config_for uses the Pathname object if it is provided" do
       app_file "config/custom.yml", <<-RUBY
       development:
