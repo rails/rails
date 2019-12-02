@@ -9,10 +9,11 @@ module Rails
       attr_accessor :eager_load
       delegate :execute_if_updated, :execute, :updated?, to: :updater
 
-      def initialize
+      def initialize(file_watcher: ActiveSupport::FileUpdateChecker)
         @paths      = []
         @route_sets = []
         @eager_load = false
+        @file_watcher = file_watcher
       end
 
       def reload!
@@ -26,7 +27,7 @@ module Rails
 
     private
       def updater
-        @updater ||= ActiveSupport::FileUpdateChecker.new(paths) { reload! }
+        @updater ||= @file_watcher.new(paths) { reload! }
       end
 
       def clear!
