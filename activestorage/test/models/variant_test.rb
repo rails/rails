@@ -217,4 +217,22 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
       blob.variant(resize: "100x100").processed
     end
   end
+
+  test "download a variant" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    variant = blob.variant(resize: "100x100").processed
+
+    image = read_image(variant)
+
+    assert_equal image.to_blob, variant.download
+  end
+
+  test "delete a variant" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    variant = blob.variant(resize: "100x100").processed
+
+    variant.delete
+
+    assert_not variant.service.exist?(variant.key)
+  end
 end

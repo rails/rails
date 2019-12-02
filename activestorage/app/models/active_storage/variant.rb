@@ -85,6 +85,16 @@ class ActiveStorage::Variant
   alias_method :service_url, :url
   deprecate service_url: :url
 
+  # Downloads the content of the variant from the service. See {ActiveStorage::Service#download} for details.
+  def download(&block)
+    service.download key, &block
+  end
+
+  # Deletes the variant from the service. See {ActiveStorage::Service#delete} for details.
+  def delete
+    service.delete key
+  end
+
   # Returns the receiving variant. Allows ActiveStorage::Variant and ActiveStorage::Preview instances to be used interchangeably.
   def image
     self
