@@ -1751,31 +1751,6 @@ module ApplicationTests
       assert_empty Rails.configuration.paths.load_paths - $LOAD_PATH
     end
 
-    test "autoload paths can be set in the config file of the environment" do
-      app_dir "custom_autoload_path"
-      app_dir "custom_autoload_once_path"
-      app_dir "custom_eager_load_path"
-
-      restore_default_config
-      add_to_env_config "development", <<-RUBY
-        config.autoload_paths      << "#{app_path}/custom_autoload_path"
-        config.autoload_once_paths << "#{app_path}/custom_autoload_once_path"
-        config.eager_load_paths    << "#{app_path}/custom_eager_load_path"
-      RUBY
-
-      app "development"
-
-      Rails.application.config.tap do |config|
-        assert_includes config.autoload_paths, "#{app_path}/custom_autoload_path"
-        assert_includes config.autoload_once_paths, "#{app_path}/custom_autoload_once_path"
-        assert_includes config.eager_load_paths, "#{app_path}/custom_eager_load_path"
-      end
-
-      assert_includes $LOAD_PATH, "#{app_path}/custom_autoload_path"
-      assert_includes $LOAD_PATH, "#{app_path}/custom_autoload_once_path"
-      assert_includes $LOAD_PATH, "#{app_path}/custom_eager_load_path"
-    end
-
     test "autoloading during initialization gets deprecation message and clearing if config.cache_classes is false" do
       app_file "lib/c.rb", <<~EOS
         class C
