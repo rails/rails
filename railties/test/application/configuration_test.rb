@@ -1958,6 +1958,24 @@ module ApplicationTests
       assert_equal({ baz: 1 }, actual[:bar])
     end
 
+    test "config_for does not assume the config is a hash" do
+      app_file "config/custom.yml", <<-RUBY
+      development:
+        - foo
+        - bar
+      RUBY
+
+      add_to_config <<-RUBY
+        config.my_custom_config = config_for('custom')
+      RUBY
+
+      app "development"
+
+      actual = Rails.application.config.my_custom_config
+
+      assert_equal(%w(foo bar), actual)
+    end
+
     test "config_for uses the Pathname object if it is provided" do
       app_file "config/custom.yml", <<-RUBY
       development:
@@ -1985,7 +2003,7 @@ module ApplicationTests
       assert_equal "Could not load configuration. No such file - #{app_path}/config/custom.yml", exception.message
     end
 
-    test "config_for without the environment configured returns an empty hash" do
+    test "config_for without the environment configured returns nil" do
       app_file "config/custom.yml", <<-RUBY
       test:
         key: 'custom key'
@@ -1997,7 +2015,7 @@ module ApplicationTests
 
       app "development"
 
-      assert_equal({}, Rails.application.config.my_custom_config)
+      assert_nil(Rails.application.config.my_custom_config)
     end
 
     test "config_for implements shared configuration as secrets case found" do
@@ -2065,7 +2083,7 @@ module ApplicationTests
 
       app "development"
 
-      assert_equal({}, Rails.application.config.my_custom_config)
+      assert_nil(Rails.application.config.my_custom_config)
     end
 
     test "config_for containing ERB tags should evaluate" do

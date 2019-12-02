@@ -228,11 +228,23 @@ module Rails
 
       if yaml.exist?
         require "erb"
-        config = YAML.load(ERB.new(yaml.read).result, symbolize_names: true) || {}
-        config = (config[:shared] || {}).deep_merge(config[env.to_sym] || {})
+        all_configs = YAML.load(ERB.new(yaml.read).result, symbolize_names: true) || {}
 
-        ActiveSupport::OrderedOptions.new.tap do |options|
-          options.update(config)
+        config = all_configs[env.to_sym]
+        if shared = all_configs[:shared]
+          if !config
+            config = shared
+          elsif config.is_a?(Hash)
+            config = shared.deep_merge(config)
+          end
+        end
+
+        if config.is_a?(Hash)
+          ActiveSupport::OrderedOptions.new.tap do |options|
+            options.update(config)
+          end
+        else
+          config
         end
       else
         raise "Could not load configuration. No such file - #{yaml}"
