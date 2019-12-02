@@ -1,3 +1,33 @@
+*   Configuration files for environments (`config/environments/*.rb`) are
+    now able to modify `autoload_paths`, `autoload_once_paths`, and
+    `eager_load_paths`.
+
+    As a consequence, applications cannnot autoload within those files. Before, they technnically could, but changes in autoloaded classes or modules had no effect anyway in the configuration because reloading does not reboot.
+
+    Ways to use application code in these files:
+
+    * Define early in the boot process a class that is not reloadable, from which the application takes configuration values that get passed to the framework.
+
+        ```ruby
+        # In config/application.rb, for example.
+        require "#{Rails.root}/lib/my_app/config"
+
+        # In config/environments/development.rb, for example.
+        config.foo = MyApp::Config.foo
+        ```
+
+    * If the class has to be reloadable, then wrap the configuration code in a `to_prepare` block:
+
+        ```ruby
+        config.to_prepare do
+          config.foo = MyModel.foo
+        end
+        ```
+
+      That assigns the latest `MyModel.foo` to `config.foo` when the application boots, and each time there is a reload. But whether that has an effect or not depends on the configuration point, since it is not uncommon for engines to read the application configuration during initialization and set their own state from them. That process happens only on boot, not on reloads, and if that is how `config.foo` worked, resetting it would have no effect in the state of the engine.
+
+    *Allen Hsu* & *Xavier Noria*
+
 *   Support using environment variable to set pidfile.
 
     *Ben Thorner*
