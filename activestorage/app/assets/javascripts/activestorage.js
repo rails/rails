@@ -1,6 +1,5 @@
 (function(global, factory) {
-  typeof exports === "object" && typeof module !== "undefined" ? factory(exports) : typeof define === "function" && define.amd ? define([ "exports" ], factory) : (global = global || self, 
-  factory(global.ActiveStorage = {}));
+  typeof exports === "object" && typeof module !== "undefined" ? factory(exports) : typeof define === "function" && define.amd ? define([ "exports" ], factory) : factory(global.ActiveStorage = {});
 })(this, function(exports) {
   "use strict";
   function createCommonjsModule(fn, module) {
@@ -13,7 +12,7 @@
       {
         module.exports = factory();
       }
-    })(function(undefined$1) {
+    })(function(undefined) {
       var hex_chr = [ "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f" ];
       function md5cycle(x, k) {
         var a = x[0], b = x[1], c = x[2], d = x[3];
@@ -244,7 +243,7 @@
           }
           ArrayBuffer.prototype.slice = function(from, to) {
             var length = this.byteLength, begin = clamp(from, length), end = length, num, target, targetArray, sourceArray;
-            if (to !== undefined$1) {
+            if (to !== undefined) {
               end = clamp(to, length);
             }
             if (begin > end) {
@@ -511,7 +510,7 @@
       root = document;
     }
     var elements = root.querySelectorAll(selector);
-    return toArray(elements);
+    return toArray$1(elements);
   }
   function findElement(root, selector) {
     if (typeof root == "string") {
@@ -535,7 +534,7 @@
     }
     return event;
   }
-  function toArray(value) {
+  function toArray$1(value) {
     if (Array.isArray(value)) {
       return value;
     } else if (Array.from) {
@@ -610,12 +609,12 @@
       }
     }, {
       key: "status",
-      get: function get() {
+      get: function get$$1() {
         return this.xhr.status;
       }
     }, {
       key: "response",
-      get: function get() {
+      get: function get$$1() {
         var _xhr = this.xhr, responseType = _xhr.responseType, response = _xhr.response;
         if (responseType == "json") {
           return response;
@@ -796,7 +795,7 @@
       }
     }, {
       key: "url",
-      get: function get() {
+      get: function get$$1() {
         return this.input.getAttribute("data-direct-upload-url");
       }
     } ]);
@@ -840,7 +839,7 @@
       value: function createDirectUploadControllers() {
         var controllers = [];
         this.inputs.forEach(function(input) {
-          toArray(input.files).forEach(function(file) {
+          toArray$1(input.files).forEach(function(file) {
             var controller = new DirectUploadController(input, file);
             controllers.push(controller);
           });
