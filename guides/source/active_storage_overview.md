@@ -473,19 +473,25 @@ message.video.open do |file|
 end
 ```
 
+Analyzing Files
+---------------
+
+Active Storage [analyzes](https://api.rubyonrails.org/classes/ActiveStorage/Blob/Analyzable.html#method-i-analyze) files once they've been uploaded by queuing a job in Active Job. Analyzed files will store additional information in the metadata hash, including `analyzed: true`. You can check whether a blob has been analyzed by calling `analyzed?` on it.
+
+Image analysis provides `width` and `height` attributes. Video analysis provides these, as well as `duration`, `angle`, and `display_aspect_ratio`.
+
+Analysis requires the `mini_magick` gem. Video analysis also requires the [FFmpeg](https://www.ffmpeg.org/) library, which you must include separately.
+
 Transforming Images
 -------------------
-
-To create a variation of the image, call `variant` on the `Blob`. You can pass
-any transformation to the method supported by the processor. The default
-processor is [MiniMagick](https://github.com/minimagick/minimagick), but you
-can also use [Vips](https://www.rubydoc.info/gems/ruby-vips/Vips/Image).
 
 To enable variants, add the `image_processing` gem to your `Gemfile`:
 
 ```ruby
-gem 'image_processing', '~> 1.2'
+gem 'image_processing'
 ```
+
+To create a variation of an image, call `variant` on the `Blob`. You can pass any transformation to the method supported by the processor. The default processor for Active Storage is MiniMagick, but you can also use [Vips](https://www.rubydoc.info/gems/ruby-vips/Vips/Image).
 
 When the browser hits the variant URL, Active Storage will lazily transform the
 original blob into the specified format and redirect to its new service
