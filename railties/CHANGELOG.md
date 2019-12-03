@@ -1,3 +1,20 @@
+*   Remove access to values in nested hashes returned by `Rails.application.config_for` via String keys.
+
+    ```yaml
+    # config/example.yml
+    development:
+      options:
+        key: value
+    ```
+
+    ```ruby
+    Rails.application.config_for(:example).options
+    ```
+
+    This used to return a Hash on which you could access values with String keys. This was deprecated in 6.0, and now doesn't work anymore.
+
+    *Étienne Barrié*
+
 *   Configuration files for environments (`config/environments/*.rb`) are
     now able to modify `autoload_paths`, `autoload_once_paths`, and
     `eager_load_paths`.

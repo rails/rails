@@ -75,6 +75,30 @@ To allow you to upgrade to new defaults one by one, the update task has created 
 Upgrading from Rails 6.0 to Rails 6.1
 -------------------------------------
 
+### `Rails.application.config_for` return value no longer supports access with String keys.
+
+Given a configuration file like this:
+
+```yaml
+# config/example.yml
+development:
+  options:
+    key: value
+```
+
+```ruby
+Rails.application.config_for(:example).options
+```
+
+This used to return a hash on which you could access values with String keys. That was deprecated in 6.0, and now doesn't work anymore.
+
+You can call `with_indifferent_access` on the return value of `config_for` if you still want to access values with String keys, e.g.:
+
+```ruby
+Rails.application.config_for(:example).with_indifferent_access.dig('options', 'key')
+```
+
+
 ### Response's Content-Type when using `respond_to#any`
 
 The Content-Type header returned in the response can differ from what Rails 6.0 returned,
