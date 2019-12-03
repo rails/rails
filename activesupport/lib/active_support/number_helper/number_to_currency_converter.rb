@@ -12,8 +12,11 @@ module ActiveSupport
         format = options[:format]
 
         if number.to_f.negative?
-          format = options[:negative_format]
           number = absolute_value(number)
+
+          unless options[:precision] == 0 && number.to_f < 0.5
+            format = options[:negative_format]
+          end
         end
 
         rounded_number = NumberToRoundedConverter.convert(number, options)
