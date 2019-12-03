@@ -256,10 +256,10 @@ class TagHelperTest < ActionView::TestCase
     str = content_tag("p", "limelight", class: { song: true, play: false })
     assert_equal "<p class=\"song\">limelight</p>", str
 
-    str = content_tag("p", "limelight", class: [{ song: true}, nil, false])
+    str = content_tag("p", "limelight", class: [{ song: true }, nil, false])
     assert_equal "<p class=\"song\">limelight</p>", str
 
-    str = content_tag("p", "limelight", class: ["song", { foo: false}])
+    str = content_tag("p", "limelight", class: ["song", { foo: false }])
     assert_equal "<p class=\"song\">limelight</p>", str
 
     str = content_tag("p", "limelight", class: { "song": true, "play": true })
@@ -279,10 +279,10 @@ class TagHelperTest < ActionView::TestCase
     str = tag.p "limelight", class: { song: true, play: false }
     assert_equal "<p class=\"song\">limelight</p>", str
 
-    str = tag.p "limelight", class: [{ song: true}, nil, false]
+    str = tag.p "limelight", class: [{ song: true }, nil, false]
     assert_equal "<p class=\"song\">limelight</p>", str
 
-    str = tag.p "limelight", class: ["song", { foo: false}]
+    str = tag.p "limelight", class: ["song", { foo: false }]
     assert_equal "<p class=\"song\">limelight</p>", str
 
     str = tag.p "limelight", class: { "song": true, "play": true }

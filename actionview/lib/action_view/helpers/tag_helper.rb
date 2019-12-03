@@ -104,7 +104,6 @@ module ActionView
         end
 
         private
-
           def build_tag_values(*args)
             tag_values = []
 
