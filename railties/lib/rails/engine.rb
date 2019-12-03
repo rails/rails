@@ -3,6 +3,7 @@
 require "rails/railtie"
 require "rails/engine/railties"
 require "active_support/core_ext/module/delegation"
+require "active_support/core_ext/object/try"
 require "pathname"
 require "thread"
 
@@ -228,7 +229,7 @@ module Rails
   #     resources :articles
   #   end
   #
-  # If +MyEngine+ is isolated, The routes above will point to
+  # If +MyEngine+ is isolated, the routes above will point to
   # <tt>MyEngine::ArticlesController</tt>. You also don't need to use longer
   # URL helpers like +my_engine_articles_path+. Instead, you should simply use
   # +articles_path+, like you would do with your main application.
@@ -362,7 +363,7 @@ module Rails
           base.called_from = begin
             call_stack = caller_locations.map { |l| l.absolute_path || l.path }
 
-            File.dirname(call_stack.detect { |p| p !~ %r[railties[\w.-]*/lib/rails|rack[\w.-]*/lib/rack] })
+            File.dirname(call_stack.detect { |p| !p.match?(%r[railties[\w.-]*/lib/rails|rack[\w.-]*/lib/rack]) })
           end
         end
 
@@ -559,6 +560,12 @@ module Rails
       end
     end
 
+    initializer :load_environment_config, before: :load_environment_hook, group: :all do
+      paths["config/environments"].existent.each do |environment|
+        require environment
+      end
+    end
+
     initializer :set_load_path, before: :bootstrap_hook do |app|
       _all_load_paths(app.config.add_autoload_paths_to_load_path).reverse_each do |path|
         $LOAD_PATH.unshift(path) if File.directory?(path)
@@ -607,12 +614,6 @@ module Rails
       end
     end
 
-    initializer :load_environment_config, before: :load_environment_hook, group: :all do
-      paths["config/environments"].existent.each do |environment|
-        require environment
-      end
-    end
-
     initializer :prepend_helpers_path do |app|
       if !isolated? || (app == self)
         app.config.helpers_paths.unshift(*paths["app/helpers"].existent)
@@ -654,14 +655,12 @@ module Rails
     end
 
     protected
-
       def run_tasks_blocks(*) #:nodoc:
         super
         paths["lib/tasks"].existent.sort.each { |ext| load(ext) }
       end
 
     private
-
       def load_config_initializer(initializer) # :doc:
         ActiveSupport::Notifications.instrument("load_config_initializer.railties", initializer: initializer) do
           load(initializer)

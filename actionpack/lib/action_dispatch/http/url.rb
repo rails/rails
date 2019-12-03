@@ -78,7 +78,6 @@ module ActionDispatch
         end
 
         private
-
           def add_params(path, params)
             params = { params: params } unless params.is_a?(Hash)
             params.reject! { |_, v| v.to_param.nil? }
@@ -134,7 +133,7 @@ module ActionDispatch
           end
 
           def named_host?(host)
-            IP_HOST_REGEXP !~ host
+            !IP_HOST_REGEXP.match?(host)
           end
 
           def normalize_protocol(protocol)

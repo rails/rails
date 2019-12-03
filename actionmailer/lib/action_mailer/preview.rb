@@ -55,7 +55,6 @@ module ActionMailer
       end
 
       private
-
         def interceptor_class_for(interceptor)
           case interceptor
           when String, Symbol

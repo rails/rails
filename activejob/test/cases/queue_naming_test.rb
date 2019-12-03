@@ -2,6 +2,7 @@
 
 require "helper"
 require "jobs/hello_job"
+require "jobs/prefixed_job"
 require "jobs/logging_job"
 require "jobs/nested_job"
 
@@ -121,6 +122,24 @@ class QueueNamingTest < ActiveSupport::TestCase
     ensure
       ActiveJob::Base.queue_name_prefix = original_queue_name_prefix
       ActiveJob::Base.default_queue_name = original_default_queue_name
+    end
+  end
+
+  test "can change queue_name_prefix in a job class definition without affecting other jobs" do
+    assert_equal "production", PrefixedJob.queue_name_prefix
+    assert_nil HelloJob.queue_name_prefix
+  end
+
+  test "can change queue_name_prefix in a job class without affecting other jobs" do
+    original_prefix = PrefixedJob.queue_name_prefix
+
+    begin
+      PrefixedJob.queue_name_prefix = "staging"
+
+      assert_equal "staging", PrefixedJob.queue_name_prefix
+      assert_nil HelloJob.queue_name_prefix
+    ensure
+      PrefixedJob.queue_name_prefix = original_prefix
     end
   end
 

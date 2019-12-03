@@ -165,7 +165,6 @@ XML
     end
 
     private
-
       def generate_url(opts)
         url_for(opts.merge(action: "test_uri"))
       end

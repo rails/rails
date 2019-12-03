@@ -442,6 +442,14 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_dummy_application_uses_dynamic_rails_version_number
+    run_generator
+
+    assert_file "test/dummy/config/application.rb" do |contents|
+      assert_match(/^\s*config\.load_defaults Rails::VERSION::STRING\.to_f/, contents)
+    end
+  end
+
   def test_dummy_application_skip_listen_by_default
     run_generator
 
@@ -713,7 +721,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   end
 
   private
-
     def action(*args, &block)
       silence(:stdout) { generator.send(*args, &block) }
     end

@@ -35,7 +35,6 @@ module ActionController
     end
 
     private
-
       INCLUDE = ->(list, action) { list.include? action }
       EXCLUDE = ->(list, action) { !list.include? action }
       NULL    = ->(list, action) { true }

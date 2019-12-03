@@ -321,7 +321,7 @@ module ActiveRecord
         }
         group_columns = group_aliases.zip(group_fields)
 
-        aggregate_alias = column_alias_for("#{operation}_#{column_name.to_s.downcase}")
+        aggregate_alias = column_alias_for("#{operation} #{column_name.to_s.downcase}")
 
         select_values = [
           operation_over_aggregate_column(
@@ -340,7 +340,7 @@ module ActiveRecord
         }
 
         relation = except(:group).distinct!(false)
-        relation.group_values  = group_aliases
+        relation.group_values  = group_fields
         relation.select_values = select_values
 
         calculated_data = skip_query_cache_if_necessary { @klass.connection.select_all(relation.arel, nil) }
@@ -374,8 +374,6 @@ module ActiveRecord
       #   column_alias_for("count(distinct users.id)") # => "count_distinct_users_id"
       #   column_alias_for("count(*)")                 # => "count_all"
       def column_alias_for(field)
-        return field if field.match?(/\A\w{,#{connection.table_alias_length}}\z/)
-
         column_alias = +field
         column_alias.gsub!(/\*/, "all")
         column_alias.gsub!(/\W+/, " ")

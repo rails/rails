@@ -15,6 +15,8 @@ class OptionMergerTest < ActiveSupport::TestCase
       assert_equal local_options, method_with_options(local_options)
       assert_equal @options.merge(local_options),
         o.method_with_options(local_options)
+      assert_equal @options.merge(local_options), o.method_with_kwargs(local_options)
+      assert_equal @options.merge(local_options), o.method_with_kwargs_only(local_options)
     end
   end
 
@@ -22,6 +24,8 @@ class OptionMergerTest < ActiveSupport::TestCase
     with_options(@options) do |o|
       assert_equal Hash.new, method_with_options
       assert_equal @options, o.method_with_options
+      assert_equal @options, o.method_with_kwargs
+      assert_equal @options, o.method_with_kwargs_only
     end
   end
 
@@ -92,6 +96,14 @@ class OptionMergerTest < ActiveSupport::TestCase
 
   private
     def method_with_options(options = {})
+      options
+    end
+
+    def method_with_kwargs(*args, **options)
+      options
+    end
+
+    def method_with_kwargs_only(**options)
       options
     end
 end

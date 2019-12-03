@@ -71,6 +71,10 @@ class Author < ActiveRecord::Base
            after_add: :log_after_adding,
            before_remove: :log_before_removing,
            after_remove: :log_after_removing
+  has_many :posts_with_thrown_callbacks, class_name: "Post", before_add: :throw_abort,
+           after_add: :ensure_not_called,
+           before_remove: :throw_abort,
+           after_remove: :ensure_not_called
   has_many :posts_with_proc_callbacks, class_name: "Post",
            before_add: Proc.new { |o, r| o.post_log << "before_adding#{r.id || '<new>'}" },
            after_add: Proc.new { |o, r| o.post_log << "after_adding#{r.id || '<new>'}" },
@@ -116,6 +120,7 @@ class Author < ActiveRecord::Base
   has_many :tags_with_primary_key, through: :posts
 
   has_many :books
+  has_many :published_books, class_name: "PublishedBook"
   has_many :unpublished_books, -> { where(status: [:proposed, :written]) }, class_name: "Book"
   has_many :subscriptions,        through: :books
   has_many :subscribers, -> { order("subscribers.nick") }, through: :subscriptions
@@ -184,6 +189,14 @@ class Author < ActiveRecord::Base
   validates_presence_of :name
 
   private
+    def throw_abort(_)
+      throw(:abort)
+    end
+
+    def ensure_not_called(_)
+      raise
+    end
+
     def log_before_adding(object)
       @post_log << "before_adding#{object.id || '<new>'}"
     end

@@ -139,6 +139,13 @@ class CalculationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_should_not_use_alias_for_grouped_field
+    assert_sql(/GROUP BY #{Regexp.escape(Account.connection.quote_table_name("accounts.firm_id"))}/i) do
+      c = Account.group(:firm_id).order("accounts_firm_id").sum(:credit_limit)
+      assert_equal [1, 2, 6, 9], c.keys.compact
+    end
+  end
+
   def test_should_order_by_grouped_field
     c = Account.group(:firm_id).order("firm_id").sum(:credit_limit)
     assert_equal [1, 2, 6, 9], c.keys.compact
@@ -589,11 +596,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_sum_expression
-    if current_adapter?(:SQLite3Adapter, :Mysql2Adapter, :PostgreSQLAdapter, :OracleAdapter)
-      assert_equal 636, Account.sum("2 * credit_limit")
-    else
-      assert_equal 636, Account.sum("2 * credit_limit").to_i
-    end
+    assert_equal 636, Account.sum("2 * credit_limit")
   end
 
   def test_sum_expression_returns_zero_when_no_records_to_sum
@@ -768,8 +771,14 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_pluck_with_join
-    assert_equal [[2, 2], [4, 4]], Reply.includes(:topic).pluck(:id, :"topics.id")
+    assert_equal [[2, 2], [4, 4]], Reply.includes(:topic).order(:id).pluck(:id, :"topics.id")
   end
+
+  def test_group_by_with_order_by_virtual_count_attribute
+    expected = { "SpecialPost" => 1, "StiPost" => 2 }
+    actual = Post.group(:type).order(:count).limit(2).maximum(:comments_count)
+    assert_equal expected, actual
+  end if current_adapter?(:PostgreSQLAdapter)
 
   def test_group_by_with_limit
     expected = { "Post" => 8, "SpecialPost" => 1 }
@@ -786,6 +795,13 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_group_by_with_limit_and_offset
     expected = { "SpecialPost" => 1 }
     actual = Post.includes(:comments).group(:type).order(:type).offset(1).limit(1).count("comments.id")
+    assert_equal expected, actual
+  end
+
+  def test_group_by_with_quoted_count_and_order_by_alias
+    quoted_posts_id = Post.connection.quote_table_name("posts.id")
+    expected = { "SpecialPost" => 1, "StiPost" => 1, "Post" => 9 }
+    actual = Post.group(:type).order("count_posts_id").count(quoted_posts_id)
     assert_equal expected, actual
   end
 
@@ -941,6 +957,90 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_group_by_attribute_with_custom_type
     assert_equal({ "proposed" => 2, "published" => 2 }, Book.group(:status).count)
+  end
+
+  def test_select_avg_with_group_by_as_virtual_attribute_with_sql
+    rails_core = companies(:rails_core)
+
+    sql = <<~SQL
+      SELECT firm_id, AVG(credit_limit) AS avg_credit_limit
+      FROM accounts
+      WHERE firm_id = ?
+      GROUP BY firm_id
+      LIMIT 1
+    SQL
+
+    account = Account.find_by_sql([sql, rails_core]).first
+
+    # id was not selected, so it should be nil
+    # (cannot select id because it wasn't used in the GROUP BY clause)
+    assert_nil account.id
+
+    # firm_id was explicitly selected, so it should be present
+    assert_equal(rails_core, account.firm)
+
+    # avg_credit_limit should be present as a virtual attribute
+    assert_equal(52.5, account.avg_credit_limit)
+  end
+
+  def test_select_avg_with_group_by_as_virtual_attribute_with_ar
+    rails_core = companies(:rails_core)
+
+    account = Account
+      .select(:firm_id, "AVG(credit_limit) AS avg_credit_limit")
+      .where(firm: rails_core)
+      .group(:firm_id)
+      .take!
+
+    # id was not selected, so it should be nil
+    # (cannot select id because it wasn't used in the GROUP BY clause)
+    assert_nil account.id
+
+    # firm_id was explicitly selected, so it should be present
+    assert_equal(rails_core, account.firm)
+
+    # avg_credit_limit should be present as a virtual attribute
+    assert_equal(52.5, account.avg_credit_limit)
+  end
+
+  def test_select_avg_with_joins_and_group_by_as_virtual_attribute_with_sql
+    rails_core = companies(:rails_core)
+
+    sql = <<~SQL
+      SELECT companies.*, AVG(accounts.credit_limit) AS avg_credit_limit
+      FROM companies
+      INNER JOIN accounts ON companies.id = accounts.firm_id
+      WHERE companies.id = ?
+      GROUP BY companies.id
+      LIMIT 1
+    SQL
+
+    firm = DependentFirm.find_by_sql([sql, rails_core]).first
+
+    # all the DependentFirm attributes should be present
+    assert_equal rails_core, firm
+    assert_equal rails_core.name, firm.name
+
+    # avg_credit_limit should be present as a virtual attribute
+    assert_equal(52.5, firm.avg_credit_limit)
+  end
+
+  def test_select_avg_with_joins_and_group_by_as_virtual_attribute_with_ar
+    rails_core = companies(:rails_core)
+
+    firm = DependentFirm
+      .select("companies.*", "AVG(accounts.credit_limit) AS avg_credit_limit")
+      .where(id: rails_core)
+      .joins(:account)
+      .group(:id)
+      .take!
+
+    # all the DependentFirm attributes should be present
+    assert_equal rails_core, firm
+    assert_equal rails_core.name, firm.name
+
+    # avg_credit_limit should be present as a virtual attribute
+    assert_equal(52.5, firm.avg_credit_limit)
   end
 
   def test_count_with_block_and_column_name_raises_an_error

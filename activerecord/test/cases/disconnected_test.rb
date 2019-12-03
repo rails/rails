@@ -14,8 +14,8 @@ class TestDisconnectedAdapter < ActiveRecord::TestCase
 
   teardown do
     return if in_memory_db?
-    spec = ActiveRecord::Base.connection_config
-    ActiveRecord::Base.establish_connection(spec)
+    config = ActiveRecord::Base.connection_config
+    ActiveRecord::Base.establish_connection(config)
   end
 
   unless in_memory_db?

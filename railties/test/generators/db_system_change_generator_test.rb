@@ -54,7 +54,7 @@ module Rails
 
             assert_file("Gemfile") do |content|
               assert_match "# Use mysql2 as the database for Active Record", content
-              assert_match "gem 'mysql2', '>= 0.4.4'", content
+              assert_match "gem 'mysql2', '~> 0.5'", content
             end
           end
 
@@ -83,7 +83,7 @@ module Rails
 
             assert_file("Gemfile") do |content|
               assert_match "# Use mysql2 as the database for Active Record", content
-              assert_match "gem 'mysql2', '>= 0.4.4'", content
+              assert_match "gem 'mysql2', '~> 0.5'", content
             end
           end
         end

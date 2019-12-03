@@ -2,6 +2,7 @@
 
 require "active_record"
 require "rails"
+require "active_support/core_ext/object/try"
 require "active_model/railtie"
 
 # For now, action_controller must always be present with
@@ -27,6 +28,7 @@ module ActiveRecord
 
     config.active_record.use_schema_cache_dump = true
     config.active_record.maintain_test_schema = true
+    config.active_record.has_many_inversing = false
 
     config.active_record.sqlite3 = ActiveSupport::OrderedOptions.new
     config.active_record.sqlite3.represent_boolean_as_integer = nil
@@ -81,10 +83,11 @@ module ActiveRecord
       ActiveSupport.on_load(:active_record) { LogSubscriber.backtrace_cleaner = ::Rails.backtrace_cleaner }
     end
 
-    initializer "active_record.migration_error" do
+    initializer "active_record.migration_error" do |app|
       if config.active_record.delete(:migration_error) == :page_load
         config.app_middleware.insert_after ::ActionDispatch::Callbacks,
-          ActiveRecord::Migration::CheckPending
+          ActiveRecord::Migration::CheckPending,
+          file_watcher: app.config.file_watcher
       end
     end
 
@@ -114,7 +117,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
 
     config.active_record.cache_versioning = false
 
-end_error
+              end_error
             end
           end
         end
@@ -134,7 +137,6 @@ end_error
 
               cache = YAML.load(File.read(filename))
               if cache.version == current_version
-                connection.schema_cache = cache
                 connection_pool.schema_cache = cache.dup
               else
                 warn "Ignoring db/schema_cache.yml because it has expired. The current schema version is #{current_version}, but the one in the cache is #{cache.version}."

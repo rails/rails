@@ -14,6 +14,8 @@ require "active_storage/previewer/video_previewer"
 require "active_storage/analyzer/image_analyzer"
 require "active_storage/analyzer/video_analyzer"
 
+require "active_storage/service/registry"
+
 require "active_storage/reflection"
 
 module ActiveStorage
@@ -73,12 +75,15 @@ module ActiveStorage
         ActiveStorage.analyzers         = app.config.active_storage.analyzers || []
         ActiveStorage.paths             = app.config.active_storage.paths || {}
         ActiveStorage.routes_prefix     = app.config.active_storage.routes_prefix || "/rails/active_storage"
+        ActiveStorage.draw_routes       = app.config.active_storage.draw_routes != false
 
         ActiveStorage.variable_content_types = app.config.active_storage.variable_content_types || []
         ActiveStorage.content_types_to_serve_as_binary = app.config.active_storage.content_types_to_serve_as_binary || []
         ActiveStorage.service_urls_expire_in = app.config.active_storage.service_urls_expire_in || 5.minutes
         ActiveStorage.content_types_allowed_inline = app.config.active_storage.content_types_allowed_inline || []
         ActiveStorage.binary_content_type = app.config.active_storage.binary_content_type || "application/octet-stream"
+
+        ActiveStorage.replace_on_assign_to_many = app.config.active_storage.replace_on_assign_to_many || false
       end
     end
 
@@ -98,8 +103,8 @@ module ActiveStorage
 
     initializer "active_storage.services" do
       ActiveSupport.on_load(:active_storage_blob) do
-        if config_choice = Rails.configuration.active_storage.service
-          configs = Rails.configuration.active_storage.service_configurations ||= begin
+        configs = Rails.configuration.active_storage.service_configurations ||=
+          begin
             config_file = Pathname.new(Rails.root.join("config/storage.yml"))
             raise("Couldn't find Active Storage configuration in #{config_file}") unless config_file.exist?
 
@@ -113,12 +118,10 @@ module ActiveStorage
                   "Error: #{e.message}"
           end
 
-          ActiveStorage::Blob.service =
-            begin
-              ActiveStorage::Service.configure config_choice, configs
-            rescue => e
-              raise e, "Cannot load `Rails.config.active_storage.service`:\n#{e.message}", e.backtrace
-            end
+        ActiveStorage::Blob.services = ActiveStorage::Service::Registry.new(configs)
+
+        if config_choice = Rails.configuration.active_storage.service
+          ActiveStorage::Blob.service = ActiveStorage::Blob.services.fetch(config_choice)
         end
       end
     end

@@ -84,6 +84,7 @@ module ActiveModel
   #   person.previous_changes         # => {"name" => [nil, "Bill"]}
   #   person.name_previously_changed? # => true
   #   person.name_previous_change     # => [nil, "Bill"]
+  #   person.name_previously_was      # => nil
   #   person.reload!
   #   person.previous_changes         # => {}
   #
@@ -122,7 +123,7 @@ module ActiveModel
 
     included do
       attribute_method_suffix "_changed?", "_change", "_will_change!", "_was"
-      attribute_method_suffix "_previously_changed?", "_previous_change"
+      attribute_method_suffix "_previously_changed?", "_previous_change", "_previously_was"
       attribute_method_affix prefix: "restore_", suffix: "!"
     end
 
@@ -136,7 +137,7 @@ module ActiveModel
       @mutations_from_database = nil
     end
 
-    # Clears dirty data and moves +changes+ to +previously_changed+ and
+    # Clears dirty data and moves +changes+ to +previous_changes+ and
     # +mutations_from_database+ to +mutations_before_last_save+ respectively.
     def changes_applied
       unless defined?(@attributes)
@@ -167,7 +168,7 @@ module ActiveModel
 
     # Dispatch target for <tt>*_changed?</tt> attribute methods.
     def attribute_changed?(attr_name, **options) # :nodoc:
-      mutations_from_database.changed?(attr_name.to_s, options)
+      mutations_from_database.changed?(attr_name.to_s, **options)
     end
 
     # Dispatch target for <tt>*_was</tt> attribute methods.
@@ -178,6 +179,11 @@ module ActiveModel
     # Dispatch target for <tt>*_previously_changed?</tt> attribute methods.
     def attribute_previously_changed?(attr_name) # :nodoc:
       mutations_before_last_save.changed?(attr_name.to_s)
+    end
+
+    # Dispatch target for <tt>*_previously_was</tt> attribute methods.
+    def attribute_previously_was(attr_name) # :nodoc:
+      mutations_before_last_save.original_value(attr_name.to_s)
     end
 
     # Restore all previous data of the provided attributes.

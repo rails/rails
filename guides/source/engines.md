@@ -220,7 +220,7 @@ Inside the `app` directory are the standard `assets`, `controllers`, `helpers`,
 `jobs`, `mailers`, `models`, and `views` directories that you should be familiar with
 from an application. We'll look more into models in a future section, when we're writing the engine.
 
-Within the `app/assets` directory, there are the `images`, `javascripts` and
+Within the `app/assets` directory, there are the `images` and
 `stylesheets` directories which, again, you should be familiar with due to their
 similarity to an application. One difference here, however, is that each
 directory contains a sub-directory with the engine name. Because this engine is
@@ -264,7 +264,7 @@ contains a file called `application_helper.rb`. This file will provide any
 common functionality for the helpers of the engine. The `blorgh` directory
 is where the other helpers for the engine will go. By placing them within
 this namespaced directory, you prevent them from possibly clashing with
-identically-named helpers within other engines or even within the
+identically-named route helpers within other engines or even within the
 application.
 
 Within the `app/jobs` directory there is a `blorgh` directory that
@@ -555,7 +555,7 @@ directory at `app/views/blorgh/comments` and in it a new file called
 
 ```html+erb
 <h3>New comment</h3>
-<%= form_with(model: [@article, @article.comments.build], local: true) do |form| %>
+<%= form_with model: [@article, @article.comments.build], local: true do |form| %>
   <p>
     <%= form.label :text %><br>
     <%= form.text_area :text %>
@@ -805,7 +805,7 @@ added above the `title` field with this code:
 </div>
 ```
 
-Next, we need to update our `Blorgh::ArticleController#article_params` method to
+Next, we need to update our `Blorgh::ArticlesController#article_params` method to
 permit the new form parameter:
 
 ```ruby
@@ -1434,16 +1434,14 @@ module MyEngine
 end
 ```
 
-Active Support On Load Hooks
+Load and Configuration Hooks
 ----------------------------
-
-Active Support is the Ruby on Rails component responsible for providing Ruby language extensions, utilities, and other transversal utilities.
 
 Rails code can often be referenced on load of an application. Rails is responsible for the load order of these frameworks, so when you load frameworks, such as `ActiveRecord::Base`, prematurely you are violating an implicit contract your application has with Rails. Moreover, by loading code such as `ActiveRecord::Base` on boot of your application you are loading entire frameworks which may slow down your boot time and could cause conflicts with load order and boot of your application.
 
-On Load hooks are the API that allow you to hook into this initialization process without violating the load contract with Rails. This will also mitigate boot performance degradation and avoid conflicts.
+Load and configuration hooks are the API that allow you to hook into this initialization process without violating the load contract with Rails. This will also mitigate boot performance degradation and avoid conflicts.
 
-## What are `on_load` hooks?
+### Avoid loading Rails Frameworks
 
 Since Ruby is a dynamic language, some code will cause different Rails frameworks to load. Take this snippet for instance:
 
@@ -1461,15 +1459,15 @@ ActiveSupport.on_load(:active_record) { include MyActiveRecordHelper }
 
 This new snippet will only include `MyActiveRecordHelper` when `ActiveRecord::Base` is loaded.
 
-## How does it work?
+### When are Hooks called?
 
 In the Rails framework these hooks are called when a specific library is loaded. For example, when `ActionController::Base` is loaded, the `:action_controller_base` hook is called. This means that all `ActiveSupport.on_load` calls with `:action_controller_base` hooks will be called in the context of `ActionController::Base` (that means `self` will be an `ActionController::Base`).
 
-## Modifying code to use `on_load` hooks
+### Modifying Code to use Load Hooks
 
-Modifying code is generally straightforward. If you have a line of code that refers to a Rails framework such as `ActiveRecord::Base` you can wrap that code in an `on_load` hook.
+Modifying code is generally straightforward. If you have a line of code that refers to a Rails framework such as `ActiveRecord::Base` you can wrap that code in a load hook.
 
-### Example 1
+**Modifying calls to `include`**
 
 ```ruby
 ActiveRecord::Base.include(MyActiveRecordHelper)
@@ -1481,7 +1479,7 @@ becomes
 ActiveSupport.on_load(:active_record) { include MyActiveRecordHelper } # self refers to ActiveRecord::Base here, so we can simply #include
 ```
 
-### Example 2
+**Modifying calls to `prepend`**
 
 ```ruby
 ActionController::Base.prepend(MyActionControllerHelper)
@@ -1493,7 +1491,7 @@ becomes
 ActiveSupport.on_load(:action_controller_base) { prepend MyActionControllerHelper } # self refers to ActionController::Base here, so we can simply #prepend
 ```
 
-### Example 3
+**Modifying calls to class methods**
 
 ```ruby
 ActiveRecord::Base.include_root_in_json = true
@@ -1505,13 +1503,11 @@ becomes
 ActiveSupport.on_load(:active_record) { self.include_root_in_json = true } # self refers to ActiveRecord::Base here
 ```
 
-## Available Hooks
+### Available Load Hooks
 
-These are the hooks you can use in your own code.
+These are the load hooks you can use in your own code. To hook into the initialization process of one of the following classes use the available hook.
 
-To hook into the initialization process of one of the following classes use the available hook.
-
-| Class                                | Available Hooks                      |
+| Class                                | Hook                                 |
 | -------------------------------------| ------------------------------------ |
 | `ActionCable`                        | `action_cable`                       |
 | `ActionCable::Channel::Base`         | `action_cable_channel`               |
@@ -1523,6 +1519,8 @@ To hook into the initialization process of one of the following classes use the 
 | `ActionController::Base`             | `action_controller`                  |
 | `ActionController::TestCase`         | `action_controller_test_case`        |
 | `ActionDispatch::IntegrationTest`    | `action_dispatch_integration_test`   |
+| `ActionDispatch::Response`           | `action_dispatch_response`           |
+| `ActionDispatch::Request`            | `action_dispatch_request`            |
 | `ActionDispatch::SystemTestCase`     | `action_dispatch_system_test_case`   |
 | `ActionMailbox::Base`                | `action_mailbox`                     |
 | `ActionMailbox::InboundEmail`        | `action_mailbox_inbound_email`       |
@@ -1541,9 +1539,9 @@ To hook into the initialization process of one of the following classes use the 
 | `ActiveSupport::TestCase`            | `active_support_test_case`           |
 | `i18n`                               | `i18n`                               |
 
-## Configuration hooks
+### Available Configuration Hooks
 
-These are the available configuration hooks. They do not hook into any particular framework, but instead they run in context of the entire application.
+Configuration hooks do not hook into any particular framework, but instead they run in context of the entire application.
 
 | Hook                   | Use Case                                                                           |
 | ---------------------- | ---------------------------------------------------------------------------------- |
@@ -1552,8 +1550,12 @@ These are the available configuration hooks. They do not hook into any particula
 | `before_eager_load`    | Third configurable block to run. Does not run if `config.eager_load` set to false. |
 | `after_initialize`     | Last configurable block to run. Called after frameworks initialize.                |
 
-### Example
+Configuration hooks can be called in the Engine class.
 
 ```ruby
-config.before_configuration { puts 'I am called before any initializers' }
+module Blorgh
+  class Engine < ::Rails::Engine
+    config.before_configuration { puts 'I am called before any initializers' }
+  end
+end
 ```

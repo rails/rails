@@ -56,7 +56,7 @@ module ActiveRecord
       def ids_writer(ids)
         primary_key = reflection.association_primary_key
         pk_type = klass.type_for_attribute(primary_key)
-        ids = Array(ids).reject(&:blank?)
+        ids = Array(ids).compact_blank
         ids.map! { |i| pk_type.cast(i) }
 
         records = klass.where(primary_key => ids).index_by do |r|
@@ -101,7 +101,7 @@ module ActiveRecord
         end
       end
 
-      def build(attributes = {}, &block)
+      def build(attributes = nil, &block)
         if attributes.is_a?(Array)
           attributes.collect { |attr| build(attr, &block) }
         else
@@ -285,6 +285,17 @@ module ActiveRecord
         replace_on_target(record, index, skip_callbacks, &block)
       end
 
+      def target=(record)
+        return super unless ActiveRecord::Base.has_many_inversing
+
+        case record
+        when Array
+          super
+        else
+          add_to_target(record, true)
+        end
+      end
+
       def scope
         scope = super
         scope.none! if null_scope?
@@ -378,7 +389,9 @@ module ActiveRecord
         end
 
         def remove_records(existing_records, records, method)
-          records.each { |record| callback(:before_remove, record) }
+          catch(:abort) do
+            records.each { |record| callback(:before_remove, record) }
+          end || return
 
           delete_records(existing_records, method) if existing_records.any?
           @target -= records
@@ -434,7 +447,9 @@ module ActiveRecord
         end
 
         def replace_on_target(record, index, skip_callbacks)
-          callback(:before_add, record) unless skip_callbacks
+          catch(:abort) do
+            callback(:before_add, record)
+          end || return unless skip_callbacks
 
           set_inverse_instance(record)
 

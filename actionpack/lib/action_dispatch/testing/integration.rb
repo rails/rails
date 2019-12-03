@@ -3,7 +3,6 @@
 require "stringio"
 require "uri"
 require "active_support/core_ext/kernel/singleton_class"
-require "active_support/core_ext/object/try"
 require "rack/test"
 require "minitest"
 
@@ -44,17 +43,28 @@ module ActionDispatch
 
       # Performs a HEAD request with the given parameters. See ActionDispatch::Integration::Session#process
       # for more details.
-      def head(path, *args)
-        process(:head, path, *args)
+      def head(path, **args)
+        process(:head, path, **args)
+      end
+
+      # Performs an OPTIONS request with the given parameters. See ActionDispatch::Integration::Session#process
+      # for more details.
+      def options(path, **args)
+        process(:options, path, **args)
       end
 
       # Follow a single redirect response. If the last response was not a
       # redirect, an exception will be raised. Otherwise, the redirect is
-      # performed on the location header. Any arguments are passed to the
-      # underlying call to `get`.
+      # performed on the location header. If the redirection is a 307 redirect,
+      # the same HTTP verb will be used when redirecting, otherwise a GET request
+      # will be performed. Any arguments are passed to the
+      # underlying request.
       def follow_redirect!(**args)
         raise "not a redirect! #{status} #{status_message}" unless redirect?
-        get(response.location, **args)
+
+        method = response.status == 307 ? request.method.downcase : :get
+        public_send(method, response.location, **args)
+
         status
       end
     end
@@ -348,15 +358,19 @@ module ActionDispatch
       end
 
       %w(get post patch put head delete cookies assigns follow_redirect!).each do |method|
-        define_method(method) do |*args|
+        define_method(method) do |*args, **options|
           # reset the html_document variable, except for cookies/assigns calls
           unless method == "cookies" || method == "assigns"
             @html_document = nil
           end
 
-          integration_session.__send__(method, *args).tap do
-            copy_session_variables!
+          result = if options.any?
+            integration_session.__send__(method, *args, **options)
+          else
+            integration_session.__send__(method, *args)
           end
+          copy_session_variables!
+          result
         end
       end
 
@@ -640,8 +654,8 @@ module ActionDispatch
           @@app = app
         end
 
-        def register_encoder(*args)
-          RequestEncoder.register_encoder(*args)
+        def register_encoder(*args, **options)
+          RequestEncoder.register_encoder(*args, **options)
         end
       end
 

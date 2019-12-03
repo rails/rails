@@ -74,7 +74,6 @@ module ActionView
     end
 
     private
-
       def extract_details(options) # :doc:
         @lookup_context.registered_details.each_with_object({}) do |key, details|
           value = options[key]

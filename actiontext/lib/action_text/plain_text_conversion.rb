@@ -18,9 +18,11 @@ module ActionText
       end
 
       def plain_text_for_node_children(node)
-        node.children.each_with_index.map do |child, index|
-          plain_text_for_node(child, index)
-        end.compact.join("")
+        texts = []
+        node.children.each_with_index do |child, index|
+          texts << plain_text_for_node(child, index)
+        end
+        texts.join
       end
 
       def plain_text_method_for_node(node)

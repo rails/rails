@@ -15,7 +15,7 @@ Redis::Connection.drivers.append(driver)
 # connection pool testing.
 class SlowRedis < Redis
   def get(key, options = {})
-    if key =~ /latency/
+    if /latency/.match?(key)
       sleep 3
     else
       super
@@ -191,7 +191,6 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     include ConnectionPoolBehavior
 
     private
-
       def store
         [:redis_cache_store]
       end
@@ -234,14 +233,34 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     end
   end
 
-  class FailureSafetyTest < StoreTest
+  class MaxClientsReachedRedisClient < Redis::Client
+    def ensure_connected
+      raise Redis::CommandError
+    end
+  end
+
+  class FailureSafetyFromUnavailableClientTest < StoreTest
     include FailureSafetyBehavior
 
     private
-
       def emulating_unavailability
         old_client = Redis.send(:remove_const, :Client)
         Redis.const_set(:Client, UnavailableRedisClient)
+
+        yield ActiveSupport::Cache::RedisCacheStore.new
+      ensure
+        Redis.send(:remove_const, :Client)
+        Redis.const_set(:Client, old_client)
+      end
+  end
+
+  class FailureSafetyFromMaxClientsReachedErrorTest < StoreTest
+    include FailureSafetyBehavior
+
+    private
+      def emulating_unavailability
+        old_client = Redis.send(:remove_const, :Client)
+        Redis.const_set(:Client, MaxClientsReachedRedisClient)
 
         yield ActiveSupport::Cache::RedisCacheStore.new
       ensure

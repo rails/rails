@@ -7,6 +7,6 @@ Example:
 ========
     rails generate mailbox inbox
 
-    creates a InboxMailbox class and test:
+    creates an InboxMailbox class and test:
         Mailbox:  app/mailboxes/inbox_mailbox.rb
         Test:     test/mailboxes/inbox_mailbox_test.rb

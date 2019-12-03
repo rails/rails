@@ -165,6 +165,10 @@ module ActionDispatch
         end
         alias :=~ :match
 
+        def match?(other)
+          to_regexp.match?(other)
+        end
+
         def source
           to_regexp.source
         end
@@ -174,7 +178,6 @@ module ActionDispatch
         end
 
         private
-
           def regexp_visitor
             @anchored ? AnchoredRegexp : UnanchoredRegexp
           end

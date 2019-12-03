@@ -12,7 +12,7 @@ module RailsGuides
 #{ERB::Util.h(code)}
 </pre>
 </div>
-HTML
+        HTML
       end
 
       def link(url, title, content)
@@ -53,7 +53,6 @@ HTML
       end
 
       private
-
         def convert_footnotes(text)
           text.gsub(/\[<sup>(\d+)\]<\/sup>/i) do
             %(<sup class="footnote" id="footnote-#{$1}-ref">) +

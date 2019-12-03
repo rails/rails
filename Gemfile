@@ -9,8 +9,8 @@ gemspec
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 11.1"
 
-gem "capybara", ">= 2.15"
-gem "selenium-webdriver", ">= 3.5.0", "< 3.13.0"
+gem "capybara", ">= 3.26"
+gem "selenium-webdriver", ">= 3.141.592"
 
 gem "rack-cache", "~> 1.2"
 gem "sass-rails"
@@ -30,6 +30,7 @@ gem "json", ">= 2.0.0"
 
 gem "rubocop", ">= 0.47", require: false
 gem "rubocop-performance", require: false
+gem "rubocop-rails", require: false
 
 group :doc do
   gem "sdoc", "~> 1.0"
@@ -40,7 +41,7 @@ end
 
 # Active Support
 gem "dalli"
-gem "listen", ">= 3.0.5", "< 3.2", require: false
+gem "listen", "~> 3.2", require: false
 gem "libxml-ruby", platforms: :ruby
 gem "connection_pool", require: false
 
@@ -82,7 +83,7 @@ end
 group :storage do
   gem "aws-sdk-s3", require: false
   gem "google-cloud-storage", "~> 1.11", require: false
-  gem "azure-storage", require: false
+  gem "azure-storage-blob", require: false
 
   gem "image_processing", "~> 1.2"
 end
@@ -124,7 +125,7 @@ platforms :ruby, :mswin, :mswin64, :mingw, :x64_mingw do
 
   group :db do
     gem "pg", ">= 0.18.0"
-    gem "mysql2", ">= 0.4.10"
+    gem "mysql2", "~> 0.5"
   end
 end
 

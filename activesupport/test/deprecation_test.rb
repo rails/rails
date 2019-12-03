@@ -38,6 +38,11 @@ class Deprecatee
     C = 1
   end
   A = ActiveSupport::Deprecation::DeprecatedConstantProxy.new("Deprecatee::A", "Deprecatee::B::C")
+
+  module New
+    class Descendant; end
+  end
+  Old = ActiveSupport::Deprecation::DeprecatedConstantProxy.new("Deprecatee::Old", "Deprecatee::New")
 end
 
 class DeprecateeWithAccessor
@@ -170,8 +175,8 @@ class DeprecationTest < ActiveSupport::TestCase
 
     begin
       events = []
-      ActiveSupport::Notifications.subscribe("deprecation.my_gem_custom") { |_, **args|
-        events << args
+      ActiveSupport::Notifications.subscribe("deprecation.my_gem_custom") { |*args|
+        events << args.extract_options!
       }
 
       assert_nil behavior.call("Some error!", ["call stack!"], "horizon", "MyGem::Custom")
@@ -208,6 +213,18 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_not_deprecated { Deprecatee::B::C }
     assert_deprecated("Deprecatee::A") { assert_equal Deprecatee::B::C, Deprecatee::A }
     assert_not_deprecated { assert_equal Deprecatee::B::C.class, Deprecatee::A.class }
+  end
+
+  def test_deprecated_constant_descendant
+    assert_not_deprecated { Deprecatee::New::Descendant }
+
+    assert_deprecated("Deprecatee::Old") do
+      assert_equal Deprecatee::Old::Descendant, Deprecatee::New::Descendant
+    end
+
+    assert_raises(NameError) do
+      assert_deprecated("Deprecatee::Old") { Deprecatee::Old::NON_EXISTENCE }
+    end
   end
 
   def test_deprecated_constant_accessor
@@ -271,6 +288,34 @@ class DeprecationTest < ActiveSupport::TestCase
     ActiveSupport::Deprecation.silenced = true
     assert_not_deprecated { @dtc.partially }
     ActiveSupport::Deprecation.silenced = false
+  end
+
+  def test_silence_threaded
+    barrier = Concurrent::CyclicBarrier.new(2)
+
+    th = Thread.new do
+      ActiveSupport::Deprecation.silence do
+        barrier.wait
+        barrier.wait
+        assert_not_deprecated { ActiveSupport::Deprecation.warn "abc" }
+      end
+      assert_deprecated("abc") { ActiveSupport::Deprecation.warn "abc" }
+    end
+
+    barrier.wait
+
+    assert_deprecated("abc") { ActiveSupport::Deprecation.warn "abc" }
+
+    ActiveSupport::Deprecation.silence do
+      assert_not_deprecated { ActiveSupport::Deprecation.warn "abc" }
+    end
+
+    assert_deprecated("abc") { ActiveSupport::Deprecation.warn "abc" }
+
+    barrier.wait
+    th.join
+  ensure
+    th.kill
   end
 
   def test_deprecation_without_explanation

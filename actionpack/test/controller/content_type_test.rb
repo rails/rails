@@ -50,6 +50,11 @@ class OldContentTypeController < ActionController::Base
       format.rss  { render body: "hello world!", content_type: Mime[:xml] }
     end
   end
+
+  def render_content_type_with_charset
+    response.content_type = "text/html; fragment; charset=utf-16"
+    render body: "hello world!"
+  end
 end
 
 class ContentTypeTest < ActionController::TestCase
@@ -131,8 +136,13 @@ class ContentTypeTest < ActionController::TestCase
     assert_equal "utf-8", @response.charset
   end
 
-  private
+  def test_content_type_with_charset
+    get :render_content_type_with_charset
+    assert_equal "text/html; fragment", @response.media_type
+    assert_equal "utf-16", @response.charset
+  end
 
+  private
     def with_default_charset(charset)
       old_default_charset = ActionDispatch::Response.default_charset
       ActionDispatch::Response.default_charset = charset

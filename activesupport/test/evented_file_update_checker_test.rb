@@ -34,7 +34,7 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
   end
 
   test "notifies forked processes" do
-    jruby_skip "Forking not available on JRuby"
+    skip "Forking not available" unless Process.respond_to?(:fork)
 
     FileUtils.touch(tmpfiles)
 

@@ -688,8 +688,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_through_record_is_built_when_created_with_where
     assert_difference("posts(:thinking).readers.count", 1) do
-      posts(:thinking).people.where(first_name: "Jeb").create
+      posts(:thinking).people.where(readers: { skimmer: true }).create(first_name: "Jeb")
     end
+    reader = posts(:thinking).readers.last
+    assert_equal true, reader.skimmer
   end
 
   def test_associate_with_create_and_no_options

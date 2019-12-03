@@ -1,9 +1,10 @@
 # frozen_string_literal: true
 
-gem "capybara", ">= 2.15"
+gem "capybara", ">= 3.26"
 
 require "capybara/dsl"
 require "capybara/minitest"
+require "selenium/webdriver"
 require "action_controller"
 require "action_dispatch/system_testing/driver"
 require "action_dispatch/system_testing/browser"
@@ -117,6 +118,7 @@ module ActionDispatch
 
     def initialize(*) # :nodoc:
       super
+      self.class.driven_by(:selenium) unless self.class.driver?
       self.class.driver.use
     end
 
@@ -153,17 +155,37 @@ module ActionDispatch
     def self.driven_by(driver, using: :chrome, screen_size: [1400, 1400], options: {}, &capabilities)
       driver_options = { using: using, screen_size: screen_size, options: options }
 
-      self.driver = SystemTesting::Driver.new(driver, driver_options, &capabilities)
+      self.driver = SystemTesting::Driver.new(driver, **driver_options, &capabilities)
     end
 
-    driven_by :selenium
+    private
+      def url_helpers
+        @url_helpers ||=
+          if ActionDispatch.test_app
+            Class.new do
+              include ActionDispatch.test_app.routes.url_helpers
+              include ActionDispatch.test_app.routes.mounted_helpers
 
-    def url_options # :nodoc:
-      default_url_options.merge(host: Capybara.app_host)
-    end
+              def url_options
+                default_url_options.reverse_merge(host: Capybara.app_host || Capybara.current_session.server_url)
+              end
+            end.new
+          end
+      end
 
-    ActiveSupport.run_load_hooks(:action_dispatch_system_test_case, self)
+      def method_missing(name, *args, &block)
+        if url_helpers.respond_to?(name)
+          url_helpers.public_send(name, *args, &block)
+        else
+          super
+        end
+      end
+
+      def respond_to_missing?(name, include_private = false)
+        url_helpers.respond_to?(name)
+      end
   end
-
-  SystemTestCase.start_application
 end
+
+ActiveSupport.run_load_hooks :action_dispatch_system_test_case, ActionDispatch::SystemTestCase
+ActionDispatch::SystemTestCase.start_application

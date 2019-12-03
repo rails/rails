@@ -10,6 +10,10 @@ if SERVICE_CONFIGURATIONS[:s3]
 
     include ActiveStorage::Service::SharedServiceTests
 
+    test "name" do
+      assert_equal :s3, @service.name
+    end
+
     test "direct upload" do
       key      = SecureRandom.base58(24)
       data     = "Something else entirely!"
@@ -26,6 +30,27 @@ if SERVICE_CONFIGURATIONS[:s3]
       end
 
       assert_equal data, @service.download(key)
+    ensure
+      @service.delete key
+    end
+
+    test "direct upload with content disposition" do
+      key      = SecureRandom.base58(24)
+      data     = "Something else entirely!"
+      checksum = Digest::MD5.base64digest(data)
+      url      = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
+
+      uri = URI.parse url
+      request = Net::HTTP::Put.new uri.request_uri
+      request.body = data
+      @service.headers_for_direct_upload(key, checksum: checksum, content_type: "text/plain", filename: ActiveStorage::Filename.new("test.txt"), disposition: :attachment).each do |k, v|
+        request.add_field k, v
+      end
+      Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
+        http.request request
+      end
+
+      assert_equal("attachment; filename=\"test.txt\"; filename*=UTF-8''test.txt", @service.bucket.object(key).content_disposition)
     ensure
       @service.delete key
     end
@@ -73,6 +98,23 @@ if SERVICE_CONFIGURATIONS[:s3]
       )
 
       assert_equal content_type, @service.bucket.object(key).content_type
+    ensure
+      @service.delete key
+    end
+
+    test "upload with content disposition" do
+      key  = SecureRandom.base58(24)
+      data = "Something else entirely!"
+
+      @service.upload(
+        key,
+        StringIO.new(data),
+        checksum: Digest::MD5.base64digest(data),
+        filename: ActiveStorage::Filename.new("cool_data.txt"),
+        disposition: :attachment
+      )
+
+      assert_equal("attachment; filename=\"cool_data.txt\"; filename*=UTF-8''cool_data.txt", @service.bucket.object(key).content_disposition)
     ensure
       @service.delete key
     end

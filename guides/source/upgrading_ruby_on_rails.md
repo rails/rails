@@ -72,11 +72,56 @@ The new Rails version might have different configuration defaults than the previ
 
 To allow you to upgrade to new defaults one by one, the update task has created a file `config/initializers/new_framework_defaults.rb`. Once your application is ready to run with new defaults, you can remove this file and flip the `config.load_defaults` value.
 
+Upgrading from Rails 6.0 to Rails 6.1
+-------------------------------------
+
+### Response's Content-Type when using `respond_to#any`
+
+The Content-Type header returned in the response can differ from what Rails 6.0 returned,
+more specifically if your application uses `respond_to { |format| format.any }`.
+The Content-Type will now be based on the given block rather than the request's format.
+
+Example:
+
+```ruby
+  def my_action
+    respond_to do |format|
+      format.any { render(json: { foo: 'bar' }) }
+    end
+  end
+
+  get('my_action.csv')
+```
+
+Previous behaviour was returning a `text/csv` response's Content-Type which is inaccurate since a JSON response is being rendered.
+Current behaviour correctly returns a `application/json` response's Content-Type.
+
+If your application relies on the previous incorrect behaviour, you are encouraged to specify
+which formats your action accepts, i.e.
+
+```ruby
+  format.any(:xml, :json) { render request.format.to_sym => @people }
+```
+
 
 Upgrading from Rails 5.2 to Rails 6.0
 -------------------------------------
 
 For more information on changes made to Rails 6.0 please see the [release notes](6_0_release_notes.html).
+
+### Using Webpacker
+
+[Webpacker](https://github.com/rails/webpacker)
+is the default JavaScript compiler for Rails 6. But if you are upgrading the app, it is not activated by default.
+If you want to use Webpacker, then include it in your Gemfile and install it:
+
+```ruby
+gem "webpacker"
+```
+
+```sh
+bin/rails webpacker:install
+```
 
 ### Force SSL
 
@@ -97,6 +142,18 @@ This new embed metadata make those cookies incompatible with versions of Rails o
 If you require your cookies to be read by Rails 5.2 and older, or you are still validating your 6.0 deploy and want
 to be able to rollback set
 `Rails.application.config.action_dispatch.use_cookies_with_metadata` to `false`.
+
+### All npm packages have been moved to the `@rails` scope
+
+If you were previously loading any of the `actioncable`, `activestorage`,
+or `rails-ujs` packages through npm/yarn, you must update the names of these
+dependencies before you can upgrade them to `6.0.0`:
+
+```
+actioncable   → @rails/actioncable
+activestorage → @rails/activestorage
+rails-ujs     → @rails/ujs
+```
 
 ### Action Cable JavaScript API Changes
 
@@ -134,12 +191,12 @@ Action Cable JavaScript API:
   +    ActionCable.logger.enabled = false
   ```
 
-### `ActionDispatch::Response#content_type` now returned Content-Type header as it is.
+### `ActionDispatch::Response#content_type` now returns the Content-Type header without modification
 
-Previously, `ActionDispatch::Response#content_type` returned value does NOT contain charset part.
-This behavior changed to returned Content-Type header containing charset part as it is.
+Previously, the return value of `ActionDispatch::Response#content_type` did NOT contain the charset part.
+This behavior has changed to include the previously omitted charset part as well.
 
-If you want just MIME type, please use `ActionDispatch::Response#media_type` instead.
+If you want just the MIME type, please use `ActionDispatch::Response#media_type` instead.
 
 Before:
 
@@ -184,41 +241,21 @@ That may be handy if you need to preload STIs or configure a custom inflector, f
 
 If the application being upgraded autoloads correctly, the project structure should be already mostly compatible.
 
-However, `classic` mode infers file names from missing constant names (`underscore`), whereas `zeitwerk` mode infers constant names from file names (`camelize`). These helpers are not always inverse of each other, in particular if acronyms are involved. For instance, `"FOO".underscore` is `"foo"`, but `"foo".camelize` is `"Foo"`, not `"FOO"`. Compatibility can be checked by setting `classic` mode first temporarily:
+However, `classic` mode infers file names from missing constant names (`underscore`), whereas `zeitwerk` mode infers constant names from file names (`camelize`). These helpers are not always inverse of each other, in particular if acronyms are involved. For instance, `"FOO".underscore` is `"foo"`, but `"foo".camelize` is `"Foo"`, not `"FOO"`.
 
-```ruby
-# config/application.rb
-
-config.load_defaults "6.0"
-config.autoloader = :classic
-```
-
-and then running
+Compatibility can be checked with the `zeitwerk:check` task:
 
 ```
-bin/rails zeitwerk:check
+$ bin/rails zeitwerk:check
+Hold on, I am eager loading the application.
+All is good!
 ```
-
-When all is good, you can delete `config.autoloader = :classic`.
 
 #### require_dependency
 
 All known use cases of `require_dependency` have been eliminated, you should grep the project and delete them.
 
-In the case of STIs with a hierarchy of more than two levels, you can preload the leaves of the hierarchy in an initializer:
-
-```ruby
-# config/initializers/preload_stis.rb
-
-# By preloading leaves, the hierarchy is loaded upwards following
-# the references to superclasses in the class definitions.
-sti_leaves = %w(
-  app/models/leaf1.rb
-  app/models/leaf2.rb
-  app/models/leaf3.rb
-)
-Rails.autoloaders.main.preload(sti_leaves)
-```
+If your application has STIs, please check their section in the guide [Autoloading and Reloading Constants (Zeitwerk Mode)](autoloading_and_reloading_constants.html#single-table-inheritance).
 
 #### Qualified names in class and module definitions
 
@@ -269,6 +306,16 @@ app/models/concerns
 In that case, `app/models/concerns` is assumed to be a root directory (because it belongs to the autoload paths), and it is ignored as namespace. So, `app/models/concerns/foo.rb` should define `Foo`, not `Concerns::Foo`.
 
 The `Concerns::` namespace worked with the classic autoloader as a side-effect of the implementation, but it was not really an intended behavior. An application using `Concerns::` needs to rename those classes and modules to be able to run in `zeitwerk` mode.
+
+#### Having `app` in the autoload paths
+
+Some projects want something like `app/api/base.rb` to define `API::Base`, and add `app` to the autoload paths to accomplish that in `classic` mode. Since Rails adds all subdirectories of `app` to the autoload paths automatically, we have another situation in which there are nested root directories, so that setup no longer works. Similar principle we explained above with `concerns`.
+
+If you want to keep that structure, you'll need to delete the subdirectory from the autoload paths in an initializer:
+
+```ruby
+ActiveSupport::Dependencies.autoload_paths.delete("#{Rails.root}/app/api")
+```
 
 #### Autoloaded Constants and Explicit Namespaces
 
@@ -391,6 +438,12 @@ To fix this, just remove the wildcards:
 config.autoload_paths << "#{config.root}/lib"
 ```
 
+#### Eager loading and autoloading are consistent
+
+In `classic` mode, if `app/models/foo.rb` defines `Bar`, you won't be able to autoload that file, but eager loading will work because it loads files recursively blindly. This can be a source of errors if you test things first eager loading, execution may fail later autoloading.
+
+In `zeitwerk` mode both loading modes are consistent, they fail and err in the same files.
+
 #### How to Use the Classic Autoloader in Rails 6
 
 Applications can load Rails 6 defaults and still use the classic autoloader by setting `config.autoloader` this way:
@@ -401,6 +454,56 @@ Applications can load Rails 6 defaults and still use the classic autoloader by s
 config.load_defaults "6.0"
 config.autoloader = :classic
 ```
+
+When using the Classic Autoloader in Rails 6 application it is recommended to set concurrency level to 1 in development environment, for the web servers and background processors, due to the thread-safety concerns.
+
+### Active Storage assignment behavior change
+
+In Rails 5.2, assigning to a collection of attachments declared with `has_many_attached` appended new files:
+
+```ruby
+class User < ApplicationRecord
+  has_many_attached :highlights
+end
+
+user.highlights.attach(filename: "funky.jpg", ...)
+user.highlights.count # => 1
+
+blob = ActiveStorage::Blob.create_after_upload!(filename: "town.jpg", ...)
+user.update!(highlights: [ blob ])
+
+user.highlights.count # => 2
+user.highlights.first.filename # => "funky.jpg"
+user.highlights.second.filename # => "town.jpg"
+```
+
+With the default configuration for Rails 6.0, assigning to a collection of attachments replaces existing files
+instead of appending to them. This matches Active Record behavior when assigning to a collection association:
+
+```ruby
+user.highlights.attach(filename: "funky.jpg", ...)
+user.highlights.count # => 1
+
+blob = ActiveStorage::Blob.create_after_upload!(filename: "town.jpg", ...)
+user.update!(highlights: [ blob ])
+
+user.highlights.count # => 1
+user.highlights.first.filename # => "town.jpg"
+```
+
+`#attach` can be used to add new attachments without removing the existing ones:
+
+```ruby
+blob = ActiveStorage::Blob.create_after_upload!(filename: "town.jpg", ...)
+user.highlights.attach(blob)
+
+user.highlights.count # => 2
+user.highlights.first.filename # => "funky.jpg"
+user.highlights.second.filename # => "town.jpg"
+```
+
+Opt in to the new default behavior by setting `config.active_storage.replace_on_assign_to_many` to `true`.
+The old behavior will be deprecated in Rails 6.1 and removed in a subsequent release.
 
 Upgrading from Rails 5.1 to Rails 5.2
 -------------------------------------
@@ -457,6 +560,16 @@ To:
 ```ruby
 Rails.application.secrets[:smtp_settings][:address]
 ```
+
+### Removed deprecated support to `:text` and `:nothing` in `render`
+
+If your views are using `render :text`, they will no longer work. The new method
+of rendering text with MIME type of `text/plain` is to use `render :plain`.
+
+Similarly, `render :nothing` is also removed and you should use the `head` method
+to send responses that contain only headers. For example, `head :ok` sends a
+200 response with no body to render.
+
 
 Upgrading from Rails 4.2 to Rails 5.0
 -------------------------------------
@@ -539,7 +652,7 @@ See [#19034](https://github.com/rails/rails/pull/19034) for more details.
 continue using these methods in your controller tests, add `gem 'rails-controller-testing'` to
 your `Gemfile`.
 
-If you are using Rspec for testing, please see the extra configuration required in the gem's
+If you are using RSpec for testing, please see the extra configuration required in the gem's
 documentation.
 
 #### New behavior when uploading files
@@ -1135,7 +1248,7 @@ If your application currently depends on MultiJSON directly, you have a few opti
 
 WARNING: Do not simply replace `MultiJson.dump` and `MultiJson.load` with
 `JSON.dump` and `JSON.load`. These JSON gem APIs are meant for serializing and
-deserializing arbitrary Ruby objects and are generally [unsafe](http://www.ruby-doc.org/stdlib-2.2.2/libdoc/json/rdoc/JSON.html#method-i-load).
+deserializing arbitrary Ruby objects and are generally [unsafe](https://ruby-doc.org/stdlib-2.2.2/libdoc/json/rdoc/JSON.html#method-i-load).
 
 #### JSON gem compatibility
 

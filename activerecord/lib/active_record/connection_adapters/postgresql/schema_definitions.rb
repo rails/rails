@@ -186,7 +186,7 @@ module ActiveRecord
 
         attr_reader :unlogged
 
-        def initialize(*)
+        def initialize(*, **)
           super
           @unlogged = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables
         end

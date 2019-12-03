@@ -44,7 +44,7 @@ class CodeStatistics #:nodoc:
       Dir.foreach(directory) do |file_name|
         path = "#{directory}/#{file_name}"
 
-        if File.directory?(path) && (/^\./ !~ file_name)
+        if File.directory?(path) && !file_name.start_with?(".")
           stats.add(calculate_directory_statistics(path, pattern))
         elsif file_name&.match?(pattern)
           stats.add_by_file_path(path)

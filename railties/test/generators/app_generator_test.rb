@@ -212,7 +212,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_new_application_doesnt_need_defaults
     run_generator
-    assert_no_file "config/initializers/new_framework_defaults_6_0.rb"
+    assert_no_file "config/initializers/new_framework_defaults_6_1.rb"
   end
 
   def test_new_application_load_defaults
@@ -269,14 +269,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root]
 
-    assert_no_file "#{app_root}/config/initializers/new_framework_defaults_6_0.rb"
+    assert_no_file "#{app_root}/config/initializers/new_framework_defaults_6_1.rb"
 
     stub_rails_application(app_root) do
       generator = Rails::Generators::AppGenerator.new ["rails"], { update: true }, { destination_root: app_root, shell: @shell }
       generator.send(:app_const)
       quietly { generator.send(:update_config_files) }
 
-      assert_file "#{app_root}/config/initializers/new_framework_defaults_6_0.rb"
+      assert_file "#{app_root}/config/initializers/new_framework_defaults_6_1.rb"
     end
   end
 
@@ -543,7 +543,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     if defined?(JRUBY_VERSION)
       assert_gem "activerecord-jdbcmysql-adapter"
     else
-      assert_gem "mysql2", "'>= 0.4.4'"
+      assert_gem "mysql2", "'~> 0.5'"
     end
   end
 
@@ -597,7 +597,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_generator_defaults_to_puma_version
     run_generator [destination_root]
-    assert_gem "puma", "'~> 3.11'"
+    assert_gem "puma", "'~> 4.1'"
   end
 
   def test_generator_if_skip_puma_is_given
@@ -678,7 +678,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_inclusion_of_listen_related_configuration_by_default
     run_generator
-    if RbConfig::CONFIG["host_os"] =~ /darwin|linux/
+    if /darwin|linux/.match?(RbConfig::CONFIG["host_os"])
       assert_listen_related_configuration
     else
       assert_no_listen_related_configuration
@@ -690,7 +690,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     Object.const_set(:RUBY_ENGINE, "MyRuby")
 
     run_generator
-    if RbConfig::CONFIG["host_os"] =~ /darwin|linux/
+    if /darwin|linux/.match?(RbConfig::CONFIG["host_os"])
       assert_listen_related_configuration
     else
       assert_no_listen_related_configuration
@@ -708,7 +708,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_evented_file_update_checker_config
     run_generator
     assert_file "config/environments/development.rb" do |content|
-      if RbConfig::CONFIG["host_os"] =~ /darwin|linux/
+      if /darwin|linux/.match?(RbConfig::CONFIG["host_os"])
         assert_match(/^\s*config\.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
       else
         assert_match(/^\s*# config\.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
@@ -934,6 +934,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_gem "webpacker"
+    assert_no_file "config/webpacker.yml"
+
+    output = Dir.chdir(destination_root) do
+      `rails --help`
+    end
+    assert_match(/The most common rails commands are:/, output)
+    assert_equal true, $?.success?
   end
 
   def test_generator_if_skip_turbolinks_is_given
@@ -1023,6 +1030,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       test/helpers
       test/integration
       tmp
+      tmp/pids
     )
     folders_with_keep.each do |folder|
       assert_file("#{folder}/.keep")

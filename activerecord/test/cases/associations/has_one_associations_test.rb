@@ -37,11 +37,8 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_one_does_not_use_order_by
-    ActiveRecord::SQLCounter.clear_log
-    companies(:first_firm).account
-  ensure
-    sql_log = ActiveRecord::SQLCounter.log
-    assert sql_log.all? { |sql| /order by/i !~ sql }, "ORDER BY was used in the query: #{sql_log}"
+    sql_log = capture_sql { companies(:first_firm).account }
+    assert sql_log.all? { |sql| !/order by/i.match?(sql) }, "ORDER BY was used in the query: #{sql_log}"
   end
 
   def test_has_one_cache_nils
@@ -694,6 +691,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     post.reload
 
     assert_equal image, post.main_image
+    assert_equal post, image.imageable
   end
 
   test "dangerous association name raises ArgumentError" do
@@ -709,6 +707,24 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   def test_has_one_with_touch_option_on_create
     assert_queries(3) {
       Club.create(name: "1000 Oaks", membership_attributes: { favourite: true })
+    }
+  end
+
+  def test_polymorphic_has_one_with_touch_option_on_create_wont_cache_association_so_fetching_after_transaction_commit_works
+    assert_queries(4) {
+      chef = Chef.create(employable: DrinkDesignerWithPolymorphicTouchChef.new)
+      employable = chef.employable
+
+      assert_equal chef, employable.chef
+    }
+  end
+
+  def test_polymorphic_has_one_with_touch_option_on_update_will_touch_record_by_fetching_from_database_if_needed
+    DrinkDesignerWithPolymorphicTouchChef.create(chef: Chef.new)
+    designer = DrinkDesignerWithPolymorphicTouchChef.last
+
+    assert_queries(3) {
+      designer.update(name: "foo")
     }
   end
 

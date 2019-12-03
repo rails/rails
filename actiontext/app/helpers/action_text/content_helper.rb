@@ -4,7 +4,7 @@ require "rails-html-sanitizer"
 
 module ActionText
   module ContentHelper
-    mattr_accessor(:sanitizer) { Rails::Html::Sanitizer.white_list_sanitizer.new }
+    mattr_accessor(:sanitizer) { Rails::Html::Sanitizer.safe_list_sanitizer.new }
     mattr_accessor(:allowed_tags) { sanitizer.class.allowed_tags + [ ActionText::Attachment::TAG_NAME, "figure", "figcaption" ] }
     mattr_accessor(:allowed_attributes) { sanitizer.class.allowed_attributes + ActionText::Attachment::ATTRIBUTES }
     mattr_accessor(:scrubber)
@@ -29,7 +29,7 @@ module ActionText
           attachment_gallery.attachments.map do |attachment|
             attachment.node.inner_html = render(attachment, in_gallery: true).chomp
             attachment.to_html
-          end.join("").html_safe
+          end.join.html_safe
         end.chomp
       end
     end

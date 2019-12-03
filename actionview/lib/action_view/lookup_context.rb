@@ -1,9 +1,7 @@
 # frozen_string_literal: true
 
 require "concurrent/map"
-require "active_support/core_ext/module/remove_method"
 require "active_support/core_ext/module/attribute_accessors"
-require "active_support/deprecation"
 require "action_view/template/resolver"
 
 module ActionView
@@ -30,7 +28,7 @@ module ActionView
       Accessors.define_method(:"default_#{name}", &block)
       Accessors.module_eval <<-METHOD, __FILE__, __LINE__ + 1
         def #{name}
-          @details.fetch(:#{name}, [])
+          @details[:#{name}] || []
         end
 
         def #{name}=(value)
@@ -112,7 +110,6 @@ module ActionView
       end
 
     private
-
       def _set_detail(key, value) # :doc:
         @details = @details.dup if @digest_cache || @details_key
         @digest_cache = nil
@@ -171,7 +168,6 @@ module ActionView
       end
 
     private
-
       # Whenever setting view paths, makes a copy so that we can manipulate them in
       # instance objects as we wish.
       def build_view_paths(paths)

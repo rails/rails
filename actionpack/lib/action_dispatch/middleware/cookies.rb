@@ -252,7 +252,6 @@ module ActionDispatch
       end
 
       private
-
         def upgrade_legacy_hmac_aes_cbc_cookies?
           request.secret_key_base.present? &&
             request.encrypted_signed_cookie_salt.present? &&
@@ -287,9 +286,9 @@ module ActionDispatch
       DOMAIN_REGEXP = /[^.]*\.([^.]*|..\...|...\...)$/
 
       def self.build(req, cookies)
-        new(req).tap do |jar|
-          jar.update(cookies)
-        end
+        jar = new(req)
+        jar.update(cookies)
+        jar
       end
 
       attr_reader :request
@@ -345,28 +344,6 @@ module ActionDispatch
 
       def to_header
         @cookies.map { |k, v| "#{escape(k)}=#{escape(v)}" }.join "; "
-      end
-
-      def handle_options(options) # :nodoc:
-        if options[:expires].respond_to?(:from_now)
-          options[:expires] = options[:expires].from_now
-        end
-
-        options[:path] ||= "/"
-
-        if options[:domain] == :all || options[:domain] == "all"
-          # If there is a provided tld length then we use it otherwise default domain regexp.
-          domain_regexp = options[:tld_length] ? /([^.]+\.?){#{options[:tld_length]}}$/ : DOMAIN_REGEXP
-
-          # If host is not ip and matches domain regexp.
-          # (ip confirms to domain regexp so we explicitly check for ip)
-          options[:domain] = if (request.host !~ /^[\d.]+$/) && (request.host =~ domain_regexp)
-            ".#{$&}"
-          end
-        elsif options[:domain].is_a? Array
-          # If host matches one of the supplied domains without a dot in front of it.
-          options[:domain] = options[:domain].find { |domain| request.host.include? domain.sub(/^\./, "") }
-        end
       end
 
       # Sets the cookie named +name+. The second argument may be the cookie's
@@ -428,7 +405,6 @@ module ActionDispatch
       mattr_accessor :always_write_cookie, default: false
 
       private
-
         def escape(string)
           ::Rack::Utils.escape(string)
         end
@@ -448,6 +424,28 @@ module ActionDispatch
 
         def write_cookie?(cookie)
           request.ssl? || !cookie[:secure] || always_write_cookie
+        end
+
+        def handle_options(options)
+          if options[:expires].respond_to?(:from_now)
+            options[:expires] = options[:expires].from_now
+          end
+
+          options[:path] ||= "/"
+
+          if options[:domain] == :all || options[:domain] == "all"
+            # If there is a provided tld length then we use it otherwise default domain regexp.
+            domain_regexp = options[:tld_length] ? /([^.]+\.?){#{options[:tld_length]}}$/ : DOMAIN_REGEXP
+
+            # If host is not ip and matches domain regexp.
+            # (ip confirms to domain regexp so we explicitly check for ip)
+            options[:domain] = if !request.host.match?(/^[\d.]+$/) && (request.host =~ domain_regexp)
+              ".#{$&}"
+            end
+          elsif options[:domain].is_a? Array
+            # If host matches one of the supplied domains without a dot in front of it.
+            options[:domain] = options[:domain].find { |domain| request.host.include? domain.sub(/^\./, "") }
+          end
         end
     end
 
@@ -534,9 +532,13 @@ module ActionDispatch
           if value
             case
             when needs_migration?(value)
-              self[name] = Marshal.load(value)
+              Marshal.load(value).tap do |v|
+                self[name] = { value: v }
+              end
             when rotate
-              self[name] = serializer.load(value)
+              serializer.load(value).tap do |v|
+                self[name] = { value: v }
+              end
             else
               serializer.load(value)
             end
@@ -582,7 +584,7 @@ module ActionDispatch
         end
 
         def commit(name, options)
-          options[:value] = @verifier.generate(serialize(options[:value]), cookie_metadata(name, options))
+          options[:value] = @verifier.generate(serialize(options[:value]), **cookie_metadata(name, options))
 
           raise CookieOverflow if options[:value].bytesize > MAX_COOKIE_SIZE
         end
@@ -628,7 +630,7 @@ module ActionDispatch
         end
 
         def commit(name, options)
-          options[:value] = @encryptor.encrypt_and_sign(serialize(options[:value]), cookie_metadata(name, options))
+          options[:value] = @encryptor.encrypt_and_sign(serialize(options[:value]), **cookie_metadata(name, options))
 
           raise CookieOverflow if options[:value].bytesize > MAX_COOKIE_SIZE
         end

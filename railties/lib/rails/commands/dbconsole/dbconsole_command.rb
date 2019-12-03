@@ -17,54 +17,54 @@ module Rails
     def start
       ENV["RAILS_ENV"] ||= @options[:environment] || environment
 
-      case config["adapter"]
+      case db_config.adapter
       when /^(jdbc)?mysql/
         args = {
-          "host"      => "--host",
-          "port"      => "--port",
-          "socket"    => "--socket",
-          "username"  => "--user",
-          "encoding"  => "--default-character-set",
-          "sslca"     => "--ssl-ca",
-          "sslcert"   => "--ssl-cert",
-          "sslcapath" => "--ssl-capath",
-          "sslcipher" => "--ssl-cipher",
-          "sslkey"    => "--ssl-key"
+          host: "--host",
+          port: "--port",
+          socket: "--socket",
+          username: "--user",
+          encoding: "--default-character-set",
+          sslca: "--ssl-ca",
+          sslcert: "--ssl-cert",
+          sslcapath: "--ssl-capath",
+          sslcipher: "--ssl-cipher",
+          sslkey: "--ssl-key"
         }.map { |opt, arg| "#{arg}=#{config[opt]}" if config[opt] }.compact
 
-        if config["password"] && @options["include_password"]
-          args << "--password=#{config['password']}"
-        elsif config["password"] && !config["password"].to_s.empty?
+        if config[:password] && @options[:include_password]
+          args << "--password=#{config[:password]}"
+        elsif config[:password] && !config[:password].to_s.empty?
           args << "-p"
         end
 
-        args << config["database"]
+        args << db_config.database
 
         find_cmd_and_exec(["mysql", "mysql5"], *args)
 
       when /^postgres|^postgis/
-        ENV["PGUSER"]     = config["username"] if config["username"]
-        ENV["PGHOST"]     = config["host"] if config["host"]
-        ENV["PGPORT"]     = config["port"].to_s if config["port"]
-        ENV["PGPASSWORD"] = config["password"].to_s if config["password"] && @options["include_password"]
-        find_cmd_and_exec("psql", config["database"])
+        ENV["PGUSER"]     = config[:username] if config[:username]
+        ENV["PGHOST"]     = config[:host] if config[:host]
+        ENV["PGPORT"]     = config[:port].to_s if config[:port]
+        ENV["PGPASSWORD"] = config[:password].to_s if config[:password] && @options[:include_password]
+        find_cmd_and_exec("psql", db_config.database)
 
       when "sqlite3"
         args = []
 
-        args << "-#{@options['mode']}" if @options["mode"]
-        args << "-header" if @options["header"]
-        args << File.expand_path(config["database"], Rails.respond_to?(:root) ? Rails.root : nil)
+        args << "-#{@options[:mode]}" if @options[:mode]
+        args << "-header" if @options[:header]
+        args << File.expand_path(db_config.database, Rails.respond_to?(:root) ? Rails.root : nil)
 
         find_cmd_and_exec("sqlite3", *args)
 
       when "oracle", "oracle_enhanced"
         logon = ""
 
-        if config["username"]
-          logon = config["username"].dup
-          logon << "/#{config['password']}" if config["password"] && @options["include_password"]
-          logon << "@#{config['database']}" if config["database"]
+        if config[:username]
+          logon = config[:username].dup
+          logon << "/#{config[:password]}" if config[:password] && @options[:include_password]
+          logon << "@#{db_config.database}" if db_config.database
         end
 
         find_cmd_and_exec("sqlplus", logon)
@@ -72,36 +72,42 @@ module Rails
       when "sqlserver"
         args = []
 
-        args += ["-D", "#{config['database']}"] if config["database"]
-        args += ["-U", "#{config['username']}"] if config["username"]
-        args += ["-P", "#{config['password']}"] if config["password"]
+        args += ["-D", "#{db_config.database}"] if db_config.database
+        args += ["-U", "#{config[:username]}"] if config[:username]
+        args += ["-P", "#{config[:password]}"] if config[:password]
 
-        if config["host"]
-          host_arg = +"#{config['host']}"
-          host_arg << ":#{config['port']}" if config["port"]
+        if config[:host]
+          host_arg = +"#{config[:host]}"
+          host_arg << ":#{config[:port]}" if config[:port]
           args += ["-S", host_arg]
         end
 
         find_cmd_and_exec("sqsh", *args)
 
       else
-        abort "Unknown command-line client for #{config['database']}."
+        abort "Unknown command-line client for #{db_config.database}."
       end
     end
 
     def config
-      @config ||= begin
-        # We need to check whether the user passed the database the
-        # first time around to show a consistent error message to people
-        # relying on 2-level database configuration.
-        if @options["database"] && configurations[database].blank?
-          raise ActiveRecord::AdapterNotSpecified, "'#{database}' database is not configured. Available configuration: #{configurations.inspect}"
-        elsif configurations[environment].blank? && configurations[database].blank?
-          raise ActiveRecord::AdapterNotSpecified, "'#{environment}' database is not configured. Available configuration: #{configurations.inspect}"
-        else
-          configurations[database] || configurations[environment].presence
-        end
+      db_config.configuration_hash
+    end
+
+    def db_config
+      return @db_config if defined?(@db_config)
+
+      # We need to check whether the user passed the database the
+      # first time around to show a consistent error message to people
+      # relying on 2-level database configuration.
+
+      @db_config = configurations.configs_for(env_name: environment, spec_name: database)
+
+      unless @db_config
+        raise ActiveRecord::AdapterNotSpecified,
+          "'#{database}' database is not configured for '#{environment}'. Available configuration: #{configurations.inspect}"
       end
+
+      @db_config
     end
 
     def environment
@@ -131,7 +137,12 @@ module Rails
         found = commands.detect do |cmd|
           dirs_on_path.detect do |path|
             full_path_command = File.join(path, cmd)
-            File.file?(full_path_command) && File.executable?(full_path_command)
+            begin
+              stat = File.stat(full_path_command)
+            rescue SystemCallError
+            else
+              stat.file? && stat.executable?
+            end
           end
         end
 

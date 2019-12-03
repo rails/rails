@@ -29,6 +29,10 @@ module ActiveRecord
         config_row["model_class"]
       end
 
+      def ignored_fixtures
+        config_row["ignore"]
+      end
+
       private
         def rows
           @rows ||= raw_rows.reject { |fixture_name, _| fixture_name == "_fixture" }
@@ -40,7 +44,7 @@ module ActiveRecord
             if row
               row.last
             else
-              { 'model_class': nil }
+              { 'model_class': nil, 'ignore': nil }
             end
           end
         end
@@ -50,7 +54,7 @@ module ActiveRecord
             data = YAML.load(render(IO.read(@file)))
             data ? validate(data).to_a : []
           rescue ArgumentError, Psych::SyntaxError => error
-            raise Fixture::FormatError, "a YAML error occurred parsing #{@file}. Please note that YAML must be consistently indented using spaces. Tabs are not allowed. Please have a look at http://www.yaml.org/faq.html\nThe exact error was:\n  #{error.class}: #{error}", error.backtrace
+            raise Fixture::FormatError, "a YAML error occurred parsing #{@file}. Please note that YAML must be consistently indented using spaces. Tabs are not allowed. Please have a look at https://www.yaml.org/faq.html\nThe exact error was:\n  #{error.class}: #{error}", error.backtrace
           end
         end
 

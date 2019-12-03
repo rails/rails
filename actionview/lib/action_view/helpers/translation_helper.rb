@@ -60,7 +60,7 @@ module ActionView
       def translate(key, options = {})
         options = options.dup
         if options.has_key?(:default)
-          remaining_defaults = Array(options.delete(:default)).compact
+          remaining_defaults = Array.wrap(options.delete(:default)).compact
           options[:default] = remaining_defaults unless remaining_defaults.first.kind_of?(Symbol)
         end
 
@@ -82,14 +82,14 @@ module ActionView
               html_safe_options[name] = ERB::Util.html_escape(value.to_s)
             end
           end
-          translation = I18n.translate(scope_key_by_partial(key), html_safe_options.merge(raise: i18n_raise))
+          translation = I18n.translate(scope_key_by_partial(key), **html_safe_options.merge(raise: i18n_raise))
           if translation.respond_to?(:map)
             translation.map { |element| element.respond_to?(:html_safe) ? element.html_safe : element }
           else
             translation.respond_to?(:html_safe) ? translation.html_safe : translation
           end
         else
-          I18n.translate(scope_key_by_partial(key), options.merge(raise: i18n_raise))
+          I18n.translate(scope_key_by_partial(key), **options.merge(raise: i18n_raise))
         end
       rescue I18n::MissingTranslationData => e
         if remaining_defaults.present?

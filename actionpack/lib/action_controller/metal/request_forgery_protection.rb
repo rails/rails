@@ -151,7 +151,6 @@ module ActionController #:nodoc:
       end
 
       private
-
         def protection_method_class(name)
           ActionController::RequestForgeryProtection::ProtectionMethods.const_get(name.to_s.classify)
         rescue NameError
@@ -175,7 +174,6 @@ module ActionController #:nodoc:
         end
 
         private
-
           class NullSessionHash < Rack::Session::Abstract::SessionHash #:nodoc:
             def initialize(req)
               super(nil, req)
@@ -282,7 +280,7 @@ module ActionController #:nodoc:
 
       # Check for cross-origin JavaScript responses.
       def non_xhr_javascript_response? # :doc:
-        content_type =~ %r(\A(?:text|application)/javascript) && !request.xhr?
+        media_type && %r(\A(?:text|application)/javascript).match?(media_type) && !request.xhr?
       end
 
       AUTHENTICITY_TOKEN_LENGTH = 32

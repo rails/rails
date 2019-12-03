@@ -352,11 +352,7 @@ module ActiveModel
 
         def attribute_method_matchers_matching(method_name)
           attribute_method_matchers_cache.compute_if_absent(method_name) do
-            # Bump plain matcher to last place so that only methods that do not
-            # match any other pattern match the actual attribute name.
-            # This is currently only needed to support legacy usage.
-            matchers = attribute_method_matchers.partition(&:plain?).reverse.flatten(1)
-            matchers.map { |matcher| matcher.match(method_name) }.compact
+            attribute_method_matchers.map { |matcher| matcher.match(method_name) }.compact
           end
         end
 
@@ -364,13 +360,14 @@ module ActiveModel
         # using the given `extra` args. This falls back on `define_method`
         # and `send` if the given names cannot be compiled.
         def define_proxy_call(include_private, mod, name, target, *extra)
+          kw = RUBY_VERSION >= "2.7" ? ", **options" : nil
           defn = if NAME_COMPILABLE_REGEXP.match?(name)
-            "def #{name}(*args)"
+            "def #{name}(*args#{kw})"
           else
-            "define_method(:'#{name}') do |*args|"
+            "define_method(:'#{name}') do |*args#{kw}|"
           end
 
-          extra = (extra.map!(&:inspect) << "*args").join(", ")
+          extra = (extra.map!(&:inspect) << "*args#{kw}").join(", ")
 
           body = if CALL_COMPILABLE_REGEXP.match?(target)
             "#{"self." unless include_private}#{target}(#{extra})"
@@ -405,10 +402,6 @@ module ActiveModel
 
           def method_name(attr_name)
             @method_name % attr_name
-          end
-
-          def plain?
-            prefix.empty? && suffix.empty?
           end
         end
     end

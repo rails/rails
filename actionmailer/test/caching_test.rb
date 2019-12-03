@@ -189,7 +189,6 @@ class FunctionalFragmentCachingTest < BaseCachingTest
   end
 
   private
-
     def template_digest(name, format)
       ActionView::Digestor.digest(name: name, format: format, finder: @mailer.lookup_context)
     end

@@ -21,6 +21,7 @@ module ActiveSupport
     require "active_support/deprecation/method_wrappers"
     require "active_support/deprecation/proxy_wrappers"
     require "active_support/core_ext/module/deprecation"
+    require "concurrent/atomic/thread_local_var"
 
     include Singleton
     include InstanceDelegator
@@ -41,6 +42,7 @@ module ActiveSupport
       # By default, warnings are not silenced and debugging is off.
       self.silenced = false
       self.debug = false
+      @silenced_thread = Concurrent::ThreadLocalVar.new(false)
     end
   end
 end

@@ -175,7 +175,6 @@ class LazyLoadHooksTest < ActiveSupport::TestCase
   end
 
 private
-
   def incr_amt
     5
   end

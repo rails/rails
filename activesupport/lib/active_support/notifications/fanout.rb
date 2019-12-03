@@ -3,6 +3,7 @@
 require "mutex_m"
 require "concurrent/map"
 require "set"
+require "active_support/core_ext/object/try"
 
 module ActiveSupport
   module Notifications
@@ -218,6 +219,7 @@ module ActiveSupport
           def finish(name, id, payload)
             stack = Thread.current[:_event_stack]
             event = stack.pop
+            event.payload = payload
             event.finish!
             @delegate.call event
           end

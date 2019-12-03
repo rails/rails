@@ -125,6 +125,7 @@ module Rails
       rack_cors_config_exist         = File.exist?("config/initializers/cors.rb")
       assets_config_exist            = File.exist?("config/initializers/assets.rb")
       csp_config_exist               = File.exist?("config/initializers/content_security_policy.rb")
+      feature_policy_config_exist    = File.exist?("config/initializers/feature_policy.rb")
 
       @config_target_version = Rails.application.config.loaded_config_version || "5.0"
 
@@ -157,6 +158,10 @@ module Rails
 
         unless csp_config_exist
           remove_file "config/initializers/content_security_policy.rb"
+        end
+
+        unless feature_policy_config_exist
+          remove_file "config/initializers/feature_policy.rb"
         end
       end
     end
@@ -225,6 +230,7 @@ module Rails
 
     def tmp
       empty_directory_with_keep_file "tmp"
+      empty_directory_with_keep_file "tmp/pids"
       empty_directory "tmp/cache"
       empty_directory "tmp/cache/assets"
     end
@@ -244,7 +250,6 @@ module Rails
     RAILS_DEV_PATH = File.expand_path("../../../../../..", __dir__)
 
     class AppGenerator < AppBase
-
       # :stopdoc:
 
       WEBPACKS = %w( react vue angular elm stimulus )
@@ -460,6 +465,7 @@ module Rails
         if options[:api]
           remove_file "config/initializers/cookies_serializer.rb"
           remove_file "config/initializers/content_security_policy.rb"
+          remove_file "config/initializers/feature_policy.rb"
         end
       end
 
@@ -471,7 +477,7 @@ module Rails
 
       def delete_new_framework_defaults
         unless options[:update]
-          remove_file "config/initializers/new_framework_defaults_6_0.rb"
+          remove_file "config/initializers/new_framework_defaults_6_1.rb"
         end
       end
 
@@ -495,10 +501,9 @@ module Rails
         "rails new #{arguments.map(&:usage).join(' ')} [options]"
       end
 
-      # :startdoc:
+    # :startdoc:
 
     private
-
       # Define file as an alias to create_file for backwards compatibility.
       def file(*args, &block)
         create_file(*args, &block)
@@ -543,7 +548,6 @@ module Rails
       end
 
       private
-
         def handle_version_request!(argument)
           if ["--version", "-v"].include?(argument)
             require "rails/version"

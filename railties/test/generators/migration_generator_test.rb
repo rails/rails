@@ -2,6 +2,7 @@
 
 require "generators/generators_test_helper"
 require "rails/generators/rails/migration/migration_generator"
+require "active_record/migration"
 
 class MigrationGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -445,7 +446,6 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   end
 
   private
-
     def with_singular_table_name
       old_state = ActiveRecord::Base.pluralize_table_names
       ActiveRecord::Base.pluralize_table_names = false

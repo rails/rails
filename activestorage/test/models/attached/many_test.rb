@@ -10,7 +10,9 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     @user = User.create!(name: "Josh")
   end
 
-  teardown { ActiveStorage::Blob.all.each(&:delete) }
+  teardown do
+    ActiveStorage::Blob.all.each(&:delete)
+  end
 
   test "attaching existing blobs to an existing record" do
     @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
@@ -107,6 +109,27 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     @user.save!
     assert_equal "racecar.jpg", @user.highlights.reload.first.filename.to_s
     assert_equal "video.mp4", @user.highlights.second.filename.to_s
+  end
+
+  test "attaching new blobs from uploaded files to an existing, changed record one at a time" do
+    @user.name = "Tina"
+    assert @user.changed?
+
+    @user.highlights.attach fixture_file_upload("racecar.jpg")
+    @user.highlights.attach fixture_file_upload("video.mp4")
+    assert_equal "racecar.jpg", @user.highlights.first.filename.to_s
+    assert_equal "video.mp4", @user.highlights.second.filename.to_s
+    assert_not @user.highlights.first.persisted?
+    assert_not @user.highlights.second.persisted?
+    assert @user.will_save_change_to_name?
+    assert_not ActiveStorage::Blob.service.exist?(@user.highlights.first.key)
+    assert_not ActiveStorage::Blob.service.exist?(@user.highlights.second.key)
+
+    @user.save!
+    assert_equal "racecar.jpg", @user.highlights.reload.first.filename.to_s
+    assert_equal "video.mp4", @user.highlights.second.filename.to_s
+    assert ActiveStorage::Blob.service.exist?(@user.highlights.first.key)
+    assert ActiveStorage::Blob.service.exist?(@user.highlights.second.key)
   end
 
   test "attaching existing blobs to an existing record one at a time" do
@@ -266,6 +289,24 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
       end
 
       assert_not @user.vlogs.attached?
+    end
+  end
+
+  test "updating an existing record with attachments when appending on assign" do
+    append_on_assign do
+      @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
+
+      assert_difference -> { @user.reload.highlights.count }, +2 do
+        @user.update! highlights: [ create_blob(filename: "whenever.jpg"), create_blob(filename: "wherever.jpg") ]
+      end
+
+      assert_no_difference -> { @user.reload.highlights.count } do
+        @user.update! highlights: [ ]
+      end
+
+      assert_no_difference -> { @user.reload.highlights.count } do
+        @user.update! highlights: nil
+      end
     end
   end
 
@@ -538,4 +579,42 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
       User.remove_method :highlights
     end
   end
+
+  test "attaching a new blob from a Hash with a custom service" do
+    with_service("mirror") do
+      @user.highlights.attach io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg"
+      @user.vlogs.attach io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg"
+
+      assert_instance_of ActiveStorage::Service::MirrorService, @user.highlights.first.service
+      assert_instance_of ActiveStorage::Service::DiskService, @user.vlogs.first.service
+    end
+  end
+
+  test "attaching a new blob from an uploaded file with a custom service" do
+    with_service("mirror") do
+      @user.highlights.attach fixture_file_upload("racecar.jpg")
+      @user.vlogs.attach fixture_file_upload("racecar.jpg")
+
+      assert_instance_of ActiveStorage::Service::MirrorService, @user.highlights.first.service
+      assert_instance_of ActiveStorage::Service::DiskService, @user.vlogs.first.service
+    end
+  end
+
+  test "raises error when misconfigured service is passed" do
+    error = assert_raises ArgumentError do
+      User.class_eval do
+        has_many_attached :featured_photos, service: :unknown
+      end
+    end
+
+    assert_match(/Cannot configure service :unknown for User#featured_photos/, error.message)
+  end
+
+  private
+    def append_on_assign
+      ActiveStorage.replace_on_assign_to_many, previous = false, ActiveStorage.replace_on_assign_to_many
+      yield
+    ensure
+      ActiveStorage.replace_on_assign_to_many = previous
+    end
 end

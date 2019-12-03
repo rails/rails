@@ -5,7 +5,7 @@ require "support/job_buffer"
 
 GlobalID.app = "aj"
 
-@adapter = ENV["AJ_ADAPTER"] || "inline"
+@adapter = ENV["AJ_ADAPTER"] ||= "inline"
 puts "Using #{@adapter}"
 
 if ENV["AJ_INTEGRATION_TESTS"]

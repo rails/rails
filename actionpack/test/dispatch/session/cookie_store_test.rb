@@ -123,7 +123,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
     with_test_route_set do
       encryptor = ActiveSupport::MessageEncryptor.new("A" * 32, cipher: "aes-256-gcm", serializer: Marshal)
 
-      cookies[SessionKey] = encryptor.encrypt_and_sign("foo" => "bar", "session_id" => "abc")
+      cookies[SessionKey] = encryptor.encrypt_and_sign({ "foo" => "bar", "session_id" => "abc" })
 
       get "/get_session_value"
 
@@ -379,12 +379,10 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
   end
 
   private
-
     # Overwrite get to send SessionSecret in env hash
-    def get(path, *args)
-      args[0] ||= {}
-      args[0][:headers] ||= {}
-      args[0][:headers].tap do |config|
+    def get(path, **options)
+      options[:headers] ||= {}
+      options[:headers].tap do |config|
         config["action_dispatch.secret_key_base"] = SessionSecret
         config["action_dispatch.authenticated_encrypted_cookie_salt"] = SessionSalt
         config["action_dispatch.use_authenticated_cookie_encryption"] = true
@@ -393,7 +391,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
         config["action_dispatch.cookies_rotations"] ||= Rotations
       end
 
-      super(path, *args)
+      super
     end
 
     def with_test_route_set(options = {})

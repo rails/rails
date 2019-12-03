@@ -24,7 +24,7 @@ module ActionView
       # This approach will assume that when a new topic is added, you'll touch
       # the project. The cache key generated from this call will be something like:
       #
-      #   views/template/action.html.erb:7a1156131a6928cb0026877f8b749ac9/projects/123
+      #   views/template/action:7a1156131a6928cb0026877f8b749ac9/projects/123
       #         ^template path           ^template tree digest            ^class   ^id
       #
       # This cache key is stable, but it's combined with a cache version derived from the project
@@ -166,7 +166,7 @@ module ActionView
       def cache(name = {}, options = {}, &block)
         if controller.respond_to?(:perform_caching) && controller.perform_caching
           name_options = options.slice(:skip_digest, :virtual_path)
-          safe_concat(fragment_for(cache_fragment_name(name, name_options), options, &block))
+          safe_concat(fragment_for(cache_fragment_name(name, **name_options), options, &block))
         else
           yield
         end
@@ -227,7 +227,6 @@ module ActionView
       end
 
     private
-
       def fragment_name_with_digest(name, virtual_path, digest_path)
         virtual_path ||= @virtual_path
 

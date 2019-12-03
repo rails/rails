@@ -9,9 +9,9 @@ module ActiveSupport
     #   (1.hour.ago..1.hour.from_now).include?(Time.current) # => true
     #
     def include?(value)
-      if first.is_a?(TimeWithZone)
+      if self.begin.is_a?(TimeWithZone)
         cover?(value)
-      elsif last.is_a?(TimeWithZone)
+      elsif self.end.is_a?(TimeWithZone)
         cover?(value)
       else
         super

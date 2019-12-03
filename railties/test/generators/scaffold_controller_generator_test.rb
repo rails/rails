@@ -303,4 +303,12 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       assert_match(/params\.require\(:message\)\.permit\(:video, photos: \[\]\)/, content)
     end
   end
+
+  def test_check_class_collision
+    Object.send :const_set, :UsersController, Class.new
+    content = capture(:stderr) { run_generator }
+    assert_match(/The name 'UsersController' is either already used in your application or reserved/, content)
+  ensure
+    Object.send :remove_const, :UsersController
+  end
 end

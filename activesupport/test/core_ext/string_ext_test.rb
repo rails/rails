@@ -455,6 +455,8 @@ class StringAccessTest < ActiveSupport::TestCase
 
   test "#to with negative Integer, position is counted from the end" do
     assert_equal "hell", "hello".to(-2)
+    assert_equal "h", "hello".to(-5)
+    assert_equal "", "hello".to(-7)
   end
 
   test "#from and #to can be combined" do
@@ -480,12 +482,16 @@ class StringAccessTest < ActiveSupport::TestCase
     assert_not_same different_string, string
   end
 
-  test "#first with negative Integer is deprecated" do
-    string = "hello"
-    message = "Calling String#first with a negative integer limit " \
-              "will raise an ArgumentError in Rails 6.1."
-    assert_deprecated(message) do
-      string.first(-1)
+  test "#first with Integer returns a non-frozen string" do
+    string = "he"
+    (0..string.length + 1).each do |limit|
+      assert_not string.first(limit).frozen?
+    end
+  end
+
+  test "#first with negative Integer raises ArgumentError" do
+    assert_raise ArgumentError do
+      "hello".first(-1)
     end
   end
 
@@ -507,12 +513,16 @@ class StringAccessTest < ActiveSupport::TestCase
     assert_not_same different_string, string
   end
 
-  test "#last with negative Integer is deprecated" do
-    string = "hello"
-    message = "Calling String#last with a negative integer limit " \
-              "will raise an ArgumentError in Rails 6.1."
-    assert_deprecated(message) do
-      string.last(-1)
+  test "#last with Integer returns a non-frozen string" do
+    string = "he"
+    (0..string.length + 1).each do |limit|
+      assert_not string.last(limit).frozen?
+    end
+  end
+
+  test "#last with negative Integer raises ArgumentError" do
+    assert_raise ArgumentError do
+      "hello".last(-1)
     end
   end
 

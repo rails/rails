@@ -64,7 +64,7 @@ class XMLMiniEngineTest < ActiveSupport::TestCase
           <member>
             &a;
           </member>
-      eoxml
+        eoxml
       end
     end
 

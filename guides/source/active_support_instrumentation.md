@@ -140,7 +140,9 @@ Action Controller
 | `:format`       | html/js/json/xml etc                                      |
 | `:method`       | HTTP request verb                                         |
 | `:path`         | Request path                                              |
+| `:request`      | The `ActionDispatch::Request`                             |
 | `:status`       | HTTP status code                                          |
+| `:location`     | Location response header                                  |
 | `:view_runtime` | Amount spent in view in ms                                |
 | `:db_runtime`   | Amount spent executing database queries in ms             |
 
@@ -153,6 +155,7 @@ Action Controller
   format: :html,
   method: "GET",
   path: "/posts",
+  request: #<ActionDispatch::Request:0x00007ff1cb9bd7b8>,
   status: 200,
   view_runtime: 46.848,
   db_runtime: 0.157
@@ -173,15 +176,17 @@ INFO. Additional keys may be added by the caller.
 
 ### redirect_to.action_controller
 
-| Key         | Value              |
-| ----------- | ------------------ |
-| `:status`   | HTTP response code |
-| `:location` | URL to redirect to |
+| Key         | Value                         |
+| ----------- | ----------------------------- |
+| `:status`   | HTTP response code            |
+| `:location` | URL to redirect to            |
+| `:request`  | The `ActionDispatch::Request` |
 
 ```ruby
 {
   status: 302,
-  location: "http://localhost:3000/posts/new"
+  location: "http://localhost:3000/posts/new",
+  request: #<ActionDispatch::Request:0x00007ff1cb9bd7b8>
 }
 ```
 

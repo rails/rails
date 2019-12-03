@@ -28,7 +28,7 @@ curve diving straight into Rails. There are several curated lists of online reso
 for learning Ruby:
 
 * [Official Ruby Programming Language website](https://www.ruby-lang.org/en/documentation/)
-* [List of Free Programming Books](https://github.com/vhf/free-programming-books/blob/master/free-programming-books.md#ruby)
+* [List of Free Programming Books](https://github.com/EbookFoundation/free-programming-books/blob/master/free-programming-books.md#ruby)
 
 Be aware that some resources, while still excellent, cover versions of Ruby as old as
 1.6, and commonly 1.8, and will not include some syntax that you will see in day-to-day
@@ -55,7 +55,7 @@ The Rails philosophy includes two major guiding principles:
 
 * **Don't Repeat Yourself:** DRY is a principle of software development which
   states that "Every piece of knowledge must have a single, unambiguous, authoritative
-  representation within a system." By not writing the same information over and over
+  representation within a system". By not writing the same information over and over
   again, our code is more maintainable, more extensible, and less buggy.
 * **Convention Over Configuration:** Rails has opinions about the best way to do many
   things in a web application, and defaults to this set of conventions, rather than
@@ -217,7 +217,7 @@ This will fire up Puma, a web server distributed with Rails by default. To see
 your application in action, open a browser window and navigate to
 <http://localhost:3000>. You should see the Rails default information page:
 
-![Welcome aboard screenshot](images/getting_started/rails_welcome.png)
+![Yay! You're on Rails! screenshot](images/getting_started/rails_welcome.png)
 
 TIP: To stop the web server, hit Ctrl+C in the terminal window where it's
 running. To verify the server has stopped you should see your command prompt
@@ -226,9 +226,9 @@ dollar sign `$`. In development mode, Rails does not generally require you to
 restart the server; changes you make in files will be automatically picked up by
 the server.
 
-The "Welcome aboard" page is the _smoke test_ for a new Rails application: it
-makes sure that you have your software configured correctly enough to serve a
-page.
+The "Yay! You're on Rails!" page is the _smoke test_ for a new Rails
+application: it makes sure that you have your software configured correctly
+enough to serve a page.
 
 ### Say "Hello", Rails
 
@@ -291,7 +291,7 @@ of code:
 Now that we have made the controller and view, we need to tell Rails when we
 want "Hello, Rails!" to show up. In our case, we want it to show up when we
 navigate to the root URL of our site, <http://localhost:3000>. At the moment,
-"Welcome aboard" is occupying that spot.
+"Yay! You're on Rails!" is occupying that spot.
 
 Next, you have to tell Rails where your actual home page is located.
 
@@ -424,7 +424,7 @@ within our system.
 
 NOTE: There are `public`, `private` and `protected` methods in Ruby,
 but only `public` methods can be actions for controllers.
-For more details check out [Programming Ruby](http://www.ruby-doc.org/docs/ProgrammingRuby/).
+For more details check out [Programming Ruby](https://ruby-doc.org/docs/ProgrammingRuby/).
 
 If you refresh <http://localhost:3000/articles/new> now, you'll get a new error:
 
@@ -904,7 +904,7 @@ And then finally, add the view for this action, located at
 `app/views/articles/index.html.erb`:
 
 ```html+erb
-<h1>Listing articles</h1>
+<h1>Listing Articles</h1>
 
 <table>
   <tr>
@@ -1157,9 +1157,9 @@ new articles. Create a file called `app/views/articles/edit.html.erb` and make
 it look as follows:
 
 ```html+erb
-<h1>Edit article</h1>
+<h1>Edit Article</h1>
 
-<%= form_with(model: @article, local: true) do |form| %>
+<%= form_with model: @article, local: true do |form| %>
 
   <% if @article.errors.any? %>
     <div id="error_explanation">
@@ -1349,7 +1349,7 @@ Now, let's update the `app/views/articles/new.html.erb` view to use this new
 partial, rewriting it completely:
 
 ```html+erb
-<h1>New article</h1>
+<h1>New Article</h1>
 
 <%= render 'form' %>
 
@@ -1359,7 +1359,7 @@ partial, rewriting it completely:
 Then do the same for the `app/views/articles/edit.html.erb` view:
 
 ```html+erb
-<h1>Edit article</h1>
+<h1>Edit Article</h1>
 
 <%= render 'form' %>
 
@@ -1681,7 +1681,7 @@ So first, we'll wire up the Article show template
 </p>
 
 <h2>Add a comment:</h2>
-<%= form_with(model: [ @article, @article.comments.build ], local: true) do |form| %>
+<%= form_with model: [ @article, @article.comments.build ], local: true do |form| %>
   <p>
     <%= form.label :commenter %><br>
     <%= form.text_field :commenter %>
@@ -1762,7 +1762,7 @@ add that to the `app/views/articles/show.html.erb`.
 <% end %>
 
 <h2>Add a comment:</h2>
-<%= form_with(model: [ @article, @article.comments.build ], local: true) do |form| %>
+<%= form_with model: [ @article, @article.comments.build ], local: true do |form| %>
   <p>
     <%= form.label :commenter %><br>
     <%= form.text_field :commenter %>
@@ -1828,7 +1828,7 @@ following:
 <%= render @article.comments %>
 
 <h2>Add a comment:</h2>
-<%= form_with(model: [ @article, @article.comments.build ], local: true) do |form| %>
+<%= form_with model: [ @article, @article.comments.build ], local: true do |form| %>
   <p>
     <%= form.label :commenter %><br>
     <%= form.text_field :commenter %>
@@ -1858,7 +1858,7 @@ Let us also move that new comment section out to its own partial. Again, you
 create a file `app/views/comments/_form.html.erb` containing:
 
 ```html+erb
-<%= form_with(model: [ @article, @article.comments.build ], local: true) do |form| %>
+<%= form_with model: [ @article, @article.comments.build ], local: true do |form| %>
   <p>
     <%= form.label :commenter %><br>
     <%= form.text_field :commenter %>

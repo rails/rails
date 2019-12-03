@@ -12,20 +12,25 @@ module ActiveStorage
     attr_reader :client, :bucket
     attr_reader :multipart_upload_threshold, :upload_options
 
-    def initialize(bucket:, upload: {}, **options)
+    def initialize(bucket:, upload: {}, public: false, **options)
       @client = Aws::S3::Resource.new(**options)
       @bucket = @client.bucket(bucket)
 
       @multipart_upload_threshold = upload.fetch(:multipart_threshold, 100.megabytes)
+      @public = public
+
       @upload_options = upload
+      @upload_options[:acl] = "public-read" if public?
     end
 
-    def upload(key, io, checksum: nil, content_type: nil, **)
+    def upload(key, io, checksum: nil, filename: nil, content_type: nil, disposition: nil, **)
       instrument :upload, key: key, checksum: checksum do
+        content_disposition = content_disposition_with(filename: filename, type: disposition) if disposition && filename
+
         if io.size < multipart_upload_threshold
-          upload_with_single_part key, io, checksum: checksum, content_type: content_type
+          upload_with_single_part key, io, checksum: checksum, content_type: content_type, content_disposition: content_disposition
         else
-          upload_with_multipart key, io, content_type: content_type
+          upload_with_multipart key, io, content_type: content_type, content_disposition: content_disposition
         end
       end
     end
@@ -72,18 +77,6 @@ module ActiveStorage
       end
     end
 
-    def url(key, expires_in:, filename:, disposition:, content_type:)
-      instrument :url, key: key do |payload|
-        generated_url = object_for(key).presigned_url :get, expires_in: expires_in.to_i,
-          response_content_disposition: content_disposition_with(type: disposition, filename: filename),
-          response_content_type: content_type
-
-        payload[:url] = generated_url
-
-        generated_url
-      end
-    end
-
     def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:)
       instrument :url, key: key do |payload|
         generated_url = object_for(key).presigned_url :put, expires_in: expires_in.to_i,
@@ -95,24 +88,37 @@ module ActiveStorage
       end
     end
 
-    def headers_for_direct_upload(key, content_type:, checksum:, **)
-      { "Content-Type" => content_type, "Content-MD5" => checksum }
+    def headers_for_direct_upload(key, content_type:, checksum:, filename: nil, disposition: nil, **)
+      content_disposition = content_disposition_with(type: disposition, filename: filename) if filename
+
+      { "Content-Type" => content_type, "Content-MD5" => checksum, "Content-Disposition" => content_disposition }
     end
 
     private
+      def private_url(key, expires_in:, filename:, disposition:, content_type:, **)
+        object_for(key).presigned_url :get, expires_in: expires_in.to_i,
+          response_content_disposition: content_disposition_with(type: disposition, filename: filename),
+          response_content_type: content_type
+      end
+
+      def public_url(key, **)
+        object_for(key).public_url
+      end
+
+
       MAXIMUM_UPLOAD_PARTS_COUNT = 10000
       MINIMUM_UPLOAD_PART_SIZE   = 5.megabytes
 
-      def upload_with_single_part(key, io, checksum: nil, content_type: nil)
-        object_for(key).put(body: io, content_md5: checksum, content_type: content_type, **upload_options)
+      def upload_with_single_part(key, io, checksum: nil, content_type: nil, content_disposition: nil)
+        object_for(key).put(body: io, content_md5: checksum, content_type: content_type, content_disposition: content_disposition, **upload_options)
       rescue Aws::S3::Errors::BadDigest
         raise ActiveStorage::IntegrityError
       end
 
-      def upload_with_multipart(key, io, content_type: nil)
+      def upload_with_multipart(key, io, content_type: nil, content_disposition: nil)
         part_size = [ io.size.fdiv(MAXIMUM_UPLOAD_PARTS_COUNT).ceil, MINIMUM_UPLOAD_PART_SIZE ].max
 
-        object_for(key).upload_stream(content_type: content_type, part_size: part_size, **upload_options) do |out|
+        object_for(key).upload_stream(content_type: content_type, content_disposition: content_disposition, part_size: part_size, **upload_options) do |out|
           IO.copy_stream(io, out)
         end
       end

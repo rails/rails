@@ -24,8 +24,6 @@ require "active_support/dependencies"
 require "active_model"
 require "active_record"
 
-require "pp" # require 'pp' early to prevent hidden_methods from not picking up the pretty-print methods until too late
-
 ActiveSupport::Dependencies.hook!
 
 Thread.abort_on_exception = true
@@ -192,6 +190,8 @@ module ActionDispatch
 end
 
 class ActiveSupport::TestCase
+  parallelize
+
   include ActiveSupport::Testing::MethodCallAssertions
 
   private

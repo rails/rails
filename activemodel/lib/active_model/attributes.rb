@@ -42,13 +42,13 @@ module ActiveModel
       end
 
       private
-
         def define_method_attribute=(name)
           ActiveModel::AttributeMethods::AttrNames.define_attribute_accessor_method(
             generated_attribute_methods, name, writer: true,
           ) do |temp_method_name, attr_name_expr|
             generated_attribute_methods.module_eval <<-RUBY, __FILE__, __LINE__ + 1
               def #{temp_method_name}(value)
+                raise FrozenError, "can't modify frozen #{self.class.name}" if frozen?
                 name = #{attr_name_expr}
                 write_attribute(name, value)
               end
@@ -114,7 +114,6 @@ module ActiveModel
     end
 
     private
-
       def write_attribute(attr_name, value)
         name = attr_name.to_s
         name = self.class.attribute_aliases[name] || name

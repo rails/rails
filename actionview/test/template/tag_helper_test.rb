@@ -79,6 +79,13 @@ class TagHelperTest < ActionView::TestCase
       tag.p(disabled: true, itemscope: true, multiple: true, readonly: true, allowfullscreen: true, seamless: true, typemustmatch: true, sortable: true, default: true, inert: true, truespeed: true)
   end
 
+  def test_tag_builder_do_not_modify_html_safe_options
+    html_safe_str = '"'.html_safe
+    assert_equal "<p value=\"&quot;\" />", tag("p", value: html_safe_str)
+    assert_equal '"', html_safe_str
+    assert html_safe_str.html_safe?
+  end
+
   def test_content_tag
     assert_equal "<a href=\"create\">Create</a>", content_tag("a", "Create", "href" => "create")
     assert_predicate content_tag("a", "Create", "href" => "create"), :html_safe?

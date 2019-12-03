@@ -82,6 +82,20 @@ asyncTest('right/mouse-wheel-clicking on a link does not fire ajaxyness', 0, fun
   setTimeout(function() { start() }, 13)
 })
 
+asyncTest('clicking on a link via a non-mouse Event (such as from js) works', 1, function() {
+  var link = $('a[data-remote]')
+
+  link
+    .removeAttr('data-params')
+    .bindNative('ajax:beforeSend', function() {
+      ok(true, 'ajax should be triggered')
+    })
+
+  Rails.fire(link[0], 'click')
+
+  setTimeout(function() { start() }, 13)
+})
+
 asyncTest('ctrl-clicking on a link still fires ajax for non-GET links and for links with "data-params"', 2, function() {
   var link = $('a[data-remote]')
 
@@ -474,6 +488,24 @@ asyncTest('changing a select option without "data-url" attribute still fires aja
     .triggerNative('change')
 
   setTimeout(function() { start() }, 20)
+})
+
+asyncTest('inputs inside disabled fieldset are not submitted on remote forms', 3, function() {
+  $('form')
+    .append('<fieldset>\
+      <input name="description" value="A wise man" />\
+    </fieldset>')
+    .append('<fieldset disabled="disabled">\
+      <input name="age" />\
+    </fieldset>')
+    .bindNative('ajax:success', function(e, data, status, xhr) {
+      equal(data.params.user_name, 'john')
+      equal(data.params.description, 'A wise man')
+      equal(data.params.age, undefined)
+
+      start()
+    })
+    .triggerNative('submit')
 })
 
 })()

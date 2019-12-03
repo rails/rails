@@ -22,7 +22,7 @@ class JsonGemEncodingTest < ActiveSupport::TestCase
 
   JSONTest::EncodingTestCases.constants.each_with_index do |name|
     JSONTest::EncodingTestCases.const_get(name).each_with_index do |(subject, _), i|
-      test("#{name[0..-6].underscore} #{i}") do
+      test("#{name[0..-6]} #{i}") do
         assert_same_with_or_without_active_support(subject)
       end
     end

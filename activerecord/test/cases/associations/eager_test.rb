@@ -523,7 +523,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_eager_association_loading_with_belongs_to_and_order_string_with_quoted_table_name
     quoted_posts_id = Comment.connection.quote_table_name("posts") + "." + Comment.connection.quote_column_name("id")
     assert_nothing_raised do
-      Comment.includes(:post).references(:posts).order(Arel.sql(quoted_posts_id))
+      Comment.includes(:post).references(:posts).order(quoted_posts_id)
     end
   end
 
@@ -624,6 +624,21 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_eager_with_has_many_through_an_sti_join_model
     author = Author.all.merge!(includes: :special_post_comments, order: "authors.id").first
     assert_equal [comments(:does_it_hurt)], assert_no_queries { author.special_post_comments }
+  end
+
+  def test_preloading_with_has_one_through_an_sti_with_after_initialize
+    author_a = Author.create!(name: "A")
+    author_b = Author.create!(name: "B")
+    post_a = StiPost.create!(author: author_a, title: "TITLE", body: "BODY")
+    post_b = SpecialPost.create!(author: author_b, title: "TITLE", body: "BODY")
+    comment_a = SpecialComment.create!(post: post_a, body: "TEST")
+    comment_b = SpecialComment.create!(post: post_b, body: "TEST")
+    reset_callbacks(StiPost, :initialize) do
+      StiPost.after_initialize { author }
+      SpecialComment.where(id: [comment_a.id, comment_b.id]).includes(:author).each do |comment|
+        assert comment.author
+      end
+    end
   end
 
   def test_preloading_has_many_through_with_implicit_source
@@ -789,7 +804,6 @@ class EagerAssociationTest < ActiveRecord::TestCase
       .where("comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment'")
       .references(:comments)
       .scoping do
-
       posts = authors(:david).posts.limit(2).to_a
       assert_equal 2, posts.size
     end
@@ -798,7 +812,6 @@ class EagerAssociationTest < ActiveRecord::TestCase
       .where("authors.name = 'David' AND (comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment')")
       .references(:authors, :comments)
       .scoping do
-
       count = Post.limit(2).count
       assert_equal count, posts.size
     end
@@ -970,14 +983,14 @@ class EagerAssociationTest < ActiveRecord::TestCase
       posts(:thinking, :sti_comments),
       Post.all.merge!(
         includes: [:author, :comments], where: { "authors.name" => "David" },
-        order: Arel.sql("UPPER(posts.title)"), limit: 2, offset: 1
+        order: "UPPER(posts.title)", limit: 2, offset: 1
       ).to_a
     )
     assert_equal(
       posts(:sti_post_and_comments, :sti_comments),
       Post.all.merge!(
         includes: [:author, :comments], where: { "authors.name" => "David" },
-        order: Arel.sql("UPPER(posts.title) DESC"), limit: 2, offset: 1
+        order: "UPPER(posts.title) DESC", limit: 2, offset: 1
       ).to_a
     )
   end
@@ -987,14 +1000,14 @@ class EagerAssociationTest < ActiveRecord::TestCase
       posts(:thinking, :sti_comments),
       Post.all.merge!(
         includes: [:author, :comments], where: { "authors.name" => "David" },
-        order: [Arel.sql("UPPER(posts.title)"), "posts.id"], limit: 2, offset: 1
+        order: ["UPPER(posts.title)", "posts.id"], limit: 2, offset: 1
       ).to_a
     )
     assert_equal(
       posts(:sti_post_and_comments, :sti_comments),
       Post.all.merge!(
         includes: [:author, :comments], where: { "authors.name" => "David" },
-        order: [Arel.sql("UPPER(posts.title) DESC"), "posts.id"], limit: 2, offset: 1
+        order: ["UPPER(posts.title) DESC", "posts.id"], limit: 2, offset: 1
       ).to_a
     )
   end

@@ -117,11 +117,11 @@ module ActiveJob
     #       HelloJob.perform_later('elfassy')
     #     end
     #   end
-    def assert_enqueued_jobs(number, only: nil, except: nil, queue: nil)
+    def assert_enqueued_jobs(number, only: nil, except: nil, queue: nil, &block)
       if block_given?
         original_count = enqueued_jobs_with(only: only, except: except, queue: queue)
 
-        yield
+        assert_nothing_raised(&block)
 
         new_count = enqueued_jobs_with(only: only, except: except, queue: queue)
 
@@ -379,14 +379,15 @@ module ActiveJob
     #       MyJob.set(wait_until: Date.tomorrow.noon).perform_later
     #     end
     #   end
-    def assert_enqueued_with(job: nil, args: nil, at: nil, queue: nil)
+    def assert_enqueued_with(job: nil, args: nil, at: nil, queue: nil, &block)
       expected = { job: job, args: args, at: at, queue: queue }.compact
       expected_args = prepare_args_for_assertion(expected)
+      potential_matches = []
 
       if block_given?
         original_enqueued_jobs_count = enqueued_jobs.count
 
-        yield
+        assert_nothing_raised(&block)
 
         jobs = enqueued_jobs.drop(original_enqueued_jobs_count)
       else
@@ -395,6 +396,7 @@ module ActiveJob
 
       matching_job = jobs.find do |enqueued_job|
         deserialized_job = deserialize_args_for_assertion(enqueued_job)
+        potential_matches << deserialized_job
 
         expected_args.all? do |key, value|
           if value.respond_to?(:call)
@@ -405,7 +407,9 @@ module ActiveJob
         end
       end
 
-      assert matching_job, "No enqueued job found with #{expected}"
+      message = +"No enqueued job found with #{expected}"
+      message << "\n\nPotential matches: #{potential_matches.join("\n")}" if potential_matches.present?
+      assert matching_job, message
       instantiate_job(matching_job)
     end
 
@@ -457,6 +461,7 @@ module ActiveJob
     def assert_performed_with(job: nil, args: nil, at: nil, queue: nil, &block)
       expected = { job: job, args: args, at: at, queue: queue }.compact
       expected_args = prepare_args_for_assertion(expected)
+      potential_matches = []
 
       if block_given?
         original_performed_jobs_count = performed_jobs.count
@@ -470,6 +475,7 @@ module ActiveJob
 
       matching_job = jobs.find do |enqueued_job|
         deserialized_job = deserialize_args_for_assertion(enqueued_job)
+        potential_matches << deserialized_job
 
         expected_args.all? do |key, value|
           if value.respond_to?(:call)
@@ -480,7 +486,10 @@ module ActiveJob
         end
       end
 
-      assert matching_job, "No performed job found with #{expected}"
+      message = +"No performed job found with #{expected}"
+      message << "\n\nPotential matches: #{potential_matches.join("\n")}" if potential_matches.present?
+      assert matching_job, message
+
       instantiate_job(matching_job)
     end
 
@@ -539,8 +548,10 @@ module ActiveJob
     #     assert_performed_jobs 1
     #   end
     #
-    def perform_enqueued_jobs(only: nil, except: nil, queue: nil)
-      return flush_enqueued_jobs(only: only, except: except, queue: queue) unless block_given?
+    # If the +:at+ option is specified, then only run jobs enqueued to run
+    # immediately or before the given time
+    def perform_enqueued_jobs(only: nil, except: nil, queue: nil, at: nil, &block)
+      return flush_enqueued_jobs(only: only, except: except, queue: queue, at: at) unless block_given?
 
       validate_option(only: only, except: except)
 
@@ -549,6 +560,7 @@ module ActiveJob
       old_filter = queue_adapter.filter
       old_reject = queue_adapter.reject
       old_queue = queue_adapter.queue
+      old_at = queue_adapter.at
 
       begin
         queue_adapter.perform_enqueued_jobs = true
@@ -556,14 +568,16 @@ module ActiveJob
         queue_adapter.filter = only
         queue_adapter.reject = except
         queue_adapter.queue = queue
+        queue_adapter.at = at
 
-        yield
+        assert_nothing_raised(&block)
       ensure
         queue_adapter.perform_enqueued_jobs = old_perform_enqueued_jobs
         queue_adapter.perform_enqueued_at_jobs = old_perform_enqueued_at_jobs
         queue_adapter.filter = old_filter
         queue_adapter.reject = old_reject
         queue_adapter.queue = old_queue
+        queue_adapter.at = old_at
       end
     end
 
@@ -585,7 +599,7 @@ module ActiveJob
         performed_jobs.clear
       end
 
-      def jobs_with(jobs, only: nil, except: nil, queue: nil)
+      def jobs_with(jobs, only: nil, except: nil, queue: nil, at: nil)
         validate_option(only: only, except: except)
 
         jobs.count do |job|
@@ -601,6 +615,10 @@ module ActiveJob
             next false unless queue.to_s == job.fetch(:queue, job_class.queue_name)
           end
 
+          if at && job[:at]
+            next false if job[:at] > at.to_f
+          end
+
           yield job if block_given?
 
           true
@@ -613,16 +631,16 @@ module ActiveJob
         ->(job) { Array(filter).include?(job.fetch(:job)) }
       end
 
-      def enqueued_jobs_with(only: nil, except: nil, queue: nil, &block)
-        jobs_with(enqueued_jobs, only: only, except: except, queue: queue, &block)
+      def enqueued_jobs_with(only: nil, except: nil, queue: nil, at: nil, &block)
+        jobs_with(enqueued_jobs, only: only, except: except, queue: queue, at: at, &block)
       end
 
       def performed_jobs_with(only: nil, except: nil, queue: nil, &block)
         jobs_with(performed_jobs, only: only, except: except, queue: queue, &block)
       end
 
-      def flush_enqueued_jobs(only: nil, except: nil, queue: nil)
-        enqueued_jobs_with(only: only, except: except, queue: queue) do |payload|
+      def flush_enqueued_jobs(only: nil, except: nil, queue: nil, at: nil)
+        enqueued_jobs_with(only: only, except: except, queue: queue, at: at) do |payload|
           instantiate_job(payload).perform_now
           queue_adapter.performed_jobs << payload
         end
@@ -630,7 +648,7 @@ module ActiveJob
 
       def prepare_args_for_assertion(args)
         args.dup.tap do |arguments|
-          arguments[:at] = arguments[:at].to_f if arguments[:at]
+          arguments[:at] = round_time_arguments(arguments[:at]) if arguments[:at]
           arguments[:args] = round_time_arguments(arguments[:args]) if arguments[:args]
         end
       end
@@ -650,6 +668,7 @@ module ActiveJob
 
       def deserialize_args_for_assertion(job)
         job.dup.tap do |new_job|
+          new_job[:at] = round_time_arguments(Time.at(new_job[:at])) if new_job[:at]
           new_job[:args] = ActiveJob::Arguments.deserialize(new_job[:args]) if new_job[:args]
         end
       end

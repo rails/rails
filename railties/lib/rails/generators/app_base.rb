@@ -108,7 +108,6 @@ module Rails
       end
 
     private
-
       def gemfile_entry(name, *args) # :doc:
         options = args.extract_options!
         version = args.first
@@ -192,7 +191,7 @@ module Rails
       def web_server_gemfile_entry # :doc:
         return [] if options[:skip_puma]
         comment = "Use Puma as the app server"
-        GemfileEntry.new("puma", "~> 3.11", comment)
+        GemfileEntry.new("puma", "~> 4.1", comment)
       end
 
       def include_all_railties? # :doc:
@@ -307,7 +306,7 @@ module Rails
       def assets_gemfile_entry
         return [] if options[:skip_sprockets]
 
-        GemfileEntry.version("sass-rails", ">= 5", "Use SCSS for stylesheets")
+        GemfileEntry.version("sass-rails", ">= 6", "Use SCSS for stylesheets")
       end
 
       def webpacker_gemfile_entry
@@ -401,7 +400,7 @@ module Rails
       end
 
       def os_supports_listen_out_of_the_box?
-        RbConfig::CONFIG["host_os"] =~ /darwin|linux/
+        /darwin|linux/.match?(RbConfig::CONFIG["host_os"])
       end
 
       def run_bundle

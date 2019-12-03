@@ -98,6 +98,16 @@ module ActiveRecord
         configure_connection
       end
 
+      def self.database_exists?(config)
+        config = config.symbolize_keys
+        if config[:database] == ":memory:"
+          true
+        else
+          database_file = defined?(Rails.root) ? File.expand_path(config[:database], Rails.root) : config[:database]
+          File.exist?(database_file)
+        end
+      end
+
       def supports_ddl_transactions?
         true
       end
@@ -132,6 +142,10 @@ module ActiveRecord
 
       def supports_json?
         true
+      end
+
+      def supports_common_table_expressions?
+        database_version >= "3.8.3"
       end
 
       def supports_insert_on_conflict?
@@ -208,8 +222,8 @@ module ActiveRecord
         pks.sort_by { |f| f["pk"] }.map { |f| f["name"] }
       end
 
-      def remove_index(table_name, options = {}) #:nodoc:
-        index_name = index_name_for_remove(table_name, options)
+      def remove_index(table_name, column_name, options = {}) #:nodoc:
+        index_name = index_name_for_remove(table_name, column_name, options)
         exec_query "DROP INDEX #{quote_column_name(index_name)}"
       end
 
@@ -218,14 +232,16 @@ module ActiveRecord
       # Example:
       #   rename_table('octopuses', 'octopi')
       def rename_table(table_name, new_name)
+        schema_cache.clear_data_source_cache!(table_name.to_s)
+        schema_cache.clear_data_source_cache!(new_name.to_s)
         exec_query "ALTER TABLE #{quote_table_name(table_name)} RENAME TO #{quote_table_name(new_name)}"
         rename_table_indexes(table_name, new_name)
       end
 
-      def add_column(table_name, column_name, type, options = {}) #:nodoc:
+      def add_column(table_name, column_name, type, **options) #:nodoc:
         if invalid_alter_table_type?(type, options)
           alter_table(table_name) do |definition|
-            definition.column(column_name, type, options)
+            definition.column(column_name, type, **options)
           end
         else
           super
@@ -354,7 +370,7 @@ module ActiveRecord
                 fk.options[:column] = column
               end
               to_table = strip_table_name_prefix_and_suffix(fk.to_table)
-              definition.foreign_key(to_table, fk.options)
+              definition.foreign_key(to_table, **fk.options)
             end
 
             yield definition if block_given?
@@ -376,11 +392,12 @@ module ActiveRecord
         def copy_table(from, to, options = {})
           from_primary_key = primary_key(from)
           options[:id] = false
-          create_table(to, options) do |definition|
+          create_table(to, **options) do |definition|
             @definition = definition
             if from_primary_key.is_a?(Array)
               @definition.primary_keys from_primary_key
             end
+
             columns(from).each do |column|
               column_name = options[:rename] ?
                 (options[:rename][column.name] ||
@@ -477,9 +494,9 @@ module ActiveRecord
           result = exec_query(sql, "SCHEMA").first
 
           if result
-            # Splitting with left parentheses and picking up last will return all
+            # Splitting with left parentheses and discarding the first part will return all
             # columns separated with comma(,).
-            columns_string = result["sql"].split("(").last
+            columns_string = result["sql"].split("(", 2).last
 
             columns_string.split(",").each do |column_string|
               # This regex will match the column name and collation type and will save

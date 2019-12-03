@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/object/try"
+
 module ActionText
   class Attachment
     include Attachments::TrixConversion, Attachments::Minification, Attachments::Caching

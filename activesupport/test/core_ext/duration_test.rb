@@ -74,6 +74,7 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal "2 weeks",                         1.fortnight.inspect
     assert_equal "0 seconds",                       (10 % 5.seconds).inspect
     assert_equal "10 minutes",                      (10.minutes + 0.seconds).inspect
+    assert_equal "3600 seconds",                    (1.day / 24).inspect
   end
 
   def test_inspect_locale
@@ -203,7 +204,9 @@ class DurationTest < ActiveSupport::TestCase
   def test_since_and_ago
     t = Time.local(2000)
     assert_equal t + 1, 1.second.since(t)
+    assert_equal t + 1, (1.minute / 60).since(t)
     assert_equal t - 1, 1.second.ago(t)
+    assert_equal t - 1, (1.minute / 60).ago(t)
   end
 
   def test_since_and_ago_without_argument
@@ -659,6 +662,22 @@ class DurationTest < ActiveSupport::TestCase
     d1 = YAML.load(YAML.dump(10.minutes))
     assert_equal 600, d1.to_i
     assert_equal 660, (d1 + 60).to_i
+  end
+
+  def test_string_build_raises_error
+    error = assert_raises(TypeError) do
+      ActiveSupport::Duration.build("9")
+    end
+
+    assert_equal "can't build an ActiveSupport::Duration from a String", error.message
+  end
+
+  def test_non_numeric_build_raises_error
+    error = assert_raises(TypeError) do
+      ActiveSupport::Duration.build(nil)
+    end
+
+    assert_equal "can't build an ActiveSupport::Duration from a NilClass", error.message
   end
 
   private

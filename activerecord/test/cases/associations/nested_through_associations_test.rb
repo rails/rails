@@ -626,7 +626,6 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   private
-
     def assert_includes_and_joins_equal(query, expected, association)
       actual = assert_queries(1) { query.joins(association).to_a.uniq }
       assert_equal expected, actual

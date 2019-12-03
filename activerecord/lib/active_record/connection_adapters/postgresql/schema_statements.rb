@@ -55,6 +55,7 @@ module ActiveRecord
         end
 
         def drop_table(table_name, options = {}) # :nodoc:
+          schema_cache.clear_data_source_cache!(table_name.to_s)
           execute "DROP TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}#{' CASCADE' if options[:force] == :cascade}"
         end
 
@@ -376,6 +377,8 @@ module ActiveRecord
         #   rename_table('octopuses', 'octopi')
         def rename_table(table_name, new_name)
           clear_cache!
+          schema_cache.clear_data_source_cache!(table_name.to_s)
+          schema_cache.clear_data_source_cache!(new_name.to_s)
           execute "ALTER TABLE #{quote_table_name(table_name)} RENAME TO #{quote_table_name(new_name)}"
           pk, seq = pk_and_sequence_for(new_name)
           if pk
@@ -390,7 +393,7 @@ module ActiveRecord
           rename_table_indexes(table_name, new_name)
         end
 
-        def add_column(table_name, column_name, type, options = {}) #:nodoc:
+        def add_column(table_name, column_name, type, **options) #:nodoc:
           clear_cache!
           super
           change_column_comment(table_name, column_name, options[:comment]) if options.key?(:comment)
@@ -439,16 +442,21 @@ module ActiveRecord
         end
 
         def add_index(table_name, column_name, options = {}) #:nodoc:
-          index_name, index_type, index_columns_and_opclasses, index_options, index_algorithm, index_using, comment = add_index_options(table_name, column_name, options)
+          index_name, index_type, index_columns_and_opclasses, index_options, index_algorithm, index_using, comment = add_index_options(table_name, column_name, **options)
           execute("CREATE #{index_type} INDEX #{index_algorithm} #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} #{index_using} (#{index_columns_and_opclasses})#{index_options}").tap do
             execute "COMMENT ON INDEX #{quote_column_name(index_name)} IS #{quote(comment)}" if comment
           end
         end
 
-        def remove_index(table_name, options = {}) #:nodoc:
+        def remove_index(table_name, column_name = nil, options = {}) #:nodoc:
           table = Utils.extract_schema_qualified_name(table_name.to_s)
 
-          if options.is_a?(Hash) && options.key?(:name)
+          if column_name.is_a?(Hash)
+            options = column_name.dup
+            column_name = options.delete(:column)
+          end
+
+          if options.key?(:name)
             provided_index = Utils.extract_schema_qualified_name(options[:name].to_s)
 
             options[:name] = provided_index.identifier
@@ -459,9 +467,9 @@ module ActiveRecord
             end
           end
 
-          index_to_remove = PostgreSQL::Name.new(table.schema, index_name_for_remove(table.to_s, options))
+          index_to_remove = PostgreSQL::Name.new(table.schema, index_name_for_remove(table.to_s, column_name, options))
           algorithm =
-            if options.is_a?(Hash) && options.key?(:algorithm)
+            if options.key?(:algorithm)
               index_algorithms.fetch(options[:algorithm]) do
                 raise ArgumentError.new("Algorithm must be one of the following: #{index_algorithms.keys.map(&:inspect).join(', ')}")
               end
@@ -552,13 +560,13 @@ module ActiveRecord
         # PostgreSQL requires the ORDER BY columns in the select list for distinct queries, and
         # requires that the ORDER BY include the distinct column.
         def columns_for_distinct(columns, orders) #:nodoc:
-          order_columns = orders.reject(&:blank?).map { |s|
+          order_columns = orders.compact_blank.map { |s|
               # Convert Arel node to string
               s = s.to_sql unless s.is_a?(String)
               # Remove any ASC/DESC modifiers
               s.gsub(/\s+(?:ASC|DESC)\b/i, "")
                .gsub(/\s+NULLS\s+(?:FIRST|LAST)\b/i, "")
-            }.reject(&:blank?).map.with_index { |column, i| "#{column} AS alias_#{i}" }
+            }.compact_blank.map.with_index { |column, i| "#{column} AS alias_#{i}" }
 
           (order_columns << super).join(", ")
         end
@@ -613,8 +621,8 @@ module ActiveRecord
             PostgreSQL::SchemaCreation.new(self)
           end
 
-          def create_table_definition(*args)
-            PostgreSQL::TableDefinition.new(self, *args)
+          def create_table_definition(*args, **options)
+            PostgreSQL::TableDefinition.new(self, *args, **options)
           end
 
           def create_alter_table(name)
@@ -686,7 +694,7 @@ module ActiveRecord
 
           def change_column_for_alter(table_name, column_name, type, options = {})
             td = create_table_definition(table_name)
-            cd = td.new_column_definition(column_name, type, options)
+            cd = td.new_column_definition(column_name, type, **options)
             sqls = [schema_creation.accept(ChangeColumnDefinition.new(cd, column_name))]
             sqls << Proc.new { change_column_comment(table_name, column_name, options[:comment]) } if options.key?(:comment)
             sqls
@@ -733,7 +741,7 @@ module ActiveRecord
           end
 
           def add_options_for_index_columns(quoted_columns, **options)
-            quoted_columns = add_index_opclass(quoted_columns, options)
+            quoted_columns = add_index_opclass(quoted_columns, **options)
             super
           end
 

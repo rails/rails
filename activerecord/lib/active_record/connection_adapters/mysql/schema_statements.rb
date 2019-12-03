@@ -51,22 +51,22 @@ module ActiveRecord
           end
 
           indexes.map do |index|
-            options = index.last
+            options = index.pop
 
             if expressions = options.delete(:expressions)
               orders = options.delete(:orders)
               lengths = options.delete(:lengths)
 
-              columns = index[-2].map { |name|
+              columns = index[-1].map { |name|
                 [ name.to_sym, expressions[name] || +quote_column_name(name) ]
               }.to_h
 
-              index[-2] = add_options_for_index_columns(
+              index[-1] = add_options_for_index_columns(
                 columns, order: orders, length: lengths
               ).values.join(", ")
             end
 
-            IndexDefinition.new(*index)
+            IndexDefinition.new(*index, **options)
           end
         end
 
@@ -122,7 +122,7 @@ module ActiveRecord
         end
 
         def table_alias_length
-          256 # https://dev.mysql.com/doc/refman/8.0/en/identifiers.html
+          256 # https://dev.mysql.com/doc/refman/en/identifiers.html
         end
 
         private
@@ -154,15 +154,15 @@ module ActiveRecord
             MySQL::SchemaCreation.new(self)
           end
 
-          def create_table_definition(*args)
-            MySQL::TableDefinition.new(self, *args)
+          def create_table_definition(*args, **options)
+            MySQL::TableDefinition.new(self, *args, **options)
           end
 
           def new_column_from_field(table_name, field)
             type_metadata = fetch_type_metadata(field[:Type], field[:Extra])
             default, default_function = field[:Default], nil
 
-            if type_metadata.type == :datetime && /\ACURRENT_TIMESTAMP(?:\([0-6]?\))?\z/i.match?(default)
+            if type_metadata.type == :datetime && default && /\ACURRENT_TIMESTAMP(?:\([0-6]?\))?\z/i.match?(default)
               default, default_function = nil, default
             elsif type_metadata.extra == "DEFAULT_GENERATED"
               default = +"(#{default})" unless default.start_with?("(")
@@ -196,7 +196,7 @@ module ActiveRecord
           end
 
           def add_options_for_index_columns(quoted_columns, **options)
-            quoted_columns = add_index_length(quoted_columns, options)
+            quoted_columns = add_index_length(quoted_columns, **options)
             super
           end
 

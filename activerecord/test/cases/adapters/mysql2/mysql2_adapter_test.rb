@@ -8,6 +8,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
 
   def setup
     @conn = ActiveRecord::Base.connection
+    @connection_handler = ActiveRecord::Base.connection_handler
   end
 
   def test_exec_query_nothing_raises_with_no_result_queries
@@ -17,6 +18,18 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
         @conn.exec_query("DELETE FROM ex WHERE number = 1")
       end
     end
+  end
+
+  def test_database_exists_returns_false_if_database_does_not_exist
+    config = ActiveRecord::Base.configurations["arunit"].merge(database: "inexistent_activerecord_unittest")
+    assert_not ActiveRecord::ConnectionAdapters::Mysql2Adapter.database_exists?(config),
+      "expected database to not exist"
+  end
+
+  def test_database_exists_returns_true_when_the_database_exists
+    config = ActiveRecord::Base.configurations["arunit"]
+    assert ActiveRecord::ConnectionAdapters::Mysql2Adapter.database_exists?(config),
+     "expected database #{config[:database]} to exist"
   end
 
   def test_columns_for_distinct_zero_orders
@@ -148,7 +161,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
 
   def test_errors_when_an_insert_query_is_called_while_preventing_writes
     assert_raises(ActiveRecord::ReadOnlyError) do
-      @conn.while_preventing_writes do
+      @connection_handler.while_preventing_writes do
         @conn.insert("INSERT INTO `engines` (`car_id`) VALUES ('138853948594')")
       end
     end
@@ -158,7 +171,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
     @conn.insert("INSERT INTO `engines` (`car_id`) VALUES ('138853948594')")
 
     assert_raises(ActiveRecord::ReadOnlyError) do
-      @conn.while_preventing_writes do
+      @connection_handler.while_preventing_writes do
         @conn.update("UPDATE `engines` SET `engines`.`car_id` = '9989' WHERE `engines`.`car_id` = '138853948594'")
       end
     end
@@ -168,7 +181,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
     @conn.execute("INSERT INTO `engines` (`car_id`) VALUES ('138853948594')")
 
     assert_raises(ActiveRecord::ReadOnlyError) do
-      @conn.while_preventing_writes do
+      @connection_handler.while_preventing_writes do
         @conn.execute("DELETE FROM `engines` where `engines`.`car_id` = '138853948594'")
       end
     end
@@ -178,7 +191,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
     @conn.execute("INSERT INTO `engines` (`car_id`) VALUES ('138853948594')")
 
     assert_raises(ActiveRecord::ReadOnlyError) do
-      @conn.while_preventing_writes do
+      @connection_handler.while_preventing_writes do
         @conn.execute("REPLACE INTO `engines` SET `engines`.`car_id` = '249823948'")
       end
     end
@@ -187,33 +200,69 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
   def test_doesnt_error_when_a_select_query_is_called_while_preventing_writes
     @conn.execute("INSERT INTO `engines` (`car_id`) VALUES ('138853948594')")
 
-    @conn.while_preventing_writes do
+    @connection_handler.while_preventing_writes do
       assert_equal 1, @conn.execute("SELECT `engines`.* FROM `engines` WHERE `engines`.`car_id` = '138853948594'").entries.count
     end
   end
 
   def test_doesnt_error_when_a_show_query_is_called_while_preventing_writes
-    @conn.while_preventing_writes do
+    @connection_handler.while_preventing_writes do
       assert_equal 2, @conn.execute("SHOW FULL FIELDS FROM `engines`").entries.count
     end
   end
 
   def test_doesnt_error_when_a_set_query_is_called_while_preventing_writes
-    @conn.while_preventing_writes do
+    @connection_handler.while_preventing_writes do
       assert_nil @conn.execute("SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci")
+    end
+  end
+
+  def test_doesnt_error_when_a_describe_query_is_called_while_preventing_writes
+    @connection_handler.while_preventing_writes do
+      @conn.execute("DESCRIBE engines")
+      @conn.execute("DESC engines") # DESC is an alias for DESCRIBE
     end
   end
 
   def test_doesnt_error_when_a_read_query_with_leading_chars_is_called_while_preventing_writes
     @conn.execute("INSERT INTO `engines` (`car_id`) VALUES ('138853948594')")
 
-    @conn.while_preventing_writes do
-      assert_equal 1, @conn.execute("(\n( SELECT `engines`.* FROM `engines` WHERE `engines`.`car_id` = '138853948594' ) )").entries.count
+    @connection_handler.while_preventing_writes do
+      assert_equal 1, @conn.execute("/*action:index*/(\n( SELECT `engines`.* FROM `engines` WHERE `engines`.`car_id` = '138853948594' ) )").entries.count
+    end
+  end
+
+  def test_read_timeout_exception
+    ActiveRecord::Base.establish_connection(
+      ActiveRecord::Base.configurations[:arunit].merge("read_timeout" => 1)
+    )
+
+    error = assert_raises(ActiveRecord::AdapterTimeout) do
+      ActiveRecord::Base.connection.execute("SELECT SLEEP(2)")
+    end
+    assert_kind_of ActiveRecord::QueryAborted, error
+
+    assert_equal Mysql2::Error::TimeoutError, error.cause.class
+  ensure
+    ActiveRecord::Base.establish_connection :arunit
+  end
+
+  def test_statement_timeout_error_codes
+    raw_conn = @conn.raw_connection
+    assert_raises(ActiveRecord::StatementTimeout) do
+      raw_conn.stub(:query, ->(_sql) { raise Mysql2::Error.new("fail", 50700, ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter::ER_FILSORT_ABORT) }) {
+        @conn.execute("SELECT 1")
+      }
+    end
+
+    assert_raises(ActiveRecord::StatementTimeout) do
+      raw_conn.stub(:query, ->(_sql) { raise Mysql2::Error.new("fail", 50700, ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter::ER_QUERY_TIMEOUT) }) {
+        @conn.execute("SELECT 1")
+      }
     end
   end
 
   private
-
     def with_example_table(definition = "id int auto_increment primary key, number int, data varchar(255)", &block)
       super(@conn, "ex", definition, &block)
     end

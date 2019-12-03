@@ -43,7 +43,6 @@ module RailsGuides
     end
 
     private
-
       def register_kindle_mime_types
         Mime::Type.register_alias("application/xml", :opf, %w(opf))
         Mime::Type.register_alias("application/xml", :ncx, %w(ncx))
@@ -164,7 +163,7 @@ module RailsGuides
 
           # Generate the special pages like the home.
           # Passing a template handler in the template name is deprecated. So pass the file name without the extension.
-          result = view.render(layout: layout, formats: [$1.to_sym], file: $`)
+          result = view.render(layout: layout, formats: [$1.to_sym], template: $`)
         else
           body = File.read("#{@source_dir}/#{guide}")
           result = RailsGuides::Markdown.new(

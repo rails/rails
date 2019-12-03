@@ -471,9 +471,9 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_eager_load_belongs_to_primary_key_quoting
-    con = Account.connection
+    c = Account.connection
     bind_param = Arel::Nodes::BindParam.new(nil)
-    assert_sql(/#{con.quote_table_name('companies')}\.#{con.quote_column_name('id')} = (?:#{Regexp.quote(bind_param.to_sql)}|1)/) do
+    assert_sql(/#{Regexp.escape(c.quote_table_name("companies.id"))} = (?:#{Regexp.escape(bind_param.to_sql)}|1)/i) do
       Account.all.merge!(includes: :firm).find(1)
     end
   end

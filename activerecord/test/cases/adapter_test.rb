@@ -12,6 +12,7 @@ module ActiveRecord
     def setup
       @connection = ActiveRecord::Base.connection
       @connection.materialize_transactions
+      @connection_handler = ActiveRecord::Base.connection_handler
     end
 
     ##
@@ -103,6 +104,17 @@ module ActiveRecord
       @connection.remove_index(:accounts, name: index_name)
     end
 
+    def test_remove_index_when_name_and_wrong_column_name_specified_positional_argument
+      index_name = "accounts_idx"
+
+      @connection.add_index :accounts, :firm_id, name: index_name
+      assert_raises ArgumentError do
+        @connection.remove_index :accounts, :wrong_column_name, name: index_name
+      end
+    ensure
+      @connection.remove_index(:accounts, name: index_name)
+    end
+
     def test_current_database
       if @connection.respond_to?(:current_database)
         assert_equal ARTest.connection_config["arunit"]["database"], @connection.current_database
@@ -166,7 +178,7 @@ module ActiveRecord
     def test_preventing_writes_predicate
       assert_not_predicate @connection, :preventing_writes?
 
-      @connection.while_preventing_writes do
+      @connection_handler.while_preventing_writes do
         assert_predicate @connection, :preventing_writes?
       end
 
@@ -176,7 +188,7 @@ module ActiveRecord
     def test_errors_when_an_insert_query_is_called_while_preventing_writes
       assert_no_queries do
         assert_raises(ActiveRecord::ReadOnlyError) do
-          @connection.while_preventing_writes do
+          @connection_handler.while_preventing_writes do
             @connection.transaction do
               @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')", nil, false)
             end
@@ -190,7 +202,7 @@ module ActiveRecord
 
       assert_no_queries do
         assert_raises(ActiveRecord::ReadOnlyError) do
-          @connection.while_preventing_writes do
+          @connection_handler.while_preventing_writes do
             @connection.transaction do
               @connection.update("UPDATE subscribers SET nick = '9989' WHERE nick = '138853948594'")
             end
@@ -204,7 +216,7 @@ module ActiveRecord
 
       assert_no_queries do
         assert_raises(ActiveRecord::ReadOnlyError) do
-          @connection.while_preventing_writes do
+          @connection_handler.while_preventing_writes do
             @connection.transaction do
               @connection.delete("DELETE FROM subscribers WHERE nick = '138853948594'")
             end
@@ -216,9 +228,23 @@ module ActiveRecord
     def test_doesnt_error_when_a_select_query_is_called_while_preventing_writes
       @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')")
 
-      @connection.while_preventing_writes do
+      @connection_handler.while_preventing_writes do
         result = @connection.select_all("SELECT subscribers.* FROM subscribers WHERE nick = '138853948594'")
         assert_equal 1, result.length
+      end
+    end
+
+    if ActiveRecord::Base.connection.supports_common_table_expressions?
+      def test_doesnt_error_when_a_read_query_with_a_cte_is_called_while_preventing_writes
+        @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')")
+
+        @connection_handler.while_preventing_writes do
+          result = @connection.select_all(<<~SQL)
+            WITH matching_subscribers AS (SELECT subscribers.* FROM subscribers WHERE nick = '138853948594')
+            SELECT * FROM matching_subscribers
+          SQL
+          assert_equal 1, result.length
+        end
       end
     end
 
@@ -559,7 +585,6 @@ module ActiveRecord
     end
 
     private
-
       def reset_fixtures(*fixture_names)
         ActiveRecord::FixtureSet.reset_cache
 

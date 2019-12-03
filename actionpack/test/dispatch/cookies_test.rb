@@ -893,6 +893,19 @@ class CookiesTest < ActionController::TestCase
     assert_equal 45, encryptor.decrypt_and_verify(@response.cookies["foo"])
   end
 
+  def test_cookie_with_hash_value_not_modified_by_rotation
+    @request.env["action_dispatch.signed_cookie_digest"] = "SHA256"
+    @request.env["action_dispatch.cookies_rotations"].rotate :signed, digest: "SHA1"
+
+    key_generator = @request.env["action_dispatch.key_generator"]
+    old_secret = key_generator.generate_key(@request.env["action_dispatch.signed_cookie_salt"])
+    old_value = ActiveSupport::MessageVerifier.new(old_secret).generate({ bar: "baz" })
+
+    @request.headers["Cookie"] = "foo=#{old_value}"
+    get :get_signed_cookie
+    assert_equal({ bar: "baz" }, @controller.send(:cookies).signed[:foo])
+  end
+
   def test_cookie_with_all_domain_option
     get :set_cookie_with_domain
     assert_response :success

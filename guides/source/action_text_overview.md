@@ -46,6 +46,8 @@ happens after every keystroke, and avoids the need to use execCommand at all.
 ## Installation
 
 Run `rails action_text:install` to add the Yarn package and copy over the necessary migration.
+Also, you need to set up Active Storage for embedded images and other attachments.
+Please refer to the [Active Storage Overview](active_storage_overview.html) guide.
 
 ## Examples
 
@@ -62,7 +64,7 @@ Then refer to this field in the form for the model:
 
 ```erb
 <%# app/views/messages/_form.html.erb %>
-<%= form_with(model: message) do |form| %>
+<%= form_with model: message do |form| %>
   <div class="field">
     <%= form.label :content %>
     <%= form.rich_text_area :content %>

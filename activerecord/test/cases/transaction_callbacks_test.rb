@@ -390,6 +390,23 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     end
   end
 
+  def test_after_commit_callback_should_not_rollback_state_that_already_been_succeeded
+    klass = Class.new(TopicWithCallbacks) do
+      self.inheritance_column = nil
+      validates :title, presence: true
+    end
+
+    first = klass.new(title: "foo")
+    first.after_commit_block { |r| r.update(title: nil) if r.persisted? }
+    first.save!
+
+    assert_predicate first, :persisted?
+    assert_not_nil first.id
+  ensure
+    first.destroy!
+  end
+  uses_transaction :test_after_commit_callback_should_not_rollback_state_that_already_been_succeeded
+
   def test_after_rollback_callback_when_raise_should_restore_state
     error_class = Class.new(StandardError)
 
@@ -460,7 +477,6 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
   end
 
   private
-
     def add_transaction_execution_blocks(record)
       record.after_commit_block(:create) { |r| r.history << :commit_on_create }
       record.after_commit_block(:update) { |r| r.history << :commit_on_update }

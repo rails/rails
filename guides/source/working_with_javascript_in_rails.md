@@ -14,6 +14,7 @@ After reading this guide, you will know:
 * How Rails' built-in helpers assist you.
 * How to handle Ajax on the server side.
 * The Turbolinks gem.
+* How to include your Cross-Site Request Forgery token in request headers
 
 -------------------------------------------------------------------------------
 
@@ -166,7 +167,7 @@ your form will be using Ajax. You can opt out of this behavior by
 passing the `:local` option `form_with`.
 
 ```erb
-<%= form_with(model: @article) do |f| %>
+<%= form_with model: @article do |form| %>
   ...
 <% end %>
 ```
@@ -337,8 +338,8 @@ This also works for links with `data-method` attribute.
 For example:
 
 ```erb
-<%= form_with(model: @article.new) do |f| %>
-  <%= f.submit data: { "disable-with": "Saving..." } %>
+<%= form_with model: @article.new do |form| %>
+  <%= form.submit data: { disable_with: "Saving..." } %>
 <%= end %>
 ```
 
@@ -428,10 +429,10 @@ The index view (`app/views/users/index.html.erb`) contains:
 
 <br>
 
-<%= form_with(model: @user) do |f| %>
-  <%= f.label :name %><br>
-  <%= f.text_field :name %>
-  <%= f.submit %>
+<%= form_with model: @user do |form| %>
+  <%= form.label :name %><br>
+  <%= form.text_field :name %>
+  <%= form.submit %>
 <% end %>
 ```
 
@@ -523,6 +524,23 @@ $(document).on "turbolinks:load", ->
 For more details, including other events you can bind to, check out [the
 Turbolinks
 README](https://github.com/turbolinks/turbolinks/blob/master/README.md).
+
+Cross-Site Request Forgery (CSRF) token in Ajax
+----
+
+When using another library to make Ajax calls, it is necessary to add
+the security token as a default header for Ajax calls in your library. To get
+the token:
+
+```javascript
+var token = document.getElementsByName('csrf-token')[0].content
+```
+
+You can then submit this token as a `X-CSRF-Token` header for your
+Ajax request. You do not need to add a CSRF token for GET requests,
+only non-GET ones.
+
+You can read more about about Cross-Site Request Forgery in [Security](https://guides.rubyonrails.org/security.html#cross-site-request-forgery-csrf)
 
 Other Resources
 ---------------

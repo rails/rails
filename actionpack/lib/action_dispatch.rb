@@ -43,6 +43,7 @@ module ActionDispatch
   eager_autoload do
     autoload_under "http" do
       autoload :ContentSecurityPolicy
+      autoload :FeaturePolicy
       autoload :Request
       autoload :Response
     end
@@ -80,7 +81,6 @@ module ActionDispatch
     autoload :MimeNegotiation
     autoload :Parameters
     autoload :ParameterFilter
-    autoload :Upload
     autoload :UploadedFile, "action_dispatch/http/upload"
     autoload :URL
   end

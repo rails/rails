@@ -314,7 +314,7 @@ module ActiveRecord
       @_destroy_callback_already_called = false
     end
 
-    def touch(*) #:nodoc:
+    def touch(*, **) #:nodoc:
       _run_touch_callbacks { super }
     end
 
@@ -323,7 +323,6 @@ module ActiveRecord
     end
 
   private
-
     def create_or_update(**)
       _run_save_callbacks { super }
     end

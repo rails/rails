@@ -4,7 +4,6 @@ require "active_support/core_ext/array/conversions"
 require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/object/deep_dup"
 require "active_support/core_ext/string/filters"
-require "active_support/deprecation"
 require "active_model/error"
 require "active_model/nested_error"
 require "forwardable"
@@ -70,11 +69,6 @@ module ActiveModel
 
     LEGACY_ATTRIBUTES = [:messages, :details].freeze
 
-    class << self
-      attr_accessor :i18n_customize_full_message # :nodoc:
-    end
-    self.i18n_customize_full_message = false
-
     attr_reader :errors
     alias :objects :errors
 
@@ -106,14 +100,14 @@ module ActiveModel
     def copy!(other) # :nodoc:
       @errors = other.errors.deep_dup
       @errors.each { |error|
-        error.instance_variable_set("@base", @base)
+        error.instance_variable_set(:@base, @base)
       }
     end
 
     # Imports one error
     # Imported errors are wrapped as a NestedError,
     # providing access to original error object.
-    # If attribute or type needs to be overriden, use `override_options`.
+    # If attribute or type needs to be overridden, use `override_options`.
     #
     # override_options - Hash
     # @option override_options [Symbol] :attribute Override the attribute the error belongs to
@@ -168,9 +162,9 @@ module ActiveModel
     #   person.errors.where(:name, :too_short) # => all name errors being too short
     #   person.errors.where(:name, :too_short, minimum: 2) # => all name errors being too short and minimum is 2
     def where(attribute, type = nil, **options)
-      attribute, type, options = normalize_arguments(attribute, type, options)
+      attribute, type, options = normalize_arguments(attribute, type, **options)
       @errors.select { |error|
-        error.match?(attribute, type, options)
+        error.match?(attribute, type, **options)
       }
     end
 
@@ -194,12 +188,12 @@ module ActiveModel
     #   person.errors.delete(:name) # => ["cannot be nil"]
     #   person.errors[:name]        # => []
     def delete(attribute, type = nil, **options)
-      attribute, type, options = normalize_arguments(attribute, type, options)
-      matches = where(attribute, type, options)
+      attribute, type, options = normalize_arguments(attribute, type, **options)
+      matches = where(attribute, type, **options)
       matches.each do |error|
         @errors.delete(error)
       end
-      matches.map(&:message)
+      matches.map(&:message).presence
     end
 
     # When passed a symbol or a name of a method, returns an array of errors
@@ -226,7 +220,7 @@ module ActiveModel
     #     # then yield :name and "must be specified"
     #   end
     def each(&block)
-      if block.arity == 1
+      if block.arity <= 1
         @errors.each(&block)
       else
         ActiveSupport::Deprecation.warn(<<~MSG)
@@ -309,6 +303,16 @@ module ActiveModel
       hash
     end
 
+    def to_h
+      ActiveSupport::Deprecation.warn(<<~EOM)
+        ActiveModel::Errors#to_h is deprecated and will be removed in Rails 6.2.
+        Please use `ActiveModel::Errors.to_hash` instead. The values in the hash
+        returned by `ActiveModel::Errors.to_hash` is an array of error messages.
+      EOM
+
+      to_hash.transform_values { |values| values.last }
+    end
+
     def messages
       DeprecationHandlingMessageHash.new(self)
     end
@@ -367,10 +371,8 @@ module ActiveModel
     #   person.errors.details
     #   # => {:base=>[{error: :name_or_email_blank}]}
     def add(attribute, type = :invalid, **options)
-      error = Error.new(
-        @base,
-        *normalize_arguments(attribute, type, options)
-      )
+      attribute, type, options = normalize_arguments(attribute, type, **options)
+      error = Error.new(@base, attribute, type, **options)
 
       if exception = options[:strict]
         exception = ActiveModel::StrictValidationFailed if exception == true
@@ -399,11 +401,11 @@ module ActiveModel
     #   person.errors.added? :name, :too_long                                # => false
     #   person.errors.added? :name, "is too long"                            # => false
     def added?(attribute, type = :invalid, options = {})
-      attribute, type, options = normalize_arguments(attribute, type, options)
+      attribute, type, options = normalize_arguments(attribute, type, **options)
 
       if type.is_a? Symbol
         @errors.any? { |error|
-          error.strict_match?(attribute, type, options)
+          error.strict_match?(attribute, type, **options)
         }
       else
         messages_for(attribute).include?(type)
@@ -468,47 +470,7 @@ module ActiveModel
     #
     #   person.errors.full_message(:name, 'is invalid') # => "Name is invalid"
     def full_message(attribute, message)
-      return message if attribute == :base
-      attribute = attribute.to_s
-
-      if self.class.i18n_customize_full_message && @base.class.respond_to?(:i18n_scope)
-        attribute = attribute.remove(/\[\d\]/)
-        parts = attribute.split(".")
-        attribute_name = parts.pop
-        namespace = parts.join("/") unless parts.empty?
-        attributes_scope = "#{@base.class.i18n_scope}.errors.models"
-
-        if namespace
-          defaults = @base.class.lookup_ancestors.map do |klass|
-            [
-              :"#{attributes_scope}.#{klass.model_name.i18n_key}/#{namespace}.attributes.#{attribute_name}.format",
-              :"#{attributes_scope}.#{klass.model_name.i18n_key}/#{namespace}.format",
-            ]
-          end
-        else
-          defaults = @base.class.lookup_ancestors.map do |klass|
-            [
-              :"#{attributes_scope}.#{klass.model_name.i18n_key}.attributes.#{attribute_name}.format",
-              :"#{attributes_scope}.#{klass.model_name.i18n_key}.format",
-            ]
-          end
-        end
-
-        defaults.flatten!
-      else
-        defaults = []
-      end
-
-      defaults << :"errors.format"
-      defaults << "%{attribute} %{message}"
-
-      attr_name = attribute.tr(".", "_").humanize
-      attr_name = @base.class.human_attribute_name(attribute, default: attr_name)
-
-      I18n.t(defaults.shift,
-        default:  defaults,
-        attribute: attr_name,
-        message:   message)
+      Error.full_message(attribute, message, @base.class)
     end
 
     # Translates an error message in its default scope
@@ -536,40 +498,7 @@ module ActiveModel
     # * <tt>errors.attributes.title.blank</tt>
     # * <tt>errors.messages.blank</tt>
     def generate_message(attribute, type = :invalid, options = {})
-      type = options.delete(:message) if options[:message].is_a?(Symbol)
-      value = (attribute != :base ? @base.send(:read_attribute_for_validation, attribute) : nil)
-
-      options = {
-        model: @base.model_name.human,
-        attribute: @base.class.human_attribute_name(attribute),
-        value: value,
-        object: @base
-      }.merge!(options)
-
-      if @base.class.respond_to?(:i18n_scope)
-        i18n_scope = @base.class.i18n_scope.to_s
-        defaults = @base.class.lookup_ancestors.flat_map do |klass|
-          [ :"#{i18n_scope}.errors.models.#{klass.model_name.i18n_key}.attributes.#{attribute}.#{type}",
-            :"#{i18n_scope}.errors.models.#{klass.model_name.i18n_key}.#{type}" ]
-        end
-        defaults << :"#{i18n_scope}.errors.messages.#{type}"
-
-        catch(:exception) do
-          translation = I18n.translate(defaults.first, options.merge(default: defaults.drop(1), throw: true))
-          return translation unless translation.nil?
-        end unless options[:message]
-      else
-        defaults = []
-      end
-
-      defaults << :"errors.attributes.#{attribute}.#{type}"
-      defaults << :"errors.messages.#{type}"
-
-      key = defaults.shift
-      defaults = options.delete(:message) if options[:message]
-      options[:default] = defaults
-
-      I18n.translate(key, options)
+      Error.generate_message(attribute, type, @base, options)
     end
 
     def marshal_load(array) # :nodoc:
@@ -594,7 +523,6 @@ module ActiveModel
     end
 
     private
-
       def normalize_arguments(attribute, type, **options)
         # Evaluate proc first
         if type.respond_to?(:call)
@@ -608,7 +536,7 @@ module ActiveModel
         details.each { |attribute, errors|
           errors.each { |error|
             type = error.delete(:error)
-            add(attribute, type, error)
+            add(attribute, type, **error)
           }
         }
       end
@@ -640,7 +568,6 @@ module ActiveModel
     end
 
     private
-
       def prepare_content
         content = @errors.to_hash
         content.each do |attribute, value|

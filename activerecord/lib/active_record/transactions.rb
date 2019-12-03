@@ -170,7 +170,7 @@ module ActiveRecord
     # writing, the only database that we're aware of that supports true nested
     # transactions, is MS-SQL. Because of this, Active Record emulates nested
     # transactions by using savepoints. See
-    # https://dev.mysql.com/doc/refman/5.7/en/savepoint.html
+    # https://dev.mysql.com/doc/refman/en/savepoint.html
     # for more information about savepoints.
     #
     # === \Callbacks
@@ -208,8 +208,8 @@ module ActiveRecord
     # Note that "TRUNCATE" is also a MySQL DDL statement!
     module ClassMethods
       # See the ConnectionAdapters::DatabaseStatements#transaction API docs.
-      def transaction(options = {}, &block)
-        connection.transaction(options, &block)
+      def transaction(**options, &block)
+        connection.transaction(**options, &block)
       end
 
       def before_commit(*args, &block) # :nodoc:
@@ -282,7 +282,6 @@ module ActiveRecord
       end
 
       private
-
         def set_options_for_callbacks!(args, enforced_options = {})
           options = args.extract_options!.merge!(enforced_options)
           args << options
@@ -303,23 +302,23 @@ module ActiveRecord
     end
 
     # See ActiveRecord::Transactions::ClassMethods for detailed documentation.
-    def transaction(options = {}, &block)
-      self.class.transaction(options, &block)
+    def transaction(**options, &block)
+      self.class.transaction(**options, &block)
     end
 
     def destroy #:nodoc:
       with_transaction_returning_status { super }
     end
 
-    def save(*) #:nodoc:
+    def save(*, **) #:nodoc:
       with_transaction_returning_status { super }
     end
 
-    def save!(*) #:nodoc:
+    def save!(*, **) #:nodoc:
       with_transaction_returning_status { super }
     end
 
-    def touch(*) #:nodoc:
+    def touch(*, **) #:nodoc:
       with_transaction_returning_status { super }
     end
 
@@ -333,6 +332,7 @@ module ActiveRecord
     # Ensure that it is not called if the object was never persisted (failed create),
     # but call it after the commit of a destroyed object.
     def committed!(should_run_callbacks: true) #:nodoc:
+      force_clear_transaction_record_state
       if should_run_callbacks
         @_committed_already_called = true
         _run_commit_without_transaction_enrollment_callbacks
@@ -340,7 +340,6 @@ module ActiveRecord
       end
     ensure
       @_committed_already_called = false
-      force_clear_transaction_record_state
     end
 
     # Call the #after_rollback callbacks. The +force_restore_state+ argument indicates if the record

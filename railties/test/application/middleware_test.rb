@@ -46,6 +46,7 @@ module ApplicationTests
         "ActionDispatch::Session::CookieStore",
         "ActionDispatch::Flash",
         "ActionDispatch::ContentSecurityPolicy::Middleware",
+        "ActionDispatch::FeaturePolicy::Middleware",
         "Rack::Head",
         "Rack::ConditionalGet",
         "Rack::ETag",
@@ -309,7 +310,6 @@ module ApplicationTests
     end
 
     private
-
       def boot!
         require "#{app_path}/config/environment"
       end

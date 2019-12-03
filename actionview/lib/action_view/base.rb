@@ -3,7 +3,6 @@
 require "active_support/core_ext/module/attr_internal"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/ordered_options"
-require "active_support/deprecation"
 require "action_view/log_subscriber"
 require "action_view/helpers"
 require "action_view/context"
@@ -281,7 +280,7 @@ module ActionView #:nodoc:
         ActiveSupport::Deprecation.warn <<~eowarn.squish
           ActionView::Base instances must implement `compiled_method_container`
           or use the class method `with_empty_template_cache` for constructing
-          an ActionView::Base instances that has an empty cache.
+          an ActionView::Base instance that has an empty cache.
         eowarn
       end
 

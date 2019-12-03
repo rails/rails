@@ -86,8 +86,11 @@ module ActiveRecord
         @empty ||= new([])
       end
 
-      protected
+      def contradiction?
+        predicates.any? { |x| Arel::Nodes::In === x && Array === x.right && x.right.empty? }
+      end
 
+      protected
         attr_reader :predicates
 
         def referenced_columns

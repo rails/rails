@@ -270,7 +270,9 @@ module Rails
           "action_dispatch.use_cookies_with_metadata" => config.action_dispatch.use_cookies_with_metadata,
           "action_dispatch.content_security_policy" => config.content_security_policy,
           "action_dispatch.content_security_policy_report_only" => config.content_security_policy_report_only,
-          "action_dispatch.content_security_policy_nonce_generator" => config.content_security_policy_nonce_generator
+          "action_dispatch.content_security_policy_nonce_generator" => config.content_security_policy_nonce_generator,
+          "action_dispatch.content_security_policy_nonce_directives" => config.content_security_policy_nonce_directives,
+          "action_dispatch.feature_policy" => config.feature_policy,
         )
       end
     end
@@ -349,7 +351,7 @@ module Rails
       files, dirs = config.watchable_files.dup, config.watchable_dirs.dup
 
       ActiveSupport::Dependencies.autoload_paths.each do |path|
-        dirs[path.to_s] = [:rb]
+        File.file?(path) ? files << path.to_s : dirs[path.to_s] = [:rb]
       end
 
       [files, dirs]
@@ -481,10 +483,6 @@ module Rails
     end
 
     console do
-      require "pp"
-    end
-
-    console do
       unless ::Kernel.private_method_defined?(:y)
         require "psych/y"
       end
@@ -501,7 +499,6 @@ module Rails
     end
 
   protected
-
     alias :build_middleware_stack :app
 
     def run_tasks_blocks(app) #:nodoc:
@@ -581,7 +578,6 @@ module Rails
     end
 
     private
-
       def generate_development_secret
         if secrets.secret_key_base.nil?
           key_file = Rails.root.join("tmp/development_secret.txt")
@@ -623,7 +619,6 @@ module Rails
         end
 
         private
-
           def convert_key(key)
             unless key.kind_of?(Symbol)
               ActiveSupport::Deprecation.warn(<<~MESSAGE.squish)

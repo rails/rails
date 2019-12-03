@@ -43,7 +43,7 @@ class ActionsTest < Rails::Generators::TestCase
   def test_add_source_adds_source_to_gemfile
     run_generator
     action :add_source, "http://gems.github.com"
-    assert_file "Gemfile", /source 'http:\/\/gems\.github\.com'/
+    assert_file "Gemfile", /source 'http:\/\/gems\.github\.com'\n/
   end
 
   def test_add_source_with_block_adds_source_to_gemfile_with_gem
@@ -51,7 +51,7 @@ class ActionsTest < Rails::Generators::TestCase
     action :add_source, "http://gems.github.com" do
       gem "rspec-rails"
     end
-    assert_file "Gemfile", /source 'http:\/\/gems\.github\.com' do\n  gem 'rspec-rails'\nend/
+    assert_file "Gemfile", /\n\nsource 'http:\/\/gems\.github\.com' do\n  gem 'rspec-rails'\nend\n\z/
   end
 
   def test_add_source_with_block_adds_source_to_gemfile_after_gem
@@ -60,13 +60,25 @@ class ActionsTest < Rails::Generators::TestCase
     action :add_source, "http://gems.github.com" do
       gem "rspec-rails"
     end
-    assert_file "Gemfile", /gem 'will-paginate'\nsource 'http:\/\/gems\.github\.com' do\n  gem 'rspec-rails'\nend/
+    assert_file "Gemfile", /\ngem 'will-paginate'\n\nsource 'http:\/\/gems\.github\.com' do\n  gem 'rspec-rails'\nend\n\z/
+  end
+
+  def test_add_source_should_create_newline_between_blocks
+    run_generator
+    action :add_source, "http://gems.github.com" do
+      gem "rspec-rails"
+    end
+
+    action :add_source, "http://gems2.github.com" do
+      gem "fakeweb"
+    end
+    assert_file "Gemfile", /\n\nsource 'http:\/\/gems\.github\.com' do\n  gem 'rspec-rails'\nend\n\nsource 'http:\/\/gems2\.github\.com' do\n  gem 'fakeweb'\nend\n\z/
   end
 
   def test_gem_should_put_gem_dependency_in_gemfile
     run_generator
     action :gem, "will-paginate"
-    assert_file "Gemfile", /gem 'will\-paginate'/
+    assert_file "Gemfile", /gem 'will\-paginate'\n\z/
   end
 
   def test_gem_with_version_should_include_version_in_gemfile
@@ -141,7 +153,7 @@ class ActionsTest < Rails::Generators::TestCase
       gem "fakeweb"
     end
 
-    assert_file "Gemfile", /\ngroup :development, :test do\n  gem 'rspec-rails'\nend\n\ngroup :test do\n  gem 'fakeweb'\nend/
+    assert_file "Gemfile", /\n\ngroup :development, :test do\n  gem 'rspec-rails'\nend\n\ngroup :test do\n  gem 'fakeweb'\nend\n\z/
   end
 
   def test_github_should_create_an_indented_block
@@ -153,7 +165,7 @@ class ActionsTest < Rails::Generators::TestCase
       gem "baz"
     end
 
-    assert_file "Gemfile", /\ngithub 'user\/repo' do\n  gem 'foo'\n  gem 'bar'\n  gem 'baz'\nend/
+    assert_file "Gemfile", /\n\ngithub 'user\/repo' do\n  gem 'foo'\n  gem 'bar'\n  gem 'baz'\nend\n\z/
   end
 
   def test_github_should_create_an_indented_block_with_options
@@ -165,7 +177,7 @@ class ActionsTest < Rails::Generators::TestCase
       gem "baz"
     end
 
-    assert_file "Gemfile", /\ngithub 'user\/repo', a: 'correct', other: true do\n  gem 'foo'\n  gem 'bar'\n  gem 'baz'\nend/
+    assert_file "Gemfile", /\n\ngithub 'user\/repo', a: 'correct', other: true do\n  gem 'foo'\n  gem 'bar'\n  gem 'baz'\nend\n\z/
   end
 
   def test_github_should_create_an_indented_block_within_a_group
@@ -177,9 +189,73 @@ class ActionsTest < Rails::Generators::TestCase
         gem "bar"
         gem "baz"
       end
+      github "user/repo2", a: "correct", other: true do
+        gem "foo"
+        gem "bar"
+        gem "baz"
+      end
     end
 
-    assert_file "Gemfile", /\ngroup :magic do\n  github 'user\/repo', a: 'correct', other: true do\n    gem 'foo'\n    gem 'bar'\n    gem 'baz'\n  end\nend\n/
+    assert_file "Gemfile", /\n\ngroup :magic do\n  github 'user\/repo', a: 'correct', other: true do\n    gem 'foo'\n    gem 'bar'\n    gem 'baz'\n  end\n  github 'user\/repo2', a: 'correct', other: true do\n    gem 'foo'\n    gem 'bar'\n    gem 'baz'\n  end\nend\n\z/
+  end
+
+  def test_github_should_create_newline_between_blocks
+    run_generator
+
+    action :github, "user/repo", a: "correct", other: true do
+      gem "foo"
+      gem "bar"
+      gem "baz"
+    end
+
+    action :github, "user/repo2", a: "correct", other: true do
+      gem "foo"
+      gem "bar"
+      gem "baz"
+    end
+
+    assert_file "Gemfile", /\n\ngithub 'user\/repo', a: 'correct', other: true do\n  gem 'foo'\n  gem 'bar'\n  gem 'baz'\nend\n\ngithub 'user\/repo2', a: 'correct', other: true do\n  gem 'foo'\n  gem 'bar'\n  gem 'baz'\nend\n\z/
+  end
+
+  def test_gem_with_gemfile_without_newline_at_the_end
+    run_generator
+    File.open("Gemfile", "a") { |f| f.write("gem 'rspec-rails'") }
+
+    action :gem, "will-paginate"
+    assert_file "Gemfile", /gem 'rspec-rails'\ngem 'will-paginate'\n\z/
+  end
+
+  def test_gem_group_with_gemfile_without_newline_at_the_end
+    run_generator
+    File.open("Gemfile", "a") { |f| f.write("gem 'rspec-rails'") }
+
+    action :gem_group, :test do
+      gem "fakeweb"
+    end
+
+    assert_file "Gemfile", /gem 'rspec-rails'\n\ngroup :test do\n  gem 'fakeweb'\nend\n\z/
+  end
+
+  def test_add_source_with_gemfile_without_newline_at_the_end
+    run_generator
+    File.open("Gemfile", "a") { |f| f.write("gem 'rspec-rails'") }
+
+    action :add_source, "http://gems.github.com" do
+      gem "fakeweb"
+    end
+
+    assert_file "Gemfile", /gem 'rspec-rails'\n\nsource 'http:\/\/gems\.github\.com' do\n  gem 'fakeweb'\nend\n\z/
+  end
+
+  def test_github_with_gemfile_without_newline_at_the_end
+    run_generator
+    File.open("Gemfile", "a") { |f| f.write("gem 'rspec-rails'") }
+
+    action :github, "user/repo" do
+      gem "fakeweb"
+    end
+
+    assert_file "Gemfile", /gem 'rspec-rails'\n\ngithub 'user\/repo' do\n  gem 'fakeweb'\nend\n\z/
   end
 
   def test_environment_should_include_data_in_environment_initializer_block
@@ -418,57 +494,59 @@ class ActionsTest < Rails::Generators::TestCase
     end
   end
 
-  def test_route_should_add_data_to_the_routes_block_in_config_routes
+  test "route should add route" do
     run_generator
-    route_command = "route '/login', controller: 'sessions', action: 'new'"
-    action :route, route_command
-    assert_file "config/routes.rb", /#{Regexp.escape(route_command)}/
+    route_commands = ["get 'foo'", "get 'bar'", "get 'baz'"]
+    route_commands.each do |route_command|
+      action :route, route_command
+    end
+    assert_routes route_commands
   end
 
-  def test_route_should_be_idempotent
+  test "route should indent routing code" do
     run_generator
-    route_path = File.expand_path("config/routes.rb", destination_root)
+    route_commands = ["get 'foo'", "get 'bar'", "get 'baz'"]
+    action :route, route_commands.join("\n")
+    assert_routes route_commands
+  end
 
-    # runs first time, not asserting
-    action :route, "root 'welcome#index'"
-    content_1 = File.read(route_path)
+  test "route should be idempotent" do
+    run_generator
+    route_command = "root 'welcome#index'"
+
+    # runs first time
+    action :route, route_command
+    assert_routes route_command
+
+    content = File.read(File.expand_path("config/routes.rb", destination_root))
 
     # runs second time
-    action :route, "root 'welcome#index'"
-    content_2 = File.read(route_path)
-
-    assert_equal content_1, content_2
+    action :route, route_command
+    assert_file "config/routes.rb", content
   end
 
-  def test_route_should_add_data_with_an_new_line
+  test "route with namespace option should nest route" do
     run_generator
-    action :route, "root 'welcome#index'"
-    route_path = File.expand_path("config/routes.rb", destination_root)
-    content = File.read(route_path)
+    action :route, "get 'foo'\nget 'bar'", namespace: :baz
+    assert_routes <<~ROUTING_CODE.chomp
+      namespace :baz do
+        get 'foo'
+        get 'bar'
+      end
+    ROUTING_CODE
+  end
 
-    # Remove all of the comments and blank lines from the routes file
-    content.gsub!(/^  \#.*\n/, "")
-    content.gsub!(/^\n/, "")
-
-    File.write(route_path, content)
-
-    routes = <<-F
-Rails.application.routes.draw do
-  root 'welcome#index'
-end
-F
-
-    assert_file "config/routes.rb", routes
-
-    action :route, "resources :product_lines"
-
-    routes = <<-F
-Rails.application.routes.draw do
-  resources :product_lines
-  root 'welcome#index'
-end
-F
-    assert_file "config/routes.rb", routes
+  test "route with namespace option array should deeply nest route" do
+    run_generator
+    action :route, "get 'foo'\nget 'bar'", namespace: %w[baz qux]
+    assert_routes <<~ROUTING_CODE.chomp
+      namespace :baz do
+        namespace :qux do
+          get 'foo'
+          get 'bar'
+        end
+      end
+    ROUTING_CODE
   end
 
   def test_readme
@@ -505,8 +583,21 @@ F
   end
 
   private
-
     def action(*args, &block)
       capture(:stdout) { generator.send(*args, &block) }
+    end
+
+    def assert_routes(*route_commands)
+      route_regexps = route_commands.flatten.map do |route_command|
+        %r{
+          ^#{Regexp.escape("Rails.application.routes.draw do")}\n
+            (?:[ ]{2}.+\n|\n)*
+            #{Regexp.escape(route_command.indent(2))}\n
+            (?:[ ]{2}.+\n|\n)*
+          end\n
+        }x
+      end
+
+      assert_file "config/routes.rb", *route_regexps
     end
 end

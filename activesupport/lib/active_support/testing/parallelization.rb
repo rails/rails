@@ -72,7 +72,11 @@ module ActiveSupport
 
       def start
         @pool = @queue_size.times.map do |worker|
+          title = "Rails test worker #{worker}"
+
           fork do
+            Process.setproctitle("#{title} - (starting)")
+
             DRb.stop_service
 
             begin
@@ -85,6 +89,9 @@ module ActiveSupport
               klass    = job[0]
               method   = job[1]
               reporter = job[2]
+
+              Process.setproctitle("#{title} - #{klass}##{method}")
+
               result = klass.with_info_handler reporter do
                 Minitest.run_one_method(klass, method)
               end
@@ -99,8 +106,12 @@ module ActiveSupport
                 end
                 queue.record(reporter, result)
               end
+
+              Process.setproctitle("#{title} - (idle)")
             end
           ensure
+            Process.setproctitle("#{title} - (stopping)")
+
             run_cleanup(worker)
           end
         end

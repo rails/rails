@@ -124,10 +124,10 @@ With no further work, `rails server` will run our new shiny Rails app:
 $ cd commandsapp
 $ rails server
 => Booting Puma
-=> Rails 5.1.0 application starting in development on http://0.0.0.0:3000
-=> Run `rails server -h` for more startup options
+=> Rails 6.0.0 application starting in development
+=> Run `rails server --help` for more startup options
 Puma starting in single mode...
-* Version 3.0.2 (ruby 2.3.0-p0), codename: Plethora of Penguin Pinatas
+* Version 3.12.1 (ruby 2.5.7-p206), codename: Llamas in Pajamas
 * Min threads: 5, max threads: 5
 * Environment: development
 * Listening on tcp://localhost:3000
@@ -368,7 +368,7 @@ irb(main):001:0>
 
 Inside the `rails console` you have access to the `app` and `helper` instances.
 
-With the `app` method you can access URL and path helpers, as well as do requests.
+With the `app` method you can access named route helpers, as well as do requests.
 
 ```bash
 >> app.root_path
@@ -601,6 +601,8 @@ The `tmp:` namespaced commands will help you clear and create the `Rails.root/tm
 
 ### Miscellaneous
 
+* `rails initializers` prints out all defined initializers in the order they are invoked by Rails.
+* `rails middleware` lists Rack middleware stack enabled for your app.
 * `rails stats` is great for looking at statistics on your code, displaying things like KLOCs (thousands of lines of code) and your code to test ratio.
 * `rails secret` will give you a pseudo-random key to use for your session secret.
 * `rails time:zones:all` lists all the timezones Rails knows about.
@@ -688,7 +690,7 @@ We had to create the **gitapp** directory and initialize an empty git repository
 
 ```bash
 $ cat config/database.yml
-# PostgreSQL. Versions 9.1 and up are supported.
+# PostgreSQL. Versions 9.3 and up are supported.
 #
 # Install the pg driver:
 #   gem install pg

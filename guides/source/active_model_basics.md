@@ -287,7 +287,7 @@ email_contact.valid?     # => true
 email_contact.persisted? # => false
 ```
 
-Any class that includes `ActiveModel::Model` can be used with `form_for`,
+Any class that includes `ActiveModel::Model` can be used with `form_with`,
 `render` and any other Action View helper methods, just like Active Record
 objects.
 

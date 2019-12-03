@@ -17,7 +17,6 @@ class TestSubscriber < ActiveSupport::Subscriber
   end
 
   private
-
     def private_party(event)
       events << event
     end

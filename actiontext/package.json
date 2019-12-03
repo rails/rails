@@ -6,7 +6,7 @@
   "files": [
     "app/javascript/actiontext/*.js"
   ],
-  "homepage": "http://rubyonrails.org/",
+  "homepage": "https://rubyonrails.org/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rails/rails.git"
@@ -24,6 +24,6 @@
     "@rails/activestorage": "^6.0.0-alpha"
   },
   "peerDependencies": {
-    "trix": "^1.0.0"
+    "trix": "^1.2.0"
   }
 }

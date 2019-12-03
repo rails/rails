@@ -99,7 +99,6 @@ module ActiveRecord
       end
 
       private
-
         def method_missing(method, *args, &block)
           if @klass.respond_to?(method)
             @klass.generate_relation_method(method)
@@ -111,12 +110,11 @@ module ActiveRecord
     end
 
     module ClassMethods # :nodoc:
-      def create(klass, *args)
-        relation_class_for(klass).new(klass, *args)
+      def create(klass, *args, **kwargs)
+        relation_class_for(klass).new(klass, *args, **kwargs)
       end
 
       private
-
         def relation_class_for(klass)
           klass.relation_delegate_class(self)
         end

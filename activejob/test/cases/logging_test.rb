@@ -9,6 +9,7 @@ require "jobs/overridden_logging_job"
 require "jobs/nested_job"
 require "jobs/rescue_job"
 require "jobs/retry_job"
+require "jobs/disable_log_job"
 require "models/person"
 
 class LoggingTest < ActiveSupport::TestCase
@@ -34,12 +35,12 @@ class LoggingTest < ActiveSupport::TestCase
     @old_logger = ActiveJob::Base.logger
     @logger = ActiveSupport::TaggedLogging.new(TestLogger.new)
     set_logger @logger
-    ActiveJob::Logging::LogSubscriber.attach_to :active_job
+    ActiveJob::LogSubscriber.attach_to :active_job
   end
 
   def teardown
     super
-    ActiveJob::Logging::LogSubscriber.log_subscribers.pop
+    ActiveJob::LogSubscriber.log_subscribers.pop
     set_logger @old_logger
   end
 
@@ -122,6 +123,18 @@ class LoggingTest < ActiveSupport::TestCase
     end
   end
 
+  def test_perform_disabled_job_logging
+    perform_enqueued_jobs do
+      DisableLogJob.perform_later "Dummy"
+      assert_no_match(/Enqueued DisableLogJob \(Job ID: .*?\) from .*? with arguments:.*Dummy/, @logger.messages)
+      assert_no_match(/Performing DisableLogJob \(Job ID: .*?\) from .*? with arguments:.*Dummy/, @logger.messages)
+
+      assert_match(/enqueued at /, @logger.messages)
+      assert_match(/Dummy, here is it: Dummy/, @logger.messages)
+      assert_match(/Performed DisableLogJob \(Job ID: .*?\) from .*? in .*ms/, @logger.messages)
+    end
+  end
+
   def test_perform_nested_jobs_logging
     perform_enqueued_jobs do
       NestedJob.perform_later
@@ -162,10 +175,12 @@ class LoggingTest < ActiveSupport::TestCase
   end
 
   def test_job_error_logging
-    perform_enqueued_jobs { RescueJob.perform_later "other" }
-  rescue RescueJob::OtherError
-    assert_match(/Performing RescueJob \(Job ID: .*?\) from .*? with arguments:.*other/, @logger.messages)
-    assert_match(/Error performing RescueJob \(Job ID: .*?\) from .*? in .*ms: RescueJob::OtherError \(Bad hair\):\n.*\brescue_job\.rb:\d+:in `perform'/, @logger.messages)
+    perform_enqueued_jobs do
+      RescueJob.perform_later "other"
+    rescue RescueJob::OtherError
+      assert_match(/Performing RescueJob \(Job ID: .*?\) from .*? with arguments:.*other/, @logger.messages)
+      assert_match(/Error performing RescueJob \(Job ID: .*?\) from .*? in .*ms: RescueJob::OtherError \(Bad hair\):\n.*\brescue_job\.rb:\d+:in `perform'/, @logger.messages)
+    end
   end
 
   def test_enqueue_retry_logging

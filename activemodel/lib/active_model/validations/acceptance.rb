@@ -10,14 +10,14 @@ module ActiveModel
 
       def validate_each(record, attribute, value)
         unless acceptable_option?(value)
-          record.errors.add(attribute, :accepted, options.except(:accept, :allow_nil))
+          record.errors.add(attribute, :accepted, **options.except(:accept, :allow_nil))
         end
       end
 
       private
-
         def setup!(klass)
-          klass.include(LazilyDefineAttributes.new(AttributeDefinition.new(attributes)))
+          define_attributes = LazilyDefineAttributes.new(attributes)
+          klass.include(define_attributes) unless klass.included_modules.include?(define_attributes)
         end
 
         def acceptable_option?(value)
@@ -25,46 +25,57 @@ module ActiveModel
         end
 
         class LazilyDefineAttributes < Module
-          def initialize(attribute_definition)
+          def initialize(attributes)
+            @attributes = attributes.map(&:to_s)
+          end
+
+          def included(klass)
+            @lock = Mutex.new
+            mod = self
+
             define_method(:respond_to_missing?) do |method_name, include_private = false|
-              super(method_name, include_private) || attribute_definition.matches?(method_name)
+              mod.define_on(klass)
+              super(method_name, include_private) || mod.matches?(method_name)
             end
 
             define_method(:method_missing) do |method_name, *args, &block|
-              if attribute_definition.matches?(method_name)
-                attribute_definition.define_on(self.class)
+              mod.define_on(klass)
+              if mod.matches?(method_name)
                 send(method_name, *args, &block)
               else
                 super(method_name, *args, &block)
               end
             end
           end
-        end
-
-        class AttributeDefinition
-          def initialize(attributes)
-            @attributes = attributes.map(&:to_s)
-          end
 
           def matches?(method_name)
-            attr_name = convert_to_reader_name(method_name)
-            attributes.include?(attr_name)
+            attr_name = method_name.to_s.chomp("=")
+            attributes.any? { |name| name == attr_name }
           end
 
           def define_on(klass)
-            attr_readers = attributes.reject { |name| klass.attribute_method?(name) }
-            attr_writers = attributes.reject { |name| klass.attribute_method?("#{name}=") }
-            klass.define_attribute_methods
-            klass.attr_reader(*attr_readers)
-            klass.attr_writer(*attr_writers)
+            @lock&.synchronize do
+              return unless @lock
+
+              attr_readers = attributes.reject { |name| klass.attribute_method?(name) }
+              attr_writers = attributes.reject { |name| klass.attribute_method?("#{name}=") }
+
+              attr_reader(*attr_readers)
+              attr_writer(*attr_writers)
+
+              remove_method :respond_to_missing?
+              remove_method :method_missing
+
+              @lock = nil
+            end
           end
 
-          private
-            attr_reader :attributes
+          def ==(other)
+            self.class == other.class && attributes == other.attributes
+          end
 
-            def convert_to_reader_name(method_name)
-              method_name.to_s.chomp("=")
-            end
+          protected
+            attr_reader :attributes
         end
     end
 

@@ -53,7 +53,6 @@ module ActionController
     end
 
     private
-
       def _process_variant(options)
         if defined?(request) && !request.nil? && request.variant.present?
           options[:variant] = request.variant
@@ -75,6 +74,12 @@ module ActionController
       def _set_rendered_content_type(format)
         if format && !response.media_type
           self.content_type = format.to_s
+        end
+      end
+
+      def _set_vary_header
+        if self.headers["Vary"].blank? && request.should_apply_vary_header?
+          self.headers["Vary"] = "Accept"
         end
       end
 

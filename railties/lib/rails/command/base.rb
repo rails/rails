@@ -17,6 +17,10 @@ module Rails
       include Actions
 
       class << self
+        def exit_on_failure? # :nodoc:
+          false
+        end
+
         # Returns true when the app is a Rails engine.
         def engine?
           defined?(ENGINE_ROOT)
@@ -52,7 +56,7 @@ module Rails
         def inherited(base) #:nodoc:
           super
 
-          if base.name && base.name !~ /Base$/
+          if base.name && !base.name.end_with?("Base")
             Rails::Command.subclasses << base
           end
         end

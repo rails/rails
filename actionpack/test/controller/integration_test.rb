@@ -182,6 +182,15 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       end
     end
 
+    def get_with_vary_set_x_requested_with
+      respond_to do |format|
+        format.json do
+          response.headers["Vary"] = "X-Requested-With"
+          render json: "JSON OK", status: 200
+        end
+      end
+    end
+
     def get_with_params
       render plain: "foo: #{params[:foo]}", status: 200
     end
@@ -211,6 +220,10 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
 
     def redirect
       redirect_to action_url("get")
+    end
+
+    def redirect_307
+      redirect_to action_url("post"), status: 307
     end
 
     def remove_header
@@ -334,6 +347,15 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       get "/moved"
       assert_response :redirect
       assert_redirected_to "/method"
+    end
+  end
+
+  def test_307_redirect_uses_the_same_http_verb
+    with_test_route_set do
+      post "/redirect_307"
+      assert_equal 307, status
+      follow_redirect!
+      assert_equal "POST", request.method
     end
   end
 
@@ -530,6 +552,39 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_setting_vary_header_when_request_is_xhr_with_accept_header
+    with_test_route_set do
+      get "/get", headers: { "Accept" => "application/json" }, xhr: true
+      assert_equal "Accept", response.headers["Vary"]
+    end
+  end
+
+  def test_not_setting_vary_header_when_format_is_provided
+    with_test_route_set do
+      get "/get", params: { format: "json" }
+      assert_nil response.headers["Vary"]
+    end
+  end
+
+  def test_not_setting_vary_header_when_it_has_already_been_set
+    with_test_route_set do
+      get "/get_with_vary_set_x_requested_with", headers: { "Accept" => "application/json" }, xhr: true
+      assert_equal "X-Requested-With", response.headers["Vary"]
+    end
+  end
+
+  def test_not_setting_vary_header_when_ignore_accept_header_is_set
+    original_ignore_accept_header = ActionDispatch::Request.ignore_accept_header
+    ActionDispatch::Request.ignore_accept_header = true
+
+    with_test_route_set do
+      get "/get", headers: { "Accept" => "application/json" }, xhr: true
+      assert_nil response.headers["Vary"]
+    end
+  ensure
+    ActionDispatch::Request.ignore_accept_header = original_ignore_accept_header
+  end
+
   private
     def with_default_headers(headers)
       original = ActionDispatch::Response.default_headers
@@ -567,7 +622,7 @@ class MetalIntegrationTest < ActionDispatch::IntegrationTest
 
   class Poller
     def self.call(env)
-      if env["PATH_INFO"] =~ /^\/success/
+      if /^\/success/.match?(env["PATH_INFO"])
         [200, { "Content-Type" => "text/plain", "Content-Length" => "12" }, ["Hello World!"]]
       else
         [404, { "Content-Type" => "text/plain", "Content-Length" => "0" }, []]

@@ -91,8 +91,9 @@ module ActiveRecord
   #   post.save # => saves both post and comment
   #
   #   post = Post.create(title: 'ruby rocks')
-  #   post.comments.create(body: 'hello world')
-  #   post.save # => saves both post and comment
+  #   comment = post.comments.create(body: 'hello world')
+  #   comment.body = 'hi everyone'
+  #   post.save # => saves post, but not comment
   #
   # When <tt>:autosave</tt> is true all children are saved, no matter whether they
   # are new records or not:
@@ -102,11 +103,10 @@ module ActiveRecord
   #   end
   #
   #   post = Post.create(title: 'ruby rocks')
-  #   post.comments.create(body: 'hello world')
-  #   post.comments[0].body = 'hi everyone'
+  #   comment = post.comments.create(body: 'hello world')
+  #   comment.body = 'hi everyone'
   #   post.comments.build(body: "good morning.")
-  #   post.title += "!"
-  #   post.save # => saves both post and comments.
+  #   post.save # => saves post and both comments.
   #
   # Destroying one of the associated models as part of the parent's save action
   # is as simple as marking it for destruction:
@@ -127,6 +127,14 @@ module ActiveRecord
   # Now it _is_ removed from the database:
   #
   #   Comment.find_by(id: id).nil? # => true
+  #
+  # === Caveats
+  #
+  # Note that autosave will only trigger for already-persisted association records
+  # if the records themselves have been changed. This is to protect against
+  # <tt>SystemStackError</tt> caused by circular association validations. The one
+  # exception is if a custom validation context is used, in which case the validations
+  # will always fire on the associated records.
   module AutosaveAssociation
     extend ActiveSupport::Concern
 
@@ -147,7 +155,6 @@ module ActiveRecord
 
     module ClassMethods # :nodoc:
       private
-
         def define_non_cyclic_method(name, &block)
           return if instance_methods(false).include?(name)
           define_method(name) do |*args|
@@ -267,12 +274,11 @@ module ActiveRecord
     end
 
     private
-
       # Returns the record for an association collection that should be validated
       # or saved. If +autosave+ is +false+ only new records will be returned,
       # unless the parent is/was a new record itself.
       def associated_records_to_validate_or_save(association, new_record, autosave)
-        if new_record
+        if new_record || custom_validation_context?
           association && association.target
         elsif autosave
           association.target.find_all(&:changed_for_autosave?)
@@ -281,8 +287,9 @@ module ActiveRecord
         end
       end
 
-      # go through nested autosave associations that are loaded in memory (without loading
-      # any new ones), and return true if is changed for autosave
+      # Go through nested autosave associations that are loaded in memory (without loading
+      # any new ones), and return true if any are changed for autosave.
+      # Returns false if already called to prevent an infinite loop.
       def nested_records_changed_for_autosave?
         @_nested_records_changed_for_autosave_already_called ||= false
         return false if @_nested_records_changed_for_autosave_already_called
@@ -304,7 +311,7 @@ module ActiveRecord
       def validate_single_association(reflection)
         association = association_instance_get(reflection.name)
         record      = association && association.reader
-        association_valid?(reflection, record) if record
+        association_valid?(reflection, record) if record && (record.changed_for_autosave? || custom_validation_context?)
       end
 
       # Validate the associated records if <tt>:validate</tt> or
@@ -324,7 +331,7 @@ module ActiveRecord
       def association_valid?(reflection, record, index = nil)
         return true if record.destroyed? || (reflection.options[:autosave] && record.marked_for_destruction?)
 
-        context = validation_context unless [:create, :update].include?(validation_context)
+        context = validation_context if custom_validation_context?
 
         unless valid = record.valid?(context)
           if reflection.options[:autosave]
@@ -411,7 +418,7 @@ module ActiveRecord
                 saved = record.save(validate: false)
               end
 
-              raise ActiveRecord::Rollback unless saved
+              raise(RecordInvalid.new(association.owner)) unless saved
             end
           end
         end
@@ -492,6 +499,10 @@ module ActiveRecord
             saved if autosave
           end
         end
+      end
+
+      def custom_validation_context?
+        validation_context && [:create, :update].exclude?(validation_context)
       end
 
       def _ensure_no_duplicate_errors

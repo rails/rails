@@ -52,7 +52,7 @@
           <a href="index.html" id="guidesMenu" class="guides-index-item nav-item">Guides Index</a>
           <div id="guides" class="clearfix" style="display: none;">
             <hr />
-            <div class="guides-section-container">
+            <dl class="guides-section-container">
               <% documents_by_section.each do |section| %>
                 <div class="guides-section">
                   <dt><%= section['name'] %></dt>
@@ -61,7 +61,7 @@
                   <% end %>
                 </div>
               <% end %>
-            </div>
+            </dl>
           </div>
         </li>
         <li><a class="nav-item" href="contributing_to_ruby_on_rails.html">Contribute</a></li>

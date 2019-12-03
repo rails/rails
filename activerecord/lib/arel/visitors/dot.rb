@@ -31,7 +31,6 @@ module Arel # :nodoc: all
       end
 
       private
-
         def visit_Arel_Nodes_Ordering(o)
           visit_edge o, "expr"
         end

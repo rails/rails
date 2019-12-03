@@ -79,6 +79,16 @@ module ResolverSharedTests
     assert_kind_of ActionView::Template::Handlers::ERB, templates[0].handler
   end
 
+  def test_can_find_when_special_chars_in_path
+    dir = "test +()[]{}"
+    with_file "#{dir}/hello_world", "Hello funky path!"
+
+    templates = resolver.find_all("hello_world", dir, false, locale: [:en], formats: [:html], variants: [:phone], handlers: [:erb])
+    assert_equal 1, templates.size
+    assert_equal "Hello funky path!", templates[0].source
+    assert_equal "#{dir}/hello_world", templates[0].virtual_path
+  end
+
   def test_doesnt_find_template_with_wrong_details
     with_file "test/hello_world.html.erb", "Hello plain text!"
 

@@ -13,7 +13,6 @@ module ActiveRecord
       end
 
       private
-
         def application_record_file_name
           @application_record_file_name ||=
             if namespaced?

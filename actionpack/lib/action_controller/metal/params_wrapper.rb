@@ -115,7 +115,7 @@ module ActionController
 
               if m.respond_to?(:nested_attributes_options) && m.nested_attributes_options.keys.any?
                 self.include += m.nested_attributes_options.keys.map do |key|
-                  key.to_s.concat("_attributes")
+                  (+key.to_s).concat("_attributes")
                 end
               end
 
@@ -240,13 +240,12 @@ module ActionController
 
     # Performs parameters wrapping upon the request. Called automatically
     # by the metal call stack.
-    def process_action(*args)
+    def process_action(*)
       _perform_parameter_wrapping if _wrapper_enabled?
       super
     end
 
     private
-
       # Returns the wrapper key which will be used to store wrapped parameters.
       def _wrapper_key
         _wrapper_options.name

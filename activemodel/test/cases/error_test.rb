@@ -26,6 +26,16 @@ class ErrorTest < ActiveModel::TestCase
     end
   end
 
+  class Manager < Person
+    def read_attribute_for_validation(attr)
+      try(attr)
+    end
+
+    def self.i18n_scope
+      :activemodel
+    end
+  end
+
   def test_initialize
     base = Person.new
     error = ActiveModel::Error.new(base, :name, :too_long, foo: :bar)
@@ -43,7 +53,7 @@ class ErrorTest < ActiveModel::TestCase
 
   test "initialize without type but with options" do
     options = { message: "bar" }
-    error = ActiveModel::Error.new(Person.new, :name, options)
+    error = ActiveModel::Error.new(Person.new, :name, **options)
     assert_equal(options, error.options)
   end
 
@@ -142,6 +152,15 @@ class ErrorTest < ActiveModel::TestCase
     I18n.with_locale(:pl) {
       assert_equal "jest nieprawidłowe", error.message
     }
+  end
+
+  test "message with type as a symbol and indexed attribute can lookup without index in attribute key" do
+    I18n.backend.store_translations(:en, activemodel: { errors: { models: { 'error_test/manager': {
+      attributes: { reports: { name: { presence: "must be present" } } } } } } })
+
+    error = ActiveModel::Error.new(Manager.new, :'reports[123].name', :presence)
+
+    assert_equal "must be present", error.message
   end
 
   test "message uses current locale" do

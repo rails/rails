@@ -181,6 +181,10 @@ module ActiveSupport
       #   ActiveSupport::Duration.build(2716146).parts  # => {:months=>1, :days=>1}
       #
       def build(value)
+        unless value.is_a?(::Numeric)
+          raise TypeError, "can't build an #{self.name} from a #{value.class.name}"
+        end
+
         parts = {}
         remainder = value.to_f
 
@@ -198,7 +202,6 @@ module ActiveSupport
       end
 
       private
-
         def calculate_total_seconds(parts)
           parts.inject(0) do |total, (part, value)|
             total + value * PARTS_IN_SECONDS[part]
@@ -338,8 +341,8 @@ module ActiveSupport
     #   1.year.to_i     # => 31556952
     #
     # In such cases, Ruby's core
-    # Date[http://ruby-doc.org/stdlib/libdoc/date/rdoc/Date.html] and
-    # Time[http://ruby-doc.org/stdlib/libdoc/time/rdoc/Time.html] should be used for precision
+    # Date[https://ruby-doc.org/stdlib/libdoc/date/rdoc/Date.html] and
+    # Time[https://ruby-doc.org/stdlib/libdoc/time/rdoc/Time.html] should be used for precision
     # date and time arithmetic.
     def to_i
       @value.to_i
@@ -372,7 +375,7 @@ module ActiveSupport
     alias :before :ago
 
     def inspect #:nodoc:
-      return "0 seconds" if parts.empty?
+      return "#{value} seconds" if parts.empty?
 
       parts.
         sort_by { |unit,  _ | PARTS.index(unit) }.
@@ -399,10 +402,15 @@ module ActiveSupport
     end
 
     private
-
       def sum(sign, time = ::Time.current)
-        parts.inject(time) do |t, (type, number)|
-          if t.acts_like?(:time) || t.acts_like?(:date)
+        unless time.acts_like?(:time) || time.acts_like?(:date)
+          raise ::ArgumentError, "expected a time or date, got #{time.inspect}"
+        end
+
+        if parts.empty?
+          time.since(sign * value)
+        else
+          parts.inject(time) do |t, (type, number)|
             if type == :seconds
               t.since(sign * number)
             elsif type == :minutes
@@ -412,8 +420,6 @@ module ActiveSupport
             else
               t.advance(type => sign * number)
             end
-          else
-            raise ::ArgumentError, "expected a time or date, got #{time.inspect}"
           end
         end
       end

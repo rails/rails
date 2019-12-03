@@ -202,6 +202,19 @@ end
 # on your staging environment
 ```
 
+You can also configure the prefix on a per job basis.
+
+```ruby
+class GuestsCleanupJob < ApplicationJob
+  queue_as :low_priority
+  self.queue_name_prefix = nil
+  #....
+end
+
+# Now your job's queue won't be prefixed, overriding what
+# was configured in `config.active_job.queue_name_prefix`.
+```
+
 The default queue name prefix delimiter is '\_'.  This can be changed by setting
 `config.active_job.queue_name_delimiter` in `application.rb`:
 
@@ -355,6 +368,8 @@ ActiveJob supports the following types of arguments by default:
   - `Hash` (Keys should be of `String` or `Symbol` type)
   - `ActiveSupport::HashWithIndifferentAccess`
   - `Array`
+  - `Module`
+  - `Class`
 
 ### GlobalID
 
@@ -438,7 +453,11 @@ class GuestsCleanupJob < ApplicationJob
 end
 ```
 
+If the exception is not rescued within the job, e.g. as shown above, then the job is referred to as "failed".
+
 ### Retrying or Discarding failed jobs
+
+A failed job will not be retried, unless configured otherwise.
 
 It's also possible to retry or discard a job if an exception is raised during execution.
 For example:

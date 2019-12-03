@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/array"
-require "active_support/core_ext/hash/except"
 require "active_support/core_ext/kernel/singleton_class"
 
 module ActiveRecord
@@ -31,7 +30,8 @@ module ActiveRecord
               ActiveSupport::Deprecation.warn(<<~MSG.squish)
                 Class level methods will no longer inherit scoping from `#{scope._deprecated_scope_source}`
                 in Rails 6.1. To continue using the scoped relation, pass it into the block directly.
-                To instead access the full set of models, as Rails 6.1 will, use `#{name}.unscoped`.
+                To instead access the full set of models, as Rails 6.1 will, use `#{name}.unscoped`,
+                or `#{name}.default_scoped` if a model has default scopes.
               MSG
             end
 
@@ -204,7 +204,6 @@ module ActiveRecord
         end
 
         private
-
           def valid_scope_name?(name)
             if respond_to?(name, true) && logger
               logger.warn "Creating scope :#{name}. " \

@@ -126,7 +126,6 @@ module ActiveModel
     end
 
     private
-
       def _define_before_model_callback(klass, callback)
         klass.define_singleton_method("before_#{callback}") do |*args, **options, &block|
           options.assert_valid_keys(:if, :unless, :prepend)
