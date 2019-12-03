@@ -4,20 +4,20 @@ require "abstract_unit"
 
 class RequestIdTest < ActiveSupport::TestCase
   test "passing on the request id from the outside" do
-    assert_equal "external-uu-rid", stub_request("HTTP_X_REQUEST_ID" => "external-uu-rid").request_id
+    assert_equal "external-uu-rid", stub_request(env: { "HTTP_X_REQUEST_ID" => "external-uu-rid" }).request_id
   end
 
   test "ensure that only alphanumeric uurids are accepted" do
-    assert_equal "X-Hacked-HeaderStuff", stub_request("HTTP_X_REQUEST_ID" => "; X-Hacked-Header: Stuff").request_id
+    assert_equal "X-Hacked-HeaderStuff", stub_request(env: { "HTTP_X_REQUEST_ID" => "; X-Hacked-Header: Stuff" }).request_id
   end
 
   test "accept Apache mod_unique_id format" do
     mod_unique_id = "abcxyz@ABCXYZ-0123456789"
-    assert_equal mod_unique_id, stub_request("HTTP_X_REQUEST_ID" => mod_unique_id).request_id
+    assert_equal mod_unique_id, stub_request(env: { "HTTP_X_REQUEST_ID" => mod_unique_id }).request_id
   end
 
   test "ensure that 255 char limit on the request id is being enforced" do
-    assert_equal "X" * 255, stub_request("HTTP_X_REQUEST_ID" => "X" * 500).request_id
+    assert_equal "X" * 255, stub_request(env: { "HTTP_X_REQUEST_ID" => "X" * 500 }).request_id
   end
 
   test "generating a request id when none is supplied" do
@@ -25,12 +25,20 @@ class RequestIdTest < ActiveSupport::TestCase
   end
 
   test "uuid alias" do
-    assert_equal "external-uu-rid", stub_request("HTTP_X_REQUEST_ID" => "external-uu-rid").uuid
+    assert_equal "external-uu-rid", stub_request(env: { "HTTP_X_REQUEST_ID" => "external-uu-rid" }).uuid
+  end
+
+  test "using custom http header" do
+    assert_equal "custom-rid", stub_request(env: { "HTTP_REQUEST_ID" => "custom-rid" }, options: { http_header: "Request-Id" }).request_id
+  end
+
+  test "using custom generator" do
+    assert_equal "custom-generator-id", stub_request(options: { generator: -> { "custom-generator-id" } }).request_id
   end
 
   private
-    def stub_request(env = {})
-      ActionDispatch::RequestId.new(lambda { |environment| [ 200, environment, [] ] }).call(env)
+    def stub_request(env: {}, options: {})
+      ActionDispatch::RequestId.new(lambda { |environment| [ 200, environment, [] ] }, options).call(env)
       ActionDispatch::Request.new(env)
     end
 end
@@ -49,6 +57,13 @@ class RequestIdResponseTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "request id returns in custom header" do
+    with_test_route_set(http_header: "X-Correlation-Id") do
+      get "/"
+      assert_match(/\w+/, @response.headers["X-Correlation-Id"])
+    end
+  end
+
   test "request id given on request is passed all the way to the response" do
     with_test_route_set do
       get "/", headers: { "HTTP_X_REQUEST_ID" => "X" * 500 }
@@ -57,14 +72,14 @@ class RequestIdResponseTest < ActionDispatch::IntegrationTest
   end
 
   private
-    def with_test_route_set
+    def with_test_route_set(options = {})
       with_routing do |set|
         set.draw do
           get "/", to: ::RequestIdResponseTest::TestController.action(:index)
         end
 
         @app = self.class.build_app(set) do |middleware|
-          middleware.use ActionDispatch::RequestId
+          middleware.use ActionDispatch::RequestId, options
         end
 
         yield

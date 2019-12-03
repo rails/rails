@@ -1,3 +1,7 @@
+*   Add the ability to customize `ActionDispatch::RequestId` http header and generator.
+
+    *Nikolay Kondratyev*
+
 *   `redirect_to.action_controller` notifications now include the `ActionDispatch::Request` in
     their payloads as `:request`.
 

@@ -43,7 +43,7 @@ module Rails
 
           middleware.use ::Rack::Runtime
           middleware.use ::Rack::MethodOverride unless config.api_only
-          middleware.use ::ActionDispatch::RequestId
+          middleware.use ::ActionDispatch::RequestId, http_header: config.action_dispatch.request_id_http_header, generator: config.action_dispatch.request_id_generator
           middleware.use ::ActionDispatch::RemoteIp, config.action_dispatch.ip_spoofing_check, config.action_dispatch.trusted_proxies
 
           middleware.use ::Rails::Rack::Logger, config.log_tags
