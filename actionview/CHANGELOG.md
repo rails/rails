@@ -1,3 +1,7 @@
+*   Add support for conditional values to TagBuilder.
+
+    *Joel Hawksley*
+
 *   Fix `select_tag` so that it doesn't change `options` when `include_blank` is present.
 
     *Younes SERRAJ*
