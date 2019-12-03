@@ -6,7 +6,7 @@
     *Edouard Chin*
 
 *   Fix the preloader when one record is fetched using `after_initialize`
-    but not the entire colection.
+    but not the entire collection.
 
     *Bradley Price*
 
