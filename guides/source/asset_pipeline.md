@@ -570,7 +570,7 @@ config.assets.unknown_asset_fallback = false
 ```
 
 If "asset fallback" is enabled then when an asset cannot be found the path will be
-output instead and no error raised. The asset fallback behavior is enabled by default.
+output instead and no error raised. The asset fallback behavior is disabled by default.
 
 ### Turning Digests Off
 
