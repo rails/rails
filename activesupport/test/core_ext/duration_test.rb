@@ -62,6 +62,7 @@ class DurationTest < ActiveSupport::TestCase
 
   def test_inspect
     assert_equal "0 seconds",                       0.seconds.inspect
+    assert_equal "0 days",                          0.days.inspect
     assert_equal "1 month",                         1.month.inspect
     assert_equal "1 month and 1 day",               (1.month + 1.day).inspect
     assert_equal "6 months and -2 days",            (6.months - 2.days).inspect
@@ -154,20 +155,29 @@ class DurationTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::Duration, 13.months % 1.year
   end
 
+  def test_date_added_with_zero_days
+    assert_equal Date.civil(2017, 1, 1), Date.civil(2017, 1, 1) + 0.days
+    assert_instance_of Date, Date.civil(2017, 1, 1) + 0.days
+  end
+
   def test_date_added_with_multiplied_duration
     assert_equal Date.civil(2017, 1, 3), Date.civil(2017, 1, 1) + 1.day * 2
+    assert_instance_of Date, Date.civil(2017, 1, 1) + 1.day * 2
   end
 
   def test_date_added_with_multiplied_duration_larger_than_one_month
     assert_equal Date.civil(2017, 2, 15), Date.civil(2017, 1, 1) + 1.day * 45
+    assert_instance_of Date, Date.civil(2017, 1, 1) + 1.day * 45
   end
 
   def test_date_added_with_divided_duration
     assert_equal Date.civil(2017, 1, 3), Date.civil(2017, 1, 1) + 4.days / 2
+    assert_instance_of Date, Date.civil(2017, 1, 1) + 4.days / 2
   end
 
   def test_date_added_with_divided_duration_larger_than_one_month
     assert_equal Date.civil(2017, 2, 15), Date.civil(2017, 1, 1) + 90.days / 2
+    assert_instance_of Date, Date.civil(2017, 1, 1) + 90.days / 2
   end
 
   def test_plus_with_time
