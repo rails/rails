@@ -363,11 +363,11 @@ module ActiveSupport
     end
 
     private
-      def convert_key(key) # :doc:
+      def convert_key(key)
         key.kind_of?(Symbol) ? key.to_s : key
       end
 
-      def convert_value(value, conversion: nil) # :doc:
+      def convert_value(value, conversion: nil)
         if value.is_a? Hash
           if conversion == :to_hash
             value.to_hash
@@ -384,7 +384,7 @@ module ActiveSupport
         end
       end
 
-      def set_defaults(target) # :doc:
+      def set_defaults(target)
         if default_proc
           target.default_proc = default_proc.dup
         else
