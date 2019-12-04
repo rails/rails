@@ -228,11 +228,11 @@ module Rails
 
       if yaml.exist?
         require "erb"
-        config = YAML.load(ERB.new(yaml.read).result) || {}
-        config = (config["shared"] || {}).merge(config[env] || {})
+        config = YAML.load(ERB.new(yaml.read).result, symbolize_names: true) || {}
+        config = (config[:shared] || {}).merge(config[env.to_sym] || {})
 
         ActiveSupport::OrderedOptions.new.tap do |options|
-          options.update(NonSymbolAccessDeprecatedHash.new(config))
+          options.update(config)
         end
       else
         raise "Could not load configuration. No such file - #{yaml}"
@@ -603,52 +603,6 @@ module Rails
 
       def build_middleware
         config.app_middleware + super
-      end
-
-      class NonSymbolAccessDeprecatedHash < HashWithIndifferentAccess # :nodoc:
-        def initialize(value = nil)
-          if value.is_a?(Hash)
-            value.each_pair { |k, v| self[k] = v }
-          else
-            super
-          end
-        end
-
-        def []=(key, value)
-          regular_writer(key.to_sym, convert_value(value, for: :assignment))
-        end
-
-        private
-          def convert_key(key)
-            unless key.kind_of?(Symbol)
-              ActiveSupport::Deprecation.warn(<<~MESSAGE.squish)
-                Accessing hashes returned from config_for by non-symbol keys
-                is deprecated and will be removed in Rails 6.1.
-                Use symbols for access instead.
-              MESSAGE
-
-              key = key.to_sym
-            end
-
-            key
-          end
-
-          def convert_value(value, options = {}) # :doc:
-            if value.is_a? Hash
-              if options[:for] == :to_hash
-                value.to_hash
-              else
-                self.class.new(value)
-              end
-            elsif value.is_a?(Array)
-              if options[:for] != :assignment || value.frozen?
-                value = value.dup
-              end
-              value.map! { |e| convert_value(e, options) }
-            else
-              value
-            end
-          end
       end
   end
 end
