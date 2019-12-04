@@ -186,15 +186,15 @@ module ActiveSupport
         end
 
         parts = {}
-        remainder = value.to_f
+        remainder = value.round(9)
 
         PARTS.each do |part|
           unless part == :seconds
             part_in_seconds = PARTS_IN_SECONDS[part]
             parts[part] = remainder.div(part_in_seconds)
-            remainder = (remainder % part_in_seconds).round(9)
+            remainder %= part_in_seconds
           end
-        end
+        end unless value == 0
 
         parts[:seconds] = remainder
 
@@ -212,7 +212,7 @@ module ActiveSupport
     def initialize(value, parts) #:nodoc:
       @value, @parts = value, parts.to_h
       @parts.default = 0
-      @parts.reject! { |k, v| v.zero? }
+      @parts.reject! { |k, v| v.zero? } unless value == 0
     end
 
     def coerce(other) #:nodoc:
