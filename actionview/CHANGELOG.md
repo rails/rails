@@ -1,3 +1,7 @@
+*   Add support for conditional values to TagBuilder.
+
+    *Joel Hawksley*
+    
 *   `ActionView::Helpers::FormOptionsHelper#select` should mark option for `nil` as selected.
 
     ```ruby

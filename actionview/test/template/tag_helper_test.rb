@@ -246,6 +246,68 @@ class TagHelperTest < ActionView::TestCase
     assert_equal '<p class="">limelight</p>', str
   end
 
+  def test_content_tag_with_conditional_hash_classes
+    str = content_tag("p", "limelight", class: { "song": true, "play": false })
+    assert_equal "<p class=\"song\">limelight</p>", str
+
+    str = content_tag("p", "limelight", class: [{ "song": true }, { "play": false }])
+    assert_equal "<p class=\"song\">limelight</p>", str
+
+    str = content_tag("p", "limelight", class: { song: true, play: false })
+    assert_equal "<p class=\"song\">limelight</p>", str
+
+    str = content_tag("p", "limelight", class: [{ song: true }, nil, false])
+    assert_equal "<p class=\"song\">limelight</p>", str
+
+    str = content_tag("p", "limelight", class: ["song", { foo: false }])
+    assert_equal "<p class=\"song\">limelight</p>", str
+
+    str = content_tag("p", "limelight", class: { "song": true, "play": true })
+    assert_equal "<p class=\"song play\">limelight</p>", str
+
+    str = content_tag("p", "limelight", class: { "song": false, "play": false })
+    assert_equal '<p class="">limelight</p>', str
+  end
+
+  def test_tag_builder_with_conditional_hash_classes
+    str = tag.p "limelight", class: { "song": true, "play": false }
+    assert_equal "<p class=\"song\">limelight</p>", str
+
+    str = tag.p "limelight", class: [{ "song": true }, { "play": false }]
+    assert_equal "<p class=\"song\">limelight</p>", str
+
+    str = tag.p "limelight", class: { song: true, play: false }
+    assert_equal "<p class=\"song\">limelight</p>", str
+
+    str = tag.p "limelight", class: [{ song: true }, nil, false]
+    assert_equal "<p class=\"song\">limelight</p>", str
+
+    str = tag.p "limelight", class: ["song", { foo: false }]
+    assert_equal "<p class=\"song\">limelight</p>", str
+
+    str = tag.p "limelight", class: { "song": true, "play": true }
+    assert_equal "<p class=\"song play\">limelight</p>", str
+
+    str = tag.p "limelight", class: { "song": false, "play": false }
+    assert_equal '<p class="">limelight</p>', str
+  end
+
+  def test_content_tag_with_unescaped_conditional_hash_classes
+    str = content_tag("p", "limelight", { class: { "song": true, "play>": true } }, false)
+    assert_equal "<p class=\"song play>\">limelight</p>", str
+
+    str = content_tag("p", "limelight", { class: ["song", { "play>": true }] }, false)
+    assert_equal "<p class=\"song play>\">limelight</p>", str
+  end
+
+  def test_tag_builder_with_unescaped_conditional_hash_classes
+    str = tag.p "limelight", class: { "song": true, "play>": true }, escape_attributes: false
+    assert_equal "<p class=\"song play>\">limelight</p>", str
+
+    str = tag.p "limelight", class: ["song", { "play>": true }], escape_attributes: false
+    assert_equal "<p class=\"song play>\">limelight</p>", str
+  end
+
   def test_content_tag_with_data_attributes
     assert_dom_equal '<p data-number="1" data-string="hello" data-string-with-quotes="double&quot;quote&quot;party&quot;">limelight</p>',
       content_tag("p", "limelight", data: { number: 1, string: "hello", string_with_quotes: 'double"quote"party"' })
