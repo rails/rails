@@ -1,0 +1,23 @@
+require 'test_helper'
+
+<% module_namespacing do -%>
+class <%= class_name %>ControllerTest < ActionDispatch::IntegrationTest
+<% if mountable_engine? -%>
+  include Engine.routes.url_helpers
+
+<% end -%>
+  test "should get index" do
+    get <%= url_helper_prefix %>_url
+    assert_response :success
+  end
+<% if options[:root] -%>
+
+  test "should get index via root route" do
+    get <%= url_helper_prefix %>_url
+    index_body = response.body
+    get root_url
+    assert_equal index_body, response.body
+  end
+<% end -%>
+end
+<% end -%>
