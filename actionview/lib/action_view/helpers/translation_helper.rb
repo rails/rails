@@ -59,7 +59,7 @@ module ActionView
       # they can provide HTML values for.
       def translate(key, options = {})
         options = options.dup
-        if options.has_key?(:default)
+        if options.has_key?(:default) && !options[:default].nil?
           remaining_defaults = Array.wrap(options.delete(:default)).compact
           options[:default] = remaining_defaults unless remaining_defaults.first.kind_of?(Symbol)
         end

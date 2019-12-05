@@ -241,6 +241,16 @@ class TranslationHelperTest < ActiveSupport::TestCase
     assert_equal [], translation
   end
 
+  def test_translate_with_false_default
+    translation = translate(:'translations.missing', default: false)
+    assert_equal false, translation
+  end
+
+  def test_translate_with_nil_default
+    translation = translate(:'translations.missing', default: nil)
+    assert_nil translation
+  end
+
   def test_translate_does_not_change_options
     options = {}
     translate(:'translations.missing', options)
