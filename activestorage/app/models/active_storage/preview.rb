@@ -74,7 +74,11 @@ class ActiveStorage::Preview
     end
 
     def process
-      previewer.preview { |attachable| image.attach(attachable) }
+      previewer.preview do |attachable|
+        ActiveRecord::Base.connected_to(role: ActiveRecord::Base.writing_role) do
+          image.attach(attachable)
+        end
+      end
     end
 
     def variant

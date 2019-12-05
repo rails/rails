@@ -37,4 +37,15 @@ class ActiveStorage::PreviewTest < ActiveSupport::TestCase
       blob.preview resize: "640x280"
     end
   end
+
+  test "previewing on the writer DB" do
+    blob = create_file_blob(filename: "report.pdf", content_type: "application/pdf")
+
+    # Simulate a selector middleware switching to a read-only replica.
+    ActiveRecord::Base.connection_handler.while_preventing_writes do
+      blob.preview(resize: "640x280").processed
+    end
+
+    assert blob.reload.preview_image.attached?
+  end
 end
