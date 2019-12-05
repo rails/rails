@@ -1704,6 +1704,19 @@ module ApplicationTests
       assert_kind_of Hash, Rails.application.config.database_configuration
     end
 
+    test "config.database_configuration can be set" do
+      app "development"
+      database_configuration = {
+        "development" => {
+          "adapter" => "sqlite3",
+          "database" => ":memory:"
+        }
+      }
+      Rails.configuration.database_configuration = database_configuration
+
+      assert_equal database_configuration, Rails.configuration.database_configuration
+    end
+
     test "autoload paths do not include asset paths" do
       app "development"
       ActiveSupport::Dependencies.autoload_paths.each do |path|

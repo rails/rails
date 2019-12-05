@@ -226,36 +226,41 @@ module Rails
       # Loads and returns the entire raw configuration of database from
       # values stored in <tt>config/database.yml</tt>.
       def database_configuration
-        path = paths["config/database"].existent.first
-        yaml = Pathname.new(path) if path
+        @database_configuration ||= begin
+          path = paths["config/database"].existent.first
+          yaml = Pathname.new(path) if path
 
-        config = if yaml && yaml.exist?
-          require "yaml"
-          require "erb"
-          loaded_yaml = YAML.load(ERB.new(yaml.read).result) || {}
-          shared = loaded_yaml.delete("shared")
-          if shared
-            loaded_yaml.each do |_k, values|
-              values.reverse_merge!(shared)
+          config = if yaml && yaml.exist?
+            require "yaml"
+            require "erb"
+            loaded_yaml = YAML.load(ERB.new(yaml.read).result) || {}
+            shared = loaded_yaml.delete("shared")
+            if shared
+              loaded_yaml.each do |_k, values|
+                values.reverse_merge!(shared)
+              end
             end
+            Hash.new(shared).merge(loaded_yaml)
+          elsif ENV["DATABASE_URL"]
+            # Value from ENV['DATABASE_URL'] is set to default database connection
+            # by Active Record.
+            {}
+          else
+            raise "Could not load database configuration. No such file - #{paths["config/database"].instance_variable_get(:@paths)}"
           end
-          Hash.new(shared).merge(loaded_yaml)
-        elsif ENV["DATABASE_URL"]
-          # Value from ENV['DATABASE_URL'] is set to default database connection
-          # by Active Record.
-          {}
-        else
-          raise "Could not load database configuration. No such file - #{paths["config/database"].instance_variable_get(:@paths)}"
-        end
 
-        config
-      rescue Psych::SyntaxError => e
-        raise "YAML syntax error occurred while parsing #{paths["config/database"].first}. " \
-              "Please note that YAML must be consistently indented using spaces. Tabs are not allowed. " \
-              "Error: #{e.message}"
-      rescue => e
-        raise e, "Cannot load database configuration:\n#{e.message}", e.backtrace
+          config
+        rescue Psych::SyntaxError => e
+          raise "YAML syntax error occurred while parsing #{paths["config/database"].first}. " \
+                "Please note that YAML must be consistently indented using spaces. Tabs are not allowed. " \
+                "Error: #{e.message}"
+        rescue => e
+          raise e, "Cannot load database configuration:\n#{e.message}", e.backtrace
+        end
       end
+
+      # Set the entire raw configuration of database.
+      attr_writer :database_configuration
 
       def colorize_logging
         ActiveSupport::LogSubscriber.colorize_logging

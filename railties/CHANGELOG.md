@@ -1,3 +1,18 @@
+*   Add `Rails::Application::Configuration#database_configuration=`.
+
+    This is useful if you'd like to set database config without config/database.yml file.
+
+    ```ruby
+    Rails.configuration.database_configuration = {
+      "development" => {
+        "adapter" => "sqlite3",
+        "database" => ":memory:"
+      }
+    }
+    ```
+
+    *Ryo Nakamura*
+
 *   Remove access to values in nested hashes returned by `Rails.application.config_for` via String keys.
 
     ```yaml
