@@ -58,7 +58,7 @@ module ActionView
       # when you call translate in a template and translators know which keys
       # they can provide HTML values for.
       def translate(key, **options)
-        if options.has_key?(:default)
+        unless options[:default].nil?
           remaining_defaults = Array.wrap(options.delete(:default)).compact
           options[:default] = remaining_defaults unless remaining_defaults.first.kind_of?(Symbol)
         end
