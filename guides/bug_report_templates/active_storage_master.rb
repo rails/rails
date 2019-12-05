@@ -29,7 +29,7 @@ class TestApp < Rails::Application
   config.active_storage.service_configurations = {
     local: {
       root: Dir.tmpdir,
-      service: 'Disk'
+      service: "Disk"
     }
   }
 end
