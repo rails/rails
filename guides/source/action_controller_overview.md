@@ -753,6 +753,12 @@ end
 
 Note that the filter in this case uses `send` because the `logged_in?` method is private and the filter does not run in the scope of the controller. This is not the recommended way to implement this particular filter, but in more simple cases it might be useful.
 
+Specifically for `around_action`, the block also yields in the `action`:
+
+```ruby
+around_action { |_controller, action| time(&action) }
+```
+
 The second way is to use a class (actually, any object that responds to the right methods will do) to handle the filtering. This is useful in cases that are more complex and cannot be implemented in a readable and reusable way using the two other methods. As an example, you could rewrite the login filter again to use a class:
 
 ```ruby
