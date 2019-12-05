@@ -194,6 +194,8 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
 
   def test_render_collection_template
     Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
+      set_cache_controller
+
       @view.render(partial: "test/customer", collection: [ Customer.new("david"), Customer.new("mary") ])
       wait
 
@@ -204,6 +206,8 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
 
   def test_render_collection_with_implicit_path
     Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
+      set_cache_controller
+
       @view.render([ Customer.new("david"), Customer.new("mary") ], greeting: "hi")
       wait
 
@@ -214,6 +218,8 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
 
   def test_render_collection_template_without_path
     Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
+      set_cache_controller
+
       @view.render([ GoodCustomer.new("david"), Customer.new("mary") ], greeting: "hi")
       wait
 
@@ -225,6 +231,7 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
   def test_render_collection_with_cached_set
     Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
       set_view_cache_dependencies
+      set_cache_controller
 
       @view.render(partial: "customers/customer", collection: [ Customer.new("david"), Customer.new("mary") ], cached: true,
         locals: { greeting: "hi" })
