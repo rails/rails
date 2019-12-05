@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "pathname"
+
 module Rails
   module Paths
     # This object is an extended hash that behaves as root of the <tt>Rails::Paths</tt> system.
@@ -178,6 +180,14 @@ module Rails
 
       def to_ary
         @paths
+      end
+
+      def paths
+        raise "You need to set a path root" unless @root.path
+
+        map do |p|
+          Pathname.new(@root.path).join(p)
+        end
       end
 
       def extensions # :nodoc:

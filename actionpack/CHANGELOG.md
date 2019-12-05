@@ -1,3 +1,26 @@
+*   Bring back the feature that allows loading external route files from the router.
+
+    This feature existed back in 2012 but got reverted with the incentive that
+    https://github.com/rails/routing_concerns was a better approach. Turned out
+    that this wasn't fully the case and loading external route files from the router
+    can be helpful for applications with a really large set of routes.
+    Without this feature, application needs to implement routes reloading
+    themselves and it's not straightforward.
+
+    ```ruby
+    # config/routes.rb
+
+    Rails.application.routes.draw do
+      draw(:admin)
+    end
+
+    # config/routes/admin.rb
+
+    get :foo, to: 'foo#bar'
+    ```
+
+    *Yehuda Katz*, *Edouard Chin*
+
 *   Fix system test driver option initialization for non-headless browsers.
 
     *glaszig*
