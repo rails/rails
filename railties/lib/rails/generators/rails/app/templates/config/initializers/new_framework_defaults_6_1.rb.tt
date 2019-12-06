@@ -8,3 +8,6 @@
 
 # Support for inversing belongs_to -> has_many Active Record associations.
 # Rails.application.config.active_record.has_many_inversing = true
+
+# Track Active Storage variants in the database.
+# Rails.application.config.active_storage.track_variants = true

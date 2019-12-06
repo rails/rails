@@ -84,6 +84,7 @@ module ActiveStorage
         ActiveStorage.binary_content_type = app.config.active_storage.binary_content_type || "application/octet-stream"
 
         ActiveStorage.replace_on_assign_to_many = app.config.active_storage.replace_on_assign_to_many || false
+        ActiveStorage.track_variants = app.config.active_storage.track_variants || false
       end
     end
 

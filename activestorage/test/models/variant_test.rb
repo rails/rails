@@ -5,6 +5,14 @@ require "database/setup"
 require "minitest/mock"
 
 class ActiveStorage::VariantTest < ActiveSupport::TestCase
+  setup do
+    @was_tracking, ActiveStorage.track_variants = ActiveStorage.track_variants, false
+  end
+
+  teardown do
+    ActiveStorage.track_variants = @was_tracking
+  end
+
   test "variations have the same key for different types of the same transformation" do
     blob = create_file_blob(filename: "racecar.jpg")
     variant_a = blob.variant(resize: "100x100")
