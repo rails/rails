@@ -184,11 +184,8 @@ class LoadingTest < ActiveSupport::TestCase
   test "does not reload constants on development if custom file watcher always returns false" do
     add_to_config <<-RUBY
       config.cache_classes = false
-      config.file_watcher = Class.new do
-        def initialize(*); end
+      config.file_watcher = Class.new(ActiveSupport::FileUpdateChecker) do
         def updated?; false; end
-        def execute; end
-        def execute_if_updated; false; end
       end
     RUBY
 
