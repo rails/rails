@@ -148,7 +148,7 @@ class String
   #
   #   'puni_puni'.dasherize # => "puni-puni"
   #
-  # See ActiveSupport::Inflector.dasherize
+  # See ActiveSupport::Inflector.dasherize.
   def dasherize
     ActiveSupport::Inflector.dasherize(self)
   end
