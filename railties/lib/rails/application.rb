@@ -341,7 +341,7 @@ module Rails
     end
 
     def routes_reloader #:nodoc:
-      @routes_reloader ||= RoutesReloader.new(file_watcher: config.file_watcher)
+      @routes_reloader ||= RoutesReloader.new
     end
 
     # Returns an array of file paths appended with a hash of
