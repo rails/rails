@@ -227,7 +227,7 @@ class String
   #   'ham_and_egg'.tableize     # => "ham_and_eggs"
   #   'fancyCategory'.tableize   # => "fancy_categories"
   #
-  # See ActiveSupport::Inflector.tableize
+  # See ActiveSupport::Inflector.tableize.
   def tableize
     ActiveSupport::Inflector.tableize(self)
   end
