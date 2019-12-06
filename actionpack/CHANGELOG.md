@@ -1,3 +1,7 @@
+*   Fix system test driver option initialization for non-headless browsers.
+
+    *glaszig*
+
 *   `redirect_to.action_controller` notifications now include the `ActionDispatch::Request` in
     their payloads as `:request`.
 
