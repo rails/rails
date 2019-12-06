@@ -21,6 +21,7 @@ Rails.application.routes.draw do
   end
 
   resolve("ActiveStorage::Variant") { |variant, options| route_for(:rails_representation, variant, options) }
+  resolve("ActiveStorage::VariantWithRecord") { |variant, options| route_for(:rails_representation, variant, options) }
   resolve("ActiveStorage::Preview") { |preview, options| route_for(:rails_representation, preview, options) }
 
 
