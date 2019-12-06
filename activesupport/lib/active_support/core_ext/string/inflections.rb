@@ -31,7 +31,7 @@ class String
   #   'ley'.pluralize(:es)         # => "leyes"
   #   'ley'.pluralize(1, :es)      # => "ley"
   #
-  # See ActiveSupport::Inflector.pluralize
+  # See ActiveSupport::Inflector.pluralize.
   def pluralize(count = nil, locale = :en)
     locale = count if count.is_a?(Symbol)
     if count == 1
