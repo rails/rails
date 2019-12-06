@@ -286,7 +286,7 @@ class String
   #   'Message'.foreign_key(false) # => "messageid"
   #   'Admin::Post'.foreign_key    # => "post_id"
   #
-  # See ActiveSupport::Inflector.foreign_key
+  # See ActiveSupport::Inflector.foreign_key.
   def foreign_key(separate_class_name_and_id_with_underscore = true)
     ActiveSupport::Inflector.foreign_key(self, separate_class_name_and_id_with_underscore)
   end
