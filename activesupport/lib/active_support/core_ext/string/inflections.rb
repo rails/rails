@@ -99,7 +99,7 @@ class String
   #
   # +camelize+ is also aliased as +camelcase+.
   #
-  # See ActiveSupport::Inflector.camelize
+  # See ActiveSupport::Inflector.camelize.
   def camelize(first_letter = :upper)
     case first_letter
     when :upper
