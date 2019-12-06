@@ -69,7 +69,7 @@ class String
   #   'Class'.constantize   # => Class
   #   'blargle'.constantize # => NameError: wrong constant name blargle
   #
-  # See ActiveSupport::Inflector.constantize
+  # See ActiveSupport::Inflector.constantize.
   def constantize
     ActiveSupport::Inflector.constantize(self)
   end
