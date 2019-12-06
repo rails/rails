@@ -239,7 +239,7 @@ class String
   #   'ham_and_eggs'.classify # => "HamAndEgg"
   #   'posts'.classify        # => "Post"
   #
-  # See ActiveSupport::Inflector.classify
+  # See ActiveSupport::Inflector.classify.
   def classify
     ActiveSupport::Inflector.classify(self)
   end
