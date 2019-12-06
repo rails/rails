@@ -130,8 +130,6 @@ module ActiveStorage
           protocol: current_uri.scheme,
           host: current_uri.host,
           port: current_uri.port,
-          disposition: content_disposition,
-          content_type: content_type,
           filename: filename
         )
       end
