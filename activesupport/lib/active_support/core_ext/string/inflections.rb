@@ -215,7 +215,7 @@ class String
   #   <%= link_to(@person.name, person_path) %>
   #   # => <a href="/person/1-Donald-E-Knuth">Donald E. Knuth</a>
   #
-  # See ActiveSupport::Inflector.parameterize
+  # See ActiveSupport::Inflector.parameterize.
   def parameterize(separator: "-", preserve_case: false, locale: nil)
     ActiveSupport::Inflector.parameterize(self, separator: separator, preserve_case: preserve_case, locale: locale)
   end
