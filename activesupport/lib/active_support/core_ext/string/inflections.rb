@@ -273,7 +273,7 @@ class String
   #   'w'.upcase_first                 # => "W"
   #   ''.upcase_first                  # => ""
   #
-  # See ActiveSupport::Inflector.upcase_first
+  # See ActiveSupport::Inflector.upcase_first.
   def upcase_first
     ActiveSupport::Inflector.upcase_first(self)
   end
