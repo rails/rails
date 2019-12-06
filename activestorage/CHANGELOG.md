@@ -1,3 +1,10 @@
+*   Use `DiskController` for both public and private files.
+
+    `DiskController` is able to handle multiple services by adding a
+    `service_name` field in the generated URL in `DiskService`.
+
+    *Peter Zhu*
+
 *   Variants are tracked in the database to avoid existence checks in the storage service.
 
     *George Claghorn*
