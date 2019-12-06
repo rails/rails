@@ -1,3 +1,7 @@
+*   Remove unused `disposition` and `content_type` query parameters for `DiskService`.
+
+    *Peter Zhu*
+
 *   Use `DiskController` for both public and private files.
 
     `DiskController` is able to handle multiple services by adding a
