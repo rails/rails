@@ -126,7 +126,7 @@ class String
   #
   # +titleize+ is also aliased as +titlecase+.
   #
-  # See ActiveSupport::Inflector.titleize
+  # See ActiveSupport::Inflector.titleize.
   def titleize(keep_id_suffix: false)
     ActiveSupport::Inflector.titleize(self, keep_id_suffix: keep_id_suffix)
   end
