@@ -94,6 +94,16 @@ class ClassAttributeTest < ActiveSupport::TestCase
     assert_equal "foo", object.setting
   end
 
+  test "works well with module singleton classes" do
+    @module = Module.new do
+      class << self
+        class_attribute :settings, default: 42
+      end
+    end
+
+    assert_equal 42, @module.settings
+  end
+
   test "setter returns set value" do
     val = @klass.send(:setting=, 1)
     assert_equal 1, val
