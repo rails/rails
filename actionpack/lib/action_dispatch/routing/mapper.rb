@@ -1607,6 +1607,22 @@ module ActionDispatch
           !parent_resource.singleton? && @scope[:shallow]
         end
 
+        def draw(name)
+          path = @draw_paths.find do |_path|
+            File.exist? "#{_path}/#{name}.rb"
+          end
+
+          unless path
+            msg  = "Your router tried to #draw the external file #{name}.rb,\n" \
+                   "but the file was not found in:\n\n"
+            msg += @draw_paths.map { |_path| " * #{_path}" }.join("\n")
+            raise ArgumentError, msg
+          end
+
+          route_path = "#{path}/#{name}.rb"
+          instance_eval(File.read(route_path), route_path.to_s)
+        end
+
         # Matches a URL pattern to one or more routes.
         # For more information, see match[rdoc-ref:Base#match].
         #
@@ -2285,6 +2301,7 @@ module ActionDispatch
 
       def initialize(set) #:nodoc:
         @set = set
+        @draw_paths = set.draw_paths
         @scope = Scope.new(path_names: @set.resources_path_names)
         @concerns = {}
       end
