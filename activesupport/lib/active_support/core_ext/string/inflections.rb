@@ -175,7 +175,7 @@ class String
   #   '::String'.deconstantize    # => ""
   #   ''.deconstantize            # => ""
   #
-  # See ActiveSupport::Inflector.deconstantize
+  # See ActiveSupport::Inflector.deconstantize.
   #
   # See also +demodulize+.
   def deconstantize
