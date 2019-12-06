@@ -1,3 +1,7 @@
+*   Variants are tracked in the database to avoid existence checks in the storage service.
+
+    *George Claghorn*
+
 *   Deprecate `service_url` methods in favour of `url`.
 
     Deprecate `Variant#service_url` and `Preview#service_url` to instead use

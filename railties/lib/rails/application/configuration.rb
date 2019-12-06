@@ -159,6 +159,10 @@ module Rails
           if respond_to?(:active_record)
             active_record.has_many_inversing = true
           end
+
+          if respond_to?(:active_storage)
+            active_storage.track_variants = true
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end

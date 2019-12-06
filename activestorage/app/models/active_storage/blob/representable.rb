@@ -4,6 +4,9 @@ module ActiveStorage::Blob::Representable
   extend ActiveSupport::Concern
 
   included do
+    has_many :variant_records, class_name: "ActiveStorage::VariantRecord", dependent: false
+    before_destroy { variant_records.destroy_all if ActiveStorage.track_variants }
+
     has_one_attached :preview_image
   end
 
@@ -27,7 +30,7 @@ module ActiveStorage::Blob::Representable
   # variable, call ActiveStorage::Blob#variable?.
   def variant(transformations)
     if variable?
-      ActiveStorage::Variant.new(self, transformations)
+      variant_class.new(self, transformations)
     else
       raise ActiveStorage::InvariableError
     end
@@ -90,4 +93,9 @@ module ActiveStorage::Blob::Representable
   def representable?
     variable? || previewable?
   end
+
+  private
+    def variant_class
+      ActiveStorage.track_variants ? ActiveStorage::VariantWithRecord : ActiveStorage::Variant
+    end
 end
