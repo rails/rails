@@ -82,7 +82,7 @@ class String
   #   'Class'.safe_constantize   # => Class
   #   'blargle'.safe_constantize # => nil
   #
-  # See ActiveSupport::Inflector.safe_constantize
+  # See ActiveSupport::Inflector.safe_constantize.
   def safe_constantize
     ActiveSupport::Inflector.safe_constantize(self)
   end
