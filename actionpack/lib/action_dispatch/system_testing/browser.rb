@@ -51,14 +51,13 @@ module ActionDispatch
 
       private
         def initialize_options
-          @options ||= begin
+          @options ||=
             case type
             when :chrome
               ::Selenium::WebDriver::Chrome::Options.new
             when :firefox
               ::Selenium::WebDriver::Firefox::Options.new
             end
-          end
         end
 
         def set_default_options
