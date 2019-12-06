@@ -82,7 +82,7 @@ class ActiveStorage::Preview
     end
 
     def variant
-      ActiveStorage::Variant.new(image, variation).processed
+      image.variant(variation).processed
     end
 
 
