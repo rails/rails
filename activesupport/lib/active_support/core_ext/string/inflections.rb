@@ -262,7 +262,7 @@ class String
   #   '_id'.humanize                                # => "Id"
   #   'author_id'.humanize(keep_id_suffix: true)    # => "Author Id"
   #
-  # See ActiveSupport::Inflector.humanize
+  # See ActiveSupport::Inflector.humanize.
   def humanize(capitalize: true, keep_id_suffix: false)
     ActiveSupport::Inflector.humanize(self, capitalize: capitalize, keep_id_suffix: keep_id_suffix)
   end
