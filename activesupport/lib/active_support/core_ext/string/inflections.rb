@@ -160,7 +160,7 @@ class String
   #   '::Inflections'.demodulize                         # => "Inflections"
   #   ''.demodulize                                      # => ''
   #
-  # See ActiveSupport::Inflector.demodulize
+  # See ActiveSupport::Inflector.demodulize.
   #
   # See also +deconstantize+.
   def demodulize
