@@ -2058,7 +2058,6 @@ getting up and running with Rails, feel free to consult these support
 resources:
 
 * The [Ruby on Rails Guides](index.html)
-* The [Ruby on Rails Tutorial](https://www.railstutorial.org/book)
 * The [Ruby on Rails mailing list](https://groups.google.com/group/rubyonrails-talk)
 * The [#rubyonrails](irc://irc.freenode.net/#rubyonrails) channel on irc.freenode.net
 
