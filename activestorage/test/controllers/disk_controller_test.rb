@@ -44,6 +44,27 @@ class ActiveStorage::DiskControllerTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
+  test "showing public blob" do
+    with_service("local_public") do
+      blob = create_blob(content_type: "image/jpg")
+
+      get blob.url
+      assert_response :ok
+      assert_equal "image/jpg", response.headers["Content-Type"]
+      assert_equal "Hello world!", response.body
+    end
+  end
+
+  test "showing public blob variant" do
+    with_service("local_public") do
+      blob = create_file_blob.variant(resize_to_limit: [100, 100]).processed
+
+      get blob.url
+      assert_response :ok
+      assert_equal "image/jpeg", response.headers["Content-Type"]
+    end
+  end
+
   test "directly uploading blob with integrity" do
     data = "Something else entirely!"
     blob = create_blob_before_direct_upload byte_size: data.size, checksum: Digest::MD5.base64digest(data)
