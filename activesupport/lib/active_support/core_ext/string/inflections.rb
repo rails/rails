@@ -139,7 +139,7 @@ class String
   #   'ActiveModel'.underscore         # => "active_model"
   #   'ActiveModel::Errors'.underscore # => "active_model/errors"
   #
-  # See ActiveSupport::Inflector.underscore
+  # See ActiveSupport::Inflector.underscore.
   def underscore
     ActiveSupport::Inflector.underscore(self)
   end
