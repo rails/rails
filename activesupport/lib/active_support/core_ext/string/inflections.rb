@@ -56,7 +56,7 @@ class String
   #   'CamelOctopi'.singularize      # => "CamelOctopus"
   #   'leyes'.singularize(:es)       # => "ley"
   #
-  # See ActiveSupport::Inflector.singularize
+  # See ActiveSupport::Inflector.singularize.
   def singularize(locale = :en)
     ActiveSupport::Inflector.singularize(self, locale)
   end
