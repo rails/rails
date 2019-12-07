@@ -49,4 +49,11 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
     assert_equal 100, image.width
     assert_equal 67, image.height
   end
+
+  test "variant of a blob is on the same service" do
+    blob = create_file_blob(filename: "racecar.jpg", service_name: "local_public")
+    variant = blob.variant(resize: "100x100").process
+
+    assert_equal "local_public", variant.image.blob.service_name
+  end
 end
