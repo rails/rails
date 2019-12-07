@@ -56,3 +56,6 @@ production:
   database: <%= app_name %>_production
   username: <%= app_name %>
   password: <%%= ENV['<%= app_name.upcase %>_DATABASE_PASSWORD'] %>
+# To enforce TLS connection to your backend, comment out the following two lines
+#  sslmode: 'REQUIRED'
+#  sslca: config/certificateyoutrust.pem
