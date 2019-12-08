@@ -275,7 +275,11 @@ module ActiveSupport
       elsif Duration === other
         value / other.value
       elsif Numeric === other
-        Duration.new(value / other, parts.map { |type, number| [type, number / other] })
+        if parts.values.all? { |v| (v % other).zero? }
+          Duration.new(value / other, parts.map { |type, number| [type, number / other] })
+        else
+          Duration.build(value / other)
+        end
       else
         raise_type_error(other)
       end
@@ -375,7 +379,7 @@ module ActiveSupport
     alias :before :ago
 
     def inspect #:nodoc:
-      return "#{value} seconds" if parts.empty?
+      return "0 seconds" if parts.empty?
 
       parts.
         sort_by { |unit,  _ | PARTS.index(unit) }.
@@ -407,19 +411,15 @@ module ActiveSupport
           raise ::ArgumentError, "expected a time or date, got #{time.inspect}"
         end
 
-        if parts.empty?
-          time.since(sign * value)
-        else
-          parts.inject(time) do |t, (type, number)|
-            if type == :seconds
-              t.since(sign * number)
-            elsif type == :minutes
-              t.since(sign * number * 60)
-            elsif type == :hours
-              t.since(sign * number * 3600)
-            else
-              t.advance(type => sign * number)
-            end
+        parts.inject(time) do |t, (type, number)|
+          if type == :seconds
+            t.since(sign * number)
+          elsif type == :minutes
+            t.since(sign * number * 60)
+          elsif type == :hours
+            t.since(sign * number * 3600)
+          else
+            t.advance(type => sign * number)
           end
         end
       end
