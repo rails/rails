@@ -2034,6 +2034,27 @@ module ApplicationTests
       assert_equal(:bar, Rails.application.config.my_custom_config[:foo])
     end
 
+    test "config_for merges shared configuration deeply" do
+      app_file "config/custom.yml", <<-RUBY
+      shared:
+        foo:
+          bar:
+            baz: 1
+      development:
+        foo:
+          bar:
+            qux: 2
+      RUBY
+
+      add_to_config <<-RUBY
+        config.my_custom_config = config_for('custom')
+      RUBY
+
+      app "development"
+
+      assert_equal({ baz: 1, qux: 2 }, Rails.application.config.my_custom_config[:foo][:bar])
+    end
+
     test "config_for with empty file returns an empty hash" do
       app_file "config/custom.yml", <<-RUBY
       RUBY
