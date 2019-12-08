@@ -32,6 +32,7 @@ require "yaml"
 require "active_record/version"
 require "active_model/attribute_set"
 require "active_record/errors"
+require "active_record/legacy_errors"
 
 module ActiveRecord
   extend ActiveSupport::Autoload
