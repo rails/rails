@@ -299,7 +299,11 @@ module ActiveModel
     #   person.valid? # => false
     #   person.errors # => #<ActiveModel::Errors:0x007fe603816640 @messages={name:["can't be blank"]}>
     def errors
-      @errors ||= Errors.new(self)
+      @errors ||= if Rails.application.config.validation_error_as_object
+        Errors.new(self)
+      else
+        LegacyErrors.new(self)
+      end
     end
 
     # Runs all the specified validations and returns +true+ if no errors were
