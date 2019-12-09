@@ -94,7 +94,7 @@ module ActionView
         def tag_option(key, value, escape)
           case value
           when Array, Hash
-            value = build_tag_values(value) if key.to_s == "class"
+            value = TagHelper.build_tag_values(value) if key.to_s == "class"
             value = escape ? safe_join(value, " ") : value.join(" ")
           else
             value = escape ? ERB::Util.unwrapped_html_escape(value) : value.to_s
@@ -104,25 +104,6 @@ module ActionView
         end
 
         private
-          def build_tag_values(*args)
-            tag_values = []
-
-            args.each do |tag_value|
-              case tag_value
-              when Hash
-                tag_value.each do |key, val|
-                  tag_values << key if val
-                end
-              when Array
-                tag_values << build_tag_values(*tag_value).presence
-              else
-                tag_values << tag_value.to_s if tag_value.present?
-              end
-            end
-
-            tag_values.compact.flatten
-          end
-
           def prefix_tag_option(prefix, key, value, escape)
             key = "#{prefix}-#{key.to_s.dasherize}"
             unless value.is_a?(String) || value.is_a?(Symbol) || value.is_a?(BigDecimal)
@@ -309,6 +290,19 @@ module ActionView
         end
       end
 
+      # Returns a string of class names built from +args+.
+      #
+      # ==== Examples
+      #   class_names("foo", "bar")
+      #    # => "foo bar"
+      #   class_names({ foo: true, bar: false })
+      #    # => "foo"
+      #   class_names(nil, false, 123, "", "foo", { bar: true })
+      #    # => "foo bar"
+      def class_names(*args)
+        safe_join(build_tag_values(*args), " ")
+      end
+
       # Returns a CDATA section with the given +content+. CDATA sections
       # are used to escape blocks of text containing characters which would
       # otherwise be recognized as markup. CDATA sections begin with the string
@@ -339,6 +333,26 @@ module ActionView
       end
 
       private
+        def build_tag_values(*args)
+          tag_values = []
+
+          args.each do |tag_value|
+            case tag_value
+            when Hash
+              tag_value.each do |key, val|
+                tag_values << key if val
+              end
+            when Array
+              tag_values << build_tag_values(*tag_value).presence
+            else
+              tag_values << tag_value.to_s if tag_value.present?
+            end
+          end
+
+          tag_values.compact.flatten
+        end
+        module_function :build_tag_values
+
         def tag_builder
           @tag_builder ||= TagBuilder.new(self)
         end
