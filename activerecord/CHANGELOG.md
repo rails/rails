@@ -1,3 +1,9 @@
+*   Retain explicit selections on the base model after applying `includes` and `joins`.
+
+    Resolves #34889.
+
+    *Patrick Rebsch*
+
 *   Share the same connection pool for primary and replica databases in the
     transactional tests for the same database.
 
