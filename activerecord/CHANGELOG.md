@@ -1,3 +1,9 @@
+*   Retain explicit selections on the base model after applying `includes` and `joins`.
+
+    Resolves #34889.
+
+    *Patrick Rebsch*
+
 *   The `database` kwarg is deprecated without replacement because it can't be used for sharding and creates an issue if it's used during a request. Applications that need to create new connections should use `connects_to` instead.
 
     *Eileen M. Uchitelle*, *John Crepezzi*
