@@ -1,4 +1,4 @@
-## Rails 6.0.2.rc1 (November 27, 2019) ##
+## Rails 6.0.2.rc2 (December 09, 2019) ##
 
 *   Allow Sidekiq access to the underlying job class.
 
