@@ -12,6 +12,10 @@
 
     *Jeff Emminger*, *Gannon McGibbon*
 
+*   A database URL can now contain a querystring value that contains an equal sign. This is needed to support passing PostgresSQL `options`.
+
+    *Joshua Flanagan*
+
 *   Calling methods like `establish_connection` with a `Hash` which is invalid (eg: no `adapter`) will now raise an error the same way as connections defined in `config/database.yml`.
 
     *John Crepezzi*
