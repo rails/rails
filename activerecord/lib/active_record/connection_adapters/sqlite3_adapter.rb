@@ -26,7 +26,7 @@ module ActiveRecord
       # Allow database path relative to Rails.root, but only if the database
       # path is not the special path that tells sqlite to build a database only
       # in memory.
-      if ":memory:" != config[:database]
+      if ":memory:" != config[:database] && !config[:database].to_s.starts_with?("file:")
         config[:database] = File.expand_path(config[:database], Rails.root) if defined?(Rails.root)
         dirname = File.dirname(config[:database])
         Dir.mkdir(dirname) unless File.directory?(dirname)
@@ -113,6 +113,10 @@ module ActiveRecord
       end
 
       def supports_savepoints?
+        true
+      end
+
+      def supports_transaction_isolation?
         true
       end
 
@@ -323,6 +327,10 @@ module ActiveRecord
         end
 
         sql
+      end
+
+      def shared_cache? # :nodoc:
+        @config.fetch(:flags, 0).anybits?(::SQLite3::Constants::Open::SHAREDCACHE)
       end
 
       def get_database_version # :nodoc:
