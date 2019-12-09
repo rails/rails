@@ -229,7 +229,7 @@ module Rails
       if yaml.exist?
         require "erb"
         config = YAML.load(ERB.new(yaml.read).result, symbolize_names: true) || {}
-        config = (config[:shared] || {}).merge(config[env.to_sym] || {})
+        config = (config[:shared] || {}).deep_merge(config[env.to_sym] || {})
 
         ActiveSupport::OrderedOptions.new.tap do |options|
           options.update(config)

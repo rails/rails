@@ -1,3 +1,27 @@
+* `Rails.application.config_for` merges shared configuration deeply.
+
+    ```yaml
+    # config/example.yml
+    shared:
+      foo:
+        bar:
+          baz: 1
+    development:
+      foo:
+        bar:
+          qux: 2
+    ```
+
+    ```ruby
+    # Previously
+    Rails.application.config_for(:example)[:foo][:bar] #=> { qux: 2 }
+
+    # Now
+    Rails.application.config_for(:example)[:foo][:bar] #=> { baz: 1, qux: 2 }
+    ```
+
+    *Yuhei Kiriyama*
+
 *   Remove access to values in nested hashes returned by `Rails.application.config_for` via String keys.
 
     ```yaml
