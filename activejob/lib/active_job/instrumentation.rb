@@ -17,8 +17,13 @@ module ActiveJob
 
     private
       def instrument(operation, payload = {}, &block)
+        enhanced_block = ->(event_payload) do
+          aborted = !block.call if block
+          event_payload[:aborted] = true if aborted
+        end
+
         ActiveSupport::Notifications.instrument \
-          "#{operation}.active_job", payload.merge(adapter: queue_adapter, job: self), &block
+          "#{operation}.active_job", payload.merge(adapter: queue_adapter, job: self), &enhanced_block
       end
   end
 end

@@ -1,3 +1,20 @@
+*   Fix enqueuing and performing incorrect logging message.
+
+    Jobs will no longer always log "Enqueued MyJob" or "Performed MyJob" when they actually didn't get enqueued/performed.
+
+    ```ruby
+      class MyJob < ApplicationJob
+        before_enqueue { throw(:abort) }
+      end
+
+      MyJob.perform_later # Will no longer log "Enqueud MyJob" since job wasn't even enqueued through adapter.
+    ```
+
+    A new message will be logged in case a job couldn't be enqueued, either because the callback chain was halted or
+    because an exception happened during enqueing. (i.e. Redis is down when you try to enqueue your job)
+
+    *Edouard Chin*
+
 *   Add an option to disable logging of the job arguments when enqueuing and executing the job.
 
         class SensitiveJob < ApplicationJob
