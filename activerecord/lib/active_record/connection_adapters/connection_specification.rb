@@ -72,7 +72,7 @@ module ActiveRecord
           #   "localhost"
           #   # => {}
           def query_hash
-            Hash[(@query || "").split("&").map { |pair| pair.split("=") }]
+            Hash[(@query || "").split("&").map { |pair| pair.split("=", 2) }]
           end
 
           def raw_config
