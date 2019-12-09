@@ -43,8 +43,63 @@ class CallbacksTest < ActiveSupport::TestCase
     ActiveJob::Base.return_false_on_aborted_enqueue = prev
   end
 
+  test "#enqueue does not run after_enqueue callbacks when skip_after_callbacks_if_terminated is true" do
+    prev = ActiveJob::Base.skip_after_callbacks_if_terminated
+    ActiveJob::Base.skip_after_callbacks_if_terminated = true
+    reload_job
+    job = AbortBeforeEnqueueJob.new
+    job.enqueue
+
+    assert_nil(job.flag)
+  ensure
+    ActiveJob::Base.skip_after_callbacks_if_terminated = prev
+  end
+
+  test "#enqueue does run after_enqueue callbacks when skip_after_callbacks_if_terminated is false" do
+    prev = ActiveJob::Base.skip_after_callbacks_if_terminated
+    ActiveJob::Base.skip_after_callbacks_if_terminated = false
+    reload_job
+    job = AbortBeforeEnqueueJob.new
+    job.enqueue
+
+    assert_equal("after_enqueue", job.flag)
+  ensure
+    ActiveJob::Base.skip_after_callbacks_if_terminated = prev
+  end
+
+  test "#perform does not run after_perform callbacks when skip_after_callbacks_if_terminated is true" do
+    prev = ActiveJob::Base.skip_after_callbacks_if_terminated
+    ActiveJob::Base.skip_after_callbacks_if_terminated = true
+    reload_job
+    job = AbortBeforeEnqueueJob.new
+    job.perform_now
+
+    assert_nil(job.flag)
+  ensure
+    ActiveJob::Base.skip_after_callbacks_if_terminated = prev
+  end
+
+  test "#perform does run after_perform callbacks when skip_after_callbacks_if_terminated is false" do
+    prev = ActiveJob::Base.skip_after_callbacks_if_terminated
+    ActiveJob::Base.skip_after_callbacks_if_terminated = false
+    reload_job
+    job = AbortBeforeEnqueueJob.new
+    job.perform_now
+
+    assert_equal("after_perform", job.flag)
+  ensure
+    ActiveJob::Base.skip_after_callbacks_if_terminated = prev
+  end
+
   test "#enqueue returns self when the job was enqueued" do
     job = CallbackJob.new
     assert_equal job, job.enqueue
   end
+
+  private
+    def reload_job
+      Object.send(:remove_const, :AbortBeforeEnqueueJob)
+      $LOADED_FEATURES.delete($LOADED_FEATURES.grep(%r{jobs/abort_before_enqueue_job}).first)
+      require "jobs/abort_before_enqueue_job"
+    end
 end

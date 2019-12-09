@@ -163,6 +163,10 @@ module Rails
           if respond_to?(:active_storage)
             active_storage.track_variants = true
           end
+
+          if respond_to?(:active_job)
+            active_job.skip_after_callbacks_if_terminated = true
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
