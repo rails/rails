@@ -37,6 +37,24 @@ class TagHelperTest < ActionView::TestCase
     assert_match(/class="elsewhere"/, str)
   end
 
+  def test_tag_options_with_array_of_numeric
+    str = tag(:input, value: [123, 456])
+
+    assert_equal("<input value=\"123 456\" />", str)
+  end
+
+  def test_tag_options_with_array_of_random_objects
+    klass = Class.new do
+      def to_s
+        "hello"
+      end
+    end
+
+    str = tag(:input, value: [klass.new])
+
+    assert_equal("<input value=\"hello\" />", str)
+  end
+
   def test_tag_options_rejects_nil_option
     assert_equal "<p />", tag("p", ignored: nil)
   end
@@ -261,6 +279,18 @@ class TagHelperTest < ActionView::TestCase
 
     str = content_tag("p", "limelight", class: ["song", { foo: false }])
     assert_equal "<p class=\"song\">limelight</p>", str
+
+    str = content_tag("p", "limelight", class: [1, 2, 3])
+    assert_equal "<p class=\"1 2 3\">limelight</p>", str
+
+    klass = Class.new do
+      def to_s
+        "1"
+      end
+    end
+
+    str = content_tag("p", "limelight", class: [klass.new])
+    assert_equal "<p class=\"1\">limelight</p>", str
 
     str = content_tag("p", "limelight", class: { "song": true, "play": true })
     assert_equal "<p class=\"song play\">limelight</p>", str

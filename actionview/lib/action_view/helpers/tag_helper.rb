@@ -94,7 +94,7 @@ module ActionView
         def tag_option(key, value, escape)
           case value
           when Array, Hash
-            value = build_tag_values(value)
+            value = build_tag_values(value) if key.to_s == "class"
             value = escape ? safe_join(value, " ") : value.join(" ")
           else
             value = escape ? ERB::Util.unwrapped_html_escape(value) : value.to_s
@@ -109,14 +109,14 @@ module ActionView
 
             args.each do |tag_value|
               case tag_value
-              when String
-                tag_values << tag_value if tag_value.present?
               when Hash
                 tag_value.each do |key, val|
                   tag_values << key if val
                 end
               when Array
                 tag_values << build_tag_values(*tag_value).presence
+              else
+                tag_values << tag_value.to_s if tag_value.present?
               end
             end
 
