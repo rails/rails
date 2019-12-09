@@ -11,6 +11,11 @@ require "action_dispatch/testing/integration"
 require "rails/generators/test_case"
 
 require "active_support/testing/autorun"
+require "rails/parallelization_log"
+
+ActiveSupport.on_load(:active_support_test_case) do
+  include ParallelizationLog
+end
 
 if defined?(ActiveRecord::Base)
   begin
