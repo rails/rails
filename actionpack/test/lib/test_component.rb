@@ -10,14 +10,15 @@ class TestComponent < ActionView::Base
     @title = title
   end
 
-  # Entrypoint for rendering. Called by ActionView::RenderingHelper#render.
-  #
-  # Returns ActionView::OutputBuffer.
   def render_in(view_context)
     self.class.compile
     @view_context = view_context
     validate!
     rendered_template
+  end
+
+  def format
+    :html
   end
 
   def self.template
