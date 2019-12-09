@@ -32,7 +32,6 @@ module ActiveSupport
       end
 
       private
-
         # Return pair of duration's parts and whole duration sign.
         # Parts are summarized (as they can become repetitive due to addition, etc).
         # Zero parts are removed as not significant.

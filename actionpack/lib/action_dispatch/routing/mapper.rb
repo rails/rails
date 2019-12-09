@@ -362,7 +362,7 @@ module ActionDispatch
 
           def translate_controller(controller)
             return controller if Regexp === controller
-            return controller.to_s if controller =~ /\A[a-z_0-9][a-z_0-9\/]*\z/
+            return controller.to_s if /\A[a-z_0-9][a-z_0-9\/]*\z/.match?(controller)
 
             yield
           end
@@ -398,7 +398,7 @@ module ActionDispatch
       # for root cases, where the latter is the correct one.
       def self.normalize_path(path)
         path = Journey::Router::Utils.normalize_path(path)
-        path.gsub!(%r{/(\(+)/?}, '\1/') unless path =~ %r{^/(\(+[^)]+\)){1,}$}
+        path.gsub!(%r{/(\(+)/?}, '\1/') unless %r{^/(\(+[^)]+\)){1,}$}.match?(path)
         path
       end
 
@@ -1668,7 +1668,6 @@ module ActionDispatch
         end
 
         private
-
           def parent_resource
             @scope[:scope_level_resource]
           end

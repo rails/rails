@@ -456,7 +456,7 @@ class ActionsTest < Rails::Generators::TestCase
 Rails.application.routes.draw do
   root 'welcome#index'
 end
-F
+    F
 
     assert_file "config/routes.rb", routes
 
@@ -467,7 +467,7 @@ Rails.application.routes.draw do
   resources :product_lines
   root 'welcome#index'
 end
-F
+    F
     assert_file "config/routes.rb", routes
   end
 
@@ -505,7 +505,6 @@ F
   end
 
   private
-
     def action(*args, &block)
       capture(:stdout) { generator.send(*args, &block) }
     end

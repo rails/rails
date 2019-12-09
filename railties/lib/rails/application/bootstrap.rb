@@ -26,7 +26,7 @@ config.eager_load is set to nil. Please update your config/environments/*.rb fil
   * test - set it to false (unless you use a tool that preloads your test environment)
   * production - set it to true
 
-INFO
+          INFO
           config.eager_load = config.cache_classes
         end
       end

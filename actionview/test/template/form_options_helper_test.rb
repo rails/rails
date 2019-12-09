@@ -1462,7 +1462,6 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   private
-
     def dummy_posts
       [ Post.new("<Abe> went home", "<Abe>", "To a little house", "shh!"),
         Post.new("Babe went home", "Babe", "To a little house", "shh!"),

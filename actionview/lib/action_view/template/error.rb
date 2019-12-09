@@ -114,7 +114,6 @@ module ActionView
       end
 
       private
-
         def source_location
           if line_number
             "on line ##{line_number} of "

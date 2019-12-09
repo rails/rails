@@ -458,7 +458,6 @@ module ActiveRecord
       end
 
       private
-
         def with_example_table(definition = "id serial primary key, number integer, data character varying(255)", &block)
           super(@connection, "ex", definition, &block)
         end

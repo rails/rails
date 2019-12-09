@@ -236,7 +236,6 @@ module ApplicationTests
     end
 
     private
-
       def assert_policy(expected, report_only: false)
         assert_equal 200, last_response.status
 

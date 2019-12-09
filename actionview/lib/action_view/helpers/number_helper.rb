@@ -403,7 +403,6 @@ module ActionView
       end
 
       private
-
         def delegate_number_helper_method(method, number, options)
           return unless number
           options = escape_unsafe_options(options.symbolize_keys)

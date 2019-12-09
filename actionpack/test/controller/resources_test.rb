@@ -36,7 +36,6 @@ class ResourcesTest < ActionController::TestCase
         collection: collection_methods,
         member: member_methods,
         path_names: path_names do
-
       assert_restful_routes_for :messages,
           collection: collection_methods,
           member: member_methods,
@@ -58,7 +57,6 @@ class ResourcesTest < ActionController::TestCase
           collection: collection_methods,
           member: member_methods,
           path_names: path_names do |options|
-
         collection_methods.each_key do |action|
           assert_named_route "/messages/#{path_names[action] || action}", "#{action}_messages_path", action: action
         end

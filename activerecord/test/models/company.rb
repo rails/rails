@@ -25,7 +25,6 @@ class Company < AbstractCompany
   end
 
   private
-
     def private_method
       "I am Jack's innermost fears and aspirations"
     end

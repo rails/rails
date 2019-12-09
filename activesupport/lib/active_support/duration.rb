@@ -198,7 +198,6 @@ module ActiveSupport
       end
 
       private
-
         def calculate_total_seconds(parts)
           parts.inject(0) do |total, (part, value)|
             total + value * PARTS_IN_SECONDS[part]
@@ -399,7 +398,6 @@ module ActiveSupport
     end
 
     private
-
       def sum(sign, time = ::Time.current)
         unless time.acts_like?(:time) || time.acts_like?(:date)
           raise ::ArgumentError, "expected a time or date, got #{time.inspect}"

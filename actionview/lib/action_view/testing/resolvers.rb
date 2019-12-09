@@ -27,7 +27,6 @@ module ActionView #:nodoc:
     end
 
     private
-
       def query(path, exts, _, locals, cache:)
         regex = build_regex(path, exts)
 

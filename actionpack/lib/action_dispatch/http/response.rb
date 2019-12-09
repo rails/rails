@@ -143,7 +143,6 @@ module ActionDispatch # :nodoc:
       end
 
       private
-
         def each_chunk(&block)
           @buf.each(&block)
         end

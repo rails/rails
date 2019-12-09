@@ -264,7 +264,6 @@ module ActionView
     end
 
     private
-
       # Compile a template. This method ensures a template is compiled
       # just once and removes the source after it is compiled.
       def compile!(view)

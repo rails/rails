@@ -7,7 +7,6 @@ module ActiveRecord
         delegate :add_sql_comment!, :mariadb?, to: :@conn, private: true
 
         private
-
           def visit_DropForeignKey(name)
             "DROP FOREIGN KEY #{name}"
           end

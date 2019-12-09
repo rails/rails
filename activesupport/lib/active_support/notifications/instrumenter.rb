@@ -46,7 +46,6 @@ module ActiveSupport
       end
 
       private
-
         def unique_id
           SecureRandom.hex(10)
         end

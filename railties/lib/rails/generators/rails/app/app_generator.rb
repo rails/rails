@@ -494,7 +494,6 @@ module Rails
       end
 
     private
-
       # Define file as an alias to create_file for backwards compatibility.
       def file(*args, &block)
         create_file(*args, &block)
@@ -539,7 +538,6 @@ module Rails
       end
 
       private
-
         def handle_version_request!(argument)
           if ["--version", "-v"].include?(argument)
             require "rails/version"

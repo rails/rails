@@ -275,7 +275,6 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   private :aborted, :output
 
   private
-
     def app_db_config(results)
       Rails.application.config.stub(:database_configuration, results || {}) do
         yield

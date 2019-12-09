@@ -18,7 +18,6 @@ module ActionView
     end
 
     private
-
       def build_template(locals)
         options = @options.merge(locals: locals)
         Template.new(

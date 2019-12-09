@@ -45,7 +45,6 @@ module ActiveRecord
 
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
         private
-
           def dealloc(stmt)
             stmt.close
           end
@@ -530,7 +529,6 @@ module ActiveRecord
       end
 
       private
-
         def initialize_type_map(m = type_map)
           super
 
@@ -813,7 +811,6 @@ module ActiveRecord
           end
 
           private
-
             def cast_value(value)
               case value
               when true then "1"

@@ -31,7 +31,6 @@ module ActionDispatch #:nodoc:
       end
 
       private
-
         def html_response?(headers)
           if content_type = headers[CONTENT_TYPE]
             content_type =~ /html/
@@ -101,7 +100,6 @@ module ActionDispatch #:nodoc:
       end
 
       private
-
         def generate_content_security_policy_nonce
           content_security_policy_nonce_generator.call(self)
         end

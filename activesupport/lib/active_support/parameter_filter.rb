@@ -51,7 +51,6 @@ module ActiveSupport
     end
 
   private
-
     def compiled_filter
       @compiled_filter ||= CompiledFilter.compile(@filters, mask: @mask)
     end

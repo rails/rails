@@ -30,7 +30,6 @@ module ActionController
     end
 
     private
-
       def instrument_payload(key)
         {
           controller: controller_name,

@@ -180,7 +180,6 @@ module ActiveRecord
     end
 
     private
-
       # Shares the writing connection pool with connections on
       # other handlers.
       #

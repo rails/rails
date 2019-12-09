@@ -497,7 +497,7 @@ module ApplicationTests
                 t.string :name
               end
             end
-          RUBY
+        RUBY
 
         app_file "db/seeds.rb", <<-RUBY
           puts ActiveRecord::Base.connection_config[:database]

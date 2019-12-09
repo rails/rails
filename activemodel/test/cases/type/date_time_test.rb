@@ -37,7 +37,6 @@ module ActiveModel
       end
 
       private
-
         def with_timezone_config(default:)
           old_zone_default = ::Time.zone_default
           ::Time.zone_default = ::Time.find_zone(default)

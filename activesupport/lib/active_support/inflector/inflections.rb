@@ -230,7 +230,6 @@ module ActiveSupport
       end
 
       private
-
         def define_acronym_regex_patterns
           @acronym_regex             = @acronyms.empty? ? /(?=a)b/ : /#{@acronyms.values.join("|")}/
           @acronyms_camelize_regex   = /^(?:#{@acronym_regex}(?=\b|[A-Z_])|\w)/

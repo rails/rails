@@ -46,7 +46,6 @@ module ActiveRecord::Associations::Builder # :nodoc:
         end
 
         private
-
           def self.suppress_composite_primary_key(pk)
             pk unless pk.is_a?(Array)
           end
@@ -73,7 +72,6 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     private
-
       def middle_options(join_model)
         middle_options = {}
         middle_options[:class_name] = "#{lhs_model.name}::#{join_model.name}"

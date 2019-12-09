@@ -354,7 +354,6 @@ module ActiveRecord
       end
 
       private
-
         # Generates a writer method for this association. Serves as a point for
         # accessing the objects in the association. For example, this method
         # could generate the following:
@@ -386,7 +385,6 @@ module ActiveRecord
     end
 
     private
-
       # Attribute hash keys that should not be assigned as normal attributes.
       # These hash keys are nested attributes implementation details.
       UNASSIGNABLE_KEYS = %w( id _destroy )

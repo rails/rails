@@ -42,7 +42,7 @@ module ActionDispatch
           false
         end
       }
-        return ::Rack::Utils.escape_path(match).b
+        ::Rack::Utils.escape_path(match).b
       end
     end
 

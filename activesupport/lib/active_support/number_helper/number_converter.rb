@@ -136,7 +136,6 @@ module ActiveSupport
       end
 
       private
-
         def options
           @options ||= format_options.merge(opts)
         end

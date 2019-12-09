@@ -19,7 +19,6 @@ module Arel # :nodoc: all
       end
 
       private
-
         def visit_Arel_Nodes_DeleteStatement(o, collector)
           o = prepare_delete_statement(o)
 

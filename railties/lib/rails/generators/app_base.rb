@@ -108,7 +108,6 @@ module Rails
       end
 
     private
-
       def gemfile_entry(name, *args) # :doc:
         options = args.extract_options!
         version = args.first

@@ -310,7 +310,6 @@ class NumericalityValidationTest < ActiveModel::TestCase
   end
 
   private
-
     def invalid!(values, error = nil)
       with_each_topic_approved_value(values) do |topic, value|
         assert topic.invalid?, "#{value.inspect} not rejected as a number"

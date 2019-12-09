@@ -502,7 +502,6 @@ module ApplicationTests
     end
 
     private
-
       def app_with_assets_in_view
         app_file "app/assets/javascripts/application.js", "//= require_tree ."
         app_file "app/assets/javascripts/xmlhr.js", "function f1() { alert(); }"
@@ -517,7 +516,7 @@ module ApplicationTests
         Rails.application.routes.draw do
           get '/posts', :to => "posts#index"
         end
-      RUBY
+        RUBY
       end
   end
 end

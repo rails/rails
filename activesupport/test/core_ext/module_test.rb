@@ -25,7 +25,6 @@ Someone = Struct.new(:name, :place) do
   delegate :bar, to: :place, allow_nil: true
 
   private
-
     def private_name
       "Private"
     end

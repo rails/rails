@@ -154,7 +154,6 @@ module ActionDispatch
       end
 
       private
-
         BROWSER_LIKE_ACCEPTS = /,\s*\*\/\*|\*\/\*\s*,/
 
         def valid_accept_header # :doc:

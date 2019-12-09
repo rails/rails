@@ -43,7 +43,6 @@ module RailsGuides
     end
 
     private
-
       def register_kindle_mime_types
         Mime::Type.register_alias("application/xml", :opf, %w(opf))
         Mime::Type.register_alias("application/xml", :ncx, %w(ncx))

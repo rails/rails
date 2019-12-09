@@ -713,7 +713,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   end
 
   private
-
     def action(*args, &block)
       silence(:stdout) { generator.send(*args, &block) }
     end

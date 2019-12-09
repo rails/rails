@@ -590,7 +590,6 @@ module ActiveRecord
       end
 
       private
-
         def calculate_constructable(macro, options)
           true
         end
@@ -620,7 +619,7 @@ module ActiveRecord
             end
 
             if valid_inverse_reflection?(reflection)
-              return inverse_name
+              inverse_name
             end
           end
         end
@@ -704,7 +703,6 @@ module ActiveRecord
       end
 
       private
-
         def calculate_constructable(macro, options)
           !options[:through]
         end

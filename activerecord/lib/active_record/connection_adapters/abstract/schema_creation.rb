@@ -19,7 +19,6 @@ module ActiveRecord
           to: :@conn, private: true
 
         private
-
           def visit_AlterTable(o)
             sql = +"ALTER TABLE #{quote_table_name(o.name)} "
             sql << o.adds.map { |col| accept col }.join(" ")

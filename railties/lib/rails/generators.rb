@@ -287,7 +287,6 @@ module Rails
       end
 
       private
-
         def print_list(base, namespaces) # :doc:
           namespaces = namespaces.reject { |n| hidden_namespaces.include?(n) }
           super

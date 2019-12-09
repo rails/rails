@@ -114,7 +114,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
 
     config.active_record.cache_versioning = false
 
-end_error
+              end_error
             end
           end
         end

@@ -412,7 +412,6 @@ module ActiveRecord
     end
 
     private
-
       def skip_if_sqlite3_version_includes_quoting_bug
         if sqlite3_version_includes_quoting_bug?
           skip <<-ERROR.squish

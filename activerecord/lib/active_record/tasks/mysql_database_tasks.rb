@@ -69,7 +69,6 @@ module ActiveRecord
       end
 
       private
-
         attr_reader :configuration
 
         def configuration_without_database

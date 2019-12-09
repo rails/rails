@@ -681,7 +681,6 @@ end
 class RequestMethod < BaseRequestTest
   test "method returns environment's request method when it has not been
     overridden by middleware".squish do
-
     ActionDispatch::Request::HTTP_METHODS.each do |method|
       request = stub_request("REQUEST_METHOD" => method)
 
@@ -885,7 +884,7 @@ class RequestFormat < BaseRequestTest
     assert request.format.html?
 
     output.rewind && (err = output.read)
-    assert_match /Error occurred while parsing request parameters/, err
+    assert_match(/Error occurred while parsing request parameters/, err)
   end
 
   test "formats with xhr request" do

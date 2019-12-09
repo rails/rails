@@ -208,7 +208,7 @@ class FunctionalFragmentCachingTest < ActionController::TestCase
 Hello
 This bit's fragment cached
 Ciao
-CACHED
+    CACHED
     assert_equal expected_body, @response.body
 
     assert_equal "This bit's fragment cached",

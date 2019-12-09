@@ -60,7 +60,6 @@ module ActiveRecord
     end
 
     private
-
       def exec_queries
         @records = [].freeze
       end

@@ -30,6 +30,7 @@ gem "json", ">= 2.0.0"
 
 gem "rubocop", ">= 0.47", require: false
 gem "rubocop-performance", require: false
+gem "rubocop-rails", require: false
 
 group :doc do
   gem "sdoc", "~> 1.0"
