@@ -156,6 +156,10 @@ module Rails
         when "6.1"
           load_defaults "6.0"
 
+          if respond_to?(:active_job)
+            active_job.default_retry_jitter = 0.15
+          end
+
           if respond_to?(:active_record)
             active_record.has_many_inversing = true
           end

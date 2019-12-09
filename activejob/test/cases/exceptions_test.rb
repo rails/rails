@@ -129,6 +129,31 @@ class ExceptionsTest < ActiveSupport::TestCase
     end
   end
 
+  test "retry jitter uses value from ActiveJob::Base.default_retry_jitter by default" do
+    old_jitter = ActiveJob::Base.default_retry_jitter
+    ActiveJob::Base.default_retry_jitter = 4.0
+
+    travel_to Time.now
+
+    Kernel.stub(:rand, ->(arg) { arg }) do
+      RetryJob.perform_later "ExponentialWaitTenAttemptsError", 5, :log_scheduled_at
+
+      assert_equal [
+        "Raised ExponentialWaitTenAttemptsError for the 1st time",
+        "Next execution scheduled at #{(Time.now + 7.seconds).to_f}",
+        "Raised ExponentialWaitTenAttemptsError for the 2nd time",
+        "Next execution scheduled at #{(Time.now + 82.seconds).to_f}",
+        "Raised ExponentialWaitTenAttemptsError for the 3rd time",
+        "Next execution scheduled at #{(Time.now + 407.seconds).to_f}",
+        "Raised ExponentialWaitTenAttemptsError for the 4th time",
+        "Next execution scheduled at #{(Time.now + 1282.seconds).to_f}",
+        "Successfully completed job"
+      ], JobBuffer.values
+    end
+  ensure
+    ActiveJob::Base.default_retry_jitter = old_jitter
+  end
+
   test "custom wait retrying job" do
     travel_to Time.now
 
