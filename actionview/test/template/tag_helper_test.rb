@@ -338,6 +338,17 @@ class TagHelperTest < ActionView::TestCase
     assert_equal "<p class=\"song play>\">limelight</p>", str
   end
 
+  def test_class_names
+    assert_equal "song play", class_names(["song", { "play": true }])
+    assert_equal "song", class_names({ "song": true, "play": false })
+    assert_equal "song", class_names([{ "song": true }, { "play": false }])
+    assert_equal "song", class_names({ song: true, play: false })
+    assert_equal "song", class_names([{ song: true }, nil, false])
+    assert_equal "song", class_names(["song", { foo: false }])
+    assert_equal "song play", class_names({ "song": true, "play": true })
+    assert_equal "", class_names({ "song": false, "play": false })
+  end
+
   def test_content_tag_with_data_attributes
     assert_dom_equal '<p data-number="1" data-string="hello" data-string-with-quotes="double&quot;quote&quot;party&quot;">limelight</p>',
       content_tag("p", "limelight", data: { number: 1, string: "hello", string_with_quotes: 'double"quote"party"' })
