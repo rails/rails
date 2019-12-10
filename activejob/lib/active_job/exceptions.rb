@@ -7,6 +7,11 @@ module ActiveJob
   module Exceptions
     extend ActiveSupport::Concern
 
+    included do
+      class_attribute :default_retry_jitter, instance_accessor: false, instance_predicate: false
+      self.default_retry_jitter = 0.15
+    end
+
     module ClassMethods
       # Catch the exception and reschedule job for re-execution after so many seconds, for a specific number of attempts.
       # If the exception keeps getting raised beyond the specified number of attempts, the exception is allowed to
@@ -49,7 +54,7 @@ module ActiveJob
       #      # Might raise Net::OpenTimeout or Timeout::Error when the remote service is down
       #    end
       #  end
-      def retry_on(*exceptions, wait: 3.seconds, attempts: 5, queue: nil, priority: nil, jitter: 0.15)
+      def retry_on(*exceptions, wait: 3.seconds, attempts: 5, queue: nil, priority: nil, jitter: nil)
         rescue_from(*exceptions) do |error|
           executions = executions_for(exceptions)
           if executions < attempts
@@ -122,7 +127,8 @@ module ActiveJob
     end
 
     private
-      def determine_delay(seconds_or_duration_or_algorithm:, executions:, jitter:)
+      def determine_delay(seconds_or_duration_or_algorithm:, executions:, jitter: nil)
+        jitter ||= self.class.default_retry_jitter
         case seconds_or_duration_or_algorithm
         when :exponentially_longer
           ((executions**4) + (Kernel.rand((executions**4) * jitter))) + 2

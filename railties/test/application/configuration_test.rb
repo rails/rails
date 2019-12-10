@@ -2262,6 +2262,20 @@ module ApplicationTests
       end
     end
 
+    test "ActiveJob::Base.default_retry_jitter is 0.15 by default" do
+      app "development"
+
+      assert_equal 0.15, ActiveJob::Base.default_retry_jitter
+    end
+
+    test "ActiveJob::Base.default_retry_jitter can be set by config" do
+      app "development"
+
+      Rails.application.config.active_job.default_retry_jitter = 0.22
+
+      assert_equal 0.22, ActiveJob::Base.default_retry_jitter
+    end
+
     test "ActiveJob::Base.return_false_on_aborted_enqueue is true by default" do
       app "development"
 
