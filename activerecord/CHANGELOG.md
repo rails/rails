@@ -1,3 +1,7 @@
+*   A database URL can now contain a querystring value that contains an equal sign. This is needed to support passing PostgresSQL `options`.
+
+     *Joshua Flanagan*
+
 *   Retain explicit selections on the base model after applying `includes` and `joins`.
 
     Resolves #34889.
