@@ -432,5 +432,15 @@ module ActiveRecord
     def test_where_with_unsupported_arguments
       assert_raises(ArgumentError) { Author.where(42) }
     end
+
+    def test_unwhere_with_joins
+      relation = Comment.joins(post: :author).where(authors: { id: "2-foo" }).unwhere
+      expected = Comment.joins(post: :author)
+      assert_equal expected, relation
+
+      relation = Comment.joins(post: :author).where(authors: { id: "2-foo" }).unwhere.where("comments.id = 1")
+      expected = Comment.joins(post: :author).where("comments.id = 1")
+      assert_equal expected, relation
+    end
   end
 end

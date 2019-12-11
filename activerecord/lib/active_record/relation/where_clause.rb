@@ -3,7 +3,7 @@
 module ActiveRecord
   class Relation
     class WhereClause # :nodoc:
-      delegate :any?, :empty?, to: :predicates
+      delegate :any?, :empty?, :clear, to: :predicates
 
       def initialize(predicates)
         @predicates = predicates

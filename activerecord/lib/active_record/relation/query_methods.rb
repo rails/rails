@@ -674,6 +674,18 @@ module ActiveRecord
       unscope(where: conditions.keys).where(conditions)
     end
 
+    # Returns a relation, without all where conditions
+    #
+    #    Post.where("id = 1").unwhere
+    #    # SELECT `posts`.* FROM `posts`
+    #    Post.where("id = 1").unwhere.where(trashed: false)
+    #    # SELECT `posts`.* FROM `posts` WHERE `trashed` = 0
+    #
+    def unwhere
+      self.where_clause.clear
+      self
+    end
+
     # Returns a new relation, which is the logical union of this relation and the one passed as an
     # argument.
     #

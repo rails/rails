@@ -103,5 +103,19 @@ module ActiveRecord
 
       assert_equal Post.where(comments_count: 3..5), relation
     end
+
+    def test_unwhere
+      relation = Post.where(title: "hello").where(body: "world").unwhere
+      expected = Post.all
+
+      assert_equal expected, relation
+    end
+
+    def test_unwhere_with_where_after_it
+      relation = Post.where(title: "hello").where(body: "world").unwhere.where(title: "hello")
+      expected = Post.where(title: "hello")
+
+      assert_equal expected, relation
+    end
   end
 end
