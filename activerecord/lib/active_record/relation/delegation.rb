@@ -92,10 +92,56 @@ module ActiveRecord
 
     delegate :primary_key, :connection, to: :klass
 
+    class GeneratedReflectionMethods < Module # :nodoc:
+      include Mutex_m
+
+      def generate_method(reflection)
+        synchronize do
+          return if method_defined?(reflection.name)
+
+          inverse_of = reflection.inverse_of
+          return unless inverse_of
+
+          if inverse_of.belongs_to?
+            if inverse_of.polymorphic?
+              define_method(reflection.name) do
+                scoping do
+                  inverse_of.active_record.where(
+                    inverse_of.foreign_key => self,
+                    inverse_of.foreign_type => name
+                  )
+                end
+              end
+            else
+              define_method(reflection.name) do
+                scoping { inverse_of.active_record.where(inverse_of.foreign_key => self) }
+              end
+            end
+          else
+            define_method(reflection.name) do
+              scoping { inverse_of.active_record.joins(inverse_of.name).merge(self) }
+            end
+          end
+        end
+      end
+    end
+    private_constant :GeneratedReflectionMethods
+
     module ClassSpecificRelation # :nodoc:
       extend ActiveSupport::Concern
 
+      included do
+        include generated_reflection_methods
+      end
+
       module ClassMethods # :nodoc:
+        def generated_reflection_methods
+          @generated_reflection_methods ||= GeneratedReflectionMethods.new.tap do |mod|
+            const_set(:GeneratedReflectionMethods, mod)
+            private_constant :GeneratedReflectionMethods
+          end
+        end
+
         def name
           superclass.name
         end
@@ -106,6 +152,11 @@ module ActiveRecord
           if @klass.respond_to?(method)
             @klass.generate_relation_method(method)
             scoping { @klass.public_send(method, *args, &block) }
+          elsif reflection = @klass.reflect_on_association(method)
+            raise InverseOfAssociationNotFoundError, reflection unless reflection.inverse_of
+
+            self.class.generated_reflection_methods.generate_method(reflection)
+            scoping { public_send(method, *args, &block) }
           else
             super
           end
