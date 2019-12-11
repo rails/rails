@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/inflections"
 require "active_support/core_ext/object/blank"
 
 module ActiveSupport
