@@ -1,7 +1,11 @@
+*   Added `class_names` helper to create a CSS class value with conditional classes.
+
+    *Joel Hawksley*, *Aaron Patterson*
+
 *   Add support for conditional values to TagBuilder.
 
     *Joel Hawksley*
-    
+
 *   `ActionView::Helpers::FormOptionsHelper#select` should mark option for `nil` as selected.
 
     ```ruby
