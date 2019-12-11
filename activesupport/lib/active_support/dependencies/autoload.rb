@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/inflector/methods"
+require "active_support/inflector"
 
 module ActiveSupport
   # Autoload and eager load conveniences for your library.
