@@ -58,6 +58,9 @@ class String
   #   'Once upon a time in a world far far away'.truncate(27, separator: /\s/)
   #   # => "Once upon a time in a..."
   #
+  #   'Once upon a time in a world far far away'.truncate(27, exclude: true)
+  #   # => "Once upon a time in a world..."
+  #
   # The last characters will be replaced with the <tt>:omission</tt> string (defaults to "...")
   # for a total length not exceeding <tt>length</tt>:
   #
@@ -67,7 +70,13 @@ class String
     return dup unless length > truncate_at
 
     omission = options[:omission] || "..."
-    length_with_room_for_omission = truncate_at - omission.length
+    length_with_room_for_omission = \
+      if options[:exclude]
+        truncate_at
+      else
+        truncate_at - omission.length
+      end
+
     stop = \
       if options[:separator]
         rindex(options[:separator], length_with_room_for_omission) || length_with_room_for_omission

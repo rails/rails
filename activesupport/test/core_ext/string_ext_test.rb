@@ -291,6 +291,12 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal "Hello Big[...]", "Hello Big World!".truncate(15, omission: "[...]", separator: /\s/)
   end
 
+  def test_truncate_with_exclude_option
+    assert_equal "Hello Big Wor...", "Hello Big World!".truncate(13, exclude: true)
+    assert_equal "Hello Big[...]", "Hello Big World!".truncate(14, omission: "[...]", exclude: false)
+    assert_equal "Hello Big[...]", "Hello Big World!".truncate(15, omission: "[...]", separator: /\s/, exclude: true)
+  end
+
   def test_truncate_returns_frozen_string
     assert_not "Hello World!".truncate(12).frozen?
     assert_not "Hello World!!".truncate(12).frozen?

@@ -152,5 +152,17 @@
 
     *Jordan Thomas*
 
+*   Add `exclude` option to `truncate` method. This option allows truncation by excluding
+    the number of strings in `omission` when executing the truncate method.
+    This `exclude` option can also be used with the `spearate` option without any problem.
+
+    Example:
+
+        'Hello World!'.truncate(10)
+        # => "Hello W..."
+        'Hello World!'.truncate(10, exclude: true)
+        # => "Hello Worl..."
+
+    *Teruhisa Fukumoto*
 
 Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/activesupport/CHANGELOG.md) for previous changes.
