@@ -5,8 +5,6 @@ require "active_support/i18n"
 
 module ActiveSupport
   module Inflector
-    extend self
-
     # A singleton instance of this class is yielded by Inflector.inflections,
     # which can then be used to specify additional inflection rules. If passed
     # an optional locale, rules for other languages can be specified. The
@@ -234,22 +232,6 @@ module ActiveSupport
           @acronyms_camelize_regex   = /^(?:#{@acronym_regex}(?=\b|[A-Z_])|\w)/
           @acronyms_underscore_regex = /(?:(?<=([A-Za-z\d]))|\b)(#{@acronym_regex})(?=\b|[^a-z])/
         end
-    end
-
-    # Yields a singleton instance of Inflector::Inflections so you can specify
-    # additional inflector rules. If passed an optional locale, rules for other
-    # languages can be specified. If not specified, defaults to <tt>:en</tt>.
-    # Only rules for English are provided.
-    #
-    #   ActiveSupport::Inflector.inflections(:en) do |inflect|
-    #     inflect.uncountable 'rails'
-    #   end
-    def inflections(locale = :en)
-      if block_given?
-        yield Inflections.instance(locale)
-      else
-        Inflections.instance(locale)
-      end
     end
   end
 end

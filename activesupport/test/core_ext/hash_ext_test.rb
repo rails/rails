@@ -8,7 +8,6 @@ require "active_support/ordered_hash"
 require "active_support/core_ext/object/conversions"
 require "active_support/core_ext/date/conversions"
 require "active_support/core_ext/object/deep_dup"
-require "active_support/inflections"
 
 class HashExtTest < ActiveSupport::TestCase
   def setup
