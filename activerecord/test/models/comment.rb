@@ -11,7 +11,7 @@ class Comment < ActiveRecord::Base
   scope :for_first_author, -> { joins(:post).where("posts.author_id" => 1) }
   scope :created, -> { all }
 
-  belongs_to :post, counter_cache: true
+  belongs_to :post, inverse_of: :comments, counter_cache: true
   belongs_to :author,   polymorphic: true
   belongs_to :resource, polymorphic: true
 
