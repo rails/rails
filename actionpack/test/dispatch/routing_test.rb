@@ -1,3 +1,4 @@
+# coding: utf-8
 # frozen_string_literal: true
 
 require "erb"
@@ -3377,6 +3378,16 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     }
 
     assert_match(/:param option can't contain colon/, ex.message)
+  end
+
+  def test_colon_containing_custom_param_with_sneaky_routes_enabled
+    draw do
+      resources :profiles, param: "username/:is_admin", allow_sneaky: true
+    end
+
+    get "/profiles/scd31/true"
+    assert_equal @request.params[:username], "scd31"
+    assert_equal @request.params[:is_admin], "true"
   end
 
   def test_action_from_path_is_frozen

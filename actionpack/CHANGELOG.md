@@ -1,3 +1,15 @@
+*   Allow sneaky parameters to be enabled through a routing option
+
+    When :allow_sneaky is set to true, it is possible to configure routes like this:
+
+    ```
+    routes.draw do
+      resources :users, param: 'name/:sneaky', allow_sneaky: true
+    end
+    ```
+
+    *Stephen Downward*
+
 *   Bring back the feature that allows loading external route files from the router.
 
     This feature existed back in 2012 but got reverted with the incentive that
