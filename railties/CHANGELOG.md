@@ -1,14 +1,28 @@
+*   Add benchmark generator
+
+    Introduce benchmark generator to benchmark Rails applications.
+
+      `rails generate benchmark opt_compare`
+
+    This creates a benchmark file that uses [`benchmark-ips`](https://github.com/evanphx/benchmark-ips).
+    By default, two code blocks can be benchmarked using the `before` and `after` reports.
+
+    You can run the generated benchmark file using:
+      `ruby script/benchmarks/opt_compare.rb`
+
+    *Kevin Jalbert*, *Gannon McGibbon*
+
 *   Cache compiled view templates when running tests by default
 
-    When generating a new app without `--skip-spring`, caching classes is 
-    disabled in `environments/test.rb`. This implicitly disables caching 
-    view templates too. This change will enable view template caching by 
-    adding this to the generated `environments/test.rb`: 
+    When generating a new app without `--skip-spring`, caching classes is
+    disabled in `environments/test.rb`. This implicitly disables caching
+    view templates too. This change will enable view template caching by
+    adding this to the generated `environments/test.rb`:
 
     ```ruby
     config.action_view.cache_template_loading = true
     ```
-    
+
     *Jorge Manrubia*
 
 *   Introduce middleware move operations
