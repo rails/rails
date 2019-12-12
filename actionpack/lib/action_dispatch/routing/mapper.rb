@@ -398,12 +398,21 @@ module ActionDispatch
           end
       end
 
-      # Invokes Journey::Router::Utils.normalize_path and ensure that
-      # (:locale) becomes (/:locale) instead of /(:locale). Except
-      # for root cases, where the latter is the correct one.
+      # Invokes Journey::Router::Utils.normalize_path, then ensures that
+      # /(:locale) becomes (/:locale). Except for root cases, where the
+      # former is the correct one.
       def self.normalize_path(path)
         path = Journey::Router::Utils.normalize_path(path)
-        path.gsub!(%r{/(\(+)/?}, '\1/') unless %r{^/(\(+[^)]+\)){1,}$}.match?(path)
+
+        # the path for a root URL at this point can be something like
+        # "/(/:locale)(/:platform)/(:browser)", and we would want
+        # "/(:locale)(/:platform)(/:browser)"
+
+        # reverse "/(", "/((" etc to "(/", "((/" etc
+        path.gsub!(%r{/(\(+)/?}, '\1/')
+        # if a path is all optional segments, change the leading "(/" back to
+        # "/(" so it evaluates to "/" when interpreted with no options.
+        path.sub!(%r{^(\(+)/}, '/\1') if %r{^(\(+[^)]+\)){1,}$}.match?(path)
         path
       end
 
