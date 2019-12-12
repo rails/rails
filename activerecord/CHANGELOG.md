@@ -1,3 +1,13 @@
+*   `.with` query method added. Construct common table expressions with ease and get `ActiveRecord::Relation` back.
+
+    ```ruby
+    Post.with(posts_with_comments: Post.where("comments_count > ?", 0))
+    # => ActiveRecord::Relation
+    # WITH posts_with_comments AS (SELECT * FROM posts WHERE (comments_count > 0)) SELECT * FROM posts
+    ```
+
+    *Vlado Cingel*
+
 *   Don't establish a new connection if an identical pool exists already.
 
     Previously, if `establish_connection` was called on a class that already had an established connection, the existing connection would be removed regardless of whether it was the same config. Now if a pool is found with the same values as the new connection, the existing connection will be returned instead of creating a new one.
