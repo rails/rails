@@ -133,8 +133,7 @@ NOTE: While these column names are optional, they are in fact reserved by Active
 Creating Active Record Models
 -----------------------------
 
-It is very easy to create Active Record models. All you have to do is to
-subclass the `ApplicationRecord` class and you're good to go:
+To create Active Record models, subclass the `ApplicationRecord` class and you're good to go:
 
 ```ruby
 class Product < ApplicationRecord

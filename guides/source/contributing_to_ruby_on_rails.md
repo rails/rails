@@ -48,9 +48,9 @@ Having a way to reproduce your issue will be very helpful for others to help con
 
 These templates include the boilerplate code to set up a test case against either a released version of Rails (`*_gem.rb`) or edge Rails (`*_master.rb`).
 
-Simply copy the content of the appropriate template into a `.rb` file and make the necessary changes to demonstrate the issue. You can execute it by running `ruby the_file.rb` in your terminal. If all goes well, you should see your test case failing.
+Copy the content of the appropriate template into a `.rb` file and make the necessary changes to demonstrate the issue. You can execute it by running `ruby the_file.rb` in your terminal. If all goes well, you should see your test case failing.
 
-You can then share your executable test case as a [gist](https://gist.github.com), or simply paste the content into the issue description.
+You can then share your executable test case as a [gist](https://gist.github.com), or paste the content into the issue description.
 
 ### Special Treatment for Security Issues
 

@@ -354,7 +354,7 @@ The callback only runs when all the `:if` conditions and none of the `:unless` c
 Callback Classes
 ----------------
 
-Sometimes the callback methods that you'll write will be useful enough to be reused by other models. Active Record makes it possible to create classes that encapsulate the callback methods, so it becomes very easy to reuse them.
+Sometimes the callback methods that you'll write will be useful enough to be reused by other models. Active Record makes it possible to create classes that encapsulate the callback methods, so they can be reused.
 
 Here's an example where we create a class with an `after_destroy` callback for a `PictureFile` model:
 
