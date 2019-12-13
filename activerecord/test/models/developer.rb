@@ -63,8 +63,8 @@ class Developer < ActiveRecord::Base
 
   scope :jamises, -> { where(name: "Jamis") }
   scope :named_david_or_jamis_stringified, -> { where("name = 'David' OR name = 'Jamis'") }
-  scope :named_david_or_jamis_operator, -> { where(name: 'David').or(where(name: 'Jamis')) }
-  scope :fixture_3_with_salary_100000, -> { where(name: 'fixture_3', salary: 100000) }
+  scope :named_david_or_jamis_operator, -> { where(name: "David").or(where(name: "Jamis")) }
+  scope :fixture_3_with_salary_100000, -> { where(name: "fixture_3", salary: 100000) }
   scope :with_id_1_or_between_3_and_7, -> { where(id: 3..7).or(where(id: 1)) }
 
   validates_inclusion_of :salary, in: 50000..200000
