@@ -4,7 +4,7 @@
   "dependencies": {
     "@rails/webpacker": "^4.0.2",
     "actiontext": "file:../..",
-    "trix": "^1.1.1",
+    "trix": "^1.2.2",
     "snyk": "^1.251.0"
   },
   "devDependencies": {
