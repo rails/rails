@@ -83,22 +83,25 @@ module ActiveRecord
     FROZEN_EMPTY_HASH = {}.freeze
 
     Relation::VALUE_METHODS.each do |name|
-      method_name = \
+      method_name, default =
         case name
-        when *Relation::MULTI_VALUE_METHODS then "#{name}_values"
-        when *Relation::SINGLE_VALUE_METHODS then "#{name}_value"
-        when *Relation::CLAUSE_METHODS then "#{name}_clause"
+        when *Relation::MULTI_VALUE_METHODS
+          ["#{name}_values", "FROZEN_EMPTY_ARRAY"]
+        when *Relation::SINGLE_VALUE_METHODS
+          ["#{name}_value", name == :create_with ? "FROZEN_EMPTY_HASH" : "nil"]
+        when *Relation::CLAUSE_METHODS
+          ["#{name}_clause", "DEFAULT_VALUES[:#{name}]"]
         end
-      class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def #{method_name}                   # def includes_values
-          default = DEFAULT_VALUES[:#{name}] #   default = DEFAULT_VALUES[:includes]
-          @values.fetch(:#{name}, default)   #   @values.fetch(:includes, default)
-        end                                  # end
 
-        def #{method_name}=(value)           # def includes_values=(value)
-          assert_mutability!                 #   assert_mutability!
-          @values[:#{name}] = value          #   @values[:includes] = value
-        end                                  # end
+      class_eval <<-CODE, __FILE__, __LINE__ + 1
+        def #{method_name}                     # def includes_values
+          @values.fetch(:#{name}, #{default})  #   @values.fetch(:includes, FROZEN_EMPTY_ARRAY)
+        end                                    # end
+
+        def #{method_name}=(value)             # def includes_values=(value)
+          assert_mutability!                   #   assert_mutability!
+          @values[:#{name}] = value            #   @values[:includes] = value
+        end                                    # end
       CODE
     end
 
