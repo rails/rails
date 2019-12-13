@@ -10,7 +10,7 @@ module ActiveJob
     MAJOR = 6
     MINOR = 0
     TINY  = 2
-    PRE   = "rc2"
+    PRE   = nil
 
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join(".")
   end
