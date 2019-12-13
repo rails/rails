@@ -8,8 +8,7 @@ module ActiveJob
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :retry_jitter, instance_accessor: false, instance_predicate: false
-      self.retry_jitter = 0.15
+      class_attribute :retry_jitter, instance_accessor: false, instance_predicate: false, default: 0.15
     end
 
     module ClassMethods
