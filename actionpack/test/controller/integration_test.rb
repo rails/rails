@@ -775,7 +775,7 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
 
   test "route helpers after metal controller access" do
     get "/metal"
-    assert_equal "/foo?q=solution", foo_path(q: 'solution')
+    assert_equal "/foo?q=solution", foo_path(q: "solution")
   end
 
   test "missing route helper before controller access" do
