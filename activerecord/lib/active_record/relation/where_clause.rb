@@ -27,8 +27,8 @@ module ActiveRecord
         )
       end
 
-      def except(*columns)
-        WhereClause.new(except_predicates(columns))
+      def except(*columns_or_scope)
+        WhereClause.new(except_predicates(columns_or_scope))
       end
 
       def or(other)
@@ -145,9 +145,14 @@ module ActiveRecord
           end
         end
 
-        def except_predicates(columns)
+        def except_predicates(columns_or_scope)
           predicates.reject do |node|
-            Arel.fetch_attribute(node) { |attr| columns.include?(attr.name.to_s) }
+            case node
+            when String
+              columns_or_scope.include?(node)
+            else
+              Arel.fetch_attribute(node) { |attr| columns_or_scope.include?(attr.name.to_s) }
+            end
           end
         end
 

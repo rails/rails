@@ -104,6 +104,30 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal expected, received
   end
 
+  def test_unscope_overrides_a_stringified_scope
+    expected = Developer.all.collect { |dev| [dev.name, dev.id] }
+    received = Developer.named_david_or_jamis_stringified.unscope(where: "name = 'David' OR name = 'Jamis'").collect { |dev| [dev.name, dev.id] }
+    assert_equal expected, received
+  end
+
+  def test_unscope_overrides_or_on_same_column
+    expected = Developer.all.collect { |dev| [dev.name, dev.id] }
+    received = Developer.named_david_or_jamis_operator.unscope(where: :name).collect { |dev| [dev.name, dev.id] }
+    assert_equal expected, received
+  end
+
+  def test_unscope_overrides_and_on_different_column
+    expected = Developer.all.where(salary: 100000).collect { |dev| [dev.name, dev.id] }
+    received = Developer.fixture_3_with_salary_100000.unscope(where: :name).collect { |dev| [dev.name, dev.id] }
+    assert_equal expected, received
+  end
+
+  def test_unscope_overrides_or_on_same_column_with_between
+    expected = Developer.all.collect { |dev| [dev.name, dev.id] }
+    received = Developer.with_id_1_or_between_3_and_7.unscope(where: :id).collect { |dev| [dev.name, dev.id] }
+    assert_equal expected, received
+  end
+
   def test_unscope_after_reordering_and_combining
     expected = Developer.order("id DESC, name DESC").collect { |dev| [dev.name, dev.id] }
     received = DeveloperOrderedBySalary.reorder("name DESC").unscope(:order).order("id DESC, name DESC").collect { |dev| [dev.name, dev.id] }

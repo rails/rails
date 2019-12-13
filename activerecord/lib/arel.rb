@@ -58,8 +58,12 @@ module Arel
       end
     when Arel::Nodes::Or
       fetch_attribute(value.left, &block) && fetch_attribute(value.right, &block)
+    when Arel::Nodes::And
+      fetch_attribute(value.left, &block)
     when Arel::Nodes::Grouping
       fetch_attribute(value.expr, &block)
+    when String
+      value
     end
   end
 
