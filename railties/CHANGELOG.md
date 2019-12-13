@@ -1,3 +1,9 @@
+*  Deprecate `Rails::DBConsole#config`
+
+  `Rails::DBConsole#config` is deprecated without replacement. Use `Rails::DBConsole.db_config.configuration_hash` instead.
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
 * `Rails.application.config_for` merges shared configuration deeply.
 
     ```yaml
