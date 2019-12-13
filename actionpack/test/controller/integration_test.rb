@@ -696,6 +696,12 @@ class MetalIntegrationTest < ActionDispatch::IntegrationTest
 end
 
 class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
+  class MetalController < ActionController::Metal
+    def new
+      self.status = 200
+    end
+  end
+
   class TestController < ActionController::Base
     def index
       render plain: "index"
@@ -725,6 +731,8 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
 
   routes.draw do
     get "",    to: "application_integration_test/test#index", as: :empty_string
+
+    get "metal", to: "application_integration_test/metal#new", as: :new_metal
 
     get "foo", to: "application_integration_test/test#index", as: :foo
     get "bar", to: "application_integration_test/test#index", as: :bar
@@ -763,6 +771,11 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
 
     get "/bar"
     assert_equal "/bar", bar_path
+  end
+
+  test "route helpers after metal controller access" do
+    get "/metal"
+    assert_equal "/foo?q=solution", foo_path(q: 'solution')
   end
 
   test "missing route helper before controller access" do
