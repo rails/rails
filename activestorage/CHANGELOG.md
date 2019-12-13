@@ -1,3 +1,7 @@
+*   Previews are created on the same service as the original blob.
+
+    *Peter Zhu*
+
 *   Remove unused `disposition` and `content_type` query parameters for `DiskService`.
 
     *Peter Zhu*
