@@ -27,7 +27,10 @@ class CallbacksTest < ActiveSupport::TestCase
   test "#enqueue returns false when before_enqueue aborts callback chain and return_false_on_aborted_enqueue = true" do
     prev = ActiveJob::Base.return_false_on_aborted_enqueue
     ActiveJob::Base.return_false_on_aborted_enqueue = true
-    assert_equal false, AbortBeforeEnqueueJob.new.enqueue
+
+    ActiveSupport::Deprecation.silence do
+      assert_equal false, AbortBeforeEnqueueJob.new.enqueue
+    end
   ensure
     ActiveJob::Base.return_false_on_aborted_enqueue = prev
   end
@@ -48,7 +51,9 @@ class CallbacksTest < ActiveSupport::TestCase
     ActiveJob::Base.skip_after_callbacks_if_terminated = true
     reload_job
     job = AbortBeforeEnqueueJob.new
-    job.enqueue
+    ActiveSupport::Deprecation.silence do
+      job.enqueue
+    end
 
     assert_nil(job.flag)
   ensure
@@ -60,9 +65,27 @@ class CallbacksTest < ActiveSupport::TestCase
     ActiveJob::Base.skip_after_callbacks_if_terminated = false
     reload_job
     job = AbortBeforeEnqueueJob.new
-    job.enqueue
+    assert_deprecated(/`after_enqueue` callbacks will no longer run/) do
+      job.enqueue
+    end
 
     assert_equal("after_enqueue", job.flag)
+  ensure
+    ActiveJob::Base.skip_after_callbacks_if_terminated = prev
+  end
+
+  test "#enqueue does not throw a deprecation warning when skip_after_callbacks_if_terminated_is false but job has no after callbacks" do
+    prev = ActiveJob::Base.skip_after_callbacks_if_terminated
+    ActiveJob::Base.skip_after_callbacks_if_terminated = false
+
+    job = Class.new(ActiveJob::Base) do
+      before_enqueue { throw(:abort) }
+      self.return_false_on_aborted_enqueue = true
+    end.new
+
+    assert_not_deprecated do
+      job.enqueue
+    end
   ensure
     ActiveJob::Base.skip_after_callbacks_if_terminated = prev
   end
@@ -84,9 +107,26 @@ class CallbacksTest < ActiveSupport::TestCase
     ActiveJob::Base.skip_after_callbacks_if_terminated = false
     reload_job
     job = AbortBeforeEnqueueJob.new
-    job.perform_now
+    assert_deprecated(/`after_perform` callbacks will no longer run/) do
+      job.perform_now
+    end
 
     assert_equal("after_perform", job.flag)
+  ensure
+    ActiveJob::Base.skip_after_callbacks_if_terminated = prev
+  end
+
+  test "#perform does not throw a deprecation warning when skip_after_callbacks_if_terminated_is false but job has no after callbacks" do
+    prev = ActiveJob::Base.skip_after_callbacks_if_terminated
+    ActiveJob::Base.skip_after_callbacks_if_terminated = false
+
+    job = Class.new(ActiveJob::Base) do
+      before_perform { throw(:abort) }
+    end
+
+    assert_not_deprecated do
+      job.perform_now
+    end
   ensure
     ActiveJob::Base.skip_after_callbacks_if_terminated = prev
   end

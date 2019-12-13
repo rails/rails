@@ -42,15 +42,6 @@ module ActiveJob
     # callbacks for +perform+ and +enqueue+ methods.
     module ClassMethods
       def inherited(klass)
-        unless skip_after_callbacks_if_terminated
-          ActiveSupport::Deprecation.warn(<<~EOM)
-            In Rails 6.2, ActiveJob's `after_enqueue` and `after_perform` callbacks will no longer run in case the
-            callback chain is halted (i.e. `throw(:abort)` is thrown in a before_enqueue callback).
-            To enable this behaviour right now, add in your application configuration file
-            `config.active_job.skip_after_callbacks_if_terminated = true`.
-          EOM
-        end
-
         klass.get_callbacks(:enqueue).config[:skip_after_callbacks_if_terminated] = skip_after_callbacks_if_terminated
         klass.get_callbacks(:perform).config[:skip_after_callbacks_if_terminated] = skip_after_callbacks_if_terminated
         super
