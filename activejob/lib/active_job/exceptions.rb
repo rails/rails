@@ -8,8 +8,8 @@ module ActiveJob
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :default_retry_jitter, instance_accessor: false, instance_predicate: false
-      self.default_retry_jitter = 0.15
+      class_attribute :retry_jitter, instance_accessor: false, instance_predicate: false
+      self.retry_jitter = 0.15
     end
 
     module ClassMethods
@@ -128,7 +128,7 @@ module ActiveJob
 
     private
       def determine_delay(seconds_or_duration_or_algorithm:, executions:, jitter: nil)
-        jitter ||= self.class.default_retry_jitter
+        jitter ||= self.class.retry_jitter
         case seconds_or_duration_or_algorithm
         when :exponentially_longer
           ((executions**4) + (Kernel.rand((executions**4) * jitter))) + 2

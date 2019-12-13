@@ -129,9 +129,9 @@ class ExceptionsTest < ActiveSupport::TestCase
     end
   end
 
-  test "retry jitter uses value from ActiveJob::Base.default_retry_jitter by default" do
-    old_jitter = ActiveJob::Base.default_retry_jitter
-    ActiveJob::Base.default_retry_jitter = 4.0
+  test "retry jitter uses value from ActiveJob::Base.retry_jitter by default" do
+    old_jitter = ActiveJob::Base.retry_jitter
+    ActiveJob::Base.retry_jitter = 4.0
 
     travel_to Time.now
 
@@ -151,7 +151,7 @@ class ExceptionsTest < ActiveSupport::TestCase
       ], JobBuffer.values
     end
   ensure
-    ActiveJob::Base.default_retry_jitter = old_jitter
+    ActiveJob::Base.retry_jitter = old_jitter
   end
 
   test "custom wait retrying job" do
