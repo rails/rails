@@ -1,3 +1,5 @@
+## Rails 6.0.2 (December 13, 2019) ##
+
 *   Allow using mountable engine route helpers in System Tests.
 
     *Chalo Fernandez*

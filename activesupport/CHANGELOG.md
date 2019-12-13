@@ -1,3 +1,5 @@
+## Rails 6.0.2 (December 13, 2019) ##
+
 *   Eager load translations during initialization.
 
     *Diego Plentz*

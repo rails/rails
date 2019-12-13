@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 *   A database URL can now contain a querystring value that contains an equal sign. This is needed to support passing PostgresSQL `options`.
 
      *Joshua Flanagan*
@@ -8,13 +9,16 @@
 
     *Patrick Rebsch*
 
+
+## Rails 6.0.2 (December 13, 2019) ##
+
 *   Share the same connection pool for primary and replica databases in the
     transactional tests for the same database.
 
     *Edouard Chin*
 
 *   Fix the preloader when one record is fetched using `after_initialize`
-    but not the entire colection.
+    but not the entire collection.
 
     *Bradley Price*
 

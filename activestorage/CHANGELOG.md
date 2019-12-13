@@ -1,3 +1,8 @@
+## Rails 6.0.2 (December 13, 2019) ##
+
+*   No changes.
+
+
 ## Rails 6.0.1 (November 5, 2019) ##
 
 *   `ActiveStorage::AnalyzeJob`s are discarded on `ActiveRecord::RecordNotFound` errors.

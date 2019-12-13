@@ -1,3 +1,5 @@
+## Rails 6.0.2 (December 13, 2019) ##
+
 *   Fix ActionMailer assertions don't work for parameterized mail with legacy delivery job.
 
     *bogdanvlviv*

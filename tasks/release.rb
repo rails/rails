@@ -139,7 +139,8 @@ namespace :changelog do
   task :release_summary, [:base_release, :release] do |_, args|
     release_regexp = args[:base_release] ? Regexp.escape(args[:base_release]) : /\d+\.\d+\.\d+/
 
-    puts release
+    puts args[:release]
+    puts
 
     FRAMEWORKS.each do |fw|
       puts "## #{FRAMEWORK_NAMES[fw]}"

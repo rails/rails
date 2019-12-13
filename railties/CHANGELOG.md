@@ -1,3 +1,5 @@
+## Rails 6.0.2 (December 13, 2019) ##
+
 *   Fix the collision check for the scaffold generator.
 
     *Ryan Robeson*
