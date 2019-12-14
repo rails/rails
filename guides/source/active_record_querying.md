@@ -18,7 +18,12 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
+What is the Active Record Query Interface?
+------------------------------------------
+
 If you're used to using raw SQL to find database records, then you will generally find that there are better ways to carry out the same operations in Rails. Active Record insulates you from the need to use SQL in most cases.
+
+Active Record will perform queries on the database for you and is compatible with most database systems, including MySQL, MariaDB, PostgreSQL, and SQLite. Regardless of which database system you're using, the Active Record method format will always be the same.
 
 Code examples throughout this guide will refer to one or more of the following models:
 
@@ -49,8 +54,6 @@ class Role < ApplicationRecord
   has_and_belongs_to_many :clients
 end
 ```
-
-Active Record will perform queries on the database for you and is compatible with most database systems, including MySQL, MariaDB, PostgreSQL, and SQLite. Regardless of which database system you're using, the Active Record method format will always be the same.
 
 Retrieving Objects from the Database
 ------------------------------------
