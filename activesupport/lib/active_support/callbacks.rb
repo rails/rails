@@ -129,7 +129,7 @@ module ActiveSupport
                 end
               end
               current.invoke_after(env)
-              skipped.pop.invoke_after(env) while skipped && skipped.first
+              skipped.pop.invoke_after(env) while skipped&.first
               break env.value
             end
           end
@@ -401,21 +401,17 @@ module ActiveSupport
         # The actual invocation is left up to the caller to minimize
         # call stack pollution.
         def expand(target, value, block)
-          result = @arguments.map { |arg|
+          expanded = [@override_target || target, @override_block || block, @method_name]
+
+          @arguments.each do |arg|
             case arg
-            when :value; value
-            when :target; target
-            when :block; block || raise(ArgumentError)
+            when :value then expanded << value
+            when :target then expanded << target
+            when :block then expanded << (block || raise(ArgumentError))
             end
-          }
+          end
 
-          result.unshift @method_name
-          result.unshift @override_block || block
-          result.unshift @override_target || target
-
-          # target, block, method, *arguments = result
-          # target.send(method, *arguments, &block)
-          result
+          expanded
         end
 
         # Return a lambda that will make this call when given the input
