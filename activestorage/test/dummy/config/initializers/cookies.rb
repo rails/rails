@@ -7,5 +7,5 @@
 Rails.application.config.action_dispatch.cookies_serializer = :json
 
 # Specify the SameSite level protection for the cookies
-# Valid options are :no_protection, :lax, and :strict.
-Rails.application.config.action_dispatch.cookies_same_site_protection = :no_protection
+# Valid options are :none, :lax, and :strict.
+Rails.application.config.action_dispatch.cookies_same_site_protection = :none

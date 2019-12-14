@@ -1,8 +1,8 @@
 *   Add SameSite to cookies.
 
     `SameSite` cookie is an addition to the CSRF protection.
-    For now, the default is `:no_protection` which makes it backward compatible.
-    By switching from `:no_protection` to `:lax` in `config/initializers/cookies.rb`,
+    For now, the default is `:none` which makes it backward compatible.
+    By switching from `:none` to `:lax` in `config/initializers/cookies.rb`,
     cookies won't be sent by browsers in cross-site POST requests.
     `:strict` will disable cookies from being sent in both cross-site GET and POST requests.
 

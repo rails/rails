@@ -55,7 +55,7 @@ Rails.application.configure do
   # config.force_ssl = true
 
   # Specify the SameSite level protection for the cookies
-  # Valid options are :no_protection, :lax, and :strict.
+  # Valid options are :none, :lax, and :strict.
   Rails.application.config.action_dispatch.cookies_same_site_protection = :lax
 
   # Use the lowest log level to ensure availability of diagnostic information

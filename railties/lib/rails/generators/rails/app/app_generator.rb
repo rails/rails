@@ -136,7 +136,7 @@ module Rails
       end
 
       unless cookies_config_exist
-        gsub_file "config/initializers/cookies.rb", /no_protection(?!,)/, "lax"
+        gsub_file "config/initializers/cookies.rb", /none(?!,)/, "lax"
       end
 
       if !options[:skip_action_cable] && !action_cable_config_exist

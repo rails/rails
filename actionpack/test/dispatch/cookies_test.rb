@@ -363,10 +363,10 @@ class CookiesTest < ActionController::TestCase
   end
 
   def test_setting_cookie_with_no_protection
-    @request.env["action_dispatch.cookies_same_site_protection"] = :no_protection
+    @request.env["action_dispatch.cookies_same_site_protection"] = :none
 
     get :authenticate
-    assert_cookie_header "user_name=david; path=/"
+    assert_cookie_header "user_name=david; path=/; SameSite=None"
     assert_equal({ "user_name" => "david" }, @response.cookies)
   end
 

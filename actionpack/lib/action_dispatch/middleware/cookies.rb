@@ -289,6 +289,7 @@ module ActionDispatch
       # lots.of.subdomains.example.local gives:
       # $& => example.local
       DOMAIN_REGEXP = /[^.]*\.([^.]*|..\...|...\...)$/
+      COOKIES_SAME_SITE_COOKIES_NONE = "None"
       COOKIES_SAME_SITE_COOKIES_LAX = "Lax"
       COOKIES_SAME_SITE_COOKIES_STRICT = "Strict"
 
@@ -442,8 +443,8 @@ module ActionDispatch
 
           options[:same_site] ||=
             case request.cookies_same_site_protection
-            when :no_protection, false, nil
-              nil
+            when :none, false, nil
+              COOKIES_SAME_SITE_COOKIES_NONE
             when :lax, "Lax"
               COOKIES_SAME_SITE_COOKIES_LAX
             when true, :strict, "Strict"
