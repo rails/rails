@@ -99,6 +99,7 @@ module ActiveRecord
       autoload :SpawnMethods
       autoload :Batches
       autoload :Delegation
+      autoload :With
     end
 
     autoload :Result

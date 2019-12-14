@@ -1071,6 +1071,8 @@ module ActiveRecord
 
         build_order(arel)
 
+        build_with(arel)
+
         build_select(arel)
 
         arel.optimizer_hints(*optimizer_hints_values) unless optimizer_hints_values.empty?
@@ -1193,6 +1195,29 @@ module ActiveRecord
         else
           arel.project(table[Arel.star])
         end
+      end
+
+      def build_with(arel)
+        with_statements = with_values.flat_map do |with_value|
+          case with_value
+          when String
+            with_value
+          when Hash
+            with_value.map  do |name, expression|
+              case expression
+              when String
+                select = Arel::Nodes::SqlLiteral.new("(#{expression})")
+              when ActiveRecord::Relation, Arel::SelectManager
+                select = Arel::Nodes::SqlLiteral.new("(#{expression.to_sql})")
+              end
+              Arel::Nodes::As.new Arel::Nodes::SqlLiteral.new(connection.quote_table_name(name.to_s)), select
+            end
+          when Arel::Nodes::As
+            with_value
+          end
+        end
+
+        arel.with with_statements if with_statements.any?
       end
 
       def arel_columns(columns)

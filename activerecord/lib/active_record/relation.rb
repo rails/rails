@@ -5,7 +5,7 @@ module ActiveRecord
   class Relation
     MULTI_VALUE_METHODS  = [:includes, :eager_load, :preload, :select, :group,
                             :order, :joins, :left_outer_joins, :references,
-                            :extending, :unscope, :optimizer_hints, :annotate]
+                            :extending, :unscope, :optimizer_hints, :annotate, :with]
 
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :reordering,
                             :reverse_order, :distinct, :create_with, :skip_query_cache]
@@ -16,7 +16,7 @@ module ActiveRecord
     VALUE_METHODS = MULTI_VALUE_METHODS + SINGLE_VALUE_METHODS + CLAUSE_METHODS
 
     include Enumerable
-    include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain, Delegation
+    include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain, Delegation, With
 
     attr_reader :table, :klass, :loaded, :predicate_builder
     attr_accessor :skip_preloading_value
