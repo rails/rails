@@ -290,8 +290,8 @@ GEM
     jdbc-postgres (42.2.6)
     jdbc-sqlite3 (3.28.0)
     jmespath (1.4.0)
-    json (2.2.0)
-    json (2.2.0-java)
+    json (2.3.0)
+    json (2.3.0-java)
     jwt (2.2.1)
     kindlerb (1.2.0)
       mustache
