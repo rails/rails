@@ -21,7 +21,7 @@ class RouteHelperIntegrationTest < ActionDispatch::IntegrationTest
 
   # We define many routes in these modules after they have been included into
   # the controllers. For boot performance, it's important that we don't
-  # duplicate these modules an maked method cache invalidation expensive.
+  # duplicate these modules and make method cache invalidation expensive.
   # https://github.com/rails/rails/pull/37927
   test "only includes one module with route helpers" do
     app = self.class
