@@ -15,6 +15,30 @@ if ActiveRecord::Base.connection.supports_explain?
       base.connection
     end
 
+    if ActiveRecord::Base.connection.supports_explain_json?
+      def test_exec_explain_json
+        explain = Car.where(name: "honda").explain(:json)
+        sql, binds = explain.keys.first
+        explain_plan = explain.values.first
+
+        assert_match "SELECT", sql
+
+        if binds.any?
+          assert_equal [["name", "honda"]], binds
+        end
+
+        assert explain_plan
+      end
+    else
+      def test_exec_explain_json_raise
+        assert_raise(NotImplementedError) { Car.where(name: "honda").explain(:json) }
+      end
+    end
+
+    def test_exec_explain_unknown
+      assert_raise { Car.where(name: "honda").explain(:xml) }
+    end
+
     def test_relation_explain
       message = Car.where(name: "honda").explain
       assert_match(/^EXPLAIN for:/, message)

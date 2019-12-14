@@ -16,23 +16,31 @@ module ActiveRecord
 
     # Makes the adapter execute EXPLAIN for the tuples of queries and bindings.
     # Returns a formatted string ready to be logged.
-    def exec_explain(queries) # :nodoc:
-      str = queries.map do |sql, binds|
-        msg = +"EXPLAIN for: #{sql}"
-        unless binds.empty?
-          msg << " "
-          msg << binds.map { |attr| render_bind(attr) }.inspect
+    def exec_explain(queries, format = :text) # :nodoc:
+      case format
+      when :text
+        str = queries.map do |sql, binds|
+          msg = +"EXPLAIN for: #{sql}"
+          unless binds.empty?
+            msg << " "
+            msg << binds.map { |attr| render_bind(attr) }.inspect
+          end
+          msg << "\n"
+          msg << connection.explain(sql, binds)
+        end.join("\n")
+
+        # Overriding inspect to be more human readable, especially in the console.
+        def str.inspect
+          self
         end
-        msg << "\n"
-        msg << connection.explain(sql, binds)
-      end.join("\n")
 
-      # Overriding inspect to be more human readable, especially in the console.
-      def str.inspect
-        self
+        str
+      when :json
+        queries.map do |sql, binds|
+          [[sql, binds.map { |attr| render_bind(attr) }], JSON.parse(connection.explain_json(sql, binds))]
+        end.to_h
+      else raise "Unsupported explain format."
       end
-
-      str
     end
 
     private

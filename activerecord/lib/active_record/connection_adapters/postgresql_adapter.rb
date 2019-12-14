@@ -334,6 +334,10 @@ module ActiveRecord
         true
       end
 
+      def supports_explain_json?
+        true
+      end
+
       def supports_extensions?
         true
       end

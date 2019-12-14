@@ -37,6 +37,11 @@ module ActiveRecord
           MySQL::ExplainPrettyPrinter.new.pp(result, elapsed)
         end
 
+        def explain_json(arel, binds = [])
+          sql = "EXPLAIN FORMAT=JSON #{to_sql(arel, binds)}"
+          exec_query(sql, "EXPLAIN", binds).rows[0][0]
+        end
+
         # Executes the SQL statement in the context of this connection.
         def execute(sql, name = nil)
           if preventing_writes? && write_query?(sql)

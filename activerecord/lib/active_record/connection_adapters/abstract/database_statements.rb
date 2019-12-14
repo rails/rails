@@ -155,6 +155,10 @@ module ActiveRecord
         exec_query(sql, name)
       end
 
+      def explain_json(arel, binds = []) # :nodoc:
+        raise NotImplementedError
+      end
+
       # Executes an INSERT query and returns the new record's ID
       #
       # +id_value+ will be returned unless the value is +nil+, in

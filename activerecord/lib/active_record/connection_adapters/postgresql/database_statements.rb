@@ -9,6 +9,11 @@ module ActiveRecord
           PostgreSQL::ExplainPrettyPrinter.new.pp(exec_query(sql, "EXPLAIN", binds))
         end
 
+        def explain_json(arel, binds = [])
+          sql = "EXPLAIN (FORMAT JSON) #{to_sql(arel, binds)}"
+          exec_query(sql, "EXPLAIN", binds).rows[0][0]
+        end
+
         # The internal PostgreSQL identifier of the money data type.
         MONEY_COLUMN_TYPE_OID = 790 #:nodoc:
         # The internal PostgreSQL identifier of the BYTEA data type.

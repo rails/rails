@@ -84,6 +84,10 @@ module ActiveRecord
         true
       end
 
+      def supports_explain_json?
+        true
+      end
+
       def supports_indexes_in_create?
         true
       end

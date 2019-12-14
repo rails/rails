@@ -299,6 +299,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support explain in JSON format?
+      def supports_explain_json?
+        false
+      end
+
       # Does this adapter support setting the isolation level for a transaction?
       def supports_transaction_isolation?
         false
