@@ -163,6 +163,16 @@ module ActiveJob
       def around_enqueue(*filters, &blk)
         set_callback(:enqueue, :around, *filters, &blk)
       end
+
+      def warn_against_after_callbacks_execution_deprecation(callbacks) # :nodoc:
+        if !skip_after_callbacks_if_terminated && callbacks.any? { |c| c.kind == :after }
+          ActiveSupport::Deprecation.warn(<<~EOM)
+            In Rails 6.2, `after_enqueue`/`after_perform` callbacks no longer run if `before_enqueue`/`before_perform` respectively halts with `throw :abort`.
+            To enable this behavior, uncomment the `config.active_job.skip_after_callbacks_if_terminated` config
+            in the new 6.1 framework defaults initializer.
+          EOM
+        end
+      end
     end
   end
 end

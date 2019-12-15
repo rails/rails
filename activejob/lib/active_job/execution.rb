@@ -39,18 +39,10 @@ module ActiveJob
 
       run_callbacks :perform do
         perform(*arguments)
-
         successfully_performed = true
       end
 
-      if !successfully_performed && !self.class.skip_after_callbacks_if_terminated && _perform_callbacks.any? { |c| c.kind == :after }
-        ActiveSupport::Deprecation.warn(<<~EOM)
-          In Rails 6.2, ActiveJob's `after_perform` callbacks will no longer run in case the
-          callback chain is halted (i.e. `throw(:abort)` is thrown in a before_perform callback).
-          To enable this behaviour right now, add in your application configuration file
-          `config.active_job.skip_after_callbacks_if_terminated = true`.
-        EOM
-      end
+      self.class.warn_against_after_callbacks_execution_deprecation(_perform_callbacks) unless successfully_performed
       successfully_performed
     rescue => exception
       rescue_with_handler(exception) || raise

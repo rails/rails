@@ -65,7 +65,7 @@ class CallbacksTest < ActiveSupport::TestCase
     ActiveJob::Base.skip_after_callbacks_if_terminated = false
     reload_job
     job = AbortBeforeEnqueueJob.new
-    assert_deprecated(/`after_enqueue` callbacks will no longer run/) do
+    assert_deprecated(/`after_enqueue`\/`after_perform` callbacks no longer run/) do
       job.enqueue
     end
 
@@ -107,7 +107,7 @@ class CallbacksTest < ActiveSupport::TestCase
     ActiveJob::Base.skip_after_callbacks_if_terminated = false
     reload_job
     job = AbortBeforeEnqueueJob.new
-    assert_deprecated(/`after_perform` callbacks will no longer run/) do
+    assert_deprecated(/`after_enqueue`\/`after_perform` callbacks no longer run/) do
       job.perform_now
     end
 
