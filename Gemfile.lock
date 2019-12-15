@@ -95,7 +95,7 @@ PATH
       activesupport (= 6.1.0.alpha)
       method_source
       rake (>= 0.8.7)
-      thor (>= 0.20.3, < 2.0)
+      thor (~> 1.0)
 
 GEM
   remote: https://rubygems.org/
@@ -487,7 +487,7 @@ GEM
       daemons (~> 1.0, >= 1.0.9)
       eventmachine (~> 1.0, >= 1.0.4)
       rack (>= 1, < 3)
-    thor (0.20.3)
+    thor (1.0.0)
     thread_safe (0.3.6)
     thread_safe (0.3.6-java)
     tilt (2.0.10)
