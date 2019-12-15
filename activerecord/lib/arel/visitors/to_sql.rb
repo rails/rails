@@ -825,6 +825,7 @@ module Arel # :nodoc: all
           stmt.limit       = o.limit
           stmt.offset      = o.offset
           stmt.orders      = o.orders
+          stmt.with        = o.with
           stmt
         end
 

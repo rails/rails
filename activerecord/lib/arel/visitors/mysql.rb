@@ -59,10 +59,10 @@ module Arel # :nodoc: all
         end
 
         # In the simple case, MySQL allows us to place JOINs directly into the UPDATE
-        # query. However, this does not allow for LIMIT, OFFSET and ORDER. To support
+        # query. However, this does not allow for LIMIT, OFFSET, ORDER and WITH.To support
         # these, we must use a subquery.
         def prepare_update_statement(o)
-          if o.offset || has_join_sources?(o) && has_limit_or_offset_or_orders?(o)
+          if o.offset || o.with || has_join_sources?(o) && has_limit_or_offset_or_orders?(o)
             super
           else
             o

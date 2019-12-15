@@ -444,6 +444,7 @@ module ActiveRecord
       stmt.offset(arel.offset)
       stmt.order(*arel.orders)
       stmt.wheres = arel.constraints
+      stmt.with = arel.ast.with
 
       if updates.is_a?(Hash)
         if klass.locking_enabled? &&
@@ -586,6 +587,7 @@ module ActiveRecord
       stmt.offset(arel.offset)
       stmt.order(*arel.orders)
       stmt.wheres = arel.constraints
+      stmt.with = arel.ast.with
 
       affected = @klass.connection.delete(stmt, "#{@klass} Destroy")
 

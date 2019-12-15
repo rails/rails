@@ -36,6 +36,10 @@ module Arel # :nodoc: all
         @ast.wheres << expr
         self
       end
+
+      def with=(expr)
+        @ast.with = expr
+      end
     end
 
     attr_reader :ast
