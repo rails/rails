@@ -171,6 +171,10 @@ module Rails
           if respond_to?(:active_job)
             active_job.skip_after_callbacks_if_terminated = true
           end
+
+          if respond_to?(:action_dispatch)
+            action_dispatch.cookies_same_site_protection = :lax
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end

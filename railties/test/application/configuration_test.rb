@@ -2306,6 +2306,24 @@ module ApplicationTests
       assert_equal false, ActiveJob::Base.skip_after_callbacks_if_terminated
     end
 
+    test "Rails.application.config.action_dispatch.cookies_same_site_protection is :lax by default" do
+      app "production"
+
+      assert_equal :lax, Rails.application.config.action_dispatch.cookies_same_site_protection
+    end
+
+    test "ActionView::Template.finalize_compiled_template_methods can be configured via config.action_view.finalize_compiled_template_methods" do
+      app_file "config/environments/production.rb", <<~RUBY
+        Rails.application.configure do
+          config.action_dispatch.cookies_same_site_protection = :strict
+        end
+      RUBY
+
+      app "production"
+
+      assert_equal :strict, Rails.application.config.action_dispatch.cookies_same_site_protection
+    end
+
     test "ActiveStorage.queues[:analysis] is :active_storage_analysis by default" do
       app "development"
 
