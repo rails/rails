@@ -52,6 +52,13 @@ class ActionText::PlainTextConversionTest < ActiveSupport::TestCase
     )
   end
 
+  test "nested <ul> tags are indented" do
+    assert_converted_to(
+      "• Item 0\n• Item 1\n  • Item A\n    1. Item i\n    2. Item ii\n  • Item B\n    • Item i\n• Item 2",
+      "<ul><li>Item 0</li><li>Item 1<ul><li>Item A<ol><li>Item i</li><li>Item ii</li></ol></li><li>Item B<ul><li>Item i</li></ul></li></ul></li><li>Item 2</li></ul>"
+    )
+  end
+
   test "<br> tags are separated by one new line" do
     assert_converted_to(
       "Hello world!\none\ntwo\nthree",
