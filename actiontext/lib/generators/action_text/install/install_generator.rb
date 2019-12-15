@@ -9,27 +9,25 @@ module ActionText
       source_root File.expand_path("templates", __dir__)
 
       def install_javascript_dependencies
-        run "rake app:update:bin"
+        rails_command "app:update:bin"
 
-        say "Installing JavaScript dependencies"
+        say "Installing JavaScript dependencies", :green
         run "yarn add #{js_dependencies.map { |name, version| "#{name}@#{version}" }.join(" ")}",
           abort_on_failure: true, capture: true
       end
 
       def append_dependencies_to_package_file
-        app_javascript_pack_path = Pathname.new("app/javascript/packs/application.js")
-
-        if app_javascript_pack_path.exist?
-          js_dependencies.keys.each do |name|
-            line = %[require("#{name}")]
+        if (app_javascript_pack_path = Pathname.new("app/javascript/packs/application.js")).exist?
+          js_dependencies.each_key do |dependency|
+            line = %[require("#{dependency}")]
 
             unless app_javascript_pack_path.read.include? line
-              say "Adding #{name} to #{app_javascript_pack_path}"
+              say "Adding #{dependency} to #{app_javascript_pack_path}", :green
               append_to_file app_javascript_pack_path, "\n#{line}"
             end
           end
         else
-          warn <<~WARNING
+          say <<~WARNING, :red
             WARNING: Action Text can't locate your JavaScript bundle to add its package dependencies.
 
             Add these lines to any bundles:
@@ -47,13 +45,11 @@ module ActionText
         template "actiontext.scss", "app/assets/stylesheets/actiontext.scss"
 
         copy_file "#{GEM_ROOT}/app/views/active_storage/blobs/_blob.html.erb",
-                  "app/views/active_storage/blobs/_blob.html.erb"
+          "app/views/active_storage/blobs/_blob.html.erb"
       end
 
       def create_migrations
-        run "rake active_storage:install:migrations"
-        run "rake railties:install:migrations"
-        run "rake action_text:install:migrations"
+        rails_command "railties:install:migrations FROM=active_storage,action_text"
       end
 
       hook_for :test_framework
@@ -62,10 +58,8 @@ module ActionText
         GEM_ROOT = "#{__dir__}/../../../.."
 
         def js_dependencies
-          package_contents = File.read(Pathname.new("#{GEM_ROOT}/package.json"))
-          js_package = JSON.load(package_contents)
-
-          js_package["peerDependencies"].dup.merge \
+          js_package = JSON.load(Pathname.new("#{GEM_ROOT}/package.json"))
+          js_package["peerDependencies"].merge \
             js_package["name"] => "^#{js_package["version"]}"
         end
     end
