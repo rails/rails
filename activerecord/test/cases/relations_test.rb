@@ -721,6 +721,30 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal Post.find(1).last_comment, post.last_comment
   end
 
+  def test_to_sql_default
+    sql = Post.all.to_sql
+    assert_includes sql, "SELECT"
+  end
+
+  def test_to_sql_select
+    sql = Post.all.to_sql(:select)
+    assert_includes sql, "SELECT"
+  end
+
+  def test_to_sql_delete_all
+    sql = Post.all.to_sql(:delete_all)
+    assert_includes sql, "DELETE FROM"
+  end
+
+  def test_to_sql_update_all
+    sql = Post.all.to_sql(:update_all, title: "deleted")
+    assert_includes sql, "UPDATE"
+  end
+
+  def test_to_sql_unknown
+    assert_raises(ArgumentError) { Post.all.to_sql(:insert) }
+  end
+
   def test_to_sql_on_eager_join
     expected = capture_sql {
       Post.eager_load(:last_comment).order("comments.id DESC").to_a

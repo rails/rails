@@ -430,34 +430,7 @@ module ActiveRecord
     #   # Update all invoices and set the number column to its id value.
     #   Invoice.update_all('number = id')
     def update_all(updates)
-      raise ArgumentError, "Empty list of attributes to change" if updates.blank?
-
-      if eager_loading?
-        relation = apply_join_dependency
-        return relation.update_all(updates)
-      end
-
-      stmt = Arel::UpdateManager.new
-      stmt.table(arel.join_sources.empty? ? table : arel.source)
-      stmt.key = arel_attribute(primary_key)
-      stmt.take(arel.limit)
-      stmt.offset(arel.offset)
-      stmt.order(*arel.orders)
-      stmt.wheres = arel.constraints
-
-      if updates.is_a?(Hash)
-        if klass.locking_enabled? &&
-            !updates.key?(klass.locking_column) &&
-            !updates.key?(klass.locking_column.to_sym)
-          attr = arel_attribute(klass.locking_column)
-          updates[attr.name] = _increment_attribute(attr)
-        end
-        stmt.set _substitute_values(updates)
-      else
-        stmt.set Arel.sql(klass.sanitize_sql_for_assignment(updates, table.name))
-      end
-
-      @klass.connection.update stmt, "#{@klass} Update All"
+      @klass.connection.update update_all_statement(updates), "#{@klass} Update All"
     end
 
     def update(id = :all, attributes) # :nodoc:
@@ -566,28 +539,7 @@ module ActiveRecord
     #   Post.distinct.delete_all
     #   # => ActiveRecord::ActiveRecordError: delete_all doesn't support distinct
     def delete_all
-      invalid_methods = INVALID_METHODS_FOR_DELETE_ALL.select do |method|
-        value = @values[method]
-        method == :distinct ? value : value&.any?
-      end
-      if invalid_methods.any?
-        raise ActiveRecordError.new("delete_all doesn't support #{invalid_methods.join(', ')}")
-      end
-
-      if eager_loading?
-        relation = apply_join_dependency
-        return relation.delete_all
-      end
-
-      stmt = Arel::DeleteManager.new
-      stmt.from(arel.join_sources.empty? ? table : arel.source)
-      stmt.key = arel_attribute(primary_key)
-      stmt.take(arel.limit)
-      stmt.offset(arel.offset)
-      stmt.order(*arel.orders)
-      stmt.wheres = arel.constraints
-
-      affected = @klass.connection.delete(stmt, "#{@klass} Destroy")
+      affected = @klass.connection.delete(delete_all_statement, "#{@klass} Destroy")
 
       reset
       affected
@@ -643,7 +595,7 @@ module ActiveRecord
     def reset
       @delegate_to_klass = false
       @_deprecated_scope_source = nil
-      @to_sql = @arel = @loaded = @should_eager_load = nil
+      @arel = @loaded = @should_eager_load = nil
       @records = [].freeze
       @offsets = {}
       @take = nil
@@ -654,17 +606,24 @@ module ActiveRecord
     #
     #   User.where(name: 'Oscar').to_sql
     #   # => SELECT "users".* FROM "users"  WHERE "users"."name" = 'Oscar'
-    def to_sql
-      @to_sql ||= begin
+    def to_sql(command = :select, args = {})
+      conn = klass.connection
+
+      case command
+      when :select
         if eager_loading?
           apply_join_dependency do |relation, join_dependency|
             relation = join_dependency.apply_column_aliases(relation)
             relation.to_sql
           end
         else
-          conn = klass.connection
           conn.unprepared_statement { conn.to_sql(arel) }
         end
+      when :delete_all
+        conn.unprepared_statement { conn.to_sql(delete_all_statement) }
+      when :update_all
+        conn.unprepared_statement { conn.to_sql(update_all_statement(args)) }
+      else raise ArgumentError, "Unknown command (#{command}) for to_sql."
       end
     end
 
@@ -765,6 +724,63 @@ module ActiveRecord
       def null_relation? # :nodoc:
         is_a?(NullRelation)
       end
+
+      def delete_all_statement
+        invalid_methods = INVALID_METHODS_FOR_DELETE_ALL.select do |method|
+          value = @values[method]
+          method == :distinct ? value : value&.any?
+        end
+        if invalid_methods.any?
+          raise ActiveRecordError.new("delete_all doesn't support #{invalid_methods.join(', ')}")
+        end
+
+        if eager_loading?
+          relation = apply_join_dependency
+          return relation.delete_all_statement
+        end
+
+        stmt = Arel::DeleteManager.new
+        stmt.from(arel.join_sources.empty? ? table : arel.source)
+        stmt.key = arel_attribute(primary_key)
+        stmt.take(arel.limit)
+        stmt.offset(arel.offset)
+        stmt.order(*arel.orders)
+        stmt.wheres = arel.constraints
+
+        stmt
+      end
+
+      def update_all_statement(updates)
+        raise ArgumentError, "Empty list of attributes to change" if updates.blank?
+
+        if eager_loading?
+          relation = apply_join_dependency
+          return relation.update_all_statement(updates)
+        end
+
+        stmt = Arel::UpdateManager.new
+        stmt.table(arel.join_sources.empty? ? table : arel.source)
+        stmt.key = arel_attribute(primary_key)
+        stmt.take(arel.limit)
+        stmt.offset(arel.offset)
+        stmt.order(*arel.orders)
+        stmt.wheres = arel.constraints
+
+        if updates.is_a?(Hash)
+          if klass.locking_enabled? &&
+              !updates.key?(klass.locking_column) &&
+              !updates.key?(klass.locking_column.to_sym)
+            attr = arel_attribute(klass.locking_column)
+            updates[attr.name] = _increment_attribute(attr)
+          end
+          stmt.set _substitute_values(updates)
+        else
+          stmt.set Arel.sql(klass.sanitize_sql_for_assignment(updates, table.name))
+        end
+
+        stmt
+      end
+
 
     private
       def already_in_scope?
