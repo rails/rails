@@ -152,8 +152,8 @@ module Rails
       end
 
       if options[:api]
-        unless cookies_config_exist
-          remove_file "config/initializers/cookies.rb"
+        unless cookie_serializer_config_exist
+          remove_file "config/initializers/cookies_serializer.rb"
         end
 
         unless csp_config_exist
