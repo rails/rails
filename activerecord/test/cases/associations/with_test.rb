@@ -10,6 +10,7 @@ if ActiveRecord::Base.connection.supports_common_table_expressions?
 
     def test_with
       result = Comment.with(my_posts: Post.where(author_id: 1)).joins("JOIN my_posts ON my_posts.id = comments.post_id")
+
       assert_match(/^WITH/, result.to_sql)
       assert_equal 10, result.count
     end
@@ -64,6 +65,16 @@ if ActiveRecord::Base.connection.supports_common_table_expressions?
 
       assert_match(/^WITH/, sql)
       assert_match(/my_posts/, sql)
+    end
+
+    def test_with_delete_all
+      result = Comment.with(my_posts: Post.where(author_id: 1)).joins("JOIN my_posts ON my_posts.id = comments.post_id").delete_all
+      assert_equal 10, result
+    end
+
+    def test_with_update_all
+      result = Comment.with(my_posts: Post.where(author_id: 1)).joins("JOIN my_posts ON my_posts.id = comments.post_id").update_all(author_id: 999)
+      assert_equal 10, result
     end
   end
 end
