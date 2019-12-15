@@ -63,7 +63,7 @@ module ActiveJob
       if successfully_enqueued
         self
       else
-        self.class.warn_against_after_callbacks_execution_deprecation(_enqueue_callbacks)
+        warn_against_after_callbacks_execution_deprecation(_enqueue_callbacks)
 
         if self.class.return_false_on_aborted_enqueue
           false
