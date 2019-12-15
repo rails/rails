@@ -2312,7 +2312,7 @@ module ApplicationTests
       assert_equal :lax, Rails.application.config.action_dispatch.cookies_same_site_protection
     end
 
-    test "ActionView::Template.finalize_compiled_template_methods can be configured via config.action_view.finalize_compiled_template_methods" do
+    test "Rails.application.config.action_dispatch.cookies_same_site_protection is :lax can be overriden" do
       app_file "config/environments/production.rb", <<~RUBY
         Rails.application.configure do
           config.action_dispatch.cookies_same_site_protection = :strict
@@ -2322,6 +2322,15 @@ module ApplicationTests
       app "production"
 
       assert_equal :strict, Rails.application.config.action_dispatch.cookies_same_site_protection
+    end
+
+    test "Rails.application.config.action_dispatch.cookies_same_site_protection is :lax in 6.1 defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.1"'
+
+      app "development"
+
+      assert_equal :lax, Rails.application.config.action_dispatch.cookies_same_site_protection
     end
 
     test "ActiveStorage.queues[:analysis] is :active_storage_analysis by default" do
