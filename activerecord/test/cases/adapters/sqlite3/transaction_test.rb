@@ -19,7 +19,7 @@ class SQLite3TransactionTest < ActiveRecord::SQLite3TestCase
 
   test "raises when trying to open a transaction in a isolation level other than `read_uncommitted`" do
     with_connection do |conn|
-      assert_raises(ArgumentError) do
+      assert_raises(ActiveRecord::TransactionIsolationError) do
         conn.transaction(requires_new: true, isolation: :something) do
           conn.transaction_manager.materialize_transactions
         end

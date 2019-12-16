@@ -75,7 +75,7 @@ module ActiveRecord
         alias :exec_update :exec_delete
 
         def begin_isolated_db_transaction(isolation) #:nodoc
-          raise ArgumentError, "SQLite3 only supports the `read_uncommitted` transaction isolation level" if isolation != :read_uncommitted
+          raise TransactionIsolationError, "SQLite3 only supports the `read_uncommitted` transaction isolation level" if isolation != :read_uncommitted
           raise StandardError, "You need to enable the shared-cache mode in SQLite mode before attempting to change the transaction isolation level" unless shared_cache?
 
           Thread.current.thread_variable_set("read_uncommitted", @connection.get_first_value("PRAGMA read_uncommitted"))
