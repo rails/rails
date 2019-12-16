@@ -298,7 +298,7 @@ module ActionView
       #   class_names({ foo: true, bar: false })
       #    # => "foo"
       #   class_names(nil, false, 123, "", "foo", { bar: true })
-      #    # => "foo bar"
+      #    # => "123 foo bar"
       def class_names(*args)
         safe_join(build_tag_values(*args), " ")
       end
