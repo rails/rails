@@ -1,3 +1,9 @@
+*   Regression fix: The Rake task `zeitwerk:check` supports eager loaded
+    namespaces which do not have eager load paths, like the recently added
+    `i18n`. These namespaces are only required to respond to `eager_load!`.
+
+    *Xavier Noria*
+
 ## Rails 6.0.2 (December 13, 2019) ##
 
 *   Fix the collision check for the scaffold generator.
