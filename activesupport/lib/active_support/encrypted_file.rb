@@ -94,7 +94,7 @@ module ActiveSupport
       end
 
       def handle_missing_key
-        raise MissingKeyError, key_path: key_path, env_key: env_key if raise_if_missing_key
+        raise MissingKeyError.new(key_path: key_path, env_key: env_key) if raise_if_missing_key
       end
   end
 end
