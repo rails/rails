@@ -160,7 +160,8 @@ module Rails
             "#{css}:scaffold",
             "#{css}:assets",
             "css:assets",
-            "css:scaffold"
+            "css:scaffold",
+            "action_text:install"
           ]
         end
       end
