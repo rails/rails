@@ -10,7 +10,7 @@ module ActiveJob
 
       if ex
         error do
-          "Failed enqueuing #{job.class.name} to #{queue_name(event)}: #{ex.class} (#{ex.message}):\n" + Array(ex.backtrace).join("\n")
+          "Failed enqueuing #{job.class.name} to #{queue_name(event)}: #{ex.class} (#{ex.message})"
         end
       elsif event.payload[:aborted]
         info do
@@ -29,7 +29,7 @@ module ActiveJob
 
       if ex
         error do
-          "Failed enqueuing #{job.class.name} to #{queue_name(event)}: #{ex.class} (#{ex.message}):\n" + Array(ex.backtrace).join("\n")
+          "Failed enqueuing #{job.class.name} to #{queue_name(event)}: #{ex.class} (#{ex.message})"
         end
       elsif event.payload[:aborted]
         info do
