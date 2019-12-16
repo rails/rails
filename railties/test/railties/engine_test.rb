@@ -398,18 +398,18 @@ module RailtiesTest
       app_file "app/locales/en.yml", <<-YAML
 en:
   bar: "1"
-YAML
+      YAML
 
       app_file "config/locales/en.yml", <<-YAML
 en:
   foo: "2"
   bar: "2"
-YAML
+      YAML
 
       @plugin.write "config/locales/en.yml", <<-YAML
 en:
   foo: "3"
-YAML
+      YAML
 
       boot_rails
 

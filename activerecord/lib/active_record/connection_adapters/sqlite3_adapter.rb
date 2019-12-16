@@ -101,7 +101,7 @@ module ActiveRecord
       def self.database_exists?(config)
         config = config.symbolize_keys
         if config[:database] == ":memory:"
-          return true
+          true
         else
           database_file = defined?(Rails.root) ? File.expand_path(config[:database], Rails.root) : config[:database]
           File.exist?(database_file)

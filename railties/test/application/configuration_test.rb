@@ -1934,47 +1934,6 @@ module ApplicationTests
       assert_equal 1, Rails.application.config.my_custom_config[:foo][:bar][:baz]
     end
 
-    test "config_for loads nested custom configuration from yaml with deprecated non-symbol access" do
-      app_file "config/custom.yml", <<-RUBY
-      development:
-        foo:
-          bar:
-            baz: 1
-      RUBY
-
-      add_to_config <<-RUBY
-        config.my_custom_config = config_for('custom')
-      RUBY
-
-      app "development"
-
-      assert_deprecated do
-        assert_equal 1, Rails.application.config.my_custom_config["foo"]["bar"]["baz"]
-      end
-    end
-
-    test "config_for loads nested custom configuration inside array from yaml with deprecated non-symbol access" do
-      app_file "config/custom.yml", <<-RUBY
-      development:
-        foo:
-          bar:
-          - baz: 1
-      RUBY
-
-      add_to_config <<-RUBY
-        config.my_custom_config = config_for('custom')
-      RUBY
-
-      app "development"
-
-      config = Rails.application.config.my_custom_config
-      assert_instance_of Rails::Application::NonSymbolAccessDeprecatedHash, config[:foo][:bar].first
-
-      assert_deprecated do
-        assert_equal 1, config[:foo][:bar].first["baz"]
-      end
-    end
-
     test "config_for makes all hash methods available" do
       app_file "config/custom.yml", <<-RUBY
       development:
@@ -1997,87 +1956,6 @@ module ApplicationTests
       assert_equal({ foo: 0, bar: { baz: 1 } }, actual.to_h)
       assert_equal(0, actual[:foo])
       assert_equal({ baz: 1 }, actual[:bar])
-    end
-
-    test "config_for generates deprecation notice when nested hash methods are called with non-symbols" do
-      app_file "config/custom.yml", <<-RUBY
-      development:
-        foo:
-          bar: 1
-          baz: 2
-          qux:
-            boo: 3
-      RUBY
-
-      app "development"
-
-      actual = Rails.application.config_for("custom")[:foo]
-
-      # slice
-      assert_deprecated do
-        assert_equal({ bar: 1, baz: 2 }, actual.slice("bar", "baz"))
-      end
-
-      # except
-      assert_deprecated do
-        assert_equal({ qux: { boo: 3 } }, actual.except("bar", "baz"))
-      end
-
-      # dig
-      assert_deprecated do
-        assert_equal(3, actual.dig("qux", "boo"))
-      end
-
-      # fetch - hit
-      assert_deprecated do
-        assert_equal(1, actual.fetch("bar", 0))
-      end
-
-      # fetch - miss
-      assert_deprecated do
-        assert_equal(0, actual.fetch("does-not-exist", 0))
-      end
-
-      # fetch_values
-      assert_deprecated do
-        assert_equal([1, 2], actual.fetch_values("bar", "baz"))
-      end
-
-      # key? - hit
-      assert_deprecated do
-        assert(actual.key?("bar"))
-      end
-
-      # key? - miss
-      assert_deprecated do
-        assert_not(actual.key?("does-not-exist"))
-      end
-
-      # slice!
-      actual = Rails.application.config_for("custom")[:foo]
-
-      assert_deprecated do
-        slice = actual.slice!("bar", "baz")
-        assert_equal({ bar: 1, baz: 2 }, actual)
-        assert_equal({ qux: { boo: 3 } }, slice)
-      end
-
-      # extract!
-      actual = Rails.application.config_for("custom")[:foo]
-
-      assert_deprecated do
-        extracted = actual.extract!("bar", "baz")
-        assert_equal({ bar: 1, baz: 2 }, extracted)
-        assert_equal({ qux: { boo: 3 } }, actual)
-      end
-
-      # except!
-      actual = Rails.application.config_for("custom")[:foo]
-
-      assert_deprecated do
-        actual.except!("bar", "baz")
-        assert_equal({ qux: { boo: 3 } }, actual)
-      end
     end
 
     test "config_for uses the Pathname object if it is provided" do
@@ -2154,6 +2032,27 @@ module ApplicationTests
       app "development"
 
       assert_equal(:bar, Rails.application.config.my_custom_config[:foo])
+    end
+
+    test "config_for merges shared configuration deeply" do
+      app_file "config/custom.yml", <<-RUBY
+      shared:
+        foo:
+          bar:
+            baz: 1
+      development:
+        foo:
+          bar:
+            qux: 2
+      RUBY
+
+      add_to_config <<-RUBY
+        config.my_custom_config = config_for('custom')
+      RUBY
+
+      app "development"
+
+      assert_equal({ baz: 1, qux: 2 }, Rails.application.config.my_custom_config[:foo][:bar])
     end
 
     test "config_for with empty file returns an empty hash" do
@@ -2363,6 +2262,20 @@ module ApplicationTests
       end
     end
 
+    test "ActiveJob::Base.retry_jitter is 0.15 by default" do
+      app "development"
+
+      assert_equal 0.15, ActiveJob::Base.retry_jitter
+    end
+
+    test "ActiveJob::Base.retry_jitter can be set by config" do
+      app "development"
+
+      Rails.application.config.active_job.retry_jitter = 0.22
+
+      assert_equal 0.22, ActiveJob::Base.retry_jitter
+    end
+
     test "ActiveJob::Base.return_false_on_aborted_enqueue is true by default" do
       app "development"
 
@@ -2376,6 +2289,48 @@ module ApplicationTests
       app "development"
 
       assert_equal false, ActiveJob::Base.return_false_on_aborted_enqueue
+    end
+
+    test "ActiveJob::Base.skip_after_callbacks_if_terminated is true by default" do
+      app "development"
+
+      assert_equal true, ActiveJob::Base.skip_after_callbacks_if_terminated
+    end
+
+    test "ActiveJob::Base.skip_after_callbacks_if_terminated is false in the 6.0 defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.0"'
+
+      app "development"
+
+      assert_equal false, ActiveJob::Base.skip_after_callbacks_if_terminated
+    end
+
+    test "Rails.application.config.action_dispatch.cookies_same_site_protection is :lax by default" do
+      app "production"
+
+      assert_equal :lax, Rails.application.config.action_dispatch.cookies_same_site_protection
+    end
+
+    test "Rails.application.config.action_dispatch.cookies_same_site_protection is :lax can be overriden" do
+      app_file "config/environments/production.rb", <<~RUBY
+        Rails.application.configure do
+          config.action_dispatch.cookies_same_site_protection = :strict
+        end
+      RUBY
+
+      app "production"
+
+      assert_equal :strict, Rails.application.config.action_dispatch.cookies_same_site_protection
+    end
+
+    test "Rails.application.config.action_dispatch.cookies_same_site_protection is :lax in 6.1 defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.1"'
+
+      app "development"
+
+      assert_equal :lax, Rails.application.config.action_dispatch.cookies_same_site_protection
     end
 
     test "ActiveStorage.queues[:analysis] is :active_storage_analysis by default" do
@@ -2530,7 +2485,6 @@ module ApplicationTests
                      rails_blob_proxy GET  /files/blobs_proxy/:signed_id/*filename(.:format)                               active_storage/blobs#proxy
             rails_blob_representation GET  /files/representations/:signed_blob_id/:variation_key/*filename(.:format)       active_storage/representations#show
       rails_blob_representation_proxy GET  /files/representations_proxy/:signed_blob_id/:variation_key/*filename(.:format) active_storage/representations#proxy
-            rails_disk_service_public GET  /files/disk/public/:key/*filename(.:format)                                     active_storage/public_disk#show
                    rails_disk_service GET  /files/disk/:encoded_key/*filename(.:format)                                    active_storage/disk#show
             update_rails_disk_service PUT  /files/disk/:encoded_token(.:format)                                            active_storage/disk#update
                  rails_direct_uploads POST /files/direct_uploads(.:format)                                                 active_storage/direct_uploads#create

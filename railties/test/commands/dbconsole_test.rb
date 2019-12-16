@@ -30,14 +30,14 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
       }
     }
     app_db_config(config_sample) do
-      assert_equal config_sample["test"].symbolize_keys, Rails::DBConsole.new.config
+      assert_equal config_sample["test"].symbolize_keys, Rails::DBConsole.new.db_config.configuration_hash
     end
   end
 
   def test_config_with_no_db_config
     app_db_config(nil) do
       assert_raise(ActiveRecord::AdapterNotSpecified) {
-        Rails::DBConsole.new.config
+        Rails::DBConsole.new.db_config.configuration_hash
       }
     end
   end
@@ -56,7 +56,7 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     }.sort
 
     app_db_config(nil) do
-      assert_equal expected, Rails::DBConsole.new.config.sort
+      assert_equal expected, Rails::DBConsole.new.db_config.configuration_hash.sort
     end
   end
 
@@ -76,7 +76,7 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
       }
     }
     app_db_config(sample_config) do
-      assert_equal host, Rails::DBConsole.new.config[:host]
+      assert_equal host, Rails::DBConsole.new.db_config.configuration_hash[:host]
     end
   end
 
@@ -213,7 +213,7 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     }
 
     app_db_config(sample_config) do
-      assert_equal "postgresql", Rails::DBConsole.new.config[:adapter]
+      assert_equal "postgresql", Rails::DBConsole.new.db_config.configuration_hash[:adapter]
     end
   end
 

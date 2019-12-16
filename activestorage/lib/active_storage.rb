@@ -64,6 +64,7 @@ module ActiveStorage
   mattr_accessor :draw_routes, default: true
 
   mattr_accessor :replace_on_assign_to_many, default: false
+  mattr_accessor :track_variants, default: false
 
   mattr_accessor :delivery_methods,        default: {}
   mattr_accessor :default_delivery_method, default: :redirect

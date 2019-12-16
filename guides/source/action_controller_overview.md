@@ -753,6 +753,12 @@ end
 
 Note that the filter in this case uses `send` because the `logged_in?` method is private and the filter does not run in the scope of the controller. This is not the recommended way to implement this particular filter, but in more simple cases it might be useful.
 
+Specifically for `around_action`, the block also yields in the `action`:
+
+```ruby
+around_action { |_controller, action| time(&action) }
+```
+
 The second way is to use a class (actually, any object that responds to the right methods will do) to handle the filtering. This is useful in cases that are more complex and cannot be implemented in a readable and reusable way using the two other methods. As an example, you could rewrite the login filter again to use a class:
 
 ```ruby
@@ -889,7 +895,6 @@ class AdminsController < ApplicationController
   before_action :authenticate
 
   private
-
     def authenticate
       authenticate_or_request_with_http_digest do |username|
         USERS[username]
@@ -900,7 +905,7 @@ end
 
 As seen in the example above, the `authenticate_or_request_with_http_digest` block takes only one argument - the username. And the block returns the password. Returning `false` or `nil` from the `authenticate_or_request_with_http_digest` will cause authentication failure.
 
-### Token authentication
+### HTTP Token Authentication
 
 HTTP token authentication is a scheme to enable the usage of Bearer tokens in the HTTP `Authorization` header. There are many token formats available and describing them is outside the scope of this document.
 
@@ -913,7 +918,6 @@ class PostsController < ApplicationController
   before_action :authenticate
 
   private
-
     def authenticate
       authenticate_or_request_with_http_token do |token, options|
         ActiveSupport::SecurityUtils.secure_compare(token, TOKEN)
@@ -944,7 +948,6 @@ class ClientsController < ApplicationController
   end
 
   private
-
     def generate_pdf(client)
       Prawn::Document.new do
         text client.name, align: :center
@@ -1156,7 +1159,6 @@ class ApplicationController < ActionController::Base
   rescue_from ActiveRecord::RecordNotFound, with: :record_not_found
 
   private
-
     def record_not_found
       render plain: "404 Not Found", status: 404
     end
@@ -1170,7 +1172,6 @@ class ApplicationController < ActionController::Base
   rescue_from User::NotAuthorized, with: :user_not_authorized
 
   private
-
     def user_not_authorized
       flash[:error] = "You don't have access to this section."
       redirect_back(fallback_location: root_path)
@@ -1187,7 +1188,6 @@ class ClientsController < ApplicationController
   end
 
   private
-
     # If the user is not authorized, just throw the exception.
     def check_authorization
       raise User::NotAuthorized unless current_user.admin?

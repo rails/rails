@@ -546,6 +546,31 @@ class FilterTest < ActionController::TestCase
     end
   end
 
+  def test_around_action_can_use_yield_inline_with_passed_action
+    controller = Class.new(ActionController::Base) do
+      around_action do |c, a|
+        c.values << "before"
+        a.call
+        c.values << "after"
+      end
+
+      def index
+        values << "action"
+        render inline: "index"
+      end
+
+      def values
+        @values ||= []
+      end
+    end.new
+
+    assert_nothing_raised do
+      test_process(controller, "index")
+    end
+
+    assert_equal ["before", "action", "after"], controller.values
+  end
+
   def test_after_actions_are_not_run_if_around_action_does_not_yield
     controller = NonYieldingAroundFilterController.new
     test_process(controller, "index")

@@ -11,10 +11,7 @@ module ActiveRecord
       fixtures :people
 
       def setup
-        @handlers = { writing: ConnectionHandler.new }
-        @rw_handler = @handlers[:writing]
-        @spec_name = "primary"
-        @writing_handler = ActiveRecord::Base.connection_handlers[:writing]
+        @writing_handler = ConnectionHandler.new
       end
 
       def teardown

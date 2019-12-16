@@ -1,3 +1,21 @@
+*   Retain explicit selections on the base model after applying `includes` and `joins`.
+
+    Resolves #34889.
+
+    *Patrick Rebsch*
+
+*   The `database` kwarg is deprecated without replacement because it can't be used for sharding and creates an issue if it's used during a request. Applications that need to create new connections should use `connects_to` instead.
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
+*   Allow attributes to be fetched from Arel node groupings.
+
+    *Jeff Emminger*, *Gannon McGibbon*
+
+*   A database URL can now contain a querystring value that contains an equal sign. This is needed to support passing PostgresSQL `options`.
+
+    *Joshua Flanagan*
+
 *   Calling methods like `establish_connection` with a `Hash` which is invalid (eg: no `adapter`) will now raise an error the same way as connections defined in `config/database.yml`.
 
     *John Crepezzi*
@@ -122,7 +140,7 @@
 
     *Edu Depetris*
 
-*   Make currency symbols optional for money column type in PostgreSQL
+*   Make currency symbols optional for money column type in PostgreSQL.
 
     *Joel Schneider*
 

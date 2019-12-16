@@ -127,31 +127,33 @@ module ActiveRecord
         pool.flush
       end
 
-      def test_connection_pool_starts_reaper_in_fork
-        pool_config = duplicated_pool_config
-        pool_config.db_config.configuration_hash[:reaping_frequency] = "0.0001"
+      if Process.respond_to?(:fork)
+        def test_connection_pool_starts_reaper_in_fork
+          pool_config = duplicated_pool_config
+          pool_config.db_config.configuration_hash[:reaping_frequency] = "0.0001"
 
-        pool = ConnectionPool.new(pool_config)
-        pool.checkout
-
-        pid = fork do
           pool = ConnectionPool.new(pool_config)
+          pool.checkout
 
-          conn, child = new_conn_in_thread(pool)
-          child.terminate
+          pid = fork do
+            pool = ConnectionPool.new(pool_config)
 
-          wait_for_conn_idle(conn)
-          if conn.in_use?
-            exit!(1)
-          else
-            exit!(0)
+            conn, child = new_conn_in_thread(pool)
+            child.terminate
+
+            wait_for_conn_idle(conn)
+            if conn.in_use?
+              exit!(1)
+            else
+              exit!(0)
+            end
           end
-        end
 
-        Process.waitpid(pid)
-        assert $?.success?
-      ensure
-        pool.discard!
+          Process.waitpid(pid)
+          assert $?.success?
+        ensure
+          pool.discard!
+        end
       end
 
       def test_reaper_does_not_reap_discarded_connection_pools

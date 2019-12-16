@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "test_component"
 
 class RendererTest < ActiveSupport::TestCase
   test "action controller base has a renderer" do
@@ -63,6 +64,15 @@ class RendererTest < ActiveSupport::TestCase
                                assigns: { secret: "foo" }
 
     assert_equal "The secret is foo\n", content
+  end
+
+  def test_render_component
+    renderer = ApplicationController.renderer
+
+    assert_equal(
+      %(<span title="my title">(Inline render)</span>),
+      renderer.render(TestComponent.new(title: "my title")).strip
+    )
   end
 
   test "rendering with custom env" do

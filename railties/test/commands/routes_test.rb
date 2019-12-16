@@ -56,7 +56,6 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
       rails_conductor_inbound_email GET  /rails/conductor/action_mailbox/inbound_emails/:id(.:format)                             rails/conductor/action_mailbox/inbound_emails#show
                  rails_service_blob GET  /rails/active_storage/blobs/:signed_id/*filename(.:format)                               active_storage/blobs#show
           rails_blob_representation GET  /rails/active_storage/representations/:signed_blob_id/:variation_key/*filename(.:format) active_storage/representations#show
-          rails_disk_service_public GET  /rails/active_storage/disk/public/:key/*filename(.:format)                               active_storage/public_disk#show
                  rails_disk_service GET  /rails/active_storage/disk/:encoded_key/*filename(.:format)                              active_storage/disk#show
     MESSAGE
 
@@ -184,7 +183,6 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
                          rails_blob_proxy GET    /rails/active_storage/blobs_proxy/:signed_id/*filename(.:format)                               active_storage/blobs#proxy
                 rails_blob_representation GET    /rails/active_storage/representations/:signed_blob_id/:variation_key/*filename(.:format)       active_storage/representations#show
           rails_blob_representation_proxy GET    /rails/active_storage/representations_proxy/:signed_blob_id/:variation_key/*filename(.:format) active_storage/representations#proxy
-                rails_disk_service_public GET    /rails/active_storage/disk/public/:key/*filename(.:format)                                     active_storage/public_disk#show
                        rails_disk_service GET    /rails/active_storage/disk/:encoded_key/*filename(.:format)                                    active_storage/disk#show
                 update_rails_disk_service PUT    /rails/active_storage/disk/:encoded_token(.:format)                                            active_storage/disk#update
                      rails_direct_uploads POST   /rails/active_storage/direct_uploads(.:format)                                                 active_storage/direct_uploads#create

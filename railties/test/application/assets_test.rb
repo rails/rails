@@ -516,7 +516,7 @@ module ApplicationTests
         Rails.application.routes.draw do
           get '/posts', :to => "posts#index"
         end
-      RUBY
+        RUBY
       end
   end
 end

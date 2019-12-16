@@ -98,7 +98,7 @@ module ActionDispatch
 
         def binary_params_for?(controller, action)
           controller_class_for(controller).binary_params_for?(action)
-        rescue NameError
+        rescue MissingController
           false
         end
 

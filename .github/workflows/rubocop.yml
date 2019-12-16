@@ -14,6 +14,7 @@ jobs:
         ruby-version: 2.6.x
     - name: Install required package
       run: |
+        sudo apt-get update
         sudo apt-get install libmysqlclient-dev libpq-dev libsqlite3-dev libncurses5-dev
     - name: Cache gems
       uses: actions/cache@v1
@@ -22,8 +23,9 @@ jobs:
         key: ${{ runner.os }}-gem-${{ hashFiles('**/Gemfile.lock') }}
         restore-keys: |
           ${{ runner.os }}-gem-
-    - name: Build and run RuboCop
+    - name: Install gems
       run: |
         bundle config path vendor/bundle
         bundle install --jobs 4 --retry 3
-        bundle exec rubocop --parallel
+    - name: Run RuboCop
+      run: bundle exec rubocop --parallel

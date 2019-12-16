@@ -338,7 +338,6 @@ defined like this:
 
 ```ruby
 def start
-  print_boot_information
   trap(:INT) { exit }
   create_tmp_directories
   setup_dev_caching
@@ -349,20 +348,15 @@ def start
 end
 
 private
-  def print_boot_information
-    ...
-    puts "=> Run `rails server -h` for more startup options"
+  def setup_dev_caching
+    if options[:environment] == "development"
+      Rails::DevCaching.enable_by_argument(options[:caching])
+    end
   end
 
   def create_tmp_directories
     %w(cache pids sockets).each do |dir_to_make|
       FileUtils.mkdir_p(File.join(Rails.root, 'tmp', dir_to_make))
-    end
-  end
-
-  def setup_dev_caching
-    if options[:environment] == "development"
-      Rails::DevCaching.enable_by_argument(options[:caching])
     end
   end
 
