@@ -106,7 +106,7 @@ class FileStoreTest < ActiveSupport::TestCase
 
   def test_log_exception_when_cache_read_fails
     File.stub(:exist?, -> { raise StandardError.new("failed") }) do
-      @cache.send(:read_entry, "winston", {})
+      @cache.send(:read_entry, "winston", **{})
       assert_predicate @buffer.string, :present?
     end
   end

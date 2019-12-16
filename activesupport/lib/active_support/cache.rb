@@ -52,12 +52,12 @@ module ActiveSupport
       #
       #   ActiveSupport::Cache.lookup_store(MyOwnCacheStore.new)
       #   # => returns MyOwnCacheStore.new
-      def lookup_store(*store_option)
-        store, *parameters = *Array.wrap(store_option).flatten
+      def lookup_store(*store_args, **store_options)
+        store, *parameters = *Array.wrap(store_args).flatten
 
         case store
         when Symbol
-          retrieve_store_class(store).new(*parameters)
+          retrieve_store_class(store).new(*parameters, **store_options)
         when nil
           ActiveSupport::Cache::MemoryStore.new
         else
@@ -318,7 +318,7 @@ module ActiveSupport
 
           entry = nil
           instrument(:read, name, options) do |payload|
-            cached_entry = read_entry(key, options) unless options[:force]
+            cached_entry = read_entry(key, **options) unless options[:force]
             entry = handle_expired_entry(cached_entry, key, options)
             entry = nil if entry && entry.mismatched?(normalize_version(name, options))
             payload[:super_operation] = :fetch if payload
@@ -326,9 +326,9 @@ module ActiveSupport
           end
 
           if entry
-            get_entry_value(entry, name, options)
+            get_entry_value(entry, name, **options)
           else
-            save_block_result_to_cache(name, options) { |_name| yield _name }
+            save_block_result_to_cache(name, **options) { |_name| yield _name }
           end
         elsif options && options[:force]
           raise ArgumentError, "Missing block: Calling `Cache#fetch` with `force: true` requires a block."
@@ -352,11 +352,11 @@ module ActiveSupport
         version = normalize_version(name, options)
 
         instrument(:read, name, options) do |payload|
-          entry = read_entry(key, options)
+          entry = read_entry(key, **options)
 
           if entry
             if entry.expired?
-              delete_entry(key, options)
+              delete_entry(key, **options)
               payload[:hit] = false if payload
               nil
             elsif entry.mismatched?(version)
@@ -384,7 +384,7 @@ module ActiveSupport
         options = merged_options(options)
 
         instrument :read_multi, names, options do |payload|
-          read_multi_entries(names, options).tap do |results|
+          read_multi_entries(names, **options).tap do |results|
             payload[:hits] = results.keys
           end
         end
@@ -396,10 +396,10 @@ module ActiveSupport
 
         instrument :write_multi, hash, options do |payload|
           entries = hash.each_with_object({}) do |(name, value), memo|
-            memo[normalize_key(name, options)] = Entry.new(value, options.merge(version: normalize_version(name, options)))
+            memo[normalize_key(name, options)] = Entry.new(value, **options.merge(version: normalize_version(name, options)))
           end
 
-          write_multi_entries entries, options
+          write_multi_entries entries, **options
         end
       end
 
@@ -438,7 +438,7 @@ module ActiveSupport
         options = merged_options(options)
 
         instrument :read_multi, names, options do |payload|
-          reads   = read_multi_entries(names, options)
+          reads   = read_multi_entries(names, **options)
           writes  = {}
           ordered = names.each_with_object({}) do |name, hash|
             hash[name] = reads.fetch(name) { writes[name] = yield(name) }
@@ -447,7 +447,7 @@ module ActiveSupport
           payload[:hits] = reads.keys
           payload[:super_operation] = :fetch_multi
 
-          write_multi(writes, options)
+          write_multi(writes, **options)
 
           ordered
         end
@@ -460,8 +460,8 @@ module ActiveSupport
         options = merged_options(options)
 
         instrument(:write, name, options) do
-          entry = Entry.new(value, options.merge(version: normalize_version(name, options)))
-          write_entry(normalize_key(name, options), entry, options)
+          entry = Entry.new(value, **options.merge(version: normalize_version(name, options)))
+          write_entry(normalize_key(name, options), entry, **options)
         end
       end
 
@@ -472,7 +472,7 @@ module ActiveSupport
         options = merged_options(options)
 
         instrument(:delete, name) do
-          delete_entry(normalize_key(name, options), options)
+          delete_entry(normalize_key(name, options), **options)
         end
       end
 
@@ -483,7 +483,7 @@ module ActiveSupport
         options = merged_options(options)
 
         instrument(:exist?, name) do
-          entry = read_entry(normalize_key(name, options), options)
+          entry = read_entry(normalize_key(name, options), **options)
           (entry && !entry.expired? && !entry.mismatched?(normalize_version(name, options))) || false
         end
       end
@@ -556,28 +556,28 @@ module ActiveSupport
 
         # Reads an entry from the cache implementation. Subclasses must implement
         # this method.
-        def read_entry(key, options)
+        def read_entry(key, **options)
           raise NotImplementedError.new
         end
 
         # Writes an entry to the cache implementation. Subclasses must implement
         # this method.
-        def write_entry(key, entry, options)
+        def write_entry(key, entry, **options)
           raise NotImplementedError.new
         end
 
         # Reads multiple entries from the cache implementation. Subclasses MAY
         # implement this method.
-        def read_multi_entries(names, options)
+        def read_multi_entries(names, **options)
           results = {}
           names.each do |name|
             key     = normalize_key(name, options)
             version = normalize_version(name, options)
-            entry   = read_entry(key, options)
+            entry   = read_entry(key, **options)
 
             if entry
               if entry.expired?
-                delete_entry(key, options)
+                delete_entry(key, **options)
               elsif entry.mismatched?(version)
                 # Skip mismatched versions
               else
@@ -590,15 +590,15 @@ module ActiveSupport
 
         # Writes multiple entries to the cache implementation. Subclasses MAY
         # implement this method.
-        def write_multi_entries(hash, options)
+        def write_multi_entries(hash, **options)
           hash.each do |key, entry|
-            write_entry key, entry, options
+            write_entry key, entry, **options
           end
         end
 
         # Deletes an entry from the cache implementation. Subclasses must
         # implement this method.
-        def delete_entry(key, options)
+        def delete_entry(key, **options)
           raise NotImplementedError.new
         end
 
@@ -699,7 +699,7 @@ module ActiveSupport
               entry.expires_at = Time.now + race_ttl
               write_entry(key, entry, expires_in: race_ttl * 2)
             else
-              delete_entry(key, options)
+              delete_entry(key, **options)
             end
             entry = nil
           end
@@ -711,7 +711,7 @@ module ActiveSupport
           entry.value
         end
 
-        def save_block_result_to_cache(name, options)
+        def save_block_result_to_cache(name, **options)
           result = instrument(:generate, name, options) do
             yield(name)
           end

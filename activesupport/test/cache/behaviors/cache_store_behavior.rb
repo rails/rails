@@ -400,7 +400,7 @@ module CacheStoreBehavior
 
   def test_race_condition_protection_skipped_if_not_defined
     @cache.write("foo", "bar")
-    time = @cache.send(:read_entry, @cache.send(:normalize_key, "foo", {}), {}).expires_at
+    time = @cache.send(:read_entry, @cache.send(:normalize_key, "foo", {}), **{}).expires_at
 
     Time.stub(:now, Time.at(time)) do
       result = @cache.fetch("foo") do
@@ -529,8 +529,8 @@ module CacheStoreBehavior
         assert_equal value, @cache.read("uncompressed")
       end
 
-      actual_entry = @cache.send(:read_entry, @cache.send(:normalize_key, "actual", {}), {})
-      uncompressed_entry = @cache.send(:read_entry, @cache.send(:normalize_key, "uncompressed", {}), {})
+      actual_entry = @cache.send(:read_entry, @cache.send(:normalize_key, "actual", {}), **{})
+      uncompressed_entry = @cache.send(:read_entry, @cache.send(:normalize_key, "uncompressed", {}), **{})
 
       actual_size = Marshal.dump(actual_entry).bytesize
       uncompressed_size = Marshal.dump(uncompressed_entry).bytesize

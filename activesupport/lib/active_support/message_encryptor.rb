@@ -172,7 +172,7 @@ module ActiveSupport
         iv = cipher.random_iv
         cipher.auth_data = "" if aead_mode?
 
-        encrypted_data = cipher.update(Messages::Metadata.wrap(@serializer.dump(value), metadata_options))
+        encrypted_data = cipher.update(Messages::Metadata.wrap(@serializer.dump(value), **metadata_options))
         encrypted_data << cipher.final
 
         blob = "#{::Base64.strict_encode64 encrypted_data}--#{::Base64.strict_encode64 iv}"
