@@ -473,6 +473,8 @@ message.video.open do |file|
 end
 ```
 
+It's important to know that the file are not yet available in the `after_create` callback but in the `after_create_commit` only.
+
 Analyzing Files
 ---------------
 
