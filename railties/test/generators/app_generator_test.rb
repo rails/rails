@@ -1132,7 +1132,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     def assert_listen_related_configuration
       assert_gem "listen"
-      assert_gem "spring-watcher-listen"
 
       assert_file "config/environments/development.rb" do |content|
         assert_match(/^\s*config\.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
