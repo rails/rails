@@ -261,6 +261,13 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
       }
     end
   end
+  
+  def test_doesnt_error_when_a_use_query_is_called_while_preventing_writes
+    @connection_handler.while_preventing_writes do
+      db_name = ActiveRecord::Base.configurations["arunit"][:database]
+      @conn.execute("USE #{db_name}")
+    end
+  end
 
   private
     def with_example_table(definition = "id int auto_increment primary key, number int, data varchar(255)", &block)
