@@ -111,7 +111,7 @@ specific connection later. Note that anything marked as an identifier will autom
 create a delegate by the same name on any channel instances created off the connection.
 
 This example relies on the fact that you will already have handled authentication of the user
-somewhere else in your application, and that a successful authentication sets a signed
+somewhere else in your application, and that a successful authentication sets an encrypted
 cookie with the user ID.
 
 The cookie is then automatically sent to the connection instance when a new connection
@@ -119,6 +119,13 @@ is attempted, and you use that to set the `current_user`. By identifying the con
 by this same current user, you're also ensuring that you can later retrieve all open
 connections by a given user (and potentially disconnect them all if the user is deleted
 or unauthorized).
+
+If your authentication approach includes using a session, you use cookie store for the
+session, your session cookie is named `_session` and the user ID key is `user_id` you
+can use this approach:
+```ruby
+  verified_user = User.find_by(id: cookies.encrypted['_session']['user_id'])
+```
 
 ### Channels
 
