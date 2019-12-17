@@ -39,7 +39,7 @@ PATH
     actionpack (5.2.4)
       actionview (= 5.2.4)
       activesupport (= 5.2.4)
-      rack (~> 2.0)
+      rack (~> 2.0, >= 2.0.8)
       rack-test (>= 0.6.3)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.0, >= 1.0.2)
@@ -352,7 +352,7 @@ GEM
       thor
     raabro (1.1.6)
     racc (1.4.15)
-    rack (2.0.7)
+    rack (2.0.8)
     rack-cache (1.10.0)
       rack (>= 0.4)
     rack-protection (2.0.7)

@@ -1,3 +1,11 @@
+*   Fix possible information leak / session hijacking vulnerability.
+
+    The `ActionDispatch::Session::MemcacheStore` is still vulnerable given it requires the
+    gem dalli to be updated as well.
+
+    CVE-2019-16782.
+
+
 ## Rails 5.2.4 (November 27, 2019) ##
 
 *   No changes.
