@@ -154,7 +154,7 @@ class ExceptionsTest < ActiveSupport::TestCase
     ActiveJob::Base.retry_jitter = old_jitter
   end
 
-  test "disable retry jitter" do
+  test "retry jitter disabled with nil" do
     travel_to Time.now
 
     Kernel.stub(:rand, ->(arg) { arg }) do
@@ -164,6 +164,22 @@ class ExceptionsTest < ActiveSupport::TestCase
         "Raised DisabledJitterError for the 1st time",
         "Next execution scheduled at #{(Time.now + 3.seconds).to_f}",
         "Raised DisabledJitterError for the 2nd time",
+        "Next execution scheduled at #{(Time.now + 3.seconds).to_f}",
+        "Successfully completed job"
+      ], JobBuffer.values
+    end
+  end
+
+  test "retry jitter disabled with zero" do
+    travel_to Time.now
+
+    Kernel.stub(:rand, ->(arg) { arg }) do
+      RetryJob.perform_later "ZeroJitterError", 3, :log_scheduled_at
+
+      assert_equal [
+        "Raised ZeroJitterError for the 1st time",
+        "Next execution scheduled at #{(Time.now + 3.seconds).to_f}",
+        "Raised ZeroJitterError for the 2nd time",
         "Next execution scheduled at #{(Time.now + 3.seconds).to_f}",
         "Successfully completed job"
       ], JobBuffer.values
