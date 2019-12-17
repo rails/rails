@@ -1,3 +1,12 @@
+*   ActiveRecord's `belongs_to_required_by_default` flag can now be set per model.
+
+    You can now opt-out/opt-in specific models from having their associations required
+    by default.
+    This change is meant to ease the process of migrating all your models to have
+    their association required.
+
+    *Edouard Chin*
+
 *   The `connection_config` method has been deprecated, please use `connection_db_config` instead which will return a `DatabaseConfigurations::DatabaseConfig` instead of a `Hash`.
 
     *Eileen M. Uchitelle*, *John Crepezzi*

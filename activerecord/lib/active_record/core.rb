@@ -120,7 +120,7 @@ module ActiveRecord
 
       mattr_accessor :maintain_test_schema, instance_accessor: false
 
-      mattr_accessor :belongs_to_required_by_default, instance_accessor: false
+      class_attribute :belongs_to_required_by_default, instance_accessor: false
 
       mattr_accessor :connection_handlers, instance_accessor: false, default: {}
 
