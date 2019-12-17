@@ -174,6 +174,20 @@ class LazyLoadHooksTest < ActiveSupport::TestCase
     assert_equal "Hulk Hogan", context.second_wrestler
   end
 
+  def test_hook_sends_a_notification
+    called = false
+    block = ->(_, _, _, _, payload) do
+      assert_equal(:my_hook, payload[:name])
+      called = true
+    end
+
+    ActiveSupport::Notifications.subscribed(block, "run_load_hooks.active_support") do
+      ActiveSupport.run_load_hooks(:my_hook)
+    end
+
+    assert(called)
+  end
+
 private
   def incr_amt
     5

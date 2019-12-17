@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/notifications"
+
 module ActiveSupport
   # lazy_load_hooks allows Rails to lazily load a lot of components and thus
   # making the app boot faster. Because of this feature now there is no need to
@@ -47,9 +49,11 @@ module ActiveSupport
     end
 
     def run_load_hooks(name, base = Object)
-      @loaded[name] << base
-      @load_hooks[name].each do |hook, options|
-        execute_hook(name, base, options, hook)
+      ActiveSupport::Notifications.instrument("run_load_hooks.active_support", name: name, base: base) do
+        @loaded[name] << base
+        @load_hooks[name].each do |hook, options|
+          execute_hook(name, base, options, hook)
+        end
       end
     end
 
