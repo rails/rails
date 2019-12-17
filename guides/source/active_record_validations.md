@@ -1283,7 +1283,7 @@ Furthermore, if you use the Rails form helpers to generate your forms, when
 a validation error occurs on a field, it will generate an extra `<div>` around
 the entry.
 
-```
+```html
 <div class="field_with_errors">
  <input id="article_title" name="article[title]" size="30" type="text" value="">
 </div>
@@ -1292,7 +1292,7 @@ the entry.
 You can then style this div however you'd like. The default scaffold that
 Rails generates, for example, adds this CSS rule:
 
-```
+```css
 .field_with_errors {
   padding: 2px;
   background-color: red;

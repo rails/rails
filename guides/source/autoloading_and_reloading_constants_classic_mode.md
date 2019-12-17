@@ -411,7 +411,7 @@ Autoloading Availability
 Rails is always able to autoload provided its environment is in place. For
 example the `runner` command autoloads:
 
-```
+```bash
 $ rails runner 'p User.column_names'
 ["id", "email", "created_at", "updated_at"]
 ```
@@ -485,7 +485,7 @@ See also [Autoloading in the Test Environment](#autoloading-in-the-test-environm
 The value of `autoload_paths` can be inspected. In a just-generated application
 it is (edited):
 
-```
+```bash
 $ rails r 'puts ActiveSupport::Dependencies.autoload_paths'
 .../app/assets
 .../app/channels
@@ -1185,7 +1185,7 @@ up the constant in `Hotel` and its ancestors. If `app/models/image.rb` has
 been loaded but `app/models/hotel/image.rb` hasn't, Ruby does not find `Image`
 in `Hotel`, but it does in `Object`:
 
-```
+```bash
 $ rails r 'Image; p Hotel::Image' 2>/dev/null
 Image # NOT Hotel::Image!
 ```

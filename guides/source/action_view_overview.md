@@ -1556,7 +1556,7 @@ with the value of the `name`.
 
 would roughly output something like:
 
-```
+```html
 <form method="post" action="/sessions" class="button_to">
   <input type="submit" value="Sign in" />
 </form>

@@ -133,7 +133,7 @@ Rails 6.0 ships with all the rails tasks you need to use multiple databases in R
 
 You can run `rails -T` to see all the commands you're able to run. You should see the following:
 
-```
+```bash
 $ rails -T
 rails db:create                          # Creates the database from DATABASE_URL or config/database.yml for the ...
 rails db:create:animals                  # Create animals database for current environment
@@ -166,7 +166,7 @@ For example the `animals` database would look in the `db/animals_migrate` direct
 `primary` would look in `db/migrate`. Rails generators now take a `--database` option
 so that the file is generated in the correct directory. The command can be run like so:
 
-```
+```bash
 $ rails g migration CreateDogs name:string --database animals
 ```
 
