@@ -134,22 +134,23 @@ module ActiveJob
         case seconds_or_duration_or_algorithm
         when :exponentially_longer
           delay = executions**4
-          delay_jitter = jitter > 0 ? Kernel.rand((executions**4) * jitter) : jitter
+          delay_jitter = determine_jitter_for_delay(delay, jitter)
           delay + delay_jitter + 2
-        when ActiveSupport::Duration
-          duration = seconds_or_duration_or_algorithm.to_i
-          duration_jitter = jitter > 0 ? Kernel.rand(duration * jitter) : jitter
-          duration + duration_jitter
-        when Integer
-          seconds = seconds_or_duration_or_algorithm
-          seconds_jitter = jitter > 0 ? Kernel.rand(seconds * jitter) : jitter
-          seconds + seconds_jitter
+        when ActiveSupport::Duration, Integer
+          delay = seconds_or_duration_or_algorithm.to_i
+          delay_jitter = determine_jitter_for_delay(delay, jitter)
+          delay + delay_jitter
         when Proc
           algorithm = seconds_or_duration_or_algorithm
           algorithm.call(executions)
         else
           raise "Couldn't determine a delay based on #{seconds_or_duration_or_algorithm.inspect}"
         end
+      end
+
+      def determine_jitter_for_delay(delay, jitter)
+        return 0.0 if jitter == 0
+        Kernel.rand(delay * jitter)
       end
 
       def executions_for(exceptions)
