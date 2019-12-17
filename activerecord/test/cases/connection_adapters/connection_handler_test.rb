@@ -389,7 +389,7 @@ module ActiveRecord
             ActiveRecord::Base.establish_connection(:arunit)
 
             pid2 = fork do
-              wr.write ActiveRecord::Base.connection_config[:database]
+              wr.write ActiveRecord::Base.connection_db_config.database
               wr.close
             end
 
