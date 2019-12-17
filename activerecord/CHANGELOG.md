@@ -1,3 +1,7 @@
+*   The `connection_config` method has been deprecated, please use `connection_db_config` instead which will return a `DatabaseConfigurations::DatabaseConfig` instead of a `Hash`.
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
 *   Retain explicit selections on the base model after applying `includes` and `joins`.
 
     Resolves #34889.

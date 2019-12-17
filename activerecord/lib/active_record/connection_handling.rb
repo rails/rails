@@ -199,6 +199,18 @@ module ActiveRecord
     def connection_config
       connection_pool.db_config.configuration_hash
     end
+    deprecate connection_config: "Use connection_db_config instead"
+
+    # Returns the db_config object from the associated connection:
+    #
+    #  ActiveRecord::Base.connection_db_config
+    #    #<ActiveRecord::DatabaseConfigurations::HashConfig:0x00007fd1acbded10 @env_name="development",
+    #      @spec_name="primary", @config={pool: 5, timeout: 5000, database: "db/development.sqlite3", adapter: "sqlite3"}>
+    #
+    # Use only for reading.
+    def connection_db_config
+      connection_pool.db_config
+    end
 
     def connection_pool
       connection_handler.retrieve_connection_pool(connection_specification_name) || raise(ConnectionNotEstablished)
