@@ -127,6 +127,7 @@ module ActiveJob
 
     private
       JITTER_DEFAULT = Object.new
+      private_constant :JITTER_DEFAULT
 
       def determine_delay(seconds_or_duration_or_algorithm:, executions:, jitter: JITTER_DEFAULT)
         jitter = jitter == JITTER_DEFAULT ? self.class.retry_jitter : (jitter || 0.0)
