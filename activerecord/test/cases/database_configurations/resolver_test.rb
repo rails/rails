@@ -6,9 +6,9 @@ module ActiveRecord
   module ConnectionAdapters
     class PoolConfig
       class ResolverTest < ActiveRecord::TestCase
-        def resolve(pool_config, config = {})
+        def resolve_db_config(pool_config, config = {})
           configs = ActiveRecord::DatabaseConfigurations.new(config)
-          configs.resolve(pool_config, pool_config).configuration_hash
+          configs.resolve(pool_config, pool_config)
         end
 
         def test_url_invalid_adapter
@@ -31,107 +31,116 @@ module ActiveRecord
         # checks that the adapter file can be required in.
 
         def test_url_from_environment
-          pool_config = resolve :production, "production" => "abstract://foo?encoding=utf8"
-          assert_equal({
-            adapter:  "abstract",
-            host:     "foo",
-            encoding: "utf8",
-            name:     "production"
-          }, pool_config)
-        end
+          pool_config = resolve_db_config :production, "production" => "abstract://foo?encoding=utf8"
 
-        def test_url_sub_key
-          pool_config = resolve :production, "production" => { "url" => "abstract://foo?encoding=utf8" }
-          assert_equal({
-            adapter:  "abstract",
-            host:     "foo",
-            encoding: "utf8",
-            name:     "production"
-          }, pool_config)
-        end
-
-        def test_url_sub_key_merges_correctly
-          hash = { "url" => "abstract://foo?encoding=utf8&", "adapter" => "sqlite3", "host" => "bar", "pool" => "3" }
-          pool_config = resolve :production, "production" => hash
-          assert_equal({
-            adapter:  "abstract",
-            host:     "foo",
-            encoding: "utf8",
-            pool:     "3",
-            name:     "production"
-          }, pool_config)
-        end
-
-        def test_url_host_no_db
-          pool_config = resolve "abstract://foo?encoding=utf8"
           assert_equal({
             adapter:  "abstract",
             host:     "foo",
             encoding: "utf8"
-          }, pool_config)
+          }, pool_config.configuration_hash)
+          assert_equal "production", pool_config.owner_name
+        end
+
+        def test_url_sub_key
+          pool_config = resolve_db_config :production, "production" => { "url" => "abstract://foo?encoding=utf8" }
+
+          assert_equal({
+            adapter:  "abstract",
+            host:     "foo",
+            encoding: "utf8"
+          }, pool_config.configuration_hash)
+          assert_equal "production", pool_config.owner_name
+        end
+
+        def test_url_sub_key_merges_correctly
+          hash = { "url" => "abstract://foo?encoding=utf8&", "adapter" => "sqlite3", "host" => "bar", "pool" => "3" }
+          pool_config = resolve_db_config :production, "production" => hash
+
+          assert_equal({
+            adapter:  "abstract",
+            host:     "foo",
+            encoding: "utf8",
+            pool:     "3"
+          }, pool_config.configuration_hash)
+          assert_equal "production", pool_config.owner_name
+        end
+
+        def test_url_host_no_db
+          pool_config = resolve_db_config "abstract://foo?encoding=utf8"
+          assert_equal({
+            adapter:  "abstract",
+            host:     "foo",
+            encoding: "utf8"
+          }, pool_config.configuration_hash)
         end
 
         def test_url_missing_scheme
           assert_raises ActiveRecord::DatabaseConfigurations::InvalidConfigurationError do
-            resolve "foo"
+            resolve_db_config "foo"
           end
         end
 
         def test_url_host_db
-          pool_config = resolve "abstract://foo/bar?encoding=utf8"
+          pool_config = resolve_db_config "abstract://foo/bar?encoding=utf8"
           assert_equal({
             adapter:  "abstract",
             database: "bar",
             host:     "foo",
             encoding: "utf8"
-          }, pool_config)
+          }, pool_config.configuration_hash)
         end
 
         def test_url_port
-          pool_config = resolve "abstract://foo:123?encoding=utf8"
+          pool_config = resolve_db_config "abstract://foo:123?encoding=utf8"
+
           assert_equal({
             adapter:  "abstract",
             port:     123,
             host:     "foo",
             encoding: "utf8"
-          }, pool_config)
+          }, pool_config.configuration_hash)
         end
 
         def test_encoded_password
           password = "am@z1ng_p@ssw0rd#!"
           encoded_password = URI.encode_www_form_component(password)
-          pool_config = resolve "abstract://foo:#{encoded_password}@localhost/bar"
-          assert_equal password, pool_config[:password]
+          pool_config = resolve_db_config "abstract://foo:#{encoded_password}@localhost/bar"
+
+          assert_equal password, pool_config.configuration_hash[:password]
         end
 
         def test_url_with_authority_for_sqlite3
-          pool_config = resolve "sqlite3:///foo_test"
-          assert_equal("/foo_test", pool_config[:database])
+          pool_config = resolve_db_config "sqlite3:///foo_test"
+
+          assert_equal("/foo_test", pool_config.database)
         end
 
         def test_url_absolute_path_for_sqlite3
-          pool_config = resolve "sqlite3:/foo_test"
-          assert_equal("/foo_test", pool_config[:database])
+          pool_config = resolve_db_config "sqlite3:/foo_test"
+
+          assert_equal("/foo_test", pool_config.database)
         end
 
         def test_url_relative_path_for_sqlite3
-          pool_config = resolve "sqlite3:foo_test"
-          assert_equal("foo_test", pool_config[:database])
+          pool_config = resolve_db_config "sqlite3:foo_test"
+
+          assert_equal("foo_test", pool_config.database)
         end
 
         def test_url_memory_db_for_sqlite3
-          pool_config = resolve "sqlite3::memory:"
-          assert_equal(":memory:", pool_config[:database])
+          pool_config = resolve_db_config "sqlite3::memory:"
+          assert_equal(":memory:", pool_config.database)
         end
 
         def test_url_sub_key_for_sqlite3
-          pool_config = resolve :production, "production" => { "url" => "sqlite3:foo?encoding=utf8" }
+          pool_config = resolve_db_config :production, "production" => { "url" => "sqlite3:foo?encoding=utf8" }
+
           assert_equal({
             adapter:  "sqlite3",
             database: "foo",
-            encoding: "utf8",
-            name:     "production"
-          }, pool_config)
+            encoding: "utf8"
+          }, pool_config.configuration_hash)
+          assert_equal "production", pool_config.owner_name
         end
 
         def test_pool_config_with_invalid_type

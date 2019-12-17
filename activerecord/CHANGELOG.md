@@ -1,7 +1,12 @@
+*   The `:name` key will no longer be returned as part of `DatabaseConfig#configuration_hash`. Please use `DatabaseConfig#owner_name` instead.
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
 *   ActiveRecord's `belongs_to_required_by_default` flag can now be set per model.
 
     You can now opt-out/opt-in specific models from having their associations required
     by default.
+
     This change is meant to ease the process of migrating all your models to have
     their association required.
 
