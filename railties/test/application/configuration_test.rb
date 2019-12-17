@@ -1902,13 +1902,9 @@ module ApplicationTests
     end
 
     test "config_for loads custom configuration from yaml accessible as symbol or string" do
-      app_file "config/custom.yml", <<-RUBY
-      development:
-        foo: 'bar'
-      RUBY
-
-      add_to_config <<-RUBY
-        config.my_custom_config = config_for('custom')
+      set_custom_config <<~RUBY
+        development:
+          foo: "bar"
       RUBY
 
       app "development"
@@ -1918,15 +1914,11 @@ module ApplicationTests
     end
 
     test "config_for loads nested custom configuration from yaml as symbol keys" do
-      app_file "config/custom.yml", <<-RUBY
-      development:
-        foo:
-          bar:
-            baz: 1
-      RUBY
-
-      add_to_config <<-RUBY
-        config.my_custom_config = config_for('custom')
+      set_custom_config <<~RUBY
+        development:
+          foo:
+            bar:
+              baz: 1
       RUBY
 
       app "development"
@@ -1935,21 +1927,16 @@ module ApplicationTests
     end
 
     test "config_for makes all hash methods available" do
-      app_file "config/custom.yml", <<-RUBY
-      development:
-        foo: 0
-        bar:
-          baz: 1
-      RUBY
-
-      add_to_config <<-RUBY
-        config.my_custom_config = config_for('custom')
+      set_custom_config <<~RUBY
+        development:
+          foo: 0
+          bar:
+            baz: 1
       RUBY
 
       app "development"
 
       actual = Rails.application.config.my_custom_config
-
       assert_equal({ foo: 0, bar: { baz: 1 } }, actual)
       assert_equal([ :foo, :bar ], actual.keys)
       assert_equal([ 0, baz: 1], actual.values)
@@ -1958,14 +1945,22 @@ module ApplicationTests
       assert_equal({ baz: 1 }, actual[:bar])
     end
 
-    test "config_for uses the Pathname object if it is provided" do
-      app_file "config/custom.yml", <<-RUBY
-      development:
-        key: 'custom key'
+    test "config_for does not assume config is a hash" do
+      set_custom_config <<~RUBY
+        development:
+          - foo
+          - bar
       RUBY
 
-      add_to_config <<-RUBY
-        config.my_custom_config = config_for(Pathname.new(Rails.root.join("config/custom.yml")))
+      app "development"
+
+      assert_equal %w( foo bar ), Rails.application.config.my_custom_config
+    end
+
+    test "config_for uses the Pathname object if it is provided" do
+      set_custom_config <<~RUBY, "Pathname.new(Rails.root.join('config/custom.yml'))"
+        development:
+          key: 'custom key'
       RUBY
 
       app "development"
@@ -1985,69 +1980,53 @@ module ApplicationTests
       assert_equal "Could not load configuration. No such file - #{app_path}/config/custom.yml", exception.message
     end
 
-    test "config_for without the environment configured returns an empty hash" do
-      app_file "config/custom.yml", <<-RUBY
-      test:
-        key: 'custom key'
-      RUBY
-
-      add_to_config <<-RUBY
-        config.my_custom_config = config_for('custom')
+    test "config_for without the environment configured returns nil" do
+      set_custom_config <<~RUBY
+        test:
+          key: 'custom key'
       RUBY
 
       app "development"
 
-      assert_equal({}, Rails.application.config.my_custom_config)
+      assert_nil Rails.application.config.my_custom_config
     end
 
-    test "config_for implements shared configuration as secrets case found" do
-      app_file "config/custom.yml", <<-RUBY
-      shared:
-        foo: :bar
-      test:
-        foo: :baz
-      RUBY
-
-      add_to_config <<-RUBY
-        config.my_custom_config = config_for('custom')
+    test "config_for shared config is overriden" do
+      set_custom_config <<~RUBY
+        shared:
+          foo: :from_shared
+        test:
+          foo: :from_env
       RUBY
 
       app "test"
 
-      assert_equal(:baz, Rails.application.config.my_custom_config[:foo])
+      assert_equal :from_env, Rails.application.config.my_custom_config[:foo]
     end
 
-    test "config_for implements shared configuration as secrets case not found" do
-      app_file "config/custom.yml", <<-RUBY
-      shared:
-        foo: :bar
-      test:
-        foo: :baz
-      RUBY
-
-      add_to_config <<-RUBY
-        config.my_custom_config = config_for('custom')
+    test "config_for shared config is returned when environment is missing" do
+      set_custom_config <<~RUBY
+        shared:
+          foo: :from_shared
+        test:
+          foo: :from_env
       RUBY
 
       app "development"
 
-      assert_equal(:bar, Rails.application.config.my_custom_config[:foo])
+      assert_equal :from_shared, Rails.application.config.my_custom_config[:foo]
     end
 
     test "config_for merges shared configuration deeply" do
-      app_file "config/custom.yml", <<-RUBY
-      shared:
-        foo:
-          bar:
-            baz: 1
-      development:
-        foo:
-          bar:
-            qux: 2
-      RUBY
-
-      add_to_config <<-RUBY
-        config.my_custom_config = config_for('custom')
+      set_custom_config <<~RUBY
+        shared:
+          foo:
+            bar:
+              baz: 1
+        development:
+          foo:
+            bar:
+              qux: 2
       RUBY
 
       app "development"
@@ -2055,27 +2034,18 @@ module ApplicationTests
       assert_equal({ baz: 1, qux: 2 }, Rails.application.config.my_custom_config[:foo][:bar])
     end
 
-    test "config_for with empty file returns an empty hash" do
-      app_file "config/custom.yml", <<-RUBY
-      RUBY
-
-      add_to_config <<-RUBY
-        config.my_custom_config = config_for('custom')
-      RUBY
+    test "config_for with empty file returns nil" do
+      set_custom_config ""
 
       app "development"
 
-      assert_equal({}, Rails.application.config.my_custom_config)
+      assert_nil Rails.application.config.my_custom_config
     end
 
     test "config_for containing ERB tags should evaluate" do
-      app_file "config/custom.yml", <<-RUBY
-      development:
-        key: <%= 'custom key' %>
-      RUBY
-
-      add_to_config <<-RUBY
-        config.my_custom_config = config_for('custom')
+      set_custom_config <<~RUBY
+        development:
+          key: <%= 'custom key' %>
       RUBY
 
       app "development"
@@ -2084,33 +2054,25 @@ module ApplicationTests
     end
 
     test "config_for with syntax error show a more descriptive exception" do
-      app_file "config/custom.yml", <<-RUBY
-      development:
-        key: foo:
+      set_custom_config <<~RUBY
+        development:
+          key: foo:
       RUBY
 
-      add_to_config <<-RUBY
-        config.my_custom_config = config_for('custom')
-      RUBY
-
-      exception = assert_raises(RuntimeError) do
+      error = assert_raises RuntimeError do
         app "development"
       end
-
-      assert_match "YAML syntax error occurred while parsing", exception.message
+      assert_match "YAML syntax error occurred while parsing", error.message
     end
 
     test "config_for allows overriding the environment" do
-      app_file "config/custom.yml", <<-RUBY
+      set_custom_config <<~RUBY, "'custom', env: 'production'"
         test:
           key: 'walrus'
         production:
-            key: 'unicorn'
+          key: 'unicorn'
       RUBY
 
-      add_to_config <<-RUBY
-          config.my_custom_config = config_for('custom', env: 'production')
-      RUBY
       require "#{app_path}/config/environment"
 
       assert_equal "unicorn", Rails.application.config.my_custom_config[:key]
@@ -2528,6 +2490,14 @@ module ApplicationTests
     private
       def force_lazy_load_hooks
         yield # Tasty clarifying sugar, homie! We only need to reference a constant to load it.
+      end
+
+      def set_custom_config(contents, config_source = "custom".inspect)
+        app_file "config/custom.yml", contents
+
+        add_to_config <<~RUBY
+          config.my_custom_config = config_for(#{config_source})
+        RUBY
       end
   end
 end
