@@ -1,3 +1,9 @@
+*   Deprecate `#default_hash` and it's alias `#[]` on database configurations
+
+    Applications should use `configs_for`. `#default_hash` and `#[]` will be removed in 6.2.
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
 *   Add scale support to `ActiveRecord::Validations::NumericalityValidator`.
 
     *Gannon McGibbon*

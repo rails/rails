@@ -1056,7 +1056,8 @@ module ActiveRecord
         assert_operator AuthorAddress.count, :>, 0
 
         old_configurations = ActiveRecord::Base.configurations
-        configurations = { development: ActiveRecord::Base.configurations["arunit"] }
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+        configurations = { development: db_config.configuration_hash }
         ActiveRecord::Base.configurations = configurations
 
         ActiveRecord::Tasks::DatabaseTasks.stub(:root, nil) do
