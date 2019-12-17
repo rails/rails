@@ -1451,6 +1451,23 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 
 * `add_builtin_route`: If the application is running under the development environment then this will append the route for `rails/info/properties` to the application routes. This route provides the detailed information such as Rails and Ruby version for `public/index.html` in a default Rails application.
 
+* `notify_early_loaded_component`: Loading Rails components inside initializers can cause issues and increate boot time of your application. This initializer checks if a Rails component was referenced too early and send a notification that you can subscribe to in order to take action:
+
+```ruby
+# config/environment.rb
+
+require_relative 'application'
+
+callback = ->(_, _, _, _, payload) do
+  raise("Rails components accessed too early: payload[:components]")
+end
+
+ActiveSupport::Notifications.subscribed(callback, 'components_loaded.rails') do
+  Rails.application.initialize!
+end
+```
+In order to fix this problem, use [lazy load hooks](https://api.rubyonrails.org/classes/ActiveSupport/LazyLoadHooks.html)
+
 * `build_middleware_stack`: Builds the middleware stack for the application, returning an object which has a `call` method which takes a Rack environment object for the request.
 
 * `eager_load!`: If `config.eager_load` is `true`, runs the `config.before_eager_load` hooks and then calls `eager_load!` which will load all `config.eager_load_namespaces`.

@@ -2,6 +2,7 @@
 
 require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/array/conversions"
+require "active_support/notifications"
 
 module Rails
   class Application
@@ -90,6 +91,28 @@ module Rails
         unless app.config.session_store?
           app_name = app.class.name ? app.railtie_name.chomp("_application") : ""
           app.config.session_store :cookie_store, key: "_#{app_name}_session"
+        end
+      end
+
+      initializer :notify_early_loaded_component do
+        next if config.eager_load
+
+        rails_components = [
+          :action_view,
+          :action_cable,
+          :action_controller,
+          :active_job,
+          :action_mailer,
+          :active_record
+        ]
+        loaded_components = ActiveSupport.loaded_components.keys & rails_components
+        if loaded_components.any?
+          $stderr.puts(<<~EOM)
+            Your application (or a dependencies) is making use of Rails component too early on boot.
+            This can cause various issues (such as ignoring some configuration values you set) and increase boot time.
+            To discard this warning, use lazy load hooks instead.
+          EOM
+          ActiveSupport::Notifications.instrument("components_loaded.rails", components: loaded_components)
         end
       end
 

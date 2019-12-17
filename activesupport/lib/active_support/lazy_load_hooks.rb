@@ -46,6 +46,10 @@ module ActiveSupport
       @load_hooks[name] << [block, options]
     end
 
+    def loaded_components # :nodoc:
+      @loaded.select { |k, v| v.any? }
+    end
+
     def run_load_hooks(name, base = Object)
       @loaded[name] << base
       @load_hooks[name].each do |hook, options|
