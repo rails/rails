@@ -1,3 +1,10 @@
+*   Fix possible information leak / session hijacking vulnerability.
+
+    The `ActionDispatch::Session::MemcacheStore` is still vulnerable given it requires the
+    gem dalli to be updated as well.
+
+    CVE-2019-16782.
+
 *   Include child session assertion count in ActionDispatch::IntegrationTest
 
     `IntegrationTest#open_session` uses `dup` to create the new session, which
