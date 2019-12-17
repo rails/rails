@@ -114,6 +114,8 @@ module ActionView
       #
       #   number_to_currency("123a456", raise: true)           # => InvalidNumberError
       #
+      #   number_to_currency(-0.456789, precision: 0)
+      #   # => "$0"
       #   number_to_currency(-1234567890.50, negative_format: "(%u%n)")
       #   # => ($1,234,567,890.50)
       #   number_to_currency(1234567890.50, unit: "R$", separator: ",", delimiter: "")
