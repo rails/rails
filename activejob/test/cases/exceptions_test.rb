@@ -164,11 +164,11 @@ class ExceptionsTest < ActiveSupport::TestCase
        "Raised DisabledJitterError for the 1st time",
        "Next execution scheduled at #{(Time.now + 3.seconds).to_f}",
        "Raised DisabledJitterError for the 2nd time",
-       "Next execution scheduled at #{(Time.now + 6.seconds).to_f}",
+       "Next execution scheduled at #{(Time.now + 3.seconds).to_f}",
        "Raised DisabledJitterError for the 3rd time",
-       "Next execution scheduled at #{(Time.now + 9.seconds).to_f}",
+       "Next execution scheduled at #{(Time.now + 3.seconds).to_f}",
        "Raised DisabledJitterError for the 4th time",
-       "Next execution scheduled at #{(Time.now + 12.seconds).to_f}",
+       "Next execution scheduled at #{(Time.now + 3.seconds).to_f}",
        "Successfully completed job"
      ], JobBuffer.values
    end

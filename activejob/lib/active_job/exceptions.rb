@@ -133,13 +133,17 @@ module ActiveJob
 
         case seconds_or_duration_or_algorithm
         when :exponentially_longer
-          ((executions**4) + (Kernel.rand((executions**4) * jitter))) + 2
+          delay = executions**4
+          delay_jitter = jitter > 0 ? Kernel.rand((executions**4) * jitter) : jitter
+          delay + delay_jitter + 2
         when ActiveSupport::Duration
           duration = seconds_or_duration_or_algorithm.to_i
-          duration + Kernel.rand(duration * jitter)
+          duration_jitter = jitter > 0 ? Kernel.rand(duration * jitter) : jitter
+          duration + duration_jitter
         when Integer
           seconds = seconds_or_duration_or_algorithm
-          seconds + (Kernel.rand(seconds * jitter).ceil)
+          seconds_jitter = jitter > 0 ? Kernel.rand(seconds * jitter) : jitter
+          seconds + seconds_jitter
         when Proc
           algorithm = seconds_or_duration_or_algorithm
           algorithm.call(executions)
