@@ -1,8 +1,6 @@
 (function() {
   "use strict";
 
-  this.syntaxhighlighterConfig = { autoLinks: false };
-
   this.wrap = function(elem, wrapper) {
     elem.parentNode.insertBefore(wrapper, elem);
     wrapper.appendChild(elem);
