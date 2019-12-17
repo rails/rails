@@ -158,16 +158,12 @@ class ExceptionsTest < ActiveSupport::TestCase
    travel_to Time.now
 
    Kernel.stub(:rand, ->(arg) { arg }) do
-     RetryJob.perform_later "DisabledJitterError", 5, :log_scheduled_at
+     RetryJob.perform_later "DisabledJitterError", 3, :log_scheduled_at
 
      assert_equal [
        "Raised DisabledJitterError for the 1st time",
        "Next execution scheduled at #{(Time.now + 3.seconds).to_f}",
        "Raised DisabledJitterError for the 2nd time",
-       "Next execution scheduled at #{(Time.now + 3.seconds).to_f}",
-       "Raised DisabledJitterError for the 3rd time",
-       "Next execution scheduled at #{(Time.now + 3.seconds).to_f}",
-       "Raised DisabledJitterError for the 4th time",
        "Next execution scheduled at #{(Time.now + 3.seconds).to_f}",
        "Successfully completed job"
      ], JobBuffer.values
