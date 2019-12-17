@@ -111,7 +111,9 @@ security features which in turn may weaken the strength of the key.
 
 In test and development applications get a `secret_key_base` derived from the app name. Other environments must use a random key present in `config/credentials.yml.enc`, shown here in its decrypted state:
 
-    secret_key_base: 492f...
+```yaml
+secret_key_base: 492f...
+```
 
 WARNING: If your application's secrets may have been exposed, strongly consider changing them. Changing `secret_key_base` will expire currently active sessions.
 
@@ -1181,8 +1183,10 @@ By default, this file contains the application's
 The secrets kept in credentials file are accessible via `Rails.application.credentials`.
 For example, with the following decrypted `config/credentials.yml.enc`:
 
-    secret_key_base: 3b7cd727ee24e8444053437c36cc66c3
-    some_api_key: SOMEKEY
+```yaml
+secret_key_base: 3b7cd727ee24e8444053437c36cc66c3
+some_api_key: SOMEKEY
+```
 
 `Rails.application.credentials.some_api_key` returns `SOMEKEY` in any environment.
 

@@ -967,7 +967,7 @@ The `config/database.yml` file contains sections for three different environment
 
 If you wish, you can manually specify a URL inside of your `config/database.yml`
 
-```
+```yaml
 development:
   url: postgresql://localhost/blog_development?pool=5
 ```
@@ -984,7 +984,7 @@ Since there are two ways to configure your connection (using `config/database.ym
 
 If you have an empty `config/database.yml` file but your `ENV['DATABASE_URL']` is present, then Rails will connect to the database via your environment variable:
 
-```
+```bash
 $ cat config/database.yml
 
 $ echo $DATABASE_URL
@@ -993,7 +993,7 @@ postgresql://localhost/my_database
 
 If you have a `config/database.yml` but no `ENV['DATABASE_URL']` then this file will be used to connect to your database:
 
-```
+```bash
 $ cat config/database.yml
 development:
   adapter: postgresql
@@ -1007,7 +1007,7 @@ If you have both `config/database.yml` and `ENV['DATABASE_URL']` set then Rails 
 
 When duplicate connection information is provided the environment variable will take precedence:
 
-```
+```bash
 $ cat config/database.yml
 development:
   adapter: sqlite3
@@ -1033,7 +1033,7 @@ Here the adapter, host, and database match the information in `ENV['DATABASE_URL
 
 If non-duplicate information is provided you will get all unique values, environment variable still takes precedence in cases of any conflicts.
 
-```
+```bash
 $ cat config/database.yml
 development:
   adapter: sqlite3
@@ -1058,7 +1058,7 @@ Since pool is not in the `ENV['DATABASE_URL']` provided connection information i
 
 The only way to explicitly not use the connection information in `ENV['DATABASE_URL']` is to specify an explicit URL connection using the `"url"` sub key:
 
-```
+```bash
 $ cat config/database.yml
 development:
   url: sqlite3:NOT_my_database
@@ -1082,7 +1082,7 @@ Here the connection information in `ENV['DATABASE_URL']` is ignored, note the di
 
 Since it is possible to embed ERB in your `config/database.yml` it is best practice to explicitly show you are using the `ENV['DATABASE_URL']` to connect to your database. This is especially useful in production since you should not commit secrets like your database password into your source control (such as Git).
 
-```
+```bash
 $ cat config/database.yml
 production:
   url: <%= ENV['DATABASE_URL'] %>
@@ -1156,7 +1156,7 @@ production:
 
 If enabled, Active Record will create up to `1000` prepared statements per database connection by default. To modify this behavior you can set `statement_limit` to a different value:
 
-```
+```yaml
 production:
   adapter: postgresql
   statement_limit: 200

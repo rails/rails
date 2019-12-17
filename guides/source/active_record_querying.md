@@ -1808,7 +1808,7 @@ Client.pluck(:name)
 
 You are not limited to querying fields from a single table, you can query multiple tables as well.
 
-```
+```ruby
 Client.joins(:comments, :categories).pluck("clients.email, comments.title, categories.name")
 ```
 
@@ -2004,7 +2004,7 @@ User.where(id: 1).joins(:articles).explain
 
 may yield
 
-```
+```sql
 EXPLAIN for: SELECT `users`.* FROM `users` INNER JOIN `articles` ON `articles`.`user_id` = `users`.`id` WHERE `users`.`id` = 1
 +----+-------------+----------+-------+---------------+
 | id | select_type | table    | type  | possible_keys |
@@ -2028,7 +2028,7 @@ Active Record performs a pretty printing that emulates that of the
 corresponding database shell. So, the same query running with the
 PostgreSQL adapter would yield instead
 
-```
+```sql
 EXPLAIN for: SELECT "users".* FROM "users" INNER JOIN "articles" ON "articles"."user_id" = "users"."id" WHERE "users"."id" = 1
                                   QUERY PLAN
 ------------------------------------------------------------------------------
@@ -2051,7 +2051,7 @@ User.where(id: 1).includes(:articles).explain
 
 yields
 
-```
+```sql
 EXPLAIN for: SELECT `users`.* FROM `users`  WHERE `users`.`id` = 1
 +----+-------------+-------+-------+---------------+
 | id | select_type | table | type  | possible_keys |

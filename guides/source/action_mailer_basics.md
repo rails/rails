@@ -443,7 +443,7 @@ You can also consider using the [append_view_path](https://guides.rubyonrails.or
 
 You can perform fragment caching in mailer views like in application views using the `cache` method.
 
-```
+```html+erb
 <% cache do %>
   <%= @company.name %>
 <% end %>
@@ -451,8 +451,8 @@ You can perform fragment caching in mailer views like in application views using
 
 And in order to use this feature, you need to configure your application with this:
 
-```
-  config.action_mailer.perform_caching = true
+```ruby
+config.action_mailer.perform_caching = true
 ```
 
 Fragment caching is also supported in multipart emails.
@@ -542,13 +542,13 @@ Because of this behavior you cannot use any of the `*_path` helpers inside of
 an email. Instead you will need to use the associated `*_url` helper. For example
 instead of using
 
-```
+```html+erb
 <%= link_to 'welcome', welcome_path %>
 ```
 
 You will need to use:
 
-```
+```html+erb
 <%= link_to 'welcome', welcome_url %>
 ```
 

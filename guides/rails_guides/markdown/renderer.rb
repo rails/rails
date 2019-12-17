@@ -60,7 +60,7 @@ module RailsGuides
 
         def class_for(code_type)
           case code_type
-          when "ruby", "sql", "plain", "js"
+          when "ruby", "sql", "plain", "js", "yaml"
             code_type
           when "erb", "html+erb"
             "erb"

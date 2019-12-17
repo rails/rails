@@ -447,7 +447,7 @@ available configuration options in [Configuring Rails Applications](configuring.
 If you need to create a link from outside of controller/view context (Background
 jobs, Cronjobs, etc.), you can access the rails_blob_path like this:
 
-```
+```ruby
 Rails.application.routes.url_helpers.rails_blob_path(user.avatar, only_path: true)
 ```
 
