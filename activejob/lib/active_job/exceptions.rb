@@ -53,7 +53,7 @@ module ActiveJob
       #      # Might raise Net::OpenTimeout or Timeout::Error when the remote service is down
       #    end
       #  end
-      def retry_on(*exceptions, wait: 3.seconds, attempts: 5, queue: nil, priority: nil, jitter: nil)
+      def retry_on(*exceptions, wait: 3.seconds, attempts: 5, queue: nil, priority: nil, jitter: JITTER_DEFAULT)
         rescue_from(*exceptions) do |error|
           executions = executions_for(exceptions)
           if executions < attempts
@@ -126,8 +126,11 @@ module ActiveJob
     end
 
     private
-      def determine_delay(seconds_or_duration_or_algorithm:, executions:, jitter: nil)
-        jitter ||= self.class.retry_jitter
+      JITTER_DEFAULT = Object.new
+
+      def determine_delay(seconds_or_duration_or_algorithm:, executions:, jitter: JITTER_DEFAULT)
+        jitter = jitter == JITTER_DEFAULT ? self.class.retry_jitter : (jitter || 0.0)
+
         case seconds_or_duration_or_algorithm
         when :exponentially_longer
           ((executions**4) + (Kernel.rand((executions**4) * jitter))) + 2
