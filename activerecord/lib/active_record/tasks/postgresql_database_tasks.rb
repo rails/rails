@@ -101,7 +101,7 @@ module ActiveRecord
         end
 
         def set_psql_env
-          ENV["PGHOST"]     = configuration_hash[:host]          if configuration_hash[:host]
+          ENV["PGHOST"]     = db_config.host                     if db_config.host
           ENV["PGPORT"]     = configuration_hash[:port].to_s     if configuration_hash[:port]
           ENV["PGPASSWORD"] = configuration_hash[:password].to_s if configuration_hash[:password]
           ENV["PGUSER"]     = configuration_hash[:username].to_s if configuration_hash[:username]

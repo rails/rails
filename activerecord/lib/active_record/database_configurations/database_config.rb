@@ -21,6 +21,10 @@ module ActiveRecord
         "#{adapter}_connection"
       end
 
+      def host
+        raise NotImplementedError
+      end
+
       def database
         raise NotImplementedError
       end

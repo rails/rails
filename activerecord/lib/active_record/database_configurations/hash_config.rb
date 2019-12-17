@@ -53,6 +53,10 @@ module ActiveRecord
         configuration_hash[:migrations_paths]
       end
 
+      def host
+        configuration_hash[:host]
+      end
+
       def database
         configuration_hash[:database]
       end
