@@ -508,7 +508,7 @@ module ActiveRecord
         end
 
         def local_database?(db_config)
-          host = db_config.configuration_hash[:host]
+          host = db_config.host
           host.blank? || LOCAL_HOSTS.include?(host)
         end
 
