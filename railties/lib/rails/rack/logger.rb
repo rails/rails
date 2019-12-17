@@ -23,7 +23,8 @@ module Rails
         request = ActionDispatch::Request.new(env)
 
         if logger.respond_to?(:tagged)
-          logger.tagged(compute_tags(request)) { call_app(request, env) }
+          tags = compute_tags(request)
+          logger.tagged(tags) { call_app(request, env) }
         else
           call_app(request, env)
         end
@@ -54,15 +55,21 @@ module Rails
         end
 
         def compute_tags(request) # :doc:
-          @taggers.collect do |tag|
-            case tag
-            when Proc
-              tag.call(request)
-            when Symbol
-              request.send(tag)
-            else
-              tag
-            end
+          if @taggers.respond_to?(:transform_values)
+            @taggers.transform_values { |tag| transformer(tag, request) }
+          else
+            @taggers.collect { |tag| transformer(tag, request) }
+          end
+        end
+
+        def transformer(tag, request)
+          case tag
+          when Proc
+            tag.call(request)
+          when Symbol
+            request.send(tag)
+          else
+            tag
           end
         end
 

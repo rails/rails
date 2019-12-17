@@ -5,6 +5,7 @@ require "active_support/testing/autorun"
 require "active_support/test_case"
 require "rails/rack/logger"
 require "logger"
+require "minitest/mock"
 
 module Rails
   module Rack
@@ -89,6 +90,24 @@ module Rails
             logger.call("REQUEST_METHOD" => "GET")
           end
         end
+      end
+
+      def test_log_tags_can_be_a_hash
+        trace_id = "abc123"
+        remote_ip = "127.0.0.1"
+        log_tags = {
+          ip: :remote_ip,
+          trace_id: ->(request) { trace_id },
+        }
+        expected_tags = {
+          ip: remote_ip,
+          trace_id: trace_id,
+        }
+        log = MiniTest::Mock.new
+        logger = TestLogger.new(log, taggers: log_tags) { }
+
+        log.expect(:tagged, true, [expected_tags])
+        logger.call("REQUEST_METHOD" => "GET", "REMOTE_ADDR" => remote_ip)
       end
     end
   end
