@@ -205,13 +205,30 @@ module ActiveRecord
       #
       # == Nested transactions support
       #
+      # #transaction calls can be nested. By default, this makes all database
+      # statements in the nested transaction block become part of the parent
+      # transaction. For example, the following behavior may be surprising:
+      #
+      #   ActiveRecord::Base.transaction do
+      #     Post.create(title: 'first')
+      #     ActiveRecord::Base.transaction do
+      #       Post.create(title: 'second')
+      #       raise ActiveRecord::Rollback
+      #     end
+      #   end
+      #
+      # This creates both "first" and "second" posts. Reason is the
+      # ActiveRecord::Rollback exception in the nested block does not issue a
+      # ROLLBACK. Since these exceptions are captured in transaction blocks,
+      # the parent block does not see it and the real transaction is committed.
+      #
       # Most databases don't support true nested transactions. At the time of
       # writing, the only database that supports true nested transactions that
       # we're aware of, is MS-SQL.
       #
       # In order to get around this problem, #transaction will emulate the effect
       # of nested transactions, by using savepoints:
-      # https://dev.mysql.com/doc/refman/en/savepoint.html
+      # https://dev.mysql.com/doc/refman/en/savepoint.html.
       #
       # It is safe to call this method if a database transaction is already open,
       # i.e. if #transaction is called within another #transaction block. In case
@@ -222,6 +239,26 @@ module ActiveRecord
       #   open database transaction.
       # - However, if +:requires_new+ is set, the block will be wrapped in a
       #   database savepoint acting as a sub-transaction.
+      #
+      # In order to get a ROLLBACK for the nested transaction you may ask for a
+      # real sub-transaction by passing <tt>requires_new: true</tt>.
+      # If anything goes wrong, the database rolls back to the beginning of
+      # the sub-transaction without rolling back the parent transaction.
+      # If we add it to the previous example:
+      #
+      #   ActiveRecord::Base.transaction do
+      #     Post.create(title: 'first')
+      #     ActiveRecord::Base.transaction(requires_new: true) do
+      #       Post.create(title: 'second')
+      #       raise ActiveRecord::Rollback
+      #     end
+      #   end
+      #
+      # only post with title "first" is created.
+      # This works on MySQL and PostgreSQL. SQLite3 version >= '3.6.8' also
+      # supports it.
+      #
+      # See ActiveRecord::Transactions to learn more.
       #
       # === Caveats
       #
