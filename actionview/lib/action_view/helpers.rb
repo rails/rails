@@ -15,6 +15,7 @@ module ActionView #:nodoc:
     autoload :ControllerHelper
     autoload :CspHelper
     autoload :CsrfHelper
+    autoload :CssHelper
     autoload :DateHelper
     autoload :DebugHelper
     autoload :FormHelper
