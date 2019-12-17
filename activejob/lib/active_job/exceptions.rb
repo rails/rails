@@ -150,7 +150,7 @@ module ActiveJob
       end
 
       def determine_jitter_for_delay(delay, jitter)
-        return 0.0 if jitter == 0
+        return 0.0 if jitter.zero?
         Kernel.rand(delay * jitter)
       end
 
