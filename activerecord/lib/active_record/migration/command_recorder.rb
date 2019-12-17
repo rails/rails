@@ -73,7 +73,12 @@ module ActiveRecord
       #   recorder.record(:method_name, [:arg1, :arg2])
       def record(*command, &block)
         if @reverting
-          @commands << inverse_of(*command, &block)
+          inverse_command = inverse_of(*command, &block)
+          if inverse_command[0].is_a?(Array)
+            @commands = @commands.concat(inverse_command)
+          else
+            @commands << inverse_command
+          end
         else
           @commands << (command << block)
         end
@@ -83,6 +88,11 @@ module ActiveRecord
       #
       #   recorder.inverse_of(:rename_table, [:old, :new])
       #   # => [:rename_table, [:new, :old]]
+      #
+      # If the inverse of a command requires several commands, returns array of commands.
+      #
+      #   recorder.inverse_of(:remove_columns, [:some_table, :foo, :bar, type: :string])
+      #   # => [[:add_column, :some_table, :foo, :string], [:add_column, :some_table, :bar, :string]]
       #
       # This method will raise an +IrreversibleMigration+ exception if it cannot
       # invert the +command+.
@@ -166,6 +176,18 @@ module ActiveRecord
         def invert_remove_column(args)
           raise ActiveRecord::IrreversibleMigration, "remove_column is only reversible if given a type." if args.size <= 2
           super
+        end
+
+        def invert_remove_columns(args)
+          unless args[-1].is_a?(Hash) && args[-1].has_key?(:type)
+            raise ActiveRecord::IrreversibleMigration, "remove_columns is only reversible if given a type."
+          end
+
+          column_options = args.extract_options!
+          type = column_options.delete(:type)
+          args[1..-1].map do |arg|
+            [:add_column, [args[0], arg, type, column_options]]
+          end
         end
 
         def invert_rename_index(args)
