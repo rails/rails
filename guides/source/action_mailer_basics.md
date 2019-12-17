@@ -16,8 +16,8 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-Introduction
-------------
+What is Action Mailer?
+----------------------
 
 Action Mailer allows you to send emails from your application using mailer classes
 and views.

@@ -14,8 +14,8 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-Introduction
-------------
+What is Action Text?
+--------------------
 
 Action Text brings rich text content and editing to Rails. It includes
 the [Trix editor](https://trix-editor.org) that handles everything from formatting

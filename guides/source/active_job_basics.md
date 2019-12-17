@@ -16,8 +16,8 @@ After reading this guide, you will know:
 --------------------------------------------------------------------------------
 
 
-Introduction
-------------
+What is Active Job?
+-------------------
 
 Active Job is a framework for declaring jobs and making them run on a variety
 of queuing backends. These jobs can be everything from regularly scheduled
