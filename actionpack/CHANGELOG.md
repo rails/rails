@@ -1,3 +1,11 @@
+*   Fix possible information leak / session hijacking vulnerability.
+
+    The `ActionDispatch::Session::MemcacheStore` is still vulnerable given it requires the
+    gem dalli to be updated as well.
+
+    CVE-2019-16782.
+
+
 ## Rails 6.0.2 (December 13, 2019) ##
 
 *   Allow using mountable engine route helpers in System Tests.
