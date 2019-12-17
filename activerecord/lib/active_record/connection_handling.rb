@@ -253,7 +253,7 @@ module ActiveRecord
         self.connection_specification_name = pool_name
 
         db_config = Base.configurations.resolve(config_or_env, pool_name)
-        db_config.configuration_hash[:name] = pool_name
+        db_config.owner_name = pool_name
         db_config
       end
 

@@ -1188,7 +1188,9 @@ module ActiveRecord
             raise AdapterNotFound, "database configuration specifies nonexistent #{db_config.adapter} adapter"
           end
 
-          ConnectionAdapters::PoolConfig.new(db_config.configuration_hash.delete(:name) || "primary", db_config)
+          pool_name = db_config.owner_name || "primary"
+          db_config.owner_name = nil
+          ConnectionAdapters::PoolConfig.new(pool_name, db_config)
         end
     end
   end
