@@ -845,6 +845,26 @@ want to add this feature it will need to be turned on in an initializer.
 
     config.active_record.belongs_to_required_by_default = true
 
+The configuration is by default global for all your models, but you can
+override it on a per model basis. This should help you migrate all your models to have their
+associations required by default.
+
+    ```ruby
+      class Book < ApplicationRecord
+        # model is not yet ready to have its association required by default
+
+	self.belongs_to_required_by_default = false
+        belongs_to(:author)
+      end
+
+      class Car < ApplicationRecord
+        # model is ready to have its association required by default
+
+	self.belongs_to_required_by_default = true
+        belongs_to(:pilot)
+      end
+    ```
+
 #### Per-form CSRF Tokens
 
 Rails 5 now supports per-form CSRF tokens to mitigate against code-injection attacks with forms
