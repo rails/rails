@@ -90,7 +90,7 @@ module ActiveRecord
         when *Relation::SINGLE_VALUE_METHODS
           ["#{name}_value", name == :create_with ? "FROZEN_EMPTY_HASH" : "nil"]
         when *Relation::CLAUSE_METHODS
-          ["#{name}_clause", "DEFAULT_VALUES[:#{name}]"]
+          ["#{name}_clause", name == :from ? "Relation::FromClause.empty" : "Relation::WhereClause.empty"]
         end
 
       class_eval <<-CODE, __FILE__, __LINE__ + 1
@@ -447,7 +447,7 @@ module ActiveRecord
             raise ArgumentError, "Called unscope() with invalid unscoping argument ':#{scope}'. Valid arguments are :#{VALID_UNSCOPING_VALUES.to_a.join(", :")}."
           end
           assert_mutability!
-          @values[scope] = DEFAULT_VALUES[scope]
+          @values.delete(scope)
         when Hash
           scope.each do |key, target_value|
             if key != :where
@@ -1361,8 +1361,8 @@ module ActiveRecord
       def structurally_incompatible_values_for_or(other)
         values = other.values
         STRUCTURAL_OR_METHODS.reject do |method|
-          default = DEFAULT_VALUES[method]
-          @values.fetch(method, default) == values.fetch(method, default)
+          v1, v2 = @values[method], values[method]
+          v1 == v2 || (!v1 || v1.empty?) && (!v2 || v2.empty?)
         end
       end
 
@@ -1370,16 +1370,5 @@ module ActiveRecord
         @where_clause_factory ||= Relation::WhereClauseFactory.new(klass, predicate_builder)
       end
       alias having_clause_factory where_clause_factory
-
-      DEFAULT_VALUES = {
-        create_with: FROZEN_EMPTY_HASH,
-        where: Relation::WhereClause.empty,
-        having: Relation::WhereClause.empty,
-        from: Relation::FromClause.empty
-      }
-
-      Relation::MULTI_VALUE_METHODS.each do |value|
-        DEFAULT_VALUES[value] ||= FROZEN_EMPTY_ARRAY
-      end
   end
 end
