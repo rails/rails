@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 *   A database URL can now contain a querystring value that contains an equal sign. This is needed to support passing PostgresSQL `options`.
 
      *Joshua Flanagan*
@@ -8,6 +7,11 @@
     Resolves #34889.
 
     *Patrick Rebsch*
+
+
+## Rails 6.0.2.1 (December 18, 2019) ##
+
+*   No changes.
 
 
 ## Rails 6.0.2 (December 13, 2019) ##
