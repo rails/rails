@@ -18,18 +18,18 @@ module ActiveRecord
       class Resolver # :nodoc:
         SEND_TO_REPLICA_DELAY = 2.seconds
 
-        def self.call(resolver, options = {})
-          new(resolver, options)
+        def self.call(context, options = {})
+          new(context, options)
         end
 
-        def initialize(resolver, options = {})
-          @resolver = resolver
+        def initialize(context, options = {})
+          @context = context
           @options = options
           @delay = @options && @options[:delay] ? @options[:delay] : SEND_TO_REPLICA_DELAY
           @instrumenter = ActiveSupport::Notifications.instrumenter
         end
 
-        attr_reader :resolver, :delay, :instrumenter
+        attr_reader :context, :delay, :instrumenter
 
         def read(&blk)
           if read_from_primary?
@@ -44,19 +44,16 @@ module ActiveRecord
         end
 
         private
-
           def read_from_primary(&blk)
-            ActiveRecord::Base.connection.while_preventing_writes do
-              ActiveRecord::Base.connected_to(role: :writing) do
-                instrumenter.instrument("database_selector.active_record.read_from_primary") do
-                  yield
-                end
+            ActiveRecord::Base.connected_to(role: ActiveRecord::Base.writing_role, prevent_writes: true) do
+              instrumenter.instrument("database_selector.active_record.read_from_primary") do
+                yield
               end
             end
           end
 
           def read_from_replica(&blk)
-            ActiveRecord::Base.connected_to(role: :reading) do
+            ActiveRecord::Base.connected_to(role: ActiveRecord::Base.reading_role) do
               instrumenter.instrument("database_selector.active_record.read_from_replica") do
                 yield
               end
@@ -64,11 +61,11 @@ module ActiveRecord
           end
 
           def write_to_primary(&blk)
-            ActiveRecord::Base.connected_to(role: :writing) do
+            ActiveRecord::Base.connected_to(role: ActiveRecord::Base.writing_role, prevent_writes: false) do
               instrumenter.instrument("database_selector.active_record.wrote_to_primary") do
                 yield
               ensure
-                resolver.update_last_write_timestamp
+                context.update_last_write_timestamp
               end
             end
           end
@@ -82,7 +79,7 @@ module ActiveRecord
           end
 
           def time_since_last_write_ok?
-            Time.now - resolver.last_write_timestamp >= send_to_replica_delay
+            Time.now - context.last_write_timestamp >= send_to_replica_delay
           end
       end
     end

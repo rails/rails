@@ -158,7 +158,6 @@ module ActionController
     end.new
 
     private
-
       def params_parsers
         super.merge @custom_param_parsers
       end
@@ -208,7 +207,6 @@ module ActionController
     end
 
     private
-
       def load!
         @id
       end
@@ -457,6 +455,7 @@ module ActionController
       def process(action, method: "GET", params: nil, session: nil, body: nil, flash: {}, format: nil, xhr: false, as: nil)
         check_required_ivars
 
+        action = +action.to_s
         http_method = method.to_s.upcase
 
         @html_document = nil
@@ -488,11 +487,11 @@ module ActionController
           parameters[:format] = format
         end
 
-        generated_extras = @routes.generate_extras(parameters.merge(controller: controller_class_name, action: action.to_s))
+        generated_extras = @routes.generate_extras(parameters.merge(controller: controller_class_name, action: action))
         generated_path = generated_path(generated_extras)
         query_string_keys = query_parameter_names(generated_extras)
 
-        @request.assign_parameters(@routes, controller_class_name, action.to_s, parameters, generated_path, query_string_keys)
+        @request.assign_parameters(@routes, controller_class_name, action, parameters, generated_path, query_string_keys)
 
         @request.session.update(session) if session
         @request.flash.update(flash || {})
@@ -594,12 +593,10 @@ module ActionController
       end
 
       private
-
         def scrub_env!(env)
-          env.delete_if { |k, v| k =~ /^(action_dispatch|rack)\.request/ }
-          env.delete_if { |k, v| k =~ /^action_dispatch\.rescue/ }
-          env.delete "action_dispatch.request.query_parameters"
-          env.delete "action_dispatch.request.request_parameters"
+          env.delete_if do |k, _|
+            k.start_with?("rack.request", "action_dispatch.request", "action_dispatch.rescue")
+          end
           env["rack.input"] = StringIO.new
           env.delete "CONTENT_LENGTH"
           env.delete "RAW_POST_DATA"

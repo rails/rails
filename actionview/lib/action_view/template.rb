@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/object/try"
 require "active_support/core_ext/kernel/singleton_class"
 require "thread"
 require "delegate"
@@ -10,7 +9,13 @@ module ActionView
   class Template
     extend ActiveSupport::Autoload
 
-    mattr_accessor :finalize_compiled_template_methods, default: true
+    def self.finalize_compiled_template_methods
+      ActiveSupport::Deprecation.warn "ActionView::Template.finalize_compiled_template_methods is deprecated and has no effect"
+    end
+
+    def self.finalize_compiled_template_methods=(_)
+      ActiveSupport::Deprecation.warn "ActionView::Template.finalize_compiled_template_methods= is deprecated and has no effect"
+    end
 
     # === Encodings in ActionView::Template
     #
@@ -106,43 +111,59 @@ module ActionView
 
     eager_autoload do
       autoload :Error
+      autoload :RawFile
       autoload :Handlers
       autoload :HTML
+      autoload :Inline
+      autoload :Sources
       autoload :Text
       autoload :Types
     end
 
     extend Template::Handlers
 
-    attr_accessor :locals, :formats, :variants, :virtual_path
+    attr_reader :identifier, :handler, :original_encoding, :updated_at
+    attr_reader :variable, :format, :variant, :locals, :virtual_path
 
-    attr_reader :source, :identifier, :handler, :original_encoding, :updated_at
-
-    # This finalizer is needed (and exactly with a proc inside another proc)
-    # otherwise templates leak in development.
-    Finalizer = proc do |method_name, mod| # :nodoc:
-      proc do
-        mod.module_eval do
-          remove_possible_method method_name
-        end
+    def initialize(source, identifier, handler, format: nil, variant: nil, locals: nil, virtual_path: nil, updated_at: nil)
+      unless locals
+        ActiveSupport::Deprecation.warn "ActionView::Template#initialize requires a locals parameter"
+        locals = []
       end
-    end
-
-    def initialize(source, identifier, handler, details)
-      format = details[:format] || (handler.default_format if handler.respond_to?(:default_format))
 
       @source            = source
       @identifier        = identifier
       @handler           = handler
       @compiled          = false
-      @original_encoding = nil
-      @locals            = details[:locals] || []
-      @virtual_path      = details[:virtual_path]
-      @updated_at        = details[:updated_at] || Time.now
-      @formats           = Array(format).map { |f| f.respond_to?(:ref) ? f.ref : f  }
-      @variants          = [details[:variant]]
+      @locals            = locals
+      @virtual_path      = virtual_path
+
+      @variable = if @virtual_path
+        base = @virtual_path[-1] == "/" ? "" : ::File.basename(@virtual_path)
+        base =~ /\A_?(.*?)(?:\.\w+)*\z/
+        $1.to_sym
+      end
+
+      if updated_at
+        ActiveSupport::Deprecation.warn "ActionView::Template#updated_at is deprecated"
+        @updated_at        = updated_at
+      else
+        @updated_at        = Time.now
+      end
+      @format            = format
+      @variant           = variant
       @compile_mutex     = Mutex.new
     end
+
+    deprecate :original_encoding
+    deprecate :updated_at
+    deprecate def virtual_path=(_); end
+    deprecate def locals=(_); end
+    deprecate def formats=(_); end
+    deprecate def formats; Array(format); end
+    deprecate def variants=(_); end
+    deprecate def variants; [variant]; end
+    deprecate def refresh(_); self; end
 
     # Returns whether the underlying handler supports streaming. If so,
     # a streaming buffer *may* be passed when it starts rendering.
@@ -159,37 +180,26 @@ module ActionView
     def render(view, locals, buffer = ActionView::OutputBuffer.new, &block)
       instrument_render_template do
         compile!(view)
-        view.run(method_name, locals, buffer, &block)
+        view._run(method_name, self, locals, buffer, &block)
       end
     rescue => e
       handle_render_error(view, e)
     end
 
     def type
-      @type ||= Types[@formats.first] if @formats.first
+      @type ||= Types[format]
     end
 
-    # Receives a view object and return a template similar to self by using @virtual_path.
-    #
-    # This method is useful if you have a template object but it does not contain its source
-    # anymore since it was already compiled. In such cases, all you need to do is to call
-    # refresh passing in the view object.
-    #
-    # Notice this method raises an error if the template to be refreshed does not have a
-    # virtual path set (true just for inline templates).
-    def refresh(view)
-      raise "A template needs to have a virtual path in order to be refreshed" unless @virtual_path
-      lookup  = view.lookup_context
-      pieces  = @virtual_path.split("/")
-      name    = pieces.pop
-      partial = !!name.sub!(/^_/, "")
-      lookup.disable_cache do
-        lookup.find_template(name, [ pieces.join("/") ], partial, @locals)
-      end
+    def short_identifier
+      @short_identifier ||= defined?(Rails.root) ? identifier.sub("#{Rails.root}/", "") : identifier
     end
 
     def inspect
-      @inspect ||= defined?(Rails.root) ? identifier.sub("#{Rails.root}/", "") : identifier
+      "#<#{self.class.name} #{short_identifier} locals=#{@locals.inspect}>"
+    end
+
+    def source
+      @source.to_s
     end
 
     # This method is responsible for properly setting the encoding of the
@@ -243,16 +253,15 @@ module ActionView
     # to ensure that references to the template object can be marshalled as well. This means forgoing
     # the marshalling of the compiler mutex and instantiating that again on unmarshalling.
     def marshal_dump # :nodoc:
-      [ @source, @identifier, @handler, @compiled, @original_encoding, @locals, @virtual_path, @updated_at, @formats, @variants ]
+      [ @source, @identifier, @handler, @compiled, @locals, @virtual_path, @updated_at, @format, @variant ]
     end
 
     def marshal_load(array) # :nodoc:
-      @source, @identifier, @handler, @compiled, @original_encoding, @locals, @virtual_path, @updated_at, @formats, @variants = *array
+      @source, @identifier, @handler, @compiled, @locals, @virtual_path, @updated_at, @format, @variant = *array
       @compile_mutex = Mutex.new
     end
 
     private
-
       # Compile a template. This method ensures a template is compiled
       # just once and removes the source after it is compiled.
       def compile!(view)
@@ -273,9 +282,6 @@ module ActionView
             compile(mod)
           end
 
-          # Just discard the source if we have a virtual path. This
-          # means we can get the template back.
-          @source = nil if @virtual_path
           @compiled = true
         end
       end
@@ -307,6 +313,7 @@ module ActionView
 
         # Make sure that the resulting String to be eval'd is in the
         # encoding of the code
+        original_source = source
         source = +<<-end_src
           def #{method_name}(local_assigns, output_buffer)
             @virtual_path = #{@virtual_path.inspect};#{locals_code};#{code}
@@ -327,9 +334,13 @@ module ActionView
           raise WrongEncodingError.new(source, Encoding.default_internal)
         end
 
-        mod.module_eval(source, identifier, 0)
-        if finalize_compiled_template_methods
-          ObjectSpace.define_finalizer(self, Finalizer[method_name, mod])
+        begin
+          mod.module_eval(source, identifier, 0)
+        rescue SyntaxError
+          # Account for when code in the template is not syntactically valid; e.g. if we're using
+          # ERB and the user writes <%= foo( %>, attempting to call a helper `foo` and interpolate
+          # the result into the template, but missing an end parenthesis.
+          raise SyntaxErrorInTemplate.new(self, original_source)
         end
       end
 
@@ -338,12 +349,7 @@ module ActionView
           e.sub_template_of(self)
           raise e
         else
-          template = self
-          unless template.source
-            template = refresh(view)
-            template.encode!
-          end
-          raise Template::Error.new(template)
+          raise Template::Error.new(self)
         end
       end
 
@@ -366,7 +372,7 @@ module ActionView
       end
 
       def identifier_method_name
-        inspect.tr("^a-z_", "_")
+        short_identifier.tr("^a-z_", "_")
       end
 
       def instrument(action, &block) # :doc:

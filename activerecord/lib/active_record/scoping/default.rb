@@ -31,14 +31,7 @@ module ActiveRecord
         #     Post.limit(10) # Fires "SELECT * FROM posts LIMIT 10"
         #   }
         def unscoped
-          block_given? ? _scoping(relation) { yield } : relation
-        end
-
-        def _scoping(relation) # :nodoc:
-          previous, self.current_scope = current_scope(true), relation
-          yield
-        ensure
-          self.current_scope = previous
+          block_given? ? relation.scoping { yield } : relation
         end
 
         # Are there attributes associated with this scope?
@@ -51,7 +44,6 @@ module ActiveRecord
         end
 
         private
-
           # Use this macro in your model to set a default scope for all operations on
           # the model.
           #
@@ -93,8 +85,8 @@ module ActiveRecord
           #       # Should return a scope, you can call 'super' here etc.
           #     end
           #   end
-          def default_scope(scope = nil) # :doc:
-            scope = Proc.new if block_given?
+          def default_scope(scope = nil, &block) # :doc:
+            scope = block if block_given?
 
             if scope.is_a?(Relation) || !scope.respond_to?(:call)
               raise ArgumentError,
@@ -107,7 +99,7 @@ module ActiveRecord
             self.default_scopes += [scope]
           end
 
-          def build_default_scope(base_rel = nil)
+          def build_default_scope(relation = relation())
             return if abstract_class?
 
             if default_scope_override.nil?
@@ -118,15 +110,14 @@ module ActiveRecord
               # The user has defined their own default scope method, so call that
               evaluate_default_scope do
                 if scope = default_scope
-                  (base_rel ||= relation).merge!(scope)
+                  relation.merge!(scope)
                 end
               end
             elsif default_scopes.any?
-              base_rel ||= relation
               evaluate_default_scope do
-                default_scopes.inject(base_rel) do |default_scope, scope|
+                default_scopes.inject(relation) do |default_scope, scope|
                   scope = scope.respond_to?(:to_proc) ? scope : scope.method(:call)
-                  default_scope.merge!(base_rel.instance_exec(&scope))
+                  default_scope.instance_exec(&scope) || default_scope
                 end
               end
             end

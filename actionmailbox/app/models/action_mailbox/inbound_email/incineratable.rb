@@ -7,7 +7,7 @@ module ActionMailbox::InboundEmail::Incineratable
   extend ActiveSupport::Concern
 
   included do
-    after_update_commit :incinerate_later, if: -> { status_previously_changed? && processed? }
+    after_update_commit :incinerate_later, if: -> { ActionMailbox.incinerate && status_previously_changed? && processed? }
   end
 
   def incinerate_later

@@ -15,12 +15,14 @@ module Arel
 
       ###
       # :'(
-      # http://dev.mysql.com/doc/refman/5.0/en/select.html#id3482214
+      # To retrieve all rows from a certain offset up to the end of the result set,
+      # you can use some large number for the second parameter.
+      # https://dev.mysql.com/doc/refman/en/select.html
       it "defaults limit to 18446744073709551615" do
         stmt = Nodes::SelectStatement.new
         stmt.offset = Nodes::Offset.new(1)
         sql = compile(stmt)
-        sql.must_be_like "SELECT FROM DUAL LIMIT 18446744073709551615 OFFSET 1"
+        _(sql).must_be_like "SELECT FROM DUAL LIMIT 18446744073709551615 OFFSET 1"
       end
 
       it "should escape LIMIT" do
@@ -33,18 +35,18 @@ module Arel
       it "uses DUAL for empty from" do
         stmt = Nodes::SelectStatement.new
         sql = compile(stmt)
-        sql.must_be_like "SELECT FROM DUAL"
+        _(sql).must_be_like "SELECT FROM DUAL"
       end
 
       describe "locking" do
         it "defaults to FOR UPDATE when locking" do
           node = Nodes::Lock.new(Arel.sql("FOR UPDATE"))
-          compile(node).must_be_like "FOR UPDATE"
+          _(compile(node)).must_be_like "FOR UPDATE"
         end
 
         it "allows a custom string to be used as a lock" do
           node = Nodes::Lock.new(Arel.sql("LOCK IN SHARE MODE"))
-          compile(node).must_be_like "LOCK IN SHARE MODE"
+          _(compile(node)).must_be_like "LOCK IN SHARE MODE"
         end
       end
 
@@ -52,7 +54,7 @@ module Arel
         it "concats columns" do
           @table = Table.new(:users)
           query = @table[:name].concat(@table[:name])
-          compile(query).must_be_like %{
+          _(compile(query)).must_be_like %{
             CONCAT("users"."name", "users"."name")
           }
         end
@@ -60,7 +62,7 @@ module Arel
         it "concats a string" do
           @table = Table.new(:users)
           query = @table[:name].concat(Nodes.build_quoted("abc"))
-          compile(query).must_be_like %{
+          _(compile(query)).must_be_like %{
             CONCAT("users"."name", 'abc')
           }
         end
@@ -69,14 +71,14 @@ module Arel
       describe "Nodes::IsNotDistinctFrom" do
         it "should construct a valid generic SQL statement" do
           test = Table.new(:users)[:name].is_not_distinct_from "Aaron Patterson"
-          compile(test).must_be_like %{
+          _(compile(test)).must_be_like %{
             "users"."name" <=> 'Aaron Patterson'
           }
         end
 
         it "should handle column names on both sides" do
           test = Table.new(:users)[:first_name].is_not_distinct_from Table.new(:users)[:last_name]
-          compile(test).must_be_like %{
+          _(compile(test)).must_be_like %{
             "users"."first_name" <=> "users"."last_name"
           }
         end
@@ -85,14 +87,14 @@ module Arel
           @table = Table.new(:users)
           val = Nodes.build_quoted(nil, @table[:active])
           sql = compile Nodes::IsNotDistinctFrom.new(@table[:name], val)
-          sql.must_be_like %{ "users"."name" <=> NULL }
+          _(sql).must_be_like %{ "users"."name" <=> NULL }
         end
       end
 
       describe "Nodes::IsDistinctFrom" do
         it "should handle column names on both sides" do
           test = Table.new(:users)[:first_name].is_distinct_from Table.new(:users)[:last_name]
-          compile(test).must_be_like %{
+          _(compile(test)).must_be_like %{
             NOT "users"."first_name" <=> "users"."last_name"
           }
         end
@@ -101,7 +103,53 @@ module Arel
           @table = Table.new(:users)
           val = Nodes.build_quoted(nil, @table[:active])
           sql = compile Nodes::IsDistinctFrom.new(@table[:name], val)
-          sql.must_be_like %{ NOT "users"."name" <=> NULL }
+          _(sql).must_be_like %{ NOT "users"."name" <=> NULL }
+        end
+      end
+
+      describe "Nodes::Regexp" do
+        before do
+          @table = Table.new(:users)
+          @attr = @table[:id]
+        end
+
+        it "should know how to visit" do
+          node = @table[:name].matches_regexp("foo.*")
+          _(node).must_be_kind_of Nodes::Regexp
+          _(compile(node)).must_be_like %{
+            "users"."name" REGEXP 'foo.*'
+          }
+        end
+
+        it "can handle subqueries" do
+          subquery = @table.project(:id).where(@table[:name].matches_regexp("foo.*"))
+          node = @attr.in subquery
+          _(compile(node)).must_be_like %{
+            "users"."id" IN (SELECT id FROM "users" WHERE "users"."name" REGEXP 'foo.*')
+          }
+        end
+      end
+
+      describe "Nodes::NotRegexp" do
+        before do
+          @table = Table.new(:users)
+          @attr = @table[:id]
+        end
+
+        it "should know how to visit" do
+          node = @table[:name].does_not_match_regexp("foo.*")
+          _(node).must_be_kind_of Nodes::NotRegexp
+          _(compile(node)).must_be_like %{
+            "users"."name" NOT REGEXP 'foo.*'
+          }
+        end
+
+        it "can handle subqueries" do
+          subquery = @table.project(:id).where(@table[:name].does_not_match_regexp("foo.*"))
+          node = @attr.in subquery
+          _(compile(node)).must_be_like %{
+            "users"."id" IN (SELECT id FROM "users" WHERE "users"."name" NOT REGEXP 'foo.*')
+          }
         end
       end
     end

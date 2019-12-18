@@ -34,17 +34,17 @@ module ActionDispatch
         end
 
         {
-          "/:controller(/:action)"       => %r{\A/(#{x})(?:/([^/.?]+))?},
-          "/:controller/foo"             => %r{\A/(#{x})/foo},
-          "/:controller/:action"         => %r{\A/(#{x})/([^/.?]+)},
-          "/:controller"                 => %r{\A/(#{x})},
-          "/:controller(/:action(/:id))" => %r{\A/(#{x})(?:/([^/.?]+)(?:/([^/.?]+))?)?},
-          "/:controller/:action.xml"     => %r{\A/(#{x})/([^/.?]+)\.xml},
-          "/:controller.:format"         => %r{\A/(#{x})\.([^/.?]+)},
-          "/:controller(.:format)"       => %r{\A/(#{x})(?:\.([^/.?]+))?},
-          "/:controller/*foo"            => %r{\A/(#{x})/(.+)},
-          "/:controller/*foo/bar"        => %r{\A/(#{x})/(.+)/bar},
-          "/:foo|*bar"                   => %r{\A/(?:([^/.?]+)|(.+))},
+          "/:controller(/:action)"       => %r{\A/(#{x})(?:/([^/.?]+))?(?:\b|\Z|/)},
+          "/:controller/foo"             => %r{\A/(#{x})/foo(?:\b|\Z|/)},
+          "/:controller/:action"         => %r{\A/(#{x})/([^/.?]+)(?:\b|\Z|/)},
+          "/:controller"                 => %r{\A/(#{x})(?:\b|\Z|/)},
+          "/:controller(/:action(/:id))" => %r{\A/(#{x})(?:/([^/.?]+)(?:/([^/.?]+))?)?(?:\b|\Z|/)},
+          "/:controller/:action.xml"     => %r{\A/(#{x})/([^/.?]+)\.xml(?:\b|\Z|/)},
+          "/:controller.:format"         => %r{\A/(#{x})\.([^/.?]+)(?:\b|\Z|/)},
+          "/:controller(.:format)"       => %r{\A/(#{x})(?:\.([^/.?]+))?(?:\b|\Z|/)},
+          "/:controller/*foo"            => %r{\A/(#{x})/(.+)(?:\b|\Z|/)},
+          "/:controller/*foo/bar"        => %r{\A/(#{x})/(.+)/bar(?:\b|\Z|/)},
+          "/:foo|*bar"                   => %r{\A/(?:([^/.?]+)|(.+))(?:\b|\Z|/)},
         }.each do |path, expected|
           define_method(:"test_to_non_anchored_regexp_#{Regexp.escape(path)}") do
             path = Pattern.build(
@@ -279,6 +279,15 @@ module ActionDispatch
           assert_equal %w{ action format }, match.names
           assert_equal "list", match[1]
           assert_equal "rss", match[2]
+        end
+
+        def test_named_captures
+          path = Path::Pattern.from_string "/books(/:action(.:format))"
+
+          uri = "/books/list.rss"
+          match = path =~ uri
+          named_captures = { "action" => "list", "format" => "rss" }
+          assert_equal named_captures, match.named_captures
         end
       end
     end

@@ -203,31 +203,31 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_label_with_locales_strings
-    with_locale :label do
+    I18n.with_locale :label do
       assert_dom_equal('<label for="post_body">Write entire text here</label>', label("post", "body"))
     end
   end
 
   def test_label_with_human_attribute_name
-    with_locale :label do
+    I18n.with_locale :label do
       assert_dom_equal('<label for="post_cost">Total cost</label>', label(:post, :cost))
     end
   end
 
   def test_label_with_human_attribute_name_and_options
-    with_locale :label do
+    I18n.with_locale :label do
       assert_dom_equal('<label for="post_language_spanish">Espanol</label>', label(:post, :language, value: "spanish"))
     end
   end
 
   def test_label_with_locales_symbols
-    with_locale :label do
+    I18n.with_locale :label do
       assert_dom_equal('<label for="post_body">Write entire text here</label>', label(:post, :body))
     end
   end
 
   def test_label_with_locales_and_options
-    with_locale :label do
+    I18n.with_locale :label do
       assert_dom_equal(
         '<label for="post_body" class="post_body">Write entire text here</label>',
         label(:post, :body, class: "post_body")
@@ -236,13 +236,13 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_label_with_locales_and_value
-    with_locale :label do
+    I18n.with_locale :label do
       assert_dom_equal('<label for="post_color_red">Rojo</label>', label(:post, :color, value: "red"))
     end
   end
 
   def test_label_with_locales_and_nested_attributes
-    with_locale :label do
+    I18n.with_locale :label do
       form_for(@post, html: { id: "create-post" }) do |f|
         f.fields_for(:comments) do |cf|
           concat cf.label(:body)
@@ -258,7 +258,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_label_with_locales_fallback_and_nested_attributes
-    with_locale :label do
+    I18n.with_locale :label do
       form_for(@post, html: { id: "create-post" }) do |f|
         f.fields_for(:tags) do |cf|
           concat cf.label(:value)
@@ -358,7 +358,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_label_with_block_and_builder
-    with_locale :label do
+    I18n.with_locale :label do
       assert_dom_equal(
         '<label for="post_body"><b>Write entire text here</b></label>',
         label(:post, :body) { |b| raw("<b>#{b.translation}</b>") }
@@ -381,7 +381,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_label_with_to_model_and_overridden_model_name
-    with_locale :label do
+    I18n.with_locale :label do
       assert_dom_equal(
         %{<label for="post_delegator_title">Delegate model_name title</label>},
         label(:post_delegator, :title)
@@ -390,19 +390,19 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_text_field_placeholder_without_locales
-    with_locale :placeholder do
+    I18n.with_locale :placeholder do
       assert_dom_equal('<input id="post_body" name="post[body]" placeholder="Body" type="text" value="Back to the hill and over it again!" />', text_field(:post, :body, placeholder: true))
     end
   end
 
   def test_text_field_placeholder_with_locales
-    with_locale :placeholder do
+    I18n.with_locale :placeholder do
       assert_dom_equal('<input id="post_title" name="post[title]" placeholder="What is this about?" type="text" value="Hello World" />', text_field(:post, :title, placeholder: true))
     end
   end
 
   def test_text_field_placeholder_with_locales_and_to_model
-    with_locale :placeholder do
+    I18n.with_locale :placeholder do
       assert_dom_equal(
         '<input id="post_delegator_title" name="post_delegator[title]" placeholder="Delegate model_name title" type="text" value="Hello World" />',
         text_field(:post_delegator, :title, placeholder: true)
@@ -411,7 +411,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_text_field_placeholder_with_human_attribute_name
-    with_locale :placeholder do
+    I18n.with_locale :placeholder do
       assert_dom_equal('<input id="post_cost" name="post[cost]" placeholder="Total cost" type="text" />', text_field(:post, :cost, placeholder: true))
     end
   end
@@ -424,25 +424,25 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_text_field_placeholder_with_string_value
-    with_locale :placeholder do
+    I18n.with_locale :placeholder do
       assert_dom_equal('<input id="post_cost" name="post[cost]" placeholder="HOW MUCH?" type="text" />', text_field(:post, :cost, placeholder: "HOW MUCH?"))
     end
   end
 
   def test_text_field_placeholder_with_human_attribute_name_and_value
-    with_locale :placeholder do
+    I18n.with_locale :placeholder do
       assert_dom_equal('<input id="post_cost" name="post[cost]" placeholder="Pounds" type="text" />', text_field(:post, :cost, placeholder: :uk))
     end
   end
 
   def test_text_field_placeholder_with_locales_and_value
-    with_locale :placeholder do
+    I18n.with_locale :placeholder do
       assert_dom_equal('<input id="post_written_on" name="post[written_on]" placeholder="Escrito en" type="text" value="2004-06-15" />', text_field(:post, :written_on, placeholder: :spanish))
     end
   end
 
   def test_text_field_placeholder_with_locales_and_nested_attributes
-    with_locale :placeholder do
+    I18n.with_locale :placeholder do
       form_for(@post, html: { id: "create-post" }) do |f|
         f.fields_for(:comments) do |cf|
           concat cf.text_field(:body, placeholder: true)
@@ -458,7 +458,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_text_field_placeholder_with_locales_fallback_and_nested_attributes
-    with_locale :placeholder do
+    I18n.with_locale :placeholder do
       form_for(@post, html: { id: "create-post" }) do |f|
         f.fields_for(:tags) do |cf|
           concat cf.text_field(:value, placeholder: true)
@@ -861,7 +861,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_text_area_placeholder_without_locales
-    with_locale :placeholder do
+    I18n.with_locale :placeholder do
       assert_dom_equal(
         %{<textarea id="post_body" name="post[body]" placeholder="Body">\nBack to the hill and over it again!</textarea>},
         text_area(:post, :body, placeholder: true)
@@ -870,7 +870,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_text_area_placeholder_with_locales
-    with_locale :placeholder do
+    I18n.with_locale :placeholder do
       assert_dom_equal(
         %{<textarea id="post_title" name="post[title]" placeholder="What is this about?">\nHello World</textarea>},
         text_area(:post, :title, placeholder: true)
@@ -879,7 +879,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_text_area_placeholder_with_human_attribute_name
-    with_locale :placeholder do
+    I18n.with_locale :placeholder do
       assert_dom_equal(
         %{<textarea id="post_cost" name="post[cost]" placeholder="Total cost">\n</textarea>},
         text_area(:post, :cost, placeholder: true)
@@ -888,7 +888,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_text_area_placeholder_with_string_value
-    with_locale :placeholder do
+    I18n.with_locale :placeholder do
       assert_dom_equal(
         %{<textarea id="post_cost" name="post[cost]" placeholder="HOW MUCH?">\n</textarea>},
         text_area(:post, :cost, placeholder: "HOW MUCH?")
@@ -897,7 +897,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_text_area_placeholder_with_human_attribute_name_and_value
-    with_locale :placeholder do
+    I18n.with_locale :placeholder do
       assert_dom_equal(
         %{<textarea id="post_cost" name="post[cost]" placeholder="Pounds">\n</textarea>},
         text_area(:post, :cost, placeholder: :uk)
@@ -906,7 +906,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_text_area_placeholder_with_locales_and_value
-    with_locale :placeholder do
+    I18n.with_locale :placeholder do
       assert_dom_equal(
         %{<textarea id="post_written_on" name="post[written_on]" placeholder="Escrito en">\n2004-06-15</textarea>},
         text_area(:post, :written_on, placeholder: :spanish)
@@ -915,7 +915,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_text_area_placeholder_with_locales_and_nested_attributes
-    with_locale :placeholder do
+    I18n.with_locale :placeholder do
       form_for(@post, html: { id: "create-post" }) do |f|
         f.fields_for(:comments) do |cf|
           concat cf.text_area(:body, placeholder: true)
@@ -931,7 +931,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_text_area_placeholder_with_locales_fallback_and_nested_attributes
-    with_locale :placeholder do
+    I18n.with_locale :placeholder do
       form_for(@post, html: { id: "create-post" }) do |f|
         f.fields_for(:tags) do |cf|
           concat cf.text_area(:value, placeholder: true)
@@ -1897,7 +1897,6 @@ class FormHelperTest < ActionView::TestCase
   def test_form_tags_do_not_call_private_properties_on_form_object
     obj = Class.new do
       private
-
         def private_property
           raise "This method should not be called."
         end
@@ -2260,7 +2259,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_submit_with_object_as_new_record_and_locale_strings
-    with_locale :submit do
+    I18n.with_locale :submit do
       @post.persisted = false
       @post.stub(:to_key, nil) do
         form_for(@post) do |f|
@@ -2277,7 +2276,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_submit_with_object_as_existing_record_and_locale_strings
-    with_locale :submit do
+    I18n.with_locale :submit do
       form_for(@post) do |f|
         concat f.submit
       end
@@ -2291,7 +2290,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_submit_without_object_and_locale_strings
-    with_locale :submit do
+    I18n.with_locale :submit do
       form_for(:post) do |f|
         concat f.submit class: "extra"
       end
@@ -2305,7 +2304,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_submit_with_object_which_is_overwritten_by_as_option
-    with_locale :submit do
+    I18n.with_locale :submit do
       form_for(@post, as: :another_post) do |f|
         concat f.submit
       end
@@ -2320,7 +2319,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_submit_with_object_which_is_namespaced
     blog_post = Blog::Post.new("And his name will be forty and four.", 44)
-    with_locale :submit do
+    I18n.with_locale :submit do
       form_for(blog_post) do |f|
         concat f.submit
       end
@@ -3554,7 +3553,6 @@ class FormHelperTest < ActionView::TestCase
   end
 
   private
-
     def hidden_fields(options = {})
       method = options[:method]
 
@@ -3591,13 +3589,6 @@ class FormHelperTest < ActionView::TestCase
 
     def protect_against_forgery?
       false
-    end
-
-    def with_locale(testing_locale = :label)
-      old_locale, I18n.locale = I18n.locale, testing_locale
-      yield
-    ensure
-      I18n.locale = old_locale
     end
 
     def with_default_enforce_utf8(value)

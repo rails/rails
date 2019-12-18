@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 require "pathname"
-require "file_update_checker_shared_tests"
+require_relative "file_update_checker_shared_tests"
 
 class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
   include FileUpdateCheckerSharedTests
@@ -34,7 +34,7 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
   end
 
   test "notifies forked processes" do
-    jruby_skip "Forking not available on JRuby"
+    skip "Forking not available" unless Process.respond_to?(:fork)
 
     FileUtils.touch(tmpfiles)
 
@@ -77,32 +77,48 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
     Process.wait(pid)
   end
 
+  test "should detect changes through symlink" do
+    actual_dir = File.join(tmpdir, "actual")
+    linked_dir = File.join(tmpdir, "linked")
+
+    Dir.mkdir(actual_dir)
+    FileUtils.ln_s(actual_dir, linked_dir)
+
+    checker = new_checker([], linked_dir => ".rb") { }
+
+    assert_not_predicate checker, :updated?
+
+    FileUtils.touch(File.join(actual_dir, "a.rb"))
+    wait
+
+    assert_predicate checker, :updated?
+    assert checker.execute_if_updated
+  end
+
   test "updated should become true when nonexistent directory is added later" do
-    Dir.mktmpdir do |dir|
-      watched_dir = File.join(dir, "app")
-      unwatched_dir = File.join(dir, "node_modules")
-      not_exist_watched_dir = File.join(dir, "test")
+    watched_dir = File.join(tmpdir, "app")
+    unwatched_dir = File.join(tmpdir, "node_modules")
+    not_exist_watched_dir = File.join(tmpdir, "test")
 
-      Dir.mkdir(watched_dir)
-      Dir.mkdir(unwatched_dir)
+    Dir.mkdir(watched_dir)
+    Dir.mkdir(unwatched_dir)
 
-      checker = new_checker([], watched_dir => ".rb", not_exist_watched_dir => ".rb") { }
+    checker = new_checker([], watched_dir => ".rb", not_exist_watched_dir => ".rb") { }
 
-      FileUtils.touch(File.join(watched_dir, "a.rb"))
-      wait
-      assert_predicate checker, :updated?
-      assert checker.execute_if_updated
+    FileUtils.touch(File.join(watched_dir, "a.rb"))
+    wait
+    assert_predicate checker, :updated?
+    assert checker.execute_if_updated
 
-      Dir.mkdir(not_exist_watched_dir)
-      wait
-      assert_predicate checker, :updated?
-      assert checker.execute_if_updated
+    Dir.mkdir(not_exist_watched_dir)
+    wait
+    assert_predicate checker, :updated?
+    assert checker.execute_if_updated
 
-      FileUtils.touch(File.join(unwatched_dir, "a.rb"))
-      wait
-      assert_not_predicate checker, :updated?
-      assert_not checker.execute_if_updated
-    end
+    FileUtils.touch(File.join(unwatched_dir, "a.rb"))
+    wait
+    assert_not_predicate checker, :updated?
+    assert_not checker.execute_if_updated
   end
 end
 
@@ -154,14 +170,6 @@ class EventedFileUpdateCheckerPathHelperTest < ActiveSupport::TestCase
 
   test "#longest_common_subpath returns nil for an empty collection" do
     assert_nil @ph.longest_common_subpath([])
-  end
-
-  test "#existing_parent returns the most specific existing ascendant" do
-    wd = Pathname.getwd
-
-    assert_equal wd, @ph.existing_parent(wd)
-    assert_equal wd, @ph.existing_parent(wd.join("non-existing/directory"))
-    assert_equal pn("/"), @ph.existing_parent(pn("/non-existing/directory"))
   end
 
   test "#filter_out_descendants returns the same collection if there are no descendants (empty)" do

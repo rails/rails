@@ -36,7 +36,7 @@ require "ostruct"
 # has already been processed and uploaded to the service, and, if so, just return that. Otherwise it will perform
 # the transformations, upload the variant to the service, and return itself again. Example:
 #
-#   avatar.variant(resize_to_limit: [100, 100]).processed.service_url
+#   avatar.variant(resize_to_limit: [100, 100]).processed.url
 #
 # This will create and process a variant of the avatar blob that's constrained to a height and width of 100.
 # Then it'll upload said variant to the service according to a derivative key of the blob and the transformations.
@@ -78,17 +78,17 @@ class ActiveStorage::Variant
     service.delete(key)
   end
 
-  # Returns the URL of the variant on the service. This URL is intended to be short-lived for security and not used directly
-  # with users. Instead, the +service_url+ should only be exposed as a redirect from a stable, possibly authenticated URL.
-  # Hiding the +service_url+ behind a redirect also gives you the power to change services without updating all URLs. And
-  # it allows permanent URLs that redirect to the +service_url+ to be cached in the view.
+  # Returns the URL of the blob variant on the service. See {ActiveStorage::Blob#url} for details.
   #
   # Use <tt>url_for(variant)</tt> (or the implied form, like +link_to variant+ or +redirect_to variant+) to get the stable URL
   # for a variant that points to the ActiveStorage::RepresentationsController, which in turn will use this +service_call+ method
   # for its redirection.
-  def service_url(expires_in: ActiveStorage.service_urls_expire_in, disposition: :inline)
+  def url(expires_in: ActiveStorage.service_urls_expire_in, disposition: :inline)
     service.url key, expires_in: expires_in, disposition: disposition, filename: filename, content_type: content_type
   end
+
+  alias_method :service_url, :url
+  deprecate service_url: :url
 
   # Returns the receiving variant. Allows ActiveStorage::Variant and ActiveStorage::Preview instances to be used interchangeably.
   def image
@@ -101,17 +101,11 @@ class ActiveStorage::Variant
     end
 
     def process
-      blob.open do |image|
-        transform(image) { |output| upload(output) }
+      blob.open do |input|
+        variation.transform(input, format: format) do |output|
+          service.upload(key, output, content_type: content_type)
+        end
       end
-    end
-
-    def transform(image, &block)
-      variation.transform(image, format: format, &block)
-    end
-
-    def upload(file)
-      service.upload(key, file)
     end
 
 

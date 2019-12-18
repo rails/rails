@@ -6,7 +6,7 @@ module ActiveSupport
   class Deprecation
     module Reporting
       # Whether to print a message (silent mode)
-      attr_accessor :silenced
+      attr_writer :silenced
       # Name of gem where method is deprecated
       attr_accessor :gem_name
 
@@ -33,11 +33,12 @@ module ActiveSupport
       #     ActiveSupport::Deprecation.warn('something broke!')
       #   end
       #   # => nil
-      def silence
-        old_silenced, @silenced = @silenced, true
-        yield
-      ensure
-        @silenced = old_silenced
+      def silence(&block)
+        @silenced_thread.bind(true, &block)
+      end
+
+      def silenced
+        @silenced || @silenced_thread.value
       end
 
       def deprecation_warning(deprecated_method_name, message = nil, caller_backtrace = nil)

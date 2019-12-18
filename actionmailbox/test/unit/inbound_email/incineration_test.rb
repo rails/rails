@@ -44,4 +44,14 @@ class ActionMailbox::InboundEmail::IncinerationTest < ActiveSupport::TestCase
       perform_enqueued_jobs only: ActionMailbox::IncinerationJob
     end
   end
+
+  test "skipping incineration" do
+    original, ActionMailbox.incinerate = ActionMailbox.incinerate, false
+
+    assert_no_enqueued_jobs only: ActionMailbox::IncinerationJob do
+      create_inbound_email_from_fixture("welcome.eml").delivered!
+    end
+  ensure
+    ActionMailbox.incinerate = original
+  end
 end

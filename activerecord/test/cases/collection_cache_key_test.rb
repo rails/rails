@@ -171,5 +171,39 @@ module ActiveRecord
 
       assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, developers.cache_key)
     end
+
+    test "cache_key should be stable when using collection_cache_versioning" do
+      with_collection_cache_versioning do
+        developers = Developer.where(salary: 100000)
+
+        assert_match(/\Adevelopers\/query-(\h+)\z/, developers.cache_key)
+
+        /\Adevelopers\/query-(\h+)\z/ =~ developers.cache_key
+
+        assert_equal ActiveSupport::Digest.hexdigest(developers.to_sql), $1
+      end
+    end
+
+    test "cache_version for relation" do
+      with_collection_cache_versioning do
+        developers = Developer.where(salary: 100000).order(updated_at: :desc)
+        last_developer_timestamp = developers.first.updated_at
+
+        assert_match(/(\d+)-(\d+)\z/, developers.cache_version)
+
+        /(\d+)-(\d+)\z/ =~ developers.cache_version
+
+        assert_equal developers.count.to_s, $1
+        assert_equal last_developer_timestamp.to_s(ActiveRecord::Base.cache_timestamp_format), $2
+      end
+    end
+
+    def with_collection_cache_versioning(value = true)
+      @old_collection_cache_versioning = ActiveRecord::Base.collection_cache_versioning
+      ActiveRecord::Base.collection_cache_versioning = value
+      yield
+    ensure
+      ActiveRecord::Base.collection_cache_versioning = @old_collection_cache_versioning
+    end
   end
 end

@@ -314,6 +314,51 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert t3.save, "Should save t3 as unique"
   end
 
+  if current_adapter?(:Mysql2Adapter)
+    def test_deprecate_validate_uniqueness_mismatched_collation
+      Topic.validates_uniqueness_of(:author_email_address)
+
+      topic1 = Topic.new(author_email_address: "david@loudthinking.com")
+      topic2 = Topic.new(author_email_address: "David@loudthinking.com")
+
+      assert_equal 1, Topic.where(author_email_address: "david@loudthinking.com").count
+
+      assert_deprecated do
+        assert_not topic1.valid?
+        assert_not topic1.save
+        assert topic2.valid?
+        assert topic2.save
+      end
+
+      assert_equal 2, Topic.where(author_email_address: "david@loudthinking.com").count
+      assert_equal 2, Topic.where(author_email_address: "David@loudthinking.com").count
+    end
+  end
+
+  def test_validate_case_sensitive_uniqueness_by_default
+    Topic.validates_uniqueness_of(:author_email_address)
+
+    topic1 = Topic.new(author_email_address: "david@loudthinking.com")
+    topic2 = Topic.new(author_email_address: "David@loudthinking.com")
+
+    assert_equal 1, Topic.where(author_email_address: "david@loudthinking.com").count
+
+    ActiveSupport::Deprecation.silence do
+      assert_not topic1.valid?
+      assert_not topic1.save
+      assert topic2.valid?
+      assert topic2.save
+    end
+
+    if current_adapter?(:Mysql2Adapter)
+      assert_equal 2, Topic.where(author_email_address: "david@loudthinking.com").count
+      assert_equal 2, Topic.where(author_email_address: "David@loudthinking.com").count
+    else
+      assert_equal 1, Topic.where(author_email_address: "david@loudthinking.com").count
+      assert_equal 1, Topic.where(author_email_address: "David@loudthinking.com").count
+    end
+  end
+
   def test_validate_case_sensitive_uniqueness
     Topic.validates_uniqueness_of(:title, case_sensitive: true, allow_nil: true)
 
@@ -510,7 +555,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
       abc.save!
     end
     assert_match(/\AUnknown primary key for table dashboards in model/, e.message)
-    assert_match(/Can not validate uniqueness for persisted record without primary key.\z/, e.message)
+    assert_match(/Cannot validate uniqueness for persisted record without primary key.\z/, e.message)
   end
 
   def test_validate_uniqueness_ignores_itself_when_primary_key_changed

@@ -42,7 +42,6 @@ module ActionDispatch
     end
 
     private
-
       def invoke_interceptors(request, exception)
         backtrace_cleaner = request.get_header("action_dispatch.backtrace_cleaner")
         wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
@@ -60,7 +59,11 @@ module ActionDispatch
         log_error(request, wrapper)
 
         if request.get_header("action_dispatch.show_detailed_exceptions")
-          content_type = request.formats.first
+          begin
+            content_type = request.formats.first
+          rescue Mime::Type::InvalidMimeType
+            render_for_api_request(Mime[:text], wrapper)
+          end
 
           if api_request?(content_type)
             render_for_api_request(content_type, wrapper)
@@ -134,15 +137,13 @@ module ActionDispatch
         return unless logger
 
         exception = wrapper.exception
-
-        trace = wrapper.application_trace
-        trace = wrapper.framework_trace if trace.empty?
+        trace = wrapper.exception_trace
 
         ActiveSupport::Deprecation.silence do
           message = []
           message << "  "
           message << "#{exception.class} (#{exception.message}):"
-          message.concat(exception.annoted_source_code) if exception.respond_to?(:annoted_source_code)
+          message.concat(exception.annotated_source_code) if exception.respond_to?(:annotated_source_code)
           message << "  "
           message.concat(trace)
 

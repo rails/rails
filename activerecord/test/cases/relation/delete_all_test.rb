@@ -80,25 +80,23 @@ class DeleteAllTest < ActiveRecord::TestCase
     assert_equal pets.count, pets.delete_all
   end
 
-  unless current_adapter?(:OracleAdapter)
-    def test_delete_all_with_order_and_limit_deletes_subset_only
-      author = authors(:david)
-      limited_posts = Post.where(author: author).order(:id).limit(1)
-      assert_equal 1, limited_posts.size
-      assert_equal 2, limited_posts.limit(2).size
-      assert_equal 1, limited_posts.delete_all
-      assert_raise(ActiveRecord::RecordNotFound) { posts(:welcome) }
-      assert posts(:thinking)
-    end
+  def test_delete_all_with_order_and_limit_deletes_subset_only
+    author = authors(:david)
+    limited_posts = Post.where(author: author).order(:id).limit(1)
+    assert_equal 1, limited_posts.size
+    assert_equal 2, limited_posts.limit(2).size
+    assert_equal 1, limited_posts.delete_all
+    assert_raise(ActiveRecord::RecordNotFound) { posts(:welcome) }
+    assert posts(:thinking)
+  end
 
-    def test_delete_all_with_order_and_limit_and_offset_deletes_subset_only
-      author = authors(:david)
-      limited_posts = Post.where(author: author).order(:id).limit(1).offset(1)
-      assert_equal 1, limited_posts.size
-      assert_equal 2, limited_posts.limit(2).size
-      assert_equal 1, limited_posts.delete_all
-      assert_raise(ActiveRecord::RecordNotFound) { posts(:thinking) }
-      assert posts(:welcome)
-    end
+  def test_delete_all_with_order_and_limit_and_offset_deletes_subset_only
+    author = authors(:david)
+    limited_posts = Post.where(author: author).order(:id).limit(1).offset(1)
+    assert_equal 1, limited_posts.size
+    assert_equal 2, limited_posts.limit(2).size
+    assert_equal 1, limited_posts.delete_all
+    assert_raise(ActiveRecord::RecordNotFound) { posts(:thinking) }
+    assert posts(:welcome)
   end
 end

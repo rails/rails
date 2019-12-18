@@ -43,6 +43,6 @@ class LocalizedTemplatesTest < ActionController::TestCase
     I18n.locale = :it
     get :hello_world
     assert_equal "Ciao Mondo", @response.body
-    assert_equal "text/html",  @response.content_type
+    assert_equal "text/html",  @response.media_type
   end
 end

@@ -18,8 +18,10 @@ module ActiveRecord
       end
 
       def nil?
-        !value_before_type_cast.is_a?(StatementCache::Substitute) &&
-          (value_before_type_cast.nil? || value_for_database.nil?)
+        unless value_before_type_cast.is_a?(StatementCache::Substitute)
+          value_before_type_cast.nil? ||
+            type.respond_to?(:subtype, true) && value_for_database.nil?
+        end
       rescue ::RangeError
       end
 

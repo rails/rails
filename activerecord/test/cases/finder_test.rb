@@ -3,6 +3,7 @@
 require "cases/helper"
 require "models/post"
 require "models/author"
+require "models/account"
 require "models/categorization"
 require "models/comment"
 require "models/company"
@@ -21,6 +22,7 @@ require "models/dog"
 require "models/car"
 require "models/tyre"
 require "models/subscriber"
+require "models/non_primary_key"
 require "support/stubs/strong_parameters"
 
 class FinderTest < ActiveRecord::TestCase
@@ -226,14 +228,14 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_exists_with_strong_parameters
-    assert_equal false, Subscriber.exists?(Parameters.new(nick: "foo").permit!)
+    assert_equal false, Subscriber.exists?(ProtectedParams.new(nick: "foo").permit!)
 
     Subscriber.create!(nick: "foo")
 
-    assert_equal true, Subscriber.exists?(Parameters.new(nick: "foo").permit!)
+    assert_equal true, Subscriber.exists?(ProtectedParams.new(nick: "foo").permit!)
 
     assert_raises(ActiveModel::ForbiddenAttributesError) do
-      Subscriber.exists?(Parameters.new(nick: "foo"))
+      Subscriber.exists?(ProtectedParams.new(nick: "foo"))
     end
   end
 
@@ -244,7 +246,8 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_exists_does_not_select_columns_without_alias
-    assert_sql(/SELECT\W+1 AS one FROM ["`]topics["`]/i) do
+    c = Topic.connection
+    assert_sql(/SELECT 1 AS one FROM #{Regexp.escape(c.quote_table_name("topics"))}/i) do
       Topic.exists?
     end
   end
@@ -269,6 +272,21 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_exists_with_empty_hash_arg
     assert_equal true, Topic.exists?({})
+  end
+
+  def test_exists_with_distinct_and_offset_and_joins
+    assert Post.left_joins(:comments).distinct.offset(10).exists?
+    assert_not Post.left_joins(:comments).distinct.offset(11).exists?
+  end
+
+  def test_exists_with_distinct_and_offset_and_select
+    assert Post.select(:body).distinct.offset(3).exists?
+    assert_not Post.select(:body).distinct.offset(4).exists?
+  end
+
+  def test_exists_with_distinct_and_offset_and_eagerload_and_order
+    assert Post.eager_load(:comments).distinct.offset(10).merge(Comment.order(post_id: :asc)).exists?
+    assert_not Post.eager_load(:comments).distinct.offset(11).merge(Comment.order(post_id: :asc)).exists?
   end
 
   # Ensure +exists?+ runs without an error by excluding distinct value.
@@ -372,7 +390,7 @@ class FinderTest < ActiveRecord::TestCase
     #   limit of 3 and offset of 9, then you should find that there
     #   will be only 2 results, regardless of the limit.
     devs = Developer.all
-    last_devs = Developer.limit(3).offset(9).find devs.map(&:id)
+    last_devs = Developer.limit(3).offset(9).find(devs.map(&:id).sort)
     assert_equal 2, last_devs.size
     assert_equal "fixture_10", last_devs[0].name
     assert_equal "Jamis", last_devs[1].name
@@ -451,14 +469,14 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_by_association_subquery
-    author = authors(:david)
-    assert_equal author.post, Post.find_by(author: Author.where(id: author))
-    assert_equal author.post, Post.find_by(author_id: Author.where(id: author))
+    firm = companies(:first_firm)
+    assert_equal firm.account, Account.find_by(firm: Firm.where(id: firm))
+    assert_equal firm.account, Account.find_by(firm_id: Firm.where(id: firm))
   end
 
   def test_find_by_and_where_consistency_with_active_record_instance
-    author = authors(:david)
-    assert_equal Post.where(author_id: author).take, Post.find_by(author_id: author)
+    firm = companies(:first_firm)
+    assert_equal Account.where(firm_id: firm).take, Account.find_by(firm_id: firm)
   end
 
   def test_take
@@ -506,6 +524,7 @@ class FinderTest < ActiveRecord::TestCase
     expected.touch # PostgreSQL changes the default order if no order clause is used
     assert_equal expected, Topic.first
     assert_equal expected, Topic.limit(5).first
+    assert_equal expected, Topic.order(nil).first
   end
 
   def test_model_class_responds_to_first_bang
@@ -529,6 +548,7 @@ class FinderTest < ActiveRecord::TestCase
     expected.touch # PostgreSQL changes the default order if no order clause is used
     assert_equal expected, Topic.second
     assert_equal expected, Topic.limit(5).second
+    assert_equal expected, Topic.order(nil).second
   end
 
   def test_model_class_responds_to_second_bang
@@ -552,6 +572,7 @@ class FinderTest < ActiveRecord::TestCase
     expected.touch # PostgreSQL changes the default order if no order clause is used
     assert_equal expected, Topic.third
     assert_equal expected, Topic.limit(5).third
+    assert_equal expected, Topic.order(nil).third
   end
 
   def test_model_class_responds_to_third_bang
@@ -575,6 +596,7 @@ class FinderTest < ActiveRecord::TestCase
     expected.touch # PostgreSQL changes the default order if no order clause is used
     assert_equal expected, Topic.fourth
     assert_equal expected, Topic.limit(5).fourth
+    assert_equal expected, Topic.order(nil).fourth
   end
 
   def test_model_class_responds_to_fourth_bang
@@ -598,6 +620,7 @@ class FinderTest < ActiveRecord::TestCase
     expected.touch # PostgreSQL changes the default order if no order clause is used
     assert_equal expected, Topic.fifth
     assert_equal expected, Topic.limit(5).fifth
+    assert_equal expected, Topic.order(nil).fifth
   end
 
   def test_model_class_responds_to_fifth_bang
@@ -766,6 +789,7 @@ class FinderTest < ActiveRecord::TestCase
 
     assert_equal expected, clients.first(2)
     assert_equal expected, clients.limit(5).first(2)
+    assert_equal expected, clients.order(nil).first(2)
   end
 
   def test_implicit_order_column_is_configurable
@@ -774,8 +798,37 @@ class FinderTest < ActiveRecord::TestCase
 
     assert_equal topics(:fifth), Topic.first
     assert_equal topics(:third), Topic.last
+
+    c = Topic.connection
+    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.title"))} DESC, #{Regexp.escape(c.quote_table_name("topics.id"))} DESC LIMIT/i) {
+      Topic.last
+    }
   ensure
     Topic.implicit_order_column = old_implicit_order_column
+  end
+
+  def test_implicit_order_set_to_primary_key
+    old_implicit_order_column = Topic.implicit_order_column
+    Topic.implicit_order_column = "id"
+
+    c = Topic.connection
+    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.id"))} DESC LIMIT/i) {
+      Topic.last
+    }
+  ensure
+    Topic.implicit_order_column = old_implicit_order_column
+  end
+
+  def test_implicit_order_for_model_without_primary_key
+    old_implicit_order_column = NonPrimaryKey.implicit_order_column
+    NonPrimaryKey.implicit_order_column = "created_at"
+
+    c = NonPrimaryKey.connection
+    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("non_primary_keys.created_at"))} DESC LIMIT/i) {
+      NonPrimaryKey.last
+    }
+  ensure
+    NonPrimaryKey.implicit_order_column = old_implicit_order_column
   end
 
   def test_take_and_first_and_last_with_integer_should_return_an_array
@@ -1311,6 +1364,18 @@ class FinderTest < ActiveRecord::TestCase
     ).to_a
     assert_equal 3, posts.size
     assert_equal [0, 1, 1], posts.map(&:author_id).sort
+  end
+
+  def test_eager_load_for_no_has_many_with_limit_and_joins_for_has_many
+    relation = Post.eager_load(:author).joins(comments: :post)
+    assert_equal 5, relation.to_a.size
+    assert_equal 5, relation.limit(5).to_a.size
+  end
+
+  def test_eager_load_for_no_has_many_with_limit_and_left_joins_for_has_many
+    relation = Post.eager_load(:author).left_joins(comments: :post)
+    assert_equal 11, relation.to_a.size
+    assert_equal 11, relation.limit(11).to_a.size
   end
 
   def test_find_one_message_on_primary_key

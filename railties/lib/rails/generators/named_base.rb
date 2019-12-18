@@ -213,7 +213,7 @@ module Rails
         #
         def self.check_class_collision(options = {}) # :doc:
           define_method :check_class_collision do
-            name = if respond_to?(:controller_class_name) # for ResourceHelpers
+            name = if respond_to?(:controller_class_name, true) # for ResourceHelpers
               controller_class_name
             else
               class_name

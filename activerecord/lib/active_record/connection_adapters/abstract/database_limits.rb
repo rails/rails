@@ -1,24 +1,26 @@
 # frozen_string_literal: true
 
-require "active_support/deprecation"
-
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     module DatabaseLimits
+      def max_identifier_length # :nodoc:
+        64
+      end
+
       # Returns the maximum length of a table alias.
       def table_alias_length
-        255
+        max_identifier_length
       end
 
       # Returns the maximum length of a column name.
       def column_name_length
-        64
+        max_identifier_length
       end
       deprecate :column_name_length
 
       # Returns the maximum length of a table name.
       def table_name_length
-        64
+        max_identifier_length
       end
       deprecate :table_name_length
 
@@ -33,7 +35,7 @@ module ActiveRecord
 
       # Returns the maximum length of an index name.
       def index_name_length
-        64
+        max_identifier_length
       end
 
       # Returns the maximum number of columns per table.

@@ -40,7 +40,7 @@ module Rails
 
             assert_file("Gemfile") do |content|
               assert_match "# Use pg as the database for Active Record", content
-              assert_match "gem 'pg'", content
+              assert_match "gem 'pg', '>= 0.18', '< 2.0'", content
             end
           end
 
@@ -54,7 +54,7 @@ module Rails
 
             assert_file("Gemfile") do |content|
               assert_match "# Use mysql2 as the database for Active Record", content
-              assert_match "gem 'mysql2'", content
+              assert_match "gem 'mysql2', '~> 0.5'", content
             end
           end
 
@@ -68,7 +68,22 @@ module Rails
 
             assert_file("Gemfile") do |content|
               assert_match "# Use sqlite3 as the database for Active Record", content
-              assert_match "gem 'sqlite3'", content
+              assert_match "gem 'sqlite3', '~> 1.4'", content
+            end
+          end
+
+          test "change from versioned gem to other versioned gem" do
+            run_generator ["--to", "sqlite3"]
+            run_generator ["--to", "mysql", "--force"]
+
+            assert_file("config/database.yml") do |content|
+              assert_match "adapter: mysql2", content
+              assert_match "database: test_app", content
+            end
+
+            assert_file("Gemfile") do |content|
+              assert_match "# Use mysql2 as the database for Active Record", content
+              assert_match "gem 'mysql2', '~> 0.5'", content
             end
           end
         end

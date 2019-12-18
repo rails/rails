@@ -94,11 +94,9 @@ module ActiveModel
     end
 
     protected
-
       attr_reader :attributes
 
     private
-
       def initialized_attributes
         attributes.select { |_, attr| attr.initialized? }
       end

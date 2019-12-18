@@ -18,9 +18,11 @@ module Rails
                     :session_options, :time_zone, :reload_classes_only_on_change,
                     :beginning_of_week, :filter_redirect, :x, :enable_dependency_loading,
                     :read_encrypted_secrets, :log_level, :content_security_policy_report_only,
-                    :content_security_policy_nonce_generator, :require_master_key, :credentials
+                    :content_security_policy_nonce_generator, :content_security_policy_nonce_directives,
+                    :require_master_key, :credentials, :disable_sandbox, :add_autoload_paths_to_load_path,
+                    :rake_eager_load
 
-      attr_reader :encoding, :api_only, :loaded_config_version
+      attr_reader :encoding, :api_only, :loaded_config_version, :autoloader
 
       def initialize(*)
         super
@@ -59,13 +61,20 @@ module Rails
         @content_security_policy                 = nil
         @content_security_policy_report_only     = false
         @content_security_policy_nonce_generator = nil
+        @content_security_policy_nonce_directives = nil
         @require_master_key                      = false
         @loaded_config_version                   = nil
         @credentials                             = ActiveSupport::OrderedOptions.new
         @credentials.content_path                = default_credentials_content_path
         @credentials.key_path                    = default_credentials_key_path
+        @autoloader                              = :classic
+        @disable_sandbox                         = false
+        @add_autoload_paths_to_load_path         = true
+        @feature_policy                          = nil
+        @rake_eager_load                         = false
       end
 
+      # Loads default configurations. See {the result of the method for each version}[https://guides.rubyonrails.org/configuring.html#results-of-config-load-defaults].
       def load_defaults(target_version)
         case target_version.to_s
         when "5.0"
@@ -117,12 +126,15 @@ module Rails
         when "6.0"
           load_defaults "5.2"
 
+          self.autoloader = :zeitwerk if RUBY_ENGINE == "ruby"
+
           if respond_to?(:action_view)
             action_view.default_enforce_utf8 = false
           end
 
           if respond_to?(:action_dispatch)
             action_dispatch.use_cookies_with_metadata = true
+            action_dispatch.return_only_media_type_on_content_type = false
           end
 
           if respond_to?(:action_mailer)
@@ -136,6 +148,34 @@ module Rails
           if respond_to?(:active_storage)
             active_storage.queues.analysis = :active_storage_analysis
             active_storage.queues.purge    = :active_storage_purge
+
+            active_storage.replace_on_assign_to_many = true
+          end
+
+          if respond_to?(:active_record)
+            active_record.collection_cache_versioning = true
+          end
+        when "6.1"
+          load_defaults "6.0"
+
+          if respond_to?(:active_job)
+            active_job.retry_jitter = 0.15
+          end
+
+          if respond_to?(:active_record)
+            active_record.has_many_inversing = true
+          end
+
+          if respond_to?(:active_storage)
+            active_storage.track_variants = true
+          end
+
+          if respond_to?(:active_job)
+            active_job.skip_after_callbacks_if_terminated = true
+          end
+
+          if respond_to?(:action_dispatch)
+            action_dispatch.cookies_same_site_protection = :lax
           end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
@@ -178,6 +218,26 @@ module Rails
           paths.add "public/stylesheets"
           paths.add "tmp"
           paths
+        end
+      end
+
+      # Load the database YAML without evaluating ERB. This allows us to
+      # create the rake tasks for multiple databases without filling in the
+      # configuration values or loading the environment. Do not use this
+      # method.
+      #
+      # This uses a DummyERB custom compiler so YAML can ignore the ERB
+      # tags and load the database.yml for the rake tasks.
+      def load_database_yaml # :nodoc:
+        if path = paths["config/database"].existent.first
+          require "rails/application/dummy_erb_compiler"
+
+          yaml = Pathname.new(path)
+          erb = DummyERB.new(yaml.read)
+
+          YAML.load(erb.result) || {}
+        else
+          {}
         end
       end
 
@@ -265,6 +325,38 @@ module Rails
         else
           @content_security_policy
         end
+      end
+
+      def feature_policy(&block)
+        if block_given?
+          @feature_policy = ActionDispatch::FeaturePolicy.new(&block)
+        else
+          @feature_policy
+        end
+      end
+
+      def autoloader=(autoloader)
+        case autoloader
+        when :classic
+          @autoloader = autoloader
+        when :zeitwerk
+          require "zeitwerk"
+          @autoloader = autoloader
+        else
+          raise ArgumentError, "config.autoloader may be :classic or :zeitwerk, got #{autoloader.inspect} instead"
+        end
+      end
+
+      def default_log_file
+        path = paths["log"].first
+        unless File.exist? File.dirname path
+          FileUtils.mkdir_p File.dirname path
+        end
+
+        f = File.open path, "a"
+        f.binmode
+        f.sync = autoflush_log # if true make sure every write flushes
+        f
       end
 
       class Custom #:nodoc:

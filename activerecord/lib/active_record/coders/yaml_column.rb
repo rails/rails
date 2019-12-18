@@ -39,7 +39,6 @@ module ActiveRecord
       end
 
       private
-
         def check_arity_of_constructor
           load(nil)
         rescue ArgumentError

@@ -2,18 +2,23 @@
 
 module ActiveRecord
   module Querying
-    delegate :find, :take, :take!, :first, :first!, :last, :last!, :exists?, :any?, :many?, :none?, :one?, to: :all
-    delegate :second, :second!, :third, :third!, :fourth, :fourth!, :fifth, :fifth!, :forty_two, :forty_two!, :third_to_last, :third_to_last!, :second_to_last, :second_to_last!, to: :all
-    delegate :first_or_create, :first_or_create!, :first_or_initialize, to: :all
-    delegate :find_or_create_by, :find_or_create_by!, :create_or_find_by, :create_or_find_by!, :find_or_initialize_by, to: :all
-    delegate :find_by, :find_by!, to: :all
-    delegate :destroy_all, :delete_all, :update_all, to: :all
-    delegate :find_each, :find_in_batches, :in_batches, to: :all
-    delegate :select, :group, :order, :except, :reorder, :limit, :offset, :joins, :left_joins, :left_outer_joins, :or,
-             :where, :rewhere, :preload, :eager_load, :includes, :from, :lock, :readonly, :extending,
-             :having, :create_with, :distinct, :references, :none, :unscope, :merge, to: :all
-    delegate :count, :average, :minimum, :maximum, :sum, :calculate, to: :all
-    delegate :pluck, :pick, :ids, to: :all
+    QUERYING_METHODS = [
+      :find, :find_by, :find_by!, :take, :take!, :first, :first!, :last, :last!,
+      :second, :second!, :third, :third!, :fourth, :fourth!, :fifth, :fifth!,
+      :forty_two, :forty_two!, :third_to_last, :third_to_last!, :second_to_last, :second_to_last!,
+      :exists?, :any?, :many?, :none?, :one?,
+      :first_or_create, :first_or_create!, :first_or_initialize,
+      :find_or_create_by, :find_or_create_by!, :find_or_initialize_by,
+      :create_or_find_by, :create_or_find_by!,
+      :destroy_all, :delete_all, :update_all, :touch_all, :destroy_by, :delete_by,
+      :find_each, :find_in_batches, :in_batches,
+      :select, :reselect, :order, :reorder, :group, :limit, :offset, :joins, :left_joins, :left_outer_joins,
+      :where, :rewhere, :preload, :extract_associated, :eager_load, :includes, :from, :lock, :readonly, :extending, :or,
+      :having, :create_with, :distinct, :references, :none, :unscope, :optimizer_hints, :merge, :except, :only,
+      :count, :average, :minimum, :maximum, :sum, :calculate, :annotate,
+      :pluck, :pick, :ids
+    ].freeze # :nodoc:
+    delegate(*QUERYING_METHODS, to: :all)
 
     # Executes a custom SQL query against your database and returns all the results. The results will
     # be returned as an array, with the requested columns encapsulated as attributes of the model you call
@@ -40,8 +45,7 @@ module ActiveRecord
     def find_by_sql(sql, binds = [], preparable: nil, &block)
       result_set = connection.select_all(sanitize_sql(sql), "#{name} Load", binds, preparable: preparable)
       column_types = result_set.column_types.dup
-      cached_columns_hash = connection.schema_cache.columns_hash(table_name)
-      cached_columns_hash.each_key { |k| column_types.delete k }
+      attribute_types.each_key { |k| column_types.delete k }
       message_bus = ActiveSupport::Notifications.instrumenter
 
       payload = {

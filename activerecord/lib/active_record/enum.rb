@@ -31,13 +31,21 @@ module ActiveRecord
   # as well. With the above example:
   #
   #   Conversation.active
+  #   Conversation.not_active
   #   Conversation.archived
+  #   Conversation.not_archived
   #
   # Of course, you can also query them directly if the scopes don't fit your
   # needs:
   #
   #   Conversation.where(status: [:active, :archived])
   #   Conversation.where.not(status: :active)
+  #
+  # Defining scopes can be disabled by setting +:_scopes+ to +false+.
+  #
+  #   class Conversation < ActiveRecord::Base
+  #     enum status: [ :active, :archived ], _scopes: false
+  #   end
   #
   # You can set the default value from the database declaration, like:
   #
@@ -196,9 +204,15 @@ module ActiveRecord
             define_method("#{value_method_name}!") { update!(attr => value) }
 
             # scope :active, -> { where(status: 0) }
+            # scope :not_active, -> { where.not(status: 0) }
             if enum_scopes != false
+              klass.send(:detect_negative_condition!, value_method_name)
+
               klass.send(:detect_enum_conflict!, name, value_method_name, true)
               klass.scope value_method_name, -> { where(attr => value) }
+
+              klass.send(:detect_enum_conflict!, name, "not_#{value_method_name}", true)
+              klass.scope "not_#{value_method_name}", -> { where.not(attr => value) }
             end
           end
         end
@@ -254,6 +268,13 @@ module ActiveRecord
           method: method_name,
           source: source
         }
+      end
+
+      def detect_negative_condition!(method_name)
+        if method_name.start_with?("not_") && logger
+          logger.warn "An enum element in #{self.name} uses the prefix 'not_'." \
+            " This will cause a conflict with auto generated negative scopes."
+        end
       end
   end
 end

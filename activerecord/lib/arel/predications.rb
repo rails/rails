@@ -37,7 +37,7 @@ module Arel # :nodoc: all
     def between(other)
       if unboundable?(other.begin) == 1 || unboundable?(other.end) == -1
         self.in([])
-      elsif open_ended?(other.begin)
+      elsif other.begin.nil? || open_ended?(other.begin)
         if other.end.nil? || open_ended?(other.end)
           not_in([])
         elsif other.exclude_end?
@@ -85,7 +85,7 @@ Passing a range to `#in` is deprecated. Call `#between`, instead.
     def not_between(other)
       if unboundable?(other.begin) == 1 || unboundable?(other.end) == -1
         not_in([])
-      elsif open_ended?(other.begin)
+      elsif other.begin.nil? || open_ended?(other.begin)
         if other.end.nil? || open_ended?(other.end)
           self.in([])
         elsif other.exclude_end?
@@ -221,7 +221,6 @@ Passing a range to `#not_in` is deprecated. Call `#not_between`, instead.
     end
 
     private
-
       def grouping_any(method_id, others, *extras)
         nodes = others.map { |expr| send(method_id, expr, *extras) }
         Nodes::Grouping.new nodes.inject { |memo, node|

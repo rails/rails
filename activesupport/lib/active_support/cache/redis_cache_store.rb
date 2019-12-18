@@ -74,7 +74,7 @@ module ActiveSupport
       # Support raw values in the local cache strategy.
       module LocalCacheWithRaw # :nodoc:
         private
-          def read_entry(key, options)
+          def read_entry(key, **options)
             entry = super
             if options[:raw] && local_cache && entry
               entry = deserialize_entry(entry.value)
@@ -82,24 +82,24 @@ module ActiveSupport
             entry
           end
 
-          def write_entry(key, entry, options)
+          def write_entry(key, entry, **options)
             if options[:raw] && local_cache
               raw_entry = Entry.new(serialize_entry(entry, raw: true))
               raw_entry.expires_at = entry.expires_at
-              super(key, raw_entry, options)
+              super(key, raw_entry, **options)
             else
               super
             end
           end
 
-          def write_multi_entries(entries, options)
+          def write_multi_entries(entries, **options)
             if options[:raw] && local_cache
               raw_entries = entries.map do |key, entry|
                 raw_entry = Entry.new(serialize_entry(entry, raw: true))
                 raw_entry.expires_at = entry.expires_at
               end.to_h
 
-              super(raw_entries, options)
+              super(raw_entries, **options)
             else
               super
             end
@@ -152,12 +152,14 @@ module ActiveSupport
 
       # Creates a new Redis cache store.
       #
-      # Handles three options: block provided to instantiate, single URL
-      # provided, and multiple URLs provided.
+      # Handles four options: :redis block, :redis instance, single :url
+      # string, and multiple :url strings.
       #
-      #   :redis Proc   -> options[:redis].call
-      #   :url   String -> Redis.new(url: …)
-      #   :url   Array  -> Redis::Distributed.new([{ url: … }, { url: … }, …])
+      #   Option  Class       Result
+      #   :redis  Proc    ->  options[:redis].call
+      #   :redis  Object  ->  options[:redis]
+      #   :url    String  ->  Redis.new(url: …)
+      #   :url    Array   ->  Redis::Distributed.new([{ url: … }, { url: … }, …])
       #
       # No namespace is set by default. Provide one if the Redis cache
       # server is shared with other apps: <tt>namespace: 'myapp-cache'</tt>.
@@ -344,13 +346,13 @@ module ActiveSupport
 
         # Store provider interface:
         # Read an entry from the cache.
-        def read_entry(key, options = nil)
+        def read_entry(key, **options)
           failsafe :read_entry do
             deserialize_entry redis.with { |c| c.get(key) }
           end
         end
 
-        def read_multi_entries(names, _options)
+        def read_multi_entries(names, **options)
           if mget_capable?
             read_multi_mget(*names)
           else
@@ -361,6 +363,7 @@ module ActiveSupport
         def read_multi_mget(*names)
           options = names.extract_options!
           options = merged_options(options)
+          return {} if names == []
 
           keys = names.map { |name| normalize_key(name, options) }
 
@@ -417,6 +420,11 @@ module ActiveSupport
           end
         end
 
+        # Deletes multiple entries in the cache. Returns the number of entries deleted.
+        def delete_multi_entries(entries, **_options)
+          redis.with { |c| c.del(entries) }
+        end
+
         # Nonstandard store provider API to write multiple values at once.
         def write_multi_entries(entries, expires_in: nil, **options)
           if entries.any?
@@ -468,7 +476,7 @@ module ActiveSupport
 
         def failsafe(method, returning: nil)
           yield
-        rescue ::Redis::BaseConnectionError => e
+        rescue ::Redis::BaseError => e
           handle_exception exception: e, method: method, returning: returning
           returning
         end

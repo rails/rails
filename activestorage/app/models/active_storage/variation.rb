@@ -40,7 +40,7 @@ class ActiveStorage::Variation
   end
 
   def initialize(transformations)
-    @transformations = transformations
+    @transformations = transformations.deep_symbolize_keys
   end
 
   # Accepts a File object, performs the +transformations+ against it, and
@@ -58,13 +58,17 @@ class ActiveStorage::Variation
     self.class.encode(transformations)
   end
 
+  def digest
+    Digest::SHA1.base64digest Marshal.dump(transformations)
+  end
+
   private
     def transformer
       if ActiveStorage.variant_processor
         begin
           require "image_processing"
         rescue LoadError
-          ActiveSupport::Deprecation.warn <<~WARNING
+          ActiveSupport::Deprecation.warn <<~WARNING.squish
             Generating image variants will require the image_processing gem in Rails 6.1.
             Please add `gem 'image_processing', '~> 1.2'` to your Gemfile.
           WARNING

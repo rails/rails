@@ -51,6 +51,15 @@ module ActionMailbox
       assert_equal inbound_email.mail, $processed_mail
     end
 
+    test "single string routing on bcc" do
+      @router.add_routes("first@example.com" => :first)
+
+      inbound_email = create_inbound_email_from_mail(to: "someone@example.com", bcc: "first@example.com", subject: "This is a reply")
+      @router.route inbound_email
+      assert_equal "FirstMailbox", $processed_by
+      assert_equal inbound_email.mail, $processed_mail
+    end
+
     test "single string routing case-insensitively" do
       @router.add_routes("first@example.com" => :first)
 
@@ -134,6 +143,20 @@ module ActionMailbox
       assert_raises(ArgumentError) do
         @router.add_route Array.new, to: :first
       end
+    end
+
+    test "single string mailbox_for" do
+      @router.add_routes("first@example.com" => :first)
+
+      inbound_email = create_inbound_email_from_mail(to: "first@example.com", subject: "This is a reply")
+      assert_equal FirstMailbox, @router.mailbox_for(inbound_email)
+    end
+
+    test "mailbox_for with no matches" do
+      @router.add_routes("first@example.com" => :first)
+
+      inbound_email = create_inbound_email_from_mail(to: "second@example.com", subject: "This is a reply")
+      assert_nil @router.mailbox_for(inbound_email)
     end
   end
 end

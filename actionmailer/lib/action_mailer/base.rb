@@ -408,7 +408,7 @@ module ActionMailer
   #     really useful if you need to validate a self-signed and/or a wildcard certificate. You can use the name
   #     of an OpenSSL verify constant (<tt>'none'</tt> or <tt>'peer'</tt>) or directly the constant
   #     (<tt>OpenSSL::SSL::VERIFY_NONE</tt> or <tt>OpenSSL::SSL::VERIFY_PEER</tt>).
-  #     <tt>:ssl/:tls</tt> Enables the SMTP connection to use SMTP/TLS (SMTPS: SMTP over direct TLS connection)
+  #   * <tt>:ssl/:tls</tt> Enables the SMTP connection to use SMTP/TLS (SMTPS: SMTP over direct TLS connection)
   #
   # * <tt>sendmail_settings</tt> - Allows you to override options for the <tt>:sendmail</tt> delivery method.
   #   * <tt>:location</tt> - The location of the sendmail executable. Defaults to <tt>/usr/sbin/sendmail</tt>.
@@ -590,9 +590,17 @@ module ActionMailer
         end
       end
 
-    private
+      # Returns an email in the format "Name <email@example.com>".
+      def email_address_with_name(address, name)
+        Mail::Address.new.tap do |builder|
+          builder.address = address
+          builder.display_name = name
+        end.to_s
+      end
 
+    private
       def set_payload_for_mail(payload, mail)
+        payload[:mail]               = mail.encoded
         payload[:mailer]             = name
         payload[:message_id]         = mail.message_id
         payload[:subject]            = mail.subject
@@ -601,7 +609,6 @@ module ActionMailer
         payload[:bcc]                = mail.bcc if mail.bcc.present?
         payload[:cc]                 = mail.cc  if mail.cc.present?
         payload[:date]               = mail.date
-        payload[:mail]               = mail.encoded
         payload[:perform_deliveries] = mail.perform_deliveries
       end
 
@@ -655,6 +662,11 @@ module ActionMailer
     # Returns the name of the mailer object.
     def mailer_name
       self.class.mailer_name
+    end
+
+    # Returns an email in the format "Name <email@example.com>".
+    def email_address_with_name(address, name)
+      self.class.email_address_with_name(address, name)
     end
 
     # Allows you to pass random and unusual headers to the new <tt>Mail::Message</tt>
@@ -738,7 +750,7 @@ module ActionMailer
     end
 
     class LateAttachmentsProxy < SimpleDelegator
-      def inline; _raise_error end
+      def inline; self end
       def []=(_name, _content); _raise_error end
 
       private
@@ -873,7 +885,6 @@ module ActionMailer
     end
 
     private
-
       # Used by #mail to set the content type of the message.
       #
       # It will use the given +user_content_type+, or multipart if the mail
@@ -907,7 +918,7 @@ module ActionMailer
       # If the subject has interpolations, you can pass them through the +interpolations+ parameter.
       def default_i18n_subject(interpolations = {}) # :doc:
         mailer_scope = self.class.mailer_name.tr("/", ".")
-        I18n.t(:subject, interpolations.merge(scope: [mailer_scope, action_name], default: action_name.humanize))
+        I18n.t(:subject, **interpolations.merge(scope: [mailer_scope, action_name], default: action_name.humanize))
       end
 
       # Emails do not support relative path links.
@@ -944,9 +955,9 @@ module ActionMailer
         assignable.each { |k, v| message[k] = v }
       end
 
-      def collect_responses(headers)
+      def collect_responses(headers, &block)
         if block_given?
-          collect_responses_from_block(headers, &Proc.new)
+          collect_responses_from_block(headers, &block)
         elsif headers[:body]
           collect_responses_from_text(headers)
         else
@@ -973,10 +984,10 @@ module ActionMailer
         templates_name = headers[:template_name] || action_name
 
         each_template(Array(templates_path), templates_name).map do |template|
-          self.formats = template.formats
+          format = template.format || self.formats.first
           {
-            body: render(template: template),
-            content_type: template.type.to_s
+            body: render(template: template, formats: [format]),
+            content_type: Mime[format].to_s
           }
         end
       end
@@ -986,7 +997,7 @@ module ActionMailer
         if templates.empty?
           raise ActionView::MissingTemplate.new(paths, name, paths, false, "mailer")
         else
-          templates.uniq(&:formats).each(&block)
+          templates.uniq(&:format).each(&block)
         end
       end
 

@@ -62,12 +62,11 @@ module ActionDispatch
       end
 
       private
-
         def extract_parameterized_parts(route, options, recall, parameterize = nil)
           parameterized_parts = recall.merge(options)
 
           keys_to_keep = route.parts.reverse_each.drop_while { |part|
-            !options.key?(part) || (options[part] || recall[part]).nil?
+            !(options.key?(part) || route.scope_options.key?(part)) || (options[part] || recall[part]).nil?
           } | route.required_parts
 
           parameterized_parts.delete_if do |bad_key, _|
@@ -147,12 +146,12 @@ module ActionDispatch
                 missing_keys << key
               end
             when RegexCaseComparator
-              unless RegexCaseComparator::DEFAULT_REGEX === parts[key]
+              unless RegexCaseComparator::DEFAULT_REGEX.match?(parts[key])
                 missing_keys ||= []
                 missing_keys << key
               end
             else
-              unless /\A#{tests[key]}\Z/ === parts[key]
+              unless /\A#{tests[key]}\Z/.match?(parts[key])
                 missing_keys ||= []
                 missing_keys << key
               end

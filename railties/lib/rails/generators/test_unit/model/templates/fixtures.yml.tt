@@ -1,4 +1,4 @@
-# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 <% unless attributes.empty? -%>
 <% %w(one two).each do |name| %>
 <%= name %>:
@@ -7,7 +7,7 @@
   password_digest: <%%= BCrypt::Password.create('secret') %>
   <%- elsif attribute.reference? -%>
   <%= yaml_key_value(attribute.column_name.sub(/_id$/, ''), attribute.default || name) %>
-  <%- else -%>
+  <%- elsif !attribute.virtual? -%>
   <%= yaml_key_value(attribute.column_name, attribute.default) %>
   <%- end -%>
   <%- if attribute.polymorphic? -%>

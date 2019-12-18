@@ -98,10 +98,7 @@ To install all run:
 
 ```bash
 $ sudo apt-get update
-$ sudo apt-get install sqlite3 libsqlite3-dev
-    mysql-server libmysqlclient-dev
-    postgresql postgresql-client postgresql-contrib libpq-dev
-    redis-server memcached imagemagick ffmpeg mupdf mupdf-tools
+$ sudo apt-get install sqlite3 libsqlite3-dev mysql-server libmysqlclient-dev postgresql postgresql-client postgresql-contrib libpq-dev redis-server memcached imagemagick ffmpeg mupdf mupdf-tools libxml2-dev
 
 # Install Yarn
 $ curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
@@ -114,10 +111,7 @@ $ sudo apt-get install yarn
 To install all run:
 
 ```bash
-$ sudo dnf install sqlite-devel sqlite-libs
-    mysql-server mysql-devel
-    postgresql-server postgresql-devel
-    redis memcached imagemagick ffmpeg mupdf
+$ sudo dnf install sqlite-devel sqlite-libs mysql-server mysql-devel postgresql-server postgresql-devel redis memcached imagemagick ffmpeg mupdf libxml2-devel
 
 # Install Yarn
 # Use this command if you do not have Node.js installed
@@ -132,11 +126,7 @@ $ sudo dnf install yarn
 To install all run:
 
 ```bash
-$ sudo pacman -S sqlite
-    mariadb libmariadbclient mariadb-clients
-    postgresql postgresql-libs
-    redis memcached imagemagick ffmpeg mupdf mupdf-tools poppler
-    yarn
+$ sudo pacman -S sqlite mariadb libmariadbclient mariadb-clients postgresql postgresql-libs redis memcached imagemagick ffmpeg mupdf mupdf-tools poppler yarn libxml2
 $ sudo systemctl start redis
 ```
 
@@ -148,11 +138,7 @@ use MariaDB instead (see [this announcement](https://www.archlinux.org/news/mari
 To install all run:
 
 ```bash
-# pkg install sqlite3
-    mysql80-client mysql80-server
-    postgresql11-client postgresql11-server
-    memcached imagemagick ffmpeg mupdf
-    yarn
+$ pkg install sqlite3 mysql80-client mysql80-server postgresql11-client postgresql11-server memcached imagemagick ffmpeg mupdf yarn libxml2
 # portmaster databases/redis
 ```
 
@@ -160,7 +146,7 @@ Or install everything through ports (these packages are located under the
 `databases` folder).
 
 NOTE: If you run into troubles during the installation of MySQL, please see
-[the MySQL documentation](https://dev.mysql.com/doc/refman/8.0/en/freebsd-installation.html).
+[the MySQL documentation](https://dev.mysql.com/doc/refman/en/freebsd-installation.html).
 
 ### Database Configuration
 

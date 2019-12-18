@@ -159,7 +159,6 @@ module ApplicationTests
       end
 
       private
-
         def run_rake_notes(command = "bin/rake notes")
           Dir.chdir(app_path) do
             output = `#{command}`

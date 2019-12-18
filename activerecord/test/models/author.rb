@@ -71,6 +71,10 @@ class Author < ActiveRecord::Base
            after_add: :log_after_adding,
            before_remove: :log_before_removing,
            after_remove: :log_after_removing
+  has_many :posts_with_thrown_callbacks, class_name: "Post", before_add: :throw_abort,
+           after_add: :ensure_not_called,
+           before_remove: :throw_abort,
+           after_remove: :ensure_not_called
   has_many :posts_with_proc_callbacks, class_name: "Post",
            before_add: Proc.new { |o, r| o.post_log << "before_adding#{r.id || '<new>'}" },
            after_add: Proc.new { |o, r| o.post_log << "after_adding#{r.id || '<new>'}" },
@@ -116,6 +120,7 @@ class Author < ActiveRecord::Base
   has_many :tags_with_primary_key, through: :posts
 
   has_many :books
+  has_many :published_books, class_name: "PublishedBook"
   has_many :unpublished_books, -> { where(status: [:proposed, :written]) }, class_name: "Book"
   has_many :subscriptions,        through: :books
   has_many :subscribers, -> { order("subscribers.nick") }, through: :subscriptions
@@ -153,6 +158,7 @@ class Author < ActiveRecord::Base
   has_many :comments_on_posts_with_default_include, through: :posts_with_default_include, source: :comments
 
   has_many :posts_with_signature, ->(record) { where("posts.title LIKE ?", "%by #{record.name.downcase}%") }, class_name: "Post"
+  has_many :posts_mentioning_author, ->(record = nil) { where("posts.body LIKE ?", "%#{record&.name&.downcase}%") }, class_name: "Post"
 
   has_many :posts_with_extension, -> { order(:title) }, class_name: "Post" do
     def extension_method; end
@@ -183,6 +189,14 @@ class Author < ActiveRecord::Base
   validates_presence_of :name
 
   private
+    def throw_abort(_)
+      throw(:abort)
+    end
+
+    def ensure_not_called(_)
+      raise
+    end
+
     def log_before_adding(object)
       @post_log << "before_adding#{object.id || '<new>'}"
     end
@@ -217,6 +231,15 @@ class AuthorAddress < ActiveRecord::Base
 end
 
 class AuthorFavorite < ActiveRecord::Base
+  belongs_to :author
+  belongs_to :favorite_author, class_name: "Author"
+end
+
+class AuthorFavoriteWithScope < ActiveRecord::Base
+  self.table_name = "author_favorites"
+
+  default_scope { order(id: :asc) }
+
   belongs_to :author
   belongs_to :favorite_author, class_name: "Author"
 end

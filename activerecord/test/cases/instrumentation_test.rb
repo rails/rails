@@ -41,8 +41,8 @@ module ActiveRecord
           assert_equal "Book Update", event.payload[:name]
         end
       end
-      book = Book.create(name: "test book")
-      book.update_attribute(:name, "new name")
+      book = Book.create(name: "test book", format: "paperback")
+      book.update_attribute(:format, "ebook")
     ensure
       ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
     end
@@ -54,8 +54,8 @@ module ActiveRecord
           assert_equal "Book Update All", event.payload[:name]
         end
       end
-      Book.create(name: "test book")
-      Book.update_all(name: "new name")
+      Book.create(name: "test book", format: "paperback")
+      Book.update_all(format: "ebook")
     ensure
       ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
     end
@@ -69,6 +69,31 @@ module ActiveRecord
       end
       book = Book.create(name: "test book")
       book.destroy
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+    end
+
+    def test_payload_connection_with_query_cache_disabled
+      connection = Book.connection
+      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |*args|
+        event = ActiveSupport::Notifications::Event.new(*args)
+        assert_equal connection, event.payload[:connection]
+      end
+      Book.first
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+    end
+
+    def test_payload_connection_with_query_cache_enabled
+      connection = Book.connection
+      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |*args|
+        event = ActiveSupport::Notifications::Event.new(*args)
+        assert_equal connection, event.payload[:connection]
+      end
+      Book.cache do
+        Book.first
+        Book.first
+      end
     ensure
       ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
     end

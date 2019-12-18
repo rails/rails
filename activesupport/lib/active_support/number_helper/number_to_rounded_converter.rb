@@ -38,7 +38,6 @@ module ActiveSupport
       end
 
       private
-
         def strip_insignificant_zeros
           options[:strip_insignificant_zeros]
         end

@@ -37,6 +37,7 @@ module Arel
         core1.groups      = %w[j k l]
         core1.windows     = %w[m n o]
         core1.havings     = %w[p q r]
+        core1.comment     = Arel::Nodes::Comment.new(["comment"])
         core2 = SelectCore.new
         core2.froms       = %w[a b c]
         core2.projections = %w[d e f]
@@ -44,6 +45,7 @@ module Arel
         core2.groups      = %w[j k l]
         core2.windows     = %w[m n o]
         core2.havings     = %w[p q r]
+        core2.comment     = Arel::Nodes::Comment.new(["comment"])
         array = [core1, core2]
         assert_equal 1, array.uniq.size
       end
@@ -56,6 +58,7 @@ module Arel
         core1.groups      = %w[j k l]
         core1.windows     = %w[m n o]
         core1.havings     = %w[p q r]
+        core1.comment     = Arel::Nodes::Comment.new(["comment"])
         core2 = SelectCore.new
         core2.froms       = %w[a b c]
         core2.projections = %w[d e f]
@@ -63,6 +66,11 @@ module Arel
         core2.groups      = %w[j k l]
         core2.windows     = %w[m n o]
         core2.havings     = %w[l o l]
+        core2.comment     = Arel::Nodes::Comment.new(["comment"])
+        array = [core1, core2]
+        assert_equal 2, array.uniq.size
+        core2.havings     = %w[p q r]
+        core2.comment     = Arel::Nodes::Comment.new(["other"])
         array = [core1, core2]
         assert_equal 2, array.uniq.size
       end

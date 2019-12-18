@@ -31,16 +31,20 @@ module ActiveSupport
       end
 
       def push_tags(*tags)
-        tags.flatten.reject(&:blank?).tap do |new_tags|
-          current_tags.concat new_tags
-        end
+        @tags_text = nil
+        tags.flatten!
+        tags.reject!(&:blank?)
+        current_tags.concat tags
+        tags
       end
 
       def pop_tags(size = 1)
+        @tags_text = nil
         current_tags.pop size
       end
 
       def clear_tags!
+        @tags_text = nil
         current_tags.clear
       end
 
@@ -51,11 +55,13 @@ module ActiveSupport
       end
 
       def tags_text
-        tags = current_tags
-        if tags.one?
-          "[#{tags[0]}] "
-        elsif tags.any?
-          tags.collect { |tag| "[#{tag}] " }.join
+        @tags_text ||= begin
+          tags = current_tags
+          if tags.one?
+            "[#{tags[0]}] "
+          elsif tags.any?
+            tags.collect { |tag| "[#{tag}] " }.join
+          end
         end
       end
     end

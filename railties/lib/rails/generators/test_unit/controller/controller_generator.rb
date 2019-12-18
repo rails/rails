@@ -6,6 +6,8 @@ module TestUnit # :nodoc:
   module Generators # :nodoc:
     class ControllerGenerator < Base # :nodoc:
       argument :actions, type: :array, default: [], banner: "action action"
+      class_option :skip_routes, type: :boolean
+
       check_class_collision suffix: "ControllerTest"
 
       def create_test_files

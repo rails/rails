@@ -5,8 +5,10 @@ require "rails/dev_caching"
 module Rails
   module Command
     class DevCommand < Base # :nodoc:
-      def help
-        say "rails dev:cache # Toggle development mode caching on/off."
+      no_commands do
+        def help
+          say "rails dev:cache # Toggle development mode caching on/off."
+        end
       end
 
       def cache

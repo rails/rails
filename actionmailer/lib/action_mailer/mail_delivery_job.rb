@@ -3,7 +3,7 @@
 require "active_job"
 
 module ActionMailer
-  # The <tt>ActionMailer::NewDeliveryJob</tt> class is used when you
+  # The <tt>ActionMailer::MailDeliveryJob</tt> class is used when you
   # want to send emails outside of the request-response cycle. It supports
   # sending either parameterized or normal mail.
   #

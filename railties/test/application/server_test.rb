@@ -29,14 +29,14 @@ module ApplicationTests
       primary, replica = PTY.open
       pid = nil
 
-      begin
-        pid = Process.spawn("#{app_path}/bin/rails server -P tmp/dummy.pid", in: replica, out: replica, err: replica)
+      Bundler.with_original_env do
+        pid = Process.spawn("bin/rails server -b localhost -P tmp/dummy.pid", chdir: app_path, in: replica, out: replica, err: replica)
         assert_output("Listening", primary)
 
         rails("restart")
 
         assert_output("Restarting", primary)
-        assert_output("Inherited", primary)
+        assert_output("Listening", primary)
       ensure
         kill(pid) if pid
       end

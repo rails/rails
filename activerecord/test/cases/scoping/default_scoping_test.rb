@@ -408,18 +408,18 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_joins_not_affected_by_scope_other_than_default_or_unscoped
-    without_scope_on_post = Comment.joins(:post).to_a
+    without_scope_on_post = Comment.joins(:post).sort_by(&:id)
     with_scope_on_post = nil
     Post.where(id: [1, 5, 6]).scoping do
-      with_scope_on_post = Comment.joins(:post).to_a
+      with_scope_on_post = Comment.joins(:post).sort_by(&:id)
     end
 
-    assert_equal with_scope_on_post, without_scope_on_post
+    assert_equal without_scope_on_post, with_scope_on_post
   end
 
   def test_unscoped_with_joins_should_not_have_default_scope
-    assert_equal SpecialPostWithDefaultScope.unscoped { Comment.joins(:special_post_with_default_scope).to_a },
-                 Comment.joins(:post).to_a
+    assert_equal Comment.joins(:post).sort_by(&:id),
+      SpecialPostWithDefaultScope.unscoped { Comment.joins(:special_post_with_default_scope).sort_by(&:id) }
   end
 
   def test_sti_association_with_unscoped_not_affected_by_default_scope

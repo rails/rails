@@ -3,9 +3,9 @@
 module ActiveRecord
   module ConnectionAdapters
     module DetermineIfPreparableVisitor
-      attr_reader :preparable
+      attr_accessor :preparable
 
-      def accept(*)
+      def accept(object, collector)
         @preparable = true
         super
       end
@@ -20,7 +20,7 @@ module ActiveRecord
         super
       end
 
-      def visit_Arel_Nodes_SqlLiteral(*)
+      def visit_Arel_Nodes_SqlLiteral(o, collector)
         @preparable = false
         super
       end

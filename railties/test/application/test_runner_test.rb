@@ -564,6 +564,24 @@ module ApplicationTests
       assert_no_match "create_table(:users)", output
     end
 
+    def test_run_in_parallel_with_process_worker_crash
+      exercise_parallelization_regardless_of_machine_core_count(with: :processes)
+
+      file_name = app_file("test/models/parallel_test.rb", <<-RUBY)
+        require 'test_helper'
+
+        class ParallelTest < ActiveSupport::TestCase
+          def test_crash
+            Kernel.exit 1
+          end
+        end
+      RUBY
+
+      output = run_test_command(file_name)
+
+      assert_match %r{Queue not empty, but all workers have finished. This probably means that a worker crashed and 1 tests were missed.}, output
+    end
+
     def test_run_in_parallel_with_threads
       exercise_parallelization_regardless_of_machine_core_count(with: :threads)
 
@@ -794,6 +812,32 @@ module ApplicationTests
       assert_match "Capybara.reset_sessions! called", output
     end
 
+    def test_failed_system_test_screenshot_should_be_taken_before_other_teardown
+      app_file "test/system/failed_system_test_screenshot_should_be_taken_before_other_teardown_test.rb", <<~RUBY
+        require "application_system_test_case"
+        require "selenium/webdriver"
+
+        class FailedSystemTestScreenshotShouldBeTakenBeforeOtherTeardownTest < ApplicationSystemTestCase
+          ActionDispatch::SystemTestCase.class_eval do
+            def take_failed_screenshot
+              puts "take_failed_screenshot called"
+              super
+            end
+          end
+
+          def teardown
+            puts "test teardown called"
+            super
+          end
+
+          test "dummy" do
+          end
+        end
+      RUBY
+      output = run_test_command("test/system/failed_system_test_screenshot_should_be_taken_before_other_teardown_test.rb")
+      assert_match(/take_failed_screenshot called\n.*test teardown called/, output)
+    end
+
     def test_system_tests_are_not_run_with_the_default_test_command
       app_file "test/system/dummy_test.rb", <<-RUBY
         require "application_system_test_case"
@@ -922,8 +966,8 @@ module ApplicationTests
 
           class EnvironmentTest < ActiveSupport::TestCase
             def test_environment
-              test_db = ActiveRecord::Base.configurations[#{env.dump}]["database"]
-              db_file = ActiveRecord::Base.connection_config[:database]
+              test_db = ActiveRecord::Base.configurations[#{env.dump}][:database]
+              db_file = ActiveRecord::Base.connection_db_config.database
               assert_match(test_db, db_file)
               assert_equal #{env.dump}, ENV["RAILS_ENV"]
             end

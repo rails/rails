@@ -44,12 +44,12 @@ module ActiveModel
         end
 
         unless is_number?(raw_value)
-          record.errors.add(attr_name, :not_a_number, filtered_options(raw_value))
+          record.errors.add(attr_name, :not_a_number, **filtered_options(raw_value))
           return
         end
 
         if allow_only_integer?(record) && !is_integer?(raw_value)
-          record.errors.add(attr_name, :not_an_integer, filtered_options(raw_value))
+          record.errors.add(attr_name, :not_an_integer, **filtered_options(raw_value))
           return
         end
 
@@ -59,7 +59,7 @@ module ActiveModel
           case option
           when :odd, :even
             unless value.to_i.send(CHECKS[option])
-              record.errors.add(attr_name, option, filtered_options(value))
+              record.errors.add(attr_name, option, **filtered_options(value))
             end
           else
             case option_value
@@ -72,14 +72,13 @@ module ActiveModel
             option_value = parse_as_number(option_value)
 
             unless value.send(CHECKS[option], option_value)
-              record.errors.add(attr_name, option, filtered_options(value).merge!(count: option_value))
+              record.errors.add(attr_name, option, **filtered_options(value).merge!(count: option_value))
             end
           end
         end
       end
 
     private
-
       def is_number?(raw_value)
         !parse_as_number(raw_value).nil?
       rescue ArgumentError, TypeError

@@ -11,6 +11,9 @@ class TestUnconnectedAdapter < ActiveRecord::TestCase
   def setup
     @underlying = ActiveRecord::Base.connection
     @specification = ActiveRecord::Base.remove_connection
+
+    # Clear out connection info from other pids (like a fork parent) too
+    ActiveRecord::ConnectionAdapters::PoolConfig.discard_pools!
   end
 
   teardown do

@@ -17,7 +17,7 @@ module ActiveRecord
       end
 
       def table_name
-        "#{table_name_prefix}#{ActiveRecord::Base.internal_metadata_table_name}#{table_name_suffix}"
+        "#{table_name_prefix}#{internal_metadata_table_name}#{table_name_suffix}"
       end
 
       def []=(key, value)
@@ -28,21 +28,21 @@ module ActiveRecord
         where(key: key).pluck(:value).first
       end
 
-      def table_exists?
-        connection.table_exists?(table_name)
-      end
-
       # Creates an internal metadata table with columns +key+ and +value+
       def create_table
         unless table_exists?
           key_options = connection.internal_string_options_for_primary_key
 
           connection.create_table(table_name, id: false) do |t|
-            t.string :key, key_options
+            t.string :key, **key_options
             t.string :value
             t.timestamps
           end
         end
+      end
+
+      def drop_table
+        connection.drop_table table_name, if_exists: true
       end
     end
   end

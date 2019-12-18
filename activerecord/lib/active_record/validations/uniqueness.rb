@@ -12,7 +12,7 @@ module ActiveRecord
           raise ArgumentError, "#{options[:scope]} is not supported format for :scope option. " \
             "Pass a symbol or an array of symbols instead: `scope: :user_id`"
         end
-        super({ case_sensitive: true }.merge!(options))
+        super
         @klass = options[:class]
       end
 
@@ -25,7 +25,7 @@ module ActiveRecord
           if finder_class.primary_key
             relation = relation.where.not(finder_class.primary_key => record.id_in_database)
           else
-            raise UnknownPrimaryKey.new(finder_class, "Can not validate uniqueness for persisted record without primary key.")
+            raise UnknownPrimaryKey.new(finder_class, "Cannot validate uniqueness for persisted record without primary key.")
           end
         end
         relation = scope_relation(record, relation)
@@ -35,7 +35,7 @@ module ActiveRecord
           error_options = options.except(:case_sensitive, :scope, :conditions)
           error_options[:value] = value
 
-          record.errors.add(attribute, :taken, error_options)
+          record.errors.add(attribute, :taken, **error_options)
         end
       end
 
@@ -60,8 +60,8 @@ module ActiveRecord
         comparison = relation.bind_attribute(attribute, value) do |attr, bind|
           return relation.none! if bind.unboundable?
 
-          if bind.nil?
-            attr.eq(bind)
+          if !options.key?(:case_sensitive) || bind.nil?
+            klass.connection.default_uniqueness_comparison(attr, bind, klass)
           elsif options[:case_sensitive]
             klass.connection.case_sensitive_comparison(attr, bind)
           else

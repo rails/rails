@@ -35,8 +35,9 @@ module Rails
           end
 
           def edit_gemfile
-            database_gem_name, _ = gem_for_database
-            gsub_file("Gemfile", all_database_gems_regex, database_gem_name)
+            name, version = gem_for_database
+            gsub_file("Gemfile", all_database_gems_regex, name)
+            gsub_file("Gemfile", gem_entry_regex_for(name), gem_entry_for(name, *version))
           end
 
           private
@@ -47,6 +48,15 @@ module Rails
             def all_database_gems_regex
               all_database_gem_names = all_database_gems.map(&:first)
               /(\b#{all_database_gem_names.join('\b|\b')}\b)/
+            end
+
+            def gem_entry_regex_for(gem_name)
+              /^gem.*\b#{gem_name}\b.*/
+            end
+
+            def gem_entry_for(*gem_name_and_version)
+              gem_name_and_version.map! { |segment| "'#{segment}'" }
+              "gem #{gem_name_and_version.join(", ")}"
             end
         end
       end

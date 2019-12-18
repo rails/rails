@@ -12,7 +12,6 @@ module ActionView
         end
 
         private
-
           def validate_color_string(string)
             regex = /#[0-9a-fA-F]{6}/
             if regex.match?(string)

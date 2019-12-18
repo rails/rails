@@ -4,6 +4,7 @@ require "abstract_unit"
 require "minitest/mock"
 require "rails/command"
 require "rails/commands/dbconsole/dbconsole_command"
+require "active_record/database_configurations"
 
 class Rails::DBConsoleTest < ActiveSupport::TestCase
   def setup
@@ -29,14 +30,14 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
       }
     }
     app_db_config(config_sample) do
-      assert_equal config_sample["test"], Rails::DBConsole.new.config
+      assert_equal config_sample["test"].symbolize_keys, Rails::DBConsole.new.db_config.configuration_hash
     end
   end
 
   def test_config_with_no_db_config
     app_db_config(nil) do
       assert_raise(ActiveRecord::AdapterNotSpecified) {
-        Rails::DBConsole.new.config
+        Rails::DBConsole.new.db_config.configuration_hash
       }
     end
   end
@@ -44,18 +45,18 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   def test_config_with_database_url_only
     ENV["DATABASE_URL"] = "postgresql://foo:bar@localhost:9000/foo_test?pool=5&timeout=3000"
     expected = {
-      "adapter"  => "postgresql",
-      "host"     => "localhost",
-      "port"     => 9000,
-      "database" => "foo_test",
-      "username" => "foo",
-      "password" => "bar",
-      "pool"     => "5",
-      "timeout"  => "3000"
+      adapter:  "postgresql",
+      host:     "localhost",
+      port:     9000,
+      database: "foo_test",
+      username: "foo",
+      password: "bar",
+      pool:     "5",
+      timeout:  "3000"
     }.sort
 
     app_db_config(nil) do
-      assert_equal expected, Rails::DBConsole.new.config.sort
+      assert_equal expected, Rails::DBConsole.new.db_config.configuration_hash.sort
     end
   end
 
@@ -75,7 +76,7 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
       }
     }
     app_db_config(sample_config) do
-      assert_equal host, Rails::DBConsole.new.config["host"]
+      assert_equal host, Rails::DBConsole.new.db_config.configuration_hash[:host]
     end
   end
 
@@ -212,26 +213,26 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     }
 
     app_db_config(sample_config) do
-      assert_equal "postgresql", Rails::DBConsole.new.config["adapter"]
+      assert_equal "postgresql", Rails::DBConsole.new.db_config.configuration_hash[:adapter]
     end
   end
 
-  def test_specifying_a_custom_connection_and_environment
+  def test_specifying_a_custom_database_and_environment
     stub_available_environments(["development"]) do
-      dbconsole = parse_arguments(["-c", "custom", "-e", "development"])
+      dbconsole = parse_arguments(["--db", "custom", "-e", "development"])
 
       assert_equal "development", dbconsole[:environment]
-      assert_equal "custom", dbconsole.connection
+      assert_equal "custom", dbconsole.database
     end
   end
 
-  def test_specifying_a_missing_connection
+  def test_specifying_a_missing_database
     app_db_config({}) do
       e = assert_raises(ActiveRecord::AdapterNotSpecified) do
-        Rails::Command.invoke(:dbconsole, ["-c", "i_do_not_exist"])
+        Rails::Command.invoke(:dbconsole, ["--db", "i_do_not_exist"])
       end
 
-      assert_includes e.message, "'i_do_not_exist' connection is not configured."
+      assert_includes e.message, "'i_do_not_exist' database is not configured for 'test'."
     end
   end
 
@@ -241,8 +242,20 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
         Rails::Command.invoke(:dbconsole)
       end
 
-      assert_includes e.message, "'test' database is not configured."
+      assert_includes e.message, "'primary' database is not configured for 'test'."
     end
+  end
+
+  def test_connection_options_is_deprecate
+    command = Rails::Command::DbconsoleCommand.new([], ["-c", "custom"])
+    Rails::DBConsole.stub(:start, nil) do
+      assert_deprecated("`connection` option is deprecated") do
+        command.perform
+      end
+    end
+
+    assert_equal "custom", command.options["connection"]
+    assert_equal "custom", command.options["database"]
   end
 
   def test_print_help_short
@@ -263,7 +276,6 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   private :aborted, :output
 
   private
-
     def app_db_config(results)
       Rails.application.config.stub(:database_configuration, results || {}) do
         yield
@@ -283,8 +295,10 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     attr_reader :dbconsole
 
     def start(config = {}, argv = [])
+      hash_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("test", "primary", config)
+
       @dbconsole = make_dbconsole.new(parse_arguments(argv))
-      @dbconsole.stub(:config, config.stringify_keys) do
+      @dbconsole.stub(:db_config, hash_config) do
         capture_abort { @dbconsole.start }
       end
     end

@@ -39,7 +39,7 @@ module ApplicationTests
 
     def test_should_set_argv_when_running_code
       output = rails("runner", "puts ARGV.join(',')", "--foo", "a1", "-b", "a2", "a3", "--moo")
-      assert_equal "--foo,a1,-b,a2,a3,--moo", output.chomp
+      assert_match "--foo,a1,-b,a2,a3,--moo", output.chomp
     end
 
     def test_should_run_file
@@ -103,6 +103,14 @@ module ApplicationTests
 
     def test_default_environment
       assert_match "development", rails("runner", "puts Rails.env")
+    end
+
+    def test_environment_option
+      assert_match "production", rails("runner", "-e", "production", "puts Rails.env")
+    end
+
+    def test_environment_option_is_properly_expanded
+      assert_match "production", rails("runner", "-e", "prod", "puts Rails.env")
     end
 
     def test_runner_detects_syntax_errors

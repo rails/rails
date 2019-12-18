@@ -151,7 +151,6 @@ module ActionController #:nodoc:
       end
 
       private
-
         def protection_method_class(name)
           ActionController::RequestForgeryProtection::ProtectionMethods.const_get(name.to_s.classify)
         rescue NameError
@@ -175,7 +174,6 @@ module ActionController #:nodoc:
         end
 
         private
-
           class NullSessionHash < Rack::Session::Abstract::SessionHash #:nodoc:
             def initialize(req)
               super(nil, req)
@@ -282,7 +280,7 @@ module ActionController #:nodoc:
 
       # Check for cross-origin JavaScript responses.
       def non_xhr_javascript_response? # :doc:
-        content_type =~ %r(\A(?:text|application)/javascript) && !request.xhr?
+        %r(\A(?:text|application)/javascript).match?(media_type) && !request.xhr?
       end
 
       AUTHENTICITY_TOKEN_LENGTH = 32
@@ -431,7 +429,7 @@ module ActionController #:nodoc:
         The browser returned a 'null' origin for a request with origin-based forgery protection turned on. This usually
         means you have the 'no-referrer' Referrer-Policy header enabled, or that the request came from a site that
         refused to give its origin. This makes it impossible for Rails to verify the source of the requests. Likely the
-        best solution is to change your referrer policy to something less strict like same-origin or strict-same-origin.
+        best solution is to change your referrer policy to something less strict like same-origin or strict-origin.
         If you cannot change the referrer policy, you can disable origin checking with the
         Rails.application.config.action_controller.forgery_protection_origin_check setting.
       MSG

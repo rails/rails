@@ -26,6 +26,7 @@
 require "active_record"
 require "active_support"
 require "active_support/rails"
+require "active_support/core_ext/numeric/time"
 
 require "active_storage/version"
 require "active_storage/errors"
@@ -42,17 +43,27 @@ module ActiveStorage
 
   mattr_accessor :logger
   mattr_accessor :verifier
-  mattr_accessor :queues, default: {}
-  mattr_accessor :previewers, default: []
-  mattr_accessor :analyzers, default: []
   mattr_accessor :variant_processor, default: :mini_magick
+
+  mattr_accessor :queues, default: {}
+
+  mattr_accessor :previewers, default: []
+  mattr_accessor :analyzers,  default: []
+
   mattr_accessor :paths, default: {}
-  mattr_accessor :variable_content_types, default: []
+
+  mattr_accessor :variable_content_types,           default: []
+  mattr_accessor :binary_content_type,              default: "application/octet-stream"
   mattr_accessor :content_types_to_serve_as_binary, default: []
-  mattr_accessor :content_types_allowed_inline, default: []
-  mattr_accessor :binary_content_type, default: "application/octet-stream"
+  mattr_accessor :content_types_allowed_inline,     default: []
+
   mattr_accessor :service_urls_expire_in, default: 5.minutes
+
   mattr_accessor :routes_prefix, default: "/rails/active_storage"
+  mattr_accessor :draw_routes, default: true
+
+  mattr_accessor :replace_on_assign_to_many, default: false
+  mattr_accessor :track_variants, default: false
 
   module Transformers
     extend ActiveSupport::Autoload

@@ -15,7 +15,7 @@ Note that the `data` attributes this library adds are a feature of HTML5. If you
 
 ## Installation
 
-### NPM
+### npm
 
     npm install @rails/ujs --save
 
@@ -52,5 +52,5 @@ Run `bundle exec rake ujs:server` first, and then run the web tests by visiting 
 rails-ujs is released under the [MIT License](MIT-LICENSE).
 
 [data]: https://www.w3.org/TR/html5/dom.html#embedding-custom-non-visible-data-with-the-data-attributes "Embedding custom non-visible data with the data-* attributes"
-[validator]: http://validator.w3.org/
-[csrf]: http://api.rubyonrails.org/classes/ActionController/RequestForgeryProtection.html
+[validator]: https://validator.w3.org/
+[csrf]: https://api.rubyonrails.org/classes/ActionController/RequestForgeryProtection.html

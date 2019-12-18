@@ -232,10 +232,7 @@ module ApplicationTests
       assert_successful_test_run("models/user_test.rb")
     end
 
-    # TODO: would be nice if we could detect the schema change automatically.
-    # For now, the user has to synchronize the schema manually.
-    # This test-case serves as a reminder for this use-case.
-    test "manually synchronize test schema after rollback" do
+    test "automatically synchronizes test schema after rollback" do
       output  = rails("generate", "model", "user", "name:string")
       version = output.match(/(\d+)_create_users\.rb/)[1]
 
@@ -267,10 +264,6 @@ module ApplicationTests
           end
         end
       RUBY
-
-      assert_successful_test_run "models/user_test.rb"
-
-      rails "db:test:prepare"
 
       assert_unsuccessful_run "models/user_test.rb", <<-ASSERTION
 Expected: ["id", "name"]
