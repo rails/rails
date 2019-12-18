@@ -1022,7 +1022,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
       lib/tasks
       lib/assets
       log
-      test/fixtures
       test/fixtures/files
       test/controllers
       test/mailers
