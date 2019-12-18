@@ -219,8 +219,13 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
 
   def test_doesnt_error_when_a_describe_query_is_called_while_preventing_writes
     @connection_handler.while_preventing_writes do
-      @conn.execute("DESCRIBE engines")
-      @conn.execute("DESC engines") # DESC is an alias for DESCRIBE
+      assert_equal 2, @conn.execute("DESCRIBE engines").entries.count
+    end
+  end
+
+  def test_doesnt_error_when_a_desc_query_is_called_while_preventing_writes
+    @connection_handler.while_preventing_writes do
+      assert_equal 2, @conn.execute("DESC engines").entries.count
     end
   end
 
