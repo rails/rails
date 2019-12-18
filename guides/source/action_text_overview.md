@@ -45,9 +45,31 @@ happens after every keystroke, and avoids the need to use execCommand at all.
 
 ## Installation
 
-Run `rails action_text:install` to add the Yarn package and copy over the necessary migration.
-Also, you need to set up Active Storage for embedded images and other attachments.
-Please refer to the [Active Storage Overview](active_storage_overview.html) guide.
+Run `rails action_text:install` to add the Yarn package and copy over the necessary migration. Also, you need to set up Active Storage for embedded images and other attachments. Please refer to the [Active Storage Overview](active_storage_overview.html) guide.
+
+### Installation with Webpacker 
+
+Both `trix` and `@rails/actiontext` should be required in your JavaScript pack.
+
+```js
+// application.js
+require("trix")
+require("@rails/actiontext")
+```
+
+In order for the built-in CSS styles to work, you'll need to use webpack-compatible import syntax within the generated `actiontext.scss` file.
+
+```scss
+@import "trix/dist/trix";
+```
+
+Additionally you'll also need to ensure that the `actiontext.scss` file is imported into your stylesheet pack.
+
+```
+// application.scss
+@import "./actiontext.scss";
+```
+
 
 ## Examples
 
@@ -59,6 +81,8 @@ class Message < ApplicationRecord
   has_rich_text :content
 end
 ```
+
+Note that you don't need to add a `content` field to your `messages` table.
 
 Then refer to this field in the form for the model:
 
