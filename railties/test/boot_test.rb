@@ -13,7 +13,7 @@ class BootTest < ActiveSupport::TestCase
 
     app_file("config/environment.rb", <<~RUBY, "a+")
       block = ->(_, _, _, _, payload) do
-        allowed_hooks = [:before_initialize, :after_initialize]
+        allowed_hooks = [:before_initialize, :after_initialize, :action_cable, :action_cable_channel]
         next if allowed_hooks.include?(payload[:name])
 
         raise(<<~EOM)
