@@ -496,7 +496,7 @@ module ActiveRecord
         end
         ConnectionTestModel.establish_connection :arunit
 
-        assert_equal [:config, :connection_id, :spec_name], payloads[0].keys.sort
+        assert_equal [:config, :spec_name], payloads[0].keys.sort
         assert_equal "ActiveRecord::ConnectionAdapters::ConnectionPoolTest::ConnectionTestModel", payloads[0][:spec_name]
       ensure
         ActiveSupport::Notifications.unsubscribe(subscription) if subscription

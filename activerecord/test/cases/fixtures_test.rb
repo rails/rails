@@ -954,7 +954,6 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
         payload = {
           spec_name: "book",
           config: nil,
-          connection_id: connection.object_id
         }
 
         message_bus.instrument("!connection.active_record", payload) { }
