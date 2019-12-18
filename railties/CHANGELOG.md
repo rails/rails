@@ -1,3 +1,8 @@
+## Rails 6.0.2.1 (December 18, 2019) ##
+
+*   No changes.
+
+
 ## Rails 6.0.2 (December 13, 2019) ##
 
 *   Fix the collision check for the scaffold generator.
