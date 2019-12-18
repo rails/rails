@@ -167,7 +167,7 @@ module ActiveModel
 
     # Dispatch target for <tt>*_changed?</tt> attribute methods.
     def attribute_changed?(attr_name, **options) # :nodoc:
-      mutations_from_database.changed?(attr_name.to_s, options)
+      mutations_from_database.changed?(attr_name.to_s, **options)
     end
 
     # Dispatch target for <tt>*_was</tt> attribute methods.
