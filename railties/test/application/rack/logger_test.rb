@@ -53,6 +53,12 @@ module ApplicationTests
         wait
         assert_match 'Started HEAD "/"', logs
       end
+
+      test "logger logs correct remote IP address" do
+        get "/", {}, { "REMOTE_ADDR" => "127.0.0.1", "HTTP_X_FORWARDED_FOR" => "1.2.3.4" }
+        wait
+        assert_match 'Started GET "/" for 1.2.3.4', logs
+      end
     end
   end
 end

@@ -17,6 +17,10 @@ module Rails
       include Actions
 
       class << self
+        def exit_on_failure? # :nodoc:
+          false
+        end
+
         # Returns true when the app is a Rails engine.
         def engine?
           defined?(ENGINE_ROOT)
@@ -52,7 +56,7 @@ module Rails
         def inherited(base) #:nodoc:
           super
 
-          if base.name && base.name !~ /Base$/
+          if base.name && !base.name.end_with?("Base")
             Rails::Command.subclasses << base
           end
         end
@@ -70,7 +74,7 @@ module Rails
         end
 
         def executable
-          "bin/rails #{command_name}"
+          "rails #{command_name}"
         end
 
         # Use Rails' default banner.
@@ -115,7 +119,7 @@ module Rails
         # For a Rails::Command::TestCommand placed in <tt>rails/command/test_command.rb</tt>
         # would return <tt>rails/test</tt>.
         def default_command_root
-          path = File.expand_path(File.join("../commands", command_root_namespace), __dir__)
+          path = File.expand_path(relative_command_path, __dir__)
           path if File.exist?(path)
         end
 
@@ -135,12 +139,20 @@ module Rails
           end
 
           def command_root_namespace
-            (namespace.split(":") - %w( rails )).first
+            (namespace.split(":") - %w(rails)).join(":")
+          end
+
+          def relative_command_path
+            File.join("../commands", *command_root_namespace.split(":"))
           end
 
           def namespaced_commands
             commands.keys.map do |key|
-              key == command_root_namespace ? key : "#{command_root_namespace}:#{key}"
+              if command_root_namespace.match?(/(\A|\:)#{key}\z/)
+                command_root_namespace
+              else
+                "#{command_root_namespace}:#{key}"
+              end
             end
           end
       end

@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
-require "active_support/core_ext/object/try"
 require "active_support/core_ext/object/with_options"
 require "active_support/core_ext/array/extract_options"
 
@@ -36,7 +35,6 @@ class ResourcesTest < ActionController::TestCase
         collection: collection_methods,
         member: member_methods,
         path_names: path_names do
-
       assert_restful_routes_for :messages,
           collection: collection_methods,
           member: member_methods,
@@ -58,7 +56,6 @@ class ResourcesTest < ActionController::TestCase
           collection: collection_methods,
           member: member_methods,
           path_names: path_names do |options|
-
         collection_methods.each_key do |action|
           assert_named_route "/messages/#{path_names[action] || action}", "#{action}_messages_path", action: action
         end
@@ -66,7 +63,6 @@ class ResourcesTest < ActionController::TestCase
         member_methods.each_key do |action|
           assert_named_route "/messages/1/#{path_names[action] || action}", "#{action}_message_path", action: action, id: "1"
         end
-
       end
     end
   end
@@ -854,6 +850,28 @@ class ResourcesTest < ActionController::TestCase
     end
   end
 
+  def test_resource_has_show_action_but_does_not_have_destroy_action
+    with_routing do |set|
+      set.draw do
+        resources :products, only: [:show, :destroy], except: :destroy
+      end
+
+      assert_resource_allowed_routes("products", {},                    { id: "1" }, :show, [:index, :new, :create, :edit, :update, :destroy])
+      assert_resource_allowed_routes("products", { format: "xml" },  { id: "1" }, :show, [:index, :new, :create, :edit, :update, :destroy])
+    end
+  end
+
+  def test_singleton_resource_has_show_action_but_does_not_have_destroy_action
+    with_routing do |set|
+      set.draw do
+        resource :account, only: [:show, :destroy], except: :destroy
+      end
+
+      assert_singleton_resource_allowed_routes("accounts", {},                    :show, [:new, :create, :edit, :update, :destroy])
+      assert_singleton_resource_allowed_routes("accounts", { format: "xml" },  :show, [:new, :create, :edit, :update, :destroy])
+    end
+  end
+
   def test_resource_has_only_create_action_and_named_route
     with_routing do |set|
       set.draw do
@@ -1230,7 +1248,7 @@ class ResourcesTest < ActionController::TestCase
       shallow_path = "/#{options[:shallow] ? options[:namespace] : options[:path_prefix]}#{path}"
       full_path = "/#{options[:path_prefix]}#{path}"
       name_prefix = options[:name_prefix]
-      shallow_prefix = options[:shallow] ? options[:namespace].try(:gsub, /\//, "_") : options[:name_prefix]
+      shallow_prefix = options[:shallow] ? options[:namespace]&.gsub(/\//, "_") : options[:name_prefix]
 
       new_action  = "new"
       edit_action = "edit"
@@ -1323,7 +1341,7 @@ class ResourcesTest < ActionController::TestCase
     def assert_resource_allowed_routes(controller, options, shallow_options, allowed, not_allowed, path = controller)
       shallow_path = "#{path}/#{shallow_options[:id]}"
       format = options[:format] && ".#{options[:format]}"
-      options.merge!(controller: controller)
+      options[:controller] = controller
       shallow_options.merge!(options)
 
       assert_whether_allowed(allowed, not_allowed, options,         "index",    "#{path}#{format}",               :get)
@@ -1337,7 +1355,7 @@ class ResourcesTest < ActionController::TestCase
 
     def assert_singleton_resource_allowed_routes(controller, options, allowed, not_allowed, path = controller.singularize)
       format = options[:format] && ".#{options[:format]}"
-      options.merge!(controller: controller)
+      options[:controller] = controller
 
       assert_whether_allowed(allowed, not_allowed, options, "new",      "#{path}/new#{format}",   :get)
       assert_whether_allowed(allowed, not_allowed, options, "create",   "#{path}#{format}",       :post)

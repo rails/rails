@@ -30,6 +30,11 @@ module ActiveSupport
         @pruning = false
       end
 
+      # Advertise cache versioning support.
+      def self.supports_cache_versioning?
+        true
+      end
+
       # Delete all data stored in a given cache store.
       def clear(options = nil)
         synchronize do
@@ -46,7 +51,7 @@ module ActiveSupport
           keys = synchronize { @data.keys }
           keys.each do |key|
             entry = @data[key]
-            delete_entry(key, options) if entry && entry.expired?
+            delete_entry(key, **options) if entry && entry.expired?
           end
         end
       end
@@ -57,13 +62,13 @@ module ActiveSupport
         return if pruning?
         @pruning = true
         begin
-          start_time = Time.now
+          start_time = Concurrent.monotonic_time
           cleanup
           instrument(:prune, target_size, from: @cache_size) do
             keys = synchronize { @key_access.keys.sort { |a, b| @key_access[a].to_f <=> @key_access[b].to_f } }
             keys.each do |key|
-              delete_entry(key, options)
-              return if @cache_size <= target_size || (max_time && Time.now - start_time > max_time)
+              delete_entry(key, **options)
+              return if @cache_size <= target_size || (max_time && Concurrent.monotonic_time - start_time > max_time)
             end
           end
         ensure
@@ -93,7 +98,7 @@ module ActiveSupport
           matcher = key_matcher(matcher, options)
           keys = synchronize { @data.keys }
           keys.each do |key|
-            delete_entry(key, options) if key.match(matcher)
+            delete_entry(key, **options) if key.match(matcher)
           end
         end
       end
@@ -109,17 +114,18 @@ module ActiveSupport
       end
 
       private
-
         PER_ENTRY_OVERHEAD = 240
 
         def cached_size(key, entry)
           key.to_s.bytesize + entry.size + PER_ENTRY_OVERHEAD
         end
 
-        def read_entry(key, options)
+        def read_entry(key, **options)
           entry = @data[key]
           synchronize do
             if entry
+              entry = entry.dup
+              entry.dup_value!
               @key_access[key] = Time.now.to_f
             else
               @key_access.delete(key)
@@ -128,7 +134,7 @@ module ActiveSupport
           entry
         end
 
-        def write_entry(key, entry, options)
+        def write_entry(key, entry, **options)
           entry.dup_value!
           synchronize do
             old_entry = @data[key]
@@ -145,7 +151,7 @@ module ActiveSupport
           end
         end
 
-        def delete_entry(key, options)
+        def delete_entry(key, **options)
           synchronize do
             @key_access.delete(key)
             entry = @data.delete(key)
@@ -155,8 +161,8 @@ module ActiveSupport
         end
 
         def modify_value(name, amount, options)
+          options = merged_options(options)
           synchronize do
-            options = merged_options(options)
             if num = read(name, options)
               num = num.to_i + amount
               write(name, num, options)

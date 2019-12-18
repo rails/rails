@@ -27,7 +27,7 @@ if typeof CustomEvent isnt 'function'
 # obj::
 #   a native DOM element
 # name::
-#   string that corrspends to the event you want to trigger
+#   string that corresponds to the event you want to trigger
 #   e.g. 'click', 'submit'
 # data::
 #   data you want to pass when you dispatch an event

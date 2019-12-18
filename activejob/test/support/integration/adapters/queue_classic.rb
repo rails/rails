@@ -17,8 +17,8 @@ module QueueClassicJobsManager
     user = uri.user || ENV["USER"]
     pass = uri.password
     db   = uri.path[1..-1]
-    %x{#{"PGPASSWORD=\"#{pass}\"" if pass} psql -c 'drop database if exists "#{db}"' -U #{user} -t template1}
-    %x{#{"PGPASSWORD=\"#{pass}\"" if pass} psql -c 'create database "#{db}"' -U #{user} -t template1}
+    %x{#{"PGPASSWORD=\"#{pass}\"" if pass} psql -X -c 'drop database if exists "#{db}"' -U #{user} -t template1}
+    %x{#{"PGPASSWORD=\"#{pass}\"" if pass} psql -X -c 'create database "#{db}"' -U #{user} -t template1}
     QC::Setup.create
 
     QC.default_conn_adapter.disconnect
@@ -30,7 +30,8 @@ module QueueClassicJobsManager
 
   rescue PG::ConnectionBad
     puts "Cannot run integration tests for queue_classic. To be able to run integration tests for queue_classic you need to install and start postgresql.\n"
-    exit
+    status = ENV["CI"] ? false : true
+    exit status
   end
 
   def stop_workers

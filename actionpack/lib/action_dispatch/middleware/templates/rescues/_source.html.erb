@@ -1,6 +1,8 @@
-<% @source_extracts.each_with_index do |source_extract, index| %>
+<% error_index = local_assigns[:error_index] || 0 %>
+
+<% source_extracts.each_with_index do |source_extract, index| %>
   <% if source_extract[:code] %>
-    <div class="source <%="hidden" if @show_source_idx != index%>" id="frame-source-<%=index%>">
+    <div class="source <%= "hidden" if show_source_idx != index %>" id="frame-source-<%= error_index %>-<%= index %>">
       <div class="info">
         Extracted source (around line <strong>#<%= source_extract[:line_number] %></strong>):
       </div>

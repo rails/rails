@@ -7,7 +7,9 @@ module ActiveRecord
     class MigrationGenerator < Base # :nodoc:
       argument :attributes, type: :array, default: [], banner: "field[:type][:index] field[:type][:index]"
 
+      class_option :timestamps, type: :boolean
       class_option :primary_key_type, type: :string, desc: "The type for primary key"
+      class_option :database, type: :string, aliases: %i(--db), desc: "The database for your migration. By default, the current environment's primary database is used."
 
       def create_migration_file
         set_local_assigns!
@@ -15,12 +17,8 @@ module ActiveRecord
         migration_template @migration_template, File.join(db_migrate_path, "#{file_name}.rb")
       end
 
-      # TODO Change this to private once we've dropped Ruby 2.2 support.
-      # Workaround for Ruby 2.2 "private attribute?" warning.
-      protected
-        attr_reader :migration_action, :join_tables
-
       private
+        attr_reader :migration_action, :join_tables
 
         # Sets the default migration template that is being used for the generation of the migration.
         # Depending on command line arguments, the migration template and the table name instance

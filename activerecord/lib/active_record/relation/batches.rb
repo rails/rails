@@ -251,23 +251,25 @@ module ActiveRecord
           end
         end
 
-        attr = Relation::QueryAttribute.new(primary_key, primary_key_offset, klass.type_for_attribute(primary_key))
-        batch_relation = relation.where(arel_attribute(primary_key).gt(Arel::Nodes::BindParam.new(attr)))
+        batch_relation = relation.where(
+          bind_attribute(primary_key, primary_key_offset) { |attr, bind| attr.gt(bind) }
+        )
       end
     end
 
     private
-
       def apply_limits(relation, start, finish)
-        if start
-          attr = Relation::QueryAttribute.new(primary_key, start, klass.type_for_attribute(primary_key))
-          relation = relation.where(arel_attribute(primary_key).gteq(Arel::Nodes::BindParam.new(attr)))
-        end
-        if finish
-          attr = Relation::QueryAttribute.new(primary_key, finish, klass.type_for_attribute(primary_key))
-          relation = relation.where(arel_attribute(primary_key).lteq(Arel::Nodes::BindParam.new(attr)))
-        end
+        relation = apply_start_limit(relation, start) if start
+        relation = apply_finish_limit(relation, finish) if finish
         relation
+      end
+
+      def apply_start_limit(relation, start)
+        relation.where(bind_attribute(primary_key, start) { |attr, bind| attr.gteq(bind) })
+      end
+
+      def apply_finish_limit(relation, finish)
+        relation.where(bind_attribute(primary_key, finish) { |attr, bind| attr.lteq(bind) })
       end
 
       def batch_order

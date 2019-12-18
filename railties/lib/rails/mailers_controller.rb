@@ -3,12 +3,15 @@
 require "rails/application_controller"
 
 class Rails::MailersController < Rails::ApplicationController # :nodoc:
-  prepend_view_path ActionDispatch::DebugExceptions::RESCUES_TEMPLATE_PATH
+  prepend_view_path ActionDispatch::DebugView::RESCUES_TEMPLATE_PATH
 
+  around_action :set_locale, only: :preview
+  before_action :find_preview, only: :preview
   before_action :require_local!, unless: :show_previews?
-  before_action :find_preview, :set_locale, only: :preview
 
   helper_method :part_query, :locale_query
+
+  content_security_policy(false)
 
   def index
     @previews = ActionMailer::Preview.all
@@ -23,6 +26,7 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
       @email_action = File.basename(params[:path])
 
       if @preview.email_exists?(@email_action)
+        @page_title = "Mailer Preview for #{@preview.preview_name}##{@email_action}"
         @email = @preview.call(@email_action, params)
 
         if params[:part]
@@ -36,7 +40,7 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
           end
         else
           @part = find_preferred_part(request.format, Mime[:html], Mime[:text])
-          render action: "email", layout: false, formats: %w[html]
+          render action: "email", layout: false, formats: [:html]
         end
       else
         raise AbstractController::ActionNotFound, "Email '#{@email_action}' not found in #{@preview.name}"
@@ -90,6 +94,8 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
     end
 
     def set_locale
-      I18n.locale = params[:locale] || I18n.default_locale
+      I18n.with_locale(params[:locale] || I18n.default_locale) do
+        yield
+      end
     end
 end

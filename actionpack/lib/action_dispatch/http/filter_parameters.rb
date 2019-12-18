@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "action_dispatch/http/parameter_filter"
+require "active_support/parameter_filter"
 
 module ActionDispatch
   module Http
@@ -9,8 +9,8 @@ module ActionDispatch
     # sub-hashes of the params hash to filter. Filtering only certain sub-keys
     # from a hash is possible by using the dot notation: 'credit_card.number'.
     # If a block is given, each key and value of the params hash and all
-    # sub-hashes is passed to it, where the value or the key can be replaced using
-    # String#replace or similar method.
+    # sub-hashes are passed to it, where the value or the key can be replaced using
+    # String#replace or similar methods.
     #
     #   env["action_dispatch.parameter_filter"] = [:password]
     #   => replaces the value to all keys matching /password/i with "[FILTERED]"
@@ -23,13 +23,13 @@ module ActionDispatch
     #   change { file: { code: "xxxx"} }
     #
     #   env["action_dispatch.parameter_filter"] = -> (k, v) do
-    #     v.reverse! if k =~ /secret/i
+    #     v.reverse! if k.match?(/secret/i)
     #   end
     #   => reverses the value to all keys matching /secret/i
     module FilterParameters
       ENV_MATCH = [/RAW_POST_DATA/, "rack.request.form_vars"] # :nodoc:
-      NULL_PARAM_FILTER = ParameterFilter.new # :nodoc:
-      NULL_ENV_FILTER   = ParameterFilter.new ENV_MATCH # :nodoc:
+      NULL_PARAM_FILTER = ActiveSupport::ParameterFilter.new # :nodoc:
+      NULL_ENV_FILTER   = ActiveSupport::ParameterFilter.new ENV_MATCH # :nodoc:
 
       def initialize
         super
@@ -41,6 +41,8 @@ module ActionDispatch
       # Returns a hash of parameters with all sensitive data replaced.
       def filtered_parameters
         @filtered_parameters ||= parameter_filter.filter(parameters)
+      rescue ActionDispatch::Http::Parameters::ParseError
+        @filtered_parameters = {}
       end
 
       # Returns a hash of request.env with all sensitive data replaced.
@@ -54,7 +56,6 @@ module ActionDispatch
       end
 
     private
-
       def parameter_filter # :doc:
         parameter_filter_for fetch_header("action_dispatch.parameter_filter") {
           return NULL_PARAM_FILTER
@@ -69,7 +70,7 @@ module ActionDispatch
       end
 
       def parameter_filter_for(filters) # :doc:
-        ParameterFilter.new(filters)
+        ActiveSupport::ParameterFilter.new(filters)
       end
 
       KV_RE   = "[^&;=]+"

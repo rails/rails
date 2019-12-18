@@ -24,6 +24,11 @@ module ActionView
     DeveloperStruct = Struct.new(:name)
 
     module SharedTests
+      def setup
+        ActionView::LookupContext::DetailsKey.clear
+        super
+      end
+
       def self.included(test_case)
         test_case.class_eval do
           test "helpers defined on ActionView::TestCase are available" do
@@ -52,7 +57,7 @@ module ActionView
     end
 
     test "retrieve non existing config values" do
-      assert_nil ActionView::Base.new.config.something_odd
+      assert_nil ActionView::Base.empty.config.something_odd
     end
 
     test "works without testing a helper module" do
@@ -192,7 +197,7 @@ module ActionView
     helper HelperThatInvokesProtectAgainstForgery
 
     test "protect_from_forgery? in any helpers returns false" do
-      assert !view.help_me
+      assert_not view.help_me
     end
   end
 
@@ -217,8 +222,14 @@ module ActionView
 
     test "is able to use routes" do
       controller.request.assign_parameters(@routes, "foo", "index", {}, "/foo", [])
-      assert_equal "/foo", url_for
-      assert_equal "/bar", url_for(controller: "bar")
+      with_routing do |set|
+        set.draw {
+          get :foo, to: "foo#index"
+          get :bar, to: "bar#index"
+        }
+        assert_equal "/foo", url_for
+        assert_equal "/bar", url_for(controller: "bar")
+      end
     end
 
     test "is able to use named routes" do
@@ -236,13 +247,15 @@ module ActionView
             @routes ||= ActionDispatch::Routing::RouteSet.new
           end
 
-          routes.draw { get "bar", to: lambda {} }
+          routes.draw { get "bar", to: lambda { } }
 
           def self.call(*)
           end
         end
 
         set.draw { mount app => "/foo", :as => "foo_app" }
+
+        singleton_class.include set.mounted_helpers
 
         assert_equal "/foo/bar", foo_app.bar_path
       end
@@ -271,7 +284,7 @@ module ActionView
       @controller.controller_path = "test"
 
       @customers = [DeveloperStruct.new("Eloy"), DeveloperStruct.new("Manfred")]
-      assert_match(/Hello: EloyHello: Manfred/, render(file: "test/list"))
+      assert_match(/Hello: EloyHello: Manfred/, render(template: "test/list"))
     end
 
     test "is able to render partials from templates and also use instance variables after view has been referenced" do
@@ -280,7 +293,7 @@ module ActionView
       view
 
       @customers = [DeveloperStruct.new("Eloy"), DeveloperStruct.new("Manfred")]
-      assert_match(/Hello: EloyHello: Manfred/, render(file: "test/list"))
+      assert_match(/Hello: EloyHello: Manfred/, render(template: "test/list"))
     end
 
     test "is able to use helpers that depend on the view flow" do

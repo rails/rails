@@ -2,7 +2,6 @@
 
 require "abstract_unit"
 require "action_controller/metal/strong_parameters"
-require "active_support/core_ext/hash/transform_values"
 
 class ParametersMutatorsTest < ActiveSupport::TestCase
   setup do
@@ -118,5 +117,32 @@ class ParametersMutatorsTest < ActiveSupport::TestCase
 
   test "transform_values! retains unpermitted status" do
     assert_not_predicate @params.transform_values! { |v| v }, :permitted?
+  end
+
+  test "deep_transform_keys! retains permitted status" do
+    @params.permit!
+    assert_predicate @params.deep_transform_keys! { |k| k }, :permitted?
+  end
+
+  test "deep_transform_keys! retains unpermitted status" do
+    assert_not_predicate @params.deep_transform_keys! { |k| k }, :permitted?
+  end
+
+  test "compact_blank retains permitted status" do
+    @params.permit!
+    assert_predicate @params.compact_blank, :permitted?
+  end
+
+  test "compact_blank retains unpermitted status" do
+    assert_not_predicate @params.compact_blank, :permitted?
+  end
+
+  test "compact_blank! retains permitted status" do
+    @params.permit!
+    assert_predicate @params.compact_blank!, :permitted?
+  end
+
+  test "compact_blank! retains unpermitted status" do
+    assert_not_predicate @params.compact_blank!, :permitted?
   end
 end

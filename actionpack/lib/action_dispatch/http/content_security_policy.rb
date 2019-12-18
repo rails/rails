@@ -5,9 +5,9 @@ require "active_support/core_ext/object/deep_dup"
 module ActionDispatch #:nodoc:
   class ContentSecurityPolicy
     class Middleware
-      CONTENT_TYPE = "Content-Type".freeze
-      POLICY = "Content-Security-Policy".freeze
-      POLICY_REPORT_ONLY = "Content-Security-Policy-Report-Only".freeze
+      CONTENT_TYPE = "Content-Type"
+      POLICY = "Content-Security-Policy"
+      POLICY_REPORT_ONLY = "Content-Security-Policy-Report-Only"
 
       def initialize(app)
         @app = app
@@ -21,17 +21,19 @@ module ActionDispatch #:nodoc:
         return response if policy_present?(headers)
 
         if policy = request.content_security_policy
-          headers[header_name(request)] = policy.build(request.controller_instance)
+          nonce = request.content_security_policy_nonce
+          nonce_directives = request.content_security_policy_nonce_directives
+          context = request.controller_instance || request
+          headers[header_name(request)] = policy.build(context, nonce, nonce_directives)
         end
 
         response
       end
 
       private
-
         def html_response?(headers)
           if content_type = headers[CONTENT_TYPE]
-            content_type =~ /html/
+            /html/.match?(content_type)
           end
         end
 
@@ -49,8 +51,11 @@ module ActionDispatch #:nodoc:
     end
 
     module Request
-      POLICY = "action_dispatch.content_security_policy".freeze
-      POLICY_REPORT_ONLY = "action_dispatch.content_security_policy_report_only".freeze
+      POLICY = "action_dispatch.content_security_policy"
+      POLICY_REPORT_ONLY = "action_dispatch.content_security_policy_report_only"
+      NONCE_GENERATOR = "action_dispatch.content_security_policy_nonce_generator"
+      NONCE = "action_dispatch.content_security_policy_nonce"
+      NONCE_DIRECTIVES = "action_dispatch.content_security_policy_nonce_directives"
 
       def content_security_policy
         get_header(POLICY)
@@ -67,6 +72,37 @@ module ActionDispatch #:nodoc:
       def content_security_policy_report_only=(value)
         set_header(POLICY_REPORT_ONLY, value)
       end
+
+      def content_security_policy_nonce_generator
+        get_header(NONCE_GENERATOR)
+      end
+
+      def content_security_policy_nonce_generator=(generator)
+        set_header(NONCE_GENERATOR, generator)
+      end
+
+      def content_security_policy_nonce_directives
+        get_header(NONCE_DIRECTIVES)
+      end
+
+      def content_security_policy_nonce_directives=(generator)
+        set_header(NONCE_DIRECTIVES, generator)
+      end
+
+      def content_security_policy_nonce
+        if content_security_policy_nonce_generator
+          if nonce = get_header(NONCE)
+            nonce
+          else
+            set_header(NONCE, generate_content_security_policy_nonce)
+          end
+        end
+      end
+
+      private
+        def generate_content_security_policy_nonce
+          content_security_policy_nonce_generator.call(self)
+        end
     end
 
     MAPPINGS = {
@@ -81,7 +117,9 @@ module ActionDispatch #:nodoc:
       blob:           "blob:",
       filesystem:     "filesystem:",
       report_sample:  "'report-sample'",
-      strict_dynamic: "'strict-dynamic'"
+      strict_dynamic: "'strict-dynamic'",
+      ws:             "ws:",
+      wss:            "wss:"
     }.freeze
 
     DIRECTIVES = {
@@ -97,12 +135,19 @@ module ActionDispatch #:nodoc:
       manifest_src:    "manifest-src",
       media_src:       "media-src",
       object_src:      "object-src",
+      prefetch_src:    "prefetch-src",
       script_src:      "script-src",
+      script_src_attr: "script-src-attr",
+      script_src_elem: "script-src-elem",
       style_src:       "style-src",
+      style_src_attr:  "style-src-attr",
+      style_src_elem:  "style-src-elem",
       worker_src:      "worker-src"
     }.freeze
 
-    private_constant :MAPPINGS, :DIRECTIVES
+    DEFAULT_NONCE_DIRECTIVES = %w[script-src style-src].freeze
+
+    private_constant :MAPPINGS, :DIRECTIVES, :DEFAULT_NONCE_DIRECTIVES
 
     attr_reader :directives
 
@@ -171,8 +216,9 @@ module ActionDispatch #:nodoc:
       end
     end
 
-    def build(context = nil)
-      build_directives(context).compact.join("; ") + ";"
+    def build(context = nil, nonce = nil, nonce_directives = nil)
+      nonce_directives = DEFAULT_NONCE_DIRECTIVES if nonce_directives.nil?
+      build_directives(context, nonce, nonce_directives).compact.join("; ")
     end
 
     private
@@ -195,10 +241,14 @@ module ActionDispatch #:nodoc:
         end
       end
 
-      def build_directives(context)
+      def build_directives(context, nonce, nonce_directives)
         @directives.map do |directive, sources|
           if sources.is_a?(Array)
-            "#{directive} #{build_directive(sources, context).join(' ')}"
+            if nonce && nonce_directive?(directive, nonce_directives)
+              "#{directive} #{build_directive(sources, context).join(' ')} 'nonce-#{nonce}'"
+            else
+              "#{directive} #{build_directive(sources, context).join(' ')}"
+            end
           elsif sources
             directive
           else
@@ -221,11 +271,16 @@ module ActionDispatch #:nodoc:
           if context.nil?
             raise RuntimeError, "Missing context for the dynamic content security policy source: #{source.inspect}"
           else
-            context.instance_exec(&source)
+            resolved = context.instance_exec(&source)
+            resolved.is_a?(Symbol) ? apply_mapping(resolved) : resolved
           end
         else
           raise RuntimeError, "Unexpected content security policy source: #{source.inspect}"
         end
+      end
+
+      def nonce_directive?(directive, nonce_directives)
+        nonce_directives.include?(directive)
       end
   end
 end

@@ -30,7 +30,7 @@ namespace :guides do
       unless Kindlerb.kindlegen_available?
         abort "Please run `setupkindlerb` to install kindlegen"
       end
-      unless `convert` =~ /convert/
+      unless /convert/.match?(`convert`)
         abort "Please install ImageMagick"
       end
       ENV["KINDLE"] = "1"
@@ -86,6 +86,17 @@ Examples:
   $ rake guides:generate GUIDES_LANGUAGE=es
 HELP
   end
+end
+
+task :test do
+  templates = Dir.glob("bug_report_templates/*.rb")
+  counter = templates.count do |file|
+    puts "--- Running #{file}"
+    Bundler.clean_system(Gem.ruby, "-w", file) ||
+      puts("+++ 💥 FAILED (exit #{$?.exitstatus})")
+  end
+  puts "+++ #{counter} / #{templates.size} templates executed successfully"
+  exit 1 if counter < templates.size
 end
 
 task default: "guides:help"

@@ -5,7 +5,7 @@ class GiveMeBigNumbers < ActiveRecord::Migration::Current
     create_table :big_numbers do |table|
       table.column :bank_balance, :decimal, precision: 10, scale: 2
       table.column :big_bank_balance, :decimal, precision: 15, scale: 2
-      table.column :world_population, :decimal, precision: 10
+      table.column :world_population, :decimal, precision: 20
       table.column :my_house_population, :decimal, precision: 2
       table.column :value_of_e, :decimal
     end

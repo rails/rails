@@ -39,7 +39,7 @@ module ActiveSupport
     end
 
     def method_missing(name, *args)
-      name_string = name.to_s
+      name_string = +name.to_s
       if name_string.chomp!("=")
         self[name_string] = args.first
       else
@@ -54,6 +54,10 @@ module ActiveSupport
     end
 
     def respond_to_missing?(name, include_private)
+      true
+    end
+
+    def extractable_options?
       true
     end
   end

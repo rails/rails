@@ -3,7 +3,6 @@
 require "rack/session/abstract/id"
 require "action_controller/metal/exceptions"
 require "active_support/security_utils"
-require "active_support/core_ext/string/strip"
 
 module ActionController #:nodoc:
   class InvalidAuthenticityToken < ActionControllerError #:nodoc:
@@ -18,7 +17,7 @@ module ActionController #:nodoc:
   # access. When a request reaches your application, \Rails verifies the received
   # token with the token in the session. All requests are checked except GET requests
   # as these should be idempotent. Keep in mind that all session-oriented requests
-  # should be CSRF protected, including JavaScript and HTML requests.
+  # are CSRF protected by default, including JavaScript and HTML requests.
   #
   # Since HTML and JavaScript requests are typically made from the browser, we
   # need to ensure to verify request authenticity for the web browser. We can
@@ -31,15 +30,22 @@ module ActionController #:nodoc:
   # URL on your site. When your JavaScript response loads on their site, it executes.
   # With carefully crafted JavaScript on their end, sensitive data in your JavaScript
   # response may be extracted. To prevent this, only XmlHttpRequest (known as XHR or
-  # Ajax) requests are allowed to make GET requests for JavaScript responses.
+  # Ajax) requests are allowed to make requests for JavaScript responses.
   #
-  # It's important to remember that XML or JSON requests are also affected and if
-  # you're building an API you should change forgery protection method in
+  # It's important to remember that XML or JSON requests are also checked by default. If
+  # you're building an API or an SPA you could change forgery protection method in
   # <tt>ApplicationController</tt> (by default: <tt>:exception</tt>):
   #
   #   class ApplicationController < ActionController::Base
   #     protect_from_forgery unless: -> { request.format.json? }
   #   end
+  #
+  # It is generally safe to exclude XHR requests from CSRF protection
+  # (like the code snippet above does), because XHR requests can only be made from
+  # the same origin. Note however that any cross-origin third party domain
+  # allowed via {CORS}[https://en.wikipedia.org/wiki/Cross-origin_resource_sharing]
+  # will also be able to create XHR requests. Be sure to check your
+  # CORS configuration before disabling forgery protection for XHR.
   #
   # CSRF protection is turned on with the <tt>protect_from_forgery</tt> method.
   # By default <tt>protect_from_forgery</tt> protects your session with
@@ -55,7 +61,7 @@ module ActionController #:nodoc:
   # <tt>csrf_meta_tags</tt> in the HTML +head+.
   #
   # Learn more about CSRF attacks and securing your application in the
-  # {Ruby on Rails Security Guide}[http://guides.rubyonrails.org/security.html].
+  # {Ruby on Rails Security Guide}[https://guides.rubyonrails.org/security.html].
   module RequestForgeryProtection
     extend ActiveSupport::Concern
 
@@ -145,7 +151,6 @@ module ActionController #:nodoc:
       end
 
       private
-
         def protection_method_class(name)
           ActionController::RequestForgeryProtection::ProtectionMethods.const_get(name.to_s.classify)
         rescue NameError
@@ -169,7 +174,6 @@ module ActionController #:nodoc:
         end
 
         private
-
           class NullSessionHash < Rack::Session::Abstract::SessionHash #:nodoc:
             def initialize(req)
               super(nil, req)
@@ -276,7 +280,7 @@ module ActionController #:nodoc:
 
       # Check for cross-origin JavaScript responses.
       def non_xhr_javascript_response? # :doc:
-        content_type =~ %r(\Atext/javascript) && !request.xhr?
+        %r(\A(?:text|application)/javascript).match?(media_type) && !request.xhr?
       end
 
       AUTHENTICITY_TOKEN_LENGTH = 32
@@ -401,9 +405,14 @@ module ActionController #:nodoc:
       end
 
       def xor_byte_strings(s1, s2) # :doc:
-        s2_bytes = s2.bytes
-        s1.each_byte.with_index { |c1, i| s2_bytes[i] ^= c1 }
-        s2_bytes.pack("C*")
+        s2 = s2.dup
+        size = s1.bytesize
+        i = 0
+        while i < size
+          s2.setbyte(i, s1.getbyte(i) ^ s2.getbyte(i))
+          i += 1
+        end
+        s2
       end
 
       # The form's authenticity parameter. Override to provide your own.
@@ -416,11 +425,11 @@ module ActionController #:nodoc:
         allow_forgery_protection
       end
 
-      NULL_ORIGIN_MESSAGE = <<-MSG.strip_heredoc
+      NULL_ORIGIN_MESSAGE = <<~MSG
         The browser returned a 'null' origin for a request with origin-based forgery protection turned on. This usually
-        means you have the 'no-referrer' Referrer-Policy header enabled, or that you the request came from a site that
+        means you have the 'no-referrer' Referrer-Policy header enabled, or that the request came from a site that
         refused to give its origin. This makes it impossible for Rails to verify the source of the requests. Likely the
-        best solution is to change your referrer policy to something less strict like same-origin or strict-same-origin.
+        best solution is to change your referrer policy to something less strict like same-origin or strict-origin.
         If you cannot change the referrer policy, you can disable origin checking with the
         Rails.application.config.action_controller.forgery_protection_origin_check setting.
       MSG

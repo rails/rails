@@ -2,13 +2,22 @@ import { DirectUploadsController } from "./direct_uploads_controller"
 import { findElement } from "./helpers"
 
 const processingAttribute = "data-direct-uploads-processing"
+const submitButtonsByForm = new WeakMap
 let started = false
 
 export function start() {
   if (!started) {
     started = true
+    document.addEventListener("click", didClick, true)
     document.addEventListener("submit", didSubmitForm)
     document.addEventListener("ajax:before", didSubmitRemoteElement)
+  }
+}
+
+function didClick(event) {
+  const { target } = event
+  if ((target.tagName == "INPUT" || target.tagName == "BUTTON") && target.type == "submit" && target.form) {
+    submitButtonsByForm.set(target.form, target)
   }
 }
 
@@ -49,7 +58,8 @@ function handleFormSubmissionEvent(event) {
 }
 
 function submitForm(form) {
-  let button = findElement(form, "input[type=submit]")
+  let button = submitButtonsByForm.get(form) || findElement(form, "input[type=submit], button[type=submit]")
+
   if (button) {
     const { disabled } = button
     button.disabled = false
@@ -59,11 +69,12 @@ function submitForm(form) {
   } else {
     button = document.createElement("input")
     button.type = "submit"
-    button.style = "display:none"
+    button.style.display = "none"
     form.appendChild(button)
     button.click()
     form.removeChild(button)
   }
+  submitButtonsByForm.delete(form)
 }
 
 function disable(input) {

@@ -56,7 +56,7 @@ module ActiveSupport
           write.close
           result = read.read
           Process.wait2(pid)
-          result.unpack("m")[0]
+          result.unpack1("m")
         end
       end
 
@@ -98,7 +98,7 @@ module ActiveSupport
                 nil
               end
 
-              return tmpfile.read.unpack("m")[0]
+              return tmpfile.read.unpack1("m")
             end
           end
         end

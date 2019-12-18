@@ -44,7 +44,7 @@ module ActiveRecord
       def initialize(values)
         @values = values
         @indexes = values.each_with_index.find_all { |thing, i|
-          Arel::Nodes::BindParam === thing
+          Substitute === thing
         }.map(&:last)
       end
 
@@ -56,12 +56,38 @@ module ActiveRecord
       end
     end
 
+    class PartialQueryCollector
+      def initialize
+        @parts = []
+        @binds = []
+      end
+
+      def <<(str)
+        @parts << str
+        self
+      end
+
+      def add_bind(obj)
+        @binds << obj
+        @parts << Substitute.new
+        self
+      end
+
+      def value
+        [@parts, @binds]
+      end
+    end
+
     def self.query(sql)
       Query.new(sql)
     end
 
     def self.partial_query(values)
       PartialQuery.new(values)
+    end
+
+    def self.partial_query_collector
+      PartialQueryCollector.new
     end
 
     class Params # :nodoc:
@@ -87,8 +113,8 @@ module ActiveRecord
       end
     end
 
-    def self.create(connection, block = Proc.new)
-      relation = block.call Params.new
+    def self.create(connection, callable = nil, &block)
+      relation = (callable || block).call Params.new
       query_builder, binds = connection.cacheable_query(self, relation.arel)
       bind_map = BindMap.new(binds)
       new(query_builder, bind_map, relation.klass)
@@ -106,6 +132,8 @@ module ActiveRecord
       sql = query_builder.sql_for bind_values, connection
 
       klass.find_by_sql(sql, bind_values, preparable: true, &block)
+    rescue ::RangeError
+      nil
     end
 
     def self.unsupported_value?(value)
@@ -114,8 +142,7 @@ module ActiveRecord
       end
     end
 
-    protected
-
+    private
       attr_reader :query_builder, :bind_map, :klass
   end
 end

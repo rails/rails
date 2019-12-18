@@ -30,7 +30,7 @@ module ActiveSupport
           # If set to true, precision will mean the number of significant digits instead
           # of the number of decimal digits (1234 with precision 2 becomes 1200, 1.23543 becomes 1.2)
           significant: false,
-          # If set, the zeros after the decimal separator will always be stripped (eg.: 1.200 will be 1.2)
+          # If set, the zeros after the decimal separator will always be stripped (e.g.: 1.200 will be 1.2)
           strip_insignificant_zeros: false
         },
 
@@ -136,7 +136,6 @@ module ActiveSupport
       end
 
       private
-
         def options
           @options ||= format_options.merge(opts)
         end
@@ -162,12 +161,12 @@ module ActiveSupport
           options
         end
 
-        def translate_number_value_with_default(key, i18n_options = {})
-          I18n.translate(key, { default: default_value(key), scope: :number }.merge!(i18n_options))
+        def translate_number_value_with_default(key, **i18n_options)
+          I18n.translate(key, **{ default: default_value(key), scope: :number }.merge!(i18n_options))
         end
 
-        def translate_in_locale(key, i18n_options = {})
-          translate_number_value_with_default(key, { locale: options[:locale] }.merge(i18n_options))
+        def translate_in_locale(key, **i18n_options)
+          translate_number_value_with_default(key, **{ locale: options[:locale] }.merge(i18n_options))
         end
 
         def default_value(key)

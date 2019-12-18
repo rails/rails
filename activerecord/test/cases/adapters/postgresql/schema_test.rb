@@ -104,27 +104,27 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_schema_names
-    assert_equal ["public", "test_schema", "test_schema2"], @connection.schema_names
+    schema_names = @connection.schema_names
+    assert_includes schema_names, "public"
+    assert_includes schema_names, "test_schema"
+    assert_includes schema_names, "test_schema2"
+    assert_includes schema_names, "hint_plan" if @connection.supports_optimizer_hints?
   end
 
   def test_create_schema
-    begin
-      @connection.create_schema "test_schema3"
-      assert @connection.schema_names.include? "test_schema3"
-    ensure
-      @connection.drop_schema "test_schema3"
-    end
+    @connection.create_schema "test_schema3"
+    assert @connection.schema_names.include? "test_schema3"
+  ensure
+    @connection.drop_schema "test_schema3"
   end
 
   def test_raise_create_schema_with_existing_schema
-    begin
+    @connection.create_schema "test_schema3"
+    assert_raises(ActiveRecord::StatementInvalid) do
       @connection.create_schema "test_schema3"
-      assert_raises(ActiveRecord::StatementInvalid) do
-        @connection.create_schema "test_schema3"
-      end
-    ensure
-      @connection.drop_schema "test_schema3"
     end
+  ensure
+    @connection.drop_schema "test_schema3"
   end
 
   def test_drop_schema
@@ -146,7 +146,7 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
   def test_habtm_table_name_with_schema
     ActiveRecord::Base.connection.drop_schema "music", if_exists: true
     ActiveRecord::Base.connection.create_schema "music"
-    ActiveRecord::Base.connection.execute <<-SQL
+    ActiveRecord::Base.connection.execute <<~SQL
       CREATE TABLE music.albums (id serial primary key);
       CREATE TABLE music.songs (id serial primary key);
       CREATE TABLE music.albums_songs (album_id integer, song_id integer);
@@ -204,12 +204,12 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
 
   def test_data_source_exists_when_not_on_schema_search_path
     with_schema_search_path("PUBLIC") do
-      assert(!@connection.data_source_exists?(TABLE_NAME), "data_source exists but should not be found")
+      assert_not(@connection.data_source_exists?(TABLE_NAME), "data_source exists but should not be found")
     end
   end
 
   def test_data_source_exists_wrong_schema
-    assert(!@connection.data_source_exists?("foo.things"), "data_source should not exist")
+    assert_not(@connection.data_source_exists?("foo.things"), "data_source should not exist")
   end
 
   def test_data_source_exists_quoted_names
@@ -507,6 +507,7 @@ class SchemaIndexOpclassTest < ActiveRecord::PostgreSQLTestCase
     @connection = ActiveRecord::Base.connection
     @connection.create_table "trains" do |t|
       t.string :name
+      t.string :position
       t.text :description
     end
   end
@@ -529,6 +530,17 @@ class SchemaIndexOpclassTest < ActiveRecord::PostgreSQLTestCase
     output = dump_table_schema "trains"
 
     assert_match(/opclass: \{ description: :text_pattern_ops \}/, output)
+  end
+
+  def test_opclass_class_parsing_on_non_reserved_and_cannot_be_function_or_type_keyword
+    @connection.enable_extension("pg_trgm")
+    @connection.execute "CREATE INDEX trains_position ON trains USING gin(position gin_trgm_ops)"
+    @connection.execute "CREATE INDEX trains_name_and_position ON trains USING btree(name, position text_pattern_ops)"
+
+    output = dump_table_schema "trains"
+
+    assert_match(/opclass: :gin_trgm_ops/, output)
+    assert_match(/opclass: \{ position: :text_pattern_ops \}/, output)
   end
 end
 

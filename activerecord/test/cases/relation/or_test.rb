@@ -30,6 +30,11 @@ module ActiveRecord
       assert_equal expected, Post.where("id = 1").or(Post.none).to_a
     end
 
+    def test_or_with_large_number
+      expected = Post.where("id = 1 or id = 9223372036854775808").to_a
+      assert_equal expected, Post.where(id: 1).or(Post.where(id: 9223372036854775808)).to_a
+    end
+
     def test_or_with_bind_params
       assert_equal Post.find([1, 2]).sort_by(&:id), Post.where(id: 1).or(Post.where(id: 2)).sort_by(&:id)
     end
@@ -125,6 +130,13 @@ module ActiveRecord
         .or(joined.where(title: "I don't have any comments"))
       expected = Author.find(1).posts + Post.where(title: "I don't have any comments")
       assert_equal expected.sort_by(&:id), actual.sort_by(&:id)
+    end
+
+    def test_or_with_scope_on_association
+      author = Author.first
+      assert_nothing_raised do
+        author.top_posts.or(author.other_top_posts)
+      end
     end
   end
 end

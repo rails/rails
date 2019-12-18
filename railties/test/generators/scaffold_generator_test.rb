@@ -5,7 +5,7 @@ require "rails/generators/rails/scaffold/scaffold_generator"
 
 class ScaffoldGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
-  arguments %w(product_line title:string product:belongs_to user:references)
+  arguments %w(product_line title:string approved:boolean product:belongs_to user:references)
 
   setup :copy_routes
 
@@ -17,6 +17,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     assert_file "test/models/product_line_test.rb", /class ProductLineTest < ActiveSupport::TestCase/
     assert_file "test/fixtures/product_lines.yml"
     assert_migration "db/migrate/create_product_lines.rb", /belongs_to :product/
+    assert_migration "db/migrate/create_product_lines.rb", /boolean :approved/
     assert_migration "db/migrate/create_product_lines.rb", /references :user/
 
     # Route
@@ -60,8 +61,8 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     assert_file "test/controllers/product_lines_controller_test.rb" do |test|
       assert_match(/class ProductLinesControllerTest < ActionDispatch::IntegrationTest/, test)
-      assert_match(/post product_lines_url, params: \{ product_line: \{ product_id: @product_line\.product_id, title: @product_line\.title, user_id: @product_line\.user_id \} \}/, test)
-      assert_match(/patch product_line_url\(@product_line\), params: \{ product_line: \{ product_id: @product_line\.product_id, title: @product_line\.title, user_id: @product_line\.user_id \} \}/, test)
+      assert_match(/post product_lines_url, params: \{ product_line: \{ approved: @product_line\.approved, product_id: @product_line\.product_id, title: @product_line\.title, user_id: @product_line\.user_id \} \}/, test)
+      assert_match(/patch product_line_url\(@product_line\), params: \{ product_line: \{ approved: @product_line\.approved, product_id: @product_line\.product_id, title: @product_line\.title, user_id: @product_line\.user_id \} \}/, test)
     end
 
     # System tests
@@ -69,6 +70,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       assert_match(/class ProductLinesTest < ApplicationSystemTestCase/, test)
       assert_match(/visit product_lines_url/, test)
       assert_match(/fill_in "Title", with: @product_line\.title/, test)
+      assert_match(/check "Approved" if @product_line\.approved/, test)
       assert_match(/assert_text "Product line was successfully updated"/, test)
     end
 
@@ -93,7 +95,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Assets
     assert_file "app/assets/stylesheets/scaffold.css"
-    assert_file "app/assets/javascripts/product_lines.js"
     assert_file "app/assets/stylesheets/product_lines.css"
   end
 
@@ -166,7 +167,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Assets
     assert_no_file "app/assets/stylesheets/scaffold.css"
-    assert_no_file "app/assets/javascripts/product_lines.js"
     assert_no_file "app/assets/stylesheets/product_lines.css"
   end
 
@@ -222,7 +222,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Assets
     assert_file "app/assets/stylesheets/scaffold.css", /:visited/
-    assert_no_file "app/assets/javascripts/product_lines.js"
     assert_no_file "app/assets/stylesheets/product_lines.css"
   end
 
@@ -299,7 +298,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Assets
     assert_file "app/assets/stylesheets/scaffold.css", /:visited/
-    assert_file "app/assets/javascripts/admin/roles.js"
     assert_file "app/assets/stylesheets/admin/roles.css"
   end
 
@@ -335,7 +333,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Assets
     assert_file "app/assets/stylesheets/scaffold.css"
-    assert_no_file "app/assets/javascripts/admin/roles.js"
     assert_no_file "app/assets/stylesheets/admin/roles.css"
   end
 
@@ -347,7 +344,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     content = File.read(route_path).gsub(/\.routes\.draw do/) do |match|
       "#{match} |map|"
     end
-    File.open(route_path, "wb") { |file| file.write(content) }
+    File.write(route_path, content)
 
     run_generator ["product_line"], behavior: :revoke
 
@@ -364,7 +361,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     content.gsub!(/^  \#.*\n/, "")
     content.gsub!(/^\n/, "")
 
-    File.open(route_path, "wb") { |file| file.write(content) }
+    File.write(route_path, content)
     assert_file "config/routes.rb", /\.routes\.draw do\n  resources :product_lines\nend\n\z/
 
     run_generator ["product_line"], behavior: :revoke
@@ -380,28 +377,24 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
   def test_scaffold_generator_no_assets_with_switch_no_assets
     run_generator [ "posts", "--no-assets" ]
     assert_no_file "app/assets/stylesheets/scaffold.css"
-    assert_no_file "app/assets/javascripts/posts.js"
     assert_no_file "app/assets/stylesheets/posts.css"
   end
 
   def test_scaffold_generator_no_assets_with_switch_assets_false
     run_generator [ "posts", "--assets=false" ]
     assert_no_file "app/assets/stylesheets/scaffold.css"
-    assert_no_file "app/assets/javascripts/posts.js"
     assert_no_file "app/assets/stylesheets/posts.css"
   end
 
   def test_scaffold_generator_no_scaffold_stylesheet_with_switch_no_scaffold_stylesheet
     run_generator [ "posts", "--no-scaffold-stylesheet" ]
     assert_no_file "app/assets/stylesheets/scaffold.css"
-    assert_file "app/assets/javascripts/posts.js"
     assert_file "app/assets/stylesheets/posts.css"
   end
 
   def test_scaffold_generator_no_scaffold_stylesheet_with_switch_scaffold_stylesheet_false
     run_generator [ "posts", "--scaffold-stylesheet=false" ]
     assert_no_file "app/assets/stylesheets/scaffold.css"
-    assert_file "app/assets/javascripts/posts.js"
     assert_file "app/assets/stylesheets/posts.css"
   end
 
@@ -429,15 +422,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
   def test_scaffold_generator_no_stylesheets
     run_generator [ "posts", "--no-stylesheets" ]
     assert_no_file "app/assets/stylesheets/scaffold.css"
-    assert_file "app/assets/javascripts/posts.js"
     assert_no_file "app/assets/stylesheets/posts.css"
-  end
-
-  def test_scaffold_generator_no_javascripts
-    run_generator [ "posts", "--no-javascripts" ]
-    assert_file "app/assets/stylesheets/scaffold.css"
-    assert_no_file "app/assets/javascripts/posts.js"
-    assert_file "app/assets/stylesheets/posts.css"
   end
 
   def test_scaffold_generator_outputs_error_message_on_missing_attribute_type
@@ -452,8 +437,8 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_scaffold_generator_belongs_to
-    run_generator ["account", "name", "currency:belongs_to"]
+  def test_scaffold_generator_belongs_to_and_references
+    run_generator ["account", "name", "currency:belongs_to", "user:references"]
 
     assert_file "app/models/account.rb", /belongs_to :currency/
 
@@ -466,13 +451,87 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     assert_file "app/controllers/accounts_controller.rb" do |content|
       assert_instance_method :account_params, content do |m|
-        assert_match(/permit\(:name, :currency_id\)/, m)
+        assert_match(/permit\(:name, :currency_id, :user_id\)/, m)
       end
     end
 
     assert_file "app/views/accounts/_form.html.erb" do |content|
       assert_match(/^\W{4}<%= form\.text_field :name %>/, content)
       assert_match(/^\W{4}<%= form\.text_field :currency_id %>/, content)
+    end
+
+    assert_file "app/views/accounts/index.html.erb" do |content|
+      assert_match(/^\W{8}<td><%= account\.name %><\/td>/, content)
+      assert_match(/^\W{8}<td><%= account\.user_id %><\/td>/, content)
+    end
+
+    assert_file "app/views/accounts/show.html.erb" do |content|
+      assert_match(/^\W{2}<%= @account\.name %>/, content)
+      assert_match(/^\W{2}<%= @account\.user_id %>/, content)
+    end
+  end
+
+  def test_scaffold_generator_attachments
+    run_generator ["message", "video:attachment", "photos:attachments", "images:attachments"]
+
+    assert_file "app/models/message.rb", /has_one_attached :video/
+    assert_file "app/models/message.rb", /has_many_attached :photos/
+
+    assert_file "app/controllers/messages_controller.rb" do |content|
+      assert_instance_method :message_params, content do |m|
+        assert_match(/permit\(:video, photos: \[\], images: \[\]\)/, m)
+      end
+    end
+
+    assert_file "app/views/messages/_form.html.erb" do |content|
+      assert_match(/^\W{4}<%= form\.file_field :video %>/, content)
+      assert_match(/^\W{4}<%= form\.file_field :photos, multiple: true %>/, content)
+    end
+
+    assert_file "app/views/messages/show.html.erb" do |content|
+      assert_match(/^\W{2}<%= link_to @message\.video\.filename, @message\.video if @message\.video\.attached\? %>/, content)
+      assert_match(/^\W{4}<div><%= link_to photo\.filename, photo %>/, content)
+    end
+
+    assert_file "test/system/messages_test.rb" do |content|
+      assert_no_match(/fill_in "Video"/, content)
+      assert_no_match(/fill_in "Photos"/, content)
+    end
+  end
+
+  def test_scaffold_generator_rich_text
+    run_generator ["message", "content:rich_text"]
+
+    assert_file "app/models/message.rb", /rich_text :content/
+
+    assert_file "app/controllers/messages_controller.rb" do |content|
+      assert_instance_method :message_params, content do |m|
+        assert_match(/permit\(:content\)/, m)
+      end
+    end
+
+    assert_file "app/views/messages/_form.html.erb" do |content|
+      assert_match(/^\W{4}<%= form\.rich_text_area :content %>/, content)
+    end
+
+    assert_file "test/system/messages_test.rb" do |content|
+      assert_no_match(/fill_in "Content"/, content)
+    end
+  end
+
+  def test_scaffold_generator_database
+    with_secondary_database_configuration do
+      run_generator ["posts", "--database=secondary"]
+
+      assert_migration "db/secondary_migrate/create_posts.rb"
+    end
+  end
+
+  def test_scaffold_generator_database_with_aliases
+    with_secondary_database_configuration do
+      run_generator ["posts", "--db=secondary"]
+
+      assert_migration "db/secondary_migrate/create_posts.rb"
     end
   end
 
@@ -514,7 +573,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     assert_file "test/system/users_test.rb" do |content|
       assert_match(/fill_in "Password", with: 'secret'/, content)
-      assert_match(/fill_in "Password Confirmation", with: 'secret'/, content)
+      assert_match(/fill_in "Password confirmation", with: 'secret'/, content)
     end
 
     assert_file "test/fixtures/users.yml" do |content|
@@ -622,7 +681,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
       assert File.exist?("app/helpers/bukkits/users_helper.rb")
 
-      assert File.exist?("app/assets/javascripts/bukkits/users.js")
       assert File.exist?("app/assets/stylesheets/bukkits/users.css")
     end
   end
@@ -652,7 +710,6 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
       assert_not File.exist?("app/helpers/bukkits/users_helper.rb")
 
-      assert_not File.exist?("app/assets/javascripts/bukkits/users.js")
       assert_not File.exist?("app/assets/stylesheets/bukkits/users.css")
     end
   end

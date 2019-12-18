@@ -5,7 +5,7 @@ module ActiveRecord
     module PostgreSQL
       module OID # :nodoc:
         class Array < Type::Value # :nodoc:
-          include Type::Helpers::Mutable
+          include ActiveModel::Type::Helpers::Mutable
 
           Data = Struct.new(:encoder, :values) # :nodoc:
 
@@ -33,7 +33,13 @@ module ActiveRecord
 
           def cast(value)
             if value.is_a?(::String)
-              value = @pg_decoder.decode(value)
+              value = begin
+                @pg_decoder.decode(value)
+              rescue TypeError
+                # malformed array string is treated as [], will raise in PG 2.0 gem
+                # this keeps a consistent implementation
+                []
+              end
             end
             type_cast_array(value, :cast)
           end
@@ -66,8 +72,11 @@ module ActiveRecord
             deserialize(raw_old_value) != new_value
           end
 
-          private
+          def force_equality?(value)
+            value.is_a?(::Array)
+          end
 
+          private
             def type_cast_array(value, method)
               if value.is_a?(::Array)
                 value.map { |item| type_cast_array(item, method) }

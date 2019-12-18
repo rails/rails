@@ -1,10 +1,7 @@
 # frozen_string_literal: true
 
 require "concurrent/map"
-require "active_support/core_ext/array/prepend_and_append"
-require "active_support/core_ext/regexp"
 require "active_support/i18n"
-require "active_support/deprecation"
 
 module ActiveSupport
   module Inflector
@@ -67,8 +64,7 @@ module ActiveSupport
         @__instance__[locale] ||= new
       end
 
-      attr_reader :plurals, :singulars, :uncountables, :humans, :acronyms, :acronym_regex
-      deprecate :acronym_regex
+      attr_reader :plurals, :singulars, :uncountables, :humans, :acronyms
 
       attr_reader :acronyms_camelize_regex, :acronyms_underscore_regex # :nodoc:
 
@@ -233,7 +229,6 @@ module ActiveSupport
       end
 
       private
-
         def define_acronym_regex_patterns
           @acronym_regex             = @acronyms.empty? ? /(?=a)b/ : /#{@acronyms.values.join("|")}/
           @acronyms_camelize_regex   = /^(?:#{@acronym_regex}(?=\b|[A-Z_])|\w)/

@@ -14,6 +14,8 @@ module ActiveStorage
       info event, color("Downloaded file from key: #{key_in(event)}", BLUE)
     end
 
+    alias_method :service_streaming_download, :service_download
+
     def service_delete(event)
       info event, color("Deleted file from key: #{key_in(event)}", RED)
     end
@@ -28,6 +30,12 @@ module ActiveStorage
 
     def service_url(event)
       debug event, color("Generated URL for file at key: #{key_in(event)} (#{event.payload[:url]})", BLUE)
+    end
+
+    def service_mirror(event)
+      message = "Mirrored file at key: #{key_in(event)}"
+      message += " (checksum: #{event.payload[:checksum]})" if event.payload[:checksum]
+      debug event, color(message, GREEN)
     end
 
     def logger

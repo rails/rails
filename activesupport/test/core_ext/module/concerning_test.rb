@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../../abstract_unit"
 require "active_support/core_ext/module/concerning"
 
 class ModuleConcerningTest < ActiveSupport::TestCase
   def test_concerning_declares_a_concern_and_includes_it_immediately
-    klass = Class.new { concerning(:Foo) {} }
+    klass = Class.new { concerning(:Foo) { } }
     assert_includes klass.ancestors, klass::Foo, klass.ancestors.inspect
   end
 end
@@ -21,7 +21,7 @@ class ModuleConcernTest < ActiveSupport::TestCase
 
     # Declares a concern but doesn't include it
     assert klass.const_defined?(:Baz, false)
-    assert !ModuleConcernTest.const_defined?(:Baz)
+    assert_not ModuleConcernTest.const_defined?(:Baz)
     assert_kind_of ActiveSupport::Concern, klass::Baz
     assert_not_includes klass.ancestors, klass::Baz, klass.ancestors.inspect
 

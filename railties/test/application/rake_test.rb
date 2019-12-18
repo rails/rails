@@ -2,7 +2,6 @@
 
 require "isolation/abstract_unit"
 require "env_helpers"
-require "active_support/core_ext/string/strip"
 
 module ApplicationTests
   class RakeTest < ActiveSupport::TestCase
@@ -42,7 +41,7 @@ module ApplicationTests
         rails "db:create", "db:migrate"
         output = rails("db:test:prepare", "test")
 
-        refute_match(/ActiveRecord::ProtectedEnvironmentError/, output)
+        assert_no_match(/ActiveRecord::ProtectedEnvironmentError/, output)
       end
     end
 
@@ -97,7 +96,7 @@ module ApplicationTests
       assert_match "Hello world", output
     end
 
-    def test_should_not_eager_load_model_for_rake
+    def test_should_not_eager_load_model_for_rake_when_rake_eager_load_is_false
       add_to_config <<-RUBY
         rake_tasks do
           task do_nothing: :environment do
@@ -118,160 +117,32 @@ module ApplicationTests
       assert_match "There is nothing", output
     end
 
-    def test_code_statistics_sanity
-      assert_match "Code LOC: 25     Test LOC: 0     Code to Test Ratio: 1:0.0",
-        rails("stats")
-    end
-
-    def test_rails_routes_calls_the_route_inspector
-      app_file "config/routes.rb", <<-RUBY
-        Rails.application.routes.draw do
-          get '/cart', to: 'cart#show'
-        end
-      RUBY
-
-      output = rails("routes")
-      assert_equal <<-MESSAGE.strip_heredoc, output
-                              Prefix Verb URI Pattern                                                                       Controller#Action
-                                cart GET  /cart(.:format)                                                                   cart#show
-                  rails_service_blob GET  /rails/active_storage/blobs/:signed_id/*filename(.:format)                        active_storage/blobs#show
-                rails_blob_variation GET  /rails/active_storage/variants/:signed_blob_id/:variation_key/*filename(.:format) active_storage/variants#show
-                  rails_blob_preview GET  /rails/active_storage/previews/:signed_blob_id/:variation_key/*filename(.:format) active_storage/previews#show
-                  rails_disk_service GET  /rails/active_storage/disk/:encoded_key/*filename(.:format)                       active_storage/disk#show
-           update_rails_disk_service PUT  /rails/active_storage/disk/:encoded_token(.:format)                               active_storage/disk#update
-                rails_direct_uploads POST /rails/active_storage/direct_uploads(.:format)                                    active_storage/direct_uploads#create
-      MESSAGE
-    end
-
-    def test_singular_resource_output_in_rake_routes
-      app_file "config/routes.rb", <<-RUBY
-        Rails.application.routes.draw do
-          resource :post
-        end
-      RUBY
-
-      expected_output = ["   Prefix Verb   URI Pattern          Controller#Action",
-                         " new_post GET    /post/new(.:format)  posts#new",
-                         "edit_post GET    /post/edit(.:format) posts#edit",
-                         "     post GET    /post(.:format)      posts#show",
-                         "          PATCH  /post(.:format)      posts#update",
-                         "          PUT    /post(.:format)      posts#update",
-                         "          DELETE /post(.:format)      posts#destroy",
-                         "          POST   /post(.:format)      posts#create\n"].join("\n")
-
-      output = rails("routes", "-c", "PostController")
-      assert_equal expected_output, output
-    end
-
-    def test_rails_routes_with_global_search_key
-      app_file "config/routes.rb", <<-RUBY
-        Rails.application.routes.draw do
-          get '/cart', to: 'cart#show'
-          post '/cart', to: 'cart#create'
-          get '/basketballs', to: 'basketball#index'
-        end
-      RUBY
-
-      output = rails("routes", "-g", "show")
-      assert_equal <<-MESSAGE.strip_heredoc, output
-                              Prefix Verb URI Pattern                                                                       Controller#Action
-                                cart GET  /cart(.:format)                                                                   cart#show
-                  rails_service_blob GET  /rails/active_storage/blobs/:signed_id/*filename(.:format)                        active_storage/blobs#show
-                rails_blob_variation GET  /rails/active_storage/variants/:signed_blob_id/:variation_key/*filename(.:format) active_storage/variants#show
-                  rails_blob_preview GET  /rails/active_storage/previews/:signed_blob_id/:variation_key/*filename(.:format) active_storage/previews#show
-                  rails_disk_service GET  /rails/active_storage/disk/:encoded_key/*filename(.:format)                       active_storage/disk#show
-      MESSAGE
-
-      output = rails("routes", "-g", "POST")
-      assert_equal <<-MESSAGE.strip_heredoc, output
-                              Prefix Verb URI Pattern                                    Controller#Action
-                                     POST /cart(.:format)                                cart#create
-                rails_direct_uploads POST /rails/active_storage/direct_uploads(.:format) active_storage/direct_uploads#create
-      MESSAGE
-
-      output = rails("routes", "-g", "basketballs")
-      assert_equal "     Prefix Verb URI Pattern            Controller#Action\n" \
-                   "basketballs GET  /basketballs(.:format) basketball#index\n", output
-    end
-
-    def test_rails_routes_with_controller_search_key
-      app_file "config/routes.rb", <<-RUBY
-        Rails.application.routes.draw do
-          get '/cart', to: 'cart#show'
-          get '/basketball', to: 'basketball#index'
-        end
-      RUBY
-
-      output = rails("routes", "-c", "cart")
-      assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
-
-      output = rails("routes", "-c", "Cart")
-      assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
-
-      output = rails("routes", "-c", "CartController")
-      assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
-    end
-
-    def test_rails_routes_with_namespaced_controller_search_key
-      app_file "config/routes.rb", <<-RUBY
-        Rails.application.routes.draw do
-          namespace :admin do
-            resource :post
+    def test_should_eager_load_model_for_rake_when_rake_eager_load_is_true
+      add_to_config <<-RUBY
+        rake_tasks do
+          task do_something: :environment do
+            puts "Answer: " + Hello::TEST.to_s
           end
         end
       RUBY
-      expected_output = ["         Prefix Verb   URI Pattern                Controller#Action",
-                         " new_admin_post GET    /admin/post/new(.:format)  admin/posts#new",
-                         "edit_admin_post GET    /admin/post/edit(.:format) admin/posts#edit",
-                         "     admin_post GET    /admin/post(.:format)      admin/posts#show",
-                         "                PATCH  /admin/post(.:format)      admin/posts#update",
-                         "                PUT    /admin/post(.:format)      admin/posts#update",
-                         "                DELETE /admin/post(.:format)      admin/posts#destroy",
-                         "                POST   /admin/post(.:format)      admin/posts#create\n"].join("\n")
 
-      output = rails("routes", "-c", "Admin::PostController")
-      assert_equal expected_output, output
+      add_to_env_config "production", <<-RUBY
+        config.rake_eager_load = true
+      RUBY
 
-      output = rails("routes", "-c", "PostController")
-      assert_equal expected_output, output
-    end
-
-    def test_rails_routes_displays_message_when_no_routes_are_defined
-      app_file "config/routes.rb", <<-RUBY
-        Rails.application.routes.draw do
+      app_file "app/models/hello.rb", <<-RUBY
+        class Hello
+          TEST = 42
         end
       RUBY
 
-      assert_equal <<-MESSAGE.strip_heredoc, rails("routes")
-                              Prefix Verb URI Pattern                                                                       Controller#Action
-                  rails_service_blob GET  /rails/active_storage/blobs/:signed_id/*filename(.:format)                        active_storage/blobs#show
-                rails_blob_variation GET  /rails/active_storage/variants/:signed_blob_id/:variation_key/*filename(.:format) active_storage/variants#show
-                  rails_blob_preview GET  /rails/active_storage/previews/:signed_blob_id/:variation_key/*filename(.:format) active_storage/previews#show
-                  rails_disk_service GET  /rails/active_storage/disk/:encoded_key/*filename(.:format)                       active_storage/disk#show
-           update_rails_disk_service PUT  /rails/active_storage/disk/:encoded_token(.:format)                               active_storage/disk#update
-                rails_direct_uploads POST /rails/active_storage/direct_uploads(.:format)                                    active_storage/direct_uploads#create
-      MESSAGE
+      output = Dir.chdir(app_path) { `bin/rails do_something RAILS_ENV=production` }
+      assert_equal "Answer: 42\n", output
     end
 
-    def test_rake_routes_with_rake_options
-      app_file "config/routes.rb", <<-RUBY
-        Rails.application.routes.draw do
-          get '/cart', to: 'cart#show'
-        end
-      RUBY
-
-      output = Dir.chdir(app_path) { `bin/rake --rakefile Rakefile routes` }
-
-      assert_equal <<-MESSAGE.strip_heredoc, output
-                              Prefix Verb URI Pattern                                                                       Controller#Action
-                                cart GET  /cart(.:format)                                                                   cart#show
-                  rails_service_blob GET  /rails/active_storage/blobs/:signed_id/*filename(.:format)                        active_storage/blobs#show
-                rails_blob_variation GET  /rails/active_storage/variants/:signed_blob_id/:variation_key/*filename(.:format) active_storage/variants#show
-                  rails_blob_preview GET  /rails/active_storage/previews/:signed_blob_id/:variation_key/*filename(.:format) active_storage/previews#show
-                  rails_disk_service GET  /rails/active_storage/disk/:encoded_key/*filename(.:format)                       active_storage/disk#show
-           update_rails_disk_service PUT  /rails/active_storage/disk/:encoded_token(.:format)                               active_storage/disk#update
-                rails_direct_uploads POST /rails/active_storage/direct_uploads(.:format)                                    active_storage/direct_uploads#create
-      MESSAGE
+    def test_code_statistics_sanity
+      assert_match "Code LOC: 32     Test LOC: 0     Code to Test Ratio: 1:0.0",
+        rails("stats")
     end
 
     def test_logger_is_flushed_when_exiting_production_rake_tasks
@@ -297,8 +168,8 @@ module ApplicationTests
       # loading a specific fixture
       rails "db:fixtures:load", "FIXTURES=products"
 
-      assert_equal 2, ::AppTemplate::Application::Product.count
-      assert_equal 0, ::AppTemplate::Application::User.count
+      assert_equal 2, Product.count
+      assert_equal 0, User.count
     end
 
     def test_loading_only_yml_fixtures
@@ -312,7 +183,9 @@ module ApplicationTests
 
     def test_scaffold_tests_pass_by_default
       rails "generate", "scaffold", "user", "username:string", "password:string"
-      with_rails_env("test") { rails("db:migrate") }
+      with_rails_env("test") do
+        rails("db:migrate")
+      end
       output = rails("test")
 
       assert_match(/7 runs, 9 assertions, 0 failures, 0 errors/, output)
@@ -341,7 +214,9 @@ module ApplicationTests
       rails "generate", "model", "Product"
       rails "generate", "model", "Cart"
       rails "generate", "scaffold", "LineItems", "product:references", "cart:belongs_to"
-      with_rails_env("test") { rails("db:migrate") }
+      with_rails_env("test") do
+        rails("db:migrate")
+      end
       output = rails("test")
 
       assert_match(/7 runs, 9 assertions, 0 failures, 0 errors/, output)
@@ -381,7 +256,7 @@ module ApplicationTests
 
     def test_rake_clear_schema_cache
       rails "db:schema:cache:dump", "db:schema:cache:clear"
-      assert !File.exist?(File.join(app_path, "db", "schema_cache.yml"))
+      assert_not File.exist?(File.join(app_path, "db", "schema_cache.yml"))
     end
 
     def test_copy_templates

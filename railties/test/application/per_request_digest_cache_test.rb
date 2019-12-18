@@ -5,11 +5,9 @@ require "rack/test"
 require "minitest/mock"
 
 require "action_view"
-require "active_support/testing/method_call_assertions"
 
 class PerRequestDigestCacheTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation
-  include ActiveSupport::Testing::MethodCallAssertions
   include Rack::Test::Methods
 
   setup do

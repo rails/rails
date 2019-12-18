@@ -75,9 +75,9 @@ asyncTest('setting data("with-credentials",true) with "ajax:before" uses new set
 
 asyncTest('stopping the "ajax:beforeSend" event aborts the request', 1, function() {
   submit(function(form) {
-    form.bindNative('ajax:beforeSend', function() {
+    form.bindNative('ajax:beforeSend', function(e) {
       ok(true, 'aborting request in ajax:beforeSend')
-      return false
+      e.preventDefault()
     })
     form.unbind('ajax:send').bindNative('ajax:send', function() {
       ok(false, 'ajax:send should not run')
@@ -148,8 +148,8 @@ function skipIt() {
           .bind('iframe:loading', function() {
             ok(false, 'form should not get submitted')
           })
-          .bindNative('ajax:aborted:file', function() {
-            return false
+          .bindNative('ajax:aborted:file', function(e) {
+            e.preventDefault()
           })
           .triggerNative('submit')
 
@@ -162,9 +162,9 @@ function skipIt() {
 }
 
 asyncTest('"ajax:beforeSend" can be observed and stopped with event delegation', 1, function() {
-  $(document).delegate('form[data-remote]', 'ajax:beforeSend', function() {
+  $(document).delegate('form[data-remote]', 'ajax:beforeSend', function(e) {
     ok(true, 'ajax:beforeSend observed with event delegation')
-    return false
+    e.preventDefault()
   })
 
   submit(function(form) {

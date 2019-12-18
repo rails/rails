@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 require "active_support/encrypted_configuration"
 
 class EncryptedConfigurationTest < ActiveSupport::TestCase
@@ -40,6 +40,12 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
     @credentials.write({ something: { good: true } }.to_yaml)
 
     assert @credentials.something[:good]
+  end
+
+  test "reading comment-only configuration" do
+    @credentials.write("# comment")
+
+    assert_equal @credentials.config, {}
   end
 
   test "change configuration by key file" do

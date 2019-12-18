@@ -242,8 +242,11 @@ end
 
 class FlashIntegrationTest < ActionDispatch::IntegrationTest
   SessionKey = "_myapp_session"
-  Generator  = ActiveSupport::LegacyKeyGenerator.new("b3c631c314c0bbca50c1b2843150fe33")
-  Rotations  = ActiveSupport::Messages::RotationConfiguration.new
+  Generator = ActiveSupport::CachingKeyGenerator.new(
+    ActiveSupport::KeyGenerator.new("b3c631c314c0bbca50c1b2843150fe33", iterations: 1000)
+ )
+  Rotations = ActiveSupport::Messages::RotationConfiguration.new
+  SIGNED_COOKIE_SALT = "signed cookie"
 
   class TestController < ActionController::Base
     add_flash_types :bar
@@ -342,15 +345,29 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
     end
   end
 
-  private
+  def test_flash_usable_in_metal_without_helper
+    controller_class = nil
 
+    assert_nothing_raised do
+      controller_class = Class.new(ActionController::Metal) do
+        include ActionController::Flash
+      end
+    end
+
+    controller = controller_class.new
+
+    assert_respond_to controller, :alert
+    assert_respond_to controller, :notice
+  end
+
+  private
     # Overwrite get to send SessionSecret in env hash
-    def get(path, *args)
-      args[0] ||= {}
-      args[0][:env] ||= {}
-      args[0][:env]["action_dispatch.key_generator"] ||= Generator
-      args[0][:env]["action_dispatch.cookies_rotations"] = Rotations
-      super(path, *args)
+    def get(path, **options)
+      options[:env] ||= {}
+      options[:env]["action_dispatch.key_generator"] ||= Generator
+      options[:env]["action_dispatch.cookies_rotations"] = Rotations
+      options[:env]["action_dispatch.signed_cookie_salt"] = SIGNED_COOKIE_SALT
+      super(path, **options)
     end
 
     def with_test_route_set

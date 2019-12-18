@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/array"
-require "active_support/core_ext/hash/except"
 require "active_support/core_ext/kernel/singleton_class"
 
 module ActiveRecord
@@ -24,13 +23,22 @@ module ActiveRecord
         # You can define a scope that applies to all finders using
         # {default_scope}[rdoc-ref:Scoping::Default::ClassMethods#default_scope].
         def all
-          current_scope = self.current_scope
+          scope = current_scope
 
-          if current_scope
-            if self == current_scope.klass
-              current_scope.clone
+          if scope
+            if scope._deprecated_scope_source
+              ActiveSupport::Deprecation.warn(<<~MSG.squish)
+                Class level methods will no longer inherit scoping from `#{scope._deprecated_scope_source}`
+                in Rails 6.1. To continue using the scoped relation, pass it into the block directly.
+                To instead access the full set of models, as Rails 6.1 will, use `#{name}.unscoped`,
+                or `#{name}.default_scoped` if a model has default scopes.
+              MSG
+            end
+
+            if self == scope.klass
+              scope.clone
             else
-              relation.merge!(current_scope)
+              relation.merge!(scope)
             end
           else
             default_scoped
@@ -38,9 +46,7 @@ module ActiveRecord
         end
 
         def scope_for_association(scope = relation) # :nodoc:
-          current_scope = self.current_scope
-
-          if current_scope && current_scope.empty_scope?
+          if current_scope&.empty_scope?
             scope
           else
             default_scoped(scope)
@@ -52,7 +58,7 @@ module ActiveRecord
         end
 
         def default_extensions # :nodoc:
-          if scope = current_scope || build_default_scope
+          if scope = scope_for_association || build_default_scope
             scope.extensions
           else
             []
@@ -181,24 +187,23 @@ module ActiveRecord
           extension = Module.new(&block) if block
 
           if body.respond_to?(:to_proc)
-            singleton_class.send(:define_method, name) do |*args|
-              scope = all
-              scope = scope.instance_exec(*args, &body) || scope
+            singleton_class.define_method(name) do |*args|
+              scope = all._exec_scope(name, *args, &body)
               scope = scope.extending(extension) if extension
               scope
             end
           else
-            singleton_class.send(:define_method, name) do |*args|
-              scope = all
-              scope = scope.scoping { body.call(*args) || scope }
+            singleton_class.define_method(name) do |*args|
+              scope = body.call(*args) || all
               scope = scope.extending(extension) if extension
               scope
             end
           end
+
+          generate_relation_method(name)
         end
 
         private
-
           def valid_scope_name?(name)
             if respond_to?(name, true) && logger
               logger.warn "Creating scope :#{name}. " \

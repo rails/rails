@@ -17,7 +17,7 @@ class ServerTest < ActiveSupport::TestCase
   test "server is changed from `default` to `puma`" do
     Capybara.server = :default
     ActionDispatch::SystemTesting::Server.new.run
-    refute_equal Capybara.server, Capybara.servers[:default]
+    assert_not_equal Capybara.server, Capybara.servers[:default]
   end
 
   test "server is not changed to `puma` when is different than default" do

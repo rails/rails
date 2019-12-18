@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 
 class GrandParent
   include ActiveSupport::Callbacks
@@ -174,5 +174,15 @@ class DynamicInheritedCallbacks < ActiveSupport::TestCase
     CountingParent.set_callback(:dispatch, :before) { count! }
     child = CountingChild.new.dispatch
     assert_equal 1, child.count
+  end
+end
+
+class DynamicDefinedCallbacks < ActiveSupport::TestCase
+  def test_callbacks_should_be_performed_once_in_child_class_after_dynamic_define
+    GrandParent.define_callbacks(:foo)
+    GrandParent.set_callback(:foo, :before, :before1)
+    parent = Parent.new("foo")
+    parent.run_callbacks(:foo)
+    assert_equal %w(before1), parent.log
   end
 end

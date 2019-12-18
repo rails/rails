@@ -156,12 +156,15 @@ XML
       render html: '<body class="foo"></body>'.html_safe
     end
 
+    def render_json
+      render json: request.raw_post
+    end
+
     def boom
       raise "boom!"
     end
 
     private
-
       def generate_url(opts)
         url_for(opts.merge(action: "test_uri"))
       end
@@ -222,6 +225,27 @@ XML
 
     assert_equal params.to_query, @response.body
   end
+
+  def test_params_round_trip
+    params = { "foo" => { "contents" => [{ "name" => "gorby", "id" => "123" }, { "name" => "puff", "d" => "true" }] } }
+    post :test_params, params: params.dup
+
+    controller_info = { "controller" => "test_case_test/test", "action" => "test_params" }
+    assert_equal params.merge(controller_info), JSON.parse(@response.body)
+  end
+
+  def test_handle_to_params
+    klass = Class.new do
+      def to_param
+        "bar"
+      end
+    end
+
+    post :test_params, params: { foo: klass.new }
+
+    assert_equal JSON.parse(@response.body)["foo"], "bar"
+  end
+
 
   def test_body_stream
     params = Hash[:page, { name: "page name" }, "some key", 123]
@@ -380,7 +404,13 @@ XML
     process :test_xml_output, params: { response_as: "text/html" }
 
     # <area> auto-closes, so the <p> becomes a sibling
-    assert_select "root > area + p"
+    if defined?(JRUBY_VERSION)
+      # https://github.com/sparklemotion/nokogiri/issues/1653
+      # HTML parser "fixes" "broken" markup in slightly different ways
+      assert_select "root > map > area + p"
+    else
+      assert_select "root > area + p"
+    end
   end
 
   def test_should_not_impose_childless_html_tags_in_xml
@@ -442,6 +472,18 @@ XML
       {
         "controller" => "test_case_test/test", "action" => "test_params",
         "page" => { "name" => "Page name", "month" => "4", "year" => "2004", "day" => "6" }
+      },
+      parsed_params
+    )
+  end
+
+  def test_nil_params
+    get :test_params, params: nil
+    parsed_params = JSON.parse(@response.body)
+    assert_equal(
+      {
+        "action" => "test_params",
+        "controller" => "test_case_test/test"
       },
       parsed_params
     )
@@ -515,7 +557,7 @@ XML
   def test_params_passing_with_frozen_values
     assert_nothing_raised do
       get :test_params, params: {
-        frozen: "icy".freeze, frozens: ["icy".freeze].freeze, deepfreeze: { frozen: "icy".freeze }.freeze
+        frozen: -"icy", frozens: [-"icy"].freeze, deepfreeze: { frozen: -"icy" }.freeze
       }
     end
     parsed_params = ::JSON.parse(@response.body)
@@ -681,6 +723,22 @@ XML
     assert_equal "baz", @request.filtered_parameters[:foo]
   end
 
+  def test_raw_post_reset_between_post_requests
+    post :no_op, params: { foo: "bar" }
+    assert_equal "foo=bar", @request.raw_post
+
+    post :no_op, params: { foo: "baz" }
+    assert_equal "foo=baz", @request.raw_post
+  end
+
+  def test_content_length_reset_after_post_request
+    post :no_op, params: { foo: "bar" }
+    assert_not_equal 0, @request.content_length
+
+    get :no_op
+    assert_equal 0, @request.content_length
+  end
+
   def test_path_is_kept_after_the_request
     get :test_params, params: { id: "foo" }
     assert_equal "/test_case_test/test/test_params/foo", @request.path
@@ -738,6 +796,14 @@ XML
   def test_request_format_kwarg_overrides_params
     get :test_format, format: "json", params: { format: "html" }
     assert_equal "application/json", @response.body
+  end
+
+  def test_request_format_kwarg_doesnt_mutate_params
+    params = { foo: "bar" }.freeze
+
+    assert_nothing_raised do
+      get :test_format, format: "json", params: params
+    end
   end
 
   def test_should_have_knowledge_of_client_side_cookie_state_even_if_they_are_not_set
@@ -885,7 +951,7 @@ XML
     get :create
     assert_response :created
 
-    # Redirect url doesn't care that it wasn't a :redirect response.
+    # Redirect URL doesn't care that it wasn't a :redirect response.
     assert_equal "/resource", @response.redirect_url
     assert_equal @response.redirect_url, redirect_to_url
 
@@ -913,6 +979,16 @@ XML
       params: { q: "test2" }
 
     assert_equal "q=test2", @response.body
+  end
+
+  def test_parsed_body_without_as_option
+    post :render_json, body: { foo: "heyo" }
+    assert_equal({ "foo" => "heyo" }, response.parsed_body)
+  end
+
+  def test_parsed_body_with_as_option
+    post :render_json, body: { foo: "heyo" }.to_json, as: :json
+    assert_equal({ "foo" => "heyo" }, response.parsed_body)
   end
 end
 

@@ -4,10 +4,6 @@ require "abstract_unit"
 require "active_model"
 require "controller/fake_models"
 
-class ApplicationController < ActionController::Base
-  self.view_paths = File.join(FIXTURE_LOAD_PATH, "actionpack")
-end
-
 module Quiz
   # Models
   Question = Struct.new(:name, :id) do
@@ -20,7 +16,7 @@ module Quiz
   end
 
   # Controller
-  class QuestionsController < ApplicationController
+  class QuestionsController < ActionController::Base
     def new
       render partial: Quiz::Question.new("Namespaced Partial")
     end
@@ -28,7 +24,7 @@ module Quiz
 end
 
 module Fun
-  class GamesController < ApplicationController
+  class GamesController < ActionController::Base
     def hello_world; end
 
     def nested_partial_with_form_builder
@@ -37,7 +33,7 @@ module Fun
   end
 end
 
-class TestController < ApplicationController
+class TestController < ActionController::Base
   protect_from_forgery
 
   before_action :set_variable_for_layout
@@ -176,6 +172,10 @@ class TestController < ApplicationController
 
   def accessing_controller_name_in_template
     render inline: "<%= controller_name %>"
+  end
+
+  def inline_rendered_format_without_format
+    render inline: "test"
   end
 
   # :ported:
@@ -489,6 +489,10 @@ class TestController < ApplicationController
     render partial: "customer", locals: { customer: Customer.new("david") }
   end
 
+  def partial_with_hashlike_locals
+    render partial: "customer", locals: ActionController::Parameters.new(customer: Customer.new("david"))
+  end
+
   def partial_with_form_builder
     render partial: ActionView::Helpers::FormBuilder.new(:post, nil, view_context, {})
   end
@@ -603,7 +607,6 @@ class TestController < ApplicationController
   end
 
   private
-
     def set_variable_for_layout
       @variable_for_layout = nil
     end
@@ -632,6 +635,125 @@ end
 class RenderTest < ActionController::TestCase
   tests TestController
 
+  with_routes do
+    get :"hyphen-ated", to: "test#hyphen-ated"
+    get :accessing_action_name_in_template, to: "test#accessing_action_name_in_template"
+    get :accessing_controller_name_in_template, to: "test#accessing_controller_name_in_template"
+    get :accessing_local_assigns_in_inline_template, to: "test#accessing_local_assigns_in_inline_template"
+    get :accessing_logger_in_template, to: "test#accessing_logger_in_template"
+    get :accessing_params_in_template, to: "test#accessing_params_in_template"
+    get :accessing_params_in_template_with_layout, to: "test#accessing_params_in_template_with_layout"
+    get :accessing_request_in_template, to: "test#accessing_request_in_template"
+    get :action_talk_to_layout, to: "test#action_talk_to_layout"
+    get :builder_layout_test, to: "test#builder_layout_test"
+    get :builder_partial_test, to: "test#builder_partial_test"
+    get :clone, to: "test#clone"
+    get :determine_layout, to: "test#determine_layout"
+    get :double_redirect, to: "test#double_redirect"
+    get :double_render, to: "test#double_render"
+    get :empty_partial_collection, to: "test#empty_partial_collection"
+    get :formatted_html_erb, to: "test#formatted_html_erb"
+    get :formatted_xml_erb, to: "test#formatted_xml_erb"
+    get :greeting, to: "test#greeting"
+    get :hello_in_a_string, to: "test#hello_in_a_string"
+    get :hello_world, to: "fun/games#hello_world"
+    get :hello_world, to: "test#hello_world"
+    get :hello_world_file, to: "test#hello_world_file"
+    get :hello_world_from_rxml_using_action, to: "test#hello_world_from_rxml_using_action"
+    get :hello_world_from_rxml_using_template, to: "test#hello_world_from_rxml_using_template"
+    get :hello_world_with_layout_false, to: "test#hello_world_with_layout_false"
+    get :inline_rendered_format_without_format, to: "test#inline_rendered_format_without_format"
+    get :layout_overriding_layout, to: "test#layout_overriding_layout"
+    get :layout_test, to: "test#layout_test"
+    get :layout_test_with_different_layout, to: "test#layout_test_with_different_layout"
+    get :layout_test_with_different_layout_and_string_action, to: "test#layout_test_with_different_layout_and_string_action"
+    get :layout_test_with_different_layout_and_symbol_action, to: "test#layout_test_with_different_layout_and_symbol_action"
+    get :missing_partial, to: "test#missing_partial"
+    get :nested_partial_with_form_builder, to: "fun/games#nested_partial_with_form_builder"
+    get :new, to: "quiz/questions#new"
+    get :partial, to: "test#partial"
+    get :partial_collection, to: "test#partial_collection"
+    get :partial_collection_shorthand_with_different_types_of_records, to: "test#partial_collection_shorthand_with_different_types_of_records"
+    get :partial_collection_shorthand_with_locals, to: "test#partial_collection_shorthand_with_locals"
+    get :partial_collection_with_as, to: "test#partial_collection_with_as"
+    get :partial_collection_with_as_and_counter, to: "test#partial_collection_with_as_and_counter"
+    get :partial_collection_with_as_and_iteration, to: "test#partial_collection_with_as_and_iteration"
+    get :partial_collection_with_counter, to: "test#partial_collection_with_counter"
+    get :partial_collection_with_iteration, to: "test#partial_collection_with_iteration"
+    get :partial_collection_with_locals, to: "test#partial_collection_with_locals"
+    get :partial_collection_with_spacer, to: "test#partial_collection_with_spacer"
+    get :partial_collection_with_spacer_which_uses_render, to: "test#partial_collection_with_spacer_which_uses_render"
+    get :partial_formats_html, to: "test#partial_formats_html"
+    get :partial_hash_collection, to: "test#partial_hash_collection"
+    get :partial_hash_collection_with_locals, to: "test#partial_hash_collection_with_locals"
+    get :partial_html_erb, to: "test#partial_html_erb"
+    get :partial_only, to: "test#partial_only"
+    get :partial_with_counter, to: "test#partial_with_counter"
+    get :partial_with_form_builder, to: "test#partial_with_form_builder"
+    get :partial_with_form_builder_subclass, to: "test#partial_with_form_builder_subclass"
+    get :partial_with_hash_object, to: "test#partial_with_hash_object"
+    get :partial_with_locals, to: "test#partial_with_locals"
+    get :partial_with_nested_object, to: "test#partial_with_nested_object"
+    get :partial_with_nested_object_shorthand, to: "test#partial_with_nested_object_shorthand"
+    get :partial_with_hashlike_locals, to: "test#partial_with_hashlike_locals"
+    get :partials_list, to: "test#partials_list"
+    get :render_action_hello_world, to: "test#render_action_hello_world"
+    get :render_action_hello_world_as_string, to: "test#render_action_hello_world_as_string"
+    get :render_action_hello_world_with_symbol, to: "test#render_action_hello_world_with_symbol"
+    get :render_action_upcased_hello_world, to: "test#render_action_upcased_hello_world"
+    get :render_and_redirect, to: "test#render_and_redirect"
+    get :render_call_to_partial_with_layout, to: "test#render_call_to_partial_with_layout"
+    get :render_call_to_partial_with_layout_in_main_layout_and_within_content_for_layout, to: "test#render_call_to_partial_with_layout_in_main_layout_and_within_content_for_layout"
+    get :render_custom_code, to: "test#render_custom_code"
+    get :render_file_as_string_with_locals, to: "test#render_file_as_string_with_locals"
+    get :render_file_from_template, to: "test#render_file_from_template"
+    get :render_file_not_using_full_path, to: "test#render_file_not_using_full_path"
+    get :render_file_not_using_full_path_with_dot_in_path, to: "test#render_file_not_using_full_path_with_dot_in_path"
+    get :render_file_using_pathname, to: "test#render_file_using_pathname"
+    get :render_file_with_instance_variables, to: "test#render_file_with_instance_variables"
+    get :render_file_with_locals, to: "test#render_file_with_locals"
+    get :render_hello_world, to: "test#render_hello_world"
+    get :render_hello_world_from_variable, to: "test#render_hello_world_from_variable"
+    get :render_hello_world_with_forward_slash, to: "test#render_hello_world_with_forward_slash"
+    get :render_implicit_html_template_from_xhr_request, to: "test#render_implicit_html_template_from_xhr_request"
+    get :render_implicit_js_template_without_layout, to: "test#render_implicit_js_template_without_layout"
+    get :render_line_offset, to: "test#render_line_offset"
+    get :render_nothing_with_appendix, to: "test#render_nothing_with_appendix"
+    get :render_template_in_top_directory, to: "test#render_template_in_top_directory"
+    get :render_template_in_top_directory_with_slash, to: "test#render_template_in_top_directory_with_slash"
+    get :render_template_within_a_template_with_other_format, to: "test#render_template_within_a_template_with_other_format"
+    get :render_text_hello_world, to: "test#render_text_hello_world"
+    get :render_text_hello_world_with_layout, to: "test#render_text_hello_world_with_layout"
+    get :render_text_with_assigns, to: "test#render_text_with_assigns"
+    get :render_text_with_false, to: "test#render_text_with_false"
+    get :render_text_with_nil, to: "test#render_text_with_nil"
+    get :render_text_with_resource, to: "test#render_text_with_resource"
+    get :render_to_string_and_render, to: "test#render_to_string_and_render"
+    get :render_to_string_and_render_with_different_formats, to: "test#render_to_string_and_render_with_different_formats"
+    get :render_to_string_test, to: "test#render_to_string_test"
+    get :render_to_string_with_assigns, to: "test#render_to_string_with_assigns"
+    get :render_to_string_with_caught_exception, to: "test#render_to_string_with_caught_exception"
+    get :render_to_string_with_exception, to: "test#render_to_string_with_exception"
+    get :render_to_string_with_inline_and_render, to: "test#render_to_string_with_inline_and_render"
+    get :render_to_string_with_partial, to: "test#render_to_string_with_partial"
+    get :render_to_string_with_template_and_html_partial, to: "test#render_to_string_with_template_and_html_partial"
+    get :render_using_layout_around_block, to: "test#render_using_layout_around_block"
+    get :render_using_layout_around_block_in_main_layout_and_within_content_for_layout, to: "test#render_using_layout_around_block_in_main_layout_and_within_content_for_layout"
+    get :render_with_assigns_option, to: "test#render_with_assigns_option"
+    get :render_with_explicit_escaped_template, to: "test#render_with_explicit_escaped_template"
+    get :render_with_explicit_string_template, to: "test#render_with_explicit_string_template"
+    get :render_with_explicit_template, to: "test#render_with_explicit_template"
+    get :render_with_explicit_template_with_locals, to: "test#render_with_explicit_template_with_locals"
+    get :render_with_explicit_unescaped_template, to: "test#render_with_explicit_unescaped_template"
+    get :render_with_filters, to: "test#render_with_filters"
+    get :render_xml_hello, to: "test#render_xml_hello"
+    get :render_xml_hello_as_string_template, to: "test#render_xml_hello_as_string_template"
+    get :rendering_nothing_on_layout, to: "test#rendering_nothing_on_layout"
+    get :rendering_with_conflicting_local_vars, to: "test#rendering_with_conflicting_local_vars"
+    get :rendering_without_layout, to: "test#rendering_without_layout"
+    get :yield_content_for, to: "test#yield_content_for"
+  end
+
   def setup
     # enable a logger so that (e.g.) the benchmarking stuff runs, so we can get
     # a more accurate simulation of what happens in "real life".
@@ -640,10 +762,15 @@ class RenderTest < ActionController::TestCase
     ActionView::Base.logger = ActiveSupport::Logger.new(nil)
 
     @request.host = "www.nextangle.com"
+
+    @old_view_paths = ActionController::Base.view_paths
+    ActionController::Base.view_paths = File.join(FIXTURE_LOAD_PATH, "actionpack")
   end
 
   def teardown
     ActionView::Base.logger = nil
+
+    ActionController::Base.view_paths = @old_view_paths
   end
 
   # :ported:
@@ -744,48 +871,64 @@ class RenderTest < ActionController::TestCase
 
   # :ported:
   def test_render_file_with_instance_variables
-    get :render_file_with_instance_variables
+    assert_deprecated do
+      get :render_file_with_instance_variables
+    end
     assert_equal "The secret is in the sauce\n", @response.body
   end
 
   def test_render_file
-    get :hello_world_file
+    assert_deprecated do
+      get :hello_world_file
+    end
     assert_equal "Hello world!", @response.body
   end
 
   # :ported:
   def test_render_file_not_using_full_path
-    get :render_file_not_using_full_path
+    assert_deprecated do
+      get :render_file_not_using_full_path
+    end
     assert_equal "The secret is in the sauce\n", @response.body
   end
 
   # :ported:
   def test_render_file_not_using_full_path_with_dot_in_path
-    get :render_file_not_using_full_path_with_dot_in_path
+    assert_deprecated do
+      get :render_file_not_using_full_path_with_dot_in_path
+    end
     assert_equal "The secret is in the sauce\n", @response.body
   end
 
   # :ported:
   def test_render_file_using_pathname
-    get :render_file_using_pathname
+    assert_deprecated do
+      get :render_file_using_pathname
+    end
     assert_equal "The secret is in the sauce\n", @response.body
   end
 
   # :ported:
   def test_render_file_with_locals
-    get :render_file_with_locals
+    assert_deprecated do
+      get :render_file_with_locals
+    end
     assert_equal "The secret is in the sauce\n", @response.body
   end
 
   # :ported:
   def test_render_file_as_string_with_locals
-    get :render_file_as_string_with_locals
+    assert_deprecated do
+      get :render_file_as_string_with_locals
+    end
     assert_equal "The secret is in the sauce\n", @response.body
   end
 
   # :assessed:
   def test_render_file_from_template
-    get :render_file_from_template
+    assert_deprecated do
+      get :render_file_from_template
+    end
     assert_equal "The secret is in the sauce\n", @response.body
   end
 
@@ -859,14 +1002,14 @@ class RenderTest < ActionController::TestCase
   def test_render_xml
     get :render_xml_hello
     assert_equal "<html>\n  <p>Hello David</p>\n<p>This is grand!</p>\n</html>\n", @response.body
-    assert_equal "application/xml", @response.content_type
+    assert_equal "application/xml", @response.media_type
   end
 
   # :ported:
   def test_render_xml_as_string_template
     get :render_xml_hello_as_string_template
     assert_equal "<html>\n  <p>Hello David</p>\n<p>This is grand!</p>\n</html>\n", @response.body
-    assert_equal "application/xml", @response.content_type
+    assert_equal "application/xml", @response.media_type
   end
 
   # :ported:
@@ -890,6 +1033,12 @@ class RenderTest < ActionController::TestCase
   def test_render_xml_with_layouts
     get :builder_layout_test
     assert_equal "<wrapper>\n<html>\n  <p>Hello </p>\n<p>This is grand!</p>\n</html>\n</wrapper>\n", @response.body
+  end
+
+  def test_rendered_format_without_format
+    get :inline_rendered_format_without_format
+    assert_equal "test", @response.body
+    assert_equal "text/html", @response.media_type
   end
 
   def test_partials_list
@@ -927,7 +1076,7 @@ class RenderTest < ActionController::TestCase
   def test_accessing_local_assigns_in_inline_template
     get :accessing_local_assigns_in_inline_template, params: { local_name: "Local David" }
     assert_equal "Goodbye, Local David", @response.body
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
   end
 
   def test_should_implicitly_render_html_template_from_xhr_request
@@ -999,11 +1148,19 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_bad_render_to_string_still_throws_exception
-    assert_raise(ActionView::MissingTemplate) { get :render_to_string_with_exception }
+    assert_deprecated do
+      assert_raise(ActionView::MissingTemplate) do
+        get :render_to_string_with_exception
+      end
+    end
   end
 
   def test_render_to_string_that_throws_caught_exception_doesnt_break_assigns
-    assert_nothing_raised { get :render_to_string_with_caught_exception }
+    assert_deprecated do
+      assert_nothing_raised do
+        get :render_to_string_with_caught_exception
+      end
+    end
     assert_equal "i'm before the render", @controller.instance_variable_get(:@before)
     assert_equal "i'm after the render", @controller.instance_variable_get(:@after)
   end
@@ -1106,13 +1263,13 @@ class RenderTest < ActionController::TestCase
   def test_partial_only
     get :partial_only
     assert_equal "only partial", @response.body
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
   end
 
   def test_should_render_html_formatted_partial
     get :partial
     assert_equal "partial html", @response.body
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
   end
 
   def test_render_html_formatted_partial_even_with_other_mime_time_in_accept
@@ -1121,20 +1278,20 @@ class RenderTest < ActionController::TestCase
     get :partial_html_erb
 
     assert_equal "partial.html.erb", @response.body.strip
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
   end
 
   def test_should_render_html_partial_with_formats
     get :partial_formats_html
     assert_equal "partial html", @response.body
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
   end
 
   def test_render_to_string_partial
     get :render_to_string_with_partial
     assert_equal "only partial", @controller.instance_variable_get(:@partial_only)
     assert_equal "Hello: david", @controller.instance_variable_get(:@partial_with_locals)
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
   end
 
   def test_render_to_string_with_template_and_html_partial
@@ -1142,21 +1299,21 @@ class RenderTest < ActionController::TestCase
     assert_equal "**only partial**\n", @controller.instance_variable_get(:@text)
     assert_equal "<strong>only partial</strong>\n", @controller.instance_variable_get(:@html)
     assert_equal "<strong>only html partial</strong>\n", @response.body
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
   end
 
   def test_render_to_string_and_render_with_different_formats
     get :render_to_string_and_render_with_different_formats
     assert_equal "<strong>only partial</strong>\n", @controller.instance_variable_get(:@html)
     assert_equal "**only partial**\n", @response.body
-    assert_equal "text/plain", @response.content_type
+    assert_equal "text/plain", @response.media_type
   end
 
   def test_render_template_within_a_template_with_other_format
     get :render_template_within_a_template_with_other_format
     expected = "only html partial<p>This is grand!</p>"
     assert_equal expected, @response.body.strip
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
   end
 
   def test_partial_with_counter
@@ -1166,6 +1323,11 @@ class RenderTest < ActionController::TestCase
 
   def test_partial_with_locals
     get :partial_with_locals
+    assert_equal "Hello: david", @response.body
+  end
+
+  def test_partial_with_hashlike_locals
+    get :partial_with_hashlike_locals
     assert_equal "Hello: david", @response.body
   end
 

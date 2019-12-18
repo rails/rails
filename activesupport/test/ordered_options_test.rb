@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 require "active_support/ordered_options"
 
 class OrderedOptionsTest < ActiveSupport::TestCase
@@ -15,7 +15,7 @@ class OrderedOptionsTest < ActiveSupport::TestCase
 
     a[:allow_concurrency] = false
     assert_equal 1, a.size
-    assert !a[:allow_concurrency]
+    assert_not a[:allow_concurrency]
 
     a["else_where"] = 56
     assert_equal 2, a.size
@@ -47,7 +47,7 @@ class OrderedOptionsTest < ActiveSupport::TestCase
 
     a.allow_concurrency = false
     assert_equal 1, a.size
-    assert !a.allow_concurrency
+    assert_not a.allow_concurrency
 
     a.else_where = 56
     assert_equal 2, a.size

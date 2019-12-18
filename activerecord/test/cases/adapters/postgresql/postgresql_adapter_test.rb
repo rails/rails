@@ -13,6 +13,7 @@ module ActiveRecord
 
       def setup
         @connection = ActiveRecord::Base.connection
+        @connection_handler = ActiveRecord::Base.connection_handler
       end
 
       def test_bad_connection
@@ -21,6 +22,18 @@ module ActiveRecord
           connection = ActiveRecord::Base.postgresql_connection(configuration)
           connection.exec_query("SELECT 1")
         end
+      end
+
+      def test_database_exists_returns_false_when_the_database_does_not_exist
+        config = { database: "non_extant_database", adapter: "postgresql" }
+        assert_not ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.database_exists?(config),
+          "expected database #{config[:database]} to not exist"
+      end
+
+      def test_database_exists_returns_true_when_the_database_exists
+        config = ActiveRecord::Base.configurations["arunit"]
+        assert ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.database_exists?(config),
+          "expected database #{config[:database]} to exist"
       end
 
       def test_primary_key
@@ -240,9 +253,11 @@ module ActiveRecord
 
       def test_expression_index
         with_example_table do
-          @connection.add_index "ex", "mod(id, 10), abs(number)", name: "expression"
+          expr = "mod(id, 10), abs(number)"
+          @connection.add_index "ex", expr, name: "expression"
           index = @connection.indexes("ex").find { |idx| idx.name == "expression" }
-          assert_equal "mod(id, 10), abs(number)", index.columns
+          assert_equal expr, index.columns
+          assert_equal true, @connection.index_exists?("ex", expr, name: "expression")
         end
       end
 
@@ -263,25 +278,25 @@ module ActiveRecord
       end
 
       def test_columns_for_distinct_one_order
-        assert_equal "posts.id, posts.created_at AS alias_0",
+        assert_equal "posts.created_at AS alias_0, posts.id",
           @connection.columns_for_distinct("posts.id", ["posts.created_at desc"])
       end
 
       def test_columns_for_distinct_few_orders
-        assert_equal "posts.id, posts.created_at AS alias_0, posts.position AS alias_1",
+        assert_equal "posts.created_at AS alias_0, posts.position AS alias_1, posts.id",
           @connection.columns_for_distinct("posts.id", ["posts.created_at desc", "posts.position asc"])
       end
 
       def test_columns_for_distinct_with_case
         assert_equal(
-          "posts.id, CASE WHEN author.is_active THEN UPPER(author.name) ELSE UPPER(author.email) END AS alias_0",
+          "CASE WHEN author.is_active THEN UPPER(author.name) ELSE UPPER(author.email) END AS alias_0, posts.id",
           @connection.columns_for_distinct("posts.id",
             ["CASE WHEN author.is_active THEN UPPER(author.name) ELSE UPPER(author.email) END"])
         )
       end
 
       def test_columns_for_distinct_blank_not_nil_orders
-        assert_equal "posts.id, posts.created_at AS alias_0",
+        assert_equal "posts.created_at AS alias_0, posts.id",
           @connection.columns_for_distinct("posts.id", ["posts.created_at desc", "", "   "])
       end
 
@@ -290,23 +305,23 @@ module ActiveRecord
         def order.to_sql
           "posts.created_at desc"
         end
-        assert_equal "posts.id, posts.created_at AS alias_0",
+        assert_equal "posts.created_at AS alias_0, posts.id",
           @connection.columns_for_distinct("posts.id", [order])
       end
 
       def test_columns_for_distinct_with_nulls
-        assert_equal "posts.title, posts.updater_id AS alias_0", @connection.columns_for_distinct("posts.title", ["posts.updater_id desc nulls first"])
-        assert_equal "posts.title, posts.updater_id AS alias_0", @connection.columns_for_distinct("posts.title", ["posts.updater_id desc nulls last"])
+        assert_equal "posts.updater_id AS alias_0, posts.title", @connection.columns_for_distinct("posts.title", ["posts.updater_id desc nulls first"])
+        assert_equal "posts.updater_id AS alias_0, posts.title", @connection.columns_for_distinct("posts.title", ["posts.updater_id desc nulls last"])
       end
 
       def test_columns_for_distinct_without_order_specifiers
-        assert_equal "posts.title, posts.updater_id AS alias_0",
+        assert_equal "posts.updater_id AS alias_0, posts.title",
           @connection.columns_for_distinct("posts.title", ["posts.updater_id"])
 
-        assert_equal "posts.title, posts.updater_id AS alias_0",
+        assert_equal "posts.updater_id AS alias_0, posts.title",
           @connection.columns_for_distinct("posts.title", ["posts.updater_id nulls last"])
 
-        assert_equal "posts.title, posts.updater_id AS alias_0",
+        assert_equal "posts.updater_id AS alias_0, posts.title",
           @connection.columns_for_distinct("posts.title", ["posts.updater_id nulls first"])
       end
 
@@ -376,8 +391,73 @@ module ActiveRecord
         end
       end
 
-      private
+      def test_errors_when_an_insert_query_is_called_while_preventing_writes
+        with_example_table do
+          assert_raises(ActiveRecord::ReadOnlyError) do
+            @connection_handler.while_preventing_writes do
+              @connection.execute("INSERT INTO ex (data) VALUES ('138853948594')")
+            end
+          end
+        end
+      end
 
+      def test_errors_when_an_update_query_is_called_while_preventing_writes
+        with_example_table do
+          @connection.execute("INSERT INTO ex (data) VALUES ('138853948594')")
+
+          assert_raises(ActiveRecord::ReadOnlyError) do
+            @connection_handler.while_preventing_writes do
+              @connection.execute("UPDATE ex SET data = '9989' WHERE data = '138853948594'")
+            end
+          end
+        end
+      end
+
+      def test_errors_when_a_delete_query_is_called_while_preventing_writes
+        with_example_table do
+          @connection.execute("INSERT INTO ex (data) VALUES ('138853948594')")
+
+          assert_raises(ActiveRecord::ReadOnlyError) do
+            @connection_handler.while_preventing_writes do
+              @connection.execute("DELETE FROM ex where data = '138853948594'")
+            end
+          end
+        end
+      end
+
+      def test_doesnt_error_when_a_select_query_is_called_while_preventing_writes
+        with_example_table do
+          @connection.execute("INSERT INTO ex (data) VALUES ('138853948594')")
+
+          @connection_handler.while_preventing_writes do
+            assert_equal 1, @connection.execute("SELECT * FROM ex WHERE data = '138853948594'").entries.count
+          end
+        end
+      end
+
+      def test_doesnt_error_when_a_show_query_is_called_while_preventing_writes
+        @connection_handler.while_preventing_writes do
+          assert_equal 1, @connection.execute("SHOW TIME ZONE").entries.count
+        end
+      end
+
+      def test_doesnt_error_when_a_set_query_is_called_while_preventing_writes
+        @connection_handler.while_preventing_writes do
+          assert_equal [], @connection.execute("SET standard_conforming_strings = on").entries
+        end
+      end
+
+      def test_doesnt_error_when_a_read_query_with_leading_chars_is_called_while_preventing_writes
+        with_example_table do
+          @connection.execute("INSERT INTO ex (data) VALUES ('138853948594')")
+
+          @connection_handler.while_preventing_writes do
+            assert_equal 1, @connection.execute("(\n( SELECT * FROM ex WHERE data = '138853948594' ) )").entries.count
+          end
+        end
+      end
+
+      private
         def with_example_table(definition = "id serial primary key, number integer, data character varying(255)", &block)
           super(@connection, "ex", definition, &block)
         end

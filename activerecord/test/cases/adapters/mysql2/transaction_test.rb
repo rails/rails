@@ -13,7 +13,7 @@ module ActiveRecord
 
     setup do
       @abort, Thread.abort_on_exception = Thread.abort_on_exception, false
-      Thread.report_on_exception, @original_report_on_exception = false, Thread.report_on_exception if Thread.respond_to?(:report_on_exception)
+      Thread.report_on_exception, @original_report_on_exception = false, Thread.report_on_exception
 
       @connection = ActiveRecord::Base.connection
       @connection.clear_cache!
@@ -32,7 +32,7 @@ module ActiveRecord
       @connection.drop_table "samples", if_exists: true
 
       Thread.abort_on_exception = @abort
-      Thread.report_on_exception = @original_report_on_exception if Thread.respond_to?(:report_on_exception)
+      Thread.report_on_exception = @original_report_on_exception
     end
 
     test "raises Deadlocked when a deadlock is encountered" do
@@ -46,7 +46,7 @@ module ActiveRecord
           Sample.transaction do
             s1.lock!
             barrier.wait
-            s2.update_attributes value: 1
+            s2.update value: 1
           end
         end
 
@@ -54,7 +54,7 @@ module ActiveRecord
           Sample.transaction do
             s2.lock!
             barrier.wait
-            s1.update_attributes value: 2
+            s1.update value: 2
           end
         ensure
           thread.join
@@ -92,7 +92,7 @@ module ActiveRecord
 
     test "raises StatementTimeout when statement timeout exceeded" do
       skip unless ActiveRecord::Base.connection.show_variable("max_execution_time")
-      assert_raises(ActiveRecord::StatementTimeout) do
+      error = assert_raises(ActiveRecord::StatementTimeout) do
         s = Sample.create!(value: 1)
         latch1 = Concurrent::CountDownLatch.new
         latch2 = Concurrent::CountDownLatch.new
@@ -117,10 +117,11 @@ module ActiveRecord
           thread.join
         end
       end
+      assert_kind_of ActiveRecord::QueryAborted, error
     end
 
     test "raises QueryCanceled when canceling statement due to user request" do
-      assert_raises(ActiveRecord::QueryCanceled) do
+      error = assert_raises(ActiveRecord::QueryCanceled) do
         s = Sample.create!(value: 1)
         latch = Concurrent::CountDownLatch.new
 
@@ -144,6 +145,7 @@ module ActiveRecord
           thread.join
         end
       end
+      assert_kind_of ActiveRecord::QueryAborted, error
     end
   end
 end

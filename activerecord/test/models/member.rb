@@ -26,13 +26,14 @@ class Member < ActiveRecord::Base
   has_one :club_category, through: :club, source: :category
   has_one :general_club, -> { general }, through: :current_membership, source: :club
 
-  has_many :current_memberships, -> { where favourite: true }
-  has_many :clubs, through: :current_memberships
+  has_many :super_memberships
+  has_many :favourite_memberships, -> { where(favourite: true) }, class_name: "Membership"
+  has_many :clubs, through: :favourite_memberships
 
   has_many :tenant_memberships
   has_many :tenant_clubs, through: :tenant_memberships, class_name: "Club", source: :club
 
-  has_one :club_through_many, through: :current_memberships, source: :club
+  has_one :club_through_many, through: :favourite_memberships, source: :club
 
   belongs_to :admittable, polymorphic: true
   has_one :premium_club, through: :admittable

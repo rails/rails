@@ -65,20 +65,26 @@
       url: routing.html
       description: This guide covers the user-facing features of Rails routing. If you want to understand how to use routing in your own Rails applications, start here.
 -
-  name: Digging Deeper
+  name: Other Components
   documents:
     -
       name: Active Support Core Extensions
       url: active_support_core_extensions.html
       description: This guide documents the Ruby core extensions defined in Active Support.
     -
-      name: Rails Internationalization (I18n) API
-      url: i18n.html
-      description: This guide covers how to add internationalization to your applications. Your application will be able to translate content to different languages, change pluralization rules, use correct date formats for each country, and so on.
-    -
       name: Action Mailer Basics
       url: action_mailer_basics.html
-      description: This guide describes how to use Action Mailer to send and receive emails.
+      description: This guide describes how to use Action Mailer to send emails.
+    -
+      name: Action Mailbox Basics
+      work_in_progress: true
+      url: action_mailbox_basics.html
+      description: This guide describes how to use Action Mailbox to receive emails.
+    -
+      name: Action Text Overview
+      work_in_progress: true
+      url: action_text_overview.html
+      description: This guide describes how to use Action Text to handle rich text content.
     -
       name: Active Job Basics
       url: active_job_basics.html
@@ -87,6 +93,18 @@
       name: Active Storage Overview
       url: active_storage_overview.html
       description: This guide covers how to attach files to your Active Record models.
+    -
+      name: Action Cable Overview
+      url: action_cable_overview.html
+      description: This guide explains how Action Cable works, and how to use WebSockets to create real-time features.
+
+-
+  name: Digging Deeper
+  documents:
+    -
+      name: Rails Internationalization (I18n) API
+      url: i18n.html
+      description: This guide covers how to add internationalization to your applications. Your application will be able to translate content to different languages, change pluralization rules, use correct date formats for each country, and so on.
     -
       name: Testing Rails Applications
       url: testing.html
@@ -121,9 +139,13 @@
       url: initialization.html
       description: This guide explains the internals of the Rails initialization process.
     -
-      name: Autoloading and Reloading Constants
+      name: Autoloading and Reloading Constants (Zeitwerk Mode)
       url: autoloading_and_reloading_constants.html
-      description: This guide documents how autoloading and reloading constants work.
+      description: This guide documents how autoloading and reloading constants work (Zeitwerk mode).
+    -
+      name: Autoloading and Reloading Constants (Classic Mode)
+      url: autoloading_and_reloading_constants_classic_mode.html
+      description: This guide documents how autoloading and reloading constants work (Classic mode).
     -
       name: "Caching with Rails: An Overview"
       url: caching_with_rails.html
@@ -138,9 +160,15 @@
       url: api_app.html
       description: This guide explains how to effectively use Rails to develop a JSON API application.
     -
-      name: Action Cable Overview
-      url: action_cable_overview.html
-      description: This guide explains how Action Cable works, and how to use WebSockets to create real-time features.
+      name: Active Record and PostgreSQL
+      work_in_progress: true
+      url: active_record_postgresql.html
+      description: This guide covers PostgreSQL specific usage of Active Record.
+    -
+      name: Multiple Databases with Active Record
+      work_in_progress: true
+      url: active_record_multiple_databases.html
+      description: This guide covers using multiple databases in your application.
 
 -
   name: Extending Rails
@@ -169,25 +197,25 @@
       description: This guide describes the considerations needed and tools available when working directly with concurrency in a Rails application.
       work_in_progress: true
 -
-  name: Contributing to Ruby on Rails
+  name: Contributions
   documents:
     -
       name: Contributing to Ruby on Rails
       url: contributing_to_ruby_on_rails.html
-      description: Rails is not 'somebody else's framework.' This guide covers a variety of ways that you can get involved in the ongoing development of Rails.
+      description: Rails is not "someone else's framework". This guide covers a variety of ways that you can get involved in the ongoing development of Rails.
     -
       name: API Documentation Guidelines
       url: api_documentation_guidelines.html
       description: This guide documents the Ruby on Rails API documentation guidelines.
     -
-      name: Ruby on Rails Guides Guidelines
+      name: Guides Guidelines
       url: ruby_on_rails_guides_guidelines.html
       description: This guide documents the Ruby on Rails guides guidelines.
 -
-  name: Maintenance Policy
+  name: Policies
   documents:
     -
-      name: Maintenance Policy for Ruby on Rails
+      name: Maintenance Policy
       url: maintenance_policy.html
       description: What versions of Ruby on Rails are currently supported, and when to expect new versions.
 -
@@ -198,46 +226,50 @@
       url: upgrading_ruby_on_rails.html
       description: This guide helps in upgrading applications to latest Ruby on Rails versions.
     -
-      name: Ruby on Rails 5.2 Release Notes
+      name: Version 6.0 - August 2019
+      url: 6_0_release_notes.html
+      description: Release notes for Rails 6.0.
+    -
+      name: Version 5.2 - April 2018
       url: 5_2_release_notes.html
       description: Release notes for Rails 5.2.
     -
-      name: Ruby on Rails 5.1 Release Notes
+      name: Version 5.1 - April 2017
       url: 5_1_release_notes.html
       description: Release notes for Rails 5.1.
     -
-      name: Ruby on Rails 5.0 Release Notes
+      name: Version 5.0 - June 2016
       url: 5_0_release_notes.html
       description: Release notes for Rails 5.0.
     -
-      name: Ruby on Rails 4.2 Release Notes
+      name: Version 4.2 - December 2014
       url: 4_2_release_notes.html
       description: Release notes for Rails 4.2.
     -
-      name: Ruby on Rails 4.1 Release Notes
+      name: Version 4.1 - April 2014
       url: 4_1_release_notes.html
       description: Release notes for Rails 4.1.
     -
-      name: Ruby on Rails 4.0 Release Notes
+      name: Version 4.0 - June 2013
       url: 4_0_release_notes.html
       description: Release notes for Rails 4.0.
     -
-      name: Ruby on Rails 3.2 Release Notes
+      name: Version 3.2 - January 2012
       url: 3_2_release_notes.html
       description: Release notes for Rails 3.2.
     -
-      name: Ruby on Rails 3.1 Release Notes
+      name: Version 3.1 - August 2011
       url: 3_1_release_notes.html
       description: Release notes for Rails 3.1.
     -
-      name: Ruby on Rails 3.0 Release Notes
+      name: Version 3.0 - August 2010
       url: 3_0_release_notes.html
       description: Release notes for Rails 3.0.
     -
-      name: Ruby on Rails 2.3 Release Notes
+      name: Version 2.3 - March 2009
       url: 2_3_release_notes.html
       description: Release notes for Rails 2.3.
     -
-      name: Ruby on Rails 2.2 Release Notes
+      name: Version 2.2 - November 2008
       url: 2_2_release_notes.html
       description: Release notes for Rails 2.2.

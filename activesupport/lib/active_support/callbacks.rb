@@ -4,10 +4,7 @@ require "active_support/concern"
 require "active_support/descendants_tracker"
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/class/attribute"
-require "active_support/core_ext/kernel/reporting"
-require "active_support/core_ext/kernel/singleton_class"
 require "active_support/core_ext/string/filters"
-require "active_support/deprecation"
 require "thread"
 
 module ActiveSupport
@@ -22,6 +19,9 @@ module ActiveSupport
   # set the instance methods, procs, or callback objects to be called (via
   # +ClassMethods.set_callback+), and run the installed callbacks at the
   # appropriate times (via +run_callbacks+).
+  #
+  # By default callbacks are halted by throwing +:abort+.
+  # See +ClassMethods.define_callbacks+ for details.
   #
   # Three kinds of callbacks are supported: before callbacks, run before a
   # certain event; after callbacks, run after the event; and around callbacks,
@@ -139,7 +139,6 @@ module ActiveSupport
     end
 
     private
-
       # A hook invoked every time a before callback is halted.
       # This can be overridden in ActiveSupport::Callbacks implementors in order
       # to provide better debugging/logging.
@@ -497,9 +496,7 @@ module ActiveSupport
           arg.halted || !@user_conditions.all? { |c| c.call(arg.target, arg.value) }
         end
 
-        def nested
-          @nested
-        end
+        attr_reader :nested
 
         def final?
           !@call_template
@@ -578,10 +575,9 @@ module ActiveSupport
         end
 
         protected
-          def chain; @chain; end
+          attr_reader :chain
 
         private
-
           def append_one(callback)
             @callbacks = nil
             remove_duplicates(callback)
@@ -659,9 +655,17 @@ module ActiveSupport
         # * <tt>:if</tt> - A symbol or an array of symbols, each naming an instance
         #   method or a proc; the callback will be called only when they all return
         #   a true value.
+        #
+        #   If a proc is given, its body is evaluated in the context of the
+        #   current object. It can also optionally accept the current object as
+        #   an argument.
         # * <tt>:unless</tt> - A symbol or an array of symbols, each naming an
         #   instance method or a proc; the callback will be called only when they
         #   all return a false value.
+        #
+        #   If a proc is given, its body is evaluated in the context of the
+        #   current object. It can also optionally accept the current object as
+        #   an argument.
         # * <tt>:prepend</tt> - If +true+, the callback will be prepended to the
         #   existing chain rather than appended.
         def set_callback(name, *filter_list, &block)
@@ -749,8 +753,8 @@ module ActiveSupport
         # * <tt>:skip_after_callbacks_if_terminated</tt> - Determines if after
         #   callbacks should be terminated by the <tt>:terminator</tt> option. By
         #   default after callbacks are executed no matter if callback chain was
-        #   terminated or not. This option makes sense only when <tt>:terminator</tt>
-        #   option is specified.
+        #   terminated or not. This option has no effect if <tt>:terminator</tt>
+        #   option is set to +nil+.
         #
         # * <tt>:scope</tt> - Indicates which methods should be executed when an
         #   object is used as a callback.
@@ -809,7 +813,9 @@ module ActiveSupport
           names.each do |name|
             name = name.to_sym
 
-            set_callbacks name, CallbackChain.new(name, options)
+            ([self] + ActiveSupport::DescendantsTracker.descendants(self)).each do |target|
+              target.set_callbacks name, CallbackChain.new(name, options)
+            end
 
             module_eval <<-RUBY, __FILE__, __LINE__ + 1
               def _run_#{name}_callbacks(&block)
@@ -832,7 +838,6 @@ module ActiveSupport
         end
 
         protected
-
           def get_callbacks(name) # :nodoc:
             __callbacks[name.to_sym]
           end

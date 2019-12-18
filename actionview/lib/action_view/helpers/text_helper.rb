@@ -188,7 +188,7 @@ module ActionView
 
         unless separator.empty?
           text.split(separator).each do |value|
-            if value.match(regex)
+            if value.match?(regex)
               phrase = value
               break
             end
@@ -228,7 +228,7 @@ module ActionView
       #   pluralize(2, 'Person', locale: :de)
       #   # => 2 Personen
       def pluralize(count, singular, plural_arg = nil, plural: plural_arg, locale: I18n.locale)
-        word = if (count == 1 || count =~ /^1(\.0+)?$/)
+        word = if count == 1 || count.to_s.match?(/^1(\.0+)?$/)
           singular
         else
           plural || singular.pluralize(locale)
@@ -259,7 +259,7 @@ module ActionView
       #   # => Once\r\nupon\r\na\r\ntime
       def word_wrap(text, line_width: 80, break_sequence: "\n")
         text.split("\n").collect! do |line|
-          line.length > line_width ? line.gsub(/(.{1,#{line_width}})(\s+|$)/, "\\1#{break_sequence}").strip : line
+          line.length > line_width ? line.gsub(/(.{1,#{line_width}})(\s+|$)/, "\\1#{break_sequence}").rstrip : line
         end * break_sequence
       end
 
@@ -426,7 +426,6 @@ module ActionView
         end
 
         private
-
           def next_index
             step_index(1)
           end

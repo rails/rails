@@ -16,7 +16,7 @@ class Topic < ActiveRecord::Base
   scope :replied, -> { where "replies_count > 0" }
 
   scope "approved_as_string", -> { where(approved: true) }
-  scope :anonymous_extension, -> {} do
+  scope :anonymous_extension, -> { } do
     def one
       1
     end
@@ -73,23 +73,36 @@ class Topic < ActiveRecord::Base
     self.class.after_initialize_called = true
   end
 
+  attr_accessor :after_touch_called
+
+  after_initialize do
+    self.after_touch_called = 0
+  end
+
+  after_touch do
+    self.after_touch_called += 1
+  end
+
   def approved=(val)
     @custom_approved = val
     write_attribute(:approved, val)
   end
 
-  private
+  def self.nested_scoping(scope)
+    scope.base
+  end
 
+  private
     def default_written_on
       self.written_on = Time.now unless attribute_present?("written_on")
     end
 
     def destroy_children
-      self.class.where("parent_id = #{id}").delete_all
+      self.class.delete_by(parent_id: id)
     end
 
     def set_email_address
-      unless persisted?
+      unless persisted? || will_save_change_to_author_email_address?
         self.author_email_address = "test@test.com"
       end
     end
@@ -105,10 +118,6 @@ class Topic < ActiveRecord::Base
     end
 end
 
-class ImportantTopic < Topic
-  serialize :important, Hash
-end
-
 class DefaultRejectedTopic < Topic
   default_scope -> { where(approved: false) }
 end
@@ -118,6 +127,10 @@ class BlankTopic < Topic
   def blank?
     true
   end
+end
+
+class TitlePrimaryKeyTopic < Topic
+  self.primary_key = :title
 end
 
 module Web

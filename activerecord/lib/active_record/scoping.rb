@@ -12,14 +12,6 @@ module ActiveRecord
     end
 
     module ClassMethods # :nodoc:
-      def current_scope(skip_inherited_scope = false)
-        ScopeRegistry.value_for(:current_scope, self, skip_inherited_scope)
-      end
-
-      def current_scope=(scope)
-        ScopeRegistry.set_value_for(:current_scope, self, scope)
-      end
-
       # Collects attributes from scopes that should be applied when creating
       # an AR instance for the particular class this is called on.
       def scope_attributes
@@ -29,6 +21,14 @@ module ActiveRecord
       # Are there attributes associated with this scope?
       def scope_attributes?
         current_scope
+      end
+
+      def current_scope(skip_inherited_scope = false)
+        ScopeRegistry.value_for(:current_scope, self, skip_inherited_scope)
+      end
+
+      def current_scope=(scope)
+        ScopeRegistry.set_value_for(:current_scope, self, scope)
       end
     end
 
@@ -95,7 +95,6 @@ module ActiveRecord
       end
 
       private
-
         def raise_invalid_scope_type!(scope_type)
           if !VALID_SCOPE_TYPES.include?(scope_type)
             raise ArgumentError, "Invalid scope type '#{scope_type}' sent to the registry. Scope types must be included in VALID_SCOPE_TYPES"

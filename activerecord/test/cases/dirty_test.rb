@@ -326,6 +326,13 @@ class DirtyTest < ActiveRecord::TestCase
     assert_not_predicate topic, :approved_changed?
   end
 
+  def test_string_attribute_should_compare_with_typecast_symbol_after_update
+    pirate = Pirate.create!(catchphrase: :foo)
+    pirate.update_column :catchphrase, :foo
+    pirate.catchphrase
+    assert_not_predicate pirate, :catchphrase_changed?
+  end
+
   def test_partial_update
     pirate = Pirate.new(catchphrase: "foo")
     old_updated_on = 1.hour.ago.beginning_of_day
@@ -336,7 +343,7 @@ class DirtyTest < ActiveRecord::TestCase
     end
 
     with_partial_writes Pirate, true do
-      assert_queries(0) { 2.times { pirate.save! } }
+      assert_no_queries { 2.times { pirate.save! } }
       assert_equal old_updated_on, pirate.reload.updated_on
 
       assert_queries(1) { pirate.catchphrase = "bar"; pirate.save! }
@@ -352,10 +359,10 @@ class DirtyTest < ActiveRecord::TestCase
       Person.where(id: person.id).update_all(first_name: "baz")
     end
 
-    old_lock_version = person.lock_version
+    old_lock_version = person.lock_version + 1
 
     with_partial_writes Person, true do
-      assert_queries(0) { 2.times { person.save! } }
+      assert_no_queries { 2.times { person.save! } }
       assert_equal old_lock_version, person.reload.lock_version
 
       assert_queries(1) { person.first_name = "bar"; person.save! }
@@ -366,7 +373,7 @@ class DirtyTest < ActiveRecord::TestCase
   def test_changed_attributes_should_be_preserved_if_save_failure
     pirate = Pirate.new
     pirate.parrot_id = 1
-    assert !pirate.save
+    assert_not pirate.save
     check_pirate_after_save_failure(pirate)
 
     pirate = Pirate.new
@@ -473,6 +480,14 @@ class DirtyTest < ActiveRecord::TestCase
     end
   end
 
+  def test_changes_to_save_should_not_mutate_array_of_hashes
+    topic = Topic.new(author_name: "Bill", content: [{ a: "a" }])
+
+    topic.changes_to_save
+
+    assert_equal [{ a: "a" }], topic.content
+  end
+
   def test_previous_changes
     # original values should be in previous_changes
     pirate = Pirate.new
@@ -483,12 +498,13 @@ class DirtyTest < ActiveRecord::TestCase
 
     assert_equal 4, pirate.previous_changes.size
     assert_equal [nil, "arrr"], pirate.previous_changes["catchphrase"]
+    assert_nil pirate.catchphrase_previously_was
     assert_equal [nil, pirate.id], pirate.previous_changes["id"]
     assert_nil pirate.previous_changes["updated_on"][0]
     assert_not_nil pirate.previous_changes["updated_on"][1]
     assert_nil pirate.previous_changes["created_on"][0]
     assert_not_nil pirate.previous_changes["created_on"][1]
-    assert !pirate.previous_changes.key?("parrot_id")
+    assert_not pirate.previous_changes.key?("parrot_id")
 
     # original values should be in previous_changes
     pirate = Pirate.new
@@ -499,10 +515,11 @@ class DirtyTest < ActiveRecord::TestCase
 
     assert_equal 4, pirate.previous_changes.size
     assert_equal [nil, "arrr"], pirate.previous_changes["catchphrase"]
+    assert_nil pirate.catchphrase_previously_was
     assert_equal [nil, pirate.id], pirate.previous_changes["id"]
     assert_includes pirate.previous_changes, "updated_on"
     assert_includes pirate.previous_changes, "created_on"
-    assert !pirate.previous_changes.key?("parrot_id")
+    assert_not pirate.previous_changes.key?("parrot_id")
 
     pirate.catchphrase = "Yar!!"
     pirate.reload
@@ -517,10 +534,11 @@ class DirtyTest < ActiveRecord::TestCase
 
     assert_equal 2, pirate.previous_changes.size
     assert_equal ["arrr", "Me Maties!"], pirate.previous_changes["catchphrase"]
+    assert_equal "arrr", pirate.catchphrase_previously_was
     assert_not_nil pirate.previous_changes["updated_on"][0]
     assert_not_nil pirate.previous_changes["updated_on"][1]
-    assert !pirate.previous_changes.key?("parrot_id")
-    assert !pirate.previous_changes.key?("created_on")
+    assert_not pirate.previous_changes.key?("parrot_id")
+    assert_not pirate.previous_changes.key?("created_on")
 
     pirate = Pirate.find_by_catchphrase("Me Maties!")
 
@@ -531,10 +549,11 @@ class DirtyTest < ActiveRecord::TestCase
 
     assert_equal 2, pirate.previous_changes.size
     assert_equal ["Me Maties!", "Thar She Blows!"], pirate.previous_changes["catchphrase"]
+    assert_equal "Me Maties!", pirate.catchphrase_previously_was
     assert_not_nil pirate.previous_changes["updated_on"][0]
     assert_not_nil pirate.previous_changes["updated_on"][1]
-    assert !pirate.previous_changes.key?("parrot_id")
-    assert !pirate.previous_changes.key?("created_on")
+    assert_not pirate.previous_changes.key?("parrot_id")
+    assert_not pirate.previous_changes.key?("created_on")
 
     travel(1.second)
 
@@ -543,10 +562,11 @@ class DirtyTest < ActiveRecord::TestCase
 
     assert_equal 2, pirate.previous_changes.size
     assert_equal ["Thar She Blows!", "Ahoy!"], pirate.previous_changes["catchphrase"]
+    assert_equal "Thar She Blows!", pirate.catchphrase_previously_was
     assert_not_nil pirate.previous_changes["updated_on"][0]
     assert_not_nil pirate.previous_changes["updated_on"][1]
-    assert !pirate.previous_changes.key?("parrot_id")
-    assert !pirate.previous_changes.key?("created_on")
+    assert_not pirate.previous_changes.key?("parrot_id")
+    assert_not pirate.previous_changes.key?("created_on")
 
     travel(1.second)
 
@@ -555,12 +575,11 @@ class DirtyTest < ActiveRecord::TestCase
 
     assert_equal 2, pirate.previous_changes.size
     assert_equal ["Ahoy!", "Ninjas suck!"], pirate.previous_changes["catchphrase"]
+    assert_equal "Ahoy!", pirate.catchphrase_previously_was
     assert_not_nil pirate.previous_changes["updated_on"][0]
     assert_not_nil pirate.previous_changes["updated_on"][1]
-    assert !pirate.previous_changes.key?("parrot_id")
-    assert !pirate.previous_changes.key?("created_on")
-  ensure
-    travel_back
+    assert_not pirate.previous_changes.key?("parrot_id")
+    assert_not pirate.previous_changes.key?("created_on")
   end
 
   class Testings < ActiveRecord::Base; end
@@ -736,6 +755,24 @@ class DirtyTest < ActiveRecord::TestCase
     assert record.save
   end
 
+  test "virtual attributes are not written with partial_writes off" do
+    with_partial_writes(ActiveRecord::Base, false) do
+      klass = Class.new(ActiveRecord::Base) do
+        self.table_name = "people"
+        attribute :non_persisted_attribute, :string
+      end
+
+      record = klass.new(first_name: "Sean")
+      record.non_persisted_attribute_will_change!
+
+      assert record.save
+
+      record.non_persisted_attribute_will_change!
+
+      assert record.save
+    end
+  end
+
   test "mutating and then assigning doesn't remove the change" do
     pirate = Pirate.create!(catchphrase: "arrrr")
     pirate.catchphrase << " matey!"
@@ -853,6 +890,26 @@ class DirtyTest < ActiveRecord::TestCase
         raise "changed? should be false" if changed?
         raise "has_changes_to_save? should be false" if has_changes_to_save?
         raise "saved_changes? should be true" unless saved_changes?
+        raise "id_in_database should not be nil" if id_in_database.nil?
+      end
+    end
+
+    person = klass.create!(first_name: "Sean")
+    assert_not_predicate person, :changed?
+  end
+
+  test "changed? in around callbacks after yield returns false" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "people"
+
+      around_create :check_around
+
+      def check_around
+        yield
+        raise "changed? should be false" if changed?
+        raise "has_changes_to_save? should be false" if has_changes_to_save?
+        raise "saved_changes? should be true" unless saved_changes?
+        raise "id_in_database should not be nil" if id_in_database.nil?
       end
     end
 

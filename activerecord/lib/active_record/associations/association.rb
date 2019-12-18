@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/array/wrap"
-
 module ActiveRecord
   module Associations
     # = Active Record Associations
@@ -17,9 +15,25 @@ module ActiveRecord
     #     CollectionAssociation
     #       HasManyAssociation + ForeignAssociation
     #         HasManyThroughAssociation + ThroughAssociation
+    #
+    # Associations in Active Record are middlemen between the object that
+    # holds the association, known as the <tt>owner</tt>, and the associated
+    # result set, known as the <tt>target</tt>. Association metadata is available in
+    # <tt>reflection</tt>, which is an instance of <tt>ActiveRecord::Reflection::AssociationReflection</tt>.
+    #
+    # For example, given
+    #
+    #   class Blog < ActiveRecord::Base
+    #     has_many :posts
+    #   end
+    #
+    #   blog = Blog.first
+    #
+    # The association of <tt>blog.posts</tt> has the object +blog+ as its
+    # <tt>owner</tt>, the collection of its posts as <tt>target</tt>, and
+    # the <tt>reflection</tt> object represents a <tt>:has_many</tt> macro.
     class Association #:nodoc:
       attr_reader :owner, :target, :reflection
-      attr_accessor :inversed
 
       delegate :options, to: :reflection
 
@@ -27,6 +41,7 @@ module ActiveRecord
         reflection.check_validity!
 
         @owner, @reflection = owner, reflection
+        @_scope = nil
 
         reset
         reset_scope
@@ -40,8 +55,14 @@ module ActiveRecord
         @inversed = false
       end
 
+      def reset_negative_cache # :nodoc:
+        reset if loaded? && target.nil?
+      end
+
       # Reloads the \target and returns +self+ on success.
-      def reload
+      # The QueryCache is cleared if +force+ is true.
+      def reload(force = false)
+        klass.connection.clear_query_cache if force && klass
         reset
         reset_scope
         load_target
@@ -67,7 +88,7 @@ module ActiveRecord
       #
       # Note that if the target has not been loaded, it is not considered stale.
       def stale_target?
-        !inversed && loaded? && @stale_state != stale_state
+        !@inversed && loaded? && @stale_state != stale_state
       end
 
       # Sets the target of this association to <tt>\target</tt>, and the \loaded flag to +true+.
@@ -77,19 +98,7 @@ module ActiveRecord
       end
 
       def scope
-        target_scope.merge!(association_scope)
-      end
-
-      # The scope for this association.
-      #
-      # Note that the association_scope is merged into the target_scope only when the
-      # scope method is called. This is because at that point the call may be surrounded
-      # by scope.scoping { ... } or with_scope { ... } etc, which affects the scope which
-      # actually gets built.
-      def association_scope
-        if klass
-          @association_scope ||= AssociationScope.scope(self)
-        end
+        @_scope&.spawn || target_scope.merge!(association_scope)
       end
 
       def reset_scope
@@ -98,33 +107,36 @@ module ActiveRecord
 
       # Set the inverse association, if possible
       def set_inverse_instance(record)
-        if invertible_for?(record)
-          inverse = record.association(inverse_reflection_for(record).name)
-          inverse.target = owner
-          inverse.inversed = true
+        if inverse = inverse_association_for(record)
+          inverse.inversed_from(owner)
+        end
+        record
+      end
+
+      def set_inverse_instance_from_queries(record)
+        if inverse = inverse_association_for(record)
+          inverse.inversed_from_queries(owner)
         end
         record
       end
 
       # Remove the inverse association, if possible
       def remove_inverse_instance(record)
-        if invertible_for?(record)
-          inverse = record.association(inverse_reflection_for(record).name)
-          inverse.target = nil
-          inverse.inversed = false
+        if inverse = inverse_association_for(record)
+          inverse.inversed_from(nil)
         end
       end
+
+      def inversed_from(record)
+        self.target = record
+        @inversed = !!record
+      end
+      alias :inversed_from_queries :inversed_from
 
       # Returns the class of the target. belongs_to polymorphic overrides this to look at the
       # polymorphic_type field on the owner.
       def klass
         reflection.klass
-      end
-
-      # Can be overridden (i.e. in ThroughAssociation) to merge in other scopes (i.e. the
-      # through association's scope)
-      def target_scope
-        AssociationRelation.create(klass, self).merge!(klass.all)
       end
 
       def extensions
@@ -156,9 +168,9 @@ module ActiveRecord
         reset
       end
 
-      # We can't dump @reflection since it contains the scope proc
+      # We can't dump @reflection and @through_reflection since it contains the scope proc
       def marshal_dump
-        ivars = (instance_variables - [:@reflection]).map { |name| [name, instance_variable_get(name)] }
+        ivars = (instance_variables - [:@reflection, :@through_reflection]).map { |name| [name, instance_variable_get(name)] }
         [@reflection.name, ivars]
       end
 
@@ -178,15 +190,54 @@ module ActiveRecord
         set_inverse_instance(record)
       end
 
-      def create(attributes = {}, &block)
+      def create(attributes = nil, &block)
         _create_record(attributes, &block)
       end
 
-      def create!(attributes = {}, &block)
+      def create!(attributes = nil, &block)
         _create_record(attributes, true, &block)
       end
 
+      def scoping(relation, &block)
+        @_scope = relation
+        relation.scoping(&block)
+      ensure
+        @_scope = nil
+      end
+
       private
+        def find_target
+          scope = self.scope
+          return scope.to_a if skip_statement_cache?(scope)
+
+          conn = klass.connection
+          sc = reflection.association_scope_cache(conn, owner) do |params|
+            as = AssociationScope.create { params.bind }
+            target_scope.merge!(as.scope(self))
+          end
+
+          binds = AssociationScope.get_bind_values(owner, reflection.chain)
+          sc.execute(binds, conn) { |record| set_inverse_instance(record) } || []
+        end
+
+        # The scope for this association.
+        #
+        # Note that the association_scope is merged into the target_scope only when the
+        # scope method is called. This is because at that point the call may be surrounded
+        # by scope.scoping { ... } or unscoped { ... } etc, which affects the scope which
+        # actually gets built.
+        def association_scope
+          if klass
+            @association_scope ||= AssociationScope.scope(self)
+          end
+        end
+
+        # Can be overridden (i.e. in ThroughAssociation) to merge in other scopes (i.e. the
+        # through association's scope)
+        def target_scope
+          AssociationRelation.create(klass, self).merge!(klass.scope_for_association)
+        end
+
         def scope_for_create
           scope.scope_for_create
         end
@@ -201,8 +252,8 @@ module ActiveRecord
           if (reflection.has_one? || reflection.collection?) && !options[:through]
             attributes[reflection.foreign_key] = owner[reflection.active_record_primary_key]
 
-            if reflection.options[:as]
-              attributes[reflection.type] = owner.class.base_class.name
+            if reflection.type
+              attributes[reflection.type] = owner.class.polymorphic_name
             end
           end
 
@@ -240,6 +291,12 @@ module ActiveRecord
           end
         end
 
+        def inverse_association_for(record)
+          if invertible_for?(record)
+            record.association(inverse_reflection_for(record).name)
+          end
+        end
+
         # Can be redefined by subclasses, notably polymorphic belongs_to
         # The record parameter is necessary to support polymorphic inverses as we must check for
         # the association in the specific class of the record.
@@ -269,6 +326,7 @@ module ActiveRecord
         def build_record(attributes)
           reflection.build_association(attributes) do |record|
             initialize_attributes(record, attributes)
+            yield(record) if block_given?
           end
         end
 

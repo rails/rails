@@ -6,12 +6,12 @@ module ActiveRecord
     class HasOneThroughAssociation < HasOneAssociation #:nodoc:
       include ThroughAssociation
 
-      def replace(record, save = true)
-        create_through_record(record, save)
-        self.target = record
-      end
-
       private
+        def replace(record, save = true)
+          create_through_record(record, save)
+          self.target = record
+        end
+
         def create_through_record(record, save)
           ensure_not_nested
 
@@ -28,7 +28,11 @@ module ActiveRecord
             end
 
             if through_record
-              through_record.update(attributes)
+              if through_record.new_record?
+                through_record.assign_attributes(attributes)
+              else
+                through_record.update(attributes)
+              end
             elsif owner.new_record? || !save
               through_proxy.build(attributes)
             else

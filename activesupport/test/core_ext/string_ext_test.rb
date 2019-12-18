@@ -1,18 +1,18 @@
 # frozen_string_literal: true
 
 require "date"
-require "abstract_unit"
+require_relative "../abstract_unit"
 require "timeout"
-require "inflector_test_cases"
-require "constantize_test_cases"
+require_relative "../inflector_test_cases"
+require_relative "../constantize_test_cases"
 
 require "active_support/inflector"
 require "active_support/core_ext/string"
 require "active_support/time"
-require "active_support/core_ext/string/strip"
 require "active_support/core_ext/string/output_safety"
 require "active_support/core_ext/string/indent"
-require "time_zone_test_helpers"
+require "active_support/core_ext/string/strip"
+require_relative "../time_zone_test_helpers"
 require "yaml"
 
 class StringInflectionsTest < ActiveSupport::TestCase
@@ -22,6 +22,10 @@ class StringInflectionsTest < ActiveSupport::TestCase
 
   def test_strip_heredoc_on_an_empty_string
     assert_equal "", "".strip_heredoc
+  end
+
+  def test_strip_heredoc_on_a_frozen_string
+    assert "".strip_heredoc.frozen?
   end
 
   def test_strip_heredoc_on_a_string_with_no_lines
@@ -202,6 +206,12 @@ class StringInflectionsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_parameterize_with_locale
+    word = "Fünf autos"
+    I18n.backend.store_translations(:de, i18n: { transliterate: { rule: { "ü" => "ue" } } })
+    assert_equal("fuenf-autos", word.parameterize(locale: :de))
+  end
+
   def test_humanize
     UnderscoreToHuman.each do |underscore, human|
       assert_equal(human, underscore.humanize)
@@ -233,16 +243,16 @@ class StringInflectionsTest < ActiveSupport::TestCase
     s = "hello"
     assert s.starts_with?("h")
     assert s.starts_with?("hel")
-    assert !s.starts_with?("el")
+    assert_not s.starts_with?("el")
 
     assert s.ends_with?("o")
     assert s.ends_with?("lo")
-    assert !s.ends_with?("el")
+    assert_not s.ends_with?("el")
   end
 
   def test_string_squish
-    original = %{\u205f\u3000 A string surrounded by various unicode spaces,
-      with tabs(\t\t), newlines(\n\n), unicode nextlines(\u0085\u0085) and many spaces(  ). \u00a0\u2007}.dup
+    original = +%{\u205f\u3000 A string surrounded by various unicode spaces,
+      with tabs(\t\t), newlines(\n\n), unicode nextlines(\u0085\u0085) and many spaces(  ). \u00a0\u2007}
 
     expected = "A string surrounded by various unicode spaces, " \
       "with tabs( ), newlines( ), unicode nextlines( ) and many spaces( )."
@@ -281,6 +291,73 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal "Hello Big[...]", "Hello Big World!".truncate(15, omission: "[...]", separator: /\s/)
   end
 
+  def test_truncate_returns_frozen_string
+    assert_not "Hello World!".truncate(12).frozen?
+    assert_not "Hello World!!".truncate(12).frozen?
+  end
+
+  def test_truncate_bytes
+    assert_equal "👍👍👍👍", "👍👍👍👍".truncate_bytes(16)
+    assert_equal "👍👍👍👍", "👍👍👍👍".truncate_bytes(16, omission: nil)
+    assert_equal "👍👍👍👍", "👍👍👍👍".truncate_bytes(16, omission: " ")
+    assert_equal "👍👍👍👍", "👍👍👍👍".truncate_bytes(16, omission: "🖖")
+
+    assert_equal "👍👍👍…", "👍👍👍👍".truncate_bytes(15)
+    assert_equal "👍👍👍", "👍👍👍👍".truncate_bytes(15, omission: nil)
+    assert_equal "👍👍👍 ", "👍👍👍👍".truncate_bytes(15, omission: " ")
+    assert_equal "👍👍🖖", "👍👍👍👍".truncate_bytes(15, omission: "🖖")
+
+    assert_equal "…", "👍👍👍👍".truncate_bytes(5)
+    assert_equal "👍", "👍👍👍👍".truncate_bytes(5, omission: nil)
+    assert_equal "👍 ", "👍👍👍👍".truncate_bytes(5, omission: " ")
+    assert_equal "🖖", "👍👍👍👍".truncate_bytes(5, omission: "🖖")
+
+    assert_equal "…", "👍👍👍👍".truncate_bytes(4)
+    assert_equal "👍", "👍👍👍👍".truncate_bytes(4, omission: nil)
+    assert_equal " ", "👍👍👍👍".truncate_bytes(4, omission: " ")
+    assert_equal "🖖", "👍👍👍👍".truncate_bytes(4, omission: "🖖")
+
+    assert_raise ArgumentError do
+      "👍👍👍👍".truncate_bytes(3, omission: "🖖")
+    end
+  end
+
+  def test_truncate_bytes_preserves_codepoints
+    assert_equal "👍👍👍👍", "👍👍👍👍".truncate_bytes(16)
+    assert_equal "👍👍👍👍", "👍👍👍👍".truncate_bytes(16, omission: nil)
+    assert_equal "👍👍👍👍", "👍👍👍👍".truncate_bytes(16, omission: " ")
+    assert_equal "👍👍👍👍", "👍👍👍👍".truncate_bytes(16, omission: "🖖")
+
+    assert_equal "👍👍👍…", "👍👍👍👍".truncate_bytes(15)
+    assert_equal "👍👍👍", "👍👍👍👍".truncate_bytes(15, omission: nil)
+    assert_equal "👍👍👍 ", "👍👍👍👍".truncate_bytes(15, omission: " ")
+    assert_equal "👍👍🖖", "👍👍👍👍".truncate_bytes(15, omission: "🖖")
+
+    assert_equal "…", "👍👍👍👍".truncate_bytes(5)
+    assert_equal "👍", "👍👍👍👍".truncate_bytes(5, omission: nil)
+    assert_equal "👍 ", "👍👍👍👍".truncate_bytes(5, omission: " ")
+    assert_equal "🖖", "👍👍👍👍".truncate_bytes(5, omission: "🖖")
+
+    assert_equal "…", "👍👍👍👍".truncate_bytes(4)
+    assert_equal "👍", "👍👍👍👍".truncate_bytes(4, omission: nil)
+    assert_equal " ", "👍👍👍👍".truncate_bytes(4, omission: " ")
+    assert_equal "🖖", "👍👍👍👍".truncate_bytes(4, omission: "🖖")
+
+    assert_raise ArgumentError do
+      "👍👍👍👍".truncate_bytes(3, omission: "🖖")
+    end
+  end
+
+  def test_truncates_bytes_preserves_grapheme_clusters
+    assert_equal "a ", "a ❤️ b".truncate_bytes(2, omission: nil)
+    assert_equal "a ", "a ❤️ b".truncate_bytes(3, omission: nil)
+    assert_equal "a ", "a ❤️ b".truncate_bytes(7, omission: nil)
+    assert_equal "a ❤️", "a ❤️ b".truncate_bytes(8, omission: nil)
+
+    assert_equal "a ", "a 👩‍❤️‍👩".truncate_bytes(13, omission: nil)
+    assert_equal "", "👩‍❤️‍👩".truncate_bytes(13, omission: nil)
+  end
+
   def test_truncate_words
     assert_equal "Hello Big World!", "Hello Big World!".truncate_words(3)
     assert_equal "Hello Big...", "Hello Big World!".truncate_words(2)
@@ -312,8 +389,8 @@ class StringInflectionsTest < ActiveSupport::TestCase
   end
 
   def test_truncate_multibyte
-    assert_equal "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 ...".dup.force_encoding(Encoding::UTF_8),
-      "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244".dup.force_encoding(Encoding::UTF_8).truncate(10)
+    assert_equal (+"\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 ...").force_encoding(Encoding::UTF_8),
+      (+"\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244").force_encoding(Encoding::UTF_8).truncate(10)
   end
 
   def test_truncate_should_not_be_html_safe
@@ -334,7 +411,7 @@ class StringInflectionsTest < ActiveSupport::TestCase
   end
 
   def test_remove!
-    original = "This is a very good day to die".dup
+    original = +"This is a very good day to die"
     assert_equal "This is a good day to die", original.remove!(" very")
     assert_equal "This is a good day to die", original
     assert_equal "This is a good day", original.remove!(" to ", /die/)
@@ -378,6 +455,8 @@ class StringAccessTest < ActiveSupport::TestCase
 
   test "#to with negative Integer, position is counted from the end" do
     assert_equal "hell", "hello".to(-2)
+    assert_equal "h", "hello".to(-5)
+    assert_equal "", "hello".to(-7)
   end
 
   test "#from and #to can be combined" do
@@ -403,6 +482,19 @@ class StringAccessTest < ActiveSupport::TestCase
     assert_not_same different_string, string
   end
 
+  test "#first with Integer returns a non-frozen string" do
+    string = "he"
+    (0..string.length + 1).each do |limit|
+      assert_not string.first(limit).frozen?
+    end
+  end
+
+  test "#first with negative Integer raises ArgumentError" do
+    assert_raise ArgumentError do
+      "hello".first(-1)
+    end
+  end
+
   test "#last returns the last character" do
     assert_equal "o", "hello".last
     assert_equal "x", "x".last
@@ -419,6 +511,19 @@ class StringAccessTest < ActiveSupport::TestCase
     string = "hello"
     different_string = string.last(5)
     assert_not_same different_string, string
+  end
+
+  test "#last with Integer returns a non-frozen string" do
+    string = "he"
+    (0..string.length + 1).each do |limit|
+      assert_not string.last(limit).frozen?
+    end
+  end
+
+  test "#last with negative Integer raises ArgumentError" do
+    assert_raise ArgumentError do
+      "hello".last(-1)
+    end
   end
 
   test "access returns a real string" do
@@ -667,7 +772,7 @@ end
 
 class OutputSafetyTest < ActiveSupport::TestCase
   def setup
-    @string = "hello".dup
+    @string = +"hello"
     @object = Class.new(Object) do
       def to_s
         "other"
@@ -743,7 +848,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
   end
 
   test "Concatting safe onto unsafe yields unsafe" do
-    @other_string = "other".dup
+    @other_string = +"other"
 
     string = @string.html_safe
     @other_string.concat(string)
@@ -766,7 +871,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
   end
 
   test "Concatting safe onto unsafe with << yields unsafe" do
-    @other_string = "other".dup
+    @other_string = +"other"
     string = @string.html_safe
 
     @other_string << string
@@ -822,7 +927,55 @@ class OutputSafetyTest < ActiveSupport::TestCase
   test "Concatting an integer to safe always yields safe" do
     string = @string.html_safe
     string = string.concat(13)
-    assert_equal "hello".dup.concat(13), string
+    assert_equal (+"hello").concat(13), string
+    assert_predicate string, :html_safe?
+  end
+
+  test "Inserting safe into safe yields safe" do
+    string = "foo".html_safe
+    string.insert(0, "<b>".html_safe)
+
+    assert_equal "<b>foo", string
+    assert_predicate string, :html_safe?
+  end
+
+  test "Inserting unsafe into safe yields escaped safe" do
+    string = "foo".html_safe
+    string.insert(0, "<b>")
+
+    assert_equal "&lt;b&gt;foo", string
+    assert_predicate string, :html_safe?
+  end
+
+  test "Replacing safe with safe yields safe" do
+    string = "foo".html_safe
+    string.replace("<b>".html_safe)
+
+    assert_equal "<b>", string
+    assert_predicate string, :html_safe?
+  end
+
+  test "Replacing safe with unsafe yields escaped safe" do
+    string = "foo".html_safe
+    string.replace("<b>")
+
+    assert_equal "&lt;b&gt;", string
+    assert_predicate string, :html_safe?
+  end
+
+  test "Replacing index of safe with safe yields safe" do
+    string = "foo".html_safe
+    string[0] = "<b>".html_safe
+
+    assert_equal "<b>oo", string
+    assert_predicate string, :html_safe?
+  end
+
+  test "Replacing index of safe with unsafe yields escaped safe" do
+    string = "foo".html_safe
+    string[0] = "<b>"
+
+    assert_equal "&lt;b&gt;oo", string
     assert_predicate string, :html_safe?
   end
 

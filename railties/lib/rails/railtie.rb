@@ -42,7 +42,7 @@ module Rails
   #   end
   #
   #   # lib/my_gem.rb
-  #   require 'my_gem/railtie' if defined?(Rails)
+  #   require 'my_gem/railtie' if defined?(Rails::Railtie)
   #
   # == Initializers
   #
@@ -224,11 +224,10 @@ module Rails
     end
 
     def railtie_namespace #:nodoc:
-      @railtie_namespace ||= self.class.parents.detect { |n| n.respond_to?(:railtie_namespace) }
+      @railtie_namespace ||= self.class.module_parents.detect { |n| n.respond_to?(:railtie_namespace) }
     end
 
     protected
-
       def run_console_blocks(app) #:nodoc:
         each_registered_block(:console) { |block| block.call(app) }
       end
@@ -247,7 +246,6 @@ module Rails
       end
 
     private
-
       # run `&block` in every registered block in `#register_block_for`
       def each_registered_block(type, &block)
         klass = self.class

@@ -93,7 +93,6 @@ module ActionView
         end
 
       private
-
         def include_helper_modules!
           helper(helper_class) if helper_class
           include _helpers
@@ -107,7 +106,7 @@ module ActionView
         # empty string ensures buffer has UTF-8 encoding as
         # new without arguments returns ASCII-8BIT encoded buffer like String#new
         @output_buffer = ActiveSupport::SafeBuffer.new ""
-        @rendered = "".dup
+        @rendered = +""
 
         make_test_case_available_to_view!
         say_no_to_protect_against_forgery!
@@ -163,7 +162,6 @@ module ActionView
       end
 
     private
-
       # Need to experiment if this priority is the best one: rendered => output_buffer
       def document_root_element
         Nokogiri::HTML::Document.parse(@rendered.blank? ? @output_buffer : @rendered).root
@@ -284,7 +282,7 @@ module ActionView
 
       def respond_to_missing?(name, include_private = false)
         begin
-          routes = @controller.respond_to?(:_routes) && @controller._routes
+          routes = defined?(@controller) && @controller.respond_to?(:_routes) && @controller._routes
         rescue
           # Don't call routes, if there is an error on _routes call
         end

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "sdoc"
+require "active_support/core_ext/array/extract"
 
 class RDoc::Generator::API < RDoc::Generator::SDoc # :nodoc:
   RDoc::RDoc.add_generator self
@@ -11,7 +12,7 @@ class RDoc::Generator::API < RDoc::Generator::SDoc # :nodoc:
     # since they aren't nested under a definition of the `ActiveStorage` module.
     if visited.empty?
       classes = classes.reject { |klass| active_storage?(klass) }
-      core_exts, classes = classes.partition { |klass| core_extension?(klass) }
+      core_exts = classes.extract! { |klass| core_extension?(klass) }
 
       super.unshift([ "Core extensions", "", "", build_core_ext_subtree(core_exts, visited) ])
     else

@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 require "active_support/time"
-require "time_zone_test_helpers"
+require_relative "time_zone_test_helpers"
 require "yaml"
 
 class TimeZoneTest < ActiveSupport::TestCase
@@ -32,7 +32,7 @@ class TimeZoneTest < ActiveSupport::TestCase
     end
   end
 
-  def test_period_for_local_with_ambigiuous_time
+  def test_period_for_local_with_ambiguous_time
     zone = ActiveSupport::TimeZone["Moscow"]
     period = zone.period_for_local(Time.utc(2015, 1, 1))
     assert_equal period, zone.period_for_local(Time.utc(2014, 10, 26, 1, 0, 0))
@@ -223,6 +223,16 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal [1850, 1, 1, 0], [twz.utc.year, twz.utc.mon, twz.utc.day, twz.utc.hour]
     assert_equal zone, twz.time_zone
     assert_equal secs, twz.to_f
+  end
+
+  def test_at_with_microseconds
+    zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+    secs = 946684800.0
+    microsecs = 123456.789
+    twz = zone.at(secs, microsecs)
+    assert_equal zone, twz.time_zone
+    assert_equal secs, twz.to_i
+    assert_equal 123456789, twz.nsec
   end
 
   def test_iso8601
@@ -707,6 +717,13 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert zone !~ /Nonexistent_Place/
   end
 
+  def test_zone_match?
+    zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+    assert zone.match?(/Eastern/)
+    assert zone.match?(/New_York/)
+    assert_not zone.match?(/Nonexistent_Place/)
+  end
+
   def test_to_s
     assert_equal "(GMT+05:30) New Delhi", ActiveSupport::TimeZone["New Delhi"].to_s
   end
@@ -723,6 +740,21 @@ class TimeZoneTest < ActiveSupport::TestCase
     galapagos = ActiveSupport::TimeZone["Pacific/Galapagos"]
     all_zones = ActiveSupport::TimeZone.all
     assert_not_includes all_zones, galapagos
+  end
+
+  def test_all_doesnt_raise_exception_with_missing_tzinfo_data
+    mappings = {
+      "Puerto Rico" => "America/Unknown",
+      "Pittsburgh"  => "America/New_York"
+    }
+
+    with_tz_mappings(mappings) do
+      assert_nil ActiveSupport::TimeZone["Puerto Rico"]
+      assert_nil ActiveSupport::TimeZone[-9]
+      assert_nothing_raised do
+        ActiveSupport::TimeZone.all
+      end
+    end
   end
 
   def test_index
@@ -754,6 +786,16 @@ class TimeZoneTest < ActiveSupport::TestCase
   def test_country_zones
     assert_includes ActiveSupport::TimeZone.country_zones("ru"), ActiveSupport::TimeZone["Moscow"]
     assert_not_includes ActiveSupport::TimeZone.country_zones(:ru), ActiveSupport::TimeZone["Kuala Lumpur"]
+  end
+
+  def test_country_zones_with_and_without_mappings
+    assert_includes ActiveSupport::TimeZone.country_zones("au"), ActiveSupport::TimeZone["Adelaide"]
+    assert_includes ActiveSupport::TimeZone.country_zones("au"), ActiveSupport::TimeZone["Australia/Lord_Howe"]
+  end
+
+  def test_country_zones_with_multiple_mappings
+    assert_includes ActiveSupport::TimeZone.country_zones("gb"), ActiveSupport::TimeZone["Edinburgh"]
+    assert_includes ActiveSupport::TimeZone.country_zones("gb"), ActiveSupport::TimeZone["London"]
   end
 
   def test_country_zones_without_mappings

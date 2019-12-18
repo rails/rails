@@ -2,7 +2,7 @@
 
 require "cases/helper"
 
-unless ActiveRecord::Base.connection.supports_transaction_isolation?
+unless ActiveRecord::Base.connection.supports_transaction_isolation? && !current_adapter?(:SQLite3Adapter)
   class TransactionIsolationUnsupportedTest < ActiveRecord::TestCase
     self.use_transactional_tests = false
 
@@ -11,7 +11,7 @@ unless ActiveRecord::Base.connection.supports_transaction_isolation?
 
     test "setting the isolation level raises an error" do
       assert_raises(ActiveRecord::TransactionIsolationError) do
-        Tag.transaction(isolation: :serializable) {}
+        Tag.transaction(isolation: :serializable) { Tag.connection.materialize_transactions }
       end
     end
   end
@@ -90,7 +90,7 @@ else
     test "setting isolation when joining a transaction raises an error" do
       Tag.transaction do
         assert_raises(ActiveRecord::TransactionIsolationError) do
-          Tag.transaction(isolation: :serializable) {}
+          Tag.transaction(isolation: :serializable) { }
         end
       end
     end
@@ -98,7 +98,7 @@ else
     test "setting isolation when starting a nested transaction raises error" do
       Tag.transaction do
         assert_raises(ActiveRecord::TransactionIsolationError) do
-          Tag.transaction(requires_new: true, isolation: :serializable) {}
+          Tag.transaction(requires_new: true, isolation: :serializable) { }
         end
       end
     end

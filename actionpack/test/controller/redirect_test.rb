@@ -5,6 +5,12 @@ require "abstract_unit"
 class Workshop
   extend ActiveModel::Naming
   include ActiveModel::Conversion
+
+  OUT_OF_SCOPE_BLOCK = proc do
+    raise "Not executed in controller's context" unless RedirectController === self
+    request.original_url
+  end
+
   attr_accessor :id
 
   def initialize(id)
@@ -62,8 +68,16 @@ class RedirectController < ActionController::Base
     redirect_back(fallback_location: "/things/stuff", status: 307)
   end
 
+  def redirect_back_with_status_and_fallback_location_to_another_host
+    redirect_back(fallback_location: "http://www.rubyonrails.org/", status: 307)
+  end
+
   def safe_redirect_back_with_status
     redirect_back(fallback_location: "/things/stuff", status: 307, allow_other_host: false)
+  end
+
+  def safe_redirect_back_with_status_and_fallback_location_to_another_host
+    redirect_back(fallback_location: "http://www.rubyonrails.org/", status: 307, allow_other_host: false)
   end
 
   def host_redirect
@@ -117,6 +131,10 @@ class RedirectController < ActionController::Base
 
   def redirect_to_with_block_and_options
     redirect_to proc { { action: "hello_world" } }
+  end
+
+  def redirect_to_out_of_scope_block
+    redirect_to Workshop::OUT_OF_SCOPE_BLOCK
   end
 
   def redirect_with_header_break
@@ -204,6 +222,13 @@ class RedirectTest < ActionController::TestCase
     assert_equal "http://test.host/things/stuff", redirect_to_url
   end
 
+  def test_relative_url_redirect_host_with_port
+    request.host = "test.host:1234"
+    get :relative_url_redirect_with_status
+    assert_response 302
+    assert_equal "http://test.host:1234/things/stuff", redirect_to_url
+  end
+
   def test_simple_redirect_using_options
     get :host_redirect
     assert_response :redirect
@@ -263,6 +288,13 @@ class RedirectTest < ActionController::TestCase
     assert_equal "http://test.host/things/stuff", redirect_to_url
   end
 
+  def test_redirect_back_with_no_referer_redirects_to_another_host
+    get :redirect_back_with_status_and_fallback_location_to_another_host
+
+    assert_response 307
+    assert_equal "http://www.rubyonrails.org/", redirect_to_url
+  end
+
   def test_safe_redirect_back_from_other_host
     @request.env["HTTP_REFERER"] = "http://another.host/coming/from"
     get :safe_redirect_back_with_status
@@ -278,6 +310,20 @@ class RedirectTest < ActionController::TestCase
 
     assert_response 307
     assert_equal referer, redirect_to_url
+  end
+
+  def test_safe_redirect_back_with_no_referer
+    get :safe_redirect_back_with_status
+
+    assert_response 307
+    assert_equal "http://test.host/things/stuff", redirect_to_url
+  end
+
+  def test_safe_redirect_back_with_no_referer_redirects_to_another_host
+    get :safe_redirect_back_with_status_and_fallback_location_to_another_host
+
+    assert_response 307
+    assert_equal "http://www.rubyonrails.org/", redirect_to_url
   end
 
   def test_redirect_to_record
@@ -324,6 +370,12 @@ class RedirectTest < ActionController::TestCase
     get :redirect_to_with_block_and_assigns
     assert_response :redirect
     assert_redirected_to "http://www.rubyonrails.org/"
+  end
+
+  def test_redirect_to_out_of_scope_block
+    get :redirect_to_out_of_scope_block
+    assert_response :redirect
+    assert_redirected_to "http://test.host/redirect/redirect_to_out_of_scope_block"
   end
 
   def test_redirect_to_with_block_and_accepted_options

@@ -40,17 +40,25 @@ class TimestampTest < ActiveRecord::TestCase
 
     assert_not_equal @previously_updated_at, @developer.updated_at
     assert_equal previous_salary + 10000, @developer.salary
-    assert @developer.salary_changed?, "developer salary should have changed"
-    assert @developer.changed?, "developer should be marked as changed"
+    assert_predicate @developer, :salary_changed?, "developer salary should have changed"
+    assert_predicate @developer, :changed?, "developer should be marked as changed"
+    assert_equal ["salary"], @developer.changed
+    assert_predicate @developer, :saved_changes?
+    assert_equal ["updated_at", "updated_on"], @developer.saved_changes.keys.sort
+
     @developer.reload
     assert_equal previous_salary, @developer.salary
   end
 
   def test_touching_a_record_with_default_scope_that_excludes_it_updates_its_timestamp
     developer = @developer.becomes(DeveloperCalledJamis)
-
     developer.touch
+
     assert_not_equal @previously_updated_at, developer.updated_at
+    assert_not_predicate developer, :changed?
+    assert_predicate developer, :saved_changes?
+    assert_equal ["updated_at", "updated_on"], developer.saved_changes.keys.sort
+
     developer.reload
     assert_not_equal @previously_updated_at, developer.updated_at
   end
@@ -90,9 +98,19 @@ class TimestampTest < ActiveRecord::TestCase
       @developer.touch(:created_at)
     end
 
-    assert !@developer.created_at_changed?, "created_at should not be changed"
-    assert !@developer.changed?, "record should not be changed"
+    assert_not @developer.created_at_changed?, "created_at should not be changed"
+    assert_not @developer.changed?, "record should not be changed"
     assert_not_equal previously_created_at, @developer.created_at
+    assert_not_equal @previously_updated_at, @developer.updated_at
+  end
+
+  def test_touching_update_at_attribute_as_symbol_updates_timestamp
+    travel(1.second) do
+      @developer.touch(:updated_at)
+    end
+
+    assert_not @developer.updated_at_changed?
+    assert_not @developer.changed?
     assert_not_equal @previously_updated_at, @developer.updated_at
   end
 

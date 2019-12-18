@@ -42,7 +42,7 @@ class ResponseTest < ActiveSupport::TestCase
   def test_each_isnt_called_if_str_body_is_written
     # Controller writes and reads response body
     each_counter = 0
-    @response.body = Object.new.tap { |o| o.singleton_class.send(:define_method, :each) { |&block| each_counter += 1; block.call "foo" } }
+    @response.body = Object.new.tap { |o| o.singleton_class.define_method(:each) { |&block| each_counter += 1; block.call "foo" } }
     @response["X-Foo"] = @response.body
 
     assert_equal 1, each_counter, "#each was not called once"
@@ -158,7 +158,7 @@ class ResponseTest < ActiveSupport::TestCase
       @response.status = c.to_s
       @response.set_header "Content-Length", "0"
       _, headers, _ = @response.to_a
-      assert !headers.has_key?("Content-Length"), "#{c} must not have a Content-Length header field"
+      assert_not headers.has_key?("Content-Length"), "#{c} must not have a Content-Length header field"
     end
   end
 
@@ -177,7 +177,7 @@ class ResponseTest < ActiveSupport::TestCase
       @response = ActionDispatch::Response.new
       @response.status = c.to_s
       _, headers, _ = @response.to_a
-      assert !headers.has_key?("Content-Type"), "#{c} should not have Content-Type header"
+      assert_not headers.has_key?("Content-Type"), "#{c} should not have Content-Type header"
     end
 
     [200, 302, 404, 500].each do |c|
@@ -191,7 +191,7 @@ class ResponseTest < ActiveSupport::TestCase
   test "does not include Status header" do
     @response.status = "200 OK"
     _, headers, _ = @response.to_a
-    assert !headers.has_key?("Status")
+    assert_not headers.has_key?("Status")
   end
 
   test "response code" do
@@ -290,8 +290,8 @@ class ResponseTest < ActiveSupport::TestCase
     resp.to_a
 
     assert_equal("utf-16", resp.charset)
-    assert_equal(Mime[:xml], resp.content_type)
-
+    assert_equal(Mime[:xml], resp.media_type)
+    assert_equal("application/xml; charset=utf-16", resp.content_type)
     assert_equal("application/xml; charset=utf-16", resp.headers["Content-Type"])
   end
 
@@ -503,8 +503,8 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     assert_equal("utf-16", @response.charset)
-    assert_equal(Mime[:xml], @response.content_type)
-
+    assert_equal(Mime[:xml], @response.media_type)
+    assert_equal("application/xml; charset=utf-16", @response.content_type)
     assert_equal("application/xml; charset=utf-16", @response.headers["Content-Type"])
   end
 
@@ -519,8 +519,8 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     assert_equal("utf-16", @response.charset)
-    assert_equal(Mime[:xml], @response.content_type)
-
+    assert_equal(Mime[:xml], @response.media_type)
+    assert_equal("application/xml; charset=utf-16", @response.content_type)
     assert_equal("application/xml; charset=utf-16", @response.headers["Content-Type"])
   end
 
@@ -538,5 +538,88 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
 
     assert_equal('"202cb962ac59075b964b07152d234b70"', @response.headers["ETag"])
     assert_equal('"202cb962ac59075b964b07152d234b70"', @response.etag)
+  end
+
+  test "response Content-Type with optional parameters" do
+    @app = lambda { |env|
+      [
+        200,
+        { "Content-Type" => "text/csv; charset=utf-16; header=present" },
+        ["Hello"]
+      ]
+    }
+
+    get "/"
+    assert_response :success
+
+    assert_equal("text/csv; charset=utf-16; header=present", @response.headers["Content-Type"])
+    assert_equal("text/csv; charset=utf-16; header=present", @response.content_type)
+    assert_equal("text/csv", @response.media_type)
+    assert_equal("utf-16", @response.charset)
+  end
+
+  test "response Content-Type with optional parameters that set before charset" do
+    @app = lambda { |env|
+      [
+        200,
+        { "Content-Type" => "text/csv; header=present; charset=utf-16" },
+        ["Hello"]
+      ]
+    }
+
+    get "/"
+    assert_response :success
+
+    assert_equal("text/csv; header=present; charset=utf-16", @response.headers["Content-Type"])
+    assert_equal("text/csv; header=present; charset=utf-16", @response.content_type)
+    assert_equal("text/csv; header=present", @response.media_type)
+    assert_equal("utf-16", @response.charset)
+  end
+
+  test "response Content-Type with quoted-string" do
+    @app = lambda { |env|
+      [
+        200,
+        { "Content-Type" => 'text/csv; header=present; charset="utf-16"' },
+        ["Hello"]
+      ]
+    }
+
+    get "/"
+    assert_response :success
+
+    assert_equal('text/csv; header=present; charset="utf-16"', @response.headers["Content-Type"])
+    assert_equal('text/csv; header=present; charset="utf-16"', @response.content_type)
+    assert_equal("text/csv; header=present", @response.media_type)
+    assert_equal("utf-16", @response.charset)
+  end
+
+  test "`content type` returns header that excludes `charset` when specified `return_only_media_type_on_content_type`" do
+    original = ActionDispatch::Response.return_only_media_type_on_content_type
+    ActionDispatch::Response.return_only_media_type_on_content_type = true
+
+    @app = lambda { |env|
+      if env["PATH_INFO"] == "/with_parameters"
+        [200, { "Content-Type" => "text/csv; header=present; charset=utf-16" }, [""]]
+      else
+        [200, { "Content-Type" => "text/csv; charset=utf-16" }, [""]]
+      end
+    }
+
+    get "/"
+    assert_response :success
+
+    assert_deprecated do
+      assert_equal("text/csv", @response.content_type)
+    end
+
+    get "/with_parameters"
+    assert_response :success
+
+    assert_deprecated do
+      assert_equal("text/csv; header=present", @response.content_type)
+    end
+  ensure
+    ActionDispatch::Response.return_only_media_type_on_content_type = original
   end
 end

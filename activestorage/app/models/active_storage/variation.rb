@@ -6,9 +6,9 @@
 # In case you do need to use this directly, it's instantiated using a hash of transformations where
 # the key is the command and the value is the arguments. Example:
 #
-#   ActiveStorage::Variation.new(resize: "100x100", monochrome: true, trim: true, rotate: "-90")
+#   ActiveStorage::Variation.new(resize_to_limit: [100, 100], monochrome: true, trim: true, rotate: "-90")
 #
-# A list of all possible transformations is available at https://www.imagemagick.org/script/mogrify.php.
+# The options map directly to {ImageProcessing}[https://github.com/janko-m/image_processing] commands.
 class ActiveStorage::Variation
   attr_reader :transformations
 
@@ -40,24 +40,16 @@ class ActiveStorage::Variation
   end
 
   def initialize(transformations)
-    @transformations = transformations
+    @transformations = transformations.deep_symbolize_keys
   end
 
-  # Accepts an open MiniMagick image instance, like what's returned by <tt>MiniMagick::Image.read(io)</tt>,
-  # and performs the +transformations+ against it. The transformed image instance is then returned.
-  def transform(image)
+  # Accepts a File object, performs the +transformations+ against it, and
+  # saves the transformed image into a temporary file. If +format+ is specified
+  # it will be the format of the result image, otherwise the result image
+  # retains the source format.
+  def transform(file, format: nil, &block)
     ActiveSupport::Notifications.instrument("transform.active_storage") do
-      transformations.each do |name, argument_or_subtransformations|
-        image.mogrify do |command|
-          if name.to_s == "combine_options"
-            argument_or_subtransformations.each do |subtransformation_name, subtransformation_argument|
-              pass_transform_argument(command, subtransformation_name, subtransformation_argument)
-            end
-          else
-            pass_transform_argument(command, name, argument_or_subtransformations)
-          end
-        end
-      end
+      transformer.transform(file, format: format, &block)
     end
   end
 
@@ -66,16 +58,27 @@ class ActiveStorage::Variation
     self.class.encode(transformations)
   end
 
-  private
-    def pass_transform_argument(command, method, argument)
-      if eligible_argument?(argument)
-        command.public_send(method, argument)
-      else
-        command.public_send(method)
-      end
-    end
+  def digest
+    Digest::SHA1.base64digest Marshal.dump(transformations)
+  end
 
-    def eligible_argument?(argument)
-      argument.present? && argument != true
+  private
+    def transformer
+      if ActiveStorage.variant_processor
+        begin
+          require "image_processing"
+        rescue LoadError
+          ActiveSupport::Deprecation.warn <<~WARNING.squish
+            Generating image variants will require the image_processing gem in Rails 6.1.
+            Please add `gem 'image_processing', '~> 1.2'` to your Gemfile.
+          WARNING
+
+          ActiveStorage::Transformers::MiniMagickTransformer.new(transformations)
+        else
+          ActiveStorage::Transformers::ImageProcessingTransformer.new(transformations)
+        end
+      else
+        ActiveStorage::Transformers::MiniMagickTransformer.new(transformations)
+      end
     end
 end

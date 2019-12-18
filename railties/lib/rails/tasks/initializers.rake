@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
-desc "Print out all defined initializers in the order they are invoked by Rails."
+require "rails/command"
+require "active_support/deprecation"
+
 task initializers: :environment do
-  Rails.application.initializers.tsort_each do |initializer|
-    puts "#{initializer.context_class}.#{initializer.name}"
-  end
+  ActiveSupport::Deprecation.warn("Using `bin/rake initializers` is deprecated and will be removed in Rails 6.1. Use `bin/rails initializers` instead.\n")
+  Rails::Command.invoke "initializers"
 end

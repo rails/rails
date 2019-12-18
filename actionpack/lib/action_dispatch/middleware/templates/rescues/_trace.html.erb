@@ -1,52 +1,62 @@
-<% names = @traces.keys %>
+<% names = traces.keys %>
+<% error_index = local_assigns[:error_index] || 0 %>
 
 <p><code>Rails.root: <%= defined?(Rails) && Rails.respond_to?(:root) ? Rails.root : "unset" %></code></p>
 
-<div id="traces">
+<div id="traces-<%= error_index %>">
   <% names.each do |name| %>
     <%
-      show = "show('#{name.gsub(/\s/, '-')}');"
-      hide = (names - [name]).collect {|hide_name| "hide('#{hide_name.gsub(/\s/, '-')}');"}
+      show = "show('#{name.gsub(/\s/, '-')}-#{error_index}');"
+      hide = (names - [name]).collect {|hide_name| "hide('#{hide_name.gsub(/\s/, '-')}-#{error_index}');"}
     %>
     <a href="#" onclick="<%= hide.join %><%= show %>; return false;"><%= name %></a> <%= '|' unless names.last == name %>
   <% end %>
 
-  <% @traces.each do |name, trace| %>
-    <div id="<%= name.gsub(/\s/, '-') %>" style="display: <%= (name == @trace_to_show) ? 'block' : 'none' %>;">
-      <pre><code><% trace.each do |frame| %><a class="trace-frames" data-frame-id="<%= frame[:id] %>" href="#"><%= frame[:trace] %></a><br><% end %></code></pre>
+  <% traces.each do |name, trace| %>
+    <div id="<%= "#{name.gsub(/\s/, '-')}-#{error_index}" %>" style="display: <%= (name == trace_to_show) ? 'block' : 'none' %>;">
+      <code style="font-size: 11px;">
+        <% trace.each do |frame| %>
+          <a class="trace-frames trace-frames-<%= error_index %>" data-exception-object-id="<%= frame[:exception_object_id] %>" data-frame-id="<%= frame[:id] %>" href="#">
+            <%= frame[:trace] %>
+          </a>
+          <br>
+        <% end %>
+      </code>
     </div>
   <% end %>
 
   <script type="text/javascript">
-    var traceFrames = document.getElementsByClassName('trace-frames');
-    var selectedFrame, currentSource = document.getElementById('frame-source-0');
+    (function() {
+      var traceFrames = document.getElementsByClassName('trace-frames-<%= error_index %>');
+      var selectedFrame, currentSource = document.getElementById('frame-source-<%= error_index %>-0');
 
-    // Add click listeners for all stack frames
-    for (var i = 0; i < traceFrames.length; i++) {
-      traceFrames[i].addEventListener('click', function(e) {
-        e.preventDefault();
-        var target = e.target;
-        var frame_id = target.dataset.frameId;
+      // Add click listeners for all stack frames
+      for (var i = 0; i < traceFrames.length; i++) {
+        traceFrames[i].addEventListener('click', function(e) {
+          e.preventDefault();
+          var target = e.target;
+          var frame_id = target.dataset.frameId;
 
-        if (selectedFrame) {
-          selectedFrame.className = selectedFrame.className.replace("selected", "");
-        }
+          if (selectedFrame) {
+            selectedFrame.className = selectedFrame.className.replace("selected", "");
+          }
 
-        target.className += " selected";
-        selectedFrame = target;
+          target.className += " selected";
+          selectedFrame = target;
 
-        // Change the extracted source code
-        changeSourceExtract(frame_id);
-      });
+          // Change the extracted source code
+          changeSourceExtract(frame_id);
+        });
 
-      function changeSourceExtract(frame_id) {
-        var el = document.getElementById('frame-source-' + frame_id);
-        if (currentSource && el) {
-          currentSource.className += " hidden";
-          el.className = el.className.replace(" hidden", "");
-          currentSource = el;
+        function changeSourceExtract(frame_id) {
+          var el = document.getElementById('frame-source-<%= error_index %>-' + frame_id);
+          if (currentSource && el) {
+            currentSource.className += " hidden";
+            el.className = el.className.replace(" hidden", "");
+            currentSource = el;
+          }
         }
       }
-    }
+    })();
   </script>
 </div>

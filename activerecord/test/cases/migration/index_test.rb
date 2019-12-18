@@ -49,13 +49,6 @@ module ActiveRecord
         assert connection.index_name_exists?(table_name, "old_idx")
       end
 
-      def test_double_add_index
-        connection.add_index(table_name, [:foo], name: "some_idx")
-        assert_raises(ArgumentError) {
-          connection.add_index(table_name, [:foo], name: "some_idx")
-        }
-      end
-
       def test_remove_nonexistent_index
         assert_raise(ArgumentError) { connection.remove_index(table_name, "no_such_index") }
       end
@@ -99,7 +92,7 @@ module ActiveRecord
         connection.add_index :testings, :foo
 
         assert connection.index_exists?(:testings, :foo)
-        assert !connection.index_exists?(:testings, :bar)
+        assert_not connection.index_exists?(:testings, :bar)
       end
 
       def test_index_exists_on_multiple_columns
@@ -131,15 +124,18 @@ module ActiveRecord
 
         assert connection.index_exists?(:testings, :foo)
         assert connection.index_exists?(:testings, :foo, name: "custom_index_name")
-        assert !connection.index_exists?(:testings, :foo, name: "other_index_name")
+        assert_not connection.index_exists?(:testings, :foo, name: "other_index_name")
       end
 
       def test_remove_named_index
-        connection.add_index :testings, :foo, name: "custom_index_name"
+        connection.add_index :testings, :foo, name: "index_testings_on_custom_index_name"
 
         assert connection.index_exists?(:testings, :foo)
+
+        assert_raise(ArgumentError) { connection.remove_index(:testings, "custom_index_name") }
+
         connection.remove_index :testings, :foo
-        assert !connection.index_exists?(:testings, :foo)
+        assert_not connection.index_exists?(:testings, :foo)
       end
 
       def test_add_index_attribute_length_limit
@@ -155,14 +151,11 @@ module ActiveRecord
         connection.add_index("testings", ["last_name", "first_name"])
         connection.remove_index("testings", column: ["last_name", "first_name"])
 
-        # Oracle adapter cannot have specified index name larger than 30 characters
-        # Oracle adapter is shortening index name when just column list is given
-        unless current_adapter?(:OracleAdapter)
-          connection.add_index("testings", ["last_name", "first_name"])
-          connection.remove_index("testings", name: :index_testings_on_last_name_and_first_name)
-          connection.add_index("testings", ["last_name", "first_name"])
-          connection.remove_index("testings", "last_name_and_first_name")
-        end
+        connection.add_index("testings", ["last_name", "first_name"])
+        connection.remove_index("testings", name: :index_testings_on_last_name_and_first_name)
+        connection.add_index("testings", ["last_name", "first_name"])
+        connection.remove_index("testings", "last_name_and_first_name")
+
         connection.add_index("testings", ["last_name", "first_name"])
         connection.remove_index("testings", ["last_name", "first_name"])
 
@@ -177,6 +170,9 @@ module ActiveRecord
 
         connection.add_index("testings", ["last_name", "first_name"], length: { last_name: 10, first_name: 20 })
         connection.remove_index("testings", ["last_name", "first_name"])
+
+        connection.add_index("testings", "key", unique: true)
+        connection.remove_index("testings", "key", unique: true)
 
         connection.add_index("testings", ["key"], name: "key_idx", unique: true)
         connection.remove_index("testings", name: "key_idx", unique: true)
@@ -203,7 +199,7 @@ module ActiveRecord
           assert connection.index_exists?("testings", "last_name")
 
           connection.remove_index("testings", "last_name")
-          assert !connection.index_exists?("testings", "last_name")
+          assert_not connection.index_exists?("testings", "last_name")
         end
       end
 

@@ -5,23 +5,35 @@ require "abstract_controller/rendering"
 
 class LookupContextTest < ActiveSupport::TestCase
   def setup
-    @lookup_context = ActionView::LookupContext.new(FIXTURE_LOAD_PATH, {})
+    @lookup_context = build_lookup_context(FIXTURE_LOAD_PATH, {})
     ActionView::LookupContext::DetailsKey.clear
+  end
+
+  def build_lookup_context(paths, details)
+    ActionView::LookupContext.new(paths, details)
   end
 
   def teardown
     I18n.locale = :en
   end
 
-  test "allows to override default_formats with ActionView::Base.default_formats" do
-    begin
-      formats = ActionView::Base.default_formats
-      ActionView::Base.default_formats = [:foo, :bar]
-
-      assert_equal [:foo, :bar], ActionView::LookupContext.new([]).default_formats
-    ensure
-      ActionView::Base.default_formats = formats
+  test "rendered_format is deprecated" do
+    assert_deprecated do
+      @lookup_context.rendered_format = "foo"
     end
+
+    assert_deprecated do
+      assert_equal "foo", @lookup_context.rendered_format
+    end
+  end
+
+  test "allows to override default_formats with ActionView::Base.default_formats" do
+    formats = ActionView::Base.default_formats
+    ActionView::Base.default_formats = [:foo, :bar]
+
+    assert_equal [:foo, :bar], ActionView::LookupContext.new([]).default_formats
+  ensure
+    ActionView::Base.default_formats = formats
   end
 
   test "process view paths on initialization" do
@@ -55,12 +67,20 @@ class LookupContextTest < ActiveSupport::TestCase
 
   test "handles explicitly defined */* formats fallback to :js" do
     @lookup_context.formats = [:js, Mime::ALL]
-    assert_equal [:js, *Mime::SET.symbols], @lookup_context.formats
+    assert_equal [:js, *Mime::SET.symbols].uniq, @lookup_context.formats
   end
 
   test "adds :html fallback to :js formats" do
     @lookup_context.formats = [:js]
     assert_equal [:js, :html], @lookup_context.formats
+  end
+
+  test "raises on invalid format assignment" do
+    ex = assert_raises ArgumentError do
+      @lookup_context.formats = [:html, :invalid, "also bad"]
+    end
+
+    assert_equal 'Invalid formats: :invalid, "also bad"', ex.message
   end
 
   test "provides getters and setters for locale" do
@@ -109,30 +129,43 @@ class LookupContextTest < ActiveSupport::TestCase
     assert_equal "Hello texty phone!", template.source
   end
 
-  test "found templates respects given formats if one cannot be found from template or handler" do
+  test "found templates have nil format if one cannot be found from template or handler" do
     assert_called(ActionView::Template::Handlers::Builder, :default_format, returns: nil) do
       @lookup_context.formats = [:text]
       template = @lookup_context.find("hello", %w(test))
-      assert_equal [:text], template.formats
+      assert_nil template.format
     end
   end
 
   test "adds fallbacks to view paths when required" do
     assert_equal 1, @lookup_context.view_paths.size
 
-    @lookup_context.with_fallbacks do
-      assert_equal 3, @lookup_context.view_paths.size
-      assert_includes @lookup_context.view_paths, ActionView::FallbackFileSystemResolver.new("")
-      assert_includes @lookup_context.view_paths, ActionView::FallbackFileSystemResolver.new("/")
+    assert_deprecated do
+      @lookup_context.with_fallbacks do
+        assert_equal 3, @lookup_context.view_paths.size
+        assert_includes @lookup_context.view_paths, ActionView::FallbackFileSystemResolver.instances[0]
+        assert_includes @lookup_context.view_paths, ActionView::FallbackFileSystemResolver.instances[1]
+      end
     end
+
+    @lookup_context = @lookup_context.with_fallbacks
+
+    assert_equal 3, @lookup_context.view_paths.size
+    assert_includes @lookup_context.view_paths, ActionView::FallbackFileSystemResolver.instances[0]
+    assert_includes @lookup_context.view_paths, ActionView::FallbackFileSystemResolver.instances[1]
   end
 
   test "add fallbacks just once in nested fallbacks calls" do
-    @lookup_context.with_fallbacks do
+    assert_deprecated do
       @lookup_context.with_fallbacks do
-        assert_equal 3, @lookup_context.view_paths.size
+        @lookup_context.with_fallbacks do
+          assert_equal 3, @lookup_context.view_paths.size
+        end
       end
     end
+
+    @lookup_context = @lookup_context.with_fallbacks.with_fallbacks
+    assert_equal 3, @lookup_context.view_paths.size
   end
 
   test "generates a new details key for each details hash" do
@@ -158,13 +191,13 @@ class LookupContextTest < ActiveSupport::TestCase
   end
 
   test "gives the key forward to the resolver, so it can be used as cache key" do
-    @lookup_context.view_paths = ActionView::FixtureResolver.new("test/_foo.erb" => "Foo")
+    @lookup_context = build_lookup_context(ActionView::FixtureResolver.new("test/_foo.erb" => "Foo"), {})
     template = @lookup_context.find("foo", %w(test), true)
     assert_equal "Foo", template.source
 
     # Now we are going to change the template, but it won't change the returned template
     # since we will hit the cache.
-    @lookup_context.view_paths.first.hash["test/_foo.erb"] = "Bar"
+    @lookup_context.view_paths.first.data["test/_foo.erb"] = "Bar"
     template = @lookup_context.find("foo", %w(test), true)
     assert_equal "Foo", template.source
 
@@ -187,7 +220,7 @@ class LookupContextTest < ActiveSupport::TestCase
   end
 
   test "can disable the cache on demand" do
-    @lookup_context.view_paths = ActionView::FixtureResolver.new("test/_foo.erb" => "Foo")
+    @lookup_context = build_lookup_context(ActionView::FixtureResolver.new("test/_foo.erb" => "Foo"), {})
     old_template = @lookup_context.find("foo", %w(test), true)
 
     template = @lookup_context.find("foo", %w(test), true)
@@ -195,7 +228,7 @@ class LookupContextTest < ActiveSupport::TestCase
 
     assert @lookup_context.cache
     template = @lookup_context.disable_cache do
-      assert !@lookup_context.cache
+      assert_not @lookup_context.cache
       @lookup_context.find("foo", %w(test), true)
     end
     assert @lookup_context.cache
@@ -207,56 +240,6 @@ class LookupContextTest < ActiveSupport::TestCase
     assert_equal [], @lookup_context.prefixes
     @lookup_context.prefixes = ["foo"]
     assert_equal ["foo"], @lookup_context.prefixes
-  end
-end
-
-class LookupContextWithFalseCaching < ActiveSupport::TestCase
-  def setup
-    @resolver = ActionView::FixtureResolver.new("test/_foo.erb" => ["Foo", Time.utc(2000)])
-    @lookup_context = ActionView::LookupContext.new(@resolver, {})
-  end
-
-  test "templates are always found in the resolver but timestamp is checked before being compiled" do
-    ActionView::Resolver.stub(:caching?, false) do
-      template = @lookup_context.find("foo", %w(test), true)
-      assert_equal "Foo", template.source
-
-      # Now we are going to change the template, but it won't change the returned template
-      # since the timestamp is the same.
-      @resolver.hash["test/_foo.erb"][0] = "Bar"
-      template = @lookup_context.find("foo", %w(test), true)
-      assert_equal "Foo", template.source
-
-      # Now update the timestamp.
-      @resolver.hash["test/_foo.erb"][1] = Time.now.utc
-      template = @lookup_context.find("foo", %w(test), true)
-      assert_equal "Bar", template.source
-    end
-  end
-
-  test "if no template was found in the second lookup, with no cache, raise error" do
-    ActionView::Resolver.stub(:caching?, false) do
-      template = @lookup_context.find("foo", %w(test), true)
-      assert_equal "Foo", template.source
-
-      @resolver.hash.clear
-      assert_raise ActionView::MissingTemplate do
-        @lookup_context.find("foo", %w(test), true)
-      end
-    end
-  end
-
-  test "if no template was cached in the first lookup, retrieval should work in the second call" do
-    ActionView::Resolver.stub(:caching?, false) do
-      @resolver.hash.clear
-      assert_raise ActionView::MissingTemplate do
-        @lookup_context.find("foo", %w(test), true)
-      end
-
-      @resolver.hash["test/_foo.erb"] = ["Foo", Time.utc(2000)]
-      template = @lookup_context.find("foo", %w(test), true)
-      assert_equal "Foo", template.source
-    end
   end
 end
 

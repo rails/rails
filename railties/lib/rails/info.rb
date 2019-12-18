@@ -41,7 +41,7 @@ module Rails
       alias inspect to_s
 
       def to_html
-        "<table>".dup.tap do |table|
+        (+"<table>").tap do |table|
           properties.each do |(name, value)|
             table << %(<tr><td class="name">#{CGI.escapeHTML(name.to_s)}</td>)
             formatted_value = if value.kind_of?(Array)
@@ -63,12 +63,12 @@ module Rails
 
     # The Ruby version and platform, e.g. "2.0.0-p247 (x86_64-darwin12.4.0)".
     property "Ruby version" do
-      "#{RUBY_VERSION}-p#{RUBY_PATCHLEVEL} (#{RUBY_PLATFORM})"
+      RUBY_DESCRIPTION
     end
 
     # The RubyGems version, if it's installed.
     property "RubyGems version" do
-      Gem::RubyGemsVersion
+      Gem::VERSION
     end
 
     property "Rack version" do

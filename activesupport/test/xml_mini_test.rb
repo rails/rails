@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 require "active_support/xml_mini"
 require "active_support/builder"
 require "active_support/core_ext/hash"
 require "active_support/core_ext/big_decimal"
+require "active_support/core_ext/date/conversions"
 require "yaml"
 
 module XmlMiniTest

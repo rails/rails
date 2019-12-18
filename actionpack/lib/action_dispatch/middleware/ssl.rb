@@ -13,7 +13,9 @@ module ActionDispatch
   #
   #    Requests can opt-out of redirection with +exclude+:
   #
-  #      config.ssl_options = { redirect: { exclude: -> request { request.path =~ /healthcheck/ } } }
+  #      config.ssl_options = { redirect: { exclude: -> request { /healthcheck/.match?(request.path) } } }
+  #
+  #    Cookies will not be flagged as secure for excluded requests.
   #
   # 2. <b>Secure cookies</b>: Sets the +secure+ flag on cookies to tell browsers they
   #    must not be sent along with +http://+ requests. Enabled by default. Set
@@ -26,8 +28,8 @@ module ActionDispatch
   #    Set +config.ssl_options+ with <tt>hsts: { ... }</tt> to configure HSTS:
   #
   #    * +expires+: How long, in seconds, these settings will stick. The minimum
-  #      required to qualify for browser preload lists is 18 weeks. Defaults to
-  #      180 days (recommended).
+  #      required to qualify for browser preload lists is 1 year. Defaults to
+  #      1 year (recommended).
   #
   #    * +subdomains+: Set to +true+ to tell the browser to apply these settings
   #      to all subdomains. This protects your cookies from interception by a
@@ -47,9 +49,8 @@ module ActionDispatch
   class SSL
     # :stopdoc:
 
-    # Default to 180 days, the low end for https://www.ssllabs.com/ssltest/
-    # and greater than the 18-week requirement for browser preload lists.
-    HSTS_EXPIRES_IN = 15552000
+    # Default to 1 year, the minimum for browser preload lists.
+    HSTS_EXPIRES_IN = 31536000
 
     def self.default_hsts_options
       { expires: HSTS_EXPIRES_IN, subdomains: true, preload: false }
@@ -72,7 +73,7 @@ module ActionDispatch
       if request.ssl?
         @app.call(env).tap do |status, headers, body|
           set_hsts_header! headers
-          flag_cookies_as_secure! headers if @secure_cookies
+          flag_cookies_as_secure! headers if @secure_cookies && !@exclude.call(request)
         end
       else
         return redirect_to_https request unless @exclude.call(request)
@@ -82,7 +83,7 @@ module ActionDispatch
 
     private
       def set_hsts_header!(headers)
-        headers["Strict-Transport-Security".freeze] ||= @hsts_header
+        headers["Strict-Transport-Security"] ||= @hsts_header
       end
 
       def normalize_hsts_options(options)
@@ -101,23 +102,23 @@ module ActionDispatch
 
       # https://tools.ietf.org/html/rfc6797#section-6.1
       def build_hsts_header(hsts)
-        value = "max-age=#{hsts[:expires].to_i}".dup
+        value = +"max-age=#{hsts[:expires].to_i}"
         value << "; includeSubDomains" if hsts[:subdomains]
         value << "; preload" if hsts[:preload]
         value
       end
 
       def flag_cookies_as_secure!(headers)
-        if cookies = headers["Set-Cookie".freeze]
-          cookies = cookies.split("\n".freeze)
+        if cookies = headers["Set-Cookie"]
+          cookies = cookies.split("\n")
 
-          headers["Set-Cookie".freeze] = cookies.map { |cookie|
-            if cookie !~ /;\s*secure\s*(;|$)/i
+          headers["Set-Cookie"] = cookies.map { |cookie|
+            if !/;\s*secure\s*(;|$)/i.match?(cookie)
               "#{cookie}; secure"
             else
               cookie
             end
-          }.join("\n".freeze)
+          }.join("\n")
         end
       end
 
@@ -125,7 +126,7 @@ module ActionDispatch
         [ @redirect.fetch(:status, redirection_status(request)),
           { "Content-Type" => "text/html",
             "Location" => https_location_for(request) },
-          @redirect.fetch(:body, []) ]
+          (@redirect[:body] || []) ]
       end
 
       def redirection_status(request)
@@ -140,7 +141,7 @@ module ActionDispatch
         host = @redirect[:host] || request.host
         port = @redirect[:port] || request.port
 
-        location = "https://#{host}".dup
+        location = +"https://#{host}"
         location << ":#{port}" if port != 80 && port != 443
         location << request.fullpath
         location

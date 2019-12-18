@@ -22,8 +22,8 @@ class ActiveStorage::PreviewTest < ActiveSupport::TestCase
     preview = blob.preview(resize: "640x280").processed
 
     assert_predicate preview.image, :attached?
-    assert_equal "video.png", preview.image.filename.to_s
-    assert_equal "image/png", preview.image.content_type
+    assert_equal "video.jpg", preview.image.filename.to_s
+    assert_equal "image/jpeg", preview.image.content_type
 
     image = read_image(preview.image)
     assert_equal 640, image.width
@@ -36,5 +36,16 @@ class ActiveStorage::PreviewTest < ActiveSupport::TestCase
     assert_raises ActiveStorage::UnpreviewableError do
       blob.preview resize: "640x280"
     end
+  end
+
+  test "previewing on the writer DB" do
+    blob = create_file_blob(filename: "report.pdf", content_type: "application/pdf")
+
+    # Simulate a selector middleware switching to a read-only replica.
+    ActiveRecord::Base.connection_handler.while_preventing_writes do
+      blob.preview(resize: "640x280").processed
+    end
+
+    assert blob.reload.preview_image.attached?
   end
 end

@@ -112,7 +112,6 @@ class PrependProtectForgeryBaseController < ActionController::Base
   end
 
   private
-
     def add_called_callback(name)
       @called_callbacks ||= []
       @called_callbacks << name
@@ -521,6 +520,11 @@ module RequestForgeryProtectionTests
       get :negotiate_same_origin
     end
 
+    assert_cross_origin_blocked do
+      @request.accept = "application/javascript"
+      get :negotiate_same_origin
+    end
+
     assert_cross_origin_not_blocked { get :same_origin_js, xhr: true }
     assert_cross_origin_not_blocked { get :same_origin_js, xhr: true, format: "js" }
     assert_cross_origin_not_blocked do
@@ -587,6 +591,15 @@ module RequestForgeryProtectionTests
     end
   end
 
+  def test_should_not_trigger_content_type_deprecation
+    original = ActionDispatch::Response.return_only_media_type_on_content_type
+    ActionDispatch::Response.return_only_media_type_on_content_type = true
+
+    assert_not_deprecated { get :same_origin_js, xhr: true }
+  ensure
+    ActionDispatch::Response.return_only_media_type_on_content_type = original
+  end
+
   def test_should_not_raise_error_if_token_is_not_a_string
     assert_blocked do
       patch :index, params: { custom_authenticity_token: { foo: "bar" } }
@@ -600,8 +613,8 @@ module RequestForgeryProtectionTests
     assert_response :success
   end
 
-  def assert_not_blocked
-    assert_nothing_raised { yield }
+  def assert_not_blocked(&block)
+    assert_nothing_raised(&block)
     assert_response :success
   end
 
@@ -1006,8 +1019,8 @@ class SkipProtectionControllerTest < ActionController::TestCase
     end
   end
 
-  def assert_not_blocked
-    assert_nothing_raised { yield }
+  def assert_not_blocked(&block)
+    assert_nothing_raised(&block)
     assert_response :success
   end
 end

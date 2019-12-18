@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 require "active_support/subscriber"
 
 class TestSubscriber < ActiveSupport::Subscriber
@@ -17,10 +17,24 @@ class TestSubscriber < ActiveSupport::Subscriber
   end
 
   private
-
     def private_party(event)
       events << event
     end
+end
+
+class TestSubscriber2 < ActiveSupport::Subscriber
+  attach_to :doodle
+  detach_from :doodle
+
+  cattr_reader :events
+
+  def self.clear
+    @@events = []
+  end
+
+  def open_party(event)
+    events << event
+  end
 end
 
 # Monkey patch subscriber to test that only one subscriber per method is added.
@@ -34,6 +48,7 @@ end
 class SubscriberTest < ActiveSupport::TestCase
   def setup
     TestSubscriber.clear
+    TestSubscriber2.clear
   end
 
   def test_attaches_subscribers
@@ -52,5 +67,12 @@ class SubscriberTest < ActiveSupport::TestCase
     ActiveSupport::Notifications.instrument("private_party.doodle")
 
     assert_equal [], TestSubscriber.events
+  end
+
+  def test_detaches_subscribers
+    ActiveSupport::Notifications.instrument("open_party.doodle")
+
+    assert_equal [], TestSubscriber2.events
+    assert_equal 1, TestSubscriber.events.size
   end
 end

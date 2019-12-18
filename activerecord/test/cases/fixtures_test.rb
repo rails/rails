@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "support/connection_helper"
 require "models/admin"
 require "models/admin/account"
 require "models/admin/randomly_named_c1"
@@ -32,6 +33,8 @@ require "models/treasure"
 require "tempfile"
 
 class FixturesTest < ActiveRecord::TestCase
+  include ConnectionHelper
+
   self.use_instantiated_fixtures = true
   self.use_transactional_tests = false
 
@@ -64,20 +67,18 @@ class FixturesTest < ActiveRecord::TestCase
     end
 
     def call(_, _, _, _, values)
-      @events << values[:sql] if values[:sql] =~ /INSERT/
+      @events << values[:sql] if /INSERT/.match?(values[:sql])
     end
   end
 
   if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)
     def test_bulk_insert
-      begin
-        subscriber = InsertQuerySubscriber.new
-        subscription = ActiveSupport::Notifications.subscribe("sql.active_record", subscriber)
-        create_fixtures("bulbs")
-        assert_equal 1, subscriber.events.size, "It takes one INSERT query to insert two fixtures"
-      ensure
-        ActiveSupport::Notifications.unsubscribe(subscription)
-      end
+      subscriber = InsertQuerySubscriber.new
+      subscription = ActiveSupport::Notifications.subscribe("sql.active_record", subscriber)
+      create_fixtures("bulbs")
+      assert_equal 1, subscriber.events.size, "It takes one INSERT query to insert two fixtures"
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscription)
     end
 
     def test_bulk_insert_multiple_table_with_a_multi_statement_query
@@ -86,7 +87,7 @@ class FixturesTest < ActiveRecord::TestCase
 
       create_fixtures("bulbs", "authors", "computers")
 
-      expected_sql = <<-EOS.strip_heredoc.chop
+      expected_sql = <<~EOS.chop
         INSERT INTO #{ActiveRecord::Base.connection.quote_table_name("bulbs")} .*
         INSERT INTO #{ActiveRecord::Base.connection.quote_table_name("authors")} .*
         INSERT INTO #{ActiveRecord::Base.connection.quote_table_name("computers")} .*
@@ -114,24 +115,111 @@ class FixturesTest < ActiveRecord::TestCase
         end
       end
     end
+
+    def test_bulk_insert_with_a_multi_statement_query_in_a_nested_transaction
+      fixtures = {
+        "traffic_lights" => [
+          { "location" => "US", "state" => ["NY"], "long_state" => ["a"] },
+        ]
+      }
+
+      assert_difference "TrafficLight.count" do
+        ActiveRecord::Base.transaction do
+          conn = ActiveRecord::Base.connection
+          assert_equal 1, conn.open_transactions
+          conn.insert_fixtures_set(fixtures)
+          assert_equal 1, conn.open_transactions
+        end
+      end
+    end
   end
 
   if current_adapter?(:Mysql2Adapter)
+    def test_bulk_insert_with_multi_statements_enabled
+      run_without_connection do |orig_connection|
+        ActiveRecord::Base.establish_connection(
+          orig_connection.merge(flags: %w[MULTI_STATEMENTS])
+        )
+
+        fixtures = {
+          "traffic_lights" => [
+            { "location" => "US", "state" => ["NY"], "long_state" => ["a"] },
+          ]
+        }
+
+        ActiveRecord::Base.connection.stub(:supports_set_server_option?, false) do
+          assert_nothing_raised do
+            conn = ActiveRecord::Base.connection
+            conn.execute("SELECT 1; SELECT 2;")
+            conn.raw_connection.abandon_results!
+          end
+
+          assert_difference "TrafficLight.count" do
+            ActiveRecord::Base.transaction do
+              conn = ActiveRecord::Base.connection
+              assert_equal 1, conn.open_transactions
+              conn.insert_fixtures_set(fixtures)
+              assert_equal 1, conn.open_transactions
+            end
+          end
+
+          assert_nothing_raised do
+            conn = ActiveRecord::Base.connection
+            conn.execute("SELECT 1; SELECT 2;")
+            conn.raw_connection.abandon_results!
+          end
+        end
+      end
+    end
+
+    def test_bulk_insert_with_multi_statements_disabled
+      run_without_connection do |orig_connection|
+        ActiveRecord::Base.establish_connection(
+          orig_connection.merge(flags: [])
+        )
+
+        fixtures = {
+          "traffic_lights" => [
+            { "location" => "US", "state" => ["NY"], "long_state" => ["a"] },
+          ]
+        }
+
+        ActiveRecord::Base.connection.stub(:supports_set_server_option?, false) do
+          assert_raises(ActiveRecord::StatementInvalid) do
+            conn = ActiveRecord::Base.connection
+            conn.execute("SELECT 1; SELECT 2;")
+            conn.raw_connection.abandon_results!
+          end
+
+          assert_difference "TrafficLight.count" do
+            conn = ActiveRecord::Base.connection
+            conn.insert_fixtures_set(fixtures)
+          end
+
+          assert_raises(ActiveRecord::StatementInvalid) do
+            conn = ActiveRecord::Base.connection
+            conn.execute("SELECT 1; SELECT 2;")
+            conn.raw_connection.abandon_results!
+          end
+        end
+      end
+    end
+
     def test_insert_fixtures_set_raises_an_error_when_max_allowed_packet_is_smaller_than_fixtures_set_size
       conn = ActiveRecord::Base.connection
       mysql_margin = 2
       packet_size = 1024
-      bytes_needed_to_have_a_1024_bytes_fixture = 858
+      bytes_needed_to_have_a_1024_bytes_fixture = 906
       fixtures = {
         "traffic_lights" => [
           { "location" => "US", "state" => ["NY"], "long_state" => ["a" * bytes_needed_to_have_a_1024_bytes_fixture] },
         ]
       }
 
-      conn.stubs(:max_allowed_packet).returns(packet_size - mysql_margin)
-
-      error = assert_raises(ActiveRecord::ActiveRecordError) { conn.insert_fixtures_set(fixtures) }
-      assert_match(/Fixtures set is too large #{packet_size}\./, error.message)
+      conn.stub(:max_allowed_packet, packet_size - mysql_margin) do
+        error = assert_raises(ActiveRecord::ActiveRecordError) { conn.insert_fixtures_set(fixtures) }
+        assert_match(/Fixtures set is too large #{packet_size}\./, error.message)
+      end
     end
 
     def test_insert_fixture_set_when_max_allowed_packet_is_bigger_than_fixtures_set_size
@@ -143,10 +231,10 @@ class FixturesTest < ActiveRecord::TestCase
         ]
       }
 
-      conn.stubs(:max_allowed_packet).returns(packet_size)
-
-      assert_difference "TrafficLight.count" do
-        conn.insert_fixtures_set(fixtures)
+      conn.stub(:max_allowed_packet, packet_size) do
+        assert_difference "TrafficLight.count" do
+          conn.insert_fixtures_set(fixtures)
+        end
       end
     end
 
@@ -164,12 +252,13 @@ class FixturesTest < ActiveRecord::TestCase
         ]
       }
 
-      conn.stubs(:max_allowed_packet).returns(packet_size)
+      conn.stub(:max_allowed_packet, packet_size) do
+        conn.insert_fixtures_set(fixtures)
 
-      conn.insert_fixtures_set(fixtures)
-      assert_equal 2, subscriber.events.size
-      assert_operator subscriber.events.first.bytesize, :<, packet_size
-      assert_operator subscriber.events.second.bytesize, :<, packet_size
+        assert_equal 2, subscriber.events.size
+        assert_operator subscriber.events.first.bytesize, :<, packet_size
+        assert_operator subscriber.events.second.bytesize, :<, packet_size
+      end
     ensure
       ActiveSupport::Notifications.unsubscribe(subscription)
     end
@@ -188,10 +277,10 @@ class FixturesTest < ActiveRecord::TestCase
         ]
       }
 
-      conn.stubs(:max_allowed_packet).returns(packet_size)
-
-      assert_difference ["TrafficLight.count", "Comment.count"], +1 do
-        conn.insert_fixtures_set(fixtures)
+      conn.stub(:max_allowed_packet, packet_size) do
+        assert_difference ["TrafficLight.count", "Comment.count"], +1 do
+          conn.insert_fixtures_set(fixtures)
+        end
       end
       assert_equal 1, subscriber.events.size
     ensure
@@ -207,20 +296,6 @@ class FixturesTest < ActiveRecord::TestCase
     conn = ActiveRecord::Base.connection
     assert_nothing_raised do
       conn.insert_fixtures_set({ "aircraft" => fixtures }, ["aircraft"])
-    end
-    result = conn.select_all("SELECT name, wheels_count FROM aircraft ORDER BY id")
-    assert_equal fixtures, result.to_a
-  end
-
-  def test_deprecated_insert_fixtures
-    fixtures = [
-      { "name" => "first", "wheels_count" => 2 },
-      { "name" => "second", "wheels_count" => 3 }
-    ]
-    conn = ActiveRecord::Base.connection
-    conn.delete("DELETE FROM aircraft")
-    assert_deprecated do
-      conn.insert_fixtures(fixtures, "aircraft")
     end
     result = conn.select_all("SELECT name, wheels_count FROM aircraft ORDER BY id")
     assert_equal fixtures, result.to_a
@@ -382,11 +457,11 @@ class FixturesTest < ActiveRecord::TestCase
   end
 
   def test_empty_yaml_fixture
-    assert_not_nil ActiveRecord::FixtureSet.new(Account.connection, "accounts", Account, FIXTURES_ROOT + "/naked/yml/accounts")
+    assert_not_nil ActiveRecord::FixtureSet.new(nil, "accounts", Account, FIXTURES_ROOT + "/naked/yml/accounts")
   end
 
   def test_empty_yaml_fixture_with_a_comment_in_it
-    assert_not_nil ActiveRecord::FixtureSet.new(Account.connection, "companies", Company, FIXTURES_ROOT + "/naked/yml/companies")
+    assert_not_nil ActiveRecord::FixtureSet.new(nil, "companies", Company, FIXTURES_ROOT + "/naked/yml/companies")
   end
 
   def test_nonexistent_fixture_file
@@ -396,14 +471,14 @@ class FixturesTest < ActiveRecord::TestCase
     assert_empty Dir[nonexistent_fixture_path + "*"]
 
     assert_raise(Errno::ENOENT) do
-      ActiveRecord::FixtureSet.new(Account.connection, "companies", Company, nonexistent_fixture_path)
+      ActiveRecord::FixtureSet.new(nil, "companies", Company, nonexistent_fixture_path)
     end
   end
 
   def test_dirty_dirty_yaml_file
     fixture_path = FIXTURES_ROOT + "/naked/yml/courses"
     error = assert_raise(ActiveRecord::Fixture::FormatError) do
-      ActiveRecord::FixtureSet.new(Account.connection, "courses", Course, fixture_path)
+      ActiveRecord::FixtureSet.new(nil, "courses", Course, fixture_path)
     end
     assert_equal "fixture is not a hash: #{fixture_path}.yml", error.to_s
   end
@@ -411,7 +486,7 @@ class FixturesTest < ActiveRecord::TestCase
   def test_yaml_file_with_one_invalid_fixture
     fixture_path = FIXTURES_ROOT + "/naked/yml/courses_with_invalid_key"
     error = assert_raise(ActiveRecord::Fixture::FormatError) do
-      ActiveRecord::FixtureSet.new(Account.connection, "courses", Course, fixture_path)
+      ActiveRecord::FixtureSet.new(nil, "courses", Course, fixture_path)
     end
     assert_equal "fixture key is not a hash: #{fixture_path}.yml, keys: [\"two\"]", error.to_s
   end
@@ -421,11 +496,7 @@ class FixturesTest < ActiveRecord::TestCase
       ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT + "/naked/yml", "parrots")
     end
 
-    if current_adapter?(:SQLite3Adapter)
-      assert_equal(%(table "parrots" has no column named "arrr".), e.message)
-    else
-      assert_equal(%(table "parrots" has no columns named "arrr", "foobar".), e.message)
-    end
+    assert_equal(%(table "parrots" has no columns named "arrr", "foobar".), e.message)
   end
 
   def test_yaml_file_with_symbol_columns
@@ -434,7 +505,7 @@ class FixturesTest < ActiveRecord::TestCase
 
   def test_omap_fixtures
     assert_nothing_raised do
-      fixtures = ActiveRecord::FixtureSet.new(Account.connection, "categories", Category, FIXTURES_ROOT + "/categories_ordered")
+      fixtures = ActiveRecord::FixtureSet.new(nil, "categories", Category, FIXTURES_ROOT + "/categories_ordered")
 
       fixtures.each.with_index do |(name, fixture), i|
         assert_equal "fixture_no_#{i}", name
@@ -505,7 +576,7 @@ class HasManyThroughFixture < ActiveRecord::TestCase
 
     parrots = File.join FIXTURES_ROOT, "parrots"
 
-    fs = ActiveRecord::FixtureSet.new parrot.connection, "parrots", parrot, parrots
+    fs = ActiveRecord::FixtureSet.new(nil, "parrots", parrot, parrots)
     rows = fs.table_rows
     assert_equal load_has_and_belongs_to_many["parrots_treasures"], rows["parrots_treasures"]
   end
@@ -523,9 +594,13 @@ class HasManyThroughFixture < ActiveRecord::TestCase
 
     parrots = File.join FIXTURES_ROOT, "parrots"
 
-    fs = ActiveRecord::FixtureSet.new parrot.connection, "parrots", parrot, parrots
+    fs = ActiveRecord::FixtureSet.new(nil, "parrots", parrot, parrots)
     rows = fs.table_rows
     assert_equal load_has_and_belongs_to_many["parrots_treasures"], rows["parrot_treasures"]
+  end
+
+  def test_has_and_belongs_to_many_order
+    assert_equal ["parrots", "parrots_treasures"], load_has_and_belongs_to_many.keys
   end
 
   def load_has_and_belongs_to_many
@@ -534,7 +609,7 @@ class HasManyThroughFixture < ActiveRecord::TestCase
 
     parrots = File.join FIXTURES_ROOT, "parrots"
 
-    fs = ActiveRecord::FixtureSet.new parrot.connection, "parrots", parrot, parrots
+    fs = ActiveRecord::FixtureSet.new(nil, "parrots", parrot, parrots)
     fs.table_rows
   end
 end
@@ -592,14 +667,14 @@ class FixturesWithoutInstantiationTest < ActiveRecord::TestCase
   fixtures :topics, :developers, :accounts
 
   def test_without_complete_instantiation
-    assert !defined?(@first)
-    assert !defined?(@topics)
-    assert !defined?(@developers)
-    assert !defined?(@accounts)
+    assert_not defined?(@first)
+    assert_not defined?(@topics)
+    assert_not defined?(@developers)
+    assert_not defined?(@accounts)
   end
 
   def test_fixtures_from_root_yml_without_instantiation
-    assert !defined?(@unknown), "@unknown is not defined"
+    assert_not defined?(@unknown), "@unknown is not defined"
   end
 
   def test_visibility_of_accessor_method
@@ -634,7 +709,7 @@ class FixturesWithoutInstanceInstantiationTest < ActiveRecord::TestCase
   fixtures :topics, :developers, :accounts
 
   def test_without_instance_instantiation
-    assert !defined?(@first), "@first is not defined"
+    assert_not defined?(@first), "@first is not defined"
   end
 end
 
@@ -730,7 +805,7 @@ class FixtureWithSetModelClassTest < ActiveRecord::TestCase
   fixtures :other_posts, :other_comments
 
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
-  # and thus takes into account the +set_model_class+.
+  # and thus takes into account the `model_class` set in the fixture.
   self.use_transactional_tests = false
 
   def test_uses_fixture_class_defined_in_yaml
@@ -750,7 +825,7 @@ class SetFixtureClassPrevailsTest < ActiveRecord::TestCase
   fixtures :bad_posts
 
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
-  # and thus takes into account the +set_model_class+.
+  # and thus takes into account our `set_fixture_class`.
   self.use_transactional_tests = false
 
   def test_uses_set_fixture_class
@@ -762,7 +837,7 @@ class CheckSetTableNameFixturesTest < ActiveRecord::TestCase
   set_fixture_class funny_jokes: Joke
   fixtures :funny_jokes
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
-  # and thus takes into account our set_fixture_class
+  # and thus takes into account our `set_fixture_class`.
   self.use_transactional_tests = false
 
   def test_table_method
@@ -774,7 +849,7 @@ class FixtureNameIsNotTableNameFixturesTest < ActiveRecord::TestCase
   set_fixture_class items: Book
   fixtures :items
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
-  # and thus takes into account our set_fixture_class
+  # and thus takes into account our `set_fixture_class`.
   self.use_transactional_tests = false
 
   def test_named_accessor
@@ -786,7 +861,7 @@ class FixtureNameIsNotTableNameMultipleFixturesTest < ActiveRecord::TestCase
   set_fixture_class items: Book, funny_jokes: Joke
   fixtures :items, :funny_jokes
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
-  # and thus takes into account our set_fixture_class
+  # and thus takes into account our `set_fixture_class`.
   self.use_transactional_tests = false
 
   def test_named_accessor_of_differently_named_fixture
@@ -833,44 +908,56 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
   self.use_instantiated_fixtures = false
 
   def test_transaction_created_on_connection_notification
-    connection = stub(transaction_open?: false)
-    connection.expects(:begin_transaction).with(joinable: false)
-    pool = connection.stubs(:pool).returns(ActiveRecord::ConnectionAdapters::ConnectionPool.new(ActiveRecord::Base.connection_pool.spec))
-    pool.stubs(:lock_thread=).with(false)
-    fire_connection_notification(connection)
+    connection = Class.new do
+      attr_accessor :pool
+
+      def transaction_open?; end
+      def begin_transaction(*args); end
+      def rollback_transaction(*args); end
+    end.new
+
+    connection.pool = Class.new do
+      def lock_thread=(lock_thread); end
+    end.new
+
+    assert_called_with(connection, :begin_transaction, [joinable: false, _lazy: false]) do
+      fire_connection_notification(connection)
+    end
   end
 
   def test_notification_established_transactions_are_rolled_back
-    # Mocha is not thread-safe so define our own stub to test
     connection = Class.new do
       attr_accessor :rollback_transaction_called
       attr_accessor :pool
+
       def transaction_open?; true; end
       def begin_transaction(*args); end
       def rollback_transaction(*args)
         @rollback_transaction_called = true
       end
     end.new
+
     connection.pool = Class.new do
-      def lock_thread=(lock_thread); false; end
+      def lock_thread=(lock_thread); end
     end.new
+
     fire_connection_notification(connection)
     teardown_fixtures
+
     assert(connection.rollback_transaction_called, "Expected <mock connection>#rollback_transaction to be called but was not")
   end
 
   private
-
     def fire_connection_notification(connection)
-      ActiveRecord::Base.connection_handler.stubs(:retrieve_connection).with("book").returns(connection)
-      message_bus = ActiveSupport::Notifications.instrumenter
-      payload = {
-        spec_name: "book",
-        config: nil,
-        connection_id: connection.object_id
-      }
+      assert_called_with(ActiveRecord::Base.connection_handler, :retrieve_connection, ["book"], returns: connection) do
+        message_bus = ActiveSupport::Notifications.instrumenter
+        payload = {
+          spec_name: "book",
+          config: nil,
+        }
 
-      message_bus.instrument("!connection.active_record", payload) {}
+        message_bus.instrument("!connection.active_record", payload) { }
+      end
     end
 end
 
@@ -891,7 +978,7 @@ class CheckEscapedYamlFixturesTest < ActiveRecord::TestCase
   set_fixture_class funny_jokes: Joke
   fixtures :funny_jokes
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
-  # and thus takes into account our set_fixture_class
+  # and thus takes into account our `set_fixture_class`.
   self.use_transactional_tests = false
 
   def test_proper_escaped_fixture
@@ -1082,13 +1169,13 @@ class FoxyFixturesTest < ActiveRecord::TestCase
   def test_supports_inline_habtm
     assert(parrots(:george).treasures.include?(treasures(:diamond)))
     assert(parrots(:george).treasures.include?(treasures(:sapphire)))
-    assert(!parrots(:george).treasures.include?(treasures(:ruby)))
+    assert_not(parrots(:george).treasures.include?(treasures(:ruby)))
   end
 
   def test_supports_inline_habtm_with_specified_id
     assert(parrots(:polly).treasures.include?(treasures(:ruby)))
     assert(parrots(:polly).treasures.include?(treasures(:sapphire)))
-    assert(!parrots(:polly).treasures.include?(treasures(:diamond)))
+    assert_not(parrots(:polly).treasures.include?(treasures(:diamond)))
   end
 
   def test_supports_yaml_arrays
@@ -1186,8 +1273,39 @@ class CustomNameForFixtureOrModelTest < ActiveRecord::TestCase
   end
 
   def test_table_name_is_defined_in_the_model
-    assert_equal "randomly_named_table2", ActiveRecord::FixtureSet::all_loaded_fixtures["admin/randomly_named_a9"].table_name
+    assert_equal "randomly_named_table2", ActiveRecord::FixtureSet.all_loaded_fixtures["admin/randomly_named_a9"].table_name
     assert_equal "randomly_named_table2", Admin::ClassNameThatDoesNotFollowCONVENTIONS1.table_name
+  end
+end
+
+class IgnoreFixturesTest < ActiveRecord::TestCase
+  fixtures :other_books, :parrots
+
+  # Set to false to blow away fixtures cache and ensure our fixtures are loaded
+  # without interfering with other tests that use the same `model_class`.
+  self.use_transactional_tests = false
+
+  test "ignores books fixtures" do
+    assert_raise(StandardError) { other_books(:published) }
+    assert_raise(StandardError) { other_books(:published_paperback) }
+    assert_raise(StandardError) { other_books(:published_ebook) }
+
+    assert_equal 2, Book.count
+    assert_equal "Agile Web Development with Rails", other_books(:awdr).name
+    assert_equal "published", other_books(:awdr).status
+    assert_equal "paperback", other_books(:awdr).format
+    assert_equal "english", other_books(:awdr).language
+
+    assert_equal "Ruby for Rails", other_books(:rfr).name
+    assert_equal "ebook", other_books(:rfr).format
+    assert_equal "published", other_books(:rfr).status
+  end
+
+  test "ignores parrots fixtures" do
+    assert_raise(StandardError) { parrots(:DEFAULT) }
+    assert_raise(StandardError) { parrots(:DEAD_PARROT) }
+
+    assert_equal "DeadParrot", parrots(:polly).parrot_sti_class
   end
 end
 
@@ -1238,4 +1356,61 @@ class SameNameDifferentDatabaseFixturesTest < ActiveRecord::TestCase
     assert_kind_of Dog, dogs(:sophie)
     assert_kind_of OtherDog, other_dogs(:lassie)
   end
+end
+
+class NilFixturePathTest < ActiveRecord::TestCase
+  test "raises an error when all fixtures loaded" do
+    error = assert_raises(StandardError) do
+      TestCase = Class.new(ActiveRecord::TestCase)
+      TestCase.class_eval do
+        self.fixture_path = nil
+        fixtures :all
+      end
+    end
+    assert_equal <<~MSG.squish, error.message
+      No fixture path found.
+      Please set `NilFixturePathTest::TestCase.fixture_path`.
+    MSG
+  end
+end
+
+class FileFixtureConflictTest < ActiveRecord::TestCase
+  def self.file_fixture_path
+    FIXTURES_ROOT + "/all/admin"
+  end
+
+  test "ignores file fixtures" do
+    self.class.fixture_path = FIXTURES_ROOT + "/all"
+    self.class.fixtures :all
+
+    assert_equal %w(developers namespaced/accounts people tasks), fixture_table_names.sort
+  end
+end
+
+class MultipleDatabaseFixturesTest < ActiveRecord::TestCase
+  test "enlist_fixture_connections ensures multiple databases share a connection pool" do
+    old_handlers = ActiveRecord::Base.connection_handlers
+    ActiveRecord::Base.connection_handlers = {}
+
+    with_temporary_connection_pool do
+      ActiveRecord::Base.connects_to database: { writing: :arunit, reading: :arunit2 }
+
+      rw_conn = ActiveRecord::Base.connection
+      ro_conn = ActiveRecord::Base.connection_handlers[:reading].connection_pool_list.first.connection
+
+      assert_equal rw_conn, ro_conn
+    end
+  ensure
+    ActiveRecord::Base.connection_handlers = old_handlers
+  end
+
+  private
+    def with_temporary_connection_pool
+      pool_config = ActiveRecord::Base.connection_handler.send(:owner_to_pool_manager).fetch("primary").get_pool_config(:default)
+      new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(pool_config)
+
+      pool_config.stub(:pool, new_pool) do
+        yield
+      end
+    end
 end

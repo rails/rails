@@ -2,7 +2,6 @@
 
 require "yaml"
 require "active_support/message_encryptor"
-require "active_support/core_ext/string/strip"
 
 module Rails
   # Greatly inspired by Ara T. Howard's magnificent sekrets gem. 😘

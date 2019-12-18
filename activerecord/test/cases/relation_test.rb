@@ -5,16 +5,17 @@ require "models/post"
 require "models/comment"
 require "models/author"
 require "models/rating"
+require "models/categorization"
 
 module ActiveRecord
   class RelationTest < ActiveRecord::TestCase
-    fixtures :posts, :comments, :authors, :author_addresses, :ratings
+    fixtures :posts, :comments, :authors, :author_addresses, :ratings, :categorizations
 
     def test_construction
       relation = Relation.new(FakeKlass, table: :b)
       assert_equal FakeKlass, relation.klass
       assert_equal :b, relation.table
-      assert !relation.loaded, "relation is not loaded"
+      assert_not relation.loaded, "relation is not loaded"
     end
 
     def test_responds_to_model_and_returns_klass
@@ -100,6 +101,9 @@ module ActiveRecord
 
       relation.merge!(relation)
       assert_predicate relation, :empty_scope?
+
+      assert_not_predicate NullPost.all, :empty_scope?
+      assert_not_predicate FirstPost.all, :empty_scope?
     end
 
     def test_bad_constants_raise_errors
@@ -223,6 +227,30 @@ module ActiveRecord
       assert_equal manual_comments_on_post_that_have_author.size, merged_authors_with_commented_posts_relation.to_a.size
     end
 
+    def test_relation_merging_with_merged_symbol_joins_is_aliased
+      categorizations_with_authors = Categorization.joins(:author)
+      queries = capture_sql { Post.joins(:author, :categorizations).merge(Author.select(:id)).merge(categorizations_with_authors).to_a }
+
+      nb_inner_join = queries.sum { |sql| sql.scan(/INNER\s+JOIN/i).size }
+      assert_equal 3, nb_inner_join, "Wrong amount of INNER JOIN in query"
+
+      # using `\W` as the column separator
+      assert queries.any? { |sql| %r[INNER\s+JOIN\s+#{Regexp.escape(Author.quoted_table_name)}\s+\Wauthors_categorizations\W]i.match?(sql) }, "Should be aliasing the child INNER JOINs in query"
+    end
+
+    def test_relation_with_merged_joins_aliased_works
+      categorizations_with_authors = Categorization.joins(:author)
+      posts_with_joins_and_merges = Post.joins(:author, :categorizations)
+                                        .merge(Author.select(:id)).merge(categorizations_with_authors)
+
+      author_with_posts = Author.joins(:posts).ids
+      categorizations_with_author = Categorization.joins(:author).ids
+      posts_with_author_and_categorizations = Post.joins(:categorizations).where(author_id: author_with_posts, categorizations: { id: categorizations_with_author }).ids
+
+      assert_equal posts_with_author_and_categorizations.size, posts_with_joins_and_merges.count
+      assert_equal posts_with_author_and_categorizations.size, posts_with_joins_and_merges.to_a.size
+    end
+
     def test_relation_merging_with_joins_as_join_dependency_pick_proper_parent
       post = Post.create!(title: "haha", body: "huhu")
       comment = post.comments.create!(body: "hu")
@@ -264,6 +292,7 @@ module ActiveRecord
       klass.create!(description: "foo")
 
       assert_equal ["foo"], klass.select(:description).from(klass.all).map(&:desc)
+      assert_equal ["foo"], klass.reselect(:description).from(klass.all).map(&:desc)
     end
 
     def test_relation_merging_with_merged_joins_as_strings
@@ -280,6 +309,65 @@ module ActiveRecord
       ratings  = Rating.joins(:comment).merge(comments)
 
       assert_equal 3, ratings.count
+    end
+
+    def test_relation_with_annotation_includes_comment_in_to_sql
+      post_with_annotation = Post.where(id: 1).annotate("foo")
+      assert_match %r{= 1 /\* foo \*/}, post_with_annotation.to_sql
+    end
+
+    def test_relation_with_annotation_includes_comment_in_sql
+      post_with_annotation = Post.where(id: 1).annotate("foo")
+      assert_sql(%r{/\* foo \*/}) do
+        assert post_with_annotation.first, "record should be found"
+      end
+    end
+
+    def test_relation_with_annotation_chains_sql_comments
+      post_with_annotation = Post.where(id: 1).annotate("foo").annotate("bar")
+      assert_sql(%r{/\* foo \*/ /\* bar \*/}) do
+        assert post_with_annotation.first, "record should be found"
+      end
+    end
+
+    def test_relation_with_annotation_filters_sql_comment_delimiters
+      post_with_annotation = Post.where(id: 1).annotate("**//foo//**")
+      assert_match %r{= 1 /\* foo \*/}, post_with_annotation.to_sql
+    end
+
+    def test_relation_with_annotation_includes_comment_in_count_query
+      post_with_annotation = Post.annotate("foo")
+      all_count = Post.all.to_a.count
+      assert_sql(%r{/\* foo \*/}) do
+        assert_equal all_count, post_with_annotation.count
+      end
+    end
+
+    def test_relation_without_annotation_does_not_include_an_empty_comment
+      log = capture_sql do
+        Post.where(id: 1).first
+      end
+
+      assert_not_predicate log, :empty?
+      assert_predicate log.select { |query| query.match?(%r{/\*}) }, :empty?
+    end
+
+    def test_relation_with_optimizer_hints_filters_sql_comment_delimiters
+      post_with_hint = Post.where(id: 1).optimizer_hints("**//BADHINT//**")
+      assert_match %r{BADHINT}, post_with_hint.to_sql
+      assert_no_match %r{\*/BADHINT}, post_with_hint.to_sql
+      assert_no_match %r{\*//BADHINT}, post_with_hint.to_sql
+      assert_no_match %r{BADHINT/\*}, post_with_hint.to_sql
+      assert_no_match %r{BADHINT//\*}, post_with_hint.to_sql
+      post_with_hint = Post.where(id: 1).optimizer_hints("/*+ BADHINT */")
+      assert_match %r{/\*\+ BADHINT \*/}, post_with_hint.to_sql
+    end
+
+    def test_does_not_duplicate_optimizer_hints_on_merge
+      escaped_table = Post.connection.quote_table_name("posts")
+      expected = "SELECT /*+ OMGHINT */ #{escaped_table}.* FROM #{escaped_table}"
+      query = Post.optimizer_hints("OMGHINT").merge(Post.optimizer_hints("OMGHINT")).to_sql
+      assert_equal expected, query
     end
 
     class EnsureRoundTripTypeCasting < ActiveRecord::Type::Value
@@ -315,8 +403,29 @@ module ActiveRecord
       assert_equal "type cast from database", UpdateAllTestModel.first.body
     end
 
-    private
+    def test_skip_preloading_after_arel_has_been_generated
+      assert_nothing_raised do
+        relation = Comment.all
+        relation.arel
+        relation.skip_preloading!
+      end
+    end
 
+    test "no queries on empty IN" do
+      Post.send(:load_schema)
+      assert_no_queries do
+        Post.where(id: []).load
+      end
+    end
+
+    test "can unscope empty IN" do
+      Post.send(:load_schema)
+      assert_queries 1 do
+        Post.where(id: []).unscope(where: :id).load
+      end
+    end
+
+    private
       def skip_if_sqlite3_version_includes_quoting_bug
         if sqlite3_version_includes_quoting_bug?
           skip <<-ERROR.squish

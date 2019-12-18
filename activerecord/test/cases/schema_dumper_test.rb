@@ -33,26 +33,9 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
     schema_info = ActiveRecord::Base.connection.dump_schema_information
     assert_match(/20100201010101.*20100301010101/m, schema_info)
+    assert_includes schema_info, "20100101010101"
   ensure
     ActiveRecord::SchemaMigration.delete_all
-  end
-
-  if current_adapter?(:SQLite3Adapter)
-    %w{3.7.8 3.7.11 3.7.12}.each do |version_string|
-      test "dumps schema version for sqlite version #{version_string}" do
-        version = ActiveRecord::ConnectionAdapters::SQLite3Adapter::Version.new(version_string)
-        ActiveRecord::Base.connection.stubs(:sqlite_version).returns(version)
-
-        versions = %w{ 20100101010101 20100201010101 20100301010101 }
-        versions.reverse_each do |v|
-          ActiveRecord::SchemaMigration.create!(version: v)
-        end
-
-        schema_info = ActiveRecord::Base.connection.dump_schema_information
-        assert_match(/20100201010101.*20100301010101/m, schema_info)
-        ActiveRecord::SchemaMigration.delete_all
-      end
-    end
   end
 
   def test_schema_dump
@@ -192,7 +175,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   def test_schema_dumps_partial_indices
     index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_partial_index/).first.strip
-    if current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter) && ActiveRecord::Base.connection.supports_partial_index?
+    if ActiveRecord::Base.connection.supports_partial_index?
       assert_equal 't.index ["firm_id", "type"], name: "company_partial_index", where: "(rating > 10)"', index_definition
     else
       assert_equal 't.index ["firm_id", "type"], name: "company_partial_index"', index_definition
@@ -244,27 +227,50 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_match %r{t\.float\s+"temperature"$}, output
   end
 
+  if ActiveRecord::Base.connection.supports_expression_index?
+    def test_schema_dump_expression_indices
+      index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_expression_index/).first.strip
+      index_definition.sub!(/, name: "company_expression_index"\z/, "")
+
+      if current_adapter?(:PostgreSQLAdapter)
+        assert_match %r{CASE.+lower\(\(name\)::text\).+END\) DESC"\z}i, index_definition
+      elsif current_adapter?(:Mysql2Adapter)
+        assert_match %r{CASE.+lower\(`name`\).+END\) DESC"\z}i, index_definition
+      elsif current_adapter?(:SQLite3Adapter)
+        assert_match %r{CASE.+lower\(name\).+END\) DESC"\z}i, index_definition
+      else
+        assert false
+      end
+    end
+  end
+
   if current_adapter?(:Mysql2Adapter)
     def test_schema_dump_includes_length_for_mysql_binary_fields
-      output = standard_dump
+      output = dump_table_schema "binary_fields"
       assert_match %r{t\.binary\s+"var_binary",\s+limit: 255$}, output
       assert_match %r{t\.binary\s+"var_binary_large",\s+limit: 4095$}, output
     end
 
     def test_schema_dump_includes_length_for_mysql_blob_and_text_fields
-      output = standard_dump
-      assert_match %r{t\.blob\s+"tiny_blob",\s+limit: 255$}, output
+      output = dump_table_schema "binary_fields"
+      assert_match %r{t\.binary\s+"tiny_blob",\s+size: :tiny$}, output
       assert_match %r{t\.binary\s+"normal_blob"$}, output
-      assert_match %r{t\.binary\s+"medium_blob",\s+limit: 16777215$}, output
-      assert_match %r{t\.binary\s+"long_blob",\s+limit: 4294967295$}, output
-      assert_match %r{t\.text\s+"tiny_text",\s+limit: 255$}, output
+      assert_match %r{t\.binary\s+"medium_blob",\s+size: :medium$}, output
+      assert_match %r{t\.binary\s+"long_blob",\s+size: :long$}, output
+      assert_match %r{t\.text\s+"tiny_text",\s+size: :tiny$}, output
       assert_match %r{t\.text\s+"normal_text"$}, output
-      assert_match %r{t\.text\s+"medium_text",\s+limit: 16777215$}, output
-      assert_match %r{t\.text\s+"long_text",\s+limit: 4294967295$}, output
+      assert_match %r{t\.text\s+"medium_text",\s+size: :medium$}, output
+      assert_match %r{t\.text\s+"long_text",\s+size: :long$}, output
+      assert_match %r{t\.binary\s+"tiny_blob_2",\s+size: :tiny$}, output
+      assert_match %r{t\.binary\s+"medium_blob_2",\s+size: :medium$}, output
+      assert_match %r{t\.binary\s+"long_blob_2",\s+size: :long$}, output
+      assert_match %r{t\.text\s+"tiny_text_2",\s+size: :tiny$}, output
+      assert_match %r{t\.text\s+"medium_text_2",\s+size: :medium$}, output
+      assert_match %r{t\.text\s+"long_text_2",\s+size: :long$}, output
     end
 
     def test_schema_does_not_include_limit_for_emulated_mysql_boolean_fields
-      output = standard_dump
+      output = dump_table_schema "booleans"
       assert_no_match %r{t\.boolean\s+"has_fun",.+limit: 1}, output
     end
 
@@ -296,11 +302,6 @@ class SchemaDumperTest < ActiveRecord::TestCase
       assert_match %r{t\.decimal\s+"decimal_array_default",\s+default: \["1.23", "3.45"\],\s+array: true}, output
     end
 
-    def test_schema_dump_expression_indices
-      index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_expression_index/).first.strip
-      assert_equal 't.index "lower((name)::text)", name: "company_expression_index"', index_definition
-    end
-
     def test_schema_dump_interval_type
       output = dump_table_schema "postgresql_times"
       assert_match %r{t\.interval\s+"time_interval"$}, output
@@ -315,29 +316,33 @@ class SchemaDumperTest < ActiveRecord::TestCase
     def test_schema_dump_includes_extensions
       connection = ActiveRecord::Base.connection
 
-      connection.stubs(:extensions).returns(["hstore"])
-      output = perform_schema_dump
-      assert_match "# These are extensions that must be enabled", output
-      assert_match %r{enable_extension "hstore"}, output
+      connection.stub(:extensions, ["hstore"]) do
+        output = perform_schema_dump
+        assert_match "# These are extensions that must be enabled", output
+        assert_match %r{enable_extension "hstore"}, output
+      end
 
-      connection.stubs(:extensions).returns([])
-      output = perform_schema_dump
-      assert_no_match "# These are extensions that must be enabled", output
-      assert_no_match %r{enable_extension}, output
+      connection.stub(:extensions, []) do
+        output = perform_schema_dump
+        assert_no_match "# These are extensions that must be enabled", output
+        assert_no_match %r{enable_extension}, output
+      end
     end
 
     def test_schema_dump_includes_extensions_in_alphabetic_order
       connection = ActiveRecord::Base.connection
 
-      connection.stubs(:extensions).returns(["hstore", "uuid-ossp", "xml2"])
-      output = perform_schema_dump
-      enabled_extensions = output.scan(%r{enable_extension "(.+)"}).flatten
-      assert_equal ["hstore", "uuid-ossp", "xml2"], enabled_extensions
+      connection.stub(:extensions, ["hstore", "uuid-ossp", "xml2"]) do
+        output = perform_schema_dump
+        enabled_extensions = output.scan(%r{enable_extension "(.+)"}).flatten
+        assert_equal ["hstore", "uuid-ossp", "xml2"], enabled_extensions
+      end
 
-      connection.stubs(:extensions).returns(["uuid-ossp", "xml2", "hstore"])
-      output = perform_schema_dump
-      enabled_extensions = output.scan(%r{enable_extension "(.+)"}).flatten
-      assert_equal ["hstore", "uuid-ossp", "xml2"], enabled_extensions
+      connection.stub(:extensions, ["uuid-ossp", "xml2", "hstore"]) do
+        output = perform_schema_dump
+        enabled_extensions = output.scan(%r{enable_extension "(.+)"}).flatten
+        assert_equal ["hstore", "uuid-ossp", "xml2"], enabled_extensions
+      end
     end
   end
 
@@ -469,7 +474,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     output = ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, stream).string
 
     assert_match %r{create_table "omg_cats"}, output
-    refute_match %r{create_table "cats"}, output
+    assert_no_match %r{create_table "cats"}, output
   ensure
     migration.migrate(:down)
     ActiveRecord::Base.table_name_prefix = original_table_name_prefix

@@ -12,7 +12,7 @@ module ActiveJob
     #
     #   Rails.application.config.active_job.queue_adapter = :test
     class TestAdapter
-      attr_accessor(:perform_enqueued_jobs, :perform_enqueued_at_jobs, :filter, :reject)
+      attr_accessor(:perform_enqueued_jobs, :perform_enqueued_at_jobs, :filter, :reject, :queue, :at)
       attr_writer(:enqueued_jobs, :performed_jobs)
 
       # Provides a store of all the enqueued jobs with the TestAdapter so you can check them.
@@ -29,14 +29,14 @@ module ActiveJob
         return if filtered?(job)
 
         job_data = job_to_hash(job)
-        enqueue_or_perform(perform_enqueued_jobs, job, job_data)
+        perform_or_enqueue(perform_enqueued_jobs, job, job_data)
       end
 
       def enqueue_at(job, timestamp) #:nodoc:
         return if filtered?(job)
 
         job_data = job_to_hash(job, at: timestamp)
-        enqueue_or_perform(perform_enqueued_at_jobs, job, job_data)
+        perform_or_enqueue(perform_enqueued_at_jobs, job, job_data)
       end
 
       private
@@ -44,7 +44,7 @@ module ActiveJob
           { job: job.class, args: job.serialize.fetch("arguments"), queue: job.queue_name }.merge!(extras)
         end
 
-        def enqueue_or_perform(perform, job, job_data)
+        def perform_or_enqueue(perform, job, job_data)
           if perform
             performed_jobs << job_data
             Base.execute job.serialize
@@ -54,13 +54,31 @@ module ActiveJob
         end
 
         def filtered?(job)
-          if filter
-            !Array(filter).include?(job.class)
-          elsif reject
-            Array(reject).include?(job.class)
-          else
-            false
+          filtered_queue?(job) || filtered_job_class?(job) || filtered_time?(job)
+        end
+
+        def filtered_time?(job)
+          job.scheduled_at > at.to_f if at && job.scheduled_at
+        end
+
+        def filtered_queue?(job)
+          if queue
+            job.queue_name != queue.to_s
           end
+        end
+
+        def filtered_job_class?(job)
+          if filter
+            !filter_as_proc(filter).call(job)
+          elsif reject
+            filter_as_proc(reject).call(job)
+          end
+        end
+
+        def filter_as_proc(filter)
+          return filter if filter.is_a?(Proc)
+
+          ->(job) { Array(filter).include?(job.class) }
         end
     end
   end

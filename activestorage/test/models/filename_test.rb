@@ -30,8 +30,8 @@ class ActiveStorage::FilenameTest < ActiveSupport::TestCase
   end
 
   test "sanitize transcodes to valid UTF-8" do
-    { "\xF6".dup.force_encoding(Encoding::ISO8859_1) => "ö",
-      "\xC3".dup.force_encoding(Encoding::ISO8859_1) => "Ã",
+    { (+"\xF6").force_encoding(Encoding::ISO8859_1) => "ö",
+      (+"\xC3").force_encoding(Encoding::ISO8859_1) => "Ã",
       "\xAD" => "�",
       "\xCF" => "�",
       "\x00" => "",

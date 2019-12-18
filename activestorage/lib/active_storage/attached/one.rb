@@ -3,33 +3,41 @@
 module ActiveStorage
   # Representation of a single attachment to a model.
   class Attached::One < Attached
-    delegate_missing_to :attachment
+    delegate_missing_to :attachment, allow_nil: true
 
     # Returns the associated attachment record.
     #
     # You don't have to call this method to access the attachment's methods as
     # they are all available at the model level.
     def attachment
-      record.public_send("#{name}_attachment")
+      change.present? ? change.attachment : record.public_send("#{name}_attachment")
     end
 
-    # Associates a given attachment with the current record, saving it to the database.
+    def blank?
+      !attached?
+    end
+
+    # Attaches an +attachable+ to the record.
+    #
+    # If the record is persisted and unchanged, the attachment is saved to
+    # the database immediately. Otherwise, it'll be saved to the DB when the
+    # record is next saved.
     #
     #   person.avatar.attach(params[:avatar]) # ActionDispatch::Http::UploadedFile object
     #   person.avatar.attach(params[:signed_blob_id]) # Signed reference to blob from direct upload
     #   person.avatar.attach(io: File.open("/path/to/face.jpg"), filename: "face.jpg", content_type: "image/jpg")
     #   person.avatar.attach(avatar_blob) # ActiveStorage::Blob object
     def attach(attachable)
-      if attached? && dependent == :purge_later
-        replace attachable
+      if record.persisted? && !record.changed?
+        record.update(name => attachable)
       else
-        write_attachment build_attachment_from(attachable)
+        record.public_send("#{name}=", attachable)
       end
     end
 
     # Returns +true+ if an attachment has been made.
     #
-    #   class User < ActiveRecord::Base
+    #   class User < ApplicationRecord
     #     has_one_attached :avatar
     #   end
     #
@@ -41,7 +49,7 @@ module ActiveStorage
     # Deletes the attachment without purging it, leaving its blob in place.
     def detach
       if attached?
-        attachment.destroy
+        attachment.delete
         write_attachment nil
       end
     end
@@ -59,23 +67,11 @@ module ActiveStorage
     def purge_later
       if attached?
         attachment.purge_later
+        write_attachment nil
       end
     end
 
     private
-      def replace(attachable)
-        blob.tap do
-          transaction do
-            detach
-            write_attachment build_attachment_from(attachable)
-          end
-        end.purge_later
-      end
-
-      def build_attachment_from(attachable)
-        ActiveStorage::Attachment.new(record: record, name: name, blob: create_blob_from(attachable))
-      end
-
       def write_attachment(attachment)
         record.public_send("#{name}_attachment=", attachment)
       end

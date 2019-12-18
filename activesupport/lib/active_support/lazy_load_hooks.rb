@@ -54,7 +54,6 @@ module ActiveSupport
     end
 
     private
-
       def with_execution_control(name, block, once)
         unless @run_once[name].include?(block)
           @run_once[name] << block if once
@@ -68,7 +67,11 @@ module ActiveSupport
           if options[:yield]
             block.call(base)
           else
-            base.instance_eval(&block)
+            if base.is_a?(Module)
+              base.class_eval(&block)
+            else
+              base.instance_eval(&block)
+            end
           end
         end
       end

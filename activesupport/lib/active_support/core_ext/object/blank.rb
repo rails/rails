@@ -1,11 +1,10 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/regexp"
 require "concurrent/map"
 
 class Object
   # An object is blank if it's false, empty, or a whitespace string.
-  # For example, +false+, '', '   ', +nil+, [], and {} are all blank.
+  # For example, +nil+, '', '   ', [], {}, and +false+ are all blank.
   #
   # This simplifies
   #

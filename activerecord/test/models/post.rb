@@ -11,6 +11,10 @@ class Post < ActiveRecord::Base
     def author
       "lifo"
     end
+
+    def greeting
+      super + " :)"
+    end
   end
 
   module NamedExtension2
@@ -31,6 +35,7 @@ class Post < ActiveRecord::Base
 
   belongs_to :author_with_posts, -> { includes(:posts) }, class_name: "Author", foreign_key: :author_id
   belongs_to :author_with_address, -> { includes(:author_address) }, class_name: "Author", foreign_key: :author_id
+  belongs_to :author_with_select, -> { select(:id) }, class_name: "Author", foreign_key: :author_id
 
   def first_comment
     super.body
@@ -38,6 +43,7 @@ class Post < ActiveRecord::Base
   has_one :first_comment, -> { order("id ASC") }, class_name: "Comment"
   has_one :last_comment, -> { order("id desc") }, class_name: "Comment"
 
+  scope :no_comments, -> { left_joins(:comments).where(comments: { id: nil }) }
   scope :with_special_comments, -> { joins(:comments).where(comments: { type: "SpecialComment" }) }
   scope :with_very_special_comments, -> { joins(:comments).where(comments: { type: "VerySpecialComment" }) }
   scope :with_post, ->(post_id) { joins(:comments).where(comments: { post_id: post_id }) }
@@ -77,6 +83,7 @@ class Post < ActiveRecord::Base
   has_many :comments_with_extend_2, extend: [NamedExtension, NamedExtension2], class_name: "Comment", foreign_key: "post_id"
 
   has_many :author_favorites, through: :author
+  has_many :author_favorites_with_scope, through: :author, class_name: "AuthorFavoriteWithScope", source: "author_favorites"
   has_many :author_categorizations, through: :author, source: :categorizations
   has_many :author_addresses, through: :author
   has_many :author_address_extra_with_address,
@@ -201,6 +208,10 @@ end
 
 class SubAbstractStiPost < AbstractStiPost; end
 
+class NullPost < Post
+  default_scope { none }
+end
+
 class FirstPost < ActiveRecord::Base
   self.inheritance_column = :disabled
   self.table_name = "posts"
@@ -208,6 +219,12 @@ class FirstPost < ActiveRecord::Base
 
   has_many :comments, foreign_key: :post_id
   has_one  :comment,  foreign_key: :post_id
+end
+
+class PostWithDefaultSelect < ActiveRecord::Base
+  self.table_name = "posts"
+
+  default_scope { select(:author_id) }
 end
 
 class TaggedPost < Post
@@ -253,6 +270,8 @@ class SpecialPostWithDefaultScope < ActiveRecord::Base
   self.inheritance_column = :disabled
   self.table_name = "posts"
   default_scope { where(id: [1, 5, 6]) }
+  scope :unscoped_all, -> { unscoped { all } }
+  scope :authorless, -> { unscoped { where(author_id: 0) } }
 end
 
 class PostThatLoadsCommentsInAnAfterSaveHook < ActiveRecord::Base
@@ -296,8 +315,6 @@ end
 class FakeKlass
   extend ActiveRecord::Delegation::DelegateCache
 
-  inherited self
-
   class << self
     def connection
       Post.connection
@@ -307,8 +324,8 @@ class FakeKlass
       "posts"
     end
 
-    def attribute_alias?(name)
-      false
+    def attribute_aliases
+      {}
     end
 
     def sanitize_sql(sql)
@@ -323,8 +340,12 @@ class FakeKlass
       table[name]
     end
 
-    def enforce_raw_sql_whitelist(*args)
+    def disallow_raw_sql!(*args)
       # noop
+    end
+
+    def columns_hash
+      { "name" => nil }
     end
 
     def arel_table
@@ -334,5 +355,11 @@ class FakeKlass
     def predicate_builder
       Post.predicate_builder
     end
+
+    def base_class?
+      true
+    end
   end
+
+  inherited self
 end

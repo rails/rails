@@ -85,6 +85,7 @@ module ApplicationTests
     end
 
     test "mailer previews are loaded from a custom preview_path" do
+      app_dir "lib/mailer_previews"
       add_to_config "config.action_mailer.preview_path = '#{app_path}/lib/mailer_previews'"
 
       mailer "notifier", <<-RUBY
@@ -254,6 +255,7 @@ module ApplicationTests
     end
 
     test "mailer previews are reloaded from a custom preview_path" do
+      app_dir "lib/mailer_previews"
       add_to_config "config.action_mailer.preview_path = '#{app_path}/lib/mailer_previews'"
 
       app("development")
@@ -511,6 +513,13 @@ module ApplicationTests
       assert_equal 200, last_response.status
       assert_match '<option  value="locale=en">en', last_response.body
       assert_match '<option selected value="locale=ja">ja', last_response.body
+    end
+
+    test "preview does not leak I18n global setting changes" do
+      I18n.with_locale(:en) do
+        get "/rails/mailers/notifier/foo.txt?locale=ja"
+        assert_equal :en, I18n.locale
+      end
     end
 
     test "mailer previews create correct links when loaded on a subdirectory" do
@@ -814,10 +823,40 @@ module ApplicationTests
       assert_equal 200, last_response.status
     end
 
+    test "mailer preview title tag" do
+      mailer "notifier", <<-RUBY
+        class Notifier < ActionMailer::Base
+          default from: "from@example.com"
+
+          def foo
+            mail to: "to@example.org"
+          end
+        end
+      RUBY
+
+      text_template "notifier/foo", <<-RUBY
+        Hello, World!
+      RUBY
+
+      mailer_preview "notifier", <<-RUBY
+        class NotifierPreview < ActionMailer::Preview
+          def foo
+            Notifier.foo
+          end
+        end
+      RUBY
+
+      app("development")
+
+      get "/rails/mailers/notifier/foo"
+      assert_match "<title>Mailer Preview for notifier#foo</title>", last_response.body
+    end
+
     private
       def build_app
         super
         app_file "config/routes.rb", "Rails.application.routes.draw do; end"
+        app_dir "test/mailers/previews"
       end
 
       def mailer(name, contents)

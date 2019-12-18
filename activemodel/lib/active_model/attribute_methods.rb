@@ -286,12 +286,12 @@ module ActiveModel
           method_name = matcher.method_name(attr_name)
 
           unless instance_method_already_implemented?(method_name)
-            generate_method = "define_method_#{matcher.method_missing_target}"
+            generate_method = "define_method_#{matcher.target}"
 
             if respond_to?(generate_method, true)
               send(generate_method, attr_name.to_s)
             else
-              define_proxy_call true, generated_attribute_methods, method_name, matcher.method_missing_target, attr_name.to_s
+              define_proxy_call true, generated_attribute_methods, method_name, matcher.target, attr_name.to_s
             end
           end
         end
@@ -352,62 +352,56 @@ module ActiveModel
 
         def attribute_method_matchers_matching(method_name)
           attribute_method_matchers_cache.compute_if_absent(method_name) do
-            # Must try to match prefixes/suffixes first, or else the matcher with no prefix/suffix
-            # will match every time.
-            matchers = attribute_method_matchers.partition(&:plain?).reverse.flatten(1)
-            matchers.map { |method| method.match(method_name) }.compact
+            attribute_method_matchers.map { |matcher| matcher.match(method_name) }.compact
           end
         end
 
         # Define a method `name` in `mod` that dispatches to `send`
         # using the given `extra` args. This falls back on `define_method`
         # and `send` if the given names cannot be compiled.
-        def define_proxy_call(include_private, mod, name, send, *extra)
+        def define_proxy_call(include_private, mod, name, target, *extra)
+          kw = RUBY_VERSION >= "2.7" ? ", **options" : nil
           defn = if NAME_COMPILABLE_REGEXP.match?(name)
-            "def #{name}(*args)"
+            "def #{name}(*args#{kw})"
           else
-            "define_method(:'#{name}') do |*args|"
+            "define_method(:'#{name}') do |*args#{kw}|"
           end
 
-          extra = (extra.map!(&:inspect) << "*args").join(", ".freeze)
+          extra = (extra.map!(&:inspect) << "*args#{kw}").join(", ")
 
-          target = if CALL_COMPILABLE_REGEXP.match?(send)
-            "#{"self." unless include_private}#{send}(#{extra})"
+          body = if CALL_COMPILABLE_REGEXP.match?(target)
+            "#{"self." unless include_private}#{target}(#{extra})"
           else
-            "send(:'#{send}', #{extra})"
+            "send(:'#{target}', #{extra})"
           end
 
           mod.module_eval <<-RUBY, __FILE__, __LINE__ + 1
             #{defn}
-              #{target}
+              #{body}
             end
           RUBY
         end
 
         class AttributeMethodMatcher #:nodoc:
-          attr_reader :prefix, :suffix, :method_missing_target
+          attr_reader :prefix, :suffix, :target
 
-          AttributeMethodMatch = Struct.new(:target, :attr_name, :method_name)
+          AttributeMethodMatch = Struct.new(:target, :attr_name)
 
           def initialize(options = {})
             @prefix, @suffix = options.fetch(:prefix, ""), options.fetch(:suffix, "")
             @regex = /^(?:#{Regexp.escape(@prefix)})(.*)(?:#{Regexp.escape(@suffix)})$/
-            @method_missing_target = "#{@prefix}attribute#{@suffix}"
+            @target = "#{@prefix}attribute#{@suffix}"
             @method_name = "#{prefix}%s#{suffix}"
           end
 
           def match(method_name)
             if @regex =~ method_name
-              AttributeMethodMatch.new(method_missing_target, $1, method_name)
+              AttributeMethodMatch.new(target, $1)
             end
           end
 
           def method_name(attr_name)
             @method_name % attr_name
-          end
-
-          def plain?
-            prefix.empty? && suffix.empty?
           end
         end
     end
@@ -473,6 +467,44 @@ module ActiveModel
 
       def _read_attribute(attr)
         __send__(attr)
+      end
+
+      module AttrNames # :nodoc:
+        DEF_SAFE_NAME = /\A[a-zA-Z_]\w*\z/
+
+        # We want to generate the methods via module_eval rather than
+        # define_method, because define_method is slower on dispatch.
+        # Evaluating many similar methods may use more memory as the instruction
+        # sequences are duplicated and cached (in MRI).  define_method may
+        # be slower on dispatch, but if you're careful about the closure
+        # created, then define_method will consume much less memory.
+        #
+        # But sometimes the database might return columns with
+        # characters that are not allowed in normal method names (like
+        # 'my_column(omg)'. So to work around this we first define with
+        # the __temp__ identifier, and then use alias method to rename
+        # it to what we want.
+        #
+        # We are also defining a constant to hold the frozen string of
+        # the attribute name. Using a constant means that we do not have
+        # to allocate an object on each call to the attribute method.
+        # Making it frozen means that it doesn't get duped when used to
+        # key the @attributes in read_attribute.
+        def self.define_attribute_accessor_method(mod, attr_name, writer: false)
+          method_name = "#{attr_name}#{'=' if writer}"
+          if attr_name.ascii_only? && DEF_SAFE_NAME.match?(attr_name)
+            yield method_name, "'#{attr_name}'.freeze"
+          else
+            safe_name = attr_name.unpack1("h*")
+            const_name = "ATTR_#{safe_name}"
+            const_set(const_name, attr_name) unless const_defined?(const_name)
+            temp_method_name = "__temp__#{safe_name}#{'=' if writer}"
+            attr_name_expr = "::ActiveModel::AttributeMethods::AttrNames::#{const_name}"
+            yield temp_method_name, attr_name_expr
+            mod.alias_method method_name, temp_method_name
+            mod.undef_method temp_method_name
+          end
+        end
       end
   end
 end

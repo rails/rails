@@ -3,9 +3,10 @@
 require "active_support/core_ext/module/delegation"
 
 # Attachments associate records with blobs. Usually that's a one record-many blobs relationship,
-# but it is possible to associate many different records with the same blob. If you're doing that,
-# you'll want to declare with <tt>has_one/many_attached :thingy, dependent: false</tt>, so that destroying
-# any one record won't destroy the blob as well. (Then you'll need to do your own garbage collecting, though).
+# but it is possible to associate many different records with the same blob. A foreign-key constraint
+# on the attachments table prevents blobs from being purged if they’re still attached to any records.
+#
+# Attachments also have access to all methods from {ActiveStorage::Blob}[rdoc-ref:ActiveStorage::Blob].
 class ActiveStorage::Attachment < ActiveRecord::Base
   self.table_name = "active_storage_attachments"
 
@@ -14,18 +15,19 @@ class ActiveStorage::Attachment < ActiveRecord::Base
 
   delegate_missing_to :blob
 
-  after_create_commit :identify_blob, :analyze_blob_later
+  after_create_commit :mirror_blob_later, :analyze_blob_later, :identify_blob
+  after_destroy_commit :purge_dependent_blob_later
 
-  # Synchronously purges the blob (deletes it from the configured service) and destroys the attachment.
+  # Synchronously deletes the attachment and {purges the blob}[rdoc-ref:ActiveStorage::Blob#purge].
   def purge
-    blob.purge
-    destroy
+    delete
+    blob&.purge
   end
 
-  # Destroys the attachment and asynchronously purges the blob (deletes it from the configured service).
+  # Deletes the attachment and {enqueues a background job}[rdoc-ref:ActiveStorage::Blob#purge_later] to purge the blob.
   def purge_later
-    blob.purge_later
-    destroy
+    delete
+    blob&.purge_later
   end
 
   private
@@ -36,4 +38,19 @@ class ActiveStorage::Attachment < ActiveRecord::Base
     def analyze_blob_later
       blob.analyze_later unless blob.analyzed?
     end
+
+    def mirror_blob_later
+      blob.mirror_later
+    end
+
+    def purge_dependent_blob_later
+      blob&.purge_later if dependent == :purge_later
+    end
+
+
+    def dependent
+      record.attachment_reflections[name]&.options[:dependent]
+    end
 end
+
+ActiveSupport.run_load_hooks :active_storage_attachment, ActiveStorage::Attachment

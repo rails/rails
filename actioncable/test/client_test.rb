@@ -40,16 +40,16 @@ class ClientTest < ActionCable::TestCase
     end
 
     def ding(data)
-      transmit(dong: data["message"])
+      transmit({ dong: data["message"] })
     end
 
     def delay(data)
       sleep 1
-      transmit(dong: data["message"])
+      transmit({ dong: data["message"] })
     end
 
     def bulk(data)
-      ActionCable.server.broadcast "global", wide: data["message"]
+      ActionCable.server.broadcast "global", { wide: data["message"] }
     end
   end
 
@@ -91,7 +91,7 @@ class ClientTest < ActionCable::TestCase
 
       rescue RuntimeError => ex
         # Work around https://bugs.ruby-lang.org/issues/13239
-        raise unless ex.message =~ /can't modify frozen IOError/
+        raise unless ex.message.match?(/can't modify frozen IOError/)
 
         # Handle this as if it were the IOError: do the same as above.
         server.binder.close
@@ -140,7 +140,7 @@ class ClientTest < ActionCable::TestCase
           end
         end
 
-        ws.on(:close) do |event|
+        ws.on(:close) do |_|
           closed.set
         end
       end
@@ -289,9 +289,10 @@ class ClientTest < ActionCable::TestCase
       subscriptions = app.connections.first.subscriptions.send(:subscriptions)
       assert_not_equal 0, subscriptions.size, "Missing EchoChannel subscription"
       channel = subscriptions.first[1]
-      channel.expects(:unsubscribed)
-      c.close
-      sleep 0.1 # Data takes a moment to process
+      assert_called(channel, :unsubscribed) do
+        c.close
+        sleep 0.1 # Data takes a moment to process
+      end
 
       # All data is removed: No more connection or subscription information!
       assert_equal(0, app.connections.count)

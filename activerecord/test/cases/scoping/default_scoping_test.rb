@@ -4,6 +4,7 @@ require "cases/helper"
 require "models/post"
 require "models/comment"
 require "models/developer"
+require "models/project"
 require "models/computer"
 require "models/vehicle"
 require "models/cat"
@@ -193,7 +194,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
   def test_order_to_unscope_reordering
     scope = DeveloperOrderedBySalary.order("salary DESC, name ASC").reverse_order.unscope(:order)
-    assert !/order/i.match?(scope.to_sql)
+    assert_no_match(/order/i, scope.to_sql)
   end
 
   def test_unscope_reverse_order
@@ -366,6 +367,21 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal "Jamis", jamis.name
   end
 
+  def test_create_with_takes_precedence_over_where
+    developer = Developer.where(name: nil).create_with(name: "Aaron").new
+    assert_equal "Aaron", developer.name
+  end
+
+  def test_create_with_nested_attributes
+    assert_difference("Project.count", 1) do
+      Developer.create_with(
+        projects_attributes: [{ name: "p1" }]
+      ).scoping do
+        Developer.create!(name: "Aaron")
+      end
+    end
+  end
+
   # FIXME: I don't know if this is *desired* behavior, but it is *today's*
   # behavior.
   def test_create_with_empty_hash_will_not_reset
@@ -392,18 +408,18 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_joins_not_affected_by_scope_other_than_default_or_unscoped
-    without_scope_on_post = Comment.joins(:post).to_a
+    without_scope_on_post = Comment.joins(:post).sort_by(&:id)
     with_scope_on_post = nil
     Post.where(id: [1, 5, 6]).scoping do
-      with_scope_on_post = Comment.joins(:post).to_a
+      with_scope_on_post = Comment.joins(:post).sort_by(&:id)
     end
 
-    assert_equal with_scope_on_post, without_scope_on_post
+    assert_equal without_scope_on_post, with_scope_on_post
   end
 
   def test_unscoped_with_joins_should_not_have_default_scope
-    assert_equal SpecialPostWithDefaultScope.unscoped { Comment.joins(:special_post_with_default_scope).to_a },
-                 Comment.joins(:post).to_a
+    assert_equal Comment.joins(:post).sort_by(&:id),
+      SpecialPostWithDefaultScope.unscoped { Comment.joins(:special_post_with_default_scope).sort_by(&:id) }
   end
 
   def test_sti_association_with_unscoped_not_affected_by_default_scope

@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Ruby on Rails 5.1 Release Notes
 ===============================
@@ -41,8 +41,8 @@ Major Features
 [Pull Request](https://github.com/rails/rails/pull/26836)
 
 Rails 5.1 allows managing JavaScript dependencies
-from NPM via Yarn. This will make it easy to use libraries like React, VueJS
-or any other library from NPM world. The Yarn support is integrated with
+from npm via Yarn. This will make it easy to use libraries like React, VueJS
+or any other library from npm world. The Yarn support is integrated with
 the asset pipeline so that all dependencies will work seamlessly with the
 Rails 5.1 app.
 
@@ -102,7 +102,7 @@ Secrets will be decrypted in production, using a key stored either in the
 [Pull Request](https://github.com/rails/rails/pull/27825)
 
 Allows specifying common parameters used for all methods in a mailer class in
-order to share instance variables, headers and other common setup.
+order to share instance variables, headers, and other common setup.
 
 ``` ruby
 class InvitationsMailer < ApplicationMailer
@@ -170,7 +170,7 @@ Before Rails 5.1, there were two interfaces for handling HTML forms:
 `form_for` for model instances and `form_tag` for custom URLs.
 
 Rails 5.1 combines both of these interfaces with `form_with`, and
-can generate form tags based on URLs, scopes or models.
+can generate form tags based on URLs, scopes, or models.
 
 Using just a URL:
 
@@ -350,9 +350,9 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 *   Removed deprecated methods related to controller filters.
     ([Commit](https://github.com/rails/rails/commit/d7be30e8babf5e37a891522869e7b0191b79b757))
-    
+
 *   Removed deprecated support to `:text` and `:nothing` in `render`.
-    ([Commit](https://github.com/rails/rails/commit/79a5ea9eadb4d43b62afacedc0706cbe88c54496), 
+    ([Commit](https://github.com/rails/rails/commit/79a5ea9eadb4d43b62afacedc0706cbe88c54496),
     [Commit](https://github.com/rails/rails/commit/57e1c99a280bdc1b324936a690350320a1cd8111))
 
 *   Removed deprecated support for calling `HashWithIndifferentAccess` methods on `ActionController::Parameters`.
@@ -399,7 +399,7 @@ Please refer to the [Changelog][action-view] for detailed changes.
 
 *   Change `datetime_field` and `datetime_field_tag` to generate `datetime-local`
     fields.
-    ([Pull Request](https://github.com/rails/rails/pull/28061))
+    ([Pull Request](https://github.com/rails/rails/pull/25469))
 
 *   New Builder-style syntax for HTML tags (`tag.div`, `tag.br`, etc.)
     ([Pull Request](https://github.com/rails/rails/pull/25543))
@@ -644,7 +644,7 @@ Credits
 -------
 
 See the
-[full list of contributors to Rails](http://contributors.rubyonrails.org/) for
+[full list of contributors to Rails](https://contributors.rubyonrails.org/) for
 the many people who spent many hours making Rails, the stable and robust
 framework it is. Kudos to all of them.
 

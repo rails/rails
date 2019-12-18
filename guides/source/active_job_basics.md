@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Active Job Basics
 =================
@@ -50,7 +50,7 @@ Active Job provides a Rails generator to create jobs. The following will create 
 job in `app/jobs` (with an attached test case under `test/jobs`):
 
 ```bash
-$ bin/rails generate job guests_cleanup
+$ rails generate job guests_cleanup
 invoke  test_unit
 create    test/jobs/guests_cleanup_job_test.rb
 create  app/jobs/guests_cleanup_job.rb
@@ -59,7 +59,7 @@ create  app/jobs/guests_cleanup_job.rb
 You can also create a job that will run on a specific queue:
 
 ```bash
-$ bin/rails generate job guests_cleanup --queue urgent
+$ rails generate job guests_cleanup --queue urgent
 ```
 
 If you don't want to use a generator, you could create your own file inside of
@@ -120,8 +120,8 @@ production apps will need to pick a persistent backend.
 ### Backends
 
 Active Job has built-in adapters for multiple queuing backends (Sidekiq,
-Resque, Delayed Job and others). To get an up-to-date list of the adapters
-see the API Documentation for [ActiveJob::QueueAdapters](http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
+Resque, Delayed Job, and others). To get an up-to-date list of the adapters
+see the API Documentation for [ActiveJob::QueueAdapters](https://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
 
 ### Setting the Backend
 
@@ -147,7 +147,7 @@ class GuestsCleanupJob < ApplicationJob
   #....
 end
 
-# Now your job will use `resque` as it's backend queue adapter overriding what
+# Now your job will use `resque` as its backend queue adapter overriding what
 # was configured in `config.active_job.queue_adapter`.
 ```
 
@@ -165,6 +165,7 @@ Here is a noncomprehensive list of documentation:
 - [Sneakers](https://github.com/jondot/sneakers/wiki/How-To:-Rails-Background-Jobs-with-ActiveJob)
 - [Sucker Punch](https://github.com/brandonhilkert/sucker_punch#active-job)
 - [Queue Classic](https://github.com/QueueClassic/queue_classic#active-job)
+- [Delayed Job](https://github.com/collectiveidea/delayed_job#active-job)
 
 Queues
 ------
@@ -199,6 +200,19 @@ end
 # Now your job will run on queue production_low_priority on your
 # production environment and on staging_low_priority
 # on your staging environment
+```
+
+You can also configure the prefix on a per job basis.
+
+```ruby
+class GuestsCleanupJob < ApplicationJob
+  queue_as :low_priority
+  self.queue_name_prefix = nil
+  #....
+end
+
+# Now your job's queue won't be prefixed, overriding what
+# was configured in `config.active_job.queue_name_prefix`.
 ```
 
 The default queue name prefix delimiter is '\_'.  This can be changed by setting
@@ -276,7 +290,7 @@ class GuestsCleanupJob < ApplicationJob
   end
 
   private
-    def around_cleanup(job)
+    def around_cleanup
       # Do something before perform
       yield
       # Do something after perform
@@ -289,8 +303,8 @@ style if the code inside your block is so short that it fits in a single line.
 For example, you could send metrics for every job enqueued:
 
 ```ruby
-class ApplicationJob
-  before_enqueue { |job| $statsd.increment "#{job.name.underscore}.enqueue" }
+class ApplicationJob < ActiveJob::Base
+  before_enqueue { |job| $statsd.increment "#{job.class.name.underscore}.enqueue" }
 end
 ```
 
@@ -339,8 +353,25 @@ UserMailer.welcome(@user).deliver_later # Email will be localized to Esperanto.
 ```
 
 
-GlobalID
---------
+Supported types for arguments
+----------------------------
+
+ActiveJob supports the following types of arguments by default:
+
+  - Basic types (`NilClass`, `String`, `Integer`, `Float`, `BigDecimal`, `TrueClass`, `FalseClass`)
+  - `Symbol`
+  - `Date`
+  - `Time`
+  - `DateTime`
+  - `ActiveSupport::TimeWithZone`
+  - `ActiveSupport::Duration`
+  - `Hash` (Keys should be of `String` or `Symbol` type)
+  - `ActiveSupport::HashWithIndifferentAccess`
+  - `Array`
+  - `Module`
+  - `Class`
+
+### GlobalID
 
 Active Job supports GlobalID for parameters. This makes it possible to pass live
 Active Record objects to your job instead of class/id pairs, which you then have
@@ -368,6 +399,39 @@ end
 This works with any class that mixes in `GlobalID::Identification`, which
 by default has been mixed into Active Record classes.
 
+### Serializers
+
+You can extend the list of supported argument types. You just need to define your own serializer:
+
+```ruby
+class MoneySerializer < ActiveJob::Serializers::ObjectSerializer
+  # Checks if an argument should be serialized by this serializer.
+  def serialize?(argument)
+    argument.is_a? Money
+  end
+
+  # Converts an object to a simpler representative using supported object types.
+  # The recommended representative is a Hash with a specific key. Keys can be of basic types only.
+  # You should call `super` to add the custom serializer type to the hash.
+  def serialize(money)
+    super(
+      "amount" => money.amount,
+      "currency" => money.currency
+    )
+  end
+
+  # Converts serialized value into a proper object.
+  def deserialize(hash)
+    Money.new(hash["amount"], hash["currency"])
+  end
+end
+```
+
+and add this serializer to the list:
+
+```ruby
+Rails.application.config.active_job.custom_serializers << MoneySerializer
+```
 
 Exceptions
 ----------
@@ -389,7 +453,11 @@ class GuestsCleanupJob < ApplicationJob
 end
 ```
 
+If the exception is not rescued within the job, e.g. as shown above, then the job is referred to as "failed".
+
 ### Retrying or Discarding failed jobs
+
+A failed job will not be retried, unless configured otherwise.
 
 It's also possible to retry or discard a job if an exception is raised during execution.
 For example:
@@ -406,7 +474,7 @@ class RemoteServiceJob < ApplicationJob
 end
 ```
 
-To get more details see the API Documentation for [ActiveJob::Exceptions](http://api.rubyonrails.org/classes/ActiveJob/Exceptions/ClassMethods.html).
+To get more details see the API Documentation for [ActiveJob::Exceptions](https://api.rubyonrails.org/classes/ActiveJob/Exceptions/ClassMethods.html).
 
 ### Deserialization
 

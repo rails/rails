@@ -5,7 +5,7 @@ module ActionCable
     module Naming
       extend ActiveSupport::Concern
 
-      class_methods do
+      module ClassMethods
         # Returns the name of the channel, underscored, without the <tt>Channel</tt> ending.
         # If the channel is in a namespace, then the namespaces are represented by single
         # colon separators in the channel name.

@@ -47,6 +47,40 @@ module ActiveModel
       assert_equal true, data.boolean_field
     end
 
+    test "reading attributes" do
+      data = ModelForAttributesTest.new(
+        integer_field: 1.1,
+        string_field: 1.1,
+        decimal_field: 1.1,
+        boolean_field: 1.1
+      )
+
+      expected_attributes = {
+        integer_field: 1,
+        string_field: "1.1",
+        decimal_field: BigDecimal("1.1"),
+        string_with_default: "default string",
+        date_field: Date.new(2016, 1, 1),
+        boolean_field: true
+      }.stringify_keys
+
+      assert_equal expected_attributes, data.attributes
+    end
+
+    test "reading attribute names" do
+      names = [
+        "integer_field",
+        "string_field",
+        "decimal_field",
+        "string_with_default",
+        "date_field",
+        "boolean_field"
+      ]
+
+      assert_equal names, ModelForAttributesTest.attribute_names
+      assert_equal names, ModelForAttributesTest.new.attribute_names
+    end
+
     test "nonexistent attribute" do
       assert_raise ActiveModel::UnknownAttributeError do
         ModelForAttributesTest.new(nonexistent: "nonexistent")
@@ -72,6 +106,13 @@ module ActiveModel
       new_attributes = round_tripped.instance_variable_get(:@attributes)
 
       assert_equal attributes, new_attributes
+    end
+
+    test "can't modify attributes if frozen" do
+      data = ModelForAttributesTest.new
+      data.freeze
+      assert data.frozen?
+      assert_raise(FrozenError) { data.integer_field = 1 }
     end
   end
 end

@@ -78,7 +78,7 @@ module ActionController
   #
   # You can retrieve it again through the same hash:
   #
-  #   Hello #{session[:person]}
+  #   "Hello #{session[:person]}"
   #
   # For removing objects from the session, you can either assign a single key to +nil+:
   #
@@ -226,12 +226,15 @@ module ActionController
       FormBuilder,
       RequestForgeryProtection,
       ContentSecurityPolicy,
+      FeaturePolicy,
       ForceSSL,
       Streaming,
       DataStreaming,
       HttpAuthentication::Basic::ControllerMethods,
       HttpAuthentication::Digest::ControllerMethods,
       HttpAuthentication::Token::ControllerMethods,
+      DefaultHeaders,
+      Logging,
 
       # Before callbacks should also be executed as early as possible, so
       # also include them at the bottom.
@@ -262,12 +265,6 @@ module ActionController
 
     def _protected_ivars # :nodoc:
       PROTECTED_IVARS
-    end
-
-    def self.make_response!(request)
-      ActionDispatch::Response.create.tap do |res|
-        res.request = request
-      end
     end
 
     ActiveSupport.run_load_hooks(:action_controller_base, self)

@@ -11,12 +11,13 @@ class String
   # encapsulates the original string. A Unicode safe version of all the String methods are defined on this proxy
   # class. If the proxy class doesn't respond to a certain method, it's forwarded to the encapsulated string.
   #
-  #   >> "ǉ".upcase
-  #   => "ǉ"
   #   >> "ǉ".mb_chars.upcase.to_s
   #   => "Ǉ"
   #
-  # NOTE: An above example is useful for pre Ruby 2.4. Ruby 2.4 supports Unicode case mappings.
+  # NOTE: Ruby 2.4 and later support native Unicode case mappings:
+  #
+  #   >> "ǉ".upcase
+  #   => "Ǉ"
   #
   # == Method chaining
   #
@@ -46,9 +47,9 @@ class String
   #   iso_str.is_utf8?   # => false
   def is_utf8?
     case encoding
-    when Encoding::UTF_8
+    when Encoding::UTF_8, Encoding::US_ASCII
       valid_encoding?
-    when Encoding::ASCII_8BIT, Encoding::US_ASCII
+    when Encoding::ASCII_8BIT
       dup.force_encoding(Encoding::UTF_8).valid_encoding?
     else
       false

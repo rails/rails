@@ -2,6 +2,7 @@
 
 require "active_support/core_ext/hash/indifferent_access"
 require "active_support/core_ext/string/filters"
+require "active_support/parameter_filter"
 require "concurrent/map"
 
 module ActiveRecord
@@ -26,7 +27,7 @@ module ActiveRecord
 
       ##
       # Contains the database configuration - as is typically stored in config/database.yml -
-      # as a Hash.
+      # as an ActiveRecord::DatabaseConfigurations object.
       #
       # For example, the following database.yml...
       #
@@ -40,22 +41,18 @@ module ActiveRecord
       #
       # ...would result in ActiveRecord::Base.configurations to look like this:
       #
-      #   {
-      #      'development' => {
-      #         'adapter'  => 'sqlite3',
-      #         'database' => 'db/development.sqlite3'
-      #      },
-      #      'production' => {
-      #         'adapter'  => 'sqlite3',
-      #         'database' => 'db/production.sqlite3'
-      #      }
-      #   }
+      #   #<ActiveRecord::DatabaseConfigurations:0x00007fd1acbdf800 @configurations=[
+      #     #<ActiveRecord::DatabaseConfigurations::HashConfig:0x00007fd1acbded10 @env_name="development",
+      #       @spec_name="primary", @config={adapter: "sqlite3", database: "db/development.sqlite3"}>,
+      #     #<ActiveRecord::DatabaseConfigurations::HashConfig:0x00007fd1acbdea90 @env_name="production",
+      #       @spec_name="primary", @config={adapter: "sqlite3", database: "db/production.sqlite3"}>
+      #   ]>
       def self.configurations=(config)
-        @@configurations = ActiveRecord::ConnectionHandling::MergeAndResolveDefaultUrlConfig.new(config).resolve
+        @@configurations = ActiveRecord::DatabaseConfigurations.new(config)
       end
       self.configurations = {}
 
-      # Returns fully resolved configurations hash
+      # Returns fully resolved ActiveRecord::DatabaseConfigurations object
       def self.configurations
         @@configurations
       end
@@ -99,7 +96,7 @@ module ActiveRecord
       ##
       # :singleton-method:
       # Specify whether schema dump should happen at the end of the
-      # db:migrate rake task. This is true by default, which is useful for the
+      # db:migrate rails command. This is true by default, which is useful for the
       # development environment. This should ideally be false in the production
       # environment where dumping schema is rarely needed.
       mattr_accessor :dump_schema_after_migration, instance_writer: false, default: true
@@ -123,27 +120,32 @@ module ActiveRecord
 
       mattr_accessor :maintain_test_schema, instance_accessor: false
 
-      mattr_accessor :belongs_to_required_by_default, instance_accessor: false
+      class_attribute :belongs_to_required_by_default, instance_accessor: false
+
+      mattr_accessor :connection_handlers, instance_accessor: false, default: {}
+
+      mattr_accessor :writing_role, instance_accessor: false, default: :writing
+
+      mattr_accessor :reading_role, instance_accessor: false, default: :reading
+
+      mattr_accessor :has_many_inversing, instance_accessor: false, default: false
 
       class_attribute :default_connection_handler, instance_writer: false
 
+      self.filter_attributes = []
+
       def self.connection_handler
-        ActiveRecord::RuntimeRegistry.connection_handler || default_connection_handler
+        Thread.current.thread_variable_get(:ar_connection_handler) || default_connection_handler
       end
 
       def self.connection_handler=(handler)
-        ActiveRecord::RuntimeRegistry.connection_handler = handler
+        Thread.current.thread_variable_set(:ar_connection_handler, handler)
       end
 
       self.default_connection_handler = ConnectionAdapters::ConnectionHandler.new
     end
 
-    module ClassMethods # :nodoc:
-      def allocate
-        define_attribute_methods
-        super
-      end
-
+    module ClassMethods
       def initialize_find_by_cache # :nodoc:
         @find_by_statement_cache = { true => Concurrent::Map.new, false => Concurrent::Map.new }
       end
@@ -160,7 +162,7 @@ module ActiveRecord
         return super if block_given? ||
                         primary_key.nil? ||
                         scope_attributes? ||
-                        columns_hash.include?(inheritance_column)
+                        columns_hash.key?(inheritance_column) && !base_class?
 
         id = ids.first
 
@@ -172,19 +174,16 @@ module ActiveRecord
           where(key => params.bind).limit(1)
         }
 
-        record = statement.execute([id], connection).first
+        record = statement.execute([id], connection)&.first
         unless record
-          raise RecordNotFound.new("Couldn't find #{name} with '#{primary_key}'=#{id}",
-                                   name, primary_key, id)
+          raise RecordNotFound.new("Couldn't find #{name} with '#{key}'=#{id}", name, key, id)
         end
         record
-      rescue ::RangeError
-        raise RecordNotFound.new("Couldn't find #{name} with an out of range value for '#{primary_key}'",
-                                 name, primary_key)
       end
 
       def find_by(*args) # :nodoc:
-        return super if scope_attributes? || reflect_on_all_aggregations.any?
+        return super if scope_attributes? || reflect_on_all_aggregations.any? ||
+                        columns_hash.key?(inheritance_column) && !base_class?
 
         hash = args.first
 
@@ -204,11 +203,9 @@ module ActiveRecord
           where(wheres).limit(1)
         }
         begin
-          statement.execute(hash.values, connection).first
+          statement.execute(hash.values, connection)&.first
         rescue TypeError
           raise ActiveRecord::StatementInvalid
-        rescue ::RangeError
-          nil
         end
       end
 
@@ -220,7 +217,7 @@ module ActiveRecord
         generated_association_methods
       end
 
-      def generated_association_methods
+      def generated_association_methods # :nodoc:
         @generated_association_methods ||= begin
           mod = const_set(:GeneratedAssociationMethods, Module.new)
           private_constant :GeneratedAssociationMethods
@@ -230,8 +227,20 @@ module ActiveRecord
         end
       end
 
+      # Returns columns which shouldn't be exposed while calling +#inspect+.
+      def filter_attributes
+        if defined?(@filter_attributes)
+          @filter_attributes
+        else
+          superclass.filter_attributes
+        end
+      end
+
+      # Specifies columns which shouldn't be exposed while calling +#inspect+.
+      attr_writer :filter_attributes
+
       # Returns a string like 'Post(id:integer, title:string, body:text)'
-      def inspect
+      def inspect # :nodoc:
         if self == Base
           super
         elsif abstract_class?
@@ -247,7 +256,7 @@ module ActiveRecord
       end
 
       # Overwrite the default class equality method to provide support for decorated models.
-      def ===(object)
+      def ===(object) # :nodoc:
         object.is_a?(self)
       end
 
@@ -261,7 +270,8 @@ module ActiveRecord
       end
 
       def arel_attribute(name, table = arel_table) # :nodoc:
-        name = attribute_alias(name) if attribute_alias?(name)
+        name = name.to_s
+        name = attribute_aliases[name] || name
         table[name]
       end
 
@@ -273,8 +283,11 @@ module ActiveRecord
         TypeCaster::Map.new(self)
       end
 
-      private
+      def _internal? # :nodoc:
+        false
+      end
 
+      private
         def cached_find_by_statement(key, &block)
           cache = @find_by_statement_cache[connection.prepared_statements]
           cache.compute_if_absent(key) { StatementCache.create(connection, &block) }
@@ -305,7 +318,7 @@ module ActiveRecord
     #   # Instantiates a single new object
     #   User.new(first_name: 'Jamie')
     def initialize(attributes = nil)
-      self.class.define_attribute_methods
+      @new_record = true
       @attributes = self.class._default_attributes.deep_dup
 
       init_internals
@@ -331,15 +344,21 @@ module ActiveRecord
     #   post = Post.allocate
     #   post.init_with(coder)
     #   post.title # => 'hello world'
-    def init_with(coder)
+    def init_with(coder, &block)
       coder = LegacyYamlAdapter.convert(self.class, coder)
-      @attributes = self.class.yaml_encoder.decode(coder)
+      attributes = self.class.yaml_encoder.decode(coder)
+      init_with_attributes(attributes, coder["new_record"], &block)
+    end
+
+    ##
+    # Initialize an empty model object from +attributes+.
+    # +attributes+ should be an attributes object, and unlike the
+    # `initialize` method, no assignment calls are made per attribute.
+    def init_with_attributes(attributes, new_record = false) # :nodoc:
+      @new_record = new_record
+      @attributes = attributes
 
       init_internals
-
-      @new_record = coder["new_record"]
-
-      self.class.define_attribute_methods
 
       yield self if block_given?
 
@@ -378,13 +397,13 @@ module ActiveRecord
     ##
     def initialize_dup(other) # :nodoc:
       @attributes = @attributes.deep_dup
-      @attributes.reset(self.class.primary_key)
+      @attributes.reset(@primary_key)
 
       _run_initialize_callbacks
 
       @new_record               = true
       @destroyed                = false
-      @_start_transaction_state = {}
+      @_start_transaction_state = nil
       @transaction_state        = nil
 
       super
@@ -445,6 +464,7 @@ module ActiveRecord
 
     # Returns +true+ if the attributes hash has been frozen.
     def frozen?
+      sync_with_transaction_state if @transaction_state&.finalized?
       @attributes.frozen?
     end
 
@@ -455,6 +475,14 @@ module ActiveRecord
       else
         super
       end
+    end
+
+    def present? # :nodoc:
+      true
+    end
+
+    def blank? # :nodoc:
+      false
     end
 
     # Returns +true+ if the record is read only. Records loaded through joins with piggy-back
@@ -479,7 +507,14 @@ module ActiveRecord
       inspection = if defined?(@attributes) && @attributes
         self.class.attribute_names.collect do |name|
           if has_attribute?(name)
-            "#{name}: #{attribute_for_inspect(name)}"
+            attr = _read_attribute(name)
+            value = if attr.nil?
+              attr.inspect
+            else
+              attr = format_for_inspect(attr)
+              inspection_filter.filter_param(name, attr)
+            end
+            "#{name}: #{value}"
           end
         end.compact.join(", ")
       else
@@ -495,15 +530,16 @@ module ActiveRecord
       return super if custom_inspect_method_defined?
       pp.object_address_group(self) do
         if defined?(@attributes) && @attributes
-          column_names = self.class.column_names.select { |name| has_attribute?(name) || new_record? }
-          pp.seplist(column_names, proc { pp.text "," }) do |column_name|
-            column_value = read_attribute(column_name)
+          attr_names = self.class.attribute_names.select { |name| has_attribute?(name) }
+          pp.seplist(attr_names, proc { pp.text "," }) do |attr_name|
             pp.breakable " "
             pp.group(1) do
-              pp.text column_name
+              pp.text attr_name
               pp.text ":"
               pp.breakable
-              pp.pp column_value
+              value = _read_attribute(attr_name)
+              value = inspection_filter.filter_param(attr_name, value) unless value.nil?
+              pp.pp value
             end
           end
         else
@@ -519,7 +555,6 @@ module ActiveRecord
     end
 
     private
-
       # +Array#flatten+ will call +#to_ary+ (recursively) on each of the elements of
       # the array, and then rescues from the possible +NoMethodError+. If those elements are
       # +ActiveRecord::Base+'s, then this triggers the various +method_missing+'s that we have,
@@ -533,26 +568,36 @@ module ActiveRecord
       end
 
       def init_internals
+        @primary_key              = self.class.primary_key
         @readonly                 = false
         @destroyed                = false
         @marked_for_destruction   = false
         @destroyed_by_association = nil
-        @new_record               = true
-        @_start_transaction_state = {}
+        @_start_transaction_state = nil
         @transaction_state        = nil
+
+        self.class.define_attribute_methods
       end
 
       def initialize_internals_callback
       end
 
-      def thaw
-        if frozen?
-          @attributes = @attributes.dup
-        end
-      end
-
       def custom_inspect_method_defined?
         self.class.instance_method(:inspect).owner != ActiveRecord::Base.instance_method(:inspect).owner
+      end
+
+      class InspectionMask < DelegateClass(::String)
+        def pretty_print(pp)
+          pp.text __getobj__
+        end
+      end
+      private_constant :InspectionMask
+
+      def inspection_filter
+        @inspection_filter ||= begin
+          mask = InspectionMask.new(ActiveSupport::ParameterFilter::FILTERED)
+          ActiveSupport::ParameterFilter.new(self.class.filter_attributes, mask: mask)
+        end
       end
   end
 end

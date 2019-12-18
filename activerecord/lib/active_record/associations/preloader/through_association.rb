@@ -4,42 +4,57 @@ module ActiveRecord
   module Associations
     class Preloader
       class ThroughAssociation < Association # :nodoc:
-        def run(preloader)
-          already_loaded     = owners.first.association(through_reflection.name).loaded?
-          through_scope      = through_scope()
-          reflection_scope   = target_reflection_scope
-          through_preloaders = preloader.preload(owners, through_reflection.name, through_scope)
-          middle_records     = through_preloaders.flat_map(&:preloaded_records)
-          preloaders         = preloader.preload(middle_records, source_reflection.name, reflection_scope)
-          @preloaded_records = preloaders.flat_map(&:preloaded_records)
+        PRELOADER = ActiveRecord::Associations::Preloader.new
 
-          owners.each do |owner|
-            through_records = Array(owner.association(through_reflection.name).target)
-            if already_loaded
+        def initialize(*)
+          super
+          @already_loaded = owners.first.association(through_reflection.name).loaded?
+        end
+
+        def preloaded_records
+          @preloaded_records ||= source_preloaders.flat_map(&:preloaded_records)
+        end
+
+        def records_by_owner
+          return @records_by_owner if defined?(@records_by_owner)
+          source_records_by_owner = source_preloaders.map(&:records_by_owner).reduce(:merge)
+          through_records_by_owner = through_preloaders.map(&:records_by_owner).reduce(:merge)
+
+          @records_by_owner = owners.each_with_object({}) do |owner, result|
+            through_records = through_records_by_owner[owner] || []
+
+            if @already_loaded
               if source_type = reflection.options[:source_type]
                 through_records = through_records.select do |record|
                   record[reflection.foreign_type] == source_type
                 end
               end
-            else
-              owner.association(through_reflection.name).reset if through_scope
             end
-            result = through_records.flat_map do |record|
-              association = record.association(source_reflection.name)
-              target = association.target
-              association.reset if preload_scope
-              target
+
+            records = through_records.flat_map do |record|
+              source_records_by_owner[record]
             end
-            result.compact!
-            if reflection_scope
-              result.sort_by! { |rhs| preload_index[rhs] } if reflection_scope.order_values.any?
-              result.uniq! if reflection_scope.distinct_value
-            end
-            associate_records_to_owner(owner, result)
+
+            records.compact!
+            records.sort_by! { |rhs| preload_index[rhs] } if scope.order_values.any?
+            records.uniq! if scope.distinct_value
+            result[owner] = records
           end
         end
 
         private
+          def source_preloaders
+            @source_preloaders ||= PRELOADER.preload(middle_records, source_reflection.name, scope)
+          end
+
+          def middle_records
+            through_preloaders.flat_map(&:preloaded_records)
+          end
+
+          def through_preloaders
+            @through_preloaders ||= PRELOADER.preload(owners, through_reflection.name, through_scope)
+          end
+
           def through_reflection
             reflection.through_reflection
           end
@@ -49,8 +64,8 @@ module ActiveRecord
           end
 
           def preload_index
-            @preload_index ||= @preloaded_records.each_with_object({}).with_index do |(id, result), index|
-              result[id] = index
+            @preload_index ||= preloaded_records.each_with_object({}).with_index do |(record, result), index|
+              result[record] = index
             end
           end
 
@@ -58,11 +73,15 @@ module ActiveRecord
             scope = through_reflection.klass.unscoped
             options = reflection.options
 
+            values = reflection_scope.values
+            if annotations = values[:annotate]
+              scope.annotate!(*annotations)
+            end
+
             if options[:source_type]
               scope.where! reflection.foreign_type => options[:source_type]
             elsif !reflection_scope.where_clause.empty?
               scope.where_clause = reflection_scope.where_clause
-              values = reflection_scope.values
 
               if includes = values[:includes]
                 scope.includes!(source_reflection.name => includes)
@@ -89,17 +108,7 @@ module ActiveRecord
               end
             end
 
-            scope unless scope.empty_scope?
-          end
-
-          def target_reflection_scope
-            if preload_scope
-              reflection_scope.merge(preload_scope)
-            elsif reflection.scope
-              reflection_scope
-            else
-              nil
-            end
+            scope
           end
       end
     end

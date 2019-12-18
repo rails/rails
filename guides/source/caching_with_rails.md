@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Caching with Rails: An Overview
 ===============================
@@ -51,10 +51,10 @@ For instance, it will not impact low-level caching, that we address
 ### Page Caching
 
 Page caching is a Rails mechanism which allows the request for a generated page
-to be fulfilled by the webserver (i.e. Apache or NGINX) without having to go
+to be fulfilled by the web server (i.e. Apache or NGINX) without having to go
 through the entire Rails stack. While this is super fast it can't be applied to
 every situation (such as pages that need authentication). Also, because the
-webserver is serving a file directly from the filesystem you will need to
+web server is serving a file directly from the filesystem you will need to
 implement cache expiration.
 
 INFO: Page Caching has been removed from Rails 4. See the [actionpack-page_caching gem](https://github.com/rails/actionpack-page_caching).
@@ -63,7 +63,7 @@ INFO: Page Caching has been removed from Rails 4. See the [actionpack-page_cachi
 
 Page Caching cannot be used for actions that have before filters - for example, pages that require authentication. This is where Action Caching comes in. Action Caching works like Page Caching except the incoming web request hits the Rails stack so that before filters can be run on it before the cache is served. This allows authentication and other restrictions to be run while still serving the result of the output from a cached copy.
 
-INFO: Action Caching has been removed from Rails 4. See the [actionpack-action_caching gem](https://github.com/rails/actionpack-action_caching). See [DHH's key-based cache expiration overview](http://signalvnoise.com/posts/3113-how-key-based-cache-expiration-works) for the newly-preferred method.
+INFO: Action Caching has been removed from Rails 4. See the [actionpack-action_caching gem](https://github.com/rails/actionpack-action_caching). See [DHH's key-based cache expiration overview](https://signalvnoise.com/posts/3113-how-key-based-cache-expiration-works) for the newly-preferred method.
 
 ### Fragment Caching
 
@@ -88,21 +88,17 @@ When your application receives its first request to this page, Rails will write
 a new cache entry with a unique key. A key looks something like this:
 
 ```
-views/products/1-201505056193031061005000/bea67108094918eeba42cd4a6e786901
+views/products/index:bea67108094918eeba42cd4a6e786901/products/1
 ```
 
-The number in the middle is the `product_id` followed by the timestamp value in
-the `updated_at` attribute of the product record. Rails uses the timestamp value
-to make sure it is not serving stale data. If the value of `updated_at` has
-changed, a new key will be generated. Then Rails will write a new cache to that
-key, and the old cache written to the old key will never be used again. This is
-called key-based expiration.
+The string of characters in the middle is a template tree digest. It is a hash
+digest computed based on the contents of the view fragment you are caching. If
+you change the view fragment (e.g., the HTML changes), the digest will change,
+expiring the existing file.
 
-Cache fragments will also be expired when the view fragment changes (e.g., the
-HTML in the view changes). The string of characters at the end of the key is a
-template tree digest. It is a hash digest computed based on the contents of the
-view fragment you are caching. If you change the view fragment, the digest will
-change, expiring the existing file.
+A cache version, derived from the product record, is stored in the cache entry.
+When the product is touched, the cache version changes, and any cached fragments
+that contain the previous version are ignored.
 
 TIP: Cache stores like Memcached will automatically delete old cache files.
 
@@ -295,14 +291,14 @@ Consider the following example. An application has a `Product` model with an ins
 ```ruby
 class Product < ApplicationRecord
   def competing_price
-    Rails.cache.fetch("#{cache_key}/competing_price", expires_in: 12.hours) do
+    Rails.cache.fetch("#{cache_key_with_version}/competing_price", expires_in: 12.hours) do
       Competitor::API.find_price(id)
     end
   end
 end
 ```
 
-NOTE: Notice that in this example we used the `cache_key` method, so the resulting cache key will be something like `products/233-20140225082222765838000/competing_price`. `cache_key` generates a string based on the model's `id` and `updated_at` attributes. This is a common convention and has the benefit of invalidating the cache whenever the product is updated. In general, when you use low-level caching for instance level information, you need to generate a cache key.
+NOTE: Notice that in this example we used the `cache_key_with_version` method, so the resulting cache key will be something like `products/233-20140225082222765838000/competing_price`. `cache_key_with_version` generates a string based on the model's class name, `id`, and `updated_at` attributes. This is a common convention and has the benefit of invalidating the cache whenever the product is updated. In general, when you use low-level caching for instance level information, you need to generate a cache key.
 
 ### SQL Caching
 
@@ -362,7 +358,7 @@ This class provides the foundation for interacting with the cache in Rails. This
 
 The main methods to call are `read`, `write`, `delete`, `exist?`, and `fetch`. The fetch method takes a block and will either return an existing value from the cache, or evaluate the block and write the result to the cache if no value exists.
 
-There are some common options used by all cache implementations. These can be passed to the constructor or the various methods to interact with entries.
+There are some common options that can be used by all cache implementations. These can be passed to the constructor or the various methods to interact with entries.
 
 * `:namespace` - This option can be used to create a namespace within the cache store. It is especially useful if your application shares a cache with other applications.
 
@@ -370,7 +366,7 @@ There are some common options used by all cache implementations. These can be pa
 
 * `:compress_threshold` - Defaults to 1kB. Cache entries larger than this threshold, specified in bytes, are compressed.
 
-* `:expires_in` - This option sets an expiration time in seconds for the cache entry when it will be automatically removed from the cache.
+* `:expires_in` - This option sets an expiration time in seconds for the cache entry, if the cache store supports it, when it will be automatically removed from the cache.
 
 * `:race_condition_ttl` - This option is used in conjunction with the `:expires_in` option. It will prevent race conditions when cache entries expire by preventing multiple processes from simultaneously regenerating the same entry (also known as the dog pile effect). This option sets the number of seconds that an expired entry can be reused while a new value is being regenerated. It's a good practice to set this value if you use the `:expires_in` option.
 
@@ -408,7 +404,7 @@ as well as development and test environments.
 New Rails projects are configured to use this implementation in development environment by default.
 
 NOTE: Since processes will not share cache data when using `:memory_store`,
-it will not be possible to manually read, write or expire the cache via the Rails console.
+it will not be possible to manually read, write, or expire the cache via the Rails console.
 
 ### ActiveSupport::Cache::FileStore
 
@@ -446,26 +442,28 @@ config.cache_store = :mem_cache_store, "cache-1.example.com", "cache-2.example.c
 
 ### ActiveSupport::Cache::RedisCacheStore
 
-The Redis cache store takes advantage of Redis support for least-recently-used
-and least-frequently-used key eviction when it reaches max memory, allowing it
-to behave much like a Memcached cache server.
+The Redis cache store takes advantage of Redis support for automatic eviction
+when it reaches max memory, allowing it to behave much like a Memcached cache server.
 
 Deployment note: Redis doesn't expire keys by default, so take care to use a
 dedicated Redis cache server. Don't fill up your persistent-Redis server with
 volatile cache data! Read the
 [Redis cache server setup guide](https://redis.io/topics/lru-cache) in detail.
 
-For an all-cache Redis server, set `maxmemory-policy` to an `allkeys` policy.
-Redis 4+ support least-frequently-used (`allkeys-lfu`) eviction, an excellent
-default choice. Redis 3 and earlier should use `allkeys-lru` for
-least-recently-used eviction.
+For a cache-only Redis server, set `maxmemory-policy` to one of the variants of allkeys.
+Redis 4+ supports least-frequently-used eviction (`allkeys-lfu`), an excellent
+default choice. Redis 3 and earlier should use least-recently-used eviction (`allkeys-lru`).
 
 Set cache read and write timeouts relatively low. Regenerating a cached value
 is often faster than waiting more than a second to retrieve it. Both read and
 write timeouts default to 1 second, but may be set lower if your network is
-consistently low latency.
+consistently low-latency.
 
-Cache reads and writes never raise exceptions. They just return `nil` instead,
+By default, the cache store will not attempt to reconnect to Redis if the
+connection fails during a request. If you experience frequent disconnects you
+may wish to enable reconnect attempts.
+
+Cache reads and writes never raise exceptions; they just return `nil` instead,
 behaving as if there was nothing in the cache. To gauge whether your cache is
 hitting exceptions, you may provide an `error_handler` to report to an
 exception gathering service. It must accept three keyword arguments: `method`,
@@ -473,22 +471,45 @@ the cache store method that was originally called; `returning`, the value that
 was returned to the user, typically `nil`; and `exception`, the exception that
 was rescued.
 
-Putting it all together, a production Redis cache store may look something
-like this:
+To get started, add the redis gem to your Gemfile:
 
 ```ruby
-cache_servers = %w[ "redis://cache-01:6379/0", "redis://cache-02:6379/0", … ],
-config.cache_store = :redis_cache_store, url: cache_servers,
+gem 'redis'
+```
 
-  connect_timeout: 30,  # Defaults to 20 seconds
-  read_timeout:    0.2, # Defaults to 1 second
-  write_timeout:   0.2, # Defaults to 1 second
+You can enable support for the faster [hiredis](https://github.com/redis/hiredis)
+connection library by additionally adding its ruby wrapper to your Gemfile:
+
+```ruby
+gem 'hiredis'
+```
+
+Redis cache store will automatically require & use hiredis if available. No further
+configuration is needed.
+
+Finally, add the configuration in the relevant `config/environments/*.rb` file:
+
+```ruby
+config.cache_store = :redis_cache_store, { url: ENV['REDIS_URL'] }
+```
+
+A more complex, production Redis cache store may look something like this:
+
+```ruby
+cache_servers = %w(redis://cache-01:6379/0 redis://cache-02:6379/0)
+config.cache_store = :redis_cache_store, { url: cache_servers,
+
+  connect_timeout:    30,  # Defaults to 20 seconds
+  read_timeout:       0.2, # Defaults to 1 second
+  write_timeout:      0.2, # Defaults to 1 second
+  reconnect_attempts: 1,   # Defaults to 0
 
   error_handler: -> (method:, returning:, exception:) {
     # Report errors to Sentry as warnings
-    Raven.capture_exception exception, level: 'warning",
+    Raven.capture_exception exception, level: 'warning',
       tags: { method: method, returning: returning }
   }
+}
 ```
 
 ### ActiveSupport::Cache::NullStore
@@ -538,7 +559,7 @@ class ProductsController < ApplicationController
 
     # If the request is stale according to the given timestamp and etag value
     # (i.e. it needs to be processed again) then execute this block
-    if stale?(last_modified: @product.updated_at.utc, etag: @product.cache_key)
+    if stale?(last_modified: @product.updated_at.utc, etag: @product.cache_key_with_version)
       respond_to do |wants|
         # ... normal response processing
       end
@@ -552,7 +573,7 @@ class ProductsController < ApplicationController
 end
 ```
 
-Instead of an options hash, you can also simply pass in a model. Rails will use the `updated_at` and `cache_key` methods for setting `last_modified` and `etag`:
+Instead of an options hash, you can also simply pass in a model. Rails will use the `updated_at` and `cache_key_with_version` methods for setting `last_modified` and `etag`:
 
 ```ruby
 class ProductsController < ApplicationController
@@ -645,13 +666,13 @@ Caching in Development
 ----------------------
 
 It's common to want to test the caching strategy of your application
-in development mode. Rails provides the rake task `dev:cache` to
+in development mode. Rails provides the rails command `dev:cache` to
 easily toggle caching on/off.
 
 ```bash
-$ bin/rails dev:cache
+$ rails dev:cache
 Development mode is now being cached.
-$ bin/rails dev:cache
+$ rails dev:cache
 Development mode is no longer being cached.
 ```
 

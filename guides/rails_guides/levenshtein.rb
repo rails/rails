@@ -12,8 +12,8 @@ module RailsGuides
       n = s.length
       m = t.length
 
-      return m if (0 == n)
-      return n if (0 == m)
+      return m if 0 == n
+      return n if 0 == m
 
       d = (0..m).to_a
       x = nil

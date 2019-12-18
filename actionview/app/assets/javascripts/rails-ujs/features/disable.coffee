@@ -8,7 +8,12 @@ Rails.handleDisabledElement = (e) ->
 
 # Unified function to enable an element (link, button and form)
 Rails.enableElement = (e) ->
-  element = if e instanceof Event then e.target else e
+  if e instanceof Event
+    return if isXhrRedirect(e)
+    element = e.target
+  else
+    element = e
+
   if matches(element, Rails.linkDisableSelector)
     enableLinkElement(element)
   else if matches(element, Rails.buttonDisableSelector) or matches(element, Rails.formEnableSelector)
@@ -29,6 +34,7 @@ Rails.disableElement = (e) ->
 #  Replace element's html with the 'data-disable-with' after storing original html
 #  and prevent clicking on it
 disableLinkElement = (element) ->
+  return if getData(element, 'ujs:disabled')
   replacement = element.getAttribute('data-disable-with')
   if replacement?
     setData(element, 'ujs:enable-with', element.innerHTML) # store enabled state
@@ -53,6 +59,7 @@ disableFormElements = (form) ->
   formElements(form, Rails.formDisableSelector).forEach(disableFormElement)
 
 disableFormElement = (element) ->
+  return if getData(element, 'ujs:disabled')
   replacement = element.getAttribute('data-disable-with')
   if replacement?
     if matches(element, 'button')
@@ -80,3 +87,7 @@ enableFormElement = (element) ->
     setData(element, 'ujs:enable-with', null) # clean up cache
   element.disabled = false
   setData(element, 'ujs:disabled', null)
+
+isXhrRedirect = (event) ->
+  xhr = event.detail?[0]
+  xhr?.getResponseHeader("X-Xhr-Redirect")?

@@ -50,12 +50,31 @@ module ActiveModel
         assert_equal 7200, type.cast(2.hours)
       end
 
+      test "casting string for database" do
+        type = Type::Integer.new
+        assert_nil type.serialize("wibble")
+        assert_equal 5, type.serialize("5wibble")
+        assert_equal 5, type.serialize(" +5")
+        assert_equal(-5, type.serialize(" -5"))
+      end
+
+      test "casting empty string" do
+        type = Type::Integer.new
+        assert_nil type.cast("")
+        assert_nil type.serialize("")
+        assert_nil type.deserialize("")
+      end
+
       test "changed?" do
         type = Type::Integer.new
 
-        assert type.changed?(5, 5, "5wibble")
+        assert type.changed?(0, 0, "wibble")
+        assert type.changed?(5, 0, "wibble")
+        assert_not type.changed?(5, 5, "5wibble")
         assert_not type.changed?(5, 5, "5")
         assert_not type.changed?(5, 5, "5.0")
+        assert_not type.changed?(5, 5, "+5")
+        assert_not type.changed?(5, 5, "+5.0")
         assert_not type.changed?(-5, -5, "-5")
         assert_not type.changed?(-5, -5, "-5.0")
         assert_not type.changed?(nil, nil, nil)

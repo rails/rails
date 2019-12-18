@@ -1,12 +1,13 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/string/strip"
+
 module Rails
   module Generators
     module Actions
       def initialize(*) # :nodoc:
         super
-        @in_group = nil
-        @after_bundle_callbacks = []
+        @indentation = 0
       end
 
       # Adds an entry into +Gemfile+ for the supplied gem.
@@ -34,15 +35,12 @@ module Rails
 
         log :gemfile, message
 
-        options.each do |option, value|
-          parts << "#{option}: #{quote(value)}"
-        end
+        parts << quote(options) unless options.empty?
 
         in_root do
           str = "gem #{parts.join(", ")}"
-          str = "  " + str if @in_group
-          str = "\n" + str
-          append_file "Gemfile", str, verbose: false
+          str = indentation + str
+          append_file_with_newline "Gemfile", str, verbose: false
         end
       end
 
@@ -52,17 +50,33 @@ module Rails
       #     gem "rspec-rails"
       #   end
       def gem_group(*names, &block)
-        name = names.map(&:inspect).join(", ")
-        log :gemfile, "group #{name}"
+        options = names.extract_options!
+        str = names.map(&:inspect)
+        str << quote(options) unless options.empty?
+        str = str.join(", ")
+        log :gemfile, "group #{str}"
 
         in_root do
-          append_file "Gemfile", "\ngroup #{name} do", force: true
+          append_file_with_newline "Gemfile", "\ngroup #{str} do", force: true
+          with_indentation(&block)
+          append_file_with_newline "Gemfile", "end", force: true
+        end
+      end
 
-          @in_group = true
-          instance_eval(&block)
-          @in_group = false
+      def github(repo, options = {}, &block)
+        str = [quote(repo)]
+        str << quote(options) unless options.empty?
+        str = str.join(", ")
+        log :github, "github #{str}"
 
-          append_file "Gemfile", "\nend\n", force: true
+        in_root do
+          if @indentation.zero?
+            append_file_with_newline "Gemfile", "\ngithub #{str} do", force: true
+          else
+            append_file_with_newline "Gemfile", "#{indentation}github #{str} do", force: true
+          end
+          with_indentation(&block)
+          append_file_with_newline "Gemfile", "#{indentation}end", force: true
         end
       end
 
@@ -80,11 +94,9 @@ module Rails
 
         in_root do
           if block
-            append_file "Gemfile", "\nsource #{quote(source)} do", force: true
-            @in_group = true
-            instance_eval(&block)
-            @in_group = false
-            append_file "Gemfile", "\nend\n", force: true
+            append_file_with_newline "Gemfile", "\nsource #{quote(source)} do", force: true
+            with_indentation(&block)
+            append_file_with_newline "Gemfile", "end", force: true
           else
             prepend_file "Gemfile", "source #{quote(source)}\n", verbose: false
           end
@@ -211,9 +223,11 @@ module Rails
       #   generate(:authenticated, "user session")
       def generate(what, *args)
         log :generate, what
+
+        options = args.extract_options!
         argument = args.flat_map(&:to_s).join(" ")
 
-        in_root { run_ruby_script("bin/rails generate #{what} #{argument}", verbose: false) }
+        execute_command :rails, "generate #{what} #{argument}", options
       end
 
       # Runs the supplied rake task (invoked with 'rake ...')
@@ -236,19 +250,15 @@ module Rails
         execute_command :rails, command, options
       end
 
-      # Just run the capify command in root
-      #
-      #   capify!
-      def capify!
-        ActiveSupport::Deprecation.warn("`capify!` is deprecated and will be removed in the next version of Rails.")
-        log :capify, ""
-        in_root { run("#{extify(:capify)} .", verbose: false) }
-      end
-
       # Make an entry in Rails routing file <tt>config/routes.rb</tt>
       #
       #   route "root 'welcome#index'"
-      def route(routing_code)
+      #   route "root 'admin#index'", namespace: :admin
+      def route(routing_code, namespace: nil)
+        routing_code = Array(namespace).reverse.reduce(routing_code) do |code, ns|
+          "namespace :#{ns} do\n#{indent(code, 2)}\nend"
+        end
+
         log :route, routing_code
         sentinel = /\.routes\.draw do\s*\n/m
 
@@ -264,18 +274,7 @@ module Rails
         log File.read(find_in_source_paths(path))
       end
 
-      # Registers a callback to be executed after bundle and spring binstubs
-      # have run.
-      #
-      #   after_bundle do
-      #     git add: '.'
-      #   end
-      def after_bundle(&block)
-        @after_bundle_callbacks << block
-      end
-
       private
-
         # Define log for backwards compatibility. If just one argument is sent,
         # invoke say, otherwise invoke say_status. Differently from say and
         # similarly to say_status, this method respects the quiet? option given.
@@ -292,13 +291,15 @@ module Rails
         # based on the executor parameter provided.
         def execute_command(executor, command, options = {}) # :doc:
           log executor, command
-          env  = options[:env] || ENV["RAILS_ENV"] || "development"
           sudo = options[:sudo] && !Gem.win_platform? ? "sudo " : ""
-          config = { verbose: false }
+          config = {
+            env: { "RAILS_ENV" => (options[:env] || ENV["RAILS_ENV"] || "development") },
+            verbose: false,
+            capture: options[:capture],
+            abort_on_failure: options[:abort_on_failure],
+          }
 
-          config.merge!(capture: options[:capture]) if options[:capture]
-
-          in_root { run("#{sudo}#{extify(executor)} #{command} RAILS_ENV=#{env}", config) }
+          in_root { run("#{sudo}#{extify(executor)} #{command}", config) }
         end
 
         # Add an extension to the given name based on the platform.
@@ -313,6 +314,11 @@ module Rails
         # Surround string with single quotes if there is no quotes.
         # Otherwise fall back to double quotes
         def quote(value) # :doc:
+          if value.respond_to? :each_pair
+            return value.map do |k, v|
+              "#{k}: #{quote(v)}"
+            end.join(", ")
+          end
           return value.inspect unless value.is_a? String
 
           if value.include?("'")
@@ -325,11 +331,26 @@ module Rails
         # Returns optimized string with indentation
         def optimize_indentation(value, amount = 0) # :doc:
           return "#{value}\n" unless value.is_a?(String)
+          "#{value.strip_heredoc.indent(amount).chomp}\n"
+        end
 
-          if value.lines.size > 1
-            value.strip_heredoc.indent(amount)
-          else
-            "#{value.strip.indent(amount)}\n"
+        # Indent the +Gemfile+ to the depth of @indentation
+        def indentation # :doc:
+          "  " * @indentation
+        end
+
+        # Manage +Gemfile+ indentation for a DSL action block
+        def with_indentation(&block) # :doc:
+          @indentation += 1
+          instance_eval(&block)
+        ensure
+          @indentation -= 1
+        end
+
+        # Append string to a file with a newline if necessary
+        def append_file_with_newline(path, str, options = {})
+          gsub_file path, /\n?\z/, options do |match|
+            match.end_with?("\n") ? "" : "\n#{str}\n"
           end
         end
     end

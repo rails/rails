@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Ruby on Rails 4.2 Release Notes
 ===============================
@@ -44,7 +44,7 @@ to their respective adapters. Active Job comes pre-configured with an inline
 runner that executes jobs right away.
 
 Jobs often need to take Active Record objects as arguments. Active Job passes
-object references as URIs (uniform resource identifiers) instead of marshaling
+object references as URIs (uniform resource identifiers) instead of marshalling
 the object itself. The new [Global ID](https://github.com/rails/globalid)
 library builds URIs and looks up the objects they reference. Passing Active
 Record objects as job arguments just works by using Global ID internally.
@@ -154,9 +154,9 @@ remove_foreign_key :accounts, column: :owner_id
 ```
 
 See the API documentation on
-[add_foreign_key](http://api.rubyonrails.org/v4.2.0/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_foreign_key)
+[add_foreign_key](https://api.rubyonrails.org/v4.2.0/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_foreign_key)
 and
-[remove_foreign_key](http://api.rubyonrails.org/v4.2.0/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-remove_foreign_key)
+[remove_foreign_key](https://api.rubyonrails.org/v4.2.0/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-remove_foreign_key)
 for a full description.
 
 
@@ -446,7 +446,7 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     moved to the `responders` gem (version 2.0). Add `gem 'responders', '~> 2.0'`
     to your `Gemfile` to continue using these features.
     ([Pull Request](https://github.com/rails/rails/pull/16526),
-     [More Details](http://guides.rubyonrails.org/upgrading_ruby_on_rails.html#responders))
+     [More Details](https://guides.rubyonrails.org/upgrading_ruby_on_rails.html#responders))
 
 *   Removed deprecated `AbstractController::Helpers::ClassMethods::MissingHelperError`
     in favor of `AbstractController::Helpers::MissingHelperError`.
@@ -545,7 +545,7 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     served if the client supports it and a pre-generated gzip file (`.gz`) is on disk.
     By default the asset pipeline generates `.gz` files for all compressible assets.
     Serving gzip files minimizes data transfer and speeds up asset requests. Always
-    [use a CDN](http://guides.rubyonrails.org/asset_pipeline.html#cdns) if you are
+    [use a CDN](https://guides.rubyonrails.org/asset_pipeline.html#cdns) if you are
     serving assets from your Rails server in production.
     ([Pull Request](https://github.com/rails/rails/pull/16466))
 
@@ -877,7 +877,7 @@ Credits
 -------
 
 See the
-[full list of contributors to Rails](http://contributors.rubyonrails.org/) for
+[full list of contributors to Rails](https://contributors.rubyonrails.org/) for
 the many people who spent many hours making Rails the stable and robust
 framework it is today. Kudos to all of them.
 

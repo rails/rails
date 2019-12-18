@@ -35,6 +35,13 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal clubs(:boring_club), @member.club
   end
 
+  def test_has_one_through_executes_limited_query
+    boring_club = clubs(:boring_club)
+    assert_sql(/LIMIT|ROWNUM <=|FETCH FIRST/) do
+      assert_equal boring_club, @member.general_club
+    end
+  end
+
   def test_creating_association_creates_through_record
     new_member = Member.create(name: "Chris")
     new_member.club = Club.create(name: "LRUG")
@@ -62,6 +69,24 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal clubs(:moustache_club), new_member.club
     assert new_member.save
     assert_equal clubs(:moustache_club), new_member.club
+  end
+
+  def test_building_multiple_associations_builds_through_record
+    member_type = MemberType.create!
+    member = Member.create!
+    member_detail_with_one_association = MemberDetail.new(member_type: member_type)
+    assert_predicate member_detail_with_one_association.member, :new_record?
+    member_detail_with_two_associations = MemberDetail.new(member_type: member_type, admittable: member)
+    assert_predicate member_detail_with_two_associations.member, :new_record?
+  end
+
+  def test_creating_multiple_associations_creates_through_record
+    member_type = MemberType.create!
+    member = Member.create!
+    member_detail_with_one_association = MemberDetail.create!(member_type: member_type)
+    assert_not_predicate member_detail_with_one_association.member, :new_record?
+    member_detail_with_two_associations = MemberDetail.create!(member_type: member_type, admittable: member)
+    assert_not_predicate member_detail_with_two_associations.member, :new_record?
   end
 
   def test_creating_association_sets_both_parent_ids_for_new

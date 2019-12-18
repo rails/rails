@@ -31,12 +31,8 @@ module Rails
         end
       end
 
-      # TODO Change this to private once we've dropped Ruby 2.2 support.
-      # Workaround for Ruby 2.2 "private attribute?" warning.
-      protected
-        attr_reader :file_name
-
       private
+        attr_reader :file_name
 
         # FIXME: We are avoiding to use alias because a bug on thor that make
         # this method public and add it to the task list.
@@ -217,7 +213,7 @@ module Rails
         #
         def self.check_class_collision(options = {}) # :doc:
           define_method :check_class_collision do
-            name = if respond_to?(:controller_class_name) # for ResourceHelpers
+            name = if respond_to?(:controller_class_name, true) # for ResourceHelpers
               controller_class_name
             else
               class_name

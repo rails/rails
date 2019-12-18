@@ -7,7 +7,7 @@ module AbstractController
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :_helpers, default: Module.new
+      class_attribute :_helpers, default: define_helpers_module(self)
       class_attribute :_helper_methods, default: Array.new
     end
 
@@ -17,7 +17,7 @@ module AbstractController
         @path  = "helpers/#{path}.rb"
         set_backtrace error.backtrace
 
-        if error.path =~ /^#{path}(\.rb)?$/
+        if /^#{path}(\.rb)?$/.match?(error.path)
           super("Missing helper file helpers/%s.rb" % path)
         else
           raise error
@@ -31,7 +31,7 @@ module AbstractController
       # independently of the child class's.
       def inherited(klass)
         helpers = _helpers
-        klass._helpers = Module.new { include helpers }
+        klass._helpers = define_helpers_module(klass, helpers)
         klass.class_eval { default_helper_module! } unless klass.anonymous?
         super
       end
@@ -61,12 +61,17 @@ module AbstractController
         meths.flatten!
         self._helper_methods += meths
 
+        location = caller_locations(1, 1).first
+        file, line = location.path, location.lineno
+
         meths.each do |meth|
-          _helpers.class_eval <<-ruby_eval, __FILE__, __LINE__ + 1
-            def #{meth}(*args, &blk)                               # def current_user(*args, &blk)
-              controller.send(%(#{meth}), *args, &blk)             #   controller.send(:current_user, *args, &blk)
-            end                                                    # end
-          ruby_eval
+          method_def = [
+            "def #{meth}(*args, &blk)",
+            "  controller.send(%(#{meth}), *args, &blk)",
+            "end"
+          ].join(";")
+
+          _helpers.class_eval method_def, file, line
         end
       end
 
@@ -170,6 +175,17 @@ module AbstractController
       end
 
       private
+        def define_helpers_module(klass, helpers = nil)
+          # In some tests inherited is called explicitly. In that case, just
+          # return the module from the first time it was defined
+          return klass.const_get(:HelperMethods) if klass.const_defined?(:HelperMethods, false)
+
+          mod = Module.new
+          klass.const_set(:HelperMethods, mod)
+          mod.include(helpers) if helpers
+          mod
+        end
+
         # Makes all the (instance) methods in the helper module available to templates
         # rendered through this controller.
         #
@@ -181,7 +197,7 @@ module AbstractController
         end
 
         def default_helper_module!
-          module_name = name.sub(/Controller$/, "".freeze)
+          module_name = name.sub(/Controller$/, "")
           module_path = module_name.underscore
           helper module_path
         rescue LoadError => e

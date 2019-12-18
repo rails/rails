@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #--
-# Copyright (c) 2015-2018 Basecamp, LLC
+# Copyright (c) 2015-2019 Basecamp, LLC
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -32,13 +32,19 @@ module ActionCable
 
   INTERNAL = {
     message_types: {
-      welcome: "welcome".freeze,
-      ping: "ping".freeze,
-      confirmation: "confirm_subscription".freeze,
-      rejection: "reject_subscription".freeze
+      welcome: "welcome",
+      disconnect: "disconnect",
+      ping: "ping",
+      confirmation: "confirm_subscription",
+      rejection: "reject_subscription"
     },
-    default_mount_path: "/cable".freeze,
-    protocols: ["actioncable-v1-json".freeze, "actioncable-unsupported".freeze].freeze
+    disconnect_reasons: {
+      unauthorized: "unauthorized",
+      invalid_request: "invalid_request",
+      server_restart: "server_restart"
+    },
+    default_mount_path: "/cable",
+    protocols: ["actioncable-v1-json", "actioncable-unsupported"].freeze
   }
 
   # Singleton instance of the server
@@ -51,4 +57,6 @@ module ActionCable
   autoload :Channel
   autoload :RemoteConnections
   autoload :SubscriptionAdapter
+  autoload :TestHelper
+  autoload :TestCase
 end

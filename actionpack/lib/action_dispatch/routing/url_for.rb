@@ -133,6 +133,7 @@ module ActionDispatch
       #   <tt>ActionDispatch::Http::URL.tld_length</tt>, which in turn defaults to 1.
       # * <tt>:port</tt> - Optionally specify the port to connect to.
       # * <tt>:anchor</tt> - An anchor name to be appended to the path.
+      # * <tt>:params</tt> - The query parameters to be appended to the path.
       # * <tt>:trailing_slash</tt> - If true, adds a trailing slash, as in "/archive/2009/"
       # * <tt>:script_name</tt> - Specifies application path relative to domain root. If provided, prepends application path.
       #
@@ -191,18 +192,34 @@ module ActionDispatch
         end
       end
 
-      def route_for(name, *args) # :nodoc:
+      # Allows calling direct or regular named route.
+      #
+      #   resources :buckets
+      #
+      #   direct :recordable do |recording|
+      #     route_for(:bucket, recording.bucket)
+      #   end
+      #
+      #   direct :threadable do |threadable|
+      #     route_for(:recordable, threadable.parent)
+      #   end
+      #
+      # This maintains the context of the original caller on
+      # whether to return a path or full URL, e.g:
+      #
+      #   threadable_path(threadable)  # => "/buckets/1"
+      #   threadable_url(threadable)   # => "http://example.com/buckets/1"
+      #
+      def route_for(name, *args)
         public_send(:"#{name}_url", *args)
       end
 
       protected
-
         def optimize_routes_generation?
           _routes.optimize_routes_generation? && default_url_options.empty?
         end
 
       private
-
         def _with_routes(routes) # :doc:
           old_routes, @_routes = @_routes, routes
           yield

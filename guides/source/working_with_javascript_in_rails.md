@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Working with JavaScript in Rails
 ================================
@@ -14,6 +14,7 @@ After reading this guide, you will know:
 * How Rails' built-in helpers assist you.
 * How to handle Ajax on the server side.
 * The Turbolinks gem.
+* How to include your Cross-Site Request Forgery token in request headers
 
 -------------------------------------------------------------------------------
 
@@ -160,13 +161,13 @@ remote elements inside your application.
 
 #### form_with
 
-[`form_with`](http://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_with)
+[`form_with`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_with)
 is a helper that assists with writing forms. By default, `form_with` assumes that
 your form will be using Ajax. You can opt out of this behavior by
 passing the `:local` option `form_with`.
 
 ```erb
-<%= form_with(model: @article) do |f| %>
+<%= form_with model: @article do |form| %>
   ...
 <% end %>
 ```
@@ -204,7 +205,7 @@ have been bundled into `event.detail`. For information about the previously used
 
 #### link_to
 
-[`link_to`](http://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-link_to)
+[`link_to`](https://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-link_to)
 is a helper that assists with generating links. It has a `:remote` option you
 can use like this:
 
@@ -236,7 +237,7 @@ $ ->
 
 #### button_to
 
-[`button_to`](http://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-button_to) is a helper that helps you create buttons. It has a `:remote` option that you can call like this:
+[`button_to`](https://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-button_to) is a helper that helps you create buttons. It has a `:remote` option that you can call like this:
 
 ```erb
 <%= button_to "An article", @article, remote: true %>
@@ -337,8 +338,8 @@ This also works for links with `data-method` attribute.
 For example:
 
 ```erb
-<%= form_with(model: @article.new) do |f| %>
-  <%= f.submit data: { "disable-with": "Saving..." } %>
+<%= form_with model: @article.new do |form| %>
+  <%= form.submit data: { disable_with: "Saving..." } %>
 <%= end %>
 ```
 
@@ -382,16 +383,18 @@ have been bundled into `event.detail`. For information about the previously used
 `jquery-ujs` in Rails 5 and earlier, read the [`jquery-ujs` wiki](https://github.com/rails/jquery-ujs/wiki/ajax).
 
 ### Stoppable events
-
-If you stop `ajax:before` or `ajax:beforeSend` by returning false from the
-handler method, the Ajax request will never take place. The `ajax:before` event
-can manipulate form data before serialization and the
+You can stop execution of the Ajax request by running `event.preventDefault()`
+from the handlers methods `ajax:before` or `ajax:beforeSend`.
+The `ajax:before` event can manipulate form data before serialization and the
 `ajax:beforeSend` event is useful for adding custom request headers.
 
 If you stop the `ajax:aborted:file` event, the default behavior of allowing the
 browser to submit the form via normal means (i.e. non-Ajax submission) will be
 canceled and the form will not be submitted at all. This is useful for
 implementing your own Ajax file upload workaround.
+
+Note, you should use `return false` to prevent event for `jquery-ujs` and
+`e.preventDefault()` for `rails-ujs`
 
 Server-Side Concerns
 --------------------
@@ -426,10 +429,10 @@ The index view (`app/views/users/index.html.erb`) contains:
 
 <br>
 
-<%= form_with(model: @user) do |f| %>
-  <%= f.label :name %><br>
-  <%= f.text_field :name %>
-  <%= f.submit %>
+<%= form_with model: @user do |form| %>
+  <%= form.label :name %><br>
+  <%= form.text_field :name %>
+  <%= form.submit %>
 <% end %>
 ```
 
@@ -492,10 +495,6 @@ replace the entire `<body>` of the page with the `<body>` of the response. It
 will then use PushState to change the URL to the correct one, preserving
 refresh semantics and giving you pretty URLs.
 
-The only thing you have to do to enable Turbolinks is have it in your `Gemfile`,
-and put `//= require turbolinks` in your JavaScript manifest, which is usually
-`app/assets/javascripts/application.js`.
-
 If you want to disable Turbolinks for certain links, add a `data-turbolinks="false"`
 attribute to the tag:
 
@@ -525,6 +524,23 @@ $(document).on "turbolinks:load", ->
 For more details, including other events you can bind to, check out [the
 Turbolinks
 README](https://github.com/turbolinks/turbolinks/blob/master/README.md).
+
+Cross-Site Request Forgery (CSRF) token in Ajax
+----
+
+When using another library to make Ajax calls, it is necessary to add
+the security token as a default header for Ajax calls in your library. To get
+the token:
+
+```javascript
+var token = document.getElementsByName('csrf-token')[0].content
+```
+
+You can then submit this token as a `X-CSRF-Token` header for your
+Ajax request. You do not need to add a CSRF token for GET requests,
+only non-GET ones.
+
+You can read more about about Cross-Site Request Forgery in [Security](https://guides.rubyonrails.org/security.html#cross-site-request-forgery-csrf)
 
 Other Resources
 ---------------

@@ -20,6 +20,8 @@ class Car < ActiveRecord::Base
   scope :incl_engines, -> { includes(:engines) }
 
   scope :order_using_new_style,  -> { order("name asc") }
+
+  attribute :wheels_owned_at, :datetime, default: -> { Time.now }
 end
 
 class CoolCar < Car

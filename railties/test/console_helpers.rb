@@ -9,7 +9,7 @@ module ConsoleHelpers
   def assert_output(expected, io, timeout = 10)
     timeout = Time.now + timeout
 
-    output = "".dup
+    output = +""
     until output.include?(expected) || Time.now > timeout
       if IO.select([io], [], [], 0.1)
         output << io.read(1)

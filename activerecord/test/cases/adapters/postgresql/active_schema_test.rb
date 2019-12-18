@@ -4,6 +4,8 @@ require "cases/helper"
 
 class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
   def setup
+    ActiveRecord::Base.connection.materialize_transactions
+
     ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.class_eval do
       def execute(sql, name = nil) sql end
     end
@@ -26,9 +28,6 @@ class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_add_index
-    # add_index calls index_name_exists? which can't work since execute is stubbed
-    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.send(:define_method, :index_name_exists?) { |*| false }
-
     expected = %(CREATE UNIQUE INDEX  "index_people_on_last_name" ON "people"  ("last_name") WHERE state = 'active')
     assert_equal expected, add_index(:people, :last_name, unique: true, where: "state = 'active'")
 
@@ -71,13 +70,11 @@ class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
     assert_raise ArgumentError do
       add_index(:people, :last_name, algorithm: :copy)
     end
-
-    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.send :remove_method, :index_name_exists?
   end
 
   def test_remove_index
     # remove_index calls index_name_for_remove which can't work since execute is stubbed
-    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.send(:define_method, :index_name_for_remove) do |*|
+    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.define_method(:index_name_for_remove) do |*|
       "index_people_on_last_name"
     end
 
@@ -88,7 +85,7 @@ class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
       add_index(:people, :last_name, algorithm: :copy)
     end
 
-    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.send :remove_method, :index_name_for_remove
+    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.remove_method :index_name_for_remove
   end
 
   def test_remove_index_when_name_is_specified

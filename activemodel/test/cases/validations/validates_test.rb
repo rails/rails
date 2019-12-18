@@ -19,7 +19,7 @@ class ValidatesTest < ActiveModel::TestCase
   def test_validates_with_messages_empty
     Person.validates :title, presence: { message: "" }
     person = Person.new
-    assert !person.valid?, "person should not be valid."
+    assert_not person.valid?, "person should not be valid."
   end
 
   def test_validates_with_built_in_validation
@@ -129,6 +129,10 @@ class ValidatesTest < ActiveModel::TestCase
 
   def test_validates_with_unknown_validator
     assert_raise(ArgumentError) { Person.validates :karma, unknown: true }
+  end
+
+  def test_validates_with_disabled_unknown_validator
+    assert_raise(ArgumentError) { Person.validates :karma, unknown: false }
   end
 
   def test_validates_with_included_validator

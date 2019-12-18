@@ -54,9 +54,13 @@ module ActiveSupport
           class EscapedString < String #:nodoc:
             def to_json(*)
               if Encoding.escape_html_entities_in_json
-                super.gsub ESCAPE_REGEX_WITH_HTML_ENTITIES, ESCAPED_CHARS
+                s = super
+                s.gsub! ESCAPE_REGEX_WITH_HTML_ENTITIES, ESCAPED_CHARS
+                s
               else
-                super.gsub ESCAPE_REGEX_WITHOUT_HTML_ENTITIES, ESCAPED_CHARS
+                s = super
+                s.gsub! ESCAPE_REGEX_WITHOUT_HTML_ENTITIES, ESCAPED_CHARS
+                s
               end
             end
 

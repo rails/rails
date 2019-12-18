@@ -14,9 +14,9 @@ module ActiveRecord
     # of your own such as 'LOCK IN SHARE MODE' or 'FOR UPDATE NOWAIT'. Example:
     #
     #   Account.transaction do
-    #     # select * from accounts where name = 'shugo' limit 1 for update
-    #     shugo = Account.where("name = 'shugo'").lock(true).first
-    #     yuko = Account.where("name = 'yuko'").lock(true).first
+    #     # select * from accounts where name = 'shugo' limit 1 for update nowait
+    #     shugo = Account.lock("FOR UPDATE NOWAIT").find_by(name: "shugo")
+    #     yuko = Account.lock("FOR UPDATE NOWAIT").find_by(name: "yuko")
     #     shugo.balance -= 100
     #     shugo.save!
     #     yuko.balance += 100
@@ -53,8 +53,12 @@ module ActiveRecord
     #   end
     #
     # Database-specific information on row locking:
-    #   MySQL: https://dev.mysql.com/doc/refman/5.7/en/innodb-locking-reads.html
-    #   PostgreSQL: https://www.postgresql.org/docs/current/interactive/sql-select.html#SQL-FOR-UPDATE-SHARE
+    #
+    # [MySQL]
+    #   https://dev.mysql.com/doc/refman/en/innodb-locking-reads.html
+    #
+    # [PostgreSQL]
+    #   https://www.postgresql.org/docs/current/interactive/sql-select.html#SQL-FOR-UPDATE-SHARE
     module Pessimistic
       # Obtain a row lock on this record. Reloads the record to obtain the requested
       # lock. Pass an SQL locking clause to append the end of the SELECT statement
@@ -62,7 +66,7 @@ module ActiveRecord
       # the locked record.
       def lock!(lock = true)
         if persisted?
-          if changed?
+          if has_changes_to_save?
             raise(<<-MSG.squish)
               Locking a record with unpersisted changes is not supported. Use
               `save` to persist the changes, or `reload` to discard them

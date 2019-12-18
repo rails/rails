@@ -52,6 +52,8 @@ class RoutingAssertionsTest < ActionController::TestCase
       end
 
       mount engine => "/shelf"
+
+      get "/shelf/foo", controller: "query_articles", action: "index"
     end
   end
 
@@ -152,6 +154,10 @@ class RoutingAssertionsTest < ActionController::TestCase
     end
 
     assert_match err.message, "This is a really bad msg"
+  end
+
+  def test_assert_recognizes_continue_to_recoginize_after_it_tried_engines
+    assert_recognizes({ controller: "query_articles", action: "index" }, "/shelf/foo")
   end
 
   def test_assert_routing

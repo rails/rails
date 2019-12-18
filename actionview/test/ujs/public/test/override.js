@@ -25,7 +25,7 @@ asyncTest('the getter for an element\'s href is overridable', 1, function() {
   $('#qunit-fixture a')
     .bindNative('ajax:beforeSend', function(e, xhr, options) {
       equal('/data/href', options.url)
-      return false
+      e.preventDefault()
     })
     .triggerNative('click')
   start()
@@ -35,7 +35,7 @@ asyncTest('the getter for an element\'s href works normally if not overridden', 
   $('#qunit-fixture a')
     .bindNative('ajax:beforeSend', function(e, xhr, options) {
       equal(location.protocol + '//' + location.host + '/real/href', options.url)
-      return false
+      e.preventDefault()
     })
     .triggerNative('click')
   start()

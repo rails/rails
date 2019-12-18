@@ -34,7 +34,6 @@ module ActionView
         end
 
         private
-
           def value
             if @allow_method_names_outside_object
               object.public_send @method_name if object && object.respond_to?(@method_name)
@@ -106,19 +105,19 @@ module ActionView
           end
 
           def tag_name(multiple = false, index = nil)
-            # a little duplication to construct less strings
+            # a little duplication to construct fewer strings
             case
             when @object_name.empty?
-              "#{sanitized_method_name}#{"[]" if multiple}"
+              "#{sanitized_method_name}#{multiple ? "[]" : ""}"
             when index
-              "#{@object_name}[#{index}][#{sanitized_method_name}]#{"[]" if multiple}"
+              "#{@object_name}[#{index}][#{sanitized_method_name}]#{multiple ? "[]" : ""}"
             else
-              "#{@object_name}[#{sanitized_method_name}]#{"[]" if multiple}"
+              "#{@object_name}[#{sanitized_method_name}]#{multiple ? "[]" : ""}"
             end
           end
 
           def tag_id(index = nil)
-            # a little duplication to construct less strings
+            # a little duplication to construct fewer strings
             case
             when @object_name.empty?
               sanitized_method_name.dup
@@ -138,7 +137,7 @@ module ActionView
           end
 
           def sanitized_value(value)
-            value.to_s.gsub(/\s/, "_").gsub(/[^-[[:word:]]]/, "").mb_chars.downcase.to_s
+            value.to_s.gsub(/[\s\.]/, "_").gsub(/[^-[[:word:]]]/, "").downcase
           end
 
           def select_content_tag(option_tags, options, html_options)
@@ -170,7 +169,11 @@ module ActionView
               option_tags = tag_builder.content_tag_string("option", options[:include_blank].kind_of?(String) ? options[:include_blank] : nil, value: "") + "\n" + option_tags
             end
             if value.blank? && options[:prompt]
-              option_tags = tag_builder.content_tag_string("option", prompt_text(options[:prompt]), value: "") + "\n" + option_tags
+              tag_options = { value: "" }.tap do |prompt_opts|
+                prompt_opts[:disabled] = true if options[:disabled] == ""
+                prompt_opts[:selected] = true if options[:selected] == ""
+              end
+              option_tags = tag_builder.content_tag_string("option", prompt_text(options[:prompt]), tag_options) + "\n" + option_tags
             end
             option_tags
           end

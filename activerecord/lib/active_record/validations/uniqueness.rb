@@ -12,7 +12,7 @@ module ActiveRecord
           raise ArgumentError, "#{options[:scope]} is not supported format for :scope option. " \
             "Pass a symbol or an array of symbols instead: `scope: :user_id`"
         end
-        super({ case_sensitive: true }.merge!(options))
+        super
         @klass = options[:class]
       end
 
@@ -23,9 +23,9 @@ module ActiveRecord
         relation = build_relation(finder_class, attribute, value)
         if record.persisted?
           if finder_class.primary_key
-            relation = relation.where.not(finder_class.primary_key => record.id_in_database || record.id)
+            relation = relation.where.not(finder_class.primary_key => record.id_in_database)
           else
-            raise UnknownPrimaryKey.new(finder_class, "Can not validate uniqueness for persisted record without primary key.")
+            raise UnknownPrimaryKey.new(finder_class, "Cannot validate uniqueness for persisted record without primary key.")
           end
         end
         relation = scope_relation(record, relation)
@@ -35,7 +35,7 @@ module ActiveRecord
           error_options = options.except(:case_sensitive, :scope, :conditions)
           error_options[:value] = value
 
-          record.errors.add(attribute, :taken, error_options)
+          record.errors.add(attribute, :taken, **error_options)
         end
       end
 
@@ -56,33 +56,21 @@ module ActiveRecord
       end
 
       def build_relation(klass, attribute, value)
-        if reflection = klass._reflect_on_association(attribute)
-          attribute = reflection.foreign_key
-          value = value.attributes[reflection.klass.primary_key] unless value.nil?
+        relation = klass.unscoped
+        comparison = relation.bind_attribute(attribute, value) do |attr, bind|
+          return relation.none! if bind.unboundable?
+
+          if !options.key?(:case_sensitive) || bind.nil?
+            klass.connection.default_uniqueness_comparison(attr, bind, klass)
+          elsif options[:case_sensitive]
+            klass.connection.case_sensitive_comparison(attr, bind)
+          else
+            # will use SQL LOWER function before comparison, unless it detects a case insensitive collation
+            klass.connection.case_insensitive_comparison(attr, bind)
+          end
         end
 
-        if value.nil?
-          return klass.unscoped.where!(attribute => value)
-        end
-
-        # the attribute may be an aliased attribute
-        if klass.attribute_alias?(attribute)
-          attribute = klass.attribute_alias(attribute)
-        end
-
-        attribute_name = attribute.to_s
-        value = klass.predicate_builder.build_bind_attribute(attribute_name, value)
-
-        table = klass.arel_table
-        column = klass.columns_hash[attribute_name]
-
-        comparison = if !options[:case_sensitive]
-          # will use SQL LOWER function before comparison, unless it detects a case insensitive collation
-          klass.connection.case_insensitive_comparison(table, attribute, column, value)
-        else
-          klass.connection.case_sensitive_comparison(table, attribute, column, value)
-        end
-        klass.unscoped.where!(comparison)
+        relation.where!(comparison)
       end
 
       def scope_relation(record, relation)

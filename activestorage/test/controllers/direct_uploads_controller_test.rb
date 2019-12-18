@@ -27,8 +27,8 @@ if SERVICE_CONFIGURATIONS[:s3] && SERVICE_CONFIGURATIONS[:s3][:access_key_id].pr
         assert_equal checksum, details["checksum"]
         assert_equal "text/plain", details["content_type"]
         assert_match SERVICE_CONFIGURATIONS[:s3][:bucket], details["direct_upload"]["url"]
-        assert_match(/s3\.(\S+)?amazonaws\.com/, details["direct_upload"]["url"])
-        assert_equal({ "Content-Type" => "text/plain", "Content-MD5" => checksum }, details["direct_upload"]["headers"])
+        assert_match(/s3(-[-a-z0-9]+)?\.(\S+)?amazonaws\.com/, details["direct_upload"]["url"])
+        assert_equal({ "Content-Type" => "text/plain", "Content-MD5" => checksum, "Content-Disposition" => "inline; filename=\"hello.txt\"; filename*=UTF-8''hello.txt" }, details["direct_upload"]["headers"])
       end
     end
   end
@@ -62,7 +62,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
         assert_equal checksum, details["checksum"]
         assert_equal "text/plain", details["content_type"]
         assert_match %r{storage\.googleapis\.com/#{@config[:bucket]}}, details["direct_upload"]["url"]
-        assert_equal({ "Content-Type" => "text/plain", "Content-MD5" => checksum }, details["direct_upload"]["headers"])
+        assert_equal({ "Content-MD5" => checksum, "Content-Disposition" => "inline; filename=\"hello.txt\"; filename*=UTF-8''hello.txt" }, details["direct_upload"]["headers"])
       end
     end
   end
@@ -96,7 +96,7 @@ if SERVICE_CONFIGURATIONS[:azure]
         assert_equal checksum, details["checksum"]
         assert_equal "text/plain", details["content_type"]
         assert_match %r{#{@config[:storage_account_name]}\.blob\.core\.windows\.net/#{@config[:container]}}, details["direct_upload"]["url"]
-        assert_equal({ "Content-Type" => "text/plain", "Content-MD5" => checksum, "x-ms-blob-type" => "BlockBlob" }, details["direct_upload"]["headers"])
+        assert_equal({ "Content-Type" => "text/plain", "Content-MD5" => checksum, "x-ms-blob-content-disposition" => "inline; filename=\"hello.txt\"; filename*=UTF-8''hello.txt", "x-ms-blob-type" => "BlockBlob" }, details["direct_upload"]["headers"])
       end
     end
   end
@@ -121,4 +121,27 @@ class ActiveStorage::DiskDirectUploadsControllerTest < ActionDispatch::Integrati
       assert_equal({ "Content-Type" => "text/plain" }, details["direct_upload"]["headers"])
     end
   end
+
+  test "creating new direct upload does not include root in json" do
+    checksum = Digest::MD5.base64digest("Hello")
+
+    set_include_root_in_json(true) do
+      post rails_direct_uploads_url, params: { blob: {
+        filename: "hello.txt", byte_size: 6, checksum: checksum, content_type: "text/plain" } }
+    end
+
+    @response.parsed_body.tap do |details|
+      assert_nil details["blob"]
+      assert_not_nil details["id"]
+    end
+  end
+
+  private
+    def set_include_root_in_json(value)
+      original = ActiveRecord::Base.include_root_in_json
+      ActiveRecord::Base.include_root_in_json = value
+      yield
+    ensure
+      ActiveRecord::Base.include_root_in_json = original
+    end
 end

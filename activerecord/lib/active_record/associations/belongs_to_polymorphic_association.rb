@@ -6,18 +6,17 @@ module ActiveRecord
     class BelongsToPolymorphicAssociation < BelongsToAssociation #:nodoc:
       def klass
         type = owner[reflection.foreign_type]
-        type.presence && type.constantize
+        type.presence && owner.class.polymorphic_class_for(type)
+      end
+
+      def target_changed?
+        super || owner.saved_change_to_attribute?(reflection.foreign_type)
       end
 
       private
-
         def replace_keys(record)
           super
-          owner[reflection.foreign_type] = record ? record.class.base_class.name : nil
-        end
-
-        def different_target?(record)
-          super || record.class != klass
+          owner[reflection.foreign_type] = record ? record.class.polymorphic_name : nil
         end
 
         def inverse_reflection_for(record)

@@ -10,7 +10,6 @@ module Rails
       class_option :stylesheet_engine, desc: "Engine for Stylesheets"
 
       private
-
         def asset_name
           file_name
         end

@@ -1,17 +1,18 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/object/try"
+require "active_support/core_ext/date_time/conversions"
 
 module DateAndTime
   module Calculations
     DAYS_INTO_WEEK = {
-      monday: 0,
-      tuesday: 1,
-      wednesday: 2,
-      thursday: 3,
-      friday: 4,
-      saturday: 5,
-      sunday: 6
+      sunday: 0,
+      monday: 1,
+      tuesday: 2,
+      wednesday: 3,
+      thursday: 4,
+      friday: 5,
+      saturday: 6
     }
     WEEKEND_DAYS = [ 6, 0 ]
 
@@ -20,19 +21,9 @@ module DateAndTime
       advance(days: -1)
     end
 
-    # Returns a new date/time the specified number of days ago.
-    def prev_day(days = 1)
-      advance(days: -days)
-    end
-
     # Returns a new date/time representing tomorrow.
     def tomorrow
       advance(days: 1)
-    end
-
-    # Returns a new date/time the specified number of days in the future.
-    def next_day(days = 1)
-      advance(days: days)
     end
 
     # Returns true if the date/time is today.
@@ -58,6 +49,16 @@ module DateAndTime
     # Returns true if the date/time does not fall on a Saturday or Sunday.
     def on_weekday?
       !WEEKEND_DAYS.include?(wday)
+    end
+
+    # Returns true if the date/time falls before <tt>date_or_time</tt>.
+    def before?(date_or_time)
+      self < date_or_time
+    end
+
+    # Returns true if the date/time falls after <tt>date_or_time</tt>.
+    def after?(date_or_time)
+      self > date_or_time
     end
 
     # Returns a new date/time the specified number of days ago.
@@ -124,7 +125,7 @@ module DateAndTime
     #   now = DateTime.current # => Fri, 10 Jul 2015 18:41:29 +0000
     #   now.beginning_of_quarter # => Wed, 01 Jul 2015 00:00:00 +0000
     def beginning_of_quarter
-      first_quarter_month = [10, 7, 4, 1].detect { |m| m <= month }
+      first_quarter_month = month - (2 + month) % 3
       beginning_of_month.change(month: first_quarter_month)
     end
     alias :at_beginning_of_quarter :beginning_of_quarter
@@ -139,7 +140,7 @@ module DateAndTime
     #   now = DateTime.current # => Fri, 10 Jul 2015 18:41:29 +0000
     #   now.end_of_quarter # => Wed, 30 Sep 2015 23:59:59 +0000
     def end_of_quarter
-      last_quarter_month = [3, 6, 9, 12].detect { |m| m >= month }
+      last_quarter_month = month + (12 - month) % 3
       beginning_of_month.change(month: last_quarter_month).end_of_month
     end
     alias :at_end_of_quarter :end_of_quarter
@@ -188,19 +189,9 @@ module DateAndTime
       end
     end
 
-    # Returns a new date/time the specified number of months in the future.
-    def next_month(months = 1)
-      advance(months: months)
-    end
-
     # Short-hand for months_since(3)
     def next_quarter
       months_since(3)
-    end
-
-    # Returns a new date/time the specified number of years in the future.
-    def next_year(years = 1)
-      advance(years: years)
     end
 
     # Returns a new date/time representing the given day in the previous week.
@@ -223,11 +214,6 @@ module DateAndTime
     end
     alias_method :last_weekday, :prev_weekday
 
-    # Returns a new date/time the specified number of months ago.
-    def prev_month(months = 1)
-      advance(months: -months)
-    end
-
     # Short-hand for months_ago(1).
     def last_month
       months_ago(1)
@@ -239,11 +225,6 @@ module DateAndTime
     end
     alias_method :last_quarter, :prev_quarter
 
-    # Returns a new date/time the specified number of years ago.
-    def prev_year(years = 1)
-      advance(years: -years)
-    end
-
     # Short-hand for years_ago(1).
     def last_year
       years_ago(1)
@@ -253,9 +234,8 @@ module DateAndTime
     # Week is assumed to start on +start_day+, default is
     # +Date.beginning_of_week+ or +config.beginning_of_week+ when set.
     def days_to_week_start(start_day = Date.beginning_of_week)
-      start_day_number = DAYS_INTO_WEEK[start_day]
-      current_day_number = wday != 0 ? wday - 1 : 6
-      (current_day_number - start_day_number) % 7
+      start_day_number = DAYS_INTO_WEEK.fetch(start_day)
+      (wday - start_day_number) % 7
     end
 
     # Returns a new date/time representing the start of this week on the given day.
@@ -336,8 +316,7 @@ module DateAndTime
     #   today.next_occurring(:monday)    # => Mon, 18 Dec 2017
     #   today.next_occurring(:thursday)  # => Thu, 21 Dec 2017
     def next_occurring(day_of_week)
-      current_day_number = wday != 0 ? wday - 1 : 6
-      from_now = DAYS_INTO_WEEK.fetch(day_of_week) - current_day_number
+      from_now = DAYS_INTO_WEEK.fetch(day_of_week) - wday
       from_now += 7 unless from_now > 0
       advance(days: from_now)
     end
@@ -348,8 +327,7 @@ module DateAndTime
     #   today.prev_occurring(:monday)    # => Mon, 11 Dec 2017
     #   today.prev_occurring(:thursday)  # => Thu, 07 Dec 2017
     def prev_occurring(day_of_week)
-      current_day_number = wday != 0 ? wday - 1 : 6
-      ago = current_day_number - DAYS_INTO_WEEK.fetch(day_of_week)
+      ago = wday - DAYS_INTO_WEEK.fetch(day_of_week)
       ago += 7 unless ago > 0
       advance(days: -ago)
     end
@@ -364,7 +342,7 @@ module DateAndTime
       end
 
       def days_span(day)
-        (DAYS_INTO_WEEK[day] - DAYS_INTO_WEEK[Date.beginning_of_week]) % 7
+        (DAYS_INTO_WEEK.fetch(day) - DAYS_INTO_WEEK.fetch(Date.beginning_of_week)) % 7
       end
 
       def copy_time_to(other)

@@ -13,7 +13,7 @@ module ActionCable
         define_callbacks :unsubscribe
       end
 
-      class_methods do
+      module ClassMethods
         def before_subscribe(*methods, &block)
           set_callback(:subscribe, :before, *methods, &block)
         end

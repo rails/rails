@@ -14,17 +14,11 @@ class DirtyTest < ActiveModel::TestCase
       @status = "initialized"
     end
 
-    def name
-      @name
-    end
+    attr_reader :name, :color, :size, :status
 
     def name=(val)
       name_will_change!
       @name = val
-    end
-
-    def color
-      @color
     end
 
     def color=(val)
@@ -32,17 +26,9 @@ class DirtyTest < ActiveModel::TestCase
       @color = val
     end
 
-    def size
-      @size
-    end
-
     def size=(val)
       attribute_will_change!(:size) unless val == @size
       @size = val
-    end
-
-    def status
-      @status
     end
 
     def status=(val)
@@ -52,10 +38,6 @@ class DirtyTest < ActiveModel::TestCase
 
     def save
       changes_applied
-    end
-
-    def reload
-      clear_changes_information
     end
   end
 
@@ -78,7 +60,7 @@ class DirtyTest < ActiveModel::TestCase
   end
 
   test "changes to attribute values" do
-    assert !@model.changes["name"]
+    assert_not @model.changes["name"]
     @model.name = "John"
     assert_equal [nil, "John"], @model.changes["name"]
   end
@@ -108,7 +90,7 @@ class DirtyTest < ActiveModel::TestCase
   end
 
   test "attribute mutation" do
-    @model.instance_variable_set("@name", "Yam".dup)
+    @model.instance_variable_set("@name", +"Yam")
     assert_not_predicate @model, :name_changed?
     @model.name.replace("Hadad")
     assert_not_predicate @model, :name_changed?
@@ -198,7 +180,7 @@ class DirtyTest < ActiveModel::TestCase
     assert_predicate @model, :size_changed?
   end
 
-  test "reload should reset all changes" do
+  test "clear_changes_information should reset all changes" do
     @model.name = "Dmitry"
     @model.name_changed?
     @model.save
@@ -207,7 +189,7 @@ class DirtyTest < ActiveModel::TestCase
     assert_equal [nil, "Dmitry"], @model.previous_changes["name"]
     assert_equal "Dmitry", @model.changed_attributes["name"]
 
-    @model.reload
+    @model.clear_changes_information
 
     assert_equal ActiveSupport::HashWithIndifferentAccess.new, @model.previous_changes
     assert_equal ActiveSupport::HashWithIndifferentAccess.new, @model.changed_attributes

@@ -26,7 +26,7 @@ module ActiveRecord
       assert relation.order!(:name).equal?(relation)
       node = relation.order_values.first
       assert_predicate node, :ascending?
-      assert_equal :name, node.expr.name
+      assert_equal "name", node.expr.name
       assert_equal "posts", node.expr.relation.name
     end
 
@@ -89,7 +89,7 @@ module ActiveRecord
       node = relation.order_values.first
 
       assert_predicate node, :ascending?
-      assert_equal :name, node.expr.name
+      assert_equal "name", node.expr.name
       assert_equal "posts", node.expr.relation.name
     end
 
@@ -135,6 +135,11 @@ module ActiveRecord
     test "skip_query_cache!" do
       relation.skip_query_cache!
       assert relation.skip_query_cache_value
+    end
+
+    test "skip_preloading!" do
+      relation.skip_preloading!
+      assert relation.skip_preloading_value
     end
 
     private

@@ -3,7 +3,9 @@
 require "abstract_unit"
 
 class ForceSSLApiController < ActionController::API
-  force_ssl
+  ActiveSupport::Deprecation.silence do
+    force_ssl
+  end
 
   def one; end
   def two

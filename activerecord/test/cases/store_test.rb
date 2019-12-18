@@ -8,7 +8,12 @@ class StoreTest < ActiveRecord::TestCase
   fixtures :'admin/users'
 
   setup do
-    @john = Admin::User.create!(name: "John Doe", color: "black", remember_login: true, height: "tall", is_a_good_guy: true)
+    @john = Admin::User.create!(
+      name: "John Doe", color: "black", remember_login: true,
+      height: "tall", is_a_good_guy: true,
+      parent_name: "Quinn", partner_name: "Dallas",
+      partner_birthday: "1997-11-1"
+    )
   end
 
   test "reading store attributes through accessors" do
@@ -22,6 +27,21 @@ class StoreTest < ActiveRecord::TestCase
 
     assert_equal "red", @john.color
     assert_equal "37signals.com", @john.homepage
+  end
+
+  test "reading store attributes through accessors with prefix" do
+    assert_equal "Quinn", @john.parent_name
+    assert_nil @john.parent_birthday
+    assert_equal "Dallas", @john.partner_name
+    assert_equal "1997-11-1", @john.partner_birthday
+  end
+
+  test "writing store attributes through accessors with prefix" do
+    @john.partner_name = "River"
+    @john.partner_birthday = "1999-2-11"
+
+    assert_equal "River", @john.partner_name
+    assert_equal "1999-2-11", @john.partner_birthday
   end
 
   test "accessing attributes not exposed by accessors" do
@@ -57,6 +77,74 @@ class StoreTest < ActiveRecord::TestCase
   test "updating the store won't mark it as changed if an attribute isn't changed" do
     @john.color = @john.color
     assert_not_predicate @john, :settings_changed?
+  end
+
+  test "updating the store will mark accessor as changed" do
+    @john.color = "red"
+    assert @john.color_changed?
+  end
+
+  test "new record and no accessors changes" do
+    user = Admin::User.new
+    assert_not user.color_changed?
+    assert_nil user.color_was
+    assert_nil user.color_change
+
+    user.color = "red"
+    assert user.color_changed?
+    assert_nil user.color_was
+    assert_equal "red", user.color_change[1]
+  end
+
+  test "updating the store won't mark accessor as changed if the whole store was updated" do
+    @john.settings = { color: @john.color, some: "thing" }
+    assert @john.settings_changed?
+    assert_not @john.color_changed?
+  end
+
+  test "updating the store populates the accessor changed array correctly" do
+    @john.color = "red"
+    assert_equal "black", @john.color_was
+    assert_equal "black", @john.color_change[0]
+    assert_equal "red", @john.color_change[1]
+  end
+
+  test "updating the store won't mark accessor as changed if the value isn't changed" do
+    @john.color = @john.color
+    assert_not @john.color_changed?
+  end
+
+  test "nullifying the store mark accessor as changed" do
+    color = @john.color
+    @john.settings = nil
+    assert @john.color_changed?
+    assert_equal color, @john.color_was
+    assert_equal [color, nil], @john.color_change
+  end
+
+  test "dirty methods for suffixed accessors" do
+    @john.configs[:two_factor_auth] = true
+    assert @john.two_factor_auth_configs_changed?
+    assert_nil @john.two_factor_auth_configs_was
+    assert_equal [nil, true], @john.two_factor_auth_configs_change
+  end
+
+  test "dirty methods for prefixed accessors" do
+    @john.spouse[:name] = "Lena"
+    assert @john.partner_name_changed?
+    assert_equal "Dallas", @john.partner_name_was
+    assert_equal ["Dallas", "Lena"], @john.partner_name_change
+  end
+
+  test "saved changes tracking for accessors" do
+    @john.spouse[:name] = "Lena"
+    assert @john.partner_name_changed?
+
+    @john.save!
+    assert_not @john.partner_name_change
+    assert @john.saved_change_to_partner_name?
+    assert_equal ["Dallas", "Lena"], @john.saved_change_to_partner_name
+    assert_equal "Dallas", @john.partner_name_before_last_save
   end
 
   test "object initialization with not nullable column" do
@@ -193,5 +281,39 @@ class StoreTest < ActiveRecord::TestCase
 
     second_dump = YAML.dump(loaded)
     assert_equal @john, YAML.load(second_dump)
+  end
+
+  test "read store attributes through accessors with default suffix" do
+    @john.configs[:two_factor_auth] = true
+    assert_equal true, @john.two_factor_auth_configs
+  end
+
+  test "write store attributes through accessors with default suffix" do
+    @john.two_factor_auth_configs = false
+    assert_equal false, @john.configs[:two_factor_auth]
+  end
+
+  test "read store attributes through accessors with custom suffix" do
+    @john.configs[:login_retry] = 3
+    assert_equal 3, @john.login_retry_config
+  end
+
+  test "write store attributes through accessors with custom suffix" do
+    @john.login_retry_config = 5
+    assert_equal 5, @john.configs[:login_retry]
+  end
+
+  test "read accessor without pre/suffix in the same store as other pre/suffixed accessors still works" do
+    @john.configs[:secret_question] = "What is your high school?"
+    assert_equal "What is your high school?", @john.secret_question
+  end
+
+  test "write accessor without pre/suffix in the same store as other pre/suffixed accessors still works" do
+    @john.secret_question = "What was the Rails version when you first worked on it?"
+    assert_equal "What was the Rails version when you first worked on it?", @john.configs[:secret_question]
+  end
+
+  test "prefix/suffix do not affect stored attributes" do
+    assert_equal [:secret_question, :two_factor_auth, :login_retry], Admin::User.stored_attributes[:configs]
   end
 end

@@ -7,7 +7,7 @@ module ActiveRecord
 
       class ColumnNotSerializableError < StandardError
         def initialize(name, type)
-          super <<-EOS.strip_heredoc
+          super <<~EOS
             Column `#{name}` of type #{type.class} does not support `serialize` feature.
             Usually it means that you are trying to use `serialize`
             on a column that already implements serialization natively.
@@ -79,7 +79,6 @@ module ActiveRecord
         end
 
         private
-
           def type_incompatible_with_serialize?(type, class_name)
             type.is_a?(ActiveRecord::Type::Json) && class_name == ::JSON ||
               type.respond_to?(:type_cast_array, true) && class_name == ::Array

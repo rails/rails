@@ -24,7 +24,7 @@ module ActionView
       #     created_at:
       #   </pre>
       def debug(object)
-        Marshal::dump(object)
+        Marshal.dump(object)
         object = ERB::Util.html_escape(object.to_yaml)
         content_tag(:pre, object, class: "debug_dump")
       rescue # errors from Marshal or YAML

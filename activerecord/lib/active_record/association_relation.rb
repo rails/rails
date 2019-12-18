@@ -2,7 +2,7 @@
 
 module ActiveRecord
   class AssociationRelation < Relation
-    def initialize(klass, association)
+    def initialize(klass, association, **)
       super(klass)
       @association = association
     end
@@ -15,25 +15,33 @@ module ActiveRecord
       other == records
     end
 
-    def build(*args, &block)
-      scoping { @association.build(*args, &block) }
+    def build(attributes = nil, &block)
+      block = _deprecated_scope_block("new", &block)
+      @association.scoping(self) do
+        @association.build(attributes, &block)
+      end
     end
     alias new build
 
-    def create(*args, &block)
-      scoping { @association.create(*args, &block) }
+    def create(attributes = nil, &block)
+      block = _deprecated_scope_block("create", &block)
+      @association.scoping(self) do
+        @association.create(attributes, &block)
+      end
     end
 
-    def create!(*args, &block)
-      scoping { @association.create!(*args, &block) }
+    def create!(attributes = nil, &block)
+      block = _deprecated_scope_block("create!", &block)
+      @association.scoping(self) do
+        @association.create!(attributes, &block)
+      end
     end
 
     private
-
       def exec_queries
-        super do |r|
-          @association.set_inverse_instance r
-          yield r if block_given?
+        super do |record|
+          @association.set_inverse_instance_from_queries(record)
+          yield record if block_given?
         end
       end
   end

@@ -24,7 +24,7 @@ class BaseRequestTest < ActiveSupport::TestCase
     def stub_request(env = {})
       ip_spoofing_check = env.key?(:ip_spoofing_check) ? env.delete(:ip_spoofing_check) : true
       @trusted_proxies ||= nil
-      ip_app = ActionDispatch::RemoteIp.new(Proc.new {}, ip_spoofing_check, @trusted_proxies)
+      ip_app = ActionDispatch::RemoteIp.new(Proc.new { }, ip_spoofing_check, @trusted_proxies)
       ActionDispatch::Http::URL.tld_length = env.delete(:tld_length) if env.key?(:tld_length)
 
       ip_app.call(env)
@@ -103,6 +103,11 @@ class RequestIP < BaseRequestTest
 
     request = stub_request "HTTP_X_FORWARDED_FOR" => "not_ip_address"
     assert_nil request.remote_ip
+
+    request = stub_request "REMOTE_ADDR" => "1.2.3.4"
+    assert_equal "1.2.3.4", request.remote_ip
+    request.remote_ip = "2.3.4.5"
+    assert_equal "2.3.4.5", request.remote_ip
   end
 
   test "remote ip spoof detection" do
@@ -411,7 +416,7 @@ class RequestPath < BaseRequestTest
     assert_equal "/foo?bar", path
   end
 
-  test "original_url returns url built using ORIGINAL_FULLPATH" do
+  test "original_url returns URL built using ORIGINAL_FULLPATH" do
     request = stub_request("ORIGINAL_FULLPATH" => "/foo?bar",
                            "HTTP_HOST"         => "example.org",
                            "rack.url_scheme"   => "http")
@@ -681,7 +686,6 @@ end
 class RequestMethod < BaseRequestTest
   test "method returns environment's request method when it has not been
     overridden by middleware".squish do
-
     ActionDispatch::Request::HTTP_METHODS.each do |method|
       request = stub_request("REQUEST_METHOD" => method)
 
@@ -763,7 +767,6 @@ class RequestMethod < BaseRequestTest
 
   test "post uneffected by local inflections" do
     existing_acronyms = ActiveSupport::Inflector.inflections.acronyms.dup
-    assert_deprecated { ActiveSupport::Inflector.inflections.acronym_regex.dup }
     begin
       ActiveSupport::Inflector.inflections do |inflect|
         inflect.acronym "POS"
@@ -867,10 +870,26 @@ class RequestFormat < BaseRequestTest
     assert_not_predicate request.format, :json?
   end
 
-  test "format does not throw exceptions when malformed parameters" do
+  test "format does not throw exceptions when malformed GET parameters" do
     request = stub_request("QUERY_STRING" => "x[y]=1&x[y][][w]=2")
     assert request.formats
     assert_predicate request.format, :html?
+  end
+
+  test "format does not throw exceptions when invalid POST parameters" do
+    body = "{record:{content:127.0.0.1}}"
+    request = stub_request(
+      "REQUEST_METHOD" => "POST",
+      "CONTENT_LENGTH" => body.length,
+      "CONTENT_TYPE" => "application/json",
+      "rack.input" => StringIO.new(body),
+      "action_dispatch.logger" => Logger.new(output = StringIO.new)
+    )
+    assert request.formats
+    assert request.format.html?
+
+    output.rewind && (err = output.read)
+    assert_match(/Error occurred while parsing request parameters/, err)
   end
 
   test "formats with xhr request" do
@@ -1059,44 +1078,9 @@ class RequestParameters < BaseRequestTest
 end
 
 class RequestParameterFilter < BaseRequestTest
-  test "process parameter filter" do
-    test_hashes = [
-    [{ "foo" => "bar" }, { "foo" => "bar" }, %w'food'],
-    [{ "foo" => "bar" }, { "foo" => "[FILTERED]" }, %w'foo'],
-    [{ "foo" => "bar", "bar" => "foo" }, { "foo" => "[FILTERED]", "bar" => "foo" }, %w'foo baz'],
-    [{ "foo" => "bar", "baz" => "foo" }, { "foo" => "[FILTERED]", "baz" => "[FILTERED]" }, %w'foo baz'],
-    [{ "bar" => { "foo" => "bar", "bar" => "foo" } }, { "bar" => { "foo" => "[FILTERED]", "bar" => "foo" } }, %w'fo'],
-    [{ "foo" => { "foo" => "bar", "bar" => "foo" } }, { "foo" => "[FILTERED]" }, %w'f banana'],
-    [{ "deep" => { "cc" => { "code" => "bar", "bar" => "foo" }, "ss" => { "code" => "bar" } } }, { "deep" => { "cc" => { "code" => "[FILTERED]", "bar" => "foo" }, "ss" => { "code" => "bar" } } }, %w'deep.cc.code'],
-    [{ "baz" => [{ "foo" => "baz" }, "1"] }, { "baz" => [{ "foo" => "[FILTERED]" }, "1"] }, [/foo/]]]
-
-    test_hashes.each do |before_filter, after_filter, filter_words|
-      parameter_filter = ActionDispatch::Http::ParameterFilter.new(filter_words)
-      assert_equal after_filter, parameter_filter.filter(before_filter)
-
-      filter_words << "blah"
-      filter_words << lambda { |key, value|
-        value.reverse! if key =~ /bargain/
-      }
-
-      parameter_filter = ActionDispatch::Http::ParameterFilter.new(filter_words)
-      before_filter["barg"] = { :bargain => "gain", "blah" => "bar", "bar" => { "bargain" => { "blah" => "foo" } } }
-      after_filter["barg"]  = { :bargain => "niag", "blah" => "[FILTERED]", "bar" => { "bargain" => { "blah" => "[FILTERED]" } } }
-
-      assert_equal after_filter, parameter_filter.filter(before_filter)
-    end
-  end
-
-  test "parameter filter should maintain hash with indifferent access" do
-    test_hashes = [
-      [{ "foo" => "bar" }.with_indifferent_access, ["blah"]],
-      [{ "foo" => "bar" }.with_indifferent_access, []]
-    ]
-
-    test_hashes.each do |before_filter, filter_words|
-      parameter_filter = ActionDispatch::Http::ParameterFilter.new(filter_words)
-      assert_instance_of ActiveSupport::HashWithIndifferentAccess,
-                         parameter_filter.filter(before_filter)
+  test "parameter filter is deprecated" do
+    assert_deprecated do
+      ActionDispatch::Http::ParameterFilter.new(["blah"])
     end
   end
 

@@ -1,11 +1,6 @@
 # frozen_string_literal: true
 
-begin
-  require "bundler/inline"
-rescue LoadError => e
-  $stderr.puts "Bundler version 1.10 or later is required. Please update your Bundler"
-  raise e
-end
+require "bundler/inline"
 
 gemfile(true) do
   source "https://rubygems.org"
@@ -20,9 +15,6 @@ require "active_record"
 require "minitest/autorun"
 require "logger"
 
-# Ensure backward compatibility with Minitest 4
-Minitest::Test = MiniTest::Unit::TestCase unless defined?(Minitest::Test)
-
 # This connection will do for database-independent bug reports.
 ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
 ActiveRecord::Base.logger = Logger.new(STDOUT)
@@ -36,7 +28,7 @@ end
 class Payment < ActiveRecord::Base
 end
 
-class ChangeAmountToAddScale < ActiveRecord::Migration[5.2]
+class ChangeAmountToAddScale < ActiveRecord::Migration[6.0]
   def change
     reversible do |dir|
       dir.up do

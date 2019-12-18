@@ -14,6 +14,7 @@ require "active_support/core_ext/time/conversions"
 require "active_support/core_ext/date_time/conversions"
 require "active_support/core_ext/date/conversions"
 
+#--
 # The JSON gem adds a few modules to Ruby core classes containing :to_json definition, overwriting
 # their default behavior. That said, we need to define the basic to_json method in all of them,
 # otherwise they will always use to_json gem implementation, which is backwards incompatible in

@@ -102,6 +102,21 @@ module ActiveRecord
     # If true, the default table name for a Product class will be "products". If false, it would just be "product".
     # See table_name for the full rules on table/class naming. This is true, by default.
 
+    ##
+    # :singleton-method: implicit_order_column
+    # :call-seq: implicit_order_column
+    #
+    # The name of the column records are ordered by if no explicit order clause
+    # is used during an ordered finder call. If not set the primary key is used.
+
+    ##
+    # :singleton-method: implicit_order_column=
+    # :call-seq: implicit_order_column=(column_name)
+    #
+    # Sets the column to sort records by when no explicit order clause is used
+    # during an ordered finder call. Useful when the primary key is not an
+    # auto-incrementing integer, for example when it's a UUID. Records are subsorted
+    # by the primary key if it exists to ensure deterministic results.
     included do
       mattr_accessor :primary_key_prefix_type, instance_writer: false
 
@@ -110,6 +125,7 @@ module ActiveRecord
       class_attribute :schema_migrations_table_name, instance_accessor: false, default: "schema_migrations"
       class_attribute :internal_metadata_table_name, instance_accessor: false, default: "ar_internal_metadata"
       class_attribute :pluralize_table_names, instance_writer: false, default: true
+      class_attribute :implicit_order_column, instance_accessor: false
 
       self.protected_environments = ["production"]
       self.inheritance_column = "type"
@@ -218,11 +234,11 @@ module ActiveRecord
       end
 
       def full_table_name_prefix #:nodoc:
-        (parents.detect { |p| p.respond_to?(:table_name_prefix) } || self).table_name_prefix
+        (module_parents.detect { |p| p.respond_to?(:table_name_prefix) } || self).table_name_prefix
       end
 
       def full_table_name_suffix #:nodoc:
-        (parents.detect { |p| p.respond_to?(:table_name_suffix) } || self).table_name_suffix
+        (module_parents.detect { |p| p.respond_to?(:table_name_suffix) } || self).table_name_suffix
       end
 
       # The array of names of environments where destructive actions should be prohibited. By default,
@@ -276,7 +292,7 @@ module ActiveRecord
       end
 
       def sequence_name
-        if base_class == self
+        if base_class?
           @sequence_name ||= reset_sequence_name
         else
           (@sequence_name ||= nil) || base_class.sequence_name
@@ -375,10 +391,11 @@ module ActiveRecord
       # default values when instantiating the Active Record object for this table.
       def column_defaults
         load_schema
-        @column_defaults ||= _default_attributes.to_hash
+        @column_defaults ||= _default_attributes.deep_dup.to_hash
       end
 
       def _default_attributes # :nodoc:
+        load_schema
         @default_attributes ||= ActiveModel::AttributeSet.new({})
       end
 
@@ -387,14 +404,18 @@ module ActiveRecord
         @column_names ||= columns.map(&:name)
       end
 
+      def symbol_column_to_string(name_symbol) # :nodoc:
+        @symbol_column_to_string_name_hash ||= column_names.index_by(&:to_sym)
+        @symbol_column_to_string_name_hash[name_symbol]
+      end
+
       # Returns an array of column objects where the primary id, all columns ending in "_id" or "_count",
       # and columns used for single table inheritance have been removed.
       def content_columns
         @content_columns ||= columns.reject do |c|
           c.name == primary_key ||
           c.name == inheritance_column ||
-          c.name.end_with?("_id") ||
-          c.name.end_with?("_count")
+          c.name.end_with?("_id", "_count")
         end
       end
 
@@ -434,13 +455,11 @@ module ActiveRecord
       end
 
       protected
-
         def initialize_load_schema_monitor
           @load_schema_monitor = Monitor.new
         end
 
       private
-
         def inherited(child_class)
           super
           child_class.initialize_load_schema_monitor
@@ -458,10 +477,16 @@ module ActiveRecord
             load_schema!
 
             @schema_loaded = true
+          rescue
+            reload_schema_from_cache # If the schema loading failed half way through, we must reset the state.
+            raise
           end
         end
 
         def load_schema!
+          unless table_name
+            raise ActiveRecord::TableNotSpecified, "#{self} has no table configured. Set one with #{self}.table_name="
+          end
           @columns_hash = connection.schema_cache.columns_hash(table_name).except(*ignored_columns)
           @columns_hash.each do |name, column|
             define_attribute(
@@ -476,6 +501,7 @@ module ActiveRecord
         def reload_schema_from_cache
           @arel_table = nil
           @column_names = nil
+          @symbol_column_to_string_name_hash = nil
           @attribute_types = nil
           @content_columns = nil
           @default_attributes = nil
@@ -500,19 +526,18 @@ module ActiveRecord
 
         # Computes and returns a table name according to default conventions.
         def compute_table_name
-          base = base_class
-          if self == base
+          if base_class?
             # Nested classes are prefixed with singular parent table name.
-            if parent < Base && !parent.abstract_class?
-              contained = parent.table_name
-              contained = contained.singularize if parent.pluralize_table_names
+            if module_parent < Base && !module_parent.abstract_class?
+              contained = module_parent.table_name
+              contained = contained.singularize if module_parent.pluralize_table_names
               contained += "_"
             end
 
             "#{full_table_name_prefix}#{contained}#{undecorated_table_name(name)}#{full_table_name_suffix}"
           else
             # STI subclasses always use their superclass' table.
-            base.table_name
+            base_class.table_name
           end
         end
     end

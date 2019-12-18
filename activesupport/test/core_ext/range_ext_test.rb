@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../abstract_unit"
 require "active_support/time"
 require "active_support/core_ext/numeric"
 require "active_support/core_ext/range"
@@ -37,7 +37,7 @@ class RangeTest < ActiveSupport::TestCase
   end
 
   def test_overlaps_last_exclusive
-    assert !(1...5).overlaps?(5..10)
+    assert_not (1...5).overlaps?(5..10)
   end
 
   def test_overlaps_first_inclusive
@@ -45,7 +45,7 @@ class RangeTest < ActiveSupport::TestCase
   end
 
   def test_overlaps_first_exclusive
-    assert !(5..10).overlaps?(1...5)
+    assert_not (5..10).overlaps?(1...5)
   end
 
   def test_should_include_identical_inclusive
@@ -57,7 +57,35 @@ class RangeTest < ActiveSupport::TestCase
   end
 
   def test_should_include_other_with_exclusive_end
-    assert((1..10).include?(1...10))
+    assert((1..10).include?(1...11))
+  end
+
+  if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.6.0")
+    def test_include_with_endless_range
+      assert(eval("1..").include?(2))
+    end
+
+    def test_should_include_range_with_endless_range
+      assert(eval("1..").include?(2..4))
+    end
+
+    def test_should_not_include_range_with_endless_range
+      assert_not(eval("1..").include?(0..4))
+    end
+  end
+
+  if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.7.0")
+    def test_include_with_beginless_range
+      assert(eval("..2").include?(1))
+    end
+
+    def test_should_include_range_with_beginless_range
+      assert(eval("..2").include?(-1..1))
+    end
+
+    def test_should_not_include_range_with_beginless_range
+      assert_not(eval("..2").include?(-1..3))
+    end
   end
 
   def test_should_compare_identical_inclusive
@@ -69,7 +97,27 @@ class RangeTest < ActiveSupport::TestCase
   end
 
   def test_should_compare_other_with_exclusive_end
-    assert((1..10) === (1...10))
+    assert((1..10) === (1...11))
+  end
+
+  if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.6.0")
+    def test_should_compare_range_with_endless_range
+      assert(eval("1..") === (2..4))
+    end
+
+    def test_should_not_compare_range_with_endless_range
+      assert_not(eval("1..") === (0..4))
+    end
+  end
+
+  if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.7.0")
+    def test_should_compare_range_with_beginless_range
+      assert(eval("..2") === (-1..1))
+    end
+
+    def test_should_not_compare_range_with_beginless_range
+      assert_not(eval("..2") === (-1..3))
+    end
   end
 
   def test_exclusive_end_should_not_include_identical_with_inclusive_end
@@ -93,6 +141,30 @@ class RangeTest < ActiveSupport::TestCase
     assert range.method(:include?) != range.method(:cover?)
   end
 
+  def test_should_cover_other_with_exclusive_end
+    assert((1..10).cover?(1...11))
+  end
+
+  if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.6.0")
+    def test_should_cover_range_with_endless_range
+      assert(eval("1..").cover?(2..4))
+    end
+
+    def test_should_not_cover_range_with_endless_range
+      assert_not(eval("1..").cover?(0..4))
+    end
+  end
+
+  if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.7.0")
+    def test_should_cover_range_with_beginless_range
+      assert(eval("..2").cover?(-1..1))
+    end
+
+    def test_should_not_cover_range_with_beginless_range
+      assert_not(eval("..2").cover?(-1..3))
+    end
+  end
+
   def test_overlaps_on_time
     time_range_1 = Time.utc(2005, 12, 10, 15, 30)..Time.utc(2005, 12, 10, 17, 30)
     time_range_2 = Time.utc(2005, 12, 10, 17, 00)..Time.utc(2005, 12, 10, 18, 00)
@@ -102,20 +174,20 @@ class RangeTest < ActiveSupport::TestCase
   def test_no_overlaps_on_time
     time_range_1 = Time.utc(2005, 12, 10, 15, 30)..Time.utc(2005, 12, 10, 17, 30)
     time_range_2 = Time.utc(2005, 12, 10, 17, 31)..Time.utc(2005, 12, 10, 18, 00)
-    assert !time_range_1.overlaps?(time_range_2)
+    assert_not time_range_1.overlaps?(time_range_2)
   end
 
   def test_each_on_time_with_zone
     twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Eastern Time (US & Canada)"], Time.utc(2006, 11, 28, 10, 30))
     assert_raises TypeError do
-      ((twz - 1.hour)..twz).each {}
+      ((twz - 1.hour)..twz).each { }
     end
   end
 
   def test_step_on_time_with_zone
     twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Eastern Time (US & Canada)"], Time.utc(2006, 11, 28, 10, 30))
     assert_raises TypeError do
-      ((twz - 1.hour)..twz).step(1) {}
+      ((twz - 1.hour)..twz).step(1) { }
     end
   end
 
@@ -131,11 +203,11 @@ class RangeTest < ActiveSupport::TestCase
 
   def test_date_time_with_each
     datetime = DateTime.now
-    assert(((datetime - 1.hour)..datetime).each {})
+    assert(((datetime - 1.hour)..datetime).each { })
   end
 
   def test_date_time_with_step
     datetime = DateTime.now
-    assert(((datetime - 1.hour)..datetime).step(1) {})
+    assert(((datetime - 1.hour)..datetime).step(1) { })
   end
 end

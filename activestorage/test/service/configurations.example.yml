@@ -24,7 +24,6 @@
 #
 # azure:
 #   service: AzureStorage
-#   path: ""
 #   storage_account_name: ""
 #   storage_access_key: ""
 #   container: ""

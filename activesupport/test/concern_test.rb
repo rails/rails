@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 require "active_support/concern"
 
 class ConcernTest < ActiveSupport::TestCase
@@ -125,6 +125,14 @@ class ConcernTest < ActiveSupport::TestCase
 
         included do
         end
+      end
+    end
+  end
+
+  def test_no_raise_on_same_included_call
+    assert_nothing_raised do
+      2.times do
+        load File.expand_path("../fixtures/concern/some_concern.rb", __FILE__)
       end
     end
   end

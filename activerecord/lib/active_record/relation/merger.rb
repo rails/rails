@@ -89,7 +89,6 @@ module ActiveRecord
       end
 
       private
-
         def merge_preloads
           return if other.preload_values.empty? && other.includes_values.empty?
 
@@ -117,20 +116,16 @@ module ActiveRecord
           if other.klass == relation.klass
             relation.joins!(*other.joins_values)
           else
-            alias_tracker = nil
-            joins_dependency = other.joins_values.map do |join|
+            associations, others = other.joins_values.partition do |join|
               case join
-              when Hash, Symbol, Array
-                alias_tracker ||= other.alias_tracker
-                ActiveRecord::Associations::JoinDependency.new(
-                  other.klass, other.table, join, alias_tracker
-                )
-              else
-                join
+              when Hash, Symbol, Array; true
               end
             end
 
-            relation.joins!(*joins_dependency)
+            join_dependency = other.construct_join_dependency(
+              associations, Arel::Nodes::InnerJoin
+            )
+            relation.joins!(join_dependency, *others)
           end
         end
 
@@ -140,30 +135,21 @@ module ActiveRecord
           if other.klass == relation.klass
             relation.left_outer_joins!(*other.left_outer_joins_values)
           else
-            alias_tracker = nil
-            joins_dependency = other.left_outer_joins_values.map do |join|
-              case join
-              when Hash, Symbol, Array
-                alias_tracker ||= other.alias_tracker
-                ActiveRecord::Associations::JoinDependency.new(
-                  other.klass, other.table, join, alias_tracker
-                )
-              else
-                join
-              end
-            end
-
-            relation.left_outer_joins!(*joins_dependency)
+            associations = other.left_outer_joins_values
+            join_dependency = other.construct_join_dependency(
+              associations, Arel::Nodes::OuterJoin
+            )
+            relation.joins!(join_dependency)
           end
         end
 
         def merge_multi_values
           if other.reordering_value
             # override any order specified in the original relation
-            relation.reorder! other.order_values
+            relation.reorder!(*other.order_values)
           elsif other.order_values.any?
             # merge in order_values from relation
-            relation.order! other.order_values
+            relation.order!(*other.order_values)
           end
 
           extensions = other.extensions - relation.extensions
@@ -179,15 +165,18 @@ module ActiveRecord
         end
 
         def merge_clauses
-          if relation.from_clause.empty? && !other.from_clause.empty?
-            relation.from_clause = other.from_clause
-          end
+          relation.from_clause = other.from_clause if replace_from_clause?
 
           where_clause = relation.where_clause.merge(other.where_clause)
           relation.where_clause = where_clause unless where_clause.empty?
 
           having_clause = relation.having_clause.merge(other.having_clause)
           relation.having_clause = having_clause unless having_clause.empty?
+        end
+
+        def replace_from_clause?
+          relation.from_clause.empty? && !other.from_clause.empty? &&
+            relation.klass.base_class == other.klass.base_class
         end
     end
   end

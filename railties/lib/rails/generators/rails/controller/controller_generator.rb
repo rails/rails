@@ -16,50 +16,22 @@ module Rails
 
       def add_routes
         return if options[:skip_routes]
-        route generate_routing_code
+        return if actions.empty?
+        routing_code = actions.map { |action| "get '#{file_name}/#{action}'" }.join("\n")
+        route routing_code, namespace: regular_class_path
       end
 
-      hook_for :template_engine, :test_framework, :helper, :assets
+      hook_for :template_engine, :test_framework, :helper, :assets do |generator|
+        invoke generator, [ remove_possible_suffix(name), actions ]
+      end
 
       private
+        def file_name
+          @_file_name ||= remove_possible_suffix(super)
+        end
 
-        # This method creates nested route entry for namespaced resources.
-        # For eg. rails g controller foo/bar/baz index show
-        # Will generate -
-        # namespace :foo do
-        #   namespace :bar do
-        #     get 'baz/index'
-        #     get 'baz/show'
-        #   end
-        # end
-        def generate_routing_code
-          depth = 0
-          lines = []
-
-          # Create 'namespace' ladder
-          # namespace :foo do
-          #   namespace :bar do
-          regular_class_path.each do |ns|
-            lines << indent("namespace :#{ns} do\n", depth * 2)
-            depth += 1
-          end
-
-          # Create route
-          #     get 'baz/index'
-          #     get 'baz/show'
-          actions.each do |action|
-            lines << indent(%{get '#{file_name}/#{action}'\n}, depth * 2)
-          end
-
-          # Create `end` ladder
-          #   end
-          # end
-          until depth.zero?
-            depth -= 1
-            lines << indent("end\n", depth * 2)
-          end
-
-          lines.join
+        def remove_possible_suffix(name)
+          name.sub(/_?controller$/i, "")
         end
     end
   end

@@ -28,17 +28,6 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
     end
   end
 
-  def test_truncate
-    rows = ActiveRecord::Base.connection.exec_query("select count(*) from comments")
-    count = rows.first.values.first
-    assert_operator count, :>, 0
-
-    ActiveRecord::Base.connection.truncate("comments")
-    rows = ActiveRecord::Base.connection.exec_query("select count(*) from comments")
-    count = rows.first.values.first
-    assert_equal 0, count
-  end
-
   def test_no_automatic_reconnection_after_timeout
     assert_predicate @connection, :active?
     @connection.update("set @@wait_timeout=1")
@@ -104,8 +93,8 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_mysql_connection_collation_is_configured
-    assert_equal "utf8_unicode_ci", @connection.show_variable("collation_connection")
-    assert_equal "utf8_general_ci", ARUnit2Model.connection.show_variable("collation_connection")
+    assert_equal "utf8mb4_unicode_ci", @connection.show_variable("collation_connection")
+    assert_equal "utf8mb4_general_ci", ARUnit2Model.connection.show_variable("collation_connection")
   end
 
   def test_mysql_default_in_strict_mode
@@ -170,6 +159,8 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_logs_name_show_variable
+    ActiveRecord::Base.connection.materialize_transactions
+    @subscriber.logged.clear
     @connection.show_variable "foo"
     assert_equal "SCHEMA", @subscriber.logged[0][1]
   end
@@ -206,7 +197,6 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   end
 
   private
-
     def test_lock_free(lock_name)
       @connection.select_value("SELECT IS_FREE_LOCK(#{@connection.quote(lock_name)})") == 1
     end

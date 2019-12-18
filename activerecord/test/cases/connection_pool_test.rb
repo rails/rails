@@ -12,7 +12,9 @@ module ActiveRecord
         super
 
         # Keep a duplicate pool so we do not bother others
-        @pool = ConnectionPool.new ActiveRecord::Base.connection_pool.spec
+        @db_config = ActiveRecord::Base.connection_pool.db_config
+        @pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new("primary", @db_config)
+        @pool = ConnectionPool.new(@pool_config)
 
         if in_memory_db?
           # Separate connections to an in-memory database create an entirely new database,
@@ -91,7 +93,9 @@ module ActiveRecord
       end
 
       def test_full_pool_exception
+        @pool.checkout_timeout = 0.001 # no need to delay test suite by waiting the whole full default timeout
         @pool.size.times { assert @pool.checkout }
+
         assert_raises(ConnectionTimeoutError) do
           @pool.checkout
         end
@@ -107,6 +111,44 @@ module ActiveRecord
         connection = cs.first
         connection.close
         assert_equal connection, t.join.value
+      end
+
+      def test_full_pool_blocking_shares_load_interlock
+        @pool.instance_variable_set(:@size, 1)
+
+        load_interlock_latch = Concurrent::CountDownLatch.new
+        connection_latch = Concurrent::CountDownLatch.new
+
+        able_to_get_connection = false
+        able_to_load = false
+
+        thread_with_load_interlock = Thread.new do
+          ActiveSupport::Dependencies.interlock.running do
+            load_interlock_latch.count_down
+            connection_latch.wait
+
+            @pool.with_connection do
+              able_to_get_connection = true
+            end
+          end
+        end
+
+        thread_with_last_connection = Thread.new do
+          @pool.with_connection do
+            connection_latch.count_down
+            load_interlock_latch.wait
+
+            ActiveSupport::Dependencies.interlock.loading do
+              able_to_load = true
+            end
+          end
+        end
+
+        thread_with_load_interlock.join
+        thread_with_last_connection.join
+
+        assert able_to_get_connection
+        assert able_to_load
       end
 
       def test_removing_releases_latch
@@ -156,6 +198,48 @@ module ActiveRecord
         @pool.connections.each { |conn| conn.close if conn.in_use? }
       end
 
+      def test_idle_timeout_configuration
+        @pool.disconnect!
+        @db_config.configuration_hash.merge!(idle_timeout: "0.02")
+        pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new("primary", @db_config)
+        @pool = ConnectionPool.new(pool_config)
+        idle_conn = @pool.checkout
+        @pool.checkin(idle_conn)
+
+        idle_conn.instance_variable_set(
+          :@idle_since,
+          Concurrent.monotonic_time - 0.01
+        )
+
+        @pool.flush
+        assert_equal 1, @pool.connections.length
+
+        idle_conn.instance_variable_set(
+          :@idle_since,
+          Concurrent.monotonic_time - 0.02
+        )
+
+        @pool.flush
+        assert_equal 0, @pool.connections.length
+      end
+
+      def test_disable_flush
+        @pool.disconnect!
+        @db_config.configuration_hash.merge!(idle_timeout: -5)
+        pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new("primary", @db_config)
+        @pool = ConnectionPool.new(pool_config)
+        idle_conn = @pool.checkout
+        @pool.checkin(idle_conn)
+
+        idle_conn.instance_variable_set(
+          :@idle_since,
+          Concurrent.monotonic_time - 1
+        )
+
+        @pool.flush
+        assert_equal 1, @pool.connections.length
+      end
+
       def test_flush
         idle_conn = @pool.checkout
         recent_conn = @pool.checkout
@@ -166,9 +250,10 @@ module ActiveRecord
 
         assert_equal 3, @pool.connections.length
 
-        def idle_conn.seconds_idle
-          1000
-        end
+        idle_conn.instance_variable_set(
+          :@idle_since,
+          Concurrent.monotonic_time - 1000
+        )
 
         @pool.flush(30)
 
@@ -232,7 +317,7 @@ module ActiveRecord
       end
 
       def test_checkout_behaviour
-        pool = ConnectionPool.new ActiveRecord::Base.connection_pool.spec
+        pool = ConnectionPool.new(@pool_config)
         main_connection = pool.connection
         assert_not_nil main_connection
         threads = []
@@ -365,7 +450,7 @@ module ActiveRecord
       end
 
       def test_automatic_reconnect_restores_after_disconnect
-        pool = ConnectionPool.new ActiveRecord::Base.connection_pool.spec
+        pool = ConnectionPool.new(@pool_config)
         assert pool.automatic_reconnect
         assert pool.connection
 
@@ -374,7 +459,7 @@ module ActiveRecord
       end
 
       def test_automatic_reconnect_can_be_disabled
-        pool = ConnectionPool.new ActiveRecord::Base.connection_pool.spec
+        pool = ConnectionPool.new(@pool_config)
         pool.disconnect!
         pool.automatic_reconnect = false
 
@@ -411,7 +496,7 @@ module ActiveRecord
         end
         ConnectionTestModel.establish_connection :arunit
 
-        assert_equal [:config, :connection_id, :spec_name], payloads[0].keys.sort
+        assert_equal [:config, :spec_name], payloads[0].keys.sort
         assert_equal "ActiveRecord::ConnectionAdapters::ConnectionPoolTest::ConnectionTestModel", payloads[0][:spec_name]
       ensure
         ActiveSupport::Notifications.unsubscribe(subscription) if subscription
@@ -424,7 +509,6 @@ module ActiveRecord
         pool.schema_cache = schema_cache
 
         pool.with_connection do |conn|
-          assert_not_same pool.schema_cache, conn.schema_cache
           assert_equal pool.schema_cache.size, conn.schema_cache.size
           assert_same pool.schema_cache.columns(:posts), conn.schema_cache.columns(:posts)
         end
@@ -469,7 +553,7 @@ module ActiveRecord
       end
 
       def test_non_bang_disconnect_and_clear_reloadable_connections_throw_exception_if_threads_dont_return_their_conns
-        Thread.report_on_exception, original_report_on_exception = false, Thread.report_on_exception if Thread.respond_to?(:report_on_exception)
+        Thread.report_on_exception, original_report_on_exception = false, Thread.report_on_exception
         @pool.checkout_timeout = 0.001 # no need to delay test suite by waiting the whole full default timeout
         [:disconnect, :clear_reloadable_connections].each do |group_action_method|
           @pool.with_connection do |connection|
@@ -479,28 +563,26 @@ module ActiveRecord
           end
         end
       ensure
-        Thread.report_on_exception = original_report_on_exception if Thread.respond_to?(:report_on_exception)
+        Thread.report_on_exception = original_report_on_exception
       end
 
       def test_disconnect_and_clear_reloadable_connections_attempt_to_wait_for_threads_to_return_their_conns
         [:disconnect, :disconnect!, :clear_reloadable_connections, :clear_reloadable_connections!].each do |group_action_method|
-          begin
-            thread = timed_join_result = nil
-            @pool.with_connection do |connection|
-              thread = Thread.new { @pool.send(group_action_method) }
+          thread = timed_join_result = nil
+          @pool.with_connection do |connection|
+            thread = Thread.new { @pool.send(group_action_method) }
 
-              # give the other `thread` some time to get stuck in `group_action_method`
-              timed_join_result = thread.join(0.3)
-              # thread.join # => `nil` means the other thread hasn't finished running and is still waiting for us to
-              # release our connection
-              assert_nil timed_join_result
+            # give the other `thread` some time to get stuck in `group_action_method`
+            timed_join_result = thread.join(0.3)
+            # thread.join # => `nil` means the other thread hasn't finished running and is still waiting for us to
+            # release our connection
+            assert_nil timed_join_result
 
-              # assert that since this is within default timeout our connection hasn't been forcefully taken away from us
-              assert_predicate @pool, :active_connection?
-            end
-          ensure
-            thread.join if thread && !timed_join_result # clean up the other thread
+            # assert that since this is within default timeout our connection hasn't been forcefully taken away from us
+            assert_predicate @pool, :active_connection?
           end
+        ensure
+          thread.join if thread && !timed_join_result # clean up the other thread
         end
       end
 
@@ -578,7 +660,7 @@ module ActiveRecord
           end
 
           stuck_thread = Thread.new do
-            pool.with_connection {}
+            pool.with_connection { }
           end
 
           # wait for stuck_thread to get in queue
@@ -614,11 +696,37 @@ module ActiveRecord
         end
       end
 
+      def test_public_connections_access_threadsafe
+        _conn1 = @pool.checkout
+        conn2 = @pool.checkout
+
+        connections = @pool.connections
+        found_conn = nil
+
+        # Without assuming too much about implementation
+        # details make sure that a concurrent change to
+        # the pool is thread-safe.
+        connections.each_index do |idx|
+          if connections[idx] == conn2
+            Thread.new do
+              @pool.remove(conn2)
+            end.join
+          end
+          found_conn = connections[idx]
+        end
+
+        assert_not_nil found_conn
+      end
+
       private
         def with_single_connection_pool
-          one_conn_spec = ActiveRecord::Base.connection_pool.spec.dup
-          one_conn_spec.config[:pool] = 1 # this is safe to do, because .dupped ConnectionSpecification also auto-dups its config
-          yield(pool = ConnectionPool.new(one_conn_spec))
+          old_config = @db_config.configuration_hash
+          db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("arunit", "primary", old_config.dup)
+
+          db_config.configuration_hash[:pool] = 1 # this is safe to do, because .dupped PoolConfig also auto-dups its config
+
+          pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new("primary", db_config)
+          yield(pool = ConnectionPool.new(pool_config))
         ensure
           pool.disconnect! if pool
         end
