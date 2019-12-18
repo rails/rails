@@ -1,3 +1,5 @@
+## Rails 5.2.4.1 (December 18, 2019) ##
+
 *   Fix possible information leak / session hijacking vulnerability.
 
     The `ActionDispatch::Session::MemcacheStore` is still vulnerable given it requires the

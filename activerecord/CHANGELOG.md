@@ -1,3 +1,8 @@
+## Rails 5.2.4.1 (December 18, 2019) ##
+
+*   No changes.
+
+
 ## Rails 5.2.4 (November 27, 2019) ##
 
 *   Fix circular `autosave: true` causes invalid records to be saved.

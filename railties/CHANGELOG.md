@@ -1,3 +1,8 @@
+## Rails 5.2.4.1 (December 18, 2019) ##
+
+*   No changes.
+
+
 ## Rails 5.2.4 (November 27, 2019) ##
 
 *   Use original `bundler` environment variables during the process of generating a new rails project.
