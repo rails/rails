@@ -274,7 +274,7 @@ module ActionView
         crossorigin = "anonymous" if crossorigin == true || (crossorigin.blank? && as_type == "font")
         nopush = options.delete(:nopush) || false
 
-        link_tag = tag.link({
+        link_tag = tag.link(**{
           rel: "preload",
           href: href,
           as: as_type,

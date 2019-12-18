@@ -24,7 +24,7 @@ module ActionView
           @source,
           @identifer,
           @handler,
-          options
+          **options
         )
       end
   end
