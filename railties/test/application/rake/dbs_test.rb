@@ -33,7 +33,7 @@ module ApplicationTests
           assert_match(/Created database/, output)
           assert File.exist?(expected_database)
           yield if block_given?
-          assert_equal expected_database, ActiveRecord::Base.connection_config[:database] if environment_loaded
+          assert_equal expected_database, ActiveRecord::Base.connection_db_config.database if environment_loaded
           output = rails("db:drop")
           assert_match(/Dropped database/, output)
           assert_not File.exist?(expected_database)
@@ -343,7 +343,7 @@ module ApplicationTests
           reload
           rails "db:migrate", "db:fixtures:load"
 
-          assert_match expected_database, ActiveRecord::Base.connection_config[:database]
+          assert_match expected_database, ActiveRecord::Base.connection_db_config.database
           assert_equal 2, Book.count
         end
       end
@@ -376,7 +376,7 @@ module ApplicationTests
           structure_dump = File.read("db/structure.sql")
           assert_match(/CREATE TABLE (?:IF NOT EXISTS )?\"books\"/, structure_dump)
           rails "environment", "db:drop", "db:structure:load"
-          assert_match expected_database, ActiveRecord::Base.connection_config[:database]
+          assert_match expected_database, ActiveRecord::Base.connection_db_config.database
           require "#{app_path}/app/models/book"
           # if structure is not loaded correctly, exception would be raised
           assert_equal 0, Book.count
@@ -476,7 +476,7 @@ module ApplicationTests
           # if structure is not loaded correctly, exception would be raised
           assert_equal 0, Book.count
           assert_match ActiveRecord::Base.configurations["test"][:database],
-            ActiveRecord::Base.connection_config[:database]
+            ActiveRecord::Base.connection_db_config.database
         end
       end
 
@@ -500,7 +500,7 @@ module ApplicationTests
         RUBY
 
         app_file "db/seeds.rb", <<-RUBY
-          puts ActiveRecord::Base.connection_config[:database]
+          puts ActiveRecord::Base.connection_db_config.database
         RUBY
 
         database_path = rails("db:setup")
