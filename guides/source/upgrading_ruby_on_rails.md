@@ -853,14 +853,14 @@ associations required by default.
       class Book < ApplicationRecord
         # model is not yet ready to have its association required by default
 
-	self.belongs_to_required_by_default = false
+        self.belongs_to_required_by_default = false
         belongs_to(:author)
       end
 
       class Car < ApplicationRecord
         # model is ready to have its association required by default
 
-	self.belongs_to_required_by_default = true
+        self.belongs_to_required_by_default = true
         belongs_to(:pilot)
       end
     ```
