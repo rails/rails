@@ -301,7 +301,7 @@ This means that you will be able to generate new controllers and models for this
 engine very easily by running commands like this:
 
 ```bash
-$ bin/rails g model
+$ bin/rails generate model
 ```
 
 Keep in mind, of course, that anything generated with these commands inside of
@@ -581,7 +581,7 @@ The route now exists, but the controller that this route goes to does not. To
 create it, run this command from the application root:
 
 ```bash
-$ rails g controller comments
+$ rails generate controller comments
 ```
 
 This will generate the following things:
@@ -751,14 +751,14 @@ If you would like to run migrations only from one engine, you can do it by
 specifying `SCOPE`:
 
 ```bash
-rails db:migrate SCOPE=blorgh
+$ rails db:migrate SCOPE=blorgh
 ```
 
 This may be useful if you want to revert engine's migrations before removing it.
 To revert all migrations from blorgh engine you can run code such as:
 
 ```bash
-rails db:migrate SCOPE=blorgh VERSION=0
+$ rails db:migrate SCOPE=blorgh VERSION=0
 ```
 
 ### Using a Class Provided by the Application
@@ -782,7 +782,7 @@ configurable further on). It can be generated using this command inside the
 application:
 
 ```bash
-rails g model user name:string
+$ rails generate model user name:string
 ```
 
 The `rails db:migrate` command needs to be run here to ensure that our

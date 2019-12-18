@@ -30,7 +30,7 @@ and is enabled by default. You can disable it while creating a new application b
 passing the `--skip-sprockets` option.
 
 ```bash
-rails new appname --skip-sprockets
+$ rails new appname --skip-sprockets
 ```
 
 Rails automatically adds the `sass-rails` gem to your `Gemfile`, which is used
