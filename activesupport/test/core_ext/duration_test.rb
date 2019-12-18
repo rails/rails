@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../abstract_unit"
 require "active_support/inflector"
 require "active_support/time"
 require "active_support/json"
-require "time_zone_test_helpers"
+require_relative "../time_zone_test_helpers"
 require "yaml"
 
 class DurationTest < ActiveSupport::TestCase

@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 require "active_support/core_ext/date_time"
 require "active_support/core_ext/numeric/time"
-require "time_zone_test_helpers"
+require_relative "time_zone_test_helpers"
 
 class TimeTravelTest < ActiveSupport::TestCase
   include TimeZoneTestHelpers
