@@ -1991,7 +1991,7 @@ module ApplicationTests
       assert_nil Rails.application.config.my_custom_config
     end
 
-    test "config_for shared config is overriden" do
+    test "config_for shared config is overridden" do
       set_custom_config <<~RUBY
         shared:
           foo: :from_shared
@@ -2274,7 +2274,7 @@ module ApplicationTests
       assert_equal :lax, Rails.application.config.action_dispatch.cookies_same_site_protection
     end
 
-    test "Rails.application.config.action_dispatch.cookies_same_site_protection is :lax can be overriden" do
+    test "Rails.application.config.action_dispatch.cookies_same_site_protection is :lax can be overridden" do
       app_file "config/environments/production.rb", <<~RUBY
         Rails.application.configure do
           config.action_dispatch.cookies_same_site_protection = :strict

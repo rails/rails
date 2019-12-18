@@ -34,7 +34,7 @@
 
     *Jeff Emminger*, *Gannon McGibbon*
 
-*   A database URL can now contain a querystring value that contains an equal sign. This is needed to support passing PostgresSQL `options`.
+*   A database URL can now contain a querystring value that contains an equal sign. This is needed to support passing PostgreSQL `options`.
 
     *Joshua Flanagan*
 

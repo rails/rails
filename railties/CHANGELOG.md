@@ -75,7 +75,7 @@
     now able to modify `autoload_paths`, `autoload_once_paths`, and
     `eager_load_paths`.
 
-    As a consequence, applications cannnot autoload within those files. Before, they technnically could, but changes in autoloaded classes or modules had no effect anyway in the configuration because reloading does not reboot.
+    As a consequence, applications cannot autoload within those files. Before, they technnically could, but changes in autoloaded classes or modules had no effect anyway in the configuration because reloading does not reboot.
 
     Ways to use application code in these files:
 

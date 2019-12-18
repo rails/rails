@@ -4,7 +4,7 @@
     meant it had its own copy of `@assertions`. This prevented the assertions
     from being correctly counted and reported.
 
-    Child sessions now have their `attr_accessor` overriden to delegate to the
+    Child sessions now have their `attr_accessor` overridden to delegate to the
     root session.
 
     Fixes #32142
