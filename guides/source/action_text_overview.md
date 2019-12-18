@@ -47,9 +47,9 @@ happens after every keystroke, and avoids the need to use execCommand at all.
 
 Run `rails action_text:install` to add the Yarn package and copy over the necessary migration. Also, you need to set up Active Storage for embedded images and other attachments. Please refer to the [Active Storage Overview](active_storage_overview.html) guide.
 
-### Installation with Webpacker 
+After the installation is complete, a Rails app using Webpacker should have the following changes:
 
-Both `trix` and `@rails/actiontext` should be required in your JavaScript pack.
+1. Both `trix` and `@rails/actiontext` should be required in your JavaScript pack.
 
 ```js
 // application.js
@@ -57,13 +57,13 @@ require("trix")
 require("@rails/actiontext")
 ```
 
-In order for the built-in CSS styles to work, you'll need to use webpack-compatible import syntax within the generated `actiontext.scss` file.
+2. The`trix` stylesheet should be imported into `actiontext.scss`.
 
 ```scss
 @import "trix/dist/trix";
 ```
 
-Additionally you'll also need to ensure that the `actiontext.scss` file is imported into your stylesheet pack.
+Additionally this `actiontext.scss` file should be imported into your stylesheet pack.
 
 ```
 // application.scss
