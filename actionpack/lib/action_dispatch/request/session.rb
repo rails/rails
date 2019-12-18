@@ -90,7 +90,13 @@ module ActionDispatch
       # +nil+ if the given key is not found in the session.
       def [](key)
         load_for_read!
-        @delegate[key.to_s]
+        key = key.to_s
+
+        if key == "session_id"
+          id&.public_id
+        else
+          @delegate[key]
+        end
       end
 
       # Returns true if the session has the given key or false.
