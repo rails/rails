@@ -2498,6 +2498,8 @@ module ApplicationTests
         config.rake_eager_load = true
       RUBY
 
+      app "development"
+
       assert_equal true, Rails.application.config.rake_eager_load
     end
 
