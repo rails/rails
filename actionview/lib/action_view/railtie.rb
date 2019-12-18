@@ -71,18 +71,14 @@ module ActionView
     end
 
     initializer "action_view.caching" do |app|
-      ActiveSupport.on_load(:action_view) do
-        if app.config.action_view.cache_template_loading.nil?
-          ActionView::Resolver.caching = app.config.cache_classes
-        end
+      if app.config.action_view.cache_template_loading.nil?
+        ActionView::Resolver.caching = app.config.cache_classes
       end
     end
 
     initializer "action_view.per_request_digest_cache" do |app|
-      ActiveSupport.on_load(:action_view) do
-        unless ActionView::Resolver.caching?
-          app.executor.to_run ActionView::CacheExpiry::Executor.new(watcher: app.config.file_watcher)
-        end
+      unless ActionView::Resolver.caching?
+        app.executor.to_run ActionView::CacheExpiry::Executor.new(watcher: app.config.file_watcher)
       end
     end
 

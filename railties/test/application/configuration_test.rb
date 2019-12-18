@@ -2191,6 +2191,8 @@ module ApplicationTests
 
     test "ActionView::Helpers::FormTagHelper.default_enforce_utf8 is false by default" do
       app "development"
+
+      ActionView::Base # Trigger autoloading
       assert_equal false, ActionView::Helpers::FormTagHelper.default_enforce_utf8
     end
 
