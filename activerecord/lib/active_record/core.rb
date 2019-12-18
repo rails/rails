@@ -399,6 +399,12 @@ module ActiveRecord
       @attributes = @attributes.deep_dup
       @attributes.reset(@primary_key)
 
+      if self.class.connection.supports_virtual_columns?
+        self.class.columns.select(&:virtual?).each do |column|
+          @attributes.reset(column.name)
+        end
+      end
+
       _run_initialize_callbacks
 
       @new_record               = true
