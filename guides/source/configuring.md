@@ -137,6 +137,8 @@ defaults to `:debug` for all environments. The available log levels are: `:debug
 
 * `config.middleware` allows you to configure the application's middleware. This is covered in depth in the [Configuring Middleware](#configuring-middleware) section below.
 
+* `config.rake_eager_load` when `true`, eager load the application when running Rake tasks. Defaults to `false`.
+
 * `config.reload_classes_only_on_change` enables or disables reloading of classes only when tracked files change. By default tracks everything on autoload paths and is set to `true`. If `config.cache_classes` is `true`, this option is ignored.
 
 * `config.credentials.content_path` configures lookup path for encrypted credentials.

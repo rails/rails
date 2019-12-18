@@ -2487,6 +2487,20 @@ module ApplicationTests
       assert Rails.configuration.disable_sandbox
     end
 
+    test "rake_eager_load is false by default" do
+      app "development"
+      assert_equal false,  Rails.application.config.rake_eager_load
+    end
+
+    test "rake_eager_load is set correctly" do
+      add_to_config <<-RUBY
+        config.root = "#{app_path}"
+        config.rake_eager_load = true
+      RUBY
+
+      assert_equal true, Rails.application.config.rake_eager_load
+    end
+
     private
       def force_lazy_load_hooks
         yield # Tasty clarifying sugar, homie! We only need to reference a constant to load it.

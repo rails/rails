@@ -1,3 +1,11 @@
+*   Allow configuration of eager_load behaviour for rake environment:
+
+        `config.rake_eager_load`
+
+    Defaults to `false` as per previous behaviour.
+
+    *Thierry Joyal*
+
 *   Ensure Rails migration generator respects system-wide primary key config
 
     When rails is configured to use a specific primary key type:
