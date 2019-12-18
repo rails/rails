@@ -53,10 +53,10 @@ module ActiveSupport
     #
     # Now you can have different transliterations for each locale:
     #
-    #   transliterate('Jürgen', locale: :en)
+    #   transliterate('Jürgen', '?', locale: :en)
     #   # => "Jurgen"
     #
-    #   transliterate('Jürgen', locale: :de)
+    #   transliterate('Jürgen', '?', locale: :de)
     #   # => "Juergen"
     #
     # Transliteration is restricted to UTF-8, US-ASCII and GB18030 strings
