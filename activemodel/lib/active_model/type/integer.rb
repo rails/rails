@@ -9,7 +9,7 @@ module ActiveModel
       # 4 bytes means an integer as opposed to smallint etc.
       DEFAULT_LIMIT = 4
 
-      def initialize(*)
+      def initialize(*, **)
         super
         @range = min_value...max_value
       end

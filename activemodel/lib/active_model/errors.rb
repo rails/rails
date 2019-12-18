@@ -497,7 +497,7 @@ module ActiveModel
         defaults << :"#{i18n_scope}.errors.messages.#{type}"
 
         catch(:exception) do
-          translation = I18n.translate(defaults.first, options.merge(default: defaults.drop(1), throw: true))
+          translation = I18n.translate(defaults.first, **options.merge(default: defaults.drop(1), throw: true))
           return translation unless translation.nil?
         end unless options[:message]
       else
@@ -511,7 +511,7 @@ module ActiveModel
       defaults = options.delete(:message) if options[:message]
       options[:default] = defaults
 
-      I18n.translate(key, options)
+      I18n.translate(key, **options)
     end
 
     def marshal_dump # :nodoc:
