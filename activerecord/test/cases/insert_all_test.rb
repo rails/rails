@@ -301,6 +301,11 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_insert_all_create_with
+    Book.create_with(format: "X").insert_all([ { name: "A" }, { name: "B" } ])
+    assert_equal 2, Book.where(format: "X").count
+  end
+
   private
 
     def capture_log_output

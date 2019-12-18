@@ -101,10 +101,6 @@ module ActiveRecord
       end
     end
 
-    def insert_all(attributes, returning: nil, unique_by: nil)
-      InsertAll.new(self, attributes, on_duplicate: :skip, returning: returning, unique_by: unique_by).execute
-    end
-
     # Similar to #create, but calls
     # {create!}[rdoc-ref:Persistence::ClassMethods#create!]
     # on the base class. Raises an exception if a validation error occurs.
