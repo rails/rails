@@ -894,6 +894,46 @@ module Admin
 end
 ```
 
+### Defining vs Reopening Namespaces
+
+Let's consider:
+
+```ruby
+# app/models/blog.rb
+module Blog
+  def self.table_name_prefix
+    "blog_"
+  end
+end
+
+# app/models/blog/post.rb
+module Blog
+  class Post < ApplicationRecord
+  end
+end
+```
+
+The table name for `Blog::Post` should be `blog_posts` due to the existence of
+the method `Blog.table_name_prefix`. However, if `app/models/blog/post.rb` is
+executed before `app/models/blog.rb` is, Active Record is not aware of the
+existence of such method, and assumes the table is `posts`.
+
+To resolve a situation like this, it helps thinking clearly about which file
+_defines_ the `Blog` module (`app/models/blog.rb`), and which one _reopens_ it
+(`app/models/blog/post.rb`). Then, you ensure that the definition is executed
+first using `require_dependency`:
+
+```ruby
+# app/models/blog/post.rb
+
+require_dependency "blog"
+
+module Blog
+  class Post < ApplicationRecord
+  end
+end
+```
+
 ### Autoloading and STI
 
 Single Table Inheritance (STI) is a feature of Active Record that enables
