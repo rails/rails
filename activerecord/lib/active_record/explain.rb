@@ -18,7 +18,15 @@ module ActiveRecord
     # Returns a formatted string ready to be logged.
     def exec_explain(queries, format = :text) # :nodoc:
       case format
-      when :text
+      when :text then exec_explain_text(queries)
+      when :json then exec_explain_json(queries)
+      else
+        raise ArgumentError, "\"#{format}\" is unsupported explain format. Only :text and :json formats are supported."
+      end
+    end
+
+    private
+      def exec_explain_text(queries)
         str = queries.map do |sql, binds|
           msg = +"EXPLAIN for: #{sql}"
           unless binds.empty?
@@ -35,16 +43,14 @@ module ActiveRecord
         end
 
         str
-      when :json
+      end
+
+      def exec_explain_json(queries)
         queries.map do |sql, binds|
           [[sql, binds.map { |attr| render_bind(attr) }], JSON.parse(connection.explain_json(sql, binds))]
         end.to_h
-      else
-        raise ArgumentError, "\"#{format}\" is unsupported explain format. Only :text and :json formats are supported."
       end
-    end
 
-    private
       def render_bind(attr)
         value = if attr.type.binary? && attr.value
           "<#{attr.value_for_database.to_s.bytesize} bytes of binary data>"
