@@ -6,6 +6,7 @@ module ActiveRecord
     attr_reader :on_duplicate, :returning, :unique_by
 
     def initialize(scope, inserts, on_duplicate:, returning: nil, unique_by: nil)
+      raise ArgumentError, "Bulk insert is currently not supported for through relations" if scope.try(:proxy_association).try(:reflection).try(:through_reflection?)
       raise ArgumentError, "Empty list of attributes passed" if inserts.blank?
 
       @model = scope.model

@@ -4,6 +4,8 @@ require "cases/helper"
 require "models/author"
 require "models/book"
 require "models/speedometer"
+require "models/subscription"
+require "models/subscriber"
 
 class ReadonlyNameBook < Book
   attr_readonly :name
@@ -306,8 +308,12 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_equal 2, Book.where(format: "X").count
   end
 
-  private
+  def test_insert_all_has_many_through
+    book = Book.first
+    assert_raise(ArgumentError) { book.subscribers.insert_all([ { nick: "Jimmy" } ]) }
+  end
 
+  private
     def capture_log_output
       output = StringIO.new
       old_logger, ActiveRecord::Base.logger = ActiveRecord::Base.logger, ActiveSupport::Logger.new(output)
