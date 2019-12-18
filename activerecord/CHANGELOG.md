@@ -1,3 +1,7 @@
+*   Remove `:connection_id` from the `sql.active_record` notification.
+
+    *Aaron Patterson*, *Rafael Mendonça França*
+
 *   The `:name` key will no longer be returned as part of `DatabaseConfig#configuration_hash`. Please use `DatabaseConfig#owner_name` instead.
 
     *Eileen M. Uchitelle*, *John Crepezzi*
