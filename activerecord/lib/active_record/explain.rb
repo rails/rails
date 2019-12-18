@@ -39,7 +39,8 @@ module ActiveRecord
         queries.map do |sql, binds|
           [[sql, binds.map { |attr| render_bind(attr) }], JSON.parse(connection.explain_json(sql, binds))]
         end.to_h
-      else raise "Unsupported explain format."
+      else
+        raise ArgumentError, "\"#{format}\" is unsupported explain format. Only :text and :json formats are supported."
       end
     end
 

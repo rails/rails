@@ -234,9 +234,14 @@ module ActiveRecord
     # Note that this method actually runs the queries, since the results of some
     # are needed by the next ones when eager loading is going on.
     #
+    #
+    # ==== Parameters
+    #
+    # * +format+ - :text (default text output) or :json (returns a Hash)
+    #
     # Please see further details in the
     # {Active Record Query Interface guide}[https://guides.rubyonrails.org/active_record_querying.html#running-explain].
-    def explain(format = :text)
+    def explain(format: :text)
       exec_explain(collecting_queries_for_explain { exec_queries }, format)
     end
 
