@@ -99,3 +99,20 @@ the [contents of that file](https://raw.githubusercontent.com/basecamp/trix/mast
 You can also style the HTML used for embedded images and other attachments (known as blobs).
 On installation, Action Text will copy over a partial to
 `app/views/active_storage/blobs/_blob.html.erb`, which you can specialize.
+
+## Just backend development (APIs)
+
+1. For just APIs development your API needs a separate endpoint for uploading files that creates an ActiveStorage::Blob and returns its attachable_sgid:
+
+```json
+{
+  "attachable_sgid": "BAh7CEkiCG…"
+}
+```
+
+2. Take that attachable_sgid and ask your frontend to insert it in rich text content using an <action-text-attachment> tag:
+```html
+<action-text-attachment sgid="BAh7CEkiCG…"></action-text-attachment>
+```
+
+This is based on basecamp so if you still can't find what you are looking for, check [Basecamp Doc](https://github.com/basecamp/bc3-api/blob/master/sections/rich_text.md)
