@@ -473,7 +473,7 @@ class_option :scope, type: :string, default: 'read_products'
 Now our generator can be invoked as follows:
 
 ```bash
-rails generate initializer --scope write_products
+$ rails generate initializer --scope write_products
 ```
 
 The command line arguments are accessed through the `options` method inside the generator class. e.g:
