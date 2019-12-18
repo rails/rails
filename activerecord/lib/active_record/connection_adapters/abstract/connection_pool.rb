@@ -1046,9 +1046,7 @@ module ActiveRecord
         remove_connection(pool_config.connection_specification_name, pool_key)
 
         message_bus = ActiveSupport::Notifications.instrumenter
-        payload = {
-          connection_id: object_id
-        }
+        payload = {}
         if pool_config
           payload[:spec_name] = pool_config.connection_specification_name
           payload[:config] = db_config.configuration_hash
