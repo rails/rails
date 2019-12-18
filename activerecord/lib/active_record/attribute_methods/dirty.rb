@@ -49,7 +49,7 @@ module ActiveRecord
       # +to+ When passed, this method will return false unless the value was
       # changed to the given value
       def saved_change_to_attribute?(attr_name, **options)
-        mutations_before_last_save.changed?(attr_name.to_s, options)
+        mutations_before_last_save.changed?(attr_name.to_s, **options)
       end
 
       # Returns the change to an attribute during the last save. If the
@@ -99,7 +99,7 @@ module ActiveRecord
       # +to+ When passed, this method will return false unless the value will be
       # changed to the given value
       def will_save_change_to_attribute?(attr_name, **options)
-        mutations_from_database.changed?(attr_name.to_s, options)
+        mutations_from_database.changed?(attr_name.to_s, **options)
       end
 
       # Returns the change to an attribute that will be persisted during the

@@ -390,7 +390,7 @@ module ActiveRecord
           rename_table_indexes(table_name, new_name)
         end
 
-        def add_column(table_name, column_name, type, options = {}) #:nodoc:
+        def add_column(table_name, column_name, type, **options) #:nodoc:
           clear_cache!
           super
           change_column_comment(table_name, column_name, options[:comment]) if options.key?(:comment)

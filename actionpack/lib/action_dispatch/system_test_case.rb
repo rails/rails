@@ -166,7 +166,7 @@ module ActionDispatch
     def self.driven_by(driver, using: :chrome, screen_size: [1400, 1400], options: {}, &capabilities)
       driver_options = { using: using, screen_size: screen_size, options: options }
 
-      self.driver = SystemTesting::Driver.new(driver, driver_options, &capabilities)
+      self.driver = SystemTesting::Driver.new(driver, **driver_options, &capabilities)
     end
 
     driven_by :selenium
