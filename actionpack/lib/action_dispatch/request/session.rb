@@ -93,7 +93,7 @@ module ActionDispatch
         key = key.to_s
 
         if key == "session_id"
-          id&.public_id
+          id && id.public_id
         else
           @delegate[key]
         end
