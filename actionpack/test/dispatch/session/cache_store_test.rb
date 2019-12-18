@@ -172,7 +172,7 @@ class CacheStoreTest < ActionDispatch::IntegrationTest
       assert_response :success
       assert cookies["_session_id"]
 
-      sid = Rack::Session::SessionId.new(cookies['_session_id'])
+      sid = Rack::Session::SessionId.new(cookies["_session_id"])
       session = @cache.read("_session_id:#{sid.private_id}")
       @cache.delete("_session_id:#{sid.private_id}")
       @cache.write("_session_id:#{sid.public_id}", session)
@@ -189,7 +189,7 @@ class CacheStoreTest < ActionDispatch::IntegrationTest
       assert_response :success
       assert cookies["_session_id"]
 
-      sid = Rack::Session::SessionId.new(cookies['_session_id'])
+      sid = Rack::Session::SessionId.new(cookies["_session_id"])
       session = @cache.read("_session_id:#{sid.private_id}")
       @cache.delete("_session_id:#{sid.private_id}")
       @cache.write("_session_id:#{sid.public_id}", session)
