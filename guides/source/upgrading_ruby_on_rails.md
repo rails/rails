@@ -850,19 +850,19 @@ override it on a per model basis. This should help you migrate all your models t
 associations required by default.
 
     ```ruby
-      class Book < ApplicationRecord
-        # model is not yet ready to have its association required by default
+    class Book < ApplicationRecord
+      # model is not yet ready to have its association required by default
 
-        self.belongs_to_required_by_default = false
-        belongs_to(:author)
-      end
+      self.belongs_to_required_by_default = false
+      belongs_to(:author)
+    end
 
-      class Car < ApplicationRecord
-        # model is ready to have its association required by default
+    class Car < ApplicationRecord
+      # model is ready to have its association required by default
 
-        self.belongs_to_required_by_default = true
-        belongs_to(:pilot)
-      end
+      self.belongs_to_required_by_default = true
+      belongs_to(:pilot)
+    end
     ```
 
 #### Per-form CSRF Tokens
