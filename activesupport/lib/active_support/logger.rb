@@ -14,7 +14,7 @@ module ActiveSupport
     #   ActiveSupport::Logger.logger_outputs_to?(logger, STDOUT)
     #   # => true
     def self.logger_outputs_to?(logger, *sources)
-      logdev = logger.instance_variable_get("@logdev")
+      logdev = logger.instance_variable_get(:@logdev)
       logger_source = logdev.dev if logdev.respond_to?(:dev)
       sources.any? { |source| source == logger_source }
     end

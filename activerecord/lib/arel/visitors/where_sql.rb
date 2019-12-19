@@ -9,7 +9,6 @@ module Arel # :nodoc: all
       end
 
       private
-
         def visit_Arel_Nodes_SelectCore(o, collector)
           collector << "WHERE "
           wheres = o.wheres.map do |where|

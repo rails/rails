@@ -101,7 +101,7 @@ module ActiveModel
       # locale. If no error is present, the method should return an empty array.
       def test_errors_aref
         assert_respond_to model, :errors
-        assert model.errors[:hello].is_a?(Array), "errors#[] should return an Array"
+        assert_equal [], model.errors[:hello], "errors#[] should return an empty Array"
       end
 
       private

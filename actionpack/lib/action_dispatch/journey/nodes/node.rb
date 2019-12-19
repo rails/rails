@@ -65,12 +65,12 @@ module ActionDispatch
         def literal?; false; end
       end
 
-      %w{ Symbol Slash Dot }.each do |t|
-        class_eval <<-eoruby, __FILE__, __LINE__ + 1
-          class #{t} < Terminal;
-            def type; :#{t.upcase}; end
-          end
-        eoruby
+      class Slash < Terminal # :nodoc:
+        def type; :SLASH; end
+      end
+
+      class Dot < Terminal # :nodoc:
+        def type; :DOT; end
       end
 
       class Symbol < Terminal # :nodoc:
@@ -89,6 +89,7 @@ module ActionDispatch
           regexp == DEFAULT_EXP
         end
 
+        def type; :SYMBOL; end
         def symbol?; true; end
       end
 

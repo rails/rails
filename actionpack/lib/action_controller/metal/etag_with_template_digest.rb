@@ -51,7 +51,7 @@ module ActionController
       end
 
       def lookup_and_digest_template(template)
-        ActionView::Digestor.digest name: template, finder: lookup_context
+        ActionView::Digestor.digest name: template, format: nil, finder: lookup_context
       end
   end
 end

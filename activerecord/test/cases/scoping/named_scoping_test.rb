@@ -50,7 +50,7 @@ class NamedScopingTest < ActiveRecord::TestCase
 
   def test_calling_merge_at_first_in_scope
     Topic.class_eval do
-      scope :calling_merge_at_first_in_scope, Proc.new { merge(Topic.replied) }
+      scope :calling_merge_at_first_in_scope, Proc.new { merge(Topic.unscoped.replied) }
     end
     assert_equal Topic.calling_merge_at_first_in_scope.to_a, Topic.replied.to_a
   end
@@ -303,13 +303,6 @@ class NamedScopingTest < ActiveRecord::TestCase
     assert_equal "lifo", topic.author_name
   end
 
-  def test_deprecated_delegating_private_method
-    assert_deprecated do
-      scope = Topic.all.by_private_lifo
-      assert_not scope.instance_variable_get(:@delegate_to_klass)
-    end
-  end
-
   def test_reserved_scope_names
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "topics"
@@ -452,6 +445,17 @@ class NamedScopingTest < ActiveRecord::TestCase
 
     # Nested hash conditions with different keys
     assert_equal [posts(:sti_comments)], Post.with_special_comments.with_post(4).to_a.uniq
+  end
+
+  def test_class_method_in_scope
+    assert_deprecated do
+      assert_equal [topics(:second)], topics(:first).approved_replies.ordered
+    end
+  end
+
+  def test_nested_scoping
+    expected = Reply.approved
+    assert_equal expected.to_a, Topic.rejected.nested_scoping(expected)
   end
 
   def test_scopes_batch_finders
@@ -597,5 +601,15 @@ class NamedScopingTest < ActiveRecord::TestCase
     assert_not_predicate Topic, :one?
     Topic.create!
     assert_predicate Topic, :one?
+  end
+
+  def test_scope_with_annotation
+    Topic.class_eval do
+      scope :including_annotate_in_scope, Proc.new { annotate("from-scope") }
+    end
+
+    assert_sql(%r{/\* from-scope \*/}) do
+      assert Topic.including_annotate_in_scope.to_a, Topic.all.to_a
+    end
   end
 end

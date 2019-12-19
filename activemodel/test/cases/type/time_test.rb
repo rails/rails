@@ -16,6 +16,7 @@ module ActiveModel
 
         assert_equal ::Time.utc(2000,  1,  1, 16, 45, 54), type.cast("2015-06-13T19:45:54+03:00")
         assert_equal ::Time.utc(1999, 12, 31, 21,  7,  8), type.cast("06:07:08+09:00")
+        assert_equal ::Time.utc(2000,  1,  1, 16, 45, 54), type.cast(4 => 16, 5 => 45, 6 => 54)
       end
 
       def test_user_input_in_time_zone

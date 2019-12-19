@@ -160,9 +160,16 @@ module ActionDispatch
           @controller.singleton_class.include(_routes.url_helpers)
 
           if @controller.respond_to? :view_context_class
-            @controller.view_context_class = Class.new(@controller.view_context_class) do
+            view_context_class = Class.new(@controller.view_context_class) do
               include _routes.url_helpers
             end
+
+            custom_view_context = Module.new {
+              define_method(:view_context_class) do
+                view_context_class
+              end
+            }
+            @controller.extend(custom_view_context)
           end
         end
         yield @routes

@@ -28,6 +28,7 @@ class GeneratorsTest < Rails::Generators::TestCase
     output = capture(:stdout) { Rails::Generators.invoke name }
     assert_match "Could not find generator '#{name}'", output
     assert_match "`rails generate --help`", output
+    assert_no_match "Maybe you meant", output
   end
 
   def test_generator_suggestions

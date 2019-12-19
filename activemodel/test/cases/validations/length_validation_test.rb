@@ -427,7 +427,7 @@ class LengthValidationTest < ActiveModel::TestCase
   end
 
   def test_validates_length_of_using_proc_as_maximum_with_model_method
-    Topic.send(:define_method, :max_title_length, lambda { 5 })
+    Topic.define_method(:max_title_length) { 5 }
     Topic.validates_length_of :title, maximum: Proc.new(&:max_title_length)
 
     t = Topic.new("title" => "valid", "content" => "whatever")

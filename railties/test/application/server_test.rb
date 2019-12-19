@@ -18,20 +18,6 @@ module ApplicationTests
       teardown_app
     end
 
-    test "deprecate support of older `config.ru`" do
-      remove_file "config.ru"
-      app_file "config.ru", <<-RUBY
-        require_relative 'config/environment'
-        run AppTemplate::Application
-      RUBY
-
-      server = Rails::Server.new(config: "#{app_path}/config.ru")
-      server.app
-
-      log = File.read(Rails.application.config.paths["log"].first)
-      assert_match(/DEPRECATION WARNING: Using `Rails::Application` subclass to start the server is deprecated/, log)
-    end
-
     test "restart rails server with custom pid file path" do
       skip "PTY unavailable" unless available_pty?
 
@@ -43,14 +29,14 @@ module ApplicationTests
       primary, replica = PTY.open
       pid = nil
 
-      begin
-        pid = Process.spawn("#{app_path}/bin/rails server -P tmp/dummy.pid", in: replica, out: replica, err: replica)
+      Bundler.with_original_env do
+        pid = Process.spawn("bin/rails server -b localhost -P tmp/dummy.pid", chdir: app_path, in: replica, out: replica, err: replica)
         assert_output("Listening", primary)
 
         rails("restart")
 
         assert_output("Restarting", primary)
-        assert_output("Inherited", primary)
+        assert_output("Listening", primary)
       ensure
         kill(pid) if pid
       end

@@ -12,13 +12,14 @@ module AbstractController
     # simple framework for scoping them consistently.
     def translate(key, options = {})
       if key.to_s.first == "."
+        options = options.dup
         path = controller_path.tr("/", ".")
         defaults = [:"#{path}#{key}"]
         defaults << options[:default] if options[:default]
         options[:default] = defaults.flatten
         key = "#{path}.#{action_name}#{key}"
       end
-      I18n.translate(key, options)
+      I18n.translate(key, **options)
     end
     alias :t :translate
 

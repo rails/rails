@@ -20,6 +20,12 @@ class Parrot < ActiveRecord::Base
   def increment_updated_count
     self.updated_count += 1
   end
+
+  def self.delete_all(*)
+    connection.delete("DELETE FROM parrots_pirates")
+    connection.delete("DELETE FROM parrots_treasures")
+    super
+  end
 end
 
 class LiveParrot < Parrot

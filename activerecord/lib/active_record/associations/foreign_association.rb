@@ -9,5 +9,12 @@ module ActiveRecord::Associations
         false
       end
     end
+
+    def nullified_owner_attributes
+      Hash.new.tap do |attrs|
+        attrs[reflection.foreign_key] = nil
+        attrs[reflection.type] = nil if reflection.type.present?
+      end
+    end
   end
 end

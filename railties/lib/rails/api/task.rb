@@ -18,6 +18,7 @@ module Rails
           include: %w(
             README.rdoc
             lib/active_record/**/*.rb
+            lib/arel.rb
           )
         },
 
@@ -71,6 +72,22 @@ module Rails
             README.md
             app/**/active_storage/**/*.rb
             lib/active_storage/**/*.rb
+          )
+        },
+
+        "actionmailbox" => {
+          include: %w(
+            README.md
+            app/**/action_mailbox/**/*.rb
+            lib/action_mailbox/**/*.rb
+          )
+        },
+
+        "actiontext" => {
+          include: %w(
+            README.md
+            app/**/action_text/**/*.rb
+            lib/action_text/**/*.rb
           )
         },
 

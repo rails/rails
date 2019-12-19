@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
-require "multibyte_test_helpers"
+require_relative "abstract_unit"
+require_relative "multibyte_test_helpers"
 require "stringio"
 require "fileutils"
 require "tempfile"
@@ -76,7 +76,7 @@ class LoggerTest < ActiveSupport::TestCase
   def test_should_not_log_debug_messages_when_log_level_is_info
     @logger.level = Logger::INFO
     @logger.add(Logger::DEBUG, @message)
-    assert_not @output.string.include?(@message)
+    assert_not_includes @output.string, @message
   end
 
   def test_should_add_message_passed_as_block_when_using_add
@@ -140,7 +140,20 @@ class LoggerTest < ActiveSupport::TestCase
       @logger.error "THIS IS HERE"
     end
 
-    assert_not @output.string.include?("NOT THERE")
+    assert_not_includes @output.string, "NOT THERE"
+    assert_includes @output.string, "THIS IS HERE"
+  end
+
+  def test_unsilencing
+    @logger.level = Logger::INFO
+
+    @logger.debug "NOT THERE"
+
+    @logger.silence Logger::DEBUG do
+      @logger.debug "THIS IS HERE"
+    end
+
+    assert_not_includes @output.string, "NOT THERE"
     assert_includes @output.string, "THIS IS HERE"
   end
 
@@ -159,7 +172,7 @@ class LoggerTest < ActiveSupport::TestCase
 
     assert_includes @output.string, "CORRECT DEBUG"
     assert_includes @output.string, "CORRECT ERROR"
-    assert_not @output.string.include?("FAILURE")
+    assert_not_includes @output.string, "FAILURE"
 
     assert_includes another_output.string, "CORRECT DEBUG"
     assert_includes another_output.string, "CORRECT ERROR"
@@ -181,7 +194,7 @@ class LoggerTest < ActiveSupport::TestCase
 
     assert_includes @output.string, "CORRECT DEBUG"
     assert_includes @output.string, "CORRECT ERROR"
-    assert_not @output.string.include?("FAILURE")
+    assert_not_includes @output.string, "FAILURE"
 
     assert_includes another_output.string, "CORRECT DEBUG"
     assert_includes another_output.string, "CORRECT ERROR"
@@ -256,6 +269,85 @@ class LoggerTest < ActiveSupport::TestCase
 
     threads.each(&:join)
     assert_level(Logger::INFO)
+  end
+
+  def test_logger_level_main_fiber_safety
+    @logger.level = Logger::INFO
+    assert_level(Logger::INFO)
+
+    fiber = Fiber.new do
+      assert_level(Logger::INFO)
+    end
+
+    @logger.silence(Logger::ERROR) do
+      assert_level(Logger::ERROR)
+      fiber.resume
+    end
+  end
+
+  def test_logger_level_local_fiber_safety
+    @logger.level = Logger::INFO
+    assert_level(Logger::INFO)
+
+    another_fiber = Fiber.new do
+      @logger.silence(Logger::ERROR) do
+        assert_level(Logger::ERROR)
+        @logger.silence(Logger::DEBUG) do
+          assert_level(Logger::DEBUG)
+        end
+      end
+
+      assert_level(Logger::INFO)
+    end
+
+    Fiber.new do
+      @logger.silence(Logger::ERROR) do
+        assert_level(Logger::ERROR)
+        @logger.silence(Logger::DEBUG) do
+          another_fiber.resume
+          assert_level(Logger::DEBUG)
+        end
+      end
+
+      assert_level(Logger::INFO)
+    end.resume
+
+    assert_level(Logger::INFO)
+  end
+
+  def test_temporarily_logging_at_a_noisier_level
+    @logger.level = Logger::INFO
+
+    @logger.debug "NOT THERE"
+
+    @logger.log_at Logger::DEBUG do
+      @logger.debug "THIS IS HERE"
+    end
+
+    @logger.debug "NOT THERE"
+
+    assert_not_includes @output.string, "NOT THERE"
+    assert_includes @output.string, "THIS IS HERE"
+  end
+
+  def test_temporarily_logging_at_a_quieter_level
+    @logger.log_at Logger::ERROR do
+      @logger.debug "NOT THERE"
+      @logger.error "THIS IS HERE"
+    end
+
+    assert_not_includes @output.string, "NOT THERE"
+    assert_includes @output.string, "THIS IS HERE"
+  end
+
+  def test_temporarily_logging_at_a_symbolic_level
+    @logger.log_at :error do
+      @logger.debug "NOT THERE"
+      @logger.error "THIS IS HERE"
+    end
+
+    assert_not_includes @output.string, "NOT THERE"
+    assert_includes @output.string, "THIS IS HERE"
   end
 
   private

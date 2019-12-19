@@ -184,6 +184,20 @@ class SecurePasswordTest < ActiveModel::TestCase
     assert_nil @existing_user.password_digest
   end
 
+  test "override secure password attribute" do
+    assert_nil @user.password_called
+
+    @user.password = "secret"
+
+    assert_equal "secret", @user.password
+    assert_equal 1, @user.password_called
+
+    @user.password = "terces"
+
+    assert_equal "terces", @user.password
+    assert_equal 2, @user.password_called
+  end
+
   test "authenticate" do
     @user.password = "secret"
     @user.recovery_password = "42password"
@@ -206,16 +220,14 @@ class SecurePasswordTest < ActiveModel::TestCase
   end
 
   test "Password digest cost honors bcrypt cost attribute when min_cost is false" do
-    begin
-      original_bcrypt_cost = BCrypt::Engine.cost
-      ActiveModel::SecurePassword.min_cost = false
-      BCrypt::Engine.cost = 5
+    original_bcrypt_cost = BCrypt::Engine.cost
+    ActiveModel::SecurePassword.min_cost = false
+    BCrypt::Engine.cost = 5
 
-      @user.password = "secret"
-      assert_equal BCrypt::Engine.cost, @user.password_digest.cost
-    ensure
-      BCrypt::Engine.cost = original_bcrypt_cost
-    end
+    @user.password = "secret"
+    assert_equal BCrypt::Engine.cost, @user.password_digest.cost
+  ensure
+    BCrypt::Engine.cost = original_bcrypt_cost
   end
 
   test "Password digest cost can be set to bcrypt min cost to speed up tests" do

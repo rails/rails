@@ -15,8 +15,9 @@ module Arel # :nodoc: all
             collector << "ORDER BY "
             collector = inject_join o.orders, collector, ", "
           end
-          collector = maybe_visit o.lock, collector
+          maybe_visit o.lock, collector
         end
+
         def visit_Arel_Nodes_SelectCore(o, collector)
           collector = inject_join o.projections, collector, ", "
           if o.source && !o.source.empty?
@@ -41,10 +42,16 @@ module Arel # :nodoc: all
           collector
         end
 
+        def visit_Arel_Nodes_OptimizerHints(o, collector)
+          hints = o.expr.map { |v| sanitize_as_sql_comment(v) }.join(", ")
+          collector << "/*+ #{hints} */"
+        end
+
         def visit_Arel_Nodes_Offset(o, collector)
           collector << "SKIP "
           visit o.expr, collector
         end
+
         def visit_Arel_Nodes_Limit(o, collector)
           collector << "FIRST "
           visit o.expr, collector

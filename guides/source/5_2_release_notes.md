@@ -326,7 +326,7 @@ Please refer to the [Changelog][action-view] for detailed changes.
     select divider `option`.
     ([Pull Request](https://github.com/rails/rails/pull/31088))
 
-*   Change `form_with` to generates ids by default.
+*   Change `form_with` to generate ids by default.
     ([Commit](https://github.com/rails/rails/commit/260d6f112a0ffdbe03e6f5051504cb441c1e94cd))
 
 *   Add `preload_link_tag` helper.
@@ -615,6 +615,10 @@ Please refer to the [Changelog][active-record] for detailed changes.
     the parent class was getting deleted when the child was not.
     ([Commit](https://github.com/rails/rails/commit/b0fc04aa3af338d5a90608bf37248668d59fc881))
 
+*   Idle database connections (previously just orphaned connections) are now
+    periodically reaped by the connection pool reaper.
+    ([Commit](https://github.com/rails/rails/pull/31221/commits/9027fafff6da932e6e64ddb828665f4b01fc8902))
+
 Active Model
 ------------
 
@@ -845,7 +849,7 @@ Credits
 -------
 
 See the
-[full list of contributors to Rails](http://contributors.rubyonrails.org/)
+[full list of contributors to Rails](https://contributors.rubyonrails.org/)
 for the many people who spent many hours making Rails, the stable and robust
 framework it is. Kudos to all of them.
 

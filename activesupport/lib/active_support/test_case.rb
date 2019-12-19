@@ -12,6 +12,7 @@ require "active_support/testing/constant_lookup"
 require "active_support/testing/time_helpers"
 require "active_support/testing/file_fixtures"
 require "active_support/testing/parallelization"
+require "concurrent/utility/processor_counter"
 
 module ActiveSupport
   class TestCase < ::Minitest::Test
@@ -58,16 +59,20 @@ module ActiveSupport
       # If the number of workers is set to +1+ or fewer, the tests will not be
       # parallelized.
       #
+      # If +workers+ is set to +:number_of_processors+, the number of workers will be
+      # set to the actual core count on the machine you are on.
+      #
       # The default parallelization method is to fork processes. If you'd like to
       # use threads instead you can pass <tt>with: :threads</tt> to the +parallelize+
       # method. Note the threaded parallelization does not create multiple
       # database and will not work with system tests at this time.
       #
-      #   parallelize(workers: 2, with: :threads)
+      #   parallelize(workers: :number_of_processors, with: :threads)
       #
       # The threaded parallelization uses minitest's parallel executor directly.
       # The processes parallelization uses a Ruby DRb server.
-      def parallelize(workers: 2, with: :processes)
+      def parallelize(workers: :number_of_processors, with: :processes)
+        workers = Concurrent.physical_processor_count if workers == :number_of_processors
         workers = ENV["PARALLEL_WORKERS"].to_i if ENV["PARALLEL_WORKERS"]
 
         return if workers <= 1

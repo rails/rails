@@ -97,21 +97,41 @@ module Enumerable
     end
   end
 
+  # Returns a new array that includes the passed elements.
+  #
+  #   [ 1, 2, 3 ].including(4, 5)
+  #   # => [ 1, 2, 3, 4, 5 ]
+  #
+  #   ["David", "Rafael"].including %w[ Aaron Todd ]
+  #   # => ["David", "Rafael", "Aaron", "Todd"]
+  def including(*elements)
+    to_a.including(*elements)
+  end
+
   # The negative of the <tt>Enumerable#include?</tt>. Returns +true+ if the
   # collection does not include the object.
   def exclude?(object)
     !include?(object)
   end
 
-  # Returns a copy of the enumerable without the specified elements.
+  # Returns a copy of the enumerable excluding the specified elements.
   #
-  #   ["David", "Rafael", "Aaron", "Todd"].without "Aaron", "Todd"
+  #   ["David", "Rafael", "Aaron", "Todd"].excluding "Aaron", "Todd"
   #   # => ["David", "Rafael"]
   #
-  #   {foo: 1, bar: 2, baz: 3}.without :bar
+  #   ["David", "Rafael", "Aaron", "Todd"].excluding %w[ Aaron Todd ]
+  #   # => ["David", "Rafael"]
+  #
+  #   {foo: 1, bar: 2, baz: 3}.excluding :bar
   #   # => {foo: 1, baz: 3}
-  def without(*elements)
+  def excluding(*elements)
+    elements.flatten!(1)
     reject { |element| elements.include?(element) }
+  end
+
+  # Alias for #excluding.
+  def without(*elements)
+    excluding(*elements)
   end
 
   # Convert an enumerable to an array based on the given key.
@@ -127,6 +147,41 @@ module Enumerable
     else
       map { |element| element[keys.first] }
     end
+  end
+
+  # Returns a new +Array+ without the blank items.
+  # Uses Object#blank? for determining if an item is blank.
+  #
+  #    [1, "", nil, 2, " ", [], {}, false, true].compact_blank
+  #    # =>  [1, 2, true]
+  #
+  #    Set.new([nil, "", 1, 2])
+  #    # => [2, 1] (or [1, 2])
+  #
+  # When called on a +Hash+, returns a new +Hash+ without the blank values.
+  #
+  #    { a: "", b: 1, c: nil, d: [], e: false, f: true }.compact_blank
+  #    #=> { b: 1, f: true }
+  def compact_blank
+    reject(&:blank?)
+  end
+end
+
+class Hash
+  # Hash#reject has its own definition, so this needs one too.
+  def compact_blank #:nodoc:
+    reject { |_k, v| v.blank? }
+  end
+
+  # Removes all blank values from the +Hash+ in place and returns self.
+  # Uses Object#blank? for determining if a value is blank.
+  #
+  #    h = { a: "", b: 1, c: nil, d: [], e: false, f: true }
+  #    h.compact_blank!
+  #    # => { b: 1, f: true }
+  def compact_blank!
+    # use delete_if rather than reject! because it always returns self even if nothing changed
+    delete_if { |_k, v| v.blank? }
   end
 end
 
@@ -164,5 +219,16 @@ class Array #:nodoc:
     else
       super
     end
+  end
+
+  # Removes all blank elements from the +Array+ in place and returns self.
+  # Uses Object#blank? for determining if an item is blank.
+  #
+  #    a = [1, "", nil, 2, " ", [], {}, false, true]
+  #    a.compact_blank!
+  #    # =>  [1, 2, true]
+  def compact_blank!
+    # use delete_if rather than reject! because it always returns self even if nothing changed
+    delete_if(&:blank?)
   end
 end

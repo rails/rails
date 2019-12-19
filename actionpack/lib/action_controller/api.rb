@@ -12,7 +12,7 @@ module ActionController
   #
   # An API Controller is different from a normal controller in the sense that
   # by default it doesn't include a number of features that are usually required
-  # by browser access only: layouts and templates rendering, cookies, sessions,
+  # by browser access only: layouts and templates rendering,
   # flash, assets, and so on. This makes the entire controller stack thinner,
   # suitable for API applications. It doesn't mean you won't have such
   # features if you need them: they're all available for you to include in
@@ -123,6 +123,7 @@ module ActionController
       ForceSSL,
       DataStreaming,
       DefaultHeaders,
+      Logging,
 
       # Before callbacks should also be executed as early as possible, so
       # also include them at the bottom.

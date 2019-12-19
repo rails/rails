@@ -18,6 +18,14 @@ module Arel # :nodoc: all
       Nodes::Equality.new self, quoted_node(other)
     end
 
+    def is_not_distinct_from(other)
+      Nodes::IsNotDistinctFrom.new self, quoted_node(other)
+    end
+
+    def is_distinct_from(other)
+      Nodes::IsDistinctFrom.new self, quoted_node(other)
+    end
+
     def eq_any(others)
       grouping_any :eq, others
     end
@@ -27,15 +35,17 @@ module Arel # :nodoc: all
     end
 
     def between(other)
-      if equals_quoted?(other.begin, -Float::INFINITY)
-        if equals_quoted?(other.end, Float::INFINITY)
+      if unboundable?(other.begin) == 1 || unboundable?(other.end) == -1
+        self.in([])
+      elsif other.begin.nil? || open_ended?(other.begin)
+        if other.end.nil? || open_ended?(other.end)
           not_in([])
         elsif other.exclude_end?
           lt(other.end)
         else
           lteq(other.end)
         end
-      elsif equals_quoted?(other.end, Float::INFINITY)
+      elsif other.end.nil? || open_ended?(other.end)
         gteq(other.begin)
       elsif other.exclude_end?
         gteq(other.begin).and(lt(other.end))
@@ -73,15 +83,17 @@ Passing a range to `#in` is deprecated. Call `#between`, instead.
     end
 
     def not_between(other)
-      if equals_quoted?(other.begin, -Float::INFINITY)
-        if equals_quoted?(other.end, Float::INFINITY)
+      if unboundable?(other.begin) == 1 || unboundable?(other.end) == -1
+        not_in([])
+      elsif other.begin.nil? || open_ended?(other.begin)
+        if other.end.nil? || open_ended?(other.end)
           self.in([])
         elsif other.exclude_end?
           gteq(other.end)
         else
           gt(other.end)
         end
-      elsif equals_quoted?(other.end, Float::INFINITY)
+      elsif other.end.nil? || open_ended?(other.end)
         lt(other.begin)
       else
         left = lt(other.begin)
@@ -209,7 +221,6 @@ Passing a range to `#not_in` is deprecated. Call `#not_between`, instead.
     end
 
     private
-
       def grouping_any(method_id, others, *extras)
         nodes = others.map { |expr| send(method_id, expr, *extras) }
         Nodes::Grouping.new nodes.inject { |memo, node|
@@ -230,12 +241,16 @@ Passing a range to `#not_in` is deprecated. Call `#not_between`, instead.
         others.map { |v| quoted_node(v) }
       end
 
-      def equals_quoted?(maybe_quoted, value)
-        if maybe_quoted.is_a?(Nodes::Quoted)
-          maybe_quoted.val == value
-        else
-          maybe_quoted == value
-        end
+      def infinity?(value)
+        value.respond_to?(:infinite?) && value.infinite?
+      end
+
+      def unboundable?(value)
+        value.respond_to?(:unboundable?) && value.unboundable?
+      end
+
+      def open_ended?(value)
+        infinity?(value) || unboundable?(value)
       end
   end
 end

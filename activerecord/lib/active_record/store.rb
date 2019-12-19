@@ -11,13 +11,19 @@ module ActiveRecord
   # of the model. This is very helpful for easily exposing store keys to a form or elsewhere that's
   # already built around just accessing attributes on the model.
   #
+  # Every accessor comes with dirty tracking methods (+key_changed?+, +key_was+ and +key_change+) and
+  # methods to access the changes made during the last save (+saved_change_to_key?+, +saved_change_to_key+ and
+  # +key_before_last_save+).
+  #
+  # NOTE: There is no +key_will_change!+ method for accessors, use +store_will_change!+ instead.
+  #
   # Make sure that you declare the database column used for the serialized store as a text, so there's
   # plenty of room.
   #
   # You can set custom coder to encode/decode your serialized attributes to/from different formats.
   # JSON, YAML, Marshal are supported out of the box. Generally it can be any wrapper that provides +load+ and +dump+.
   #
-  # NOTE: If you are using structured database data types (eg. PostgreSQL +hstore+/+json+, or MySQL 5.7+
+  # NOTE: If you are using structured database data types (e.g. PostgreSQL +hstore+/+json+, or MySQL 5.7+
   # +json+) there is no need for the serialization provided by {.store}[rdoc-ref:rdoc-ref:ClassMethods#store].
   # Simply use {.store_accessor}[rdoc-ref:ClassMethods#store_accessor] instead to generate
   # the accessor methods. Be aware that these columns use a string keyed hash and do not allow access
@@ -48,6 +54,12 @@ module ActiveRecord
   #   # There is no difference between strings and symbols for accessing custom attributes
   #   u.settings[:country]  # => 'Denmark'
   #   u.settings['country'] # => 'Denmark'
+  #
+  #   # Dirty tracking
+  #   u.color = 'green'
+  #   u.color_changed? # => true
+  #   u.color_was # => 'black'
+  #   u.color_change # => ['black', 'red']
   #
   #   # Add additional accessors to an existing store through store_accessor
   #   class SuperUser < User
@@ -91,7 +103,7 @@ module ActiveRecord
     module ClassMethods
       def store(store_attribute, options = {})
         serialize store_attribute, IndifferentCoder.new(store_attribute, options[:coder])
-        store_accessor(store_attribute, options[:accessors], options.slice(:prefix, :suffix)) if options.has_key? :accessors
+        store_accessor(store_attribute, options[:accessors], **options.slice(:prefix, :suffix)) if options.has_key? :accessors
       end
 
       def store_accessor(store_attribute, *keys, prefix: nil, suffix: nil)
@@ -126,6 +138,42 @@ module ActiveRecord
 
             define_method(accessor_key) do
               read_store_attribute(store_attribute, key)
+            end
+
+            define_method("#{accessor_key}_changed?") do
+              return false unless attribute_changed?(store_attribute)
+              prev_store, new_store = changes[store_attribute]
+              prev_store&.dig(key) != new_store&.dig(key)
+            end
+
+            define_method("#{accessor_key}_change") do
+              return unless attribute_changed?(store_attribute)
+              prev_store, new_store = changes[store_attribute]
+              [prev_store&.dig(key), new_store&.dig(key)]
+            end
+
+            define_method("#{accessor_key}_was") do
+              return unless attribute_changed?(store_attribute)
+              prev_store, _new_store = changes[store_attribute]
+              prev_store&.dig(key)
+            end
+
+            define_method("saved_change_to_#{accessor_key}?") do
+              return false unless saved_change_to_attribute?(store_attribute)
+              prev_store, new_store = saved_change_to_attribute(store_attribute)
+              prev_store&.dig(key) != new_store&.dig(key)
+            end
+
+            define_method("saved_change_to_#{accessor_key}") do
+              return unless saved_change_to_attribute?(store_attribute)
+              prev_store, new_store = saved_change_to_attribute(store_attribute)
+              [prev_store&.dig(key), new_store&.dig(key)]
+            end
+
+            define_method("#{accessor_key}_before_last_save") do
+              return unless saved_change_to_attribute?(store_attribute)
+              prev_store, _new_store = saved_change_to_attribute(store_attribute)
+              prev_store&.dig(key)
             end
           end
         end

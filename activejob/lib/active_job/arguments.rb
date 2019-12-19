@@ -14,18 +14,18 @@ module ActiveJob
   end
 
   # Raised when an unsupported argument type is set as a job argument. We
-  # currently support NilClass, Integer, Float, String, TrueClass, FalseClass,
-  # BigDecimal, and objects that can be represented as GlobalIDs (ex: Active Record).
+  # currently support String, Integer, Float, NilClass, TrueClass, FalseClass,
+  # BigDecimal, Symbol, Date, Time, DateTime, ActiveSupport::TimeWithZone,
+  # ActiveSupport::Duration, Hash, ActiveSupport::HashWithIndifferentAccess,
+  # Array or GlobalID::Identification instances, although this can be extended
+  # by adding custom serializers.
   # Raised if you set the key for a Hash something else than a string or
   # a symbol. Also raised when trying to serialize an object which can't be
-  # identified with a Global ID - such as an unpersisted Active Record model.
+  # identified with a GlobalID - such as an unpersisted Active Record model.
   class SerializationError < ArgumentError; end
 
   module Arguments
     extend self
-    # :nodoc:
-    PERMITTED_TYPES = [ NilClass, String, Integer, Float, BigDecimal, TrueClass, FalseClass ]
-
     # Serializes a set of arguments. Intrinsic types that can safely be
     # serialized without mutation are returned as-is. Arrays/Hashes are
     # serialized element by element. All other types are serialized using
@@ -45,7 +45,8 @@ module ActiveJob
     end
 
     private
-
+      # :nodoc:
+      PERMITTED_TYPES = [ NilClass, String, Integer, Float, BigDecimal, TrueClass, FalseClass ]
       # :nodoc:
       GLOBALID_KEY = "_aj_globalid"
       # :nodoc:
@@ -62,7 +63,7 @@ module ActiveJob
         OBJECT_SERIALIZER_KEY, OBJECT_SERIALIZER_KEY.to_sym,
         WITH_INDIFFERENT_ACCESS_KEY, WITH_INDIFFERENT_ACCESS_KEY.to_sym,
       ]
-      private_constant :RESERVED_KEYS
+      private_constant :PERMITTED_TYPES, :RESERVED_KEYS, :GLOBALID_KEY, :SYMBOL_KEYS_KEY, :WITH_INDIFFERENT_ACCESS_KEY
 
       def serialize_argument(argument)
         case argument
@@ -73,14 +74,14 @@ module ActiveJob
         when Array
           argument.map { |arg| serialize_argument(arg) }
         when ActiveSupport::HashWithIndifferentAccess
-          result = serialize_hash(argument)
-          result[WITH_INDIFFERENT_ACCESS_KEY] = serialize_argument(true)
-          result
+          serialize_indifferent_hash(argument)
         when Hash
           symbol_keys = argument.each_key.grep(Symbol).map(&:to_s)
           result = serialize_hash(argument)
           result[SYMBOL_KEYS_KEY] = symbol_keys
           result
+        when -> (arg) { arg.respond_to?(:permitted?) }
+          serialize_indifferent_hash(argument.to_h)
         else
           Serializers.serialize(argument)
         end
@@ -89,7 +90,7 @@ module ActiveJob
       def deserialize_argument(argument)
         case argument
         when String
-          GlobalID::Locator.locate(argument) || argument
+          argument
         when *PERMITTED_TYPES
           argument
         when Array
@@ -146,8 +147,17 @@ module ActiveJob
         end
       end
 
+      def serialize_indifferent_hash(indifferent_hash)
+        result = serialize_hash(indifferent_hash)
+        result[WITH_INDIFFERENT_ACCESS_KEY] = serialize_argument(true)
+        result
+      end
+
       def transform_symbol_keys(hash, symbol_keys)
-        hash.transform_keys do |key|
+        # NOTE: HashWithIndifferentAccess#transform_keys always
+        # returns stringified keys with indifferent access
+        # so we call #to_h here to ensure keys are symbolized.
+        hash.to_h.transform_keys do |key|
           if symbol_keys.include?(key)
             key.to_sym
           else

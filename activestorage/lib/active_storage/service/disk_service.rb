@@ -11,11 +11,12 @@ module ActiveStorage
   class Service::DiskService < Service
     attr_reader :root
 
-    def initialize(root:)
+    def initialize(root:, public: false, **options)
       @root = root
+      @public = public
     end
 
-    def upload(key, io, checksum: nil)
+    def upload(key, io, checksum: nil, **)
       instrument :upload, key: key, checksum: checksum do
         IO.copy_stream(io, make_path_for(key))
         ensure_integrity_of(key, checksum) if checksum
@@ -29,35 +30,29 @@ module ActiveStorage
         end
       else
         instrument :download, key: key do
-          begin
-            File.binread path_for(key)
-          rescue Errno::ENOENT
-            raise ActiveStorage::FileNotFoundError
-          end
-        end
-      end
-    end
-
-    def download_chunk(key, range)
-      instrument :download_chunk, key: key, range: range do
-        begin
-          File.open(path_for(key), "rb") do |file|
-            file.seek range.begin
-            file.read range.size
-          end
+          File.binread path_for(key)
         rescue Errno::ENOENT
           raise ActiveStorage::FileNotFoundError
         end
       end
     end
 
+    def download_chunk(key, range)
+      instrument :download_chunk, key: key, range: range do
+        File.open(path_for(key), "rb") do |file|
+          file.seek range.begin
+          file.read range.size
+        end
+      rescue Errno::ENOENT
+        raise ActiveStorage::FileNotFoundError
+      end
+    end
+
     def delete(key)
       instrument :delete, key: key do
-        begin
-          File.delete path_for(key)
-        rescue Errno::ENOENT
-          # Ignore files already deleted
-        end
+        File.delete path_for(key)
+      rescue Errno::ENOENT
+        # Ignore files already deleted
       end
     end
 
@@ -77,25 +72,6 @@ module ActiveStorage
       end
     end
 
-    def url(key, expires_in:, filename:, disposition:, content_type:)
-      instrument :url, key: key do |payload|
-        verified_key_with_expiration = ActiveStorage.verifier.generate(key, expires_in: expires_in, purpose: :blob_key)
-
-        generated_url =
-          url_helpers.rails_disk_service_url(
-            verified_key_with_expiration,
-            host: current_host,
-            filename: filename,
-            disposition: content_disposition_with(type: disposition, filename: filename),
-            content_type: content_type
-          )
-
-        payload[:url] = generated_url
-
-        generated_url
-      end
-    end
-
     def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:)
       instrument :url, key: key do |payload|
         verified_token_with_expiration = ActiveStorage.verifier.generate(
@@ -103,10 +79,11 @@ module ActiveStorage
             key: key,
             content_type: content_type,
             content_length: content_length,
-            checksum: checksum
+            checksum: checksum,
+            service_name: name
           },
-          { expires_in: expires_in,
-          purpose: :blob_token }
+          expires_in: expires_in,
+          purpose: :blob_token
         )
 
         generated_url = url_helpers.update_rails_disk_service_url(verified_token_with_expiration, host: current_host)
@@ -126,6 +103,38 @@ module ActiveStorage
     end
 
     private
+      def private_url(key, expires_in:, filename:, content_type:, disposition:, **)
+        generate_url(key, expires_in: expires_in, filename: filename, content_type: content_type, disposition: disposition)
+      end
+
+      def public_url(key, filename:, content_type: nil, disposition: :attachment, **)
+        generate_url(key, expires_in: nil, filename: filename, content_type: content_type, disposition: disposition)
+      end
+
+      def generate_url(key, expires_in:, filename:, content_type:, disposition:)
+        content_disposition = content_disposition_with(type: disposition, filename: filename)
+        verified_key_with_expiration = ActiveStorage.verifier.generate(
+          {
+            key: key,
+            disposition: content_disposition,
+            content_type: content_type,
+            service_name: name
+          },
+          expires_in: expires_in,
+          purpose: :blob_key
+        )
+
+        current_uri = URI.parse(current_host)
+
+        url_helpers.rails_disk_service_url(verified_key_with_expiration,
+          protocol: current_uri.scheme,
+          host: current_uri.host,
+          port: current_uri.port,
+          filename: filename
+        )
+      end
+
+
       def stream(key)
         File.open(path_for(key), "rb") do |file|
           while data = file.read(5.megabytes)

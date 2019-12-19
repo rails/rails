@@ -2,6 +2,7 @@
 
 require "helper"
 require "jobs/callback_job"
+require "jobs/abort_before_enqueue_job"
 
 require "active_support/core_ext/object/inclusion"
 
@@ -22,4 +23,123 @@ class CallbacksTest < ActiveSupport::TestCase
     assert "CallbackJob ran around_enqueue_start".in? enqueued_callback_job.history
     assert "CallbackJob ran around_enqueue_stop".in? enqueued_callback_job.history
   end
+
+  test "#enqueue returns false when before_enqueue aborts callback chain and return_false_on_aborted_enqueue = true" do
+    prev = ActiveJob::Base.return_false_on_aborted_enqueue
+    ActiveJob::Base.return_false_on_aborted_enqueue = true
+
+    ActiveSupport::Deprecation.silence do
+      assert_equal false, AbortBeforeEnqueueJob.new.enqueue
+    end
+  ensure
+    ActiveJob::Base.return_false_on_aborted_enqueue = prev
+  end
+
+  test "#enqueue returns self when before_enqueue aborts callback chain and return_false_on_aborted_enqueue = false" do
+    prev = ActiveJob::Base.return_false_on_aborted_enqueue
+    ActiveJob::Base.return_false_on_aborted_enqueue = false
+    job = AbortBeforeEnqueueJob.new
+    assert_deprecated do
+      assert_equal job, job.enqueue
+    end
+  ensure
+    ActiveJob::Base.return_false_on_aborted_enqueue = prev
+  end
+
+  test "#enqueue does not run after_enqueue callbacks when skip_after_callbacks_if_terminated is true" do
+    prev = ActiveJob::Base.skip_after_callbacks_if_terminated
+    ActiveJob::Base.skip_after_callbacks_if_terminated = true
+    reload_job
+    job = AbortBeforeEnqueueJob.new
+    ActiveSupport::Deprecation.silence do
+      job.enqueue
+    end
+
+    assert_nil(job.flag)
+  ensure
+    ActiveJob::Base.skip_after_callbacks_if_terminated = prev
+  end
+
+  test "#enqueue does run after_enqueue callbacks when skip_after_callbacks_if_terminated is false" do
+    prev = ActiveJob::Base.skip_after_callbacks_if_terminated
+    ActiveJob::Base.skip_after_callbacks_if_terminated = false
+    reload_job
+    job = AbortBeforeEnqueueJob.new
+    assert_deprecated(/`after_enqueue`\/`after_perform` callbacks no longer run/) do
+      job.enqueue
+    end
+
+    assert_equal("after_enqueue", job.flag)
+  ensure
+    ActiveJob::Base.skip_after_callbacks_if_terminated = prev
+  end
+
+  test "#enqueue does not throw a deprecation warning when skip_after_callbacks_if_terminated_is false but job has no after callbacks" do
+    prev = ActiveJob::Base.skip_after_callbacks_if_terminated
+    ActiveJob::Base.skip_after_callbacks_if_terminated = false
+
+    job = Class.new(ActiveJob::Base) do
+      before_enqueue { throw(:abort) }
+      self.return_false_on_aborted_enqueue = true
+    end.new
+
+    assert_not_deprecated do
+      job.enqueue
+    end
+  ensure
+    ActiveJob::Base.skip_after_callbacks_if_terminated = prev
+  end
+
+  test "#perform does not run after_perform callbacks when skip_after_callbacks_if_terminated is true" do
+    prev = ActiveJob::Base.skip_after_callbacks_if_terminated
+    ActiveJob::Base.skip_after_callbacks_if_terminated = true
+    reload_job
+    job = AbortBeforeEnqueueJob.new
+    job.perform_now
+
+    assert_nil(job.flag)
+  ensure
+    ActiveJob::Base.skip_after_callbacks_if_terminated = prev
+  end
+
+  test "#perform does run after_perform callbacks when skip_after_callbacks_if_terminated is false" do
+    prev = ActiveJob::Base.skip_after_callbacks_if_terminated
+    ActiveJob::Base.skip_after_callbacks_if_terminated = false
+    reload_job
+    job = AbortBeforeEnqueueJob.new
+    assert_deprecated(/`after_enqueue`\/`after_perform` callbacks no longer run/) do
+      job.perform_now
+    end
+
+    assert_equal("after_perform", job.flag)
+  ensure
+    ActiveJob::Base.skip_after_callbacks_if_terminated = prev
+  end
+
+  test "#perform does not throw a deprecation warning when skip_after_callbacks_if_terminated_is false but job has no after callbacks" do
+    prev = ActiveJob::Base.skip_after_callbacks_if_terminated
+    ActiveJob::Base.skip_after_callbacks_if_terminated = false
+
+    job = Class.new(ActiveJob::Base) do
+      before_perform { throw(:abort) }
+    end
+
+    assert_not_deprecated do
+      job.perform_now
+    end
+  ensure
+    ActiveJob::Base.skip_after_callbacks_if_terminated = prev
+  end
+
+  test "#enqueue returns self when the job was enqueued" do
+    job = CallbackJob.new
+    assert_equal job, job.enqueue
+  end
+
+  private
+    def reload_job
+      Object.send(:remove_const, :AbortBeforeEnqueueJob)
+      $LOADED_FEATURES.delete($LOADED_FEATURES.grep(%r{jobs/abort_before_enqueue_job}).first)
+      require "jobs/abort_before_enqueue_job"
+    end
 end

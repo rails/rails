@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/number_helper/number_converter"
+
 module ActiveSupport
   module NumberHelper
     class NumberToHumanConverter < NumberConverter # :nodoc:
@@ -14,7 +16,7 @@ module ActiveSupport
         @number = RoundingHelper.new(options).round(number)
         @number = Float(number)
 
-        # for backwards compatibility with those that didn't add strip_insignificant_zeros to their locale files
+        # For backwards compatibility with those that didn't add strip_insignificant_zeros to their locale files.
         unless options.key?(:strip_insignificant_zeros)
           options[:strip_insignificant_zeros] = true
         end
@@ -29,7 +31,6 @@ module ActiveSupport
       end
 
       private
-
         def format
           options[:format] || translate_in_locale("human.decimal_units.format")
         end

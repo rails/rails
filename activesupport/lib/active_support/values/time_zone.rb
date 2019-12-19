@@ -182,8 +182,9 @@ module ActiveSupport
       "Samoa"                        => "Pacific/Apia"
     }
 
-    UTC_OFFSET_WITH_COLON = "%s%02d:%02d"
-    UTC_OFFSET_WITHOUT_COLON = UTC_OFFSET_WITH_COLON.tr(":", "")
+    UTC_OFFSET_WITH_COLON = "%s%02d:%02d" # :nodoc:
+    UTC_OFFSET_WITHOUT_COLON = UTC_OFFSET_WITH_COLON.tr(":", "") # :nodoc:
+    private_constant :UTC_OFFSET_WITH_COLON, :UTC_OFFSET_WITHOUT_COLON
 
     @lazy_zones_map = Concurrent::Map.new
     @country_zones  = Concurrent::Map.new
@@ -331,6 +332,13 @@ module ActiveSupport
     # if a match is found.
     def =~(re)
       re === name || re === MAPPING[name]
+    end
+
+    # Compare #name and TZInfo identifier to a supplied regexp, returning +true+
+    # if a match is found.
+    def match?(re)
+      (re == name) || (re == MAPPING[name]) ||
+        ((Regexp === re) && (re.match?(name) || re.match?(MAPPING[name])))
     end
 
     # Returns a textual representation of this time zone.

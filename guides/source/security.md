@@ -32,27 +32,17 @@ In order to develop secure web applications you have to keep up to date on all l
 Sessions
 --------
 
-A good place to start looking at security is with sessions, which can be vulnerable to particular attacks.
+This chapter describes some particular attacks related to sessions, and security measures to protect your session data.
 
 ### What are Sessions?
 
-NOTE: _HTTP is a stateless protocol. Sessions make it stateful._
+INFO: Sessions enable the application to maintain user-specific state, while users interact with the application. For example, sessions allow users to authenticate once and remain signed in for future requests.
 
-Most applications need to keep track of certain state of a particular user. This could be the contents of a shopping basket or the user id of the currently logged in user. Without the idea of sessions, the user would have to identify, and probably authenticate, on every request.
-Rails will create a new session automatically if a new user accesses the application. It will load an existing session if the user has already used the application.
+Most applications need to keep track of state for users that interact with the application. This could be the contents of a shopping basket, or the user id of the currently logged in user. This kind of user-specific state can be stored in the session.
 
-A session usually consists of a hash of values and a session ID, usually a 32-character string, to identify the hash. Every cookie sent to the client's browser includes the session ID. And the other way round: the browser will send it to the server on every request from the client. In Rails you can save and retrieve values using the session method:
+Rails provides a session object for each user that accesses the application. If the user already has an active session, Rails uses the existing session. Otherwise a new session is created.
 
-```ruby
-session[:user_id] = @current_user.id
-User.find(session[:user_id])
-```
-
-### Session ID
-
-NOTE: _The session ID is a 32-character random hex string._
-
-The session ID is generated using `SecureRandom.hex` which generates a random hex string using platform specific methods (such as OpenSSL, /dev/urandom or Win32 CryptoAPI) for generating cryptographically secure random numbers. Currently it is not feasible to brute-force Rails' session IDs.
+NOTE: Read more about sessions and how to use them in [Action Controller Overview Guide](action_controller_overview.html#session).
 
 ### Session Hijacking
 
@@ -76,70 +66,43 @@ Hence, the cookie serves as temporary authentication for the web application. An
 
 The main objective of most attackers is to make money. The underground prices for stolen bank login accounts range from 0.5%-10% of account balance, $0.5-$30 for credit card numbers ($20-$60 with full details), $0.1-$1.5 for identities (Name, SSN & DOB), $20-$50 for retailer accounts, and $6-$10 for cloud service provider accounts, according to the [Symantec Internet Security Threat Report (2017)](https://www.symantec.com/content/dam/symantec/docs/reports/istr-22-2017-en.pdf).
 
-### Session Guidelines
+### Session Storage
 
-Here are some general guidelines on sessions.
+NOTE: Rails uses `ActionDispatch::Session::CookieStore` as the default session storage.
 
-* _Do not store large objects in a session_. Instead you should store them in the database and save their id in the session. This will eliminate synchronization headaches and it won't fill up your session storage space (depending on what session storage you chose, see below).
-This will also be a good idea, if you modify the structure of an object and old versions of it are still in some user's cookies. With server-side session storages you can clear out the sessions, but with client-side storages, this is hard to mitigate.
+TIP: Learn more about other session storages in [Action Controller Overview Guide](action_controller_overview.html#session).
 
-* _Critical data should not be stored in session_. If the user clears their cookies or closes the browser, they will be lost. And with a client-side session storage, the user can read the data.
-
-### Encrypted Session Storage
-
-NOTE: _Rails provides several storage mechanisms for the session hashes. The most important is `ActionDispatch::Session::CookieStore`._
-
-The `CookieStore` saves the session hash directly in a cookie on the
-client-side. The server retrieves the session hash from the cookie and
+Rails `CookieStore` saves the session hash in a cookie on the client-side.
+The server retrieves the session hash from the cookie and
 eliminates the need for a session ID. That will greatly increase the
 speed of the application, but it is a controversial storage option and
 you have to think about the security implications and storage
 limitations of it:
 
-* Cookies imply a strict size limit of 4kB. This is fine as you should
-  not store large amounts of data in a session anyway, as described
-  before. Storing the current user's database id in a session is common
-  practice.
+*  Cookies have a size limit of 4kB. Use cookies only for data which is relevant for the session.
+
+* Cookies are stored on the client-side. The client may preserve cookie contents even for expired cookies. The client may copy cookies to other machines. Avoid storing sensitive data in cookies.
+
+* Cookies are temporary by nature. The server can set expiration time for the cookie, but the client may delete the cookie and its contents before that. Persist all data that is of more permanent nature on the server side.
 
 * Session cookies do not invalidate themselves and can be maliciously
   reused. It may be a good idea to have your application invalidate old
   session cookies using a stored timestamp.
 
+* Rails encrypts cookies by default. The client cannot read or edit the contents of the cookie, without breaking encryption. If you take appropriate care of your secrets, you can consider your cookies to be generally secured.
+
 The `CookieStore` uses the
-[encrypted](http://api.rubyonrails.org/classes/ActionDispatch/Cookies/ChainedCookieJars.html#method-i-encrypted)
+[encrypted](https://api.rubyonrails.org/classes/ActionDispatch/Cookies/ChainedCookieJars.html#method-i-encrypted)
 cookie jar to provide a secure, encrypted location to store session
 data. Cookie-based sessions thus provide both integrity as well as
 confidentiality to their contents. The encryption key, as well as the
 verification key used for
-[signed](http://api.rubyonrails.org/classes/ActionDispatch/Cookies/ChainedCookieJars.html#method-i-signed)
+[signed](https://api.rubyonrails.org/classes/ActionDispatch/Cookies/ChainedCookieJars.html#method-i-signed)
 cookies, is derived from the `secret_key_base` configuration value.
 
-As of Rails 5.2 encrypted cookies and sessions are protected using AES
-GCM encryption. This form of encryption is a type of Authenticated
-Encryption and couples authentication and encryption in single step
-while also producing shorter ciphertexts as compared to other
-algorithms previously used. The key for cookies encrypted with AES GCM
-are derived using a salt value defined by the
-`config.action_dispatch.authenticated_encrypted_cookie_salt`
-configuration value.
+TIP: Secrets must be long and random. Use `rails secret` to get new unique secrets.
 
-Prior to this version, encrypted cookies were secured using AES in CBC
-mode with HMAC using SHA1 for authentication. The keys for this type of
-encryption and for HMAC verification were derived via the salts defined
-by `config.action_dispatch.encrypted_cookie_salt` and
-`config.action_dispatch.encrypted_signed_cookie_salt` respectively.
-
-Prior to Rails version 4 in both versions 2 and 3, session cookies were
-protected using only HMAC verification. As such, these session cookies
-only provided integrity to their content because the actual session data
-was stored in plaintext encoded as base64. This is how `signed` cookies
-work in the current version of Rails. These kinds of cookies are still
-useful for protecting the integrity of certain client-stored data and
-information.
-
-__Do not use a trivial secret for the `secret_key_base`, i.e. a word
-from a dictionary, or one which is shorter than 30 characters! Instead
-use `rails secret` to generate secret keys!__
+INFO: Learn more about [managing credentials later in this guide](security.html#custom-credentials)
 
 It is also important to use different salt values for encrypted and
 signed cookies. Using the same value for different salt configuration
@@ -148,9 +111,11 @@ security features which in turn may weaken the strength of the key.
 
 In test and development applications get a `secret_key_base` derived from the app name. Other environments must use a random key present in `config/credentials.yml.enc`, shown here in its decrypted state:
 
-    secret_key_base: 492f...
+```yaml
+secret_key_base: 492f...
+```
 
-If you have received an application where the secret was exposed (e.g. an application whose source was shared), strongly consider changing the secret.
+WARNING: If your application's secrets may have been exposed, strongly consider changing them. Changing `secret_key_base` will expire currently active sessions.
 
 ### Rotating Encrypted and Signed Cookies Configurations
 
@@ -192,9 +157,9 @@ rotations going at any one time.
 For more details on key rotation with encrypted and signed messages as
 well as the various options the `rotate` method accepts, please refer to
 the
-[MessageEncryptor API](http://api.rubyonrails.org/classes/ActiveSupport/MessageEncryptor.html)
+[MessageEncryptor API](https://api.rubyonrails.org/classes/ActiveSupport/MessageEncryptor.html)
 and
-[MessageVerifier API](http://api.rubyonrails.org/classes/ActiveSupport/MessageVerifier.html)
+[MessageVerifier API](https://api.rubyonrails.org/classes/ActiveSupport/MessageVerifier.html)
 documentation.
 
 ### Replay Attacks for CookieStore Sessions
@@ -530,7 +495,7 @@ However, the attacker may also take over the account by changing the e-mail addr
 
 #### Other
 
-Depending on your web application, there may be more ways to hijack the user's account. In many cases CSRF and XSS will help to do so. For example, as in a CSRF vulnerability in [Google Mail](http://www.gnucitizen.org/blog/google-gmail-e-mail-hijack-technique/). In this proof-of-concept attack, the victim would have been lured to a web site controlled by the attacker. On that site is a crafted IMG-tag which results in an HTTP GET request that changes the filter settings of Google Mail. If the victim was logged in to Google Mail, the attacker would change the filters to forward all e-mails to their e-mail address. This is nearly as harmful as hijacking the entire account. As a countermeasure, _review your application logic and eliminate all XSS and CSRF vulnerabilities_.
+Depending on your web application, there may be more ways to hijack the user's account. In many cases CSRF and XSS will help to do so. For example, as in a CSRF vulnerability in [Google Mail](https://www.gnucitizen.org/blog/google-gmail-e-mail-hijack-technique/). In this proof-of-concept attack, the victim would have been lured to a web site controlled by the attacker. On that site is a crafted IMG-tag which results in an HTTP GET request that changes the filter settings of Google Mail. If the victim was logged in to Google Mail, the attacker would change the filters to forward all e-mails to their e-mail address. This is nearly as harmful as hijacking the entire account. As a countermeasure, _review your application logic and eliminate all XSS and CSRF vulnerabilities_.
 
 ### CAPTCHAs
 
@@ -553,7 +518,7 @@ Here are some ideas how to hide honeypot fields by JavaScript and/or CSS:
 
 The most simple negative CAPTCHA is one hidden honeypot field. On the server side, you will check the value of the field: If it contains any text, it must be a bot. Then, you can either ignore the post or return a positive result, but not saving the post to the database. This way the bot will be satisfied and moves on.
 
-You can find more sophisticated negative CAPTCHAs in Ned Batchelder's [blog post](http://nedbatchelder.com/text/stopbots.html):
+You can find more sophisticated negative CAPTCHAs in Ned Batchelder's [blog post](https://nedbatchelder.com/text/stopbots.html):
 
 * Include a field with the current UTC time-stamp in it and check it on the server. If it is too far in the past, or if it is in the future, the form is invalid.
 * Randomize the field names
@@ -795,7 +760,7 @@ With web page defacement an attacker can do a lot of things, for example, presen
 <iframe name="StatPage" src="http://58.xx.xxx.xxx" width=5 height=5 style="display:none"></iframe>
 ```
 
-This loads arbitrary HTML and/or JavaScript from an external source and embeds it as part of the site. This iframe is taken from an actual attack on legitimate Italian sites using the [Mpack attack framework](http://isc.sans.org/diary.html?storyid=3015). Mpack tries to install malicious software through security holes in the web browser - very successfully, 50% of the attacks succeed.
+This loads arbitrary HTML and/or JavaScript from an external source and embeds it as part of the site. This iframe is taken from an actual attack on legitimate Italian sites using the [Mpack attack framework](https://isc.sans.edu/diary/MPack+Analysis/3015). Mpack tries to install malicious software through security holes in the web browser - very successfully, 50% of the attacks succeed.
 
 A more specialized attack could overlap the entire web site or display a login form, which looks the same as the site's original, but transmits the user name and password to the attacker's site. Or it could use CSS and/or JavaScript to hide a legitimate link in the web application, and display another one at its place which redirects to a fake web site.
 
@@ -856,7 +821,7 @@ The worms exploit a hole in Yahoo's HTML/JavaScript filter, which usually filter
 
 Another proof-of-concept webmail worm is Nduja, a cross-domain worm for four Italian webmail services. Find more details on [Rosario Valotta's paper](http://www.xssed.com/news/37/Nduja_Connection_A_cross_webmail_worm_XWW/). Both webmail worms have the goal to harvest email addresses, something a criminal hacker could make money with.
 
-In December 2006, 34,000 actual user names and passwords were stolen in a [MySpace phishing attack](http://news.netcraft.com/archives/2006/10/27/myspace_accounts_compromised_by_phishers.html). The idea of the attack was to create a profile page named "login_home_index_html", so the URL looked very convincing. Specially-crafted HTML and CSS was used to hide the genuine MySpace content from the page and instead display its own login form.
+In December 2006, 34,000 actual user names and passwords were stolen in a [MySpace phishing attack](https://news.netcraft.com/archives/2006/10/27/myspace_accounts_compromised_by_phishers.html). The idea of the attack was to create a profile page named "login_home_index_html", so the URL looked very convincing. Specially-crafted HTML and CSS was used to hide the genuine MySpace content from the page and instead display its own login form.
 
 ### CSS Injection
 
@@ -892,7 +857,7 @@ Another problem for the worm's author was the [CSRF security tokens](#cross-site
 
 In the end, he got a 4 KB worm, which he injected into his profile page.
 
-The [moz-binding](http://www.securiteam.com/securitynews/5LP051FHPE.html) CSS property proved to be another way to introduce JavaScript in CSS in Gecko-based browsers (Firefox, for example).
+The [moz-binding](https://www.securiteam.com/securitynews/5LP051FHPE.html) CSS property proved to be another way to introduce JavaScript in CSS in Gecko-based browsers (Firefox, for example).
 
 #### Countermeasures
 
@@ -1082,7 +1047,7 @@ config.action_dispatch.default_headers.clear
 
 Here is a list of common headers:
 
-* **X-Frame-Options:** _'SAMEORIGIN' in Rails by default_ - allow framing on same domain. Set it to 'DENY' to deny framing at all or 'ALLOWALL' if you want to allow framing for all website.
+* **X-Frame-Options:** _'SAMEORIGIN' in Rails by default_ - allow framing on same domain. Set it to 'DENY' to deny framing at all or remove this header completely if you want to allow framing on all websites.
 * **X-XSS-Protection:** _'1; mode=block' in Rails by default_ - use XSS Auditor and block page if XSS attack is detected. Set it to '0;' if you want to switch XSS Auditor off(useful if response contents scripts from request parameters)
 * **X-Content-Type-Options:** _'nosniff' in Rails by default_ - stops the browser from guessing the MIME type of a file.
 * **X-Content-Security-Policy:** [A powerful mechanism for controlling which sites certain content types can be loaded from](http://w3c.github.io/webappsec/specs/content-security-policy/csp-specification.dev.html)
@@ -1188,7 +1153,7 @@ The same works with `javascript_include_tag`:
 <%= javascript_include_tag "script", nonce: true %>
 ```
 
-Use [`csp_meta_tag`](http://api.rubyonrails.org/classes/ActionView/Helpers/CspHelper.html#method-i-csp_meta_tag)
+Use [`csp_meta_tag`](https://api.rubyonrails.org/classes/ActionView/Helpers/CspHelper.html#method-i-csp_meta_tag)
 helper to create a meta tag "csp-nonce" with the per-session nonce value
 for allowing inline `<script>` tags.
 
@@ -1204,27 +1169,24 @@ loaded inline `<script>` elements.
 Environmental Security
 ----------------------
 
-It is beyond the scope of this guide to inform you on how to secure your application code and environments. However, please secure your database configuration, e.g. `config/database.yml`, and your server-side secret, e.g. stored in `config/secrets.yml`. You may want to further restrict access, using environment-specific versions of these files and any others that may contain sensitive information.
+It is beyond the scope of this guide to inform you on how to secure your application code and environments. However, please secure your database configuration, e.g. `config/database.yml`, master key for `credentials.yml`, and other unencrypted secrets. You may want to further restrict access, using environment-specific versions of these files and any others that may contain sensitive information.
 
 ### Custom credentials
 
-Rails generates a `config/credentials.yml.enc` to store third-party credentials
-within the repo. This is only viable because Rails encrypts the file with a master
-key that's generated into a version control ignored `config/master.key` — Rails
-will also look for that key in `ENV["RAILS_MASTER_KEY"]`. Rails also requires the
-key to boot in production, so the credentials can be read.
+Rails stores secrets in `config/credentials.yml.enc`, which is encrypted and hence cannot be edited directly. Rails uses `config/master.key` or alternatively looks for environment variable `ENV["RAILS_MASTER_KEY"]` to encrypt the credentials file. The credentials file can be stored in version control, as long as master key is kept safe.
 
-To edit stored credentials use `rails credentials:edit`.
+To add new secret to credentials, first run `rails secret` to get a new secret. Then run `rails credentials:edit` to edit credentials, and add the secret. Running `credentials:edit` creates new credentials file and master key, if they did not already exist.
 
 By default, this file contains the application's
-`secret_key_base`, but it could also be used to store other credentials such as
-access keys for external APIs.
+`secret_key_base`, but it could also be used to store other credentials such as access keys for external APIs.
 
-The credentials added to this file are accessible via `Rails.application.credentials`.
+The secrets kept in credentials file are accessible via `Rails.application.credentials`.
 For example, with the following decrypted `config/credentials.yml.enc`:
 
-    secret_key_base: 3b7cd727ee24e8444053437c36cc66c3
-    some_api_key: SOMEKEY
+```yaml
+secret_key_base: 3b7cd727ee24e8444053437c36cc66c3
+some_api_key: SOMEKEY
+```
 
 `Rails.application.credentials.some_api_key` returns `SOMEKEY` in any environment.
 
@@ -1235,6 +1197,16 @@ version:
 Rails.application.credentials.some_api_key! # => raises KeyError: :some_api_key is blank
 ```
 
+
+TIP: Learn more about credentials with `rails credentials:help`.
+
+WARNING: Keep your master key safe. Do not commit your master key.
+
+Dependency Management and CVEs
+------------------------------
+
+We don’t bump dependencies just to encourage use of new versions, including for security issues. This is because application owners need to manually update their gems regardless of our efforts. Use `bundle update --conservative gem_name` to safely update vulnerable dependencies.
+
 Additional Resources
 --------------------
 
@@ -1243,4 +1215,4 @@ The security landscape shifts and it is important to keep up to date, because mi
 * Subscribe to the Rails security [mailing list](https://groups.google.com/forum/#!forum/rubyonrails-security).
 * [Brakeman - Rails Security Scanner](https://brakemanscanner.org/) - To perform static security analysis for Rails applications.
 * [Keep up to date on the other application layers](http://secunia.com/) (they have a weekly newsletter, too).
-* A [good security blog](https://www.owasp.org) including the [Cross-Site scripting Cheat Sheet](https://www.owasp.org/index.php/DOM_based_XSS_Prevention_Cheat_Sheet).
+* A [good security blog](https://www.owasp.org) including the [Cross-Site scripting Cheat Sheet](https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.md).

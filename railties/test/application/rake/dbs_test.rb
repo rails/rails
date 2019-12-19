@@ -1,11 +1,12 @@
 # frozen_string_literal: true
 
 require "isolation/abstract_unit"
+require "env_helpers"
 
 module ApplicationTests
   module RakeTests
     class RakeDbsTest < ActiveSupport::TestCase
-      include ActiveSupport::Testing::Isolation
+      include ActiveSupport::Testing::Isolation, EnvHelpers
 
       def setup
         build_app
@@ -32,19 +33,28 @@ module ApplicationTests
           assert_match(/Created database/, output)
           assert File.exist?(expected_database)
           yield if block_given?
-          assert_equal expected_database, ActiveRecord::Base.connection_config[:database] if environment_loaded
+          assert_equal expected_database, ActiveRecord::Base.connection_db_config.database if environment_loaded
           output = rails("db:drop")
           assert_match(/Dropped database/, output)
           assert_not File.exist?(expected_database)
         end
       end
 
-      test "db:create and db:drop without database url" do
-        require "#{app_path}/config/environment"
-        db_create_and_drop ActiveRecord::Base.configurations[Rails.env]["database"]
+      def db_create_with_warning(expected_database)
+        Dir.chdir(app_path) do
+          output = rails("db:create")
+          assert_match(/Rails couldn't infer whether you are using multiple databases/, output)
+          assert_match(/Created database/, output)
+          assert File.exist?(expected_database)
+        end
       end
 
-      test "db:create and db:drop with database url" do
+      test "db:create and db:drop without database URL" do
+        require "#{app_path}/config/environment"
+        db_create_and_drop ActiveRecord::Base.configurations[Rails.env][:database]
+      end
+
+      test "db:create and db:drop with database URL" do
         require "#{app_path}/config/environment"
         set_database_url
         db_create_and_drop database_url_db_name
@@ -52,27 +62,125 @@ module ApplicationTests
 
       test "db:create and db:drop respect environment setting" do
         app_file "config/database.yml", <<-YAML
+          <% 1 %>
           development:
-            database: db/development.sqlite3
+            database: <%= Rails.application.config.database %>
             adapter: sqlite3
         YAML
 
         app_file "config/environments/development.rb", <<-RUBY
           Rails.application.configure do
-            config.read_encrypted_secrets = true
+            config.database = "db/development.sqlite3"
           end
         RUBY
 
-        app_file "lib/tasks/check_env.rake", <<-RUBY
-          Rake::Task["db:create"].enhance do
-            File.write("tmp/config_value", Rails.application.config.read_encrypted_secrets)
+        db_create_and_drop("db/development.sqlite3", environment_loaded: false)
+      end
+
+      test "db:create and db:drop don't raise errors when loading YAML with multiline ERB" do
+        app_file "config/database.yml", <<-YAML
+          development:
+            database: <%=
+              Rails.application.config.database
+            %>
+            adapter: sqlite3
+        YAML
+
+        app_file "config/environments/development.rb", <<-RUBY
+          Rails.application.configure do
+            config.database = "db/development.sqlite3"
           end
         RUBY
 
-        db_create_and_drop("db/development.sqlite3", environment_loaded: false) do
-          assert File.exist?("tmp/config_value")
-          assert_equal "true", File.read("tmp/config_value")
-        end
+        db_create_and_drop("db/development.sqlite3", environment_loaded: false)
+      end
+
+      test "db:create and db:drop show warning but doesn't raise errors when loading YAML with alias ERB" do
+        app_file "config/database.yml", <<-YAML
+          sqlite: &sqlite
+            adapter: sqlite3
+            database: db/development.sqlite3
+
+          development:
+            <<: *<%= ENV["DB"] || "sqlite" %>
+        YAML
+
+        app_file "config/environments/development.rb", <<-RUBY
+          Rails.application.configure do
+            config.database = "db/development.sqlite3"
+          end
+        RUBY
+
+        db_create_with_warning("db/development.sqlite3")
+      end
+
+      test "db:create and db:drop don't raise errors when loading YAML containing conditional statements in ERB" do
+        app_file "config/database.yml", <<-YAML
+          development:
+          <% if Rails.application.config.database %>
+            database: <%= Rails.application.config.database %>
+          <% else %>
+            database: db/default.sqlite3
+          <% end %>
+            adapter: sqlite3
+        YAML
+
+        app_file "config/environments/development.rb", <<-RUBY
+          Rails.application.configure do
+            config.database = "db/development.sqlite3"
+          end
+        RUBY
+
+        db_create_and_drop("db/development.sqlite3", environment_loaded: false)
+      end
+
+      test "db:create and db:drop don't raise errors when loading YAML containing multiple ERB statements on the same line" do
+        app_file "config/database.yml", <<-YAML
+          development:
+            database: <% if Rails.application.config.database %><%= Rails.application.config.database %><% else %>db/default.sqlite3<% end %>
+            adapter: sqlite3
+        YAML
+
+        app_file "config/environments/development.rb", <<-RUBY
+          Rails.application.configure do
+            config.database = "db/development.sqlite3"
+          end
+        RUBY
+
+        db_create_and_drop("db/development.sqlite3", environment_loaded: false)
+      end
+
+      test "db:create and db:drop dont raise errors when loading YAML with FIXME ERB" do
+        app_file "config/database.yml", <<-YAML
+          development:
+            <%= Rails.application.config.database ? 'database: db/development.sqlite3' : 'database: db/development.sqlite3' %>
+            adapter: sqlite3
+        YAML
+
+        app_file "config/environments/development.rb", <<-RUBY
+          Rails.application.configure do
+            config.database = "db/development.sqlite3"
+          end
+        RUBY
+
+        db_create_and_drop("db/development.sqlite3", environment_loaded: false)
+      end
+
+      test "db:create and db:drop don't raise errors when loading YAML which contains a key's value as an ERB statement" do
+        app_file "config/database.yml", <<-YAML
+          development:
+            database: <%= Rails.application.config.database ? 'db/development.sqlite3' : 'db/development.sqlite3' %>
+            custom_option: <%= ENV['CUSTOM_OPTION'] %>
+            adapter: sqlite3
+        YAML
+
+        app_file "config/environments/development.rb", <<-RUBY
+          Rails.application.configure do
+            config.database = "db/development.sqlite3"
+          end
+        RUBY
+
+        db_create_and_drop("db/development.sqlite3", environment_loaded: false)
       end
 
       def with_database_existing
@@ -93,6 +201,8 @@ module ApplicationTests
 
       def with_bad_permissions
         Dir.chdir(app_path) do
+          skip "Can't avoid permissions as root" if Process.uid.zero?
+
           set_database_url
           FileUtils.chmod("-w", "db")
           yield
@@ -137,6 +247,59 @@ module ApplicationTests
         end
       end
 
+      test "db:truncate_all truncates all non-internal tables" do
+        Dir.chdir(app_path) do
+          rails "generate", "model", "book", "title:string"
+          rails "db:migrate"
+          require "#{app_path}/config/environment"
+          Book.create!(title: "Remote")
+          assert_equal 1, Book.count
+          schema_migrations = ActiveRecord::Base.connection.execute("SELECT * from \"#{ActiveRecord::Base.schema_migrations_table_name}\"")
+          internal_metadata = ActiveRecord::Base.connection.execute("SELECT * from \"#{ActiveRecord::Base.internal_metadata_table_name}\"")
+
+          rails "db:truncate_all"
+
+          assert_equal(
+            schema_migrations,
+            ActiveRecord::Base.connection.execute("SELECT * from \"#{ActiveRecord::Base.schema_migrations_table_name}\"")
+          )
+          assert_equal(
+            internal_metadata,
+            ActiveRecord::Base.connection.execute("SELECT * from \"#{ActiveRecord::Base.internal_metadata_table_name}\"")
+          )
+          assert_equal 0, Book.count
+        end
+      end
+
+      test "db:truncate_all does not truncate any tables when environment is protected" do
+        with_rails_env "production" do
+          Dir.chdir(app_path) do
+            rails "generate", "model", "book", "title:string"
+            rails "db:migrate"
+            require "#{app_path}/config/environment"
+            Book.create!(title: "Remote")
+            assert_equal 1, Book.count
+            schema_migrations = ActiveRecord::Base.connection.execute("SELECT * from \"#{ActiveRecord::Base.schema_migrations_table_name}\"")
+            internal_metadata = ActiveRecord::Base.connection.execute("SELECT * from \"#{ActiveRecord::Base.internal_metadata_table_name}\"")
+            books = ActiveRecord::Base.connection.execute("SELECT * from \"books\"")
+
+            output = rails("db:truncate_all", allow_failure: true)
+            assert_match(/ActiveRecord::ProtectedEnvironmentError/, output)
+
+            assert_equal(
+              schema_migrations,
+              ActiveRecord::Base.connection.execute("SELECT * from \"#{ActiveRecord::Base.schema_migrations_table_name}\"")
+            )
+            assert_equal(
+              internal_metadata,
+              ActiveRecord::Base.connection.execute("SELECT * from \"#{ActiveRecord::Base.internal_metadata_table_name}\"")
+            )
+            assert_equal 1, Book.count
+            assert_equal(books, ActiveRecord::Base.connection.execute("SELECT * from \"books\""))
+          end
+        end
+      end
+
       def db_migrate_and_status(expected_database)
         rails "generate", "model", "book", "title:string"
         rails "db:migrate"
@@ -147,7 +310,7 @@ module ApplicationTests
 
       test "db:migrate and db:migrate:status without database_url" do
         require "#{app_path}/config/environment"
-        db_migrate_and_status ActiveRecord::Base.configurations[Rails.env]["database"]
+        db_migrate_and_status ActiveRecord::Base.configurations[Rails.env][:database]
       end
 
       test "db:migrate and db:migrate:status with database_url" do
@@ -177,16 +340,17 @@ module ApplicationTests
       def db_fixtures_load(expected_database)
         Dir.chdir(app_path) do
           rails "generate", "model", "book", "title:string"
+          reload
           rails "db:migrate", "db:fixtures:load"
-          assert_match expected_database, ActiveRecord::Base.connection_config[:database]
-          require "#{app_path}/app/models/book"
+
+          assert_match expected_database, ActiveRecord::Base.connection_db_config.database
           assert_equal 2, Book.count
         end
       end
 
       test "db:fixtures:load without database_url" do
         require "#{app_path}/config/environment"
-        db_fixtures_load ActiveRecord::Base.configurations[Rails.env]["database"]
+        db_fixtures_load ActiveRecord::Base.configurations[Rails.env][:database]
       end
 
       test "db:fixtures:load with database_url" do
@@ -199,8 +363,9 @@ module ApplicationTests
         require "#{app_path}/config/environment"
 
         rails "generate", "model", "admin::book", "title:string"
+        reload
         rails "db:migrate", "db:fixtures:load"
-        require "#{app_path}/app/models/admin/book"
+
         assert_equal 2, Admin::Book.count
       end
 
@@ -211,7 +376,7 @@ module ApplicationTests
           structure_dump = File.read("db/structure.sql")
           assert_match(/CREATE TABLE (?:IF NOT EXISTS )?\"books\"/, structure_dump)
           rails "environment", "db:drop", "db:structure:load"
-          assert_match expected_database, ActiveRecord::Base.connection_config[:database]
+          assert_match expected_database, ActiveRecord::Base.connection_db_config.database
           require "#{app_path}/app/models/book"
           # if structure is not loaded correctly, exception would be raised
           assert_equal 0, Book.count
@@ -220,7 +385,7 @@ module ApplicationTests
 
       test "db:structure:dump and db:structure:load without database_url" do
         require "#{app_path}/config/environment"
-        db_structure_dump_and_load ActiveRecord::Base.configurations[Rails.env]["database"]
+        db_structure_dump_and_load ActiveRecord::Base.configurations[Rails.env][:database]
       end
 
       test "db:structure:dump and db:structure:load with database_url" do
@@ -231,10 +396,10 @@ module ApplicationTests
 
       test "db:structure:dump and db:structure:load set ar_internal_metadata" do
         require "#{app_path}/config/environment"
-        db_structure_dump_and_load ActiveRecord::Base.configurations[Rails.env]["database"]
+        db_structure_dump_and_load ActiveRecord::Base.configurations[Rails.env][:database]
 
-        assert_equal "test", rails("runner", "-e", "test", "puts ActiveRecord::InternalMetadata[:environment]").strip
-        assert_equal "development", rails("runner", "puts ActiveRecord::InternalMetadata[:environment]").strip
+        assert_match "test", rails("runner", "-e", "test", "puts ActiveRecord::InternalMetadata[:environment]").strip
+        assert_match "development", rails("runner", "puts ActiveRecord::InternalMetadata[:environment]").strip
       end
 
       test "db:structure:dump does not dump schema information when no migrations are used" do
@@ -258,16 +423,16 @@ module ApplicationTests
 
         list_tables = lambda { rails("runner", "p ActiveRecord::Base.connection.tables").strip }
 
-        assert_equal '["posts"]', list_tables[]
+        assert_match '["posts"]', list_tables[].to_s
         rails "db:schema:load"
-        assert_equal '["posts", "comments", "schema_migrations", "ar_internal_metadata"]', list_tables[]
+        assert_match '["posts", "comments", "schema_migrations", "ar_internal_metadata"]', list_tables[].to_s
 
         app_file "db/structure.sql", <<-SQL
           CREATE TABLE "users" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "name" varchar(255));
         SQL
 
         rails "db:structure:load"
-        assert_equal '["posts", "comments", "schema_migrations", "ar_internal_metadata", "users"]', list_tables[]
+        assert_match '["posts", "comments", "schema_migrations", "ar_internal_metadata", "users"]', list_tables[].to_s
       end
 
       test "db:schema:load with inflections" do
@@ -293,7 +458,7 @@ module ApplicationTests
         assert_match(/"geese"/, tables)
 
         columns = rails("runner", "p ActiveRecord::Base.connection.columns('geese').map(&:name)").strip
-        assert_equal columns, '["gooseid", "name"]'
+        assert_includes columns, '["gooseid", "name"]'
       end
 
       test "db:schema:load fails if schema.rb doesn't exist yet" do
@@ -310,8 +475,8 @@ module ApplicationTests
           require "#{app_path}/app/models/book"
           # if structure is not loaded correctly, exception would be raised
           assert_equal 0, Book.count
-          assert_match ActiveRecord::Base.configurations["test"]["database"],
-            ActiveRecord::Base.connection_config[:database]
+          assert_match ActiveRecord::Base.configurations["test"][:database],
+            ActiveRecord::Base.connection_db_config.database
         end
       end
 
@@ -321,30 +486,28 @@ module ApplicationTests
       end
 
       test "db:setup loads schema and seeds database" do
-        begin
-          @old_rails_env = ENV["RAILS_ENV"]
-          @old_rack_env = ENV["RACK_ENV"]
-          ENV.delete "RAILS_ENV"
-          ENV.delete "RACK_ENV"
+        @old_rails_env = ENV["RAILS_ENV"]
+        @old_rack_env = ENV["RACK_ENV"]
+        ENV.delete "RAILS_ENV"
+        ENV.delete "RACK_ENV"
 
-          app_file "db/schema.rb", <<-RUBY
+        app_file "db/schema.rb", <<-RUBY
             ActiveRecord::Schema.define(version: "1") do
               create_table :users do |t|
                 t.string :name
               end
             end
-          RUBY
+        RUBY
 
-          app_file "db/seeds.rb", <<-RUBY
-            puts ActiveRecord::Base.connection_config[:database]
-          RUBY
+        app_file "db/seeds.rb", <<-RUBY
+          puts ActiveRecord::Base.connection_db_config.database
+        RUBY
 
-          database_path = rails("db:setup")
-          assert_equal "development.sqlite3", File.basename(database_path.strip)
-        ensure
-          ENV["RAILS_ENV"] = @old_rails_env
-          ENV["RACK_ENV"] = @old_rack_env
-        end
+        database_path = rails("db:setup")
+        assert_equal "development.sqlite3", File.basename(database_path.strip)
+      ensure
+        ENV["RAILS_ENV"] = @old_rails_env
+        ENV["RACK_ENV"] = @old_rack_env
       end
 
       test "db:setup sets ar_internal_metadata" do
@@ -354,8 +517,8 @@ module ApplicationTests
         test_environment = lambda { rails("runner", "-e", "test", "puts ActiveRecord::InternalMetadata[:environment]").strip }
         development_environment = lambda { rails("runner", "puts ActiveRecord::InternalMetadata[:environment]").strip }
 
-        assert_equal "test", test_environment.call
-        assert_equal "development", development_environment.call
+        assert_match "test", test_environment.call
+        assert_match "development", development_environment.call
 
         app_file "db/structure.sql", ""
         app_file "config/initializers/enable_sql_schema_format.rb", <<-RUBY
@@ -364,8 +527,8 @@ module ApplicationTests
 
         rails "db:setup"
 
-        assert_equal "test", test_environment.call
-        assert_equal "development", development_environment.call
+        assert_match "test", test_environment.call
+        assert_match "development", development_environment.call
       end
 
       test "db:test:prepare sets test ar_internal_metadata" do
@@ -374,7 +537,7 @@ module ApplicationTests
 
         test_environment = lambda { rails("runner", "-e", "test", "puts ActiveRecord::InternalMetadata[:environment]").strip }
 
-        assert_equal "test", test_environment.call
+        assert_match "test", test_environment.call
 
         app_file "db/structure.sql", ""
         app_file "config/initializers/enable_sql_schema_format.rb", <<-RUBY
@@ -383,7 +546,105 @@ module ApplicationTests
 
         rails "db:test:prepare"
 
-        assert_equal "test", test_environment.call
+        assert_match "test", test_environment.call
+      end
+
+      test "db:seed:replant truncates all non-internal tables and loads the seeds" do
+        Dir.chdir(app_path) do
+          rails "generate", "model", "book", "title:string"
+          rails "db:migrate"
+          require "#{app_path}/config/environment"
+          Book.create!(title: "Remote")
+          assert_equal 1, Book.count
+          schema_migrations = ActiveRecord::Base.connection.execute("SELECT * from \"#{ActiveRecord::Base.schema_migrations_table_name}\"")
+          internal_metadata = ActiveRecord::Base.connection.execute("SELECT * from \"#{ActiveRecord::Base.internal_metadata_table_name}\"")
+
+          app_file "db/seeds.rb", <<-RUBY
+            Book.create!(title: "Rework")
+            Book.create!(title: "Ruby Under a Microscope")
+          RUBY
+
+          rails "db:seed:replant"
+
+          assert_equal(
+            schema_migrations,
+            ActiveRecord::Base.connection.execute("SELECT * from \"#{ActiveRecord::Base.schema_migrations_table_name}\"")
+          )
+          assert_equal(
+            internal_metadata,
+            ActiveRecord::Base.connection.execute("SELECT * from \"#{ActiveRecord::Base.internal_metadata_table_name}\"")
+          )
+          assert_equal 2, Book.count
+          assert_not_predicate Book.where(title: "Remote"), :exists?
+          assert_predicate Book.where(title: "Rework"), :exists?
+          assert_predicate Book.where(title: "Ruby Under a Microscope"), :exists?
+        end
+      end
+
+      test "db:seed:replant does not truncate any tables and does not load the seeds when environment is protected" do
+        with_rails_env "production" do
+          Dir.chdir(app_path) do
+            rails "generate", "model", "book", "title:string"
+            rails "db:migrate"
+            require "#{app_path}/config/environment"
+            Book.create!(title: "Remote")
+            assert_equal 1, Book.count
+            schema_migrations = ActiveRecord::Base.connection.execute("SELECT * from \"#{ActiveRecord::Base.schema_migrations_table_name}\"")
+            internal_metadata = ActiveRecord::Base.connection.execute("SELECT * from \"#{ActiveRecord::Base.internal_metadata_table_name}\"")
+            books = ActiveRecord::Base.connection.execute("SELECT * from \"books\"")
+
+            app_file "db/seeds.rb", <<-RUBY
+              Book.create!(title: "Rework")
+            RUBY
+
+            output = rails("db:seed:replant", allow_failure: true)
+            assert_match(/ActiveRecord::ProtectedEnvironmentError/, output)
+
+            assert_equal(
+              schema_migrations,
+              ActiveRecord::Base.connection.execute("SELECT * from \"#{ActiveRecord::Base.schema_migrations_table_name}\"")
+            )
+            assert_equal(
+              internal_metadata,
+              ActiveRecord::Base.connection.execute("SELECT * from \"#{ActiveRecord::Base.internal_metadata_table_name}\"")
+            )
+            assert_equal 1, Book.count
+            assert_equal(books, ActiveRecord::Base.connection.execute("SELECT * from \"books\""))
+            assert_not_predicate Book.where(title: "Rework"), :exists?
+          end
+        end
+      end
+
+      test "db:prepare setup the database" do
+        Dir.chdir(app_path) do
+          rails "generate", "model", "book", "title:string"
+          output = rails("db:prepare")
+          assert_match(/CreateBooks: migrated/, output)
+
+          output = rails("db:drop")
+          assert_match(/Dropped database/, output)
+
+          rails "generate", "model", "recipe", "title:string"
+          output = rails("db:prepare")
+          assert_match(/CreateBooks: migrated/, output)
+          assert_match(/CreateRecipes: migrated/, output)
+        end
+      end
+
+      test "db:prepare does not touch schema when dumping is disabled" do
+        Dir.chdir(app_path) do
+          rails "generate", "model", "book", "title:string"
+          rails "db:create", "db:migrate"
+
+          app_file "db/schema.rb", "Not touched"
+          app_file "config/initializers/disable_dumping_schema.rb", <<-RUBY
+            Rails.application.config.active_record.dump_schema_after_migration = false
+          RUBY
+
+          rails "db:prepare"
+
+          assert_equal("Not touched", File.read("db/schema.rb").strip)
+        end
       end
     end
   end

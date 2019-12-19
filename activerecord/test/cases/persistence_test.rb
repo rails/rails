@@ -53,6 +53,20 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_not_equal "2 updated", Topic.find(2).content
   end
 
+  def test_class_level_update_without_ids
+    topics = Topic.all
+    assert_equal 5, topics.length
+    topics.each do |topic|
+      assert_not_equal "updated", topic.content
+    end
+
+    updated = Topic.update(content: "updated")
+    assert_equal 5, updated.length
+    updated.each do |topic|
+      assert_equal "updated", topic.content
+    end
+  end
+
   def test_class_level_update_is_affected_by_scoping
     topic_data = { 1 => { "content" => "1 updated" }, 2 => { "content" => "2 updated" } }
 
@@ -169,7 +183,7 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_not_predicate company, :valid?
     original_errors = company.errors
     client = company.becomes(Client)
-    assert_equal original_errors.keys, client.errors.keys
+    assert_equal assert_deprecated { original_errors.keys }, assert_deprecated { client.errors.keys }
   end
 
   def test_becomes_errors_base
@@ -183,7 +197,7 @@ class PersistenceTest < ActiveRecord::TestCase
     admin.errors.add :token, :invalid
     child = admin.becomes(child_class)
 
-    assert_equal [:token], child.errors.keys
+    assert_equal [:token], assert_deprecated { child.errors.keys }
     assert_nothing_raised do
       child.errors.add :foo, :invalid
     end

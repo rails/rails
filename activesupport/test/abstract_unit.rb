@@ -2,6 +2,7 @@
 
 ORIG_ARGV = ARGV.dup
 
+require "bundler/setup"
 require "active_support/core_ext/kernel/reporting"
 
 silence_warnings do
@@ -39,8 +40,6 @@ class ActiveSupport::TestCase
     def jruby_skip(message = "")
       skip message if defined?(JRUBY_VERSION)
     end
-
-    def frozen_error_class
-      Object.const_defined?(:FrozenError) ? FrozenError : RuntimeError
-    end
 end
+
+require_relative "../../tools/test_common"

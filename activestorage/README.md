@@ -4,7 +4,9 @@ Active Storage makes it simple to upload and reference files in cloud services l
 
 Files can be uploaded from the server to the cloud or directly from the client to the cloud.
 
-Image files can furthermore be transformed using on-demand variants for quality, aspect ratio, size, or any other [MiniMagick](https://github.com/minimagick/minimagick) or [Vips](http://www.rubydoc.info/gems/ruby-vips/Vips/Image) supported transformation.
+Image files can furthermore be transformed using on-demand variants for quality, aspect ratio, size, or any other [MiniMagick](https://github.com/minimagick/minimagick) or [Vips](https://www.rubydoc.info/gems/ruby-vips/Vips/Image) supported transformation.
+
+You can read more about Active Storage in the [Active Storage Overview](https://edgeguides.rubyonrails.org/active_storage_overview.html) guide.
 
 ## Compared to other storage solutions
 
@@ -53,7 +55,7 @@ url_for(user.avatar)
 
 class AvatarsController < ApplicationController
   def update
-    # params[:avatar] contains a ActionDispatch::Http::UploadedFile object
+    # params[:avatar] contains an ActionDispatch::Http::UploadedFile object
     Current.user.avatar.attach(params.require(:avatar))
     redirect_to Current.user
   end
@@ -101,7 +103,7 @@ Variation of image attachment:
 
 ```erb
 <%# Hitting the variant URL will lazy transform the original blob and then redirect to its new service location %>
-<%= image_tag user.avatar.variant(resize_to_fit: [100, 100]) %>
+<%= image_tag user.avatar.variant(resize_to_limit: [100, 100]) %>
 ```
 
 ## Direct uploads
@@ -118,8 +120,7 @@ Active Storage, with its included JavaScript library, supports uploading directl
     ```
     Using the npm package:
     ```js
-    import * as ActiveStorage from "activestorage"
-    ActiveStorage.start()
+    require("@rails/activestorage").start()
     ```
 2. Annotate file inputs with the direct upload URL.
 
@@ -150,7 +151,7 @@ Active Storage is released under the [MIT License](https://opensource.org/licens
 
 API documentation is at:
 
-* http://api.rubyonrails.org
+* https://api.rubyonrails.org
 
 Bug reports for the Ruby on Rails project can be filed here:
 

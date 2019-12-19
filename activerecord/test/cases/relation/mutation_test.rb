@@ -26,7 +26,7 @@ module ActiveRecord
       assert relation.order!(:name).equal?(relation)
       node = relation.order_values.first
       assert_predicate node, :ascending?
-      assert_equal :name, node.expr.name
+      assert_equal "name", node.expr.name
       assert_equal "posts", node.expr.relation.name
     end
 
@@ -89,7 +89,7 @@ module ActiveRecord
       node = relation.order_values.first
 
       assert_predicate node, :ascending?
-      assert_equal :name, node.expr.name
+      assert_equal "name", node.expr.name
       assert_equal "posts", node.expr.relation.name
     end
 

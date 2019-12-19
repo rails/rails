@@ -1,7 +1,10 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
-require "active_support/core_ext/object"
+require_relative "../../abstract_unit"
+require "active_support/core_ext/date/acts_like"
+require "active_support/core_ext/time/acts_like"
+require "active_support/core_ext/date_time/acts_like"
+require "active_support/core_ext/object/acts_like"
 
 class ObjectTests < ActiveSupport::TestCase
   class DuckTime

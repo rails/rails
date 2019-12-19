@@ -1,146 +1,69 @@
-*   Add allocations to template rendering instrumentation.
+*   Added `class_names` helper to create a CSS class value with conditional classes.
 
-    Adds the allocations for template and partial rendering to the server output on render.
+    *Joel Hawksley*, *Aaron Patterson*
 
+*   Add support for conditional values to TagBuilder.
+
+    *Joel Hawksley*
+
+*   `ActionView::Helpers::FormOptionsHelper#select` should mark option for `nil` as selected.
+
+    ```ruby
+    @post = Post.new
+    @post.category = nil
+
+    # Before
+    select("post", "category", none: nil, programming: 1, economics: 2)
+    # =>
+    # <select name="post[category]" id="post_category">
+    #   <option value="">none</option>
+    #  <option value="1">programming</option>
+    #  <option value="2">economics</option>
+    # </select>
+
+    # After
+    select("post", "category", none: nil, programming: 1, economics: 2)
+    # =>
+    # <select name="post[category]" id="post_category">
+    #   <option selected="selected" value="">none</option>
+    #  <option value="1">programming</option>
+    #  <option value="2">economics</option>
+    # </select>
     ```
-      Rendered posts/_form.html.erb (Duration: 7.1ms | Allocations: 6004)
-      Rendered posts/new.html.erb within layouts/application (Duration: 8.3ms | Allocations: 6654)
-    Completed 200 OK in 858ms (Views: 848.4ms | ActiveRecord: 0.4ms | Allocations: 1539564)
-    ```
 
-    *Eileen M. Uchitelle*, *Aaron Patterson*
+    *bogdanvlviv*
 
-*   Respect the `only_path` option passed to `url_for` when the options are passed in as an array
-    
-    Fixes #33237.
+*   Log lines for partial renders and started template renders are now
+    emitted at the `DEBUG` level instead of `INFO`.
 
-    *Joel Ambass*
+    Completed template renders are still logged at the `INFO` level.
 
-*   Deprecate calling private model methods from view helpers.
+    *DHH*
 
-    For example, in methods like `options_from_collection_for_select`
-    and `collection_select` it is possible to call private methods from
-    the objects used.
+*   ActionView::Helpers::SanitizeHelper: support rails-html-sanitizer 1.1.0.
 
-    Fixes #33546.
+    *Juanito Fatas*
 
-    *Ana María Martínez Gómez*
+*   Added `phone_to` helper method to create a link from mobile numbers.
 
-*   Fix issue with `button_to`'s `to_form_params`
+    *Pietro Moro*
 
-    `button_to` was throwing exception when invoked with `params` hash that
-    contains symbol and string keys. The reason for the exception was that
-    `to_form_params` was comparing the given symbol and string keys.
+*   annotated_source_code returns an empty array so TemplateErrors without a
+    template in the backtrace are surfaced properly by DebugExceptions.
 
-    The issue is fixed by turning all keys to strings inside
-    `to_form_params` before comparing them.
+    *Guilherme Mansur*, *Kasper Timm Hansen*
 
-    *Georgi Georgiev*
+*   Add autoload for SyntaxErrorInTemplate so syntax errors are correctly raised by DebugExceptions.
 
-*   Mark arrays of translations as trusted safe by using the `_html` suffix.
+    *Guilherme Mansur*, *Gannon McGibbon*
 
-    Example:
+*   `RenderingHelper` supports rendering objects that `respond_to?` `:render_in`.
 
-        en:
-          foo_html:
-            - "One"
-            - "<strong>Two</strong>"
-            - "Three &#128075; &#128578;"
+    *Joel Hawksley*, *Natasha Umer*, *Aaron Patterson*, *Shawn Allen*, *Emily Plummer*, *Diana Mounter*, *John Hawthorn*, *Nathan Herald*, *Zaid Zawaideh*, *Zach Ahn*
 
-    *Juan Broullon*
+*   Fix `select_tag` so that it doesn't change `options` when `include_blank` is present.
 
-*   Add `year_format` option to date_select tag. This option makes it possible to customize year
-    names. Lambda should be passed to use this option.
-
-    Example:
-
-        date_select('user_birthday', '', start_year: 1998, end_year: 2000, year_format: ->year { "Heisei #{year - 1988}" })
-
-    The HTML produced:
-
-        <select id="user_birthday__1i" name="user_birthday[(1i)]">
-        <option value="1998">Heisei 10</option>
-        <option value="1999">Heisei 11</option>
-        <option value="2000">Heisei 12</option>
-        </select>
-        /* The rest is omitted */
-
-    *Koki Ryu*
-
-*   Fix JavaScript views rendering does not work with Firefox when using
-    Content Security Policy.
-
-    Fixes #32577.
-
-    *Yuji Yaginuma*
-
-*   Add the `nonce: true` option for `javascript_include_tag` helper to
-    support automatic nonce generation for Content Security Policy.
-    Works the same way as `javascript_tag nonce: true` does.
-
-    *Yaroslav Markin*
-
-*   Remove `ActionView::Helpers::RecordTagHelper`.
-
-    *Yoshiyuki Hirano*
-
-*   Disable `ActionView::Template` finalizers in test environment.
-
-    Template finalization can be expensive in large view test suites.
-    Add a configuration option,
-    `action_view.finalize_compiled_template_methods`, and turn it off in
-    the test environment.
-
-    *Simon Coffey*
-
-*   Extract the `confirm` call in its own, overridable method in `rails_ujs`.
-
-    Example:
-
-        Rails.confirm = function(message, element) {
-          return (my_bootstrap_modal_confirm(message));
-        }
-
-    *Mathieu Mahé*
-
-*   Enable select tag helper to mark `prompt` option as `selected` and/or `disabled` for `required`
-    field.
-
-    Example:
-
-        select :post,
-               :category,
-               ["lifestyle", "programming", "spiritual"],
-               { selected: "", disabled: "", prompt: "Choose one" },
-               { required: true }
-
-    Placeholder option would be selected and disabled.
-
-    The HTML produced:
-
-        <select required="required" name="post[category]" id="post_category">
-        <option disabled="disabled" selected="selected" value="">Choose one</option>
-        <option value="lifestyle">lifestyle</option>
-        <option value="programming">programming</option>
-        <option value="spiritual">spiritual</option></select>
-
-    *Sergey Prikhodko*
-
-*   Don't enforce UTF-8 by default.
-
-    With the disabling of TLS 1.0 by most major websites, continuing to run
-    IE8 or lower becomes increasingly difficult so default to not enforcing
-    UTF-8 encoding as it's not relevant to other browsers.
-
-    *Andrew White*
-
-*   Change translation key of `submit_tag` from `module_name_class_name` to `module_name/class_name`.
-
-    *Rui Onodera*
-
-*   Rails 6 requires Ruby 2.4.1 or newer.
-
-    *Jeremy Daer*
+    *Younes SERRAJ*
 
 
-Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/actionview/CHANGELOG.md) for previous changes.
+Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/actionview/CHANGELOG.md) for previous changes.

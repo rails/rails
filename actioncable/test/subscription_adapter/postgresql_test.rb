@@ -2,11 +2,13 @@
 
 require "test_helper"
 require_relative "common"
+require_relative "channel_prefix"
 
 require "active_record"
 
 class PostgresqlAdapterTest < ActionCable::TestCase
   include CommonSubscriptionAdapterTest
+  include ChannelPrefixTest
 
   def setup
     database_config = { "adapter" => "postgresql", "database" => "activerecord_unittest" }

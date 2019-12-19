@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
-require "active_support/core_ext/object"
+require_relative "../../abstract_unit"
+require "active_support/core_ext/object/deep_dup"
 
 class DeepDupTest < ActiveSupport::TestCase
   def test_array_deep_dup

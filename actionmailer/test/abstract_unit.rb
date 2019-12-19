@@ -33,6 +33,8 @@ I18n.enforce_available_locales = false
 FIXTURE_LOAD_PATH = File.expand_path("fixtures", __dir__)
 ActionMailer::Base.view_paths = FIXTURE_LOAD_PATH
 
+ActionMailer::Base.delivery_job = ActionMailer::MailDeliveryJob
+
 class ActiveSupport::TestCase
   include ActiveSupport::Testing::MethodCallAssertions
 
@@ -47,3 +49,5 @@ class ActiveSupport::TestCase
       skip message if defined?(JRUBY_VERSION)
     end
 end
+
+require_relative "../../tools/test_common"

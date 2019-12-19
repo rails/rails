@@ -47,6 +47,7 @@ module ActiveRecord
     end
 
     private
+      attr_accessor :table_name
 
       def initialize(connection, options = {})
         @connection = connection
@@ -110,6 +111,8 @@ HEADER
       def table(table, stream)
         columns = @connection.columns(table)
         begin
+          self.table_name = table
+
           tbl = StringIO.new
 
           # first dump primary key column
@@ -143,7 +146,11 @@ HEADER
             raise StandardError, "Unknown type '#{column.sql_type}' for column '#{column.name}'" unless @connection.valid_type?(column.type)
             next if column.name == pk
             type, colspec = column_spec(column)
-            tbl.print "    t.#{type} #{column.name.inspect}"
+            if type.is_a?(Symbol)
+              tbl.print "    t.#{type} #{column.name.inspect}"
+            else
+              tbl.print "    t.column #{column.name.inspect}, #{type.inspect}"
+            end
             tbl.print ", #{format_colspec(colspec)}" if colspec.present?
             tbl.puts
           end
@@ -159,6 +166,8 @@ HEADER
           stream.puts "# Could not dump table #{table.inspect} because of following #{e.class}"
           stream.puts "#   #{e.message}"
           stream.puts
+        ensure
+          self.table_name = nil
         end
       end
 

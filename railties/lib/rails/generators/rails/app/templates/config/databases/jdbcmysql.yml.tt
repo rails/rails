@@ -27,7 +27,7 @@ test:
   <<: *default
   database: <%= app_name %>_test
 
-# As with config/secrets.yml, you never want to store sensitive information,
+# As with config/credentials.yml, you never want to store sensitive information,
 # like your database password, in your source code. If your source code is
 # ever seen by anyone, they now have access to your database.
 #

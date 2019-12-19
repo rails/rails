@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/class/subclasses"
-require "active_support/core_ext/hash/keys"
 
 module ActiveJob
   # Provides helper methods for testing Active Job
@@ -107,6 +106,9 @@ module ActiveJob
     #     end
     #   end
     #
+    # +:only+ and +:except+ options accepts Class, Array of Class or Proc. When passed a Proc,
+    # a hash containing the job's class and it's argument are passed as argument.
+    #
     # Asserts the number of times a job is enqueued to a specific queue by passing +:queue+ option.
     #
     #   def test_logging_job
@@ -115,11 +117,11 @@ module ActiveJob
     #       HelloJob.perform_later('elfassy')
     #     end
     #   end
-    def assert_enqueued_jobs(number, only: nil, except: nil, queue: nil)
+    def assert_enqueued_jobs(number, only: nil, except: nil, queue: nil, &block)
       if block_given?
         original_count = enqueued_jobs_with(only: only, except: except, queue: queue)
 
-        yield
+        assert_nothing_raised(&block)
 
         new_count = enqueued_jobs_with(only: only, except: except, queue: queue)
 
@@ -162,6 +164,9 @@ module ActiveJob
     #       HelloJob.perform_later('jeremy')
     #     end
     #   end
+    #
+    # +:only+ and +:except+ options accepts Class, Array of Class or Proc. When passed a Proc,
+    # a hash containing the job's class and it's argument are passed as argument.
     #
     # Asserts that no jobs are enqueued to a specific queue by passing +:queue+ option
     #
@@ -243,6 +248,18 @@ module ActiveJob
     #       end
     #     end
     #
+    # A proc may also be specified. When passed a Proc, the job's instance will be passed as argument.
+    #
+    #     def test_hello_and_logging_jobs
+    #       assert_nothing_raised do
+    #         assert_performed_jobs(1, only: ->(job) { job.is_a?(HelloJob) }) do
+    #           HelloJob.perform_later('jeremy')
+    #           LoggingJob.perform_later('stewie')
+    #           RescueJob.perform_later('david')
+    #         end
+    #       end
+    #     end
+    #
     # If the +:queue+ option is specified,
     # then only the job(s) enqueued to a specific queue will be performed.
     #
@@ -305,6 +322,9 @@ module ActiveJob
     #     end
     #   end
     #
+    # +:only+ and +:except+ options accepts Class, Array of Class or Proc. When passed a Proc,
+    # an instance of the job will be passed as argument.
+    #
     # If the +:queue+ option is specified,
     # then only the job(s) enqueued to a specific queue will not be performed.
     #
@@ -333,7 +353,7 @@ module ActiveJob
     #
     #
     # The +args+ argument also accepts a proc which will get passed the actual
-    # job's arguments. Your proc needs to returns a boolean value determining if
+    # job's arguments. Your proc needs to return a boolean value determining if
     # the job's arguments matches your expectation. This is useful to check only
     # for a subset of arguments.
     #
@@ -359,14 +379,15 @@ module ActiveJob
     #       MyJob.set(wait_until: Date.tomorrow.noon).perform_later
     #     end
     #   end
-    def assert_enqueued_with(job: nil, args: nil, at: nil, queue: nil)
+    def assert_enqueued_with(job: nil, args: nil, at: nil, queue: nil, &block)
       expected = { job: job, args: args, at: at, queue: queue }.compact
       expected_args = prepare_args_for_assertion(expected)
+      potential_matches = []
 
       if block_given?
         original_enqueued_jobs_count = enqueued_jobs.count
 
-        yield
+        assert_nothing_raised(&block)
 
         jobs = enqueued_jobs.drop(original_enqueued_jobs_count)
       else
@@ -375,6 +396,7 @@ module ActiveJob
 
       matching_job = jobs.find do |enqueued_job|
         deserialized_job = deserialize_args_for_assertion(enqueued_job)
+        potential_matches << deserialized_job
 
         expected_args.all? do |key, value|
           if value.respond_to?(:call)
@@ -385,7 +407,9 @@ module ActiveJob
         end
       end
 
-      assert matching_job, "No enqueued job found with #{expected}"
+      message = +"No enqueued job found with #{expected}"
+      message << "\n\nPotential matches: #{potential_matches.join("\n")}" if potential_matches.present?
+      assert matching_job, message
       instantiate_job(matching_job)
     end
 
@@ -406,7 +430,7 @@ module ActiveJob
     #   end
     #
     # The +args+ argument also accepts a proc which will get passed the actual
-    # job's arguments. Your proc needs to returns a boolean value determining if
+    # job's arguments. Your proc needs to return a boolean value determining if
     # the job's arguments matches your expectation. This is useful to check only
     # for a subset of arguments.
     #
@@ -437,6 +461,7 @@ module ActiveJob
     def assert_performed_with(job: nil, args: nil, at: nil, queue: nil, &block)
       expected = { job: job, args: args, at: at, queue: queue }.compact
       expected_args = prepare_args_for_assertion(expected)
+      potential_matches = []
 
       if block_given?
         original_performed_jobs_count = performed_jobs.count
@@ -450,6 +475,7 @@ module ActiveJob
 
       matching_job = jobs.find do |enqueued_job|
         deserialized_job = deserialize_args_for_assertion(enqueued_job)
+        potential_matches << deserialized_job
 
         expected_args.all? do |key, value|
           if value.respond_to?(:call)
@@ -460,7 +486,10 @@ module ActiveJob
         end
       end
 
-      assert matching_job, "No performed job found with #{expected}"
+      message = +"No performed job found with #{expected}"
+      message << "\n\nPotential matches: #{potential_matches.join("\n")}" if potential_matches.present?
+      assert matching_job, message
+
       instantiate_job(matching_job)
     end
 
@@ -505,6 +534,9 @@ module ActiveJob
     #     assert_performed_jobs 1
     #   end
     #
+    # +:only+ and +:except+ options accepts Class, Array of Class or Proc. When passed a Proc,
+    # an instance of the job will be passed as argument.
+    #
     # If the +:queue+ option is specified,
     # then only the job(s) enqueued to a specific queue will be performed.
     #
@@ -516,8 +548,10 @@ module ActiveJob
     #     assert_performed_jobs 1
     #   end
     #
-    def perform_enqueued_jobs(only: nil, except: nil, queue: nil)
-      return flush_enqueued_jobs(only: only, except: except, queue: queue) unless block_given?
+    # If the +:at+ option is specified, then only run jobs enqueued to run
+    # immediately or before the given time
+    def perform_enqueued_jobs(only: nil, except: nil, queue: nil, at: nil, &block)
+      return flush_enqueued_jobs(only: only, except: except, queue: queue, at: at) unless block_given?
 
       validate_option(only: only, except: except)
 
@@ -526,6 +560,7 @@ module ActiveJob
       old_filter = queue_adapter.filter
       old_reject = queue_adapter.reject
       old_queue = queue_adapter.queue
+      old_at = queue_adapter.at
 
       begin
         queue_adapter.perform_enqueued_jobs = true
@@ -533,14 +568,16 @@ module ActiveJob
         queue_adapter.filter = only
         queue_adapter.reject = except
         queue_adapter.queue = queue
+        queue_adapter.at = at
 
-        yield
+        assert_nothing_raised(&block)
       ensure
         queue_adapter.perform_enqueued_jobs = old_perform_enqueued_jobs
         queue_adapter.perform_enqueued_at_jobs = old_perform_enqueued_at_jobs
         queue_adapter.filter = old_filter
         queue_adapter.reject = old_reject
         queue_adapter.queue = old_queue
+        queue_adapter.at = old_at
       end
     end
 
@@ -562,20 +599,24 @@ module ActiveJob
         performed_jobs.clear
       end
 
-      def jobs_with(jobs, only: nil, except: nil, queue: nil)
+      def jobs_with(jobs, only: nil, except: nil, queue: nil, at: nil)
         validate_option(only: only, except: except)
 
         jobs.count do |job|
           job_class = job.fetch(:job)
 
           if only
-            next false unless Array(only).include?(job_class)
+            next false unless filter_as_proc(only).call(job)
           elsif except
-            next false if Array(except).include?(job_class)
+            next false if filter_as_proc(except).call(job)
           end
 
           if queue
             next false unless queue.to_s == job.fetch(:queue, job_class.queue_name)
+          end
+
+          if at && job[:at]
+            next false if job[:at] > at.to_f
           end
 
           yield job if block_given?
@@ -584,36 +625,57 @@ module ActiveJob
         end
       end
 
-      def enqueued_jobs_with(only: nil, except: nil, queue: nil, &block)
-        jobs_with(enqueued_jobs, only: only, except: except, queue: queue, &block)
+      def filter_as_proc(filter)
+        return filter if filter.is_a?(Proc)
+
+        ->(job) { Array(filter).include?(job.fetch(:job)) }
+      end
+
+      def enqueued_jobs_with(only: nil, except: nil, queue: nil, at: nil, &block)
+        jobs_with(enqueued_jobs, only: only, except: except, queue: queue, at: at, &block)
       end
 
       def performed_jobs_with(only: nil, except: nil, queue: nil, &block)
         jobs_with(performed_jobs, only: only, except: except, queue: queue, &block)
       end
 
-      def flush_enqueued_jobs(only: nil, except: nil, queue: nil)
-        enqueued_jobs_with(only: only, except: except, queue: queue) do |payload|
-          args = ActiveJob::Arguments.deserialize(payload[:args])
-          instantiate_job(payload.merge(args: args)).perform_now
+      def flush_enqueued_jobs(only: nil, except: nil, queue: nil, at: nil)
+        enqueued_jobs_with(only: only, except: except, queue: queue, at: at) do |payload|
+          instantiate_job(payload).perform_now
           queue_adapter.performed_jobs << payload
         end
       end
 
       def prepare_args_for_assertion(args)
         args.dup.tap do |arguments|
-          arguments[:at] = arguments[:at].to_f if arguments[:at]
+          arguments[:at] = round_time_arguments(arguments[:at]) if arguments[:at]
+          arguments[:args] = round_time_arguments(arguments[:args]) if arguments[:args]
+        end
+      end
+
+      def round_time_arguments(argument)
+        case argument
+        when Time, ActiveSupport::TimeWithZone, DateTime
+          argument.change(usec: 0)
+        when Hash
+          argument.transform_values { |value| round_time_arguments(value) }
+        when Array
+          argument.map { |element| round_time_arguments(element) }
+        else
+          argument
         end
       end
 
       def deserialize_args_for_assertion(job)
         job.dup.tap do |new_job|
+          new_job[:at] = round_time_arguments(Time.at(new_job[:at])) if new_job[:at]
           new_job[:args] = ActiveJob::Arguments.deserialize(new_job[:args]) if new_job[:args]
         end
       end
 
       def instantiate_job(payload)
-        job = payload[:job].new(*payload[:args])
+        args = ActiveJob::Arguments.deserialize(payload[:args])
+        job = payload[:job].new(*args)
         job.scheduled_at = Time.at(payload[:at]) if payload.key?(:at)
         job.queue_name = payload[:queue]
         job

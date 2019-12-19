@@ -512,26 +512,6 @@ class AssetTagHelperTest < ActionView::TestCase
     UrlToImageToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
-  def test_image_alt
-    [nil, "/", "/foo/bar/", "foo/bar/"].each do |prefix|
-      assert_deprecated do
-        assert_equal "Rails", image_alt("#{prefix}rails.png")
-      end
-      assert_deprecated do
-        assert_equal "Rails", image_alt("#{prefix}rails-9c0a079bdd7701d7e729bd956823d153.png")
-      end
-      assert_deprecated do
-        assert_equal "Rails", image_alt("#{prefix}rails-f56ef62bc41b040664e801a38f068082a75d506d9048307e8096737463503d0b.png")
-      end
-      assert_deprecated do
-        assert_equal "Long file name with hyphens", image_alt("#{prefix}long-file-name-with-hyphens.png")
-      end
-      assert_deprecated do
-        assert_equal "Long file name with underscores", image_alt("#{prefix}long_file_name_with_underscores.png")
-      end
-    end
-  end
-
   def test_image_tag
     ImageLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end

@@ -74,7 +74,7 @@ class TransmissionsTest < ActionCable::TestCase
   end
 end
 
-class TransmitedDataTest < ActionCable::TestCase
+class TransmittedDataTest < ActionCable::TestCase
   include ActionCable::TestHelper
 
   def test_assert_broadcast_on
@@ -88,7 +88,7 @@ class TransmitedDataTest < ActionCable::TestCase
   def test_assert_broadcast_on_with_hash
     assert_nothing_raised do
       assert_broadcast_on("test", text: "hello") do
-        ActionCable.server.broadcast "test", text: "hello"
+        ActionCable.server.broadcast "test", { text: "hello" }
       end
     end
   end

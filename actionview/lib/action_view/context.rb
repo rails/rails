@@ -1,10 +1,6 @@
 # frozen_string_literal: true
 
 module ActionView
-  module CompiledTemplates #:nodoc:
-    # holds compiled template code
-  end
-
   # = Action View Context
   #
   # Action View contexts are supplied to Action Controller to render a template.
@@ -16,7 +12,6 @@ module ActionView
   # object that includes this module (although you can call _prepare_context
   # defined below).
   module Context
-    include CompiledTemplates
     attr_accessor :output_buffer, :view_flow
 
     # Prepares the context by setting the appropriate instance variables.

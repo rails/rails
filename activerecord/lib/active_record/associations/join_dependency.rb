@@ -64,16 +64,21 @@ module ActiveRecord
         end
       end
 
-      def initialize(base, table, associations)
+      def initialize(base, table, associations, join_type)
         tree = self.class.make_tree associations
         @join_root = JoinBase.new(base, table, build(tree, base))
+        @join_type = join_type
+      end
+
+      def base_klass
+        join_root.base_klass
       end
 
       def reflections
         join_root.drop(1).map!(&:reflection)
       end
 
-      def join_constraints(joins_to_add, join_type, alias_tracker)
+      def join_constraints(joins_to_add, alias_tracker)
         @alias_tracker = alias_tracker
 
         construct_tables!(join_root)
@@ -82,9 +87,9 @@ module ActiveRecord
         joins.concat joins_to_add.flat_map { |oj|
           construct_tables!(oj.join_root)
           if join_root.match? oj.join_root
-            walk join_root, oj.join_root
+            walk(join_root, oj.join_root, oj.join_type)
           else
-            make_join_constraints(oj.join_root, join_type)
+            make_join_constraints(oj.join_root, oj.join_type)
           end
         }
       end
@@ -100,7 +105,9 @@ module ActiveRecord
 
         model_cache = Hash.new { |h, klass| h[klass] = {} }
         parents = model_cache[join_root]
+
         column_aliases = aliases.column_aliases join_root
+        column_aliases += explicit_selections(column_aliases, result_set)
 
         message_bus = ActiveSupport::Notifications.instrumenter
 
@@ -125,10 +132,17 @@ module ActiveRecord
       end
 
       protected
-        attr_reader :join_root
+        attr_reader :join_root, :join_type
 
       private
         attr_reader :alias_tracker
+
+        def explicit_selections(root_column_aliases, result_set)
+          root_names = root_column_aliases.map(&:name).to_set
+          result_set.columns
+            .reject { |n| root_names.include?(n) || n =~ /\At\d+_r\d+\z/ }
+            .map { |n| Aliases::Column.new(n, n) }
+        end
 
         def aliases
           @aliases ||= Aliases.new join_root.each_with_index.map { |join_part, i|
@@ -151,7 +165,7 @@ module ActiveRecord
           end
         end
 
-        def make_constraints(parent, child, join_type = Arel::Nodes::OuterJoin)
+        def make_constraints(parent, child, join_type)
           foreign_table = parent.table
           foreign_klass = parent.base_klass
           joins = child.join_constraints(foreign_table, foreign_klass, join_type, alias_tracker)
@@ -173,13 +187,13 @@ module ActiveRecord
           join ? "#{name}_join" : name
         end
 
-        def walk(left, right)
+        def walk(left, right, join_type)
           intersection, missing = right.children.map { |node1|
             [left.children.find { |node2| node1.match? node2 }, node1]
           }.partition(&:first)
 
-          joins = intersection.flat_map { |l, r| r.table = l.table; walk(l, r) }
-          joins.concat missing.flat_map { |_, n| make_constraints(left, n) }
+          joins = intersection.flat_map { |l, r| r.table = l.table; walk(l, r, join_type) }
+          joins.concat missing.flat_map { |_, n| make_constraints(left, n, join_type) }
         end
 
         def find_reflection(klass, name)

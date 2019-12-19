@@ -110,12 +110,13 @@ class Date
   # Provides precise Date calculations for years, months, and days. The +options+ parameter takes a hash with
   # any of these keys: <tt>:years</tt>, <tt>:months</tt>, <tt>:weeks</tt>, <tt>:days</tt>.
   def advance(options)
-    options = options.dup
     d = self
-    d = d >> options.delete(:years) * 12 if options[:years]
-    d = d >> options.delete(:months)     if options[:months]
-    d = d +  options.delete(:weeks) * 7  if options[:weeks]
-    d = d +  options.delete(:days)       if options[:days]
+
+    d = d >> options[:years] * 12 if options[:years]
+    d = d >> options[:months] if options[:months]
+    d = d + options[:weeks] * 7 if options[:weeks]
+    d = d + options[:days] if options[:days]
+
     d
   end
 

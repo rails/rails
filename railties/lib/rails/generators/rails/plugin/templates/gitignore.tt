@@ -5,9 +5,10 @@ pkg/
 <% if sqlite3? -%>
 <%= dummy_path %>/db/*.sqlite3
 <%= dummy_path %>/db/*.sqlite3-journal
+<%= dummy_path %>/db/*.sqlite3-*
 <% end -%>
 <%= dummy_path %>/log/*.log
-<% unless options[:skip_yarn] -%>
+<% unless options[:skip_javascript] -%>
 <%= dummy_path %>/node_modules/
 <%= dummy_path %>/yarn-error.log
 <% end -%>
@@ -16,3 +17,4 @@ pkg/
 <% end -%>
 <%= dummy_path %>/tmp/
 <% end -%>
+.byebug_history

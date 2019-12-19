@@ -7,7 +7,7 @@ module Arel
     class GroupingTest < Arel::Spec
       it "should create Equality nodes" do
         grouping = Grouping.new(Nodes.build_quoted("foo"))
-        grouping.eq("foo").to_sql.must_be_like "('foo') = 'foo'"
+        _(grouping.eq("foo").to_sql).must_be_like "('foo') = 'foo'"
       end
 
       describe "equality" do

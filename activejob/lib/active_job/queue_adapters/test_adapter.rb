@@ -12,7 +12,7 @@ module ActiveJob
     #
     #   Rails.application.config.active_job.queue_adapter = :test
     class TestAdapter
-      attr_accessor(:perform_enqueued_jobs, :perform_enqueued_at_jobs, :filter, :reject, :queue)
+      attr_accessor(:perform_enqueued_jobs, :perform_enqueued_at_jobs, :filter, :reject, :queue, :at)
       attr_writer(:enqueued_jobs, :performed_jobs)
 
       # Provides a store of all the enqueued jobs with the TestAdapter so you can check them.
@@ -54,7 +54,11 @@ module ActiveJob
         end
 
         def filtered?(job)
-          filtered_queue?(job) || filtered_job_class?(job)
+          filtered_queue?(job) || filtered_job_class?(job) || filtered_time?(job)
+        end
+
+        def filtered_time?(job)
+          job.scheduled_at > at.to_f if at && job.scheduled_at
         end
 
         def filtered_queue?(job)
@@ -65,10 +69,16 @@ module ActiveJob
 
         def filtered_job_class?(job)
           if filter
-            !Array(filter).include?(job.class)
+            !filter_as_proc(filter).call(job)
           elsif reject
-            Array(reject).include?(job.class)
+            filter_as_proc(reject).call(job)
           end
+        end
+
+        def filter_as_proc(filter)
+          return filter if filter.is_a?(Proc)
+
+          ->(job) { Array(filter).include?(job.class) }
         end
     end
   end

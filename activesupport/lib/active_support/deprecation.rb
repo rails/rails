@@ -21,6 +21,7 @@ module ActiveSupport
     require "active_support/deprecation/method_wrappers"
     require "active_support/deprecation/proxy_wrappers"
     require "active_support/core_ext/module/deprecation"
+    require "concurrent/atomic/thread_local_var"
 
     include Singleton
     include InstanceDelegator
@@ -35,12 +36,13 @@ module ActiveSupport
     # and the second is a library name.
     #
     #   ActiveSupport::Deprecation.new('2.0', 'MyLibrary')
-    def initialize(deprecation_horizon = "6.1", gem_name = "Rails")
+    def initialize(deprecation_horizon = "6.2", gem_name = "Rails")
       self.gem_name = gem_name
       self.deprecation_horizon = deprecation_horizon
       # By default, warnings are not silenced and debugging is off.
       self.silenced = false
       self.debug = false
+      @silenced_thread = Concurrent::ThreadLocalVar.new(false)
     end
   end
 end

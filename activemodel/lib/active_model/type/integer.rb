@@ -9,7 +9,7 @@ module ActiveModel
       # 4 bytes means an integer as opposed to smallint etc.
       DEFAULT_LIMIT = 4
 
-      def initialize(*)
+      def initialize(*, **)
         super
         @range = min_value...max_value
       end
@@ -19,34 +19,27 @@ module ActiveModel
       end
 
       def deserialize(value)
-        return if value.nil?
+        return if value.blank?
         value.to_i
       end
 
       def serialize(value)
-        result = cast(value)
-        if result
-          ensure_in_range(result)
-        end
-        result
+        return if value.is_a?(::String) && non_numeric_string?(value)
+        ensure_in_range(super)
       end
 
       private
         attr_reader :range
 
         def cast_value(value)
-          case value
-          when true then 1
-          when false then 0
-          else
-            value.to_i rescue nil
-          end
+          value.to_i rescue nil
         end
 
         def ensure_in_range(value)
-          unless range.cover?(value)
+          if value && !range.cover?(value)
             raise ActiveModel::RangeError, "#{value} is out of range for #{self.class} with limit #{_limit} bytes"
           end
+          value
         end
 
         def max_value

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "ipaddr"
 require "active_support/core_ext/kernel/reporting"
 require "active_support/file_update_checker"
 require "rails/engine/configuration"
@@ -11,15 +12,17 @@ module Rails
       attr_accessor :allow_concurrency, :asset_host, :autoflush_log,
                     :cache_classes, :cache_store, :consider_all_requests_local, :console,
                     :eager_load, :exceptions_app, :file_watcher, :filter_parameters,
-                    :force_ssl, :helpers_paths, :logger, :log_formatter, :log_tags,
-                    :railties_order, :relative_url_root, :secret_key_base, :secret_token,
+                    :force_ssl, :helpers_paths, :hosts, :logger, :log_formatter, :log_tags,
+                    :railties_order, :relative_url_root, :secret_key_base,
                     :ssl_options, :public_file_server,
                     :session_options, :time_zone, :reload_classes_only_on_change,
                     :beginning_of_week, :filter_redirect, :x, :enable_dependency_loading,
                     :read_encrypted_secrets, :log_level, :content_security_policy_report_only,
-                    :content_security_policy_nonce_generator, :require_master_key, :credentials
+                    :content_security_policy_nonce_generator, :content_security_policy_nonce_directives,
+                    :require_master_key, :credentials, :disable_sandbox, :add_autoload_paths_to_load_path,
+                    :rake_eager_load
 
-      attr_reader :encoding, :api_only, :loaded_config_version
+      attr_reader :encoding, :api_only, :loaded_config_version, :autoloader
 
       def initialize(*)
         super
@@ -29,6 +32,7 @@ module Rails
         @filter_parameters                       = []
         @filter_redirect                         = []
         @helpers_paths                           = []
+        @hosts                                   = Array(([IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0"), ".localhost"] if Rails.env.development?))
         @public_file_server                      = ActiveSupport::OrderedOptions.new
         @public_file_server.enabled              = true
         @public_file_server.index_name           = "index"
@@ -48,7 +52,6 @@ module Rails
         @autoflush_log                           = true
         @log_formatter                           = ActiveSupport::Logger::SimpleFormatter.new
         @eager_load                              = nil
-        @secret_token                            = nil
         @secret_key_base                         = nil
         @api_only                                = false
         @debug_exception_response_format         = nil
@@ -58,13 +61,20 @@ module Rails
         @content_security_policy                 = nil
         @content_security_policy_report_only     = false
         @content_security_policy_nonce_generator = nil
+        @content_security_policy_nonce_directives = nil
         @require_master_key                      = false
         @loaded_config_version                   = nil
         @credentials                             = ActiveSupport::OrderedOptions.new
         @credentials.content_path                = default_credentials_content_path
         @credentials.key_path                    = default_credentials_key_path
+        @autoloader                              = :classic
+        @disable_sandbox                         = false
+        @add_autoload_paths_to_load_path         = true
+        @feature_policy                          = nil
+        @rake_eager_load                         = false
       end
 
+      # Loads default configurations. See {the result of the method for each version}[https://guides.rubyonrails.org/configuring.html#results-of-config-load-defaults].
       def load_defaults(target_version)
         case target_version.to_s
         when "5.0"
@@ -95,10 +105,6 @@ module Rails
 
           if respond_to?(:active_record)
             active_record.cache_versioning = true
-            # Remove the temporary load hook from SQLite3Adapter when this is removed
-            ActiveSupport.on_load(:active_record_sqlite3adapter) do
-              ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer = true
-            end
           end
 
           if respond_to?(:action_dispatch)
@@ -120,12 +126,56 @@ module Rails
         when "6.0"
           load_defaults "5.2"
 
+          self.autoloader = :zeitwerk if RUBY_ENGINE == "ruby"
+
           if respond_to?(:action_view)
             action_view.default_enforce_utf8 = false
           end
 
           if respond_to?(:action_dispatch)
             action_dispatch.use_cookies_with_metadata = true
+            action_dispatch.return_only_media_type_on_content_type = false
+          end
+
+          if respond_to?(:action_mailer)
+            action_mailer.delivery_job = "ActionMailer::MailDeliveryJob"
+          end
+
+          if respond_to?(:active_job)
+            active_job.return_false_on_aborted_enqueue = true
+          end
+
+          if respond_to?(:active_storage)
+            active_storage.queues.analysis = :active_storage_analysis
+            active_storage.queues.purge    = :active_storage_purge
+
+            active_storage.replace_on_assign_to_many = true
+          end
+
+          if respond_to?(:active_record)
+            active_record.collection_cache_versioning = true
+          end
+        when "6.1"
+          load_defaults "6.0"
+
+          if respond_to?(:active_job)
+            active_job.retry_jitter = 0.15
+          end
+
+          if respond_to?(:active_record)
+            active_record.has_many_inversing = true
+          end
+
+          if respond_to?(:active_storage)
+            active_storage.track_variants = true
+          end
+
+          if respond_to?(:active_job)
+            active_job.skip_after_callbacks_if_terminated = true
+          end
+
+          if respond_to?(:action_dispatch)
+            action_dispatch.cookies_same_site_protection = :lax
           end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
@@ -171,6 +221,26 @@ module Rails
         end
       end
 
+      # Load the database YAML without evaluating ERB. This allows us to
+      # create the rake tasks for multiple databases without filling in the
+      # configuration values or loading the environment. Do not use this
+      # method.
+      #
+      # This uses a DummyERB custom compiler so YAML can ignore the ERB
+      # tags and load the database.yml for the rake tasks.
+      def load_database_yaml # :nodoc:
+        if path = paths["config/database"].existent.first
+          require "rails/application/dummy_erb_compiler"
+
+          yaml = Pathname.new(path)
+          erb = DummyERB.new(yaml.read)
+
+          YAML.load(erb.result) || {}
+        else
+          {}
+        end
+      end
+
       # Loads and returns the entire raw configuration of database from
       # values stored in <tt>config/database.yml</tt>.
       def database_configuration
@@ -202,7 +272,7 @@ module Rails
               "Please note that YAML must be consistently indented using spaces. Tabs are not allowed. " \
               "Error: #{e.message}"
       rescue => e
-        raise e, "Cannot load `Rails.application.database_configuration`:\n#{e.message}", e.backtrace
+        raise e, "Cannot load database configuration:\n#{e.message}", e.backtrace
       end
 
       def colorize_logging
@@ -257,6 +327,38 @@ module Rails
         end
       end
 
+      def feature_policy(&block)
+        if block_given?
+          @feature_policy = ActionDispatch::FeaturePolicy.new(&block)
+        else
+          @feature_policy
+        end
+      end
+
+      def autoloader=(autoloader)
+        case autoloader
+        when :classic
+          @autoloader = autoloader
+        when :zeitwerk
+          require "zeitwerk"
+          @autoloader = autoloader
+        else
+          raise ArgumentError, "config.autoloader may be :classic or :zeitwerk, got #{autoloader.inspect} instead"
+        end
+      end
+
+      def default_log_file
+        path = paths["log"].first
+        unless File.exist? File.dirname path
+          FileUtils.mkdir_p File.dirname path
+        end
+
+        f = File.open path, "a"
+        f.binmode
+        f.sync = autoflush_log # if true make sure every write flushes
+        f
+      end
+
       class Custom #:nodoc:
         def initialize
           @configurations = Hash.new
@@ -278,24 +380,24 @@ module Rails
       end
 
       private
-        def credentials_available_for_current_env?
-          File.exist?("#{root}/config/credentials/#{Rails.env}.yml.enc")
-        end
-
         def default_credentials_content_path
           if credentials_available_for_current_env?
-            File.join(root, "config", "credentials", "#{Rails.env}.yml.enc")
+            root.join("config", "credentials", "#{Rails.env}.yml.enc")
           else
-            File.join(root, "config", "credentials.yml.enc")
+            root.join("config", "credentials.yml.enc")
           end
         end
 
         def default_credentials_key_path
           if credentials_available_for_current_env?
-            File.join(root, "config", "credentials", "#{Rails.env}.key")
+            root.join("config", "credentials", "#{Rails.env}.key")
           else
-            File.join(root, "config", "master.key")
+            root.join("config", "master.key")
           end
+        end
+
+        def credentials_available_for_current_env?
+          File.exist?(root.join("config", "credentials", "#{Rails.env}.yml.enc"))
         end
     end
   end

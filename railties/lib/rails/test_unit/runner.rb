@@ -45,7 +45,7 @@ module Rails
           patterns = extract_filters(argv)
 
           tests = Rake::FileList[patterns.any? ? patterns : "test/**/*_test.rb"]
-          tests.exclude("test/system/**/*") if patterns.empty?
+          tests.exclude("test/system/**/*", "test/dummy/**/*") if patterns.empty?
 
           tests.to_a.each { |path| require File.expand_path(path) }
         end
@@ -61,7 +61,7 @@ module Rails
         private
           def extract_filters(argv)
             # Extract absolute and relative paths but skip -n /.*/ regexp filters.
-            argv.select { |arg| arg =~ %r%^/?\w+/% && !arg.end_with?("/") }.map do |path|
+            argv.select { |arg| %r%^/?\w+/%.match?(arg) && !arg.end_with?("/") }.map do |path|
               case
               when /(:\d+)+$/.match?(path)
                 file, *lines = path.split(":")

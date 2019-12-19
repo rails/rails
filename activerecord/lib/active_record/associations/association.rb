@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/array/wrap"
-
 module ActiveRecord
   module Associations
     # = Active Record Associations
@@ -17,6 +15,23 @@ module ActiveRecord
     #     CollectionAssociation
     #       HasManyAssociation + ForeignAssociation
     #         HasManyThroughAssociation + ThroughAssociation
+    #
+    # Associations in Active Record are middlemen between the object that
+    # holds the association, known as the <tt>owner</tt>, and the associated
+    # result set, known as the <tt>target</tt>. Association metadata is available in
+    # <tt>reflection</tt>, which is an instance of <tt>ActiveRecord::Reflection::AssociationReflection</tt>.
+    #
+    # For example, given
+    #
+    #   class Blog < ActiveRecord::Base
+    #     has_many :posts
+    #   end
+    #
+    #   blog = Blog.first
+    #
+    # The association of <tt>blog.posts</tt> has the object +blog+ as its
+    # <tt>owner</tt>, the collection of its posts as <tt>target</tt>, and
+    # the <tt>reflection</tt> object represents a <tt>:has_many</tt> macro.
     class Association #:nodoc:
       attr_reader :owner, :target, :reflection
 
@@ -26,6 +41,7 @@ module ActiveRecord
         reflection.check_validity!
 
         @owner, @reflection = owner, reflection
+        @_scope = nil
 
         reset
         reset_scope
@@ -37,6 +53,10 @@ module ActiveRecord
         @target = nil
         @stale_state = nil
         @inversed = false
+      end
+
+      def reset_negative_cache # :nodoc:
+        reset if loaded? && target.nil?
       end
 
       # Reloads the \target and returns +self+ on success.
@@ -78,7 +98,7 @@ module ActiveRecord
       end
 
       def scope
-        target_scope.merge!(association_scope)
+        @_scope&.spawn || target_scope.merge!(association_scope)
       end
 
       def reset_scope
@@ -170,15 +190,36 @@ module ActiveRecord
         set_inverse_instance(record)
       end
 
-      def create(attributes = {}, &block)
+      def create(attributes = nil, &block)
         _create_record(attributes, &block)
       end
 
-      def create!(attributes = {}, &block)
+      def create!(attributes = nil, &block)
         _create_record(attributes, true, &block)
       end
 
+      def scoping(relation, &block)
+        @_scope = relation
+        relation.scoping(&block)
+      ensure
+        @_scope = nil
+      end
+
       private
+        def find_target
+          scope = self.scope
+          return scope.to_a if skip_statement_cache?(scope)
+
+          conn = klass.connection
+          sc = reflection.association_scope_cache(conn, owner) do |params|
+            as = AssociationScope.create { params.bind }
+            target_scope.merge!(as.scope(self))
+          end
+
+          binds = AssociationScope.get_bind_values(owner, reflection.chain)
+          sc.execute(binds, conn) { |record| set_inverse_instance(record) } || []
+        end
+
         # The scope for this association.
         #
         # Note that the association_scope is merged into the target_scope only when the
@@ -194,7 +235,7 @@ module ActiveRecord
         # Can be overridden (i.e. in ThroughAssociation) to merge in other scopes (i.e. the
         # through association's scope)
         def target_scope
-          AssociationRelation.create(klass, self).merge!(klass.all)
+          AssociationRelation.create(klass, self).merge!(klass.scope_for_association)
         end
 
         def scope_for_create

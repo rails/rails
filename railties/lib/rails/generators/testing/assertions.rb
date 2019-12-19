@@ -27,7 +27,7 @@ module Rails
           assert File.exist?(absolute), "Expected file #{relative.inspect} to exist, but does not"
 
           read = File.read(absolute) if block_given? || !contents.empty?
-          yield read if block_given?
+          assert_nothing_raised { yield read } if block_given?
 
           contents.each do |content|
             case content
@@ -99,7 +99,7 @@ module Rails
         #   end
         def assert_instance_method(method, content)
           assert content =~ /(\s+)def #{method}(\(.+\))?(.*?)\n\1end/m, "Expected to have method #{method}"
-          yield $3.strip if block_given?
+          assert_nothing_raised { yield $3.strip } if block_given?
         end
         alias :assert_method :assert_instance_method
 

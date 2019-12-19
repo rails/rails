@@ -27,6 +27,10 @@ module Arel # :nodoc: all
     class Quoted < Arel::Nodes::Unary # :nodoc:
       alias :val :value
       def nil?; val.nil?; end
+
+      def infinite?
+        value.respond_to?(:infinite?) && value.infinite?
+      end
     end
 
     def self.build_quoted(other, attribute = nil)

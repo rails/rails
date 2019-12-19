@@ -58,7 +58,7 @@ class ActionCable::Connection::ClientSocketTest < ActionCable::TestCase
       client.instance_variable_get("@stream")
         .instance_variable_get("@rack_hijack_io")
         .define_singleton_method(:close) { event.set }
-      connection.close
+      connection.close(reason: "testing")
       event.wait
     end
   end

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/array/extract_options"
+require "active_support/core_ext/module/redefine_method"
 
 module ActiveSupport
   class Deprecation
@@ -52,27 +53,25 @@ module ActiveSupport
         options = method_names.extract_options!
         deprecator = options.delete(:deprecator) || self
         method_names += options.keys
+        mod = nil
 
         method_names.each do |method_name|
-          aliased_method, punctuation = method_name.to_s.sub(/([?!=])$/, ""), $1
-          with_method = "#{aliased_method}_with_deprecation#{punctuation}"
-          without_method = "#{aliased_method}_without_deprecation#{punctuation}"
-
-          target_module.send(:define_method, with_method) do |*args, &block|
-            deprecator.deprecation_warning(method_name, options[method_name])
-            send(without_method, *args, &block)
-          end
-
-          target_module.send(:alias_method, without_method, method_name)
-          target_module.send(:alias_method, method_name, with_method)
-
-          case
-          when target_module.protected_method_defined?(without_method)
-            target_module.send(:protected, method_name)
-          when target_module.private_method_defined?(without_method)
-            target_module.send(:private, method_name)
+          if target_module.method_defined?(method_name) || target_module.private_method_defined?(method_name)
+            method = target_module.instance_method(method_name)
+            target_module.redefine_method(method_name) do |*args, &block|
+              deprecator.deprecation_warning(method_name, options[method_name])
+              method.bind(self).call(*args, &block)
+            end
+          else
+            mod ||= Module.new
+            mod.define_method(method_name) do |*args, &block|
+              deprecator.deprecation_warning(method_name, options[method_name])
+              super(*args, &block)
+            end
           end
         end
+
+        target_module.prepend(mod) if mod
       end
     end
   end

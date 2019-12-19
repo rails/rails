@@ -354,6 +354,14 @@ module AbstractController
         assert_equal({ p2: "Y2" }.to_query, params[1])
       end
 
+      def test_params_option
+        url = W.new.url_for(only_path: true, controller: "c", action: "a", params: { domain: "foo", id: "1" })
+        params = extract_params(url)
+        assert_equal("/c/a?domain=foo&id=1", url)
+        assert_equal({ domain: "foo" }.to_query, params[0])
+        assert_equal({ id: "1" }.to_query, params[1])
+      end
+
       def test_hash_parameter
         url = W.new.url_for(only_path: true, controller: "c", action: "a", query: { name: "Bob", category: "prof" })
         params = extract_params(url)

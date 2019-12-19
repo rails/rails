@@ -23,6 +23,14 @@ module Arel # :nodoc: all
       def nil?
         value.nil?
       end
+
+      def infinite?
+        value.respond_to?(:infinite?) && value.infinite?
+      end
+
+      def unboundable?
+        value.respond_to?(:unboundable?) && value.unboundable?
+      end
     end
   end
 end
