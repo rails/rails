@@ -5,7 +5,6 @@ require "action_dispatch/middleware/exception_wrapper"
 require "action_dispatch/routing/inspector"
 
 require "action_view"
-require "action_view/base"
 
 module ActionDispatch
   # This middleware is responsible for logging exceptions and
