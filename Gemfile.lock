@@ -479,7 +479,7 @@ GEM
       actionpack (>= 4.0)
       activesupport (>= 4.0)
       sprockets (>= 3.0.0)
-    sqlite3 (1.4.1)
+    sqlite3 (1.4.2)
     stackprof (0.2.13)
     sucker_punch (2.1.2)
       concurrent-ruby (~> 1.0)
