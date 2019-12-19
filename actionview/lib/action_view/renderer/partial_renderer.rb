@@ -374,7 +374,7 @@ module ActionView
       def setup(context, options, as, block)
         @options = options
         @block   = block
-
+        @current_template = context.current_template
         @locals  = options[:locals] || {}
         @details = extract_details(options)
 
@@ -436,7 +436,7 @@ module ActionView
         elsif !path.start_with?(".")
           [path, []]
         else
-          dirname, basename = @lookup_context.current_template.build_relative_path_to(path).split
+          dirname, basename = @current_template.build_relative_path_to(path).split
           [basename, [dirname]]
         end
       end

@@ -195,7 +195,7 @@ module ActionView #:nodoc:
       end
     end
 
-    attr_reader :view_renderer, :lookup_context
+    attr_reader :view_renderer, :lookup_context, :current_template
     attr_internal :config, :assigns
 
     delegate :formats, :formats=, :locale, :locale=, :view_paths, :view_paths=, to: :lookup_context
@@ -270,8 +270,6 @@ module ActionView #:nodoc:
       _old_output_buffer, _old_virtual_path, _old_template = @output_buffer, @virtual_path, @current_template
       @current_template = template
       @output_buffer = buffer
-      @lookup_context.current_template = template
-
       send(method, locals, buffer, &block)
     ensure
       @output_buffer, @virtual_path, @current_template = _old_output_buffer, _old_virtual_path, _old_template
