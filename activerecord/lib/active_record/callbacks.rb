@@ -314,7 +314,7 @@ module ActiveRecord
       @_destroy_callback_already_called = false
     end
 
-    def touch(*) #:nodoc:
+    def touch(*, **) #:nodoc:
       _run_touch_callbacks { super }
     end
 

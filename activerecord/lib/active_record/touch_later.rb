@@ -9,7 +9,7 @@ module ActiveRecord
       before_commit_without_transaction_enrollment :touch_deferred_attributes
     end
 
-    def touch_later(*names) # :nodoc:
+    def touch_later(*names, **) # :nodoc:
       unless persisted?
         raise ActiveRecordError, <<-MSG.squish
           cannot touch on a new or destroyed record object. Consider using

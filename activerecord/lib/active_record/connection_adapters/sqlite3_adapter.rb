@@ -244,7 +244,7 @@ module ActiveRecord
         rename_table_indexes(table_name, new_name)
       end
 
-      def add_column(table_name, column_name, type, options = {}) #:nodoc:
+      def add_column(table_name, column_name, type, **options) #:nodoc:
         if invalid_alter_table_type?(type, options)
           alter_table(table_name) do |definition|
             definition.column(column_name, type, options)
@@ -398,7 +398,7 @@ module ActiveRecord
         def copy_table(from, to, options = {})
           from_primary_key = primary_key(from)
           options[:id] = false
-          create_table(to, options) do |definition|
+          create_table(to, **options) do |definition|
             @definition = definition
             if from_primary_key.is_a?(Array)
               @definition.primary_keys from_primary_key
