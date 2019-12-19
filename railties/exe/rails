@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 
 git_path = File.expand_path("../../.git", __dir__)
 

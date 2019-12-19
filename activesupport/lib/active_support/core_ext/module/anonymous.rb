@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Module
   # A module may or may not have a name.
   #

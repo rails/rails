@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionController
   # When our views change, they should bubble up into HTTP cache freshness
   # and bust browser caches. So the template digest for the current action
@@ -49,7 +51,7 @@ module ActionController
       end
 
       def lookup_and_digest_template(template)
-        ActionView::Digestor.digest name: template, finder: lookup_context
+        ActionView::Digestor.digest name: template, format: nil, finder: lookup_context
       end
   end
 end

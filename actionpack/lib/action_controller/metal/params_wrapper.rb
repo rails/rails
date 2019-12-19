@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/hash/except"
 require "active_support/core_ext/module/anonymous"
@@ -91,7 +93,7 @@ module ActionController
       end
 
       def model
-        super || synchronize { super || self.model = _default_wrap_model }
+        super || self.model = _default_wrap_model
       end
 
       def include
@@ -110,6 +112,14 @@ module ActionController
               else
                 self.include = m.attribute_names
               end
+
+              if m.respond_to?(:nested_attributes_options) && m.nested_attributes_options.keys.any?
+                self.include += m.nested_attributes_options.keys.map do |key|
+                  (+key.to_s).concat("_attributes")
+                end
+              end
+
+              self.include
             end
           end
         end
@@ -230,29 +240,12 @@ module ActionController
 
     # Performs parameters wrapping upon the request. Called automatically
     # by the metal call stack.
-    def process_action(*args)
-      if _wrapper_enabled?
-        if request.parameters[_wrapper_key].present?
-          wrapped_hash = _extract_parameters(request.parameters)
-        else
-          wrapped_hash = _wrap_parameters request.request_parameters
-        end
-
-        wrapped_keys = request.request_parameters.keys
-        wrapped_filtered_hash = _wrap_parameters request.filtered_parameters.slice(*wrapped_keys)
-
-        # This will make the wrapped hash accessible from controller and view.
-        request.parameters.merge! wrapped_hash
-        request.request_parameters.merge! wrapped_hash
-
-        # This will display the wrapped hash in the log file.
-        request.filtered_parameters.merge! wrapped_filtered_hash
-      end
+    def process_action(*)
+      _perform_parameter_wrapping if _wrapper_enabled?
       super
     end
 
     private
-
       # Returns the wrapper key which will be used to store wrapped parameters.
       def _wrapper_key
         _wrapper_options.name
@@ -282,7 +275,22 @@ module ActionController
         return false unless request.has_content_type?
 
         ref = request.content_mime_type.ref
-        _wrapper_formats.include?(ref) && _wrapper_key && !request.request_parameters[_wrapper_key]
+        _wrapper_formats.include?(ref) && _wrapper_key && !request.parameters.key?(_wrapper_key)
+      end
+
+      def _perform_parameter_wrapping
+        wrapped_hash = _wrap_parameters request.request_parameters
+        wrapped_keys = request.request_parameters.keys
+        wrapped_filtered_hash = _wrap_parameters request.filtered_parameters.slice(*wrapped_keys)
+
+        # This will make the wrapped hash accessible from controller and view.
+        request.parameters.merge! wrapped_hash
+        request.request_parameters.merge! wrapped_hash
+
+        # This will display the wrapped hash in the log file.
+        request.filtered_parameters.merge! wrapped_filtered_hash
+      rescue ActionDispatch::Http::Parameters::ParseError
+        # swallow parse error exception
       end
   end
 end

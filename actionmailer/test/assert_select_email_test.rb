@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class AssertSelectEmailTest < ActionMailer::TestCase
@@ -23,7 +25,7 @@ class AssertSelectEmailTest < ActionMailer::TestCase
 
   def test_assert_select_email
     assert_raise ActiveSupport::TestCase::Assertion do
-      assert_select_email {}
+      assert_select_email { }
     end
 
     AssertSelectMailer.test("<div><p>foo</p><p>bar</p></div>").deliver_now

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/schema_dumping_helper"
 
@@ -16,6 +18,7 @@ if ActiveRecord::Base.connection.supports_virtual_columns?
         t.string  :name
         t.virtual :upper_name,  type: :string,  as: "UPPER(`name`)"
         t.virtual :name_length, type: :integer, as: "LENGTH(`name`)", stored: true
+        t.virtual :name_octet_length, type: :integer, as: "OCTET_LENGTH(`name`)", stored: true
       end
       VirtualColumn.create(name: "Rails")
     end
@@ -52,8 +55,9 @@ if ActiveRecord::Base.connection.supports_virtual_columns?
 
     def test_schema_dumping
       output = dump_table_schema("virtual_columns")
-      assert_match(/t\.virtual\s+"upper_name",\s+type: :string,\s+as: "UPPER\(`name`\)"$/i, output)
-      assert_match(/t\.virtual\s+"name_length",\s+type: :integer,\s+as: "LENGTH\(`name`\)",\s+stored: true$/i, output)
+      assert_match(/t\.virtual\s+"upper_name",\s+type: :string,\s+as: "(?:UPPER|UCASE)\(`name`\)"$/i, output)
+      assert_match(/t\.virtual\s+"name_length",\s+type: :integer,\s+as: "(?:octet_length|length)\(`name`\)",\s+stored: true$/i, output)
+      assert_match(/t\.virtual\s+"name_octet_length",\s+type: :integer,\s+as: "(?:octet_length|length)\(`name`\)",\s+stored: true$/i, output)
     end
   end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module AbstractController
   module Caching
     extend ActiveSupport::Concern

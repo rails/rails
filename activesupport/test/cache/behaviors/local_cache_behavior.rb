@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module LocalCacheBehavior
   def test_local_writes_are_persistent_on_the_remote_cache
     retval = @cache.with_local_cache do
@@ -18,7 +20,11 @@ module LocalCacheBehavior
   end
 
   def test_cleanup_clears_local_cache_but_not_remote_cache
-    skip unless @cache.class.instance_methods(false).include?(:cleanup)
+    begin
+      @cache.cleanup
+    rescue NotImplementedError
+      skip
+    end
 
     @cache.with_local_cache do
       @cache.write("foo", "bar")
@@ -37,6 +43,15 @@ module LocalCacheBehavior
       @cache.write("foo", "bar")
       @peek.delete("foo")
       assert_equal "bar", @cache.read("foo")
+    end
+  end
+
+  def test_local_cache_of_read_returns_a_copy_of_the_entry
+    @cache.with_local_cache do
+      @cache.write(:foo, type: "bar")
+      value = @cache.read(:foo)
+      assert_equal("bar", value.delete(:type))
+      assert_equal({ type: "bar" }, @cache.read(:foo))
     end
   end
 
@@ -110,6 +125,47 @@ module LocalCacheBehavior
       @peek.write("foo", 3, raw: true)
       @cache.decrement("foo")
       assert_equal 2, @cache.read("foo")
+    end
+  end
+
+  def test_local_cache_of_fetch_multi
+    @cache.with_local_cache do
+      @cache.fetch_multi("foo", "bar") { |_key| true }
+      @peek.delete("foo")
+      @peek.delete("bar")
+      assert_equal true, @cache.read("foo")
+      assert_equal true, @cache.read("bar")
+    end
+  end
+
+  def test_local_cache_of_read_multi
+    @cache.with_local_cache do
+      @cache.write("foo", "foo", raw: true)
+      @cache.write("bar", "bar", raw: true)
+      values = @cache.read_multi("foo", "bar")
+      assert_equal "foo", @cache.read("foo")
+      assert_equal "bar", @cache.read("bar")
+      assert_equal "foo", values["foo"]
+      assert_equal "bar", values["bar"]
+    end
+  end
+
+  def test_initial_object_mutation_after_write
+    @cache.with_local_cache do
+      initial = +"bar"
+      @cache.write("foo", initial)
+      initial << "baz"
+      assert_equal "bar", @cache.read("foo")
+    end
+  end
+
+  def test_initial_object_mutation_after_fetch
+    @cache.with_local_cache do
+      initial = +"bar"
+      @cache.fetch("foo") { initial }
+      initial << "baz"
+      assert_equal "bar", @cache.read("foo")
+      assert_equal "bar", @cache.fetch("foo")
     end
   end
 

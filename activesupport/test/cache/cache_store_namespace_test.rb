@@ -1,4 +1,6 @@
-require "abstract_unit"
+# frozen_string_literal: true
+
+require_relative "../abstract_unit"
 require "active_support/cache"
 
 class CacheStoreNamespaceTest < ActiveSupport::TestCase
@@ -23,7 +25,7 @@ class CacheStoreNamespaceTest < ActiveSupport::TestCase
     cache.write("foo", "bar")
     cache.write("fu", "baz")
     cache.delete_matched(/^fo/)
-    assert !cache.exist?("foo")
+    assert_not cache.exist?("foo")
     assert cache.exist?("fu")
   end
 
@@ -32,7 +34,7 @@ class CacheStoreNamespaceTest < ActiveSupport::TestCase
     cache.write("foo", "bar")
     cache.write("fu", "baz")
     cache.delete_matched(/OO/i)
-    assert !cache.exist?("foo")
+    assert_not cache.exist?("foo")
     assert cache.exist?("fu")
   end
 end

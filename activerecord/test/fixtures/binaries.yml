@@ -131,3 +131,7 @@ flowers:
     SgCUASgCUASgCUASgAC74PbXOTvE5/En7jpSoLE8/wBn7uPJjKyj46T9D/NT
     pKsXyQzxNpdNP0/akB5484WkMKh4RfXG4UafNmH7b0UxWMrb7Nxg6rl9Z/Im
     w+vWq0iscQwxQroiUIvkKsRZQBKAJQBKAJQB/9k=
+
+binary_helper:
+  id: 2
+  data: <%= binary(ASSETS_ROOT + "/flowers.jpg") %>

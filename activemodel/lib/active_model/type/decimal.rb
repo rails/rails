@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "bigdecimal/util"
 
 module ActiveModel
@@ -15,7 +17,6 @@ module ActiveModel
       end
 
       private
-
         def cast_value(value)
           casted_value = \
             case value

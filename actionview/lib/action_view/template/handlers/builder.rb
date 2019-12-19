@@ -1,13 +1,15 @@
+# frozen_string_literal: true
+
 module ActionView
   module Template::Handlers
     class Builder
       class_attribute :default_format, default: :xml
 
-      def call(template)
+      def call(template, source)
         require_engine
         "xml = ::Builder::XmlMarkup.new(:indent => 2);" \
           "self.output_buffer = xml.target!;" +
-          template.source +
+          source +
           ";xml.target!;"
       end
 

@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 require "rbconfig"
 
 module ActiveSupport
   class Deprecation
     module Reporting
       # Whether to print a message (silent mode)
-      attr_accessor :silenced
+      attr_writer :silenced
       # Name of gem where method is deprecated
       attr_accessor :gem_name
 
@@ -31,11 +33,12 @@ module ActiveSupport
       #     ActiveSupport::Deprecation.warn('something broke!')
       #   end
       #   # => nil
-      def silence
-        old_silenced, @silenced = @silenced, true
-        yield
-      ensure
-        @silenced = old_silenced
+      def silence(&block)
+        @silenced_thread.bind(true, &block)
+      end
+
+      def silenced
+        @silenced || @silenced_thread.value
       end
 
       def deprecation_warning(deprecated_method_name, message = nil, caller_backtrace = nil)
@@ -59,7 +62,7 @@ module ActiveSupport
           case message
           when Symbol then "#{warning} (use #{message} instead)"
           when String then "#{warning} (#{message})"
-            else warning
+          else warning
           end
         end
 
@@ -102,7 +105,7 @@ module ActiveSupport
           end
         end
 
-        RAILS_GEM_ROOT = File.expand_path("../../../..", __dir__)
+        RAILS_GEM_ROOT = File.expand_path("../../../..", __dir__) + "/"
 
         def ignored_callstack(path)
           path.start_with?(RAILS_GEM_ROOT) || path.start_with?(RbConfig::CONFIG["rubylibdir"])

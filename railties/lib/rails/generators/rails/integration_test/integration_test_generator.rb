@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Rails
   module Generators
     class IntegrationTestGenerator < NamedBase # :nodoc:

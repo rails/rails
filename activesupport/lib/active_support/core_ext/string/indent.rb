@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class String
   # Same as +indent+, except it indents the receiver in-place.
   #

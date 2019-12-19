@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "cases/json_shared_test_cases"
 
@@ -19,8 +21,8 @@ module PostgresqlJSONSharedTestCases
     @connection.add_column "json_data_type", "permissions", column_type, default: { "users": "read", "posts": ["read", "write"] }
     klass.reset_column_information
 
-    assert_equal({ "users" => "read", "posts" => ["read", "write"] }, JsonDataType.column_defaults["permissions"])
-    assert_equal({ "users" => "read", "posts" => ["read", "write"] }, JsonDataType.new.permissions)
+    assert_equal({ "users" => "read", "posts" => ["read", "write"] }, klass.column_defaults["permissions"])
+    assert_equal({ "users" => "read", "posts" => ["read", "write"] }, klass.new.permissions)
   end
 
   def test_deserialize_with_array

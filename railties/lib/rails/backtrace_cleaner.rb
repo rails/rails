@@ -1,32 +1,26 @@
+# frozen_string_literal: true
+
 require "active_support/backtrace_cleaner"
 
 module Rails
   class BacktraceCleaner < ActiveSupport::BacktraceCleaner
-    APP_DIRS_PATTERN = /^\/?(app|config|lib|test|\(\w*\))/
-    RENDER_TEMPLATE_PATTERN = /:in `_render_template_\w*'/
-    EMPTY_STRING = "".freeze
-    SLASH        = "/".freeze
-    DOT_SLASH    = "./".freeze
+    APP_DIRS_PATTERN = /\A(?:\.\/)?(?:app|config|lib|test|\(\w*\))/
+    RENDER_TEMPLATE_PATTERN = /:in `.*_\w+_{2,3}\d+_\d+'/
 
     def initialize
       super
-      @root = "#{Rails.root}/".freeze
-      add_filter { |line| line.sub(@root, EMPTY_STRING) }
-      add_filter { |line| line.sub(RENDER_TEMPLATE_PATTERN, EMPTY_STRING) }
-      add_filter { |line| line.sub(DOT_SLASH, SLASH) } # for tests
-
-      add_gem_filters
+      @root = "#{Rails.root}/"
+      add_filter do |line|
+        line.start_with?(@root) ? line.from(@root.size) : line
+      end
+      add_filter do |line|
+        if RENDER_TEMPLATE_PATTERN.match?(line)
+          line.sub(RENDER_TEMPLATE_PATTERN, "")
+        else
+          line
+        end
+      end
       add_silencer { |line| !APP_DIRS_PATTERN.match?(line) }
     end
-
-    private
-      def add_gem_filters
-        gems_paths = (Gem.path | [Gem.default_dir]).map { |p| Regexp.escape(p) }
-        return if gems_paths.empty?
-
-        gems_regexp = %r{(#{gems_paths.join('|')})/gems/([^/]+)-([\w.]+)/(.*)}
-        gems_result = '\2 (\3) \4'.freeze
-        add_filter { |line| line.sub(gems_regexp, gems_result) }
-      end
   end
 end

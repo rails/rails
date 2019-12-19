@@ -1,9 +1,12 @@
-require "abstract_unit"
+# frozen_string_literal: true
+
+require_relative "../abstract_unit"
 require "active_support/core_ext/hash"
 require "bigdecimal"
 require "active_support/core_ext/string/access"
 require "active_support/ordered_hash"
 require "active_support/core_ext/object/conversions"
+require "active_support/core_ext/date/conversions"
 require "active_support/core_ext/object/deep_dup"
 require "active_support/inflections"
 
@@ -29,10 +32,10 @@ class HashExtTest < ActiveSupport::TestCase
 
   def test_methods
     h = {}
-    assert_respond_to h, :transform_keys
-    assert_respond_to h, :transform_keys!
     assert_respond_to h, :deep_transform_keys
     assert_respond_to h, :deep_transform_keys!
+    assert_respond_to h, :deep_transform_values
+    assert_respond_to h, :deep_transform_values!
     assert_respond_to h, :symbolize_keys
     assert_respond_to h, :symbolize_keys!
     assert_respond_to h, :deep_symbolize_keys
@@ -43,22 +46,8 @@ class HashExtTest < ActiveSupport::TestCase
     assert_respond_to h, :deep_stringify_keys!
     assert_respond_to h, :to_options
     assert_respond_to h, :to_options!
-    assert_respond_to h, :compact
-    assert_respond_to h, :compact!
     assert_respond_to h, :except
     assert_respond_to h, :except!
-  end
-
-  def test_transform_keys
-    assert_equal @upcase_strings, @strings.transform_keys { |key| key.to_s.upcase }
-    assert_equal @upcase_strings, @symbols.transform_keys { |key| key.to_s.upcase }
-    assert_equal @upcase_strings, @mixed.transform_keys { |key| key.to_s.upcase }
-  end
-
-  def test_transform_keys_not_mutates
-    transformed_hash = @mixed.dup
-    transformed_hash.transform_keys { |key| key.to_s.upcase }
-    assert_equal @mixed, transformed_hash
   end
 
   def test_deep_transform_keys
@@ -76,19 +65,6 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal @nested_mixed, transformed_hash
   end
 
-  def test_transform_keys!
-    assert_equal @upcase_strings, @symbols.dup.transform_keys! { |key| key.to_s.upcase }
-    assert_equal @upcase_strings, @strings.dup.transform_keys! { |key| key.to_s.upcase }
-    assert_equal @upcase_strings, @mixed.dup.transform_keys! { |key| key.to_s.upcase }
-  end
-
-  def test_transform_keys_with_bang_mutates
-    transformed_hash = @mixed.dup
-    transformed_hash.transform_keys! { |key| key.to_s.upcase }
-    assert_equal @upcase_strings, transformed_hash
-    assert_equal({ :a => 1, "b" => 2 }, @mixed)
-  end
-
   def test_deep_transform_keys!
     assert_equal @nested_upcase_strings, @nested_symbols.deep_dup.deep_transform_keys! { |key| key.to_s.upcase }
     assert_equal @nested_upcase_strings, @nested_strings.deep_dup.deep_transform_keys! { |key| key.to_s.upcase }
@@ -102,6 +78,31 @@ class HashExtTest < ActiveSupport::TestCase
     transformed_hash = @nested_mixed.deep_dup
     transformed_hash.deep_transform_keys! { |key| key.to_s.upcase }
     assert_equal @nested_upcase_strings, transformed_hash
+    assert_equal({ "a" => { b: { "c" => 3 } } }, @nested_mixed)
+  end
+
+  def test_deep_transform_values
+    assert_equal({ "a" => "1", "b" => "2" }, @strings.deep_transform_values { |value| value.to_s })
+    assert_equal({ "a" => { "b" => { "c" => "3" } } }, @nested_strings.deep_transform_values { |value| value.to_s })
+    assert_equal({ "a" => [ { "b" => "2" }, { "c" => "3" }, "4" ] }, @string_array_of_hashes.deep_transform_values { |value| value.to_s })
+  end
+
+  def test_deep_transform_values_not_mutates
+    transformed_hash = @nested_mixed.deep_dup
+    transformed_hash.deep_transform_values { |value| value.to_s }
+    assert_equal @nested_mixed, transformed_hash
+  end
+
+  def test_deep_transform_values!
+    assert_equal({ "a" => "1", "b" => "2" }, @strings.deep_transform_values! { |value| value.to_s })
+    assert_equal({ "a" => { "b" => { "c" => "3" } } }, @nested_strings.deep_transform_values! { |value| value.to_s })
+    assert_equal({ "a" => [ { "b" => "2" }, { "c" => "3" }, "4" ] }, @string_array_of_hashes.deep_transform_values! { |value| value.to_s })
+  end
+
+  def test_deep_transform_values_with_bang_mutates
+    transformed_hash = @nested_mixed.deep_dup
+    transformed_hash.deep_transform_values! { |value| value.to_s }
+    assert_equal({ "a" => { b: { "c" => "3" } } }, transformed_hash)
     assert_equal({ "a" => { b: { "c" => 3 } } }, @nested_mixed)
   end
 
@@ -300,9 +301,9 @@ class HashExtTest < ActiveSupport::TestCase
   end
 
   def test_reverse_merge
-    defaults = { a: "x", b: "y", c: 10 }.freeze
+    defaults = { d: 0, a: "x", b: "y", c: 10 }.freeze
     options  = { a: 1, b: 2 }
-    expected = { a: 1, b: 2, c: 10 }
+    expected = { d: 0, a: 1, b: 2, c: 10 }
 
     # Should merge defaults into options, creating a new hash.
     assert_equal expected, options.reverse_merge(defaults)
@@ -312,6 +313,9 @@ class HashExtTest < ActiveSupport::TestCase
     merged = options.dup
     assert_equal expected, merged.reverse_merge!(defaults)
     assert_equal expected, merged
+
+    # Make the order consistent with the non-overwriting reverse merge.
+    assert_equal expected.keys, merged.keys
 
     # Should be an alias for reverse_merge!
     merged = options.dup
@@ -334,30 +338,16 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal expected, merged
   end
 
-  def test_slice
-    original = { a: "x", b: "y", c: 10 }
-    expected = { a: "x", b: "y" }
-
-    # Should return a new hash with only the given keys.
-    assert_equal expected, original.slice(:a, :b)
-    assert_not_equal expected, original
-  end
-
   def test_slice_inplace
     original = { a: "x", b: "y", c: 10 }
-    expected = { c: 10 }
+    expected_return = { c: 10 }
+    expected_original = { a: "x", b: "y" }
+
+    # Should return a hash containing the removed key/value pairs.
+    assert_equal expected_return, original.slice!(:a, :b)
 
     # Should replace the hash with only the given keys.
-    assert_equal expected, original.slice!(:a, :b)
-  end
-
-  def test_slice_with_an_array_key
-    original = { :a => "x", :b => "y", :c => 10, [:a, :b] => "an array key" }
-    expected = { [:a, :b] => "an array key", :c => 10 }
-
-    # Should return a new hash with only the given keys when given an array key.
-    assert_equal expected, original.slice([:a, :b], :c)
-    assert_not_equal expected, original
+    assert_equal expected_original, original
   end
 
   def test_slice_inplace_with_an_array_key
@@ -366,14 +356,6 @@ class HashExtTest < ActiveSupport::TestCase
 
     # Should replace the hash with only the given keys when given an array key.
     assert_equal expected, original.slice!([:a, :b], :c)
-  end
-
-  def test_slice_with_splatted_keys
-    original = { :a => "x", :b => "y", :c => 10, [:a, :b] => "an array key" }
-    expected = { a: "x", b: "y" }
-
-    # Should grab each of the splatted keys.
-    assert_equal expected, original.slice(*[:a, :b])
   end
 
   def test_slice_bang_does_not_override_default
@@ -441,7 +423,7 @@ class HashExtTest < ActiveSupport::TestCase
     original.freeze
     assert_nothing_raised { original.except(:a) }
 
-    assert_raise(RuntimeError) { original.except!(:a) }
+    assert_raise(FrozenError) { original.except!(:a) }
   end
 
   def test_except_does_not_delete_values_in_original
@@ -451,38 +433,10 @@ class HashExtTest < ActiveSupport::TestCase
     end
   end
 
-  def test_compact
-    hash_contain_nil_value = @symbols.merge(z: nil)
-    hash_with_only_nil_values = { a: nil, b: nil }
-
-    h = hash_contain_nil_value.dup
-    assert_equal(@symbols, h.compact)
-    assert_equal(hash_contain_nil_value, h)
-
-    h = hash_with_only_nil_values.dup
-    assert_equal({}, h.compact)
-    assert_equal(hash_with_only_nil_values, h)
-
-    h = @symbols.dup
-    assert_equal(@symbols, h.compact)
-    assert_equal(@symbols, h)
-  end
-
-  def test_compact!
-    hash_contain_nil_value = @symbols.merge(z: nil)
-    hash_with_only_nil_values = { a: nil, b: nil }
-
-    h = hash_contain_nil_value.dup
-    assert_equal(@symbols, h.compact!)
-    assert_equal(@symbols, h)
-
-    h = hash_with_only_nil_values.dup
-    assert_equal({}, h.compact!)
-    assert_equal({}, h)
-
-    h = @symbols.dup
-    assert_nil(h.compact!)
-    assert_equal(@symbols, h)
+  def test_requiring_compact_is_deprecated
+    assert_deprecated do
+      require "active_support/core_ext/hash/compact"
+    end
   end
 end
 
@@ -1056,7 +1010,7 @@ class HashToXmlTest < ActiveSupport::TestCase
       </alert>
     XML
     alert_at = Hash.from_xml(alert_xml)["alert"]["alert_at"]
-    assert alert_at.utc?
+    assert_predicate alert_at, :utc?
     assert_equal Time.utc(2008, 2, 10, 15, 30, 45), alert_at
   end
 
@@ -1067,7 +1021,7 @@ class HashToXmlTest < ActiveSupport::TestCase
       </alert>
     XML
     alert_at = Hash.from_xml(alert_xml)["alert"]["alert_at"]
-    assert alert_at.utc?
+    assert_predicate alert_at, :utc?
     assert_equal Time.utc(2008, 2, 10, 15, 30, 45), alert_at
   end
 
@@ -1078,7 +1032,7 @@ class HashToXmlTest < ActiveSupport::TestCase
       </alert>
     XML
     alert_at = Hash.from_xml(alert_xml)["alert"]["alert_at"]
-    assert alert_at.utc?
+    assert_predicate alert_at, :utc?
     assert_equal 2050,  alert_at.year
     assert_equal 2,     alert_at.month
     assert_equal 10,    alert_at.day

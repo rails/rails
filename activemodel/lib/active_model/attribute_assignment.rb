@@ -27,7 +27,7 @@ module ActiveModel
     #   cat.status # => 'sleeping'
     def assign_attributes(new_attributes)
       if !new_attributes.respond_to?(:stringify_keys)
-        raise ArgumentError, "When assigning attributes, you must pass a hash as an argument."
+        raise ArgumentError, "When assigning attributes, you must pass a hash as an argument, #{new_attributes.class} passed."
       end
       return if new_attributes.empty?
 
@@ -35,8 +35,9 @@ module ActiveModel
       _assign_attributes(sanitize_for_mass_assignment(attributes))
     end
 
-    private
+    alias attributes= assign_attributes
 
+    private
       def _assign_attributes(attributes)
         attributes.each do |k, v|
           _assign_attribute(k, v)

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/object/blank"
 
 module ActiveSupport
@@ -22,7 +24,7 @@ module ActiveSupport
   # To raise an exception when the value is blank, append a
   # bang to the key name, like:
   #
-  #   h.dog! # => raises KeyError: key not found: :dog
+  #   h.dog! # => raises KeyError: :dog is blank
   #
   class OrderedOptions < Hash
     alias_method :_get, :[] # preserve the original #[] method
@@ -37,14 +39,14 @@ module ActiveSupport
     end
 
     def method_missing(name, *args)
-      name_string = name.to_s
+      name_string = +name.to_s
       if name_string.chomp!("=")
         self[name_string] = args.first
       else
         bangs = name_string.chomp!("!")
 
         if bangs
-          fetch(name_string.to_sym).presence || raise(KeyError.new("#{name_string} is blank."))
+          self[name_string].presence || raise(KeyError.new(":#{name_string} is blank"))
         else
           self[name_string]
         end
@@ -52,6 +54,10 @@ module ActiveSupport
     end
 
     def respond_to_missing?(name, include_private)
+      true
+    end
+
+    def extractable_options?
       true
     end
   end

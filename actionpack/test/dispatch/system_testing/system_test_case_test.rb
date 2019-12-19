@@ -1,4 +1,7 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
+require "selenium/webdriver"
 
 class SetDriverToRackTestTest < DrivenByRackTest
   test "uses rack_test" do
@@ -20,13 +23,23 @@ class SetDriverToSeleniumTest < DrivenBySeleniumWithChrome
   end
 end
 
-class SetHostTest < DrivenByRackTest
-  test "sets default host" do
-    assert_equal "http://127.0.0.1", Capybara.app_host
+class SetDriverToSeleniumHeadlessChromeTest < DrivenBySeleniumWithHeadlessChrome
+  test "uses selenium headless chrome" do
+    assert_equal :selenium, Capybara.current_driver
   end
+end
 
+class SetDriverToSeleniumHeadlessFirefoxTest < DrivenBySeleniumWithHeadlessFirefox
+  test "uses selenium headless firefox" do
+    assert_equal :selenium, Capybara.current_driver
+  end
+end
+
+class SetHostTest < DrivenByRackTest
   test "overrides host" do
-    host! "http://example.com"
+    assert_deprecated do
+      host! "http://example.com"
+    end
 
     assert_equal "http://example.com", Capybara.app_host
   end

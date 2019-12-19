@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/connection_helper"
 
@@ -13,8 +15,9 @@ module ActiveRecord
     def setup
       super
       @subscriber = SQLSubscriber.new
-      @subscription = ActiveSupport::Notifications.subscribe("sql.active_record", @subscriber)
       @connection = ActiveRecord::Base.connection
+      @connection.materialize_transactions
+      @subscription = ActiveSupport::Notifications.subscribe("sql.active_record", @subscriber)
     end
 
     def teardown
@@ -22,28 +25,20 @@ module ActiveRecord
       super
     end
 
-    def test_truncate
-      count = ActiveRecord::Base.connection.execute("select count(*) from comments").first["count"].to_i
-      assert_operator count, :>, 0
-      ActiveRecord::Base.connection.truncate("comments")
-      count = ActiveRecord::Base.connection.execute("select count(*) from comments").first["count"].to_i
-      assert_equal 0, count
-    end
-
     def test_encoding
-      assert_queries(1) do
+      assert_queries(1, ignore_none: true) do
         assert_not_nil @connection.encoding
       end
     end
 
     def test_collation
-      assert_queries(1) do
+      assert_queries(1, ignore_none: true) do
         assert_not_nil @connection.collation
       end
     end
 
     def test_ctype
-      assert_queries(1) do
+      assert_queries(1, ignore_none: true) do
         assert_not_nil @connection.ctype
       end
     end
@@ -55,7 +50,7 @@ module ActiveRecord
     # Ensure, we can set connection params using the example of Generic
     # Query Optimizer (geqo). It is 'on' per default.
     def test_connection_options
-      params = ActiveRecord::Base.connection_config.dup
+      params = ActiveRecord::Base.connection_db_config.configuration_hash.dup
       params[:options] = "-c geqo=off"
       NonExistentTable.establish_connection(params)
 
@@ -101,7 +96,7 @@ module ActiveRecord
     end
 
     def test_indexes_logs_name
-      assert_deprecated { @connection.indexes("items", "hello") }
+      @connection.indexes("items")
       assert_equal "SCHEMA", @subscriber.logged[0][1]
     end
 
@@ -133,8 +128,8 @@ module ActiveRecord
 
     if ActiveRecord::Base.connection.prepared_statements
       def test_statement_key_is_logged
-        binds = [bind_attribute(nil, 1)]
-        @connection.exec_query("SELECT $1::integer", "SQL", binds, prepare: true)
+        bind = Relation::QueryAttribute.new(nil, 1, Type::Value.new)
+        @connection.exec_query("SELECT $1::integer", "SQL", [bind], prepare: true)
         name = @subscriber.payloads.last[:statement_name]
         assert name
         res = @connection.exec_query("EXPLAIN (FORMAT JSON) EXECUTE #{name}(1)")
@@ -143,38 +138,19 @@ module ActiveRecord
       end
     end
 
-    # Must have PostgreSQL >= 9.2, or with_manual_interventions set to
-    # true for this test to run.
-    #
-    # When prompted, restart the PostgreSQL server with the
-    # "-m fast" option or kill the individual connection assuming
-    # you know the incantation to do that.
-    # To restart PostgreSQL 9.1 on OS X, installed via MacPorts, ...
-    # sudo su postgres -c "pg_ctl restart -D /opt/local/var/db/postgresql91/defaultdb/ -m fast"
     def test_reconnection_after_actual_disconnection_with_verify
       original_connection_pid = @connection.query("select pg_backend_pid()")
 
       # Sanity check.
-      assert @connection.active?
+      assert_predicate @connection, :active?
 
-      if @connection.send(:postgresql_version) >= 90200
-        secondary_connection = ActiveRecord::Base.connection_pool.checkout
-        secondary_connection.query("select pg_terminate_backend(#{original_connection_pid.first.first})")
-        ActiveRecord::Base.connection_pool.checkin(secondary_connection)
-      elsif ARTest.config["with_manual_interventions"]
-        puts "Kill the connection now (e.g. by restarting the PostgreSQL " \
-          'server with the "-m fast" option) and then press enter.'
-        $stdin.gets
-      else
-        # We're not capable of terminating the backend ourselves, and
-        # we're not allowed to seek assistance; bail out without
-        # actually testing anything.
-        return
-      end
+      secondary_connection = ActiveRecord::Base.connection_pool.checkout
+      secondary_connection.query("select pg_terminate_backend(#{original_connection_pid.first.first})")
+      ActiveRecord::Base.connection_pool.checkin(secondary_connection)
 
       @connection.verify!
 
-      assert @connection.active?
+      assert_predicate @connection, :active?
 
       # If we get no exception here, then either we re-connected successfully, or
       # we never actually got disconnected.
@@ -218,9 +194,16 @@ module ActiveRecord
       end
     end
 
+    def test_set_session_timezone
+      run_without_connection do |orig_connection|
+        ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { timezone: "America/New_York" }))
+        assert_equal "America/New_York", ActiveRecord::Base.connection.query_value("SHOW TIME ZONE")
+      end
+    end
+
     def test_get_and_release_advisory_lock
       lock_id = 5295901941911233559
-      list_advisory_locks = <<-SQL
+      list_advisory_locks = <<~SQL
         SELECT locktype,
               (classid::bigint << 32) | objid::bigint AS lock_id
         FROM pg_locks
@@ -251,8 +234,11 @@ module ActiveRecord
       end
     end
 
-    private
+    def test_supports_ranges_is_deprecated
+      assert_deprecated { @connection.supports_ranges? }
+    end
 
+    private
       def with_warning_suppression
         log_level = @connection.client_min_messages
         @connection.client_min_messages = "error"

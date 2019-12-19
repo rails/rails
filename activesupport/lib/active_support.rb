@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 #--
-# Copyright (c) 2005-2017 David Heinemeier Hansson
+# Copyright (c) 2005-2019 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -32,6 +34,7 @@ module ActiveSupport
   extend ActiveSupport::Autoload
 
   autoload :Concern
+  autoload :ActionableError
   autoload :CurrentAttributes
   autoload :Dependencies
   autoload :DescendantsTracker
@@ -39,9 +42,11 @@ module ActiveSupport
   autoload :Executor
   autoload :FileUpdateChecker
   autoload :EventedFileUpdateChecker
+  autoload :ForkTracker
   autoload :LogSubscriber
   autoload :Notifications
   autoload :Reloader
+  autoload :SecureCompareRotator
 
   eager_autoload do
     autoload :BacktraceCleaner
@@ -51,6 +56,7 @@ module ActiveSupport
     autoload :Callbacks
     autoload :Configurable
     autoload :Deprecation
+    autoload :Digest
     autoload :Gzip
     autoload :Inflector
     autoload :JSON
@@ -79,18 +85,6 @@ module ActiveSupport
   end
 
   cattr_accessor :test_order # :nodoc:
-
-  def self.halt_callback_chains_on_return_false
-    ActiveSupport::Deprecation.warn(<<-MSG.squish)
-      ActiveSupport.halt_callback_chains_on_return_false is deprecated and will be removed in Rails 5.2.
-    MSG
-  end
-
-  def self.halt_callback_chains_on_return_false=(value)
-    ActiveSupport::Deprecation.warn(<<-MSG.squish)
-      ActiveSupport.halt_callback_chains_on_return_false= is deprecated and will be removed in Rails 5.2.
-    MSG
-  end
 
   def self.to_time_preserves_timezone
     DateAndTime::Compatibility.preserve_timezone

@@ -1,0 +1,2 @@
+module MessagesHelper
+end

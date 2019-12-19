@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Rails
   module Generators
     class HelperGenerator < NamedBase # :nodoc:
@@ -8,6 +10,11 @@ module Rails
       end
 
       hook_for :test_framework
+
+      private
+        def file_name
+          @_file_name ||= super.sub(/_helper\z/i, "")
+        end
     end
   end
 end

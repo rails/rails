@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rails/generators"
 require "rails/generators/rails/plugin/plugin_generator"
 
@@ -7,7 +9,7 @@ module Rails
       class << self
         def generator
           @generator ||= Rails::Generators::PluginGenerator.new ["plugin"],
-            { engine: true }, destination_root: ENGINE_ROOT
+            { engine: true }, { destination_root: ENGINE_ROOT }
         end
 
         def run(action)

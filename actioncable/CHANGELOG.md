@@ -1,8 +1,6 @@
-*   ActionCable socket errors are now logged to the console
+*   Subscription confirmations and rejections are now logged at the `DEBUG` level instead of `INFO`.
 
-    Previously any socket errors were ignored and this made it hard to diagnose socket issues (e.g. as discussed in #28362).
-
-    *Edward Poot*
+    *DHH*
 
 
-Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/actioncable/CHANGELOG.md) for previous changes.
+Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/actioncable/CHANGELOG.md) for previous changes.

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "active_support/core_ext/numeric/time"
 
@@ -12,8 +14,8 @@ class ExclusionValidationTest < ActiveModel::TestCase
   def test_validates_exclusion_of
     Topic.validates_exclusion_of(:title, in: %w( abe monkey ))
 
-    assert Topic.new("title" => "something", "content" => "abc").valid?
-    assert Topic.new("title" => "monkey", "content" => "abc").invalid?
+    assert_predicate Topic.new("title" => "something", "content" => "abc"), :valid?
+    assert_predicate Topic.new("title" => "monkey", "content" => "abc"), :invalid?
   end
 
   def test_validates_exclusion_of_with_formatted_message
@@ -22,8 +24,8 @@ class ExclusionValidationTest < ActiveModel::TestCase
     assert Topic.new("title" => "something", "content" => "abc")
 
     t = Topic.new("title" => "monkey")
-    assert t.invalid?
-    assert t.errors[:title].any?
+    assert_predicate t, :invalid?
+    assert_predicate t.errors[:title], :any?
     assert_equal ["option monkey is restricted"], t.errors[:title]
   end
 
@@ -33,8 +35,8 @@ class ExclusionValidationTest < ActiveModel::TestCase
     assert Topic.new("title" => "something", "content" => "abc")
 
     t = Topic.new("title" => "monkey")
-    assert t.invalid?
-    assert t.errors[:title].any?
+    assert_predicate t, :invalid?
+    assert_predicate t.errors[:title], :any?
   end
 
   def test_validates_exclusion_of_for_ruby_class
@@ -42,12 +44,12 @@ class ExclusionValidationTest < ActiveModel::TestCase
 
     p = Person.new
     p.karma = "abe"
-    assert p.invalid?
+    assert_predicate p, :invalid?
 
     assert_equal ["is reserved"], p.errors[:karma]
 
     p.karma = "Lifo"
-    assert p.valid?
+    assert_predicate p, :valid?
   ensure
     Person.clear_validators!
   end
@@ -58,26 +60,26 @@ class ExclusionValidationTest < ActiveModel::TestCase
     t = Topic.new
     t.title = "elephant"
     t.author_name = "sikachu"
-    assert t.invalid?
+    assert_predicate t, :invalid?
 
     t.title = "wasabi"
-    assert t.valid?
+    assert_predicate t, :valid?
   end
 
   def test_validates_exclusion_of_with_range
     Topic.validates_exclusion_of :content, in: ("a".."g")
 
-    assert Topic.new(content: "g").invalid?
-    assert Topic.new(content: "h").valid?
+    assert_predicate Topic.new(content: "g"), :invalid?
+    assert_predicate Topic.new(content: "h"), :valid?
   end
 
   def test_validates_exclusion_of_with_time_range
     Topic.validates_exclusion_of :created_at, in: 6.days.ago..2.days.ago
 
-    assert Topic.new(created_at: 5.days.ago).invalid?
-    assert Topic.new(created_at: 3.days.ago).invalid?
-    assert Topic.new(created_at: 7.days.ago).valid?
-    assert Topic.new(created_at: 1.day.ago).valid?
+    assert_predicate Topic.new(created_at: 5.days.ago), :invalid?
+    assert_predicate Topic.new(created_at: 3.days.ago), :invalid?
+    assert_predicate Topic.new(created_at: 7.days.ago), :valid?
+    assert_predicate Topic.new(created_at: 1.day.ago), :valid?
   end
 
   def test_validates_inclusion_of_with_symbol
@@ -90,7 +92,7 @@ class ExclusionValidationTest < ActiveModel::TestCase
       %w(abe)
     end
 
-    assert p.invalid?
+    assert_predicate p, :invalid?
     assert_equal ["is reserved"], p.errors[:karma]
 
     p = Person.new
@@ -100,7 +102,7 @@ class ExclusionValidationTest < ActiveModel::TestCase
       %w()
     end
 
-    assert p.valid?
+    assert_predicate p, :valid?
   ensure
     Person.clear_validators!
   end

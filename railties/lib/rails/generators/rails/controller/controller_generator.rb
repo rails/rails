@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Rails
   module Generators
     class ControllerGenerator < NamedBase # :nodoc:
@@ -13,51 +15,23 @@ module Rails
       end
 
       def add_routes
-        unless options[:skip_routes]
-          actions.reverse_each do |action|
-            # route prepends two spaces onto the front of the string that is passed, this corrects that.
-            route indent(generate_routing_code(action), 2)[2..-1]
-          end
-        end
+        return if options[:skip_routes]
+        return if actions.empty?
+        routing_code = actions.map { |action| "get '#{file_name}/#{action}'" }.join("\n")
+        route routing_code, namespace: regular_class_path
       end
 
-      hook_for :template_engine, :test_framework, :helper, :assets
+      hook_for :template_engine, :test_framework, :helper, :assets do |generator|
+        invoke generator, [ remove_possible_suffix(name), actions ]
+      end
 
       private
+        def file_name
+          @_file_name ||= remove_possible_suffix(super)
+        end
 
-        # This method creates nested route entry for namespaced resources.
-        # For eg. rails g controller foo/bar/baz index
-        # Will generate -
-        # namespace :foo do
-        #   namespace :bar do
-        #     get 'baz/index'
-        #   end
-        # end
-        def generate_routing_code(action)
-          depth = 0
-          lines = []
-
-          # Create 'namespace' ladder
-          # namespace :foo do
-          #   namespace :bar do
-          regular_class_path.each do |ns|
-            lines << indent("namespace :#{ns} do\n", depth * 2)
-            depth += 1
-          end
-
-          # Create route
-          #     get 'baz/index'
-          lines << indent(%{get '#{file_name}/#{action}'\n}, depth * 2)
-
-          # Create `end` ladder
-          #   end
-          # end
-          until depth.zero?
-            depth -= 1
-            lines << indent("end\n", depth * 2)
-          end
-
-          lines.join
+        def remove_possible_suffix(name)
+          name.sub(/_?controller$/i, "")
         end
     end
   end

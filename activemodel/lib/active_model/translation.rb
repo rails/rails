@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveModel
   # == Active \Model \Translation
   #
@@ -62,7 +64,7 @@ module ActiveModel
       defaults << attribute.humanize
 
       options[:default] = defaults
-      I18n.translate(defaults.shift, options)
+      I18n.translate(defaults.shift, **options)
     end
   end
 end

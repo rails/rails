@@ -1,6 +1,8 @@
-require "abstract_unit"
+# frozen_string_literal: true
+
+require_relative "../abstract_unit"
 require "active_support/core_ext/marshal"
-require "dependencies_test_helpers"
+require_relative "../dependencies_test_helpers"
 
 class MarshalTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation

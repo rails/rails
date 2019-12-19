@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
@@ -35,7 +37,6 @@ module ActiveRecord
         end
 
         protected
-
           def parts
             @parts ||= [@schema, @identifier].compact
           end
@@ -66,7 +67,7 @@ module ActiveRecord
         # * <tt>"schema_name".table_name</tt>
         # * <tt>"schema.name"."table name"</tt>
         def extract_schema_qualified_name(string)
-          schema, table = string.scan(/[^".\s]+|"[^"]*"/)
+          schema, table = string.scan(/[^".]+|"[^"]*"/)
           if table.nil?
             table = schema
             schema = nil

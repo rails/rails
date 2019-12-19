@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rack/session/abstract/id"
 
 module ActionDispatch
@@ -88,7 +90,21 @@ module ActionDispatch
       # +nil+ if the given key is not found in the session.
       def [](key)
         load_for_read!
-        @delegate[key.to_s]
+        key = key.to_s
+
+        if key == "session_id"
+          id&.public_id
+        else
+          @delegate[key]
+        end
+      end
+
+      # Returns the nested value specified by the sequence of keys, returning
+      # +nil+ if any intermediate step is +nil+.
+      def dig(*keys)
+        load_for_read!
+        keys = keys.map.with_index { |key, i| i.zero? ? key.to_s : key }
+        @delegate.dig(*keys)
       end
 
       # Returns true if the session has the given key or false.
@@ -128,6 +144,7 @@ module ActionDispatch
         load_for_read!
         @delegate.dup.delete_if { |_, v| v.nil? }
       end
+      alias :to_h :to_hash
 
       # Updates the session with given Hash.
       #
@@ -205,7 +222,6 @@ module ActionDispatch
       end
 
       private
-
         def load_for_read!
           load! if !loaded? && exists?
         end

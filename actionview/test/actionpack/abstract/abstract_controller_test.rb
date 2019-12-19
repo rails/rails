@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "set"
 
@@ -189,10 +191,10 @@ module AbstractController
 
       private
         def self.layout(formats)
-          find_template(name.underscore, { formats: formats }, _prefixes: ["layouts"])
+          find_template(name.underscore, { formats: formats }, { _prefixes: ["layouts"] })
         rescue ActionView::MissingTemplate
           begin
-            find_template("application", { formats: formats }, _prefixes: ["layouts"])
+            find_template("application", { formats: formats }, { _prefixes: ["layouts"] })
           rescue ActionView::MissingTemplate
           end
         end
@@ -227,20 +229,20 @@ module AbstractController
     end
 
     class ActionMissingRespondToActionController < AbstractController::Base
-    # No actions
-    private
-      def action_missing(action_name)
-        self.response_body = "success"
-      end
+      # No actions
+
+      private
+        def action_missing(action_name)
+          self.response_body = "success"
+        end
     end
 
-    class RespondToActionController < AbstractController::Base;
+    class RespondToActionController < AbstractController::Base
       def index() self.response_body = "success" end
 
       def fail()  self.response_body = "fail"    end
 
     private
-
       def method_for_action(action_name)
         action_name.to_s != "fail" && action_name
       end

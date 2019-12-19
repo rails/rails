@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 require "active_support/xml_mini"
-require "active_support/time"
 require "active_support/core_ext/object/blank"
 require "active_support/core_ext/object/to_param"
 require "active_support/core_ext/object/to_query"
+require "active_support/core_ext/object/try"
 require "active_support/core_ext/array/wrap"
 require "active_support/core_ext/hash/reverse_merge"
 require "active_support/core_ext/string/inflections"
@@ -163,7 +165,7 @@ module ActiveSupport
           Hash[params.map { |k, v| [k.to_s.tr("-", "_"), normalize_keys(v)] } ]
         when Array
           params.map { |v| normalize_keys(v) }
-          else
+        else
           params
         end
       end
@@ -176,7 +178,7 @@ module ActiveSupport
           process_array(value)
         when String
           value
-          else
+        else
           raise "can't typecast #{value.class.name} - #{value.inspect}"
         end
       end

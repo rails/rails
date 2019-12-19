@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionDispatch
   # :stopdoc:
   module Journey
@@ -38,7 +40,7 @@ module ActionDispatch
         @parameters.each do |index|
           param = parts[index]
           value = hash[param.name]
-          return "".freeze unless value
+          return "" unless value
           parts[index] = param.escape value
         end
 
@@ -57,7 +59,6 @@ module ActionDispatch
         end
 
         private
-
           def visit(node)
             send(DISPATCH_CACHE[node.type], node)
           end
@@ -166,7 +167,6 @@ module ActionDispatch
 
       class String < FunctionalVisitor # :nodoc:
         private
-
           def binary(node, seed)
             visit(node.right, visit(node.left, seed))
           end
@@ -175,7 +175,7 @@ module ActionDispatch
             last_child = node.children.last
             node.children.inject(seed) { |s, c|
               string = visit(c, s)
-              string << "|".freeze unless last_child == c
+              string << "|" unless last_child == c
               string
             }
           end
@@ -185,7 +185,7 @@ module ActionDispatch
           end
 
           def visit_GROUP(node, seed)
-            visit(node.left, seed << "(".freeze) << ")".freeze
+            visit(node.left, seed.dup << "(") << ")"
           end
 
           INSTANCE = new
@@ -212,7 +212,6 @@ module ActionDispatch
         end
 
         private
-
           def binary(node, seed)
             seed.last.concat node.children.map { |c|
               "#{node.object_id} -> #{c.object_id};"

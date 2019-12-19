@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module Validations
     class UniquenessValidator < ActiveModel::EachValidator # :nodoc:
@@ -6,7 +8,11 @@ module ActiveRecord
           raise ArgumentError, "#{options[:conditions]} was passed as :conditions but is not callable. " \
                                "Pass a callable instead: `conditions: -> { where(approved: true) }`"
         end
-        super({ case_sensitive: true }.merge!(options))
+        unless Array(options[:scope]).all? { |scope| scope.respond_to?(:to_sym) }
+          raise ArgumentError, "#{options[:scope]} is not supported format for :scope option. " \
+            "Pass a symbol or an array of symbols instead: `scope: :user_id`"
+        end
+        super
         @klass = options[:class]
       end
 
@@ -17,9 +23,9 @@ module ActiveRecord
         relation = build_relation(finder_class, attribute, value)
         if record.persisted?
           if finder_class.primary_key
-            relation = relation.where.not(finder_class.primary_key => record.id_in_database || record.id)
+            relation = relation.where.not(finder_class.primary_key => record.id_in_database)
           else
-            raise UnknownPrimaryKey.new(finder_class, "Can not validate uniqueness for persisted record without primary key.")
+            raise UnknownPrimaryKey.new(finder_class, "Cannot validate uniqueness for persisted record without primary key.")
           end
         end
         relation = scope_relation(record, relation)
@@ -29,7 +35,7 @@ module ActiveRecord
           error_options = options.except(:case_sensitive, :scope, :conditions)
           error_options[:value] = value
 
-          record.errors.add(attribute, :taken, error_options)
+          record.errors.add(attribute, :taken, **error_options)
         end
       end
 
@@ -50,7 +56,21 @@ module ActiveRecord
       end
 
       def build_relation(klass, attribute, value)
-        klass.unscoped.where!({ attribute => value }, options)
+        relation = klass.unscoped
+        comparison = relation.bind_attribute(attribute, value) do |attr, bind|
+          return relation.none! if bind.unboundable?
+
+          if !options.key?(:case_sensitive) || bind.nil?
+            klass.connection.default_uniqueness_comparison(attr, bind, klass)
+          elsif options[:case_sensitive]
+            klass.connection.case_sensitive_comparison(attr, bind)
+          else
+            # will use SQL LOWER function before comparison, unless it detects a case insensitive collation
+            klass.connection.case_insensitive_comparison(attr, bind)
+          end
+        end
+
+        relation.where!(comparison)
       end
 
       def scope_relation(record, relation)
@@ -173,9 +193,7 @@ module ActiveRecord
       #                                      | # Boom! We now have a duplicate
       #                                      | # title!
       #
-      # This could even happen if you use transactions with the 'serializable'
-      # isolation level. The best way to work around this problem is to add a unique
-      # index to the database table using
+      # The best way to work around this problem is to add a unique index to the database table using
       # {connection.add_index}[rdoc-ref:ConnectionAdapters::SchemaStatements#add_index].
       # In the rare case that a race condition occurs, the database will guarantee
       # the field's uniqueness.
@@ -187,7 +205,7 @@ module ActiveRecord
       # can catch it and restart the transaction (e.g. by telling the user
       # that the title already exists, and asking them to re-enter the title).
       # This technique is also known as
-      # {optimistic concurrency control}[http://en.wikipedia.org/wiki/Optimistic_concurrency_control].
+      # {optimistic concurrency control}[https://en.wikipedia.org/wiki/Optimistic_concurrency_control].
       #
       # The bundled ActiveRecord::ConnectionAdapters distinguish unique index
       # constraint errors from other types of database errors by throwing an

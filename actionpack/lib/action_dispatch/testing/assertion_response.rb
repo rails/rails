@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionDispatch
   # This is a class that abstracts away an asserted response. It purposely
   # does not inherit from Response because it doesn't need it. That means it
@@ -33,7 +35,6 @@ module ActionDispatch
     end
 
     private
-
       def code_from_name(name)
         GENERIC_RESPONSE_CODES[name] || Rack::Utils::SYMBOL_TO_STATUS_CODE[name]
       end

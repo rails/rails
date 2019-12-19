@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "action_view"
 require "action_controller"
@@ -65,7 +67,6 @@ class ActionMailerI18nWithControllerTest < ActionDispatch::IntegrationTest
   end
 
   private
-
     def with_translation(locale, data)
       I18n.backend.store_translations(locale, data)
       yield

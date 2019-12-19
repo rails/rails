@@ -10,7 +10,8 @@ Rails.serializeElement = (element, additionalParam) ->
   params = []
 
   inputs.forEach (input) ->
-    return unless input.name
+    return if !input.name || input.disabled
+    return if matches(input, 'fieldset[disabled] *')
     if matches(input, 'select')
       toArray(input.options).forEach (option) ->
         params.push(name: input.name, value: option.value) if option.selected

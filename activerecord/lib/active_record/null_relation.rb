@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module NullRelation # :nodoc:
     def pluck(*column_names)
@@ -58,7 +60,6 @@ module ActiveRecord
     end
 
     private
-
       def exec_queries
         @records = [].freeze
       end

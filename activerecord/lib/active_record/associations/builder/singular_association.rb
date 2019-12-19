@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 # This class is inherited by the has_one and belongs_to association classes
 
 module ActiveRecord::Associations::Builder # :nodoc:
   class SingularAssociation < Association #:nodoc:
     def self.valid_options(options)
-      super + [:foreign_type, :dependent, :primary_key, :inverse_of, :required]
+      super + [:required, :touch]
     end
 
     def self.define_accessors(model, reflection)
@@ -36,5 +38,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
         end
       CODE
     end
+
+    private_class_method :valid_options, :define_accessors, :define_constructors
   end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/module/anonymous"
 
 module ActiveModel
@@ -88,7 +90,7 @@ module ActiveModel
   #   class MyValidator < ActiveModel::Validator
   #     def initialize(options={})
   #       super
-  #       options[:class].send :attr_accessor, :custom_attribute
+  #       options[:class].attr_accessor :custom_attribute
   #     end
   #   end
   class Validator
@@ -173,7 +175,6 @@ module ActiveModel
     end
 
     private
-
       def validate_each(record, attribute, value)
         @block.call(record, attribute, value)
       end

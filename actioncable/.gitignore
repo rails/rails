@@ -1,2 +1,3 @@
-/lib/assets/compiled
-/tmp
+/src
+/test/javascript/compiled/
+/tmp/

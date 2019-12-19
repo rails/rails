@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 # coding: ISO-8859-15
 
 class CurrenciesHaveSymbols < ActiveRecord::Migration::Current

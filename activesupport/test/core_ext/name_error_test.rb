@@ -1,4 +1,6 @@
-require "abstract_unit"
+# frozen_string_literal: true
+
+require_relative "../abstract_unit"
 require "active_support/core_ext/name_error"
 
 class NameErrorTest < ActiveSupport::TestCase
@@ -15,7 +17,7 @@ class NameErrorTest < ActiveSupport::TestCase
     exc = assert_raise NameError do
       some_method_that_does_not_exist
     end
-    assert !exc.missing_name?(:Foo)
+    assert_not exc.missing_name?(:Foo)
     assert_nil exc.missing_name
   end
 end

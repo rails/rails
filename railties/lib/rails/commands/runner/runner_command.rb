@@ -1,22 +1,28 @@
+# frozen_string_literal: true
+
+require "rails/command/environment_argument"
+
 module Rails
   module Command
     class RunnerCommand < Base # :nodoc:
-      class_option :environment, aliases: "-e", type: :string,
-        default: Rails::Command.environment.dup,
-        desc: "The environment for the runner to operate under (test/development/production)"
+      include EnvironmentArgument
+
+      self.environment_desc = "The environment for the runner to operate under (test/development/production)"
 
       no_commands do
         def help
           super
-          puts self.class.desc
+          say self.class.desc
         end
       end
 
       def self.banner(*)
-        "#{super} [<'Some.ruby(code)'> | <filename.rb>]"
+        "#{super} [<'Some.ruby(code)'> | <filename.rb> | -]"
       end
 
       def perform(code_or_file = nil, *command_argv)
+        extract_environment_option_from_argument
+
         unless code_or_file
           help
           exit 1
@@ -29,17 +35,19 @@ module Rails
 
         ARGV.replace(command_argv)
 
-        if File.exist?(code_or_file)
+        if code_or_file == "-"
+          eval($stdin.read, TOPLEVEL_BINDING, "stdin")
+        elsif File.exist?(code_or_file)
           $0 = code_or_file
           Kernel.load code_or_file
         else
           begin
-            eval(code_or_file, binding, __FILE__, __LINE__)
-          rescue SyntaxError, NameError => error
-            $stderr.puts "Please specify a valid ruby command or the path of a script to run."
-            $stderr.puts "Run '#{self.class.executable} -h' for help."
-            $stderr.puts
-            $stderr.puts error
+            eval(code_or_file, TOPLEVEL_BINDING, __FILE__, __LINE__)
+          rescue SyntaxError, NameError => e
+            error "Please specify a valid ruby command or the path of a script to run."
+            error "Run '#{self.class.executable} -h' for help."
+            error ""
+            error e
             exit 1
           end
         end

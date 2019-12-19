@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/test_case"
 require "active_support/testing/autorun"
 require "rails/generators/rails/app/app_generator"
@@ -80,9 +82,8 @@ module Rails
         file.puts "--hello --world"
         file.flush
 
-        message = nil
         scrubber = Class.new(ARGVScrubber) {
-          define_method(:puts) { |msg| message = msg }
+          define_method(:puts) { |msg| }
         }.new ["new", "--rc=#{file.path}"]
         args = scrubber.prepare!
         assert_equal ["--hello", "--world"], args

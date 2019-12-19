@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "fileutils"
 require "abstract_unit"
 require "mailers/base_mailer"
@@ -38,14 +40,14 @@ class FragmentCachingTest < BaseCachingTest
   def test_fragment_exist_with_caching_enabled
     @store.write("views/name", "value")
     assert @mailer.fragment_exist?("name")
-    assert !@mailer.fragment_exist?("other_name")
+    assert_not @mailer.fragment_exist?("other_name")
   end
 
   def test_fragment_exist_with_caching_disabled
     @mailer.perform_caching = false
     @store.write("views/name", "value")
-    assert !@mailer.fragment_exist?("name")
-    assert !@mailer.fragment_exist?("other_name")
+    assert_not @mailer.fragment_exist?("name")
+    assert_not @mailer.fragment_exist?("other_name")
   end
 
   def test_write_fragment_with_caching_enabled
@@ -88,7 +90,7 @@ class FragmentCachingTest < BaseCachingTest
     buffer = "generated till now -> ".html_safe
     buffer << view_context.send(:fragment_for, "expensive") { fragment_computed = true }
 
-    assert !fragment_computed
+    assert_not fragment_computed
     assert_equal "generated till now -> fragment content", buffer
   end
 
@@ -103,7 +105,7 @@ class FragmentCachingTest < BaseCachingTest
 
     html_safe = @mailer.read_fragment("name")
     assert_equal content, html_safe
-    assert html_safe.html_safe?
+    assert_predicate html_safe, :html_safe?
   end
 end
 
@@ -122,7 +124,7 @@ class FunctionalFragmentCachingTest < BaseCachingTest
 
     assert_match expected_body, email.body.encoded
     assert_match expected_body,
-      @store.read("views/caching_mailer/fragment_cache:#{template_digest("caching_mailer/fragment_cache")}/caching")
+      @store.read("views/caching_mailer/fragment_cache:#{template_digest("caching_mailer/fragment_cache", "html")}/caching")
   end
 
   def test_fragment_caching_in_partials
@@ -131,7 +133,7 @@ class FunctionalFragmentCachingTest < BaseCachingTest
     assert_match(expected_body, email.body.encoded)
 
     assert_match(expected_body,
-      @store.read("views/caching_mailer/_partial:#{template_digest("caching_mailer/_partial")}/caching"))
+      @store.read("views/caching_mailer/_partial:#{template_digest("caching_mailer/_partial", "html")}/caching"))
   end
 
   def test_skip_fragment_cache_digesting
@@ -181,22 +183,21 @@ class FunctionalFragmentCachingTest < BaseCachingTest
     end
 
     assert_equal "caching_mailer", payload[:mailer]
-    assert_equal [ :views, "caching_mailer/fragment_cache:#{template_digest("caching_mailer/fragment_cache")}", :caching ], payload[:key]
+    assert_equal [ :views, "caching_mailer/fragment_cache:#{template_digest("caching_mailer/fragment_cache", "html")}", :caching ], payload[:key]
   ensure
     @mailer.enable_fragment_cache_logging = true
   end
 
   private
-
-    def template_digest(name)
-      ActionView::Digestor.digest(name: name, finder: @mailer.lookup_context)
+    def template_digest(name, format)
+      ActionView::Digestor.digest(name: name, format: format, finder: @mailer.lookup_context)
     end
 end
 
 class CacheHelperOutputBufferTest < BaseCachingTest
   class MockController
     def read_fragment(name, options)
-      return false
+      false
     end
 
     def write_fragment(name, fragment, options)
@@ -212,9 +213,9 @@ class CacheHelperOutputBufferTest < BaseCachingTest
     output_buffer = ActionView::OutputBuffer.new
     controller = MockController.new
     cache_helper = Class.new do
-      def self.controller; end;
-      def self.output_buffer; end;
-      def self.output_buffer=; end;
+      def self.controller; end
+      def self.output_buffer; end
+      def self.output_buffer=; end
     end
     cache_helper.extend(ActionView::Helpers::CacheHelper)
 
@@ -233,9 +234,9 @@ class CacheHelperOutputBufferTest < BaseCachingTest
     output_buffer = ActiveSupport::SafeBuffer.new
     controller = MockController.new
     cache_helper = Class.new do
-      def self.controller; end;
-      def self.output_buffer; end;
-      def self.output_buffer=; end;
+      def self.controller; end
+      def self.output_buffer; end
+      def self.output_buffer=; end
     end
     cache_helper.extend(ActionView::Helpers::CacheHelper)
 
@@ -260,7 +261,7 @@ class ViewCacheDependencyTest < BaseCachingTest
   end
 
   def test_view_cache_dependencies_are_empty_by_default
-    assert NoDependenciesMailer.new.view_cache_dependencies.empty?
+    assert_empty NoDependenciesMailer.new.view_cache_dependencies
   end
 
   def test_view_cache_dependencies_are_listed_in_declaration_order

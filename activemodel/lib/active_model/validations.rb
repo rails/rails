@@ -1,6 +1,6 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/array/extract_options"
-require "active_support/core_ext/hash/keys"
-require "active_support/core_ext/hash/except"
 
 module ActiveModel
   # == Active \Model \Validations
@@ -162,14 +162,14 @@ module ActiveModel
 
         if options.key?(:on)
           options = options.dup
+          options[:on] = Array(options[:on])
           options[:if] = Array(options[:if])
           options[:if].unshift ->(o) {
-            !(Array(options[:on]) & Array(o.validation_context)).empty?
+            !(options[:on] & Array(o.validation_context)).empty?
           }
         end
 
-        args << options
-        set_callback(:validate, *args, &block)
+        set_callback(:validate, *args, options, &block)
       end
 
       # List all validators that are being used to validate the model using
@@ -402,7 +402,6 @@ module ActiveModel
     alias :read_attribute_for_validation :send
 
   private
-
     def run_validations!
       _run_validate_callbacks
       errors.empty?

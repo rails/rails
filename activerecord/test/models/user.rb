@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 require "models/job"
 
 class User < ActiveRecord::Base
   has_secure_token
-  has_secure_token :auth_token
+  has_secure_token :auth_token, length: 36
 
   has_and_belongs_to_many :jobs_pool,
     class_name: "Job",

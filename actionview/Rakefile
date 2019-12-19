@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rake/testtask"
 require "fileutils"
 require "open3"
@@ -21,52 +23,74 @@ namespace :test do
 
   Rake::TestTask.new(:template) do |t|
     t.libs << "test"
-    t.test_files = Dir.glob("test/template/**/*_test.rb")
+    t.test_files = FileList["test/template/**/*_test.rb"]
     t.warning = true
     t.verbose = true
     t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
   end
 
+  desc "Run tests for rails-ujs"
   task :ujs do
+    system("npm run lint")
+    exit $?.exitstatus unless $?.success?
+
     begin
+      listen_host = "localhost"
+      listen_port = "4567"
+
+      runner_command = %w(ruby ../ci/qunit-selenium-runner.rb)
+      if ENV["SELENIUM_DRIVER_URL"]
+        require "socket"
+        runner_command += %W(http://#{Socket.gethostname}:#{listen_port}/ #{ENV["SELENIUM_DRIVER_URL"]})
+        listen_host = "0.0.0.0"
+      else
+        runner_command += %W(http://localhost:#{listen_port}/)
+      end
+
       Dir.mkdir("log")
-      pid = spawn("bundle exec rackup test/ujs/config.ru -p 4567 -s puma > log/test.log 2>&1")
+      pid = File.open("log/test.log", "w") do |f|
+        spawn(*%W(rackup test/ujs/config.ru -o #{listen_host} -p #{listen_port} -s puma), out: f, err: f, pgroup: true)
+      end
 
       start_time = Time.now
 
       loop do
-        break if system("lsof -i :4567 >/dev/null")
+        break if system("lsof -i :4567", 1 => File::NULL)
 
         if Time.now - start_time > 5
-          puts "Timed out after 5 seconds"
+          puts "Failed to start puma after 5 seconds"
+          puts
+          puts File.read("log/test.log")
           exit 1
         end
+
+        sleep 0.2
       end
 
-      system("npm run lint && phantomjs ../ci/phantomjs.js http://localhost:4567/")
-      status = $?.to_i
+      system(*runner_command)
+      status = $?.exitstatus
     ensure
-      Process.kill("KILL", pid) if pid
-      FileUtils.rm_f("log")
+      Process.kill("KILL", -pid) if pid
+      FileUtils.rm_rf("log")
     end
 
     exit status
   end
 
   namespace :integration do
-    desc "ActiveRecord Integration Tests"
+    # Active Record Integration Tests
     Rake::TestTask.new(:active_record) do |t|
       t.libs << "test"
-      t.test_files = Dir.glob("test/activerecord/*_test.rb")
+      t.test_files = FileList["test/activerecord/*_test.rb"]
       t.warning = true
       t.verbose = true
       t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
     end
 
-    desc "ActionPack Integration Tests"
+    # Action Pack Integration Tests
     Rake::TestTask.new(:action_pack) do |t|
       t.libs << "test"
-      t.test_files = Dir.glob("test/actionpack/**/*_test.rb")
+      t.test_files = FileList["test/actionpack/**/*_test.rb"]
       t.warning = true
       t.verbose = true
       t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
@@ -104,7 +128,7 @@ namespace :assets do
     end
 
     print "[verify] #{file} is a UMD module "
-    if pathname.read =~ /module\.exports.*define\.amd/m
+    if /module\.exports.*define\.amd/m.match?(pathname.read)
       puts "[OK]"
     else
       $stderr.puts "[FAIL]"
@@ -128,7 +152,7 @@ namespace :assets do
 end
 
 task :lines do
-  load File.join(File.expand_path("..", __dir__), "/tools/line_statistics")
+  load File.expand_path("../tools/line_statistics", __dir__)
   files = FileList["lib/**/*.rb"]
   CodeTools::LineStatistics.new(files).print_loc
 end

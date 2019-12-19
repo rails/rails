@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Rails
   module Command
     class RakeCommand < Base # :nodoc:
@@ -28,7 +30,7 @@ module Rails
 
             return @rake_tasks if defined?(@rake_tasks)
 
-            require_application_and_environment!
+            require_application!
 
             Rake::TaskManager.record_task_metadata = true
             Rake.application.instance_variable_set(:@name, "rails")

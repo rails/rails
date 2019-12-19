@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/module/attribute_accessors"
 require "action_dispatch/http/filter_redirect"
 require "action_dispatch/http/cache"
@@ -76,13 +78,14 @@ module ActionDispatch # :nodoc:
       x
     end
 
-    CONTENT_TYPE = "Content-Type".freeze
-    SET_COOKIE   = "Set-Cookie".freeze
-    LOCATION     = "Location".freeze
+    CONTENT_TYPE = "Content-Type"
+    SET_COOKIE   = "Set-Cookie"
+    LOCATION     = "Location"
     NO_CONTENT_CODES = [100, 101, 102, 204, 205, 304]
 
     cattr_accessor :default_charset, default: "utf-8"
     cattr_accessor :default_headers
+    cattr_accessor :return_only_media_type_on_content_type, default: false
 
     include Rack::Response::Helpers
     # Aliasing these off because AD::Http::Cache::Response defines them.
@@ -103,7 +106,7 @@ module ActionDispatch # :nodoc:
 
       def body
         @str_body ||= begin
-          buf = ""
+          buf = +""
           each { |chunk| buf << chunk }
           buf
         end
@@ -140,7 +143,6 @@ module ActionDispatch # :nodoc:
       end
 
       private
-
         def each_chunk(&block)
           @buf.each(&block)
         end
@@ -213,23 +215,19 @@ module ActionDispatch # :nodoc:
       end
     end
 
-    def sending?;   synchronize { @sending };   end
-    def committed?; synchronize { @committed }; end
-    def sent?;      synchronize { @sent };      end
+    if defined?(JRUBY_VERSION)
+      def sending?;   synchronize { @sending };   end
+      def committed?; synchronize { @committed }; end
+      def sent?;      synchronize { @sent };      end
+    else
+      def sending?;   @sending;   end
+      def committed?; @committed; end
+      def sent?;      @sent;      end
+    end
 
     # Sets the HTTP status code.
     def status=(status)
       @status = Rack::Utils.status_code(status)
-    end
-
-    # Sets the HTTP content type.
-    def content_type=(content_type)
-      return unless content_type
-      new_header_info = parse_content_type(content_type.to_s)
-      prev_header_info = parsed_content_type_header
-      charset = new_header_info.charset || prev_header_info.charset
-      charset ||= self.class.default_charset unless prev_header_info.mime_type
-      set_content_type new_header_info.mime_type, charset
     end
 
     # Sets the HTTP response's content MIME type. For example, in the controller
@@ -240,8 +238,32 @@ module ActionDispatch # :nodoc:
     # If a character set has been defined for this response (see charset=) then
     # the character set information will also be included in the content type
     # information.
+    def content_type=(content_type)
+      return unless content_type
+      new_header_info = parse_content_type(content_type.to_s)
+      prev_header_info = parsed_content_type_header
+      charset = new_header_info.charset || prev_header_info.charset
+      charset ||= self.class.default_charset unless prev_header_info.mime_type
+      set_content_type new_header_info.mime_type, charset
+    end
 
+    # Content type of response.
     def content_type
+      if self.class.return_only_media_type_on_content_type
+        ActiveSupport::Deprecation.warn(
+          "Rails 6.1 will return Content-Type header without modification." \
+          " If you want just the MIME type, please use `#media_type` instead."
+        )
+
+        content_type = super
+        content_type ? content_type.split(/;\s*charset=/)[0].presence : content_type
+      else
+        super.presence
+      end
+    end
+
+    # Media type of response.
+    def media_type
       parsed_content_type_header.mime_type
     end
 
@@ -252,16 +274,15 @@ module ActionDispatch # :nodoc:
     end
 
     # Sets the HTTP character set. In case of +nil+ parameter
-    # it sets the charset to utf-8.
+    # it sets the charset to +default_charset+.
     #
     #   response.charset = 'utf-16' # => 'utf-16'
     #   response.charset = nil      # => 'utf-8'
     def charset=(charset)
-      header_info = parsed_content_type_header
+      content_type = parsed_content_type_header.mime_type
       if false == charset
-        set_header CONTENT_TYPE, header_info.mime_type
+        set_content_type content_type, nil
       else
-        content_type = header_info.mime_type
         set_content_type content_type, charset || self.class.default_charset
       end
     end
@@ -403,15 +424,18 @@ module ActionDispatch # :nodoc:
     end
 
   private
-
     ContentTypeHeader = Struct.new :mime_type, :charset
     NullContentTypeHeader = ContentTypeHeader.new nil, nil
 
+    CONTENT_TYPE_PARSER = /
+      \A
+      (?<mime_type>[^;\s]+\s*(?:;\s*(?:(?!charset)[^;\s])+)*)?
+      (?:;\s*charset=(?<quote>"?)(?<charset>[^;\s]+)\k<quote>)?
+    /x # :nodoc:
+
     def parse_content_type(content_type)
-      if content_type
-        type, charset = content_type.split(/;\s*charset=/)
-        type = nil if type && type.empty?
-        ContentTypeHeader.new(type, charset)
+      if content_type && match = CONTENT_TYPE_PARSER.match(content_type)
+        ContentTypeHeader.new(match[:mime_type], match[:charset])
       else
         NullContentTypeHeader
       end
@@ -432,6 +456,7 @@ module ActionDispatch # :nodoc:
     def before_committed
       return if committed?
       assign_default_content_type_and_charset!
+      merge_and_normalize_cache_control!(@cache_control)
       handle_conditional_get!
       handle_no_content!
     end
@@ -457,7 +482,7 @@ module ActionDispatch # :nodoc:
     end
 
     def assign_default_content_type_and_charset!
-      return if content_type
+      return if media_type
 
       ct = parsed_content_type_header
       set_content_type(ct.mime_type || Mime[:html].to_s,
@@ -484,7 +509,7 @@ module ActionDispatch # :nodoc:
       end
 
       def respond_to?(method, include_private = false)
-        if method.to_s == "to_path"
+        if method.to_sym == :to_path
           @response.stream.respond_to?(method)
         else
           super
@@ -515,4 +540,6 @@ module ActionDispatch # :nodoc:
       end
     end
   end
+
+  ActiveSupport.run_load_hooks(:action_dispatch_response, Response)
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
@@ -7,7 +9,7 @@ module ActiveRecord
 
           def initialize(type, **options)
             @type = type
-            super(options)
+            super(**options)
           end
         end
       end

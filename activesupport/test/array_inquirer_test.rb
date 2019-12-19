@@ -1,4 +1,6 @@
-require "abstract_unit"
+# frozen_string_literal: true
+
+require_relative "abstract_unit"
 require "active_support/core_ext/array"
 
 class ArrayInquirerTest < ActiveSupport::TestCase
@@ -7,9 +9,9 @@ class ArrayInquirerTest < ActiveSupport::TestCase
   end
 
   def test_individual
-    assert @array_inquirer.mobile?
-    assert @array_inquirer.tablet?
-    assert_not @array_inquirer.desktop?
+    assert_predicate @array_inquirer, :mobile?
+    assert_predicate @array_inquirer, :tablet?
+    assert_not_predicate @array_inquirer, :desktop?
   end
 
   def test_any

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 $:.unshift __dir__
 
 as_lib = File.expand_path("../activesupport/lib", __dir__)
@@ -18,10 +20,11 @@ version = env_value["RAILS_VERSION"]
 edge    = `git rev-parse HEAD`.strip unless version
 
 RailsGuides::Generator.new(
-  edge:     edge,
-  version:  version,
-  all:      env_flag["ALL"],
-  only:     env_value["ONLY"],
-  kindle:   env_flag["KINDLE"],
-  language: env_value["GUIDES_LANGUAGE"]
+  edge:      edge,
+  version:   version,
+  all:       env_flag["ALL"],
+  only:      env_value["ONLY"],
+  kindle:    env_flag["KINDLE"],
+  language:  env_value["GUIDES_LANGUAGE"],
+  direction: env_value["DIRECTION"]
 ).generate

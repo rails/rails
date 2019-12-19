@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveSupport
   module NumberHelper
     extend ActiveSupport::Autoload
@@ -83,6 +85,9 @@ module ActiveSupport
     #   number given by <tt>:format</tt>).  Accepts the same fields
     #   than <tt>:format</tt>, except <tt>%n</tt> is here the
     #   absolute value of the number.
+    # * <tt>:strip_insignificant_zeros</tt> - If +true+ removes
+    #   insignificant zeros after the decimal separator (defaults to
+    #   +false+).
     #
     # ==== Examples
     #
@@ -92,12 +97,18 @@ module ActiveSupport
     #   number_to_currency(1234567890.506, locale: :fr)  # => "1 234 567 890,51 €"
     #   number_to_currency('123a456')                    # => "$123a456"
     #
+    #   number_to_currency("123a456", raise: true)       # => InvalidNumberError
+    #
+    #   number_to_currency(-0.456789, precision: 0)
+    #   # => "$0"
     #   number_to_currency(-1234567890.50, negative_format: '(%u%n)')
     #   # => "($1,234,567,890.50)"
     #   number_to_currency(1234567890.50, unit: '&pound;', separator: ',', delimiter: '')
     #   # => "&pound;1234567890,50"
     #   number_to_currency(1234567890.50, unit: '&pound;', separator: ',', delimiter: '', format: '%n %u')
     #   # => "1234567890,50 &pound;"
+    #   number_to_currency(1234567890.50, strip_insignificant_zeros: true)
+    #   # => "$1,234,567,890.5"
     def number_to_currency(number, options = {})
       NumberToCurrencyConverter.convert(number, options)
     end
@@ -219,7 +230,7 @@ module ActiveSupport
     end
 
     # Formats the bytes in +number+ into a more understandable
-    # representation (e.g., giving it 1500 yields 1.5 KB). This
+    # representation (e.g., giving it 1500 yields 1.46 KB). This
     # method is useful for reporting file sizes to users. You can
     # customize the format in the +options+ hash.
     #
@@ -263,7 +274,7 @@ module ActiveSupport
     end
 
     # Pretty prints (formats and approximates) a number in a way it
-    # is more readable by humans (eg.: 1200000000 becomes "1.2
+    # is more readable by humans (e.g.: 1200000000 becomes "1.2
     # Billion"). This is useful for numbers that can get very large
     # (and too hard to read).
     #
@@ -271,7 +282,7 @@ module ActiveSupport
     # size.
     #
     # You can also define your own unit-quantifier names if you want
-    # to use other decimal units (eg.: 1500 becomes "1.5
+    # to use other decimal units (e.g.: 1500 becomes "1.5
     # kilometers", 0.150 becomes "150 milliliters", etc). You may
     # define a wide range of unit quantifiers, even fractional ones
     # (centi, deci, mili, etc).

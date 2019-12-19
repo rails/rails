@@ -1,4 +1,6 @@
-require "dependencies_test_helpers"
+# frozen_string_literal: true
+
+require_relative "../../dependencies_test_helpers"
 
 module AutoloadingCacheBehavior
   include DependenciesTestHelpers

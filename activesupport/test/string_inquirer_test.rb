@@ -1,4 +1,6 @@
-require "abstract_unit"
+# frozen_string_literal: true
+
+require_relative "abstract_unit"
 
 class StringInquirerTest < ActiveSupport::TestCase
   def setup
@@ -6,11 +8,11 @@ class StringInquirerTest < ActiveSupport::TestCase
   end
 
   def test_match
-    assert @string_inquirer.production?
+    assert_predicate @string_inquirer, :production?
   end
 
   def test_miss
-    assert_not @string_inquirer.development?
+    assert_not_predicate @string_inquirer, :development?
   end
 
   def test_missing_question_mark

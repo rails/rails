@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Post < ActiveRecord::Base
   class CategoryPost < ActiveRecord::Base
     self.table_name = "categories_posts"
@@ -9,6 +11,10 @@ class Post < ActiveRecord::Base
     def author
       "lifo"
     end
+
+    def greeting
+      super + " :)"
+    end
   end
 
   module NamedExtension2
@@ -19,15 +25,17 @@ class Post < ActiveRecord::Base
 
   scope :containing_the_letter_a, -> { where("body LIKE '%a%'") }
   scope :titled_with_an_apostrophe, -> { where("title LIKE '%''%'") }
-  scope :ranked_by_comments,      -> { order("comments_count DESC") }
+  scope :ranked_by_comments, -> { order(arel_attribute(:comments_count).desc) }
 
   scope :limit_by, lambda { |l| limit(l) }
+  scope :locked, -> { lock }
 
   belongs_to :author
   belongs_to :readonly_author, -> { readonly }, class_name: "Author", foreign_key: :author_id
 
   belongs_to :author_with_posts, -> { includes(:posts) }, class_name: "Author", foreign_key: :author_id
   belongs_to :author_with_address, -> { includes(:author_address) }, class_name: "Author", foreign_key: :author_id
+  belongs_to :author_with_select, -> { select(:id) }, class_name: "Author", foreign_key: :author_id
 
   def first_comment
     super.body
@@ -35,6 +43,7 @@ class Post < ActiveRecord::Base
   has_one :first_comment, -> { order("id ASC") }, class_name: "Comment"
   has_one :last_comment, -> { order("id desc") }, class_name: "Comment"
 
+  scope :no_comments, -> { left_joins(:comments).where(comments: { id: nil }) }
   scope :with_special_comments, -> { joins(:comments).where(comments: { type: "SpecialComment" }) }
   scope :with_very_special_comments, -> { joins(:comments).where(comments: { type: "VerySpecialComment" }) }
   scope :with_post, ->(post_id) { joins(:comments).where(comments: { post_id: post_id }) }
@@ -74,6 +83,7 @@ class Post < ActiveRecord::Base
   has_many :comments_with_extend_2, extend: [NamedExtension, NamedExtension2], class_name: "Comment", foreign_key: "post_id"
 
   has_many :author_favorites, through: :author
+  has_many :author_favorites_with_scope, through: :author, class_name: "AuthorFavoriteWithScope", source: "author_favorites"
   has_many :author_categorizations, through: :author, source: :categorizations
   has_many :author_addresses, through: :author
   has_many :author_address_extra_with_address,
@@ -103,6 +113,9 @@ class Post < ActiveRecord::Base
     end
   end
 
+  has_many :indestructible_taggings, as: :taggable, counter_cache: :indestructible_tags_count
+  has_many :indestructible_tags, through: :indestructible_taggings, source: :tag
+
   has_many :taggings_with_delete_all, class_name: "Tagging", as: :taggable, dependent: :delete_all, counter_cache: :taggings_with_delete_all_count
   has_many :taggings_with_destroy, class_name: "Tagging", as: :taggable, dependent: :destroy, counter_cache: :taggings_with_destroy_count
 
@@ -112,6 +125,7 @@ class Post < ActiveRecord::Base
   has_many :misc_tags, -> { where tags: { name: "Misc" } }, through: :taggings, source: :tag
   has_many :funky_tags, through: :taggings, source: :tag
   has_many :super_tags, through: :taggings
+  has_many :ordered_tags, through: :taggings
   has_many :tags_with_primary_key, through: :taggings, source: :tag_with_primary_key
   has_one :tagging, as: :taggable
 
@@ -181,12 +195,21 @@ end
 class SpecialPost < Post; end
 
 class StiPost < Post
-  self.abstract_class = true
   has_one :special_comment, class_name: "SpecialComment"
+end
+
+class AbstractStiPost < Post
+  self.abstract_class = true
 end
 
 class SubStiPost < StiPost
   self.table_name = Post.table_name
+end
+
+class SubAbstractStiPost < AbstractStiPost; end
+
+class NullPost < Post
+  default_scope { none }
 end
 
 class FirstPost < ActiveRecord::Base
@@ -196,6 +219,17 @@ class FirstPost < ActiveRecord::Base
 
   has_many :comments, foreign_key: :post_id
   has_one  :comment,  foreign_key: :post_id
+end
+
+class PostWithDefaultSelect < ActiveRecord::Base
+  self.table_name = "posts"
+
+  default_scope { select(:author_id) }
+end
+
+class TaggedPost < Post
+  has_many :taggings, -> { rewhere(taggable_type: "TaggedPost") }, as: :taggable
+  has_many :tags, through: :taggings
 end
 
 class PostWithDefaultInclude < ActiveRecord::Base
@@ -236,6 +270,8 @@ class SpecialPostWithDefaultScope < ActiveRecord::Base
   self.inheritance_column = :disabled
   self.table_name = "posts"
   default_scope { where(id: [1, 5, 6]) }
+  scope :unscoped_all, -> { unscoped { all } }
+  scope :authorless, -> { unscoped { where(author_id: 0) } }
 end
 
 class PostThatLoadsCommentsInAnAfterSaveHook < ActiveRecord::Base
@@ -274,4 +310,56 @@ class ConditionalStiPost < Post
 end
 
 class SubConditionalStiPost < ConditionalStiPost
+end
+
+class FakeKlass
+  extend ActiveRecord::Delegation::DelegateCache
+
+  class << self
+    def connection
+      Post.connection
+    end
+
+    def table_name
+      "posts"
+    end
+
+    def attribute_aliases
+      {}
+    end
+
+    def sanitize_sql(sql)
+      sql
+    end
+
+    def sanitize_sql_for_order(sql)
+      sql
+    end
+
+    def arel_attribute(name, table)
+      table[name]
+    end
+
+    def disallow_raw_sql!(*args)
+      # noop
+    end
+
+    def columns_hash
+      { "name" => nil }
+    end
+
+    def arel_table
+      Post.arel_table
+    end
+
+    def predicate_builder
+      Post.predicate_builder
+    end
+
+    def base_class?
+      true
+    end
+  end
+
+  inherited self
 end

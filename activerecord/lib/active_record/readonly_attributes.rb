@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ReadonlyAttributes
     extend ActiveSupport::Concern
@@ -16,6 +18,10 @@ module ActiveRecord
       # Returns an array of all the attributes that have been specified as readonly.
       def readonly_attributes
         _attr_readonly
+      end
+
+      def readonly_attribute?(name) # :nodoc:
+        _attr_readonly.include?(name)
       end
     end
   end

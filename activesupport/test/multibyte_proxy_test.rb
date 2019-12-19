@@ -1,4 +1,6 @@
-require "abstract_unit"
+# frozen_string_literal: true
+
+require_relative "abstract_unit"
 
 class MultibyteProxyText < ActiveSupport::TestCase
   class AsciiOnlyEncoder

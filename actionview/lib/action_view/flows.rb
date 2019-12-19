@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/string/output_safety"
 
 module ActionView
@@ -66,7 +68,6 @@ module ActionView
     end
 
     private
-
       def inside_fiber?
         Fiber.current.object_id != @root
       end

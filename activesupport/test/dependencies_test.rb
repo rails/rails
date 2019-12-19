@@ -1,7 +1,9 @@
-require "abstract_unit"
+# frozen_string_literal: true
+
+require_relative "abstract_unit"
 require "pp"
 require "active_support/dependencies"
-require "dependencies_test_helpers"
+require_relative "dependencies_test_helpers"
 
 module ModuleWithMissing
   mattr_accessor :missing_count
@@ -20,11 +22,13 @@ class DependenciesTest < ActiveSupport::TestCase
 
   setup do
     @loaded_features_copy = $LOADED_FEATURES.dup
+    $LOAD_PATH << "test"
   end
 
   teardown do
     ActiveSupport::Dependencies.clear
     $LOADED_FEATURES.replace(@loaded_features_copy)
+    $LOAD_PATH.pop
   end
 
   def test_depend_on_path
@@ -183,6 +187,61 @@ class DependenciesTest < ActiveSupport::TestCase
     end
   end
 
+  # Regression see https://github.com/rails/rails/issues/31694
+  def test_included_constant_that_changes_to_have_exception_then_back_does_not_loop_forever
+    # This constant references a nested constant whose namespace will be auto-generated
+    parent_constant = <<-RUBY
+      class ConstantReloadError
+        AnotherConstant::ReloadError
+      end
+    RUBY
+
+    # This constant's namespace will be auto-generated,
+    # also, we'll edit it to contain an error at load-time
+    child_constant = <<-RUBY
+      class AnotherConstant::ReloadError
+        # no_such_method_as_this
+      end
+    RUBY
+
+    # Create a version which contains an error during loading
+    child_constant_with_error = child_constant.sub("# no_such_method_as_this", "no_such_method_as_this")
+
+    fixtures_path = File.join(__dir__, "autoloading_fixtures")
+    Dir.mktmpdir(nil, fixtures_path) do |tmpdir|
+      # Set up the file structure where constants will be loaded from
+      child_constant_path = "#{tmpdir}/another_constant/reload_error.rb"
+      File.write("#{tmpdir}/constant_reload_error.rb", parent_constant)
+      Dir.mkdir("#{tmpdir}/another_constant")
+      File.write(child_constant_path, child_constant_with_error)
+
+      tmpdir_name = tmpdir.split("/").last
+      with_loading("autoloading_fixtures/#{tmpdir_name}") do
+        # Load the file, with the error:
+        assert_raises(NameError) {
+          ConstantReloadError
+        }
+
+        Timeout.timeout(0.1) do
+          # Remove the constant, as if Rails development middleware is reloading changed files:
+          ActiveSupport::Dependencies.remove_unloadable_constants!
+          assert_not defined?(AnotherConstant::ReloadError)
+        end
+
+        # Change the file, so that it is **correct** this time:
+        File.write(child_constant_path, child_constant)
+
+        # Again: Remove the constant, as if Rails development middleware is reloading changed files:
+        ActiveSupport::Dependencies.remove_unloadable_constants!
+        assert_not defined?(AnotherConstant::ReloadError)
+
+        # Now, reload the _fixed_ constant:
+        assert ConstantReloadError
+        assert AnotherConstant::ReloadError
+      end
+    end
+  end
+
   def test_module_loading
     with_autoloading_fixtures do
       assert_kind_of Module, A
@@ -223,6 +282,32 @@ class DependenciesTest < ActiveSupport::TestCase
     end
   ensure
     remove_constants(:ModuleFolder)
+  end
+
+  def test_module_with_nested_class_requiring_lib_class
+    with_autoloading_fixtures do
+      _ = ModuleFolder::NestedWithRequire # assignment to silence parse-time warning "possibly useless use of :: in void context"
+
+      assert defined?(ModuleFolder::LibClass)
+      assert_not ActiveSupport::Dependencies.autoloaded_constants.include?("ModuleFolder::LibClass")
+      assert_not ActiveSupport::Dependencies.autoloaded_constants.include?("ConstFromLib")
+    end
+  ensure
+    remove_constants(:ModuleFolder)
+    remove_constants(:ConstFromLib)
+  end
+
+  def test_module_with_nested_class_and_parent_requiring_lib_class
+    with_autoloading_fixtures do
+      _ = NestedWithRequireParent # assignment to silence parse-time warning "possibly useless use of a constant in void context"
+
+      assert defined?(ModuleFolder::LibClass)
+      assert_not ActiveSupport::Dependencies.autoloaded_constants.include?("ModuleFolder::LibClass")
+      assert_not ActiveSupport::Dependencies.autoloaded_constants.include?("ConstFromLib")
+    end
+  ensure
+    remove_constants(:ModuleFolder)
+    remove_constants(:ConstFromLib)
   end
 
   def test_directories_may_manifest_as_nested_classes
@@ -398,17 +483,14 @@ class DependenciesTest < ActiveSupport::TestCase
     end
   end
 
-  # This raises only on 2.5.. (warns on ..2.4)
-  if RUBY_VERSION > "2.5"
-    def test_access_thru_and_upwards_fails
-      with_autoloading_fixtures do
-        assert_not defined?(ModuleFolder)
-        assert_raise(NameError) { ModuleFolder::Object }
-        assert_raise(NameError) { ModuleFolder::NestedClass::Object }
-      end
-    ensure
-      remove_constants(:ModuleFolder)
+  def test_access_thru_and_upwards_fails
+    with_autoloading_fixtures do
+      assert_not defined?(ModuleFolder)
+      assert_raise(NameError) { ModuleFolder::Object }
+      assert_raise(NameError) { ModuleFolder::NestedClass::Object }
     end
+  ensure
+    remove_constants(:ModuleFolder)
   end
 
   def test_non_existing_const_raises_name_error_with_fully_qualified_name
@@ -478,9 +560,9 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_qualified_const_defined_should_not_call_const_missing
     ModuleWithMissing.missing_count = 0
-    assert ! ActiveSupport::Dependencies.qualified_const_defined?("ModuleWithMissing::A")
+    assert_not ActiveSupport::Dependencies.qualified_const_defined?("ModuleWithMissing::A")
     assert_equal 0, ModuleWithMissing.missing_count
-    assert ! ActiveSupport::Dependencies.qualified_const_defined?("ModuleWithMissing::A::B")
+    assert_not ActiveSupport::Dependencies.qualified_const_defined?("ModuleWithMissing::A::B")
     assert_equal 0, ModuleWithMissing.missing_count
   end
 
@@ -490,13 +572,13 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_autoloaded?
     with_autoloading_fixtures do
-      assert ! ActiveSupport::Dependencies.autoloaded?("ModuleFolder")
-      assert ! ActiveSupport::Dependencies.autoloaded?("ModuleFolder::NestedClass")
+      assert_not ActiveSupport::Dependencies.autoloaded?("ModuleFolder")
+      assert_not ActiveSupport::Dependencies.autoloaded?("ModuleFolder::NestedClass")
 
       assert ActiveSupport::Dependencies.autoloaded?(ModuleFolder)
 
       assert ActiveSupport::Dependencies.autoloaded?("ModuleFolder")
-      assert ! ActiveSupport::Dependencies.autoloaded?("ModuleFolder::NestedClass")
+      assert_not ActiveSupport::Dependencies.autoloaded?("ModuleFolder::NestedClass")
 
       assert ActiveSupport::Dependencies.autoloaded?(ModuleFolder::NestedClass)
 
@@ -507,11 +589,18 @@ class DependenciesTest < ActiveSupport::TestCase
       assert ActiveSupport::Dependencies.autoloaded?(:ModuleFolder)
 
       # Anonymous modules aren't autoloaded.
-      assert !ActiveSupport::Dependencies.autoloaded?(Module.new)
+      assert_not ActiveSupport::Dependencies.autoloaded?(Module.new)
 
       nil_name = Module.new
       def nil_name.name() nil end
-      assert !ActiveSupport::Dependencies.autoloaded?(nil_name)
+      assert_not ActiveSupport::Dependencies.autoloaded?(nil_name)
+
+      invalid_constant_name = Module.new do
+        def self.name
+          "primary::SchemaMigration"
+        end
+      end
+      assert_not ActiveSupport::Dependencies.autoloaded?(invalid_constant_name)
     end
   ensure
     remove_constants(:ModuleFolder)
@@ -698,7 +787,7 @@ class DependenciesTest < ActiveSupport::TestCase
     Object.const_set :EM, Class.new
     with_autoloading_fixtures do
       require_dependency "em"
-      assert ! ActiveSupport::Dependencies.autoloaded?(:EM), "EM shouldn't be marked autoloaded!"
+      assert_not ActiveSupport::Dependencies.autoloaded?(:EM), "EM shouldn't be marked autoloaded!"
       ActiveSupport::Dependencies.clear
     end
   ensure
@@ -721,11 +810,11 @@ class DependenciesTest < ActiveSupport::TestCase
       M.unloadable
 
       ActiveSupport::Dependencies.clear
-      assert ! defined?(M)
+      assert_not defined?(M)
 
       Object.const_set :M, Module.new
       ActiveSupport::Dependencies.clear
-      assert ! defined?(M), "Dependencies should unload unloadable constants each time"
+      assert_not defined?(M), "Dependencies should unload unloadable constants each time"
     end
   end
 
@@ -750,16 +839,16 @@ class DependenciesTest < ActiveSupport::TestCase
     Object.const_set :C, Class.new { def self.before_remove_const; end }
     C.unloadable
     assert_called(C, :before_remove_const, times: 1) do
-      assert C.respond_to?(:before_remove_const)
+      assert_respond_to C, :before_remove_const
       ActiveSupport::Dependencies.clear
-      assert !defined?(C)
+      assert_not defined?(C)
     end
   ensure
     remove_constants(:C)
   end
 
-  def test_new_contants_in_without_constants
-    assert_equal [], (ActiveSupport::Dependencies.new_constants_in(Object) {})
+  def test_new_constants_in_without_constants
+    assert_equal [], (ActiveSupport::Dependencies.new_constants_in(Object) { })
     assert ActiveSupport::Dependencies.constant_watch_stack.all? { |k, v| v.empty? }
   end
 
@@ -835,7 +924,7 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_new_constants_in_with_illegal_module_name_raises_correct_error
     assert_raise(NameError) do
-      ActiveSupport::Dependencies.new_constants_in("Illegal-Name") {}
+      ActiveSupport::Dependencies.new_constants_in("Illegal-Name") { }
     end
   end
 
@@ -923,10 +1012,10 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_autoload_doesnt_shadow_no_method_error_with_relative_constant
     with_autoloading_fixtures do
-      assert !defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it hasn't been referenced yet!"
+      assert_not defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it hasn't been referenced yet!"
       2.times do
         assert_raise(NoMethodError) { RaisesNoMethodError }
-        assert !defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it should have failed!"
+        assert_not defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it should have failed!"
       end
     end
   ensure
@@ -935,10 +1024,10 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_autoload_doesnt_shadow_no_method_error_with_absolute_constant
     with_autoloading_fixtures do
-      assert !defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it hasn't been referenced yet!"
+      assert_not defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it hasn't been referenced yet!"
       2.times do
         assert_raise(NoMethodError) { ::RaisesNoMethodError }
-        assert !defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it should have failed!"
+        assert_not defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it should have failed!"
       end
     end
   ensure
@@ -963,13 +1052,13 @@ class DependenciesTest < ActiveSupport::TestCase
           ::RaisesNameError::FooBarBaz.object_id
         end
         assert_equal "uninitialized constant RaisesNameError::FooBarBaz", e.message
-        assert !defined?(::RaisesNameError), "::RaisesNameError is defined but it should have failed!"
+        assert_not defined?(::RaisesNameError), "::RaisesNameError is defined but it should have failed!"
       end
 
-      assert !defined?(::RaisesNameError)
+      assert_not defined?(::RaisesNameError)
       2.times do
         assert_raise(NameError) { ::RaisesNameError }
-        assert !defined?(::RaisesNameError), "::RaisesNameError is defined but it should have failed!"
+        assert_not defined?(::RaisesNameError), "::RaisesNameError is defined but it should have failed!"
       end
     end
   ensure
@@ -1071,5 +1160,54 @@ class DependenciesTest < ActiveSupport::TestCase
     assert_includes Object.private_methods, :require
   ensure
     ActiveSupport::Dependencies.hook!
+  end
+end
+
+class DependenciesLogging < ActiveSupport::TestCase
+  MESSAGE = "message"
+
+  def with_settings(logger, verbose)
+    original_logger = ActiveSupport::Dependencies.logger
+    original_verbose = ActiveSupport::Dependencies.verbose
+
+    ActiveSupport::Dependencies.logger = logger
+    ActiveSupport::Dependencies.verbose = verbose
+
+    yield
+  ensure
+    ActiveSupport::Dependencies.logger = original_logger
+    ActiveSupport::Dependencies.verbose = original_verbose
+  end
+
+  def fake_logger
+    Class.new do
+      def self.debug(message)
+        message
+      end
+    end
+  end
+
+  test "does not log if the logger is nil and verbose is false" do
+    with_settings(nil, false) do
+      assert_nil ActiveSupport::Dependencies.log(MESSAGE)
+    end
+  end
+
+  test "does not log if the logger is nil and verbose is true" do
+    with_settings(nil, true) do
+      assert_nil ActiveSupport::Dependencies.log(MESSAGE)
+    end
+  end
+
+  test "does not log if the logger is set and verbose is false" do
+    with_settings(fake_logger, false) do
+      assert_nil ActiveSupport::Dependencies.log(MESSAGE)
+    end
+  end
+
+  test "logs if the logger is set and verbose is true" do
+    with_settings(fake_logger, true) do
+      assert_equal "autoloading: #{MESSAGE}", ActiveSupport::Dependencies.log(MESSAGE)
+    end
   end
 end

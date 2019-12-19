@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class HelperMailer < ActionMailer::Base
@@ -66,7 +68,6 @@ The second
   end
 
   private
-
     def mail_with_defaults(&block)
       mail(to: "test@localhost", from: "tester@example.com",
             subject: "using helpers", &block)

@@ -1,37 +1,23 @@
-*   Fix regression in numericality validator when comparing Decimal and Float input 
-    values with more scale than the schema.
+*   Raise FrozenError when trying to write attributes that aren't backed by the database on an object that is frozen:
 
-    *Bradley Priest*
+        class Animal
+          include ActiveModel::Attributes
+          attribute :age
+        end
 
-*   Fix methods `#keys`, `#values` in `ActiveModel::Errors`.
+        animal = Animal.new
+        animal.freeze
+        animal.age = 25 # => FrozenError, "can't modify a frozen Animal"
 
-    Change `#keys` to only return the keys that don't have empty messages.
+    *Josh Brody*
 
-    Change `#values` to only return the not empty values.
+*   Add *_previously_was attribute methods when dirty tracking. Example:
 
-    Example:
+        pirate.update(catchphrase: "Ahoy!")
+        pirate.previous_changes["catchphrase"] # => ["Thar She Blows!", "Ahoy!"]
+        pirate.catchphrase_previously_was # => "Thar She Blows!"
 
-        # Before
-        person = Person.new
-        person.errors.keys     # => []
-        person.errors.values   # => []
-        person.errors.messages # => {}
-        person.errors[:name]   # => []
-        person.errors.messages # => {:name => []}
-        person.errors.keys     # => [:name]
-        person.errors.values   # => [[]]
-
-        # After
-        person = Person.new
-        person.errors.keys     # => []
-        person.errors.values   # => []
-        person.errors.messages # => {}
-        person.errors[:name]   # => []
-        person.errors.messages # => {:name => []}
-        person.errors.keys     # => []
-        person.errors.values   # => []
-
-    *bogdanvlviv*
+    *DHH*
 
 
-Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/activemodel/CHANGELOG.md) for previous changes.
+Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/activemodel/CHANGELOG.md) for previous changes.

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionDispatch
   module Http
     # Models uploaded files.
@@ -18,7 +20,6 @@ module ActionDispatch
       # A +Tempfile+ object with the actual uploaded file. Note that some of
       # its interface is available directly.
       attr_accessor :tempfile
-      alias :to_io :tempfile
 
       # A string with the headers of the multipart request.
       attr_accessor :headers
@@ -63,6 +64,11 @@ module ActionDispatch
         @tempfile.path
       end
 
+      # Shortcut for +tempfile.to_path+.
+      def to_path
+        @tempfile.to_path
+      end
+
       # Shortcut for +tempfile.rewind+.
       def rewind
         @tempfile.rewind
@@ -76,6 +82,10 @@ module ActionDispatch
       # Shortcut for +tempfile.eof?+.
       def eof?
         @tempfile.eof?
+      end
+
+      def to_io
+        @tempfile.to_io
       end
     end
   end

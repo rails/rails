@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module DateAndTime
   module Zones
     # Returns the simultaneous time in <tt>Time.zone</tt> if a zone is given or
@@ -27,7 +29,6 @@ module DateAndTime
     end
 
     private
-
       def time_with_zone(time, zone)
         if time
           ActiveSupport::TimeWithZone.new(time.utc? ? time : time.getutc, zone)

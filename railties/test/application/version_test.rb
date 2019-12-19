@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "isolation/abstract_unit"
 require "rails/gem_version"
 
@@ -13,12 +15,12 @@ class VersionTest < ActiveSupport::TestCase
   end
 
   test "command works" do
-    output = Dir.chdir(app_path) { `bin/rails version` }
+    output = rails("version")
     assert_equal "Rails #{Rails.gem_version}\n", output
   end
 
   test "short-cut alias works" do
-    output = Dir.chdir(app_path) { `bin/rails -v` }
+    output = rails("-v")
     assert_equal "Rails #{Rails.gem_version}\n", output
   end
 end

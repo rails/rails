@@ -1,4 +1,4 @@
-puts "\n\n*** rake aj:integration:#{ENV['AJ_ADAPTER']} ***\n"
+# frozen_string_literal: true
 
 ENV["RAILS_ENV"] = "test"
 ActiveJob::Base.queue_name_prefix = nil
@@ -16,6 +16,7 @@ Rails::Generators::AppGenerator.start args
 require "#{dummy_app_path}/config/environment.rb"
 
 ActiveRecord::Migrator.migrations_paths = [ Rails.root.join("db/migrate").to_s ]
+ActiveRecord::Tasks::DatabaseTasks.migrate
 require "rails/test_help"
 
 Rails.backtrace_cleaner.remove_silencers!

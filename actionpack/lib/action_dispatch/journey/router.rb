@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "action_dispatch/journey/router/utils"
 require "action_dispatch/journey/routes"
 require "action_dispatch/journey/formatter"
@@ -13,9 +15,6 @@ require "action_dispatch/journey/path/pattern"
 module ActionDispatch
   module Journey # :nodoc:
     class Router # :nodoc:
-      class RoutingError < ::StandardError # :nodoc:
-      end
-
       attr_accessor :routes
 
       def initialize(routes)
@@ -41,7 +40,12 @@ module ActionDispatch
             req.path_info = "/" + req.path_info unless req.path_info.start_with? "/"
           end
 
-          req.path_parameters = set_params.merge parameters
+          tmp_params = set_params.merge route.defaults
+          parameters.each_pair { |key, val|
+            tmp_params[key] = val.force_encoding(::Encoding::UTF_8)
+          }
+
+          req.path_parameters = tmp_params
 
           status, headers, body = route.app.serve(req)
 
@@ -55,7 +59,7 @@ module ActionDispatch
           return [status, headers, body]
         end
 
-        return [404, { "X-Cascade" => "pass" }, ["Not Found"]]
+        [404, { "X-Cascade" => "pass" }, ["Not Found"]]
       end
 
       def recognize(rails_req)
@@ -65,6 +69,7 @@ module ActionDispatch
             rails_req.path_info   = match.post_match.sub(/^([^\/])/, '/\1')
           end
 
+          parameters = route.defaults.merge parameters
           yield(route, parameters)
         end
       end
@@ -77,7 +82,6 @@ module ActionDispatch
       end
 
       private
-
         def partitioned_routes
           routes.partition { |r|
             r.path.anchored && r.ast.grep(Nodes::Symbol).all? { |n| n.default_regexp?  }
@@ -103,7 +107,7 @@ module ActionDispatch
 
         def find_routes(req)
           routes = filter_routes(req.path_info).concat custom_routes.find_all { |r|
-            r.path.match(req.path_info)
+            r.path.match?(req.path_info)
           }
 
           routes =
@@ -117,8 +121,9 @@ module ActionDispatch
 
           routes.map! { |r|
             match_data = r.path.match(req.path_info)
-            path_parameters = r.defaults.dup
-            match_data.names.zip(match_data.captures) { |name, val|
+            path_parameters = {}
+            match_data.names.each_with_index { |name, i|
+              val = match_data[i + 1]
               path_parameters[name.to_sym] = Utils.unescape_uri(val) if val
             }
             [match_data, path_parameters, r]

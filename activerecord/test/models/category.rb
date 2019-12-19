@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Category < ActiveRecord::Base
   has_and_belongs_to_many :posts
   has_and_belongs_to_many :special_posts, class_name: "Post"
@@ -24,6 +26,7 @@ class Category < ActiveRecord::Base
   has_many :categorizations
   has_many :special_categorizations
   has_many :post_comments, through: :posts, source: :comments
+  has_many :ordered_post_comments, -> { order(id: :desc) }, through: :posts, source: :comments
 
   has_many :authors, through: :categorizations
   has_many :authors_with_select, -> { select "authors.*, categorizations.post_id" }, through: :categorizations, source: :author

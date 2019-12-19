@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 module ActiveModel
   module Validations
     class PresenceValidator < EachValidator # :nodoc:
       def validate_each(record, attr_name, value)
-        record.errors.add(attr_name, :blank, options) if value.blank?
+        record.errors.add(attr_name, :blank, **options) if value.blank?
       end
     end
 

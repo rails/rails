@@ -1,12 +1,10 @@
-*   Allow Action Mailer classes to configure their delivery job.
+*   Fix ActionMailer assertions don't work for parameterized mail with legacy delivery job.
 
-        class MyMailer < ApplicationMailer
-          self.delivery_job = MyCustomDeliveryJob
+    *bogdanvlviv*
 
-          ...
-        end
+*   Added `email_address_with_name` to properly escape addresses with names.
 
-    *Matthew Mongeau*
+    *Sunny Ripert*
 
 
-Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/actionmailer/CHANGELOG.md) for previous changes.
+Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/actionmailer/CHANGELOG.md) for previous changes.

@@ -1,8 +1,11 @@
-require "abstract_unit"
+# frozen_string_literal: true
+
+require_relative "abstract_unit"
 require "active_support/xml_mini"
 require "active_support/builder"
 require "active_support/core_ext/hash"
 require "active_support/core_ext/big_decimal"
+require "active_support/core_ext/date/conversions"
 require "yaml"
 
 module XmlMiniTest
@@ -112,7 +115,7 @@ module XmlMiniTest
     end
 
     test "#to_tag accepts decimal types" do
-      @xml.to_tag(:b, ::BigDecimal.new("1.2"), @options)
+      @xml.to_tag(:b, BigDecimal("1.2"), @options)
       assert_xml("<b type=\"decimal\">1.2</b>")
     end
 

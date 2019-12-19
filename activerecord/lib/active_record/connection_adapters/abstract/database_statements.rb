@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     module DatabaseStatements
@@ -7,35 +9,63 @@ module ActiveRecord
       end
 
       # Converts an arel AST to SQL
-      def to_sql(arel, binds = [])
-        if arel.respond_to?(:ast)
-          collected = visitor.accept(arel.ast, collector)
-          collected.compile(binds, self).freeze
+      def to_sql(arel_or_sql_string, binds = [])
+        sql, _ = to_sql_and_binds(arel_or_sql_string, binds)
+        sql
+      end
+
+      def to_sql_and_binds(arel_or_sql_string, binds = []) # :nodoc:
+        if arel_or_sql_string.respond_to?(:ast)
+          unless binds.empty?
+            raise "Passing bind parameters with an arel AST is forbidden. " \
+              "The values must be stored on the AST directly"
+          end
+
+          if prepared_statements
+            sql, binds = visitor.compile(arel_or_sql_string.ast, collector)
+
+            if binds.length > bind_params_length
+              unprepared_statement do
+                sql, binds = to_sql_and_binds(arel_or_sql_string)
+                visitor.preparable = false
+              end
+            end
+          else
+            sql = visitor.compile(arel_or_sql_string.ast, collector)
+          end
+          [sql.freeze, binds]
         else
-          arel.dup.freeze
+          visitor.preparable = false if prepared_statements
+
+          arel_or_sql_string = arel_or_sql_string.dup.freeze unless arel_or_sql_string.frozen?
+          [arel_or_sql_string, binds]
         end
       end
+      private :to_sql_and_binds
 
       # This is used in the StatementCache object. It returns an object that
       # can be used to query the database repeatedly.
       def cacheable_query(klass, arel) # :nodoc:
-        collected = visitor.accept(arel.ast, collector)
         if prepared_statements
-          klass.query(collected.value)
+          sql, binds = visitor.compile(arel.ast, collector)
+          query = klass.query(sql)
         else
-          klass.partial_query(collected.value)
+          collector = klass.partial_query_collector
+          parts, binds = visitor.compile(arel.ast, collector)
+          query = klass.partial_query(parts)
         end
+        [query, binds]
       end
 
       # Returns an ActiveRecord::Result instance.
       def select_all(arel, name = nil, binds = [], preparable: nil)
-        arel, binds = binds_from_relation arel, binds
-        sql = to_sql(arel, binds)
-        if !prepared_statements || (arel.is_a?(String) && preparable.nil?)
-          preparable = false
-        else
-          preparable = visitor.preparable
+        arel = arel_from_relation(arel)
+        sql, binds = to_sql_and_binds(arel, binds)
+
+        if preparable.nil?
+          preparable = prepared_statements ? visitor.preparable : false
         end
+
         if prepared_statements && preparable
           select_prepared(sql, name, binds)
         else
@@ -51,9 +81,7 @@ module ActiveRecord
 
       # Returns a single value from a record
       def select_value(arel, name = nil, binds = [])
-        if result = select_rows(arel, name, binds).first
-          result.first
-        end
+        single_value_from_rows(select_rows(arel, name, binds))
       end
 
       # Returns an array of the values of the first column in a select:
@@ -66,6 +94,23 @@ module ActiveRecord
       # Order is the same as that returned by +columns+.
       def select_rows(arel, name = nil, binds = [])
         select_all(arel, name, binds).rows
+      end
+
+      def query_value(sql, name = nil) # :nodoc:
+        single_value_from_rows(query(sql, name))
+      end
+
+      def query_values(sql, name = nil) # :nodoc:
+        query(sql, name).map(&:first)
+      end
+
+      def query(sql, name = nil) # :nodoc:
+        exec_query(sql, name).rows
+      end
+
+      # Determines whether the SQL statement is a write query.
+      def write_query?(sql)
+        raise NotImplementedError
       end
 
       # Executes the SQL statement in the context of this connection and returns
@@ -88,7 +133,7 @@ module ActiveRecord
       # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
       def exec_insert(sql, name = nil, binds = [], pk = nil, sequence_name = nil)
-        sql, binds = sql_for_insert(sql, pk, nil, sequence_name, binds)
+        sql, binds = sql_for_insert(sql, pk, binds)
         exec_query(sql, name, binds)
       end
 
@@ -99,16 +144,15 @@ module ActiveRecord
         exec_query(sql, name, binds)
       end
 
-      # Executes the truncate statement.
-      def truncate(table_name, name = nil)
-        raise NotImplementedError
-      end
-
       # Executes update +sql+ statement in the context of this connection using
       # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
       def exec_update(sql, name = nil, binds = [])
         exec_query(sql, name, binds)
+      end
+
+      def exec_insert_all(sql, name) # :nodoc:
+        exec_query(sql, name)
       end
 
       # Executes an INSERT query and returns the new record's ID
@@ -120,32 +164,63 @@ module ActiveRecord
       # If the next id was calculated in advance (as in Oracle), it should be
       # passed in as +id_value+.
       def insert(arel, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [])
-        value = exec_insert(to_sql(arel, binds), name, binds, pk, sequence_name)
+        sql, binds = to_sql_and_binds(arel, binds)
+        value = exec_insert(sql, name, binds, pk, sequence_name)
         id_value || last_inserted_id(value)
       end
       alias create insert
 
       # Executes the update statement and returns the number of rows affected.
       def update(arel, name = nil, binds = [])
-        exec_update(to_sql(arel, binds), name, binds)
+        sql, binds = to_sql_and_binds(arel, binds)
+        exec_update(sql, name, binds)
       end
 
       # Executes the delete statement and returns the number of rows affected.
       def delete(arel, name = nil, binds = [])
-        exec_delete(to_sql(arel, binds), name, binds)
+        sql, binds = to_sql_and_binds(arel, binds)
+        exec_delete(sql, name, binds)
       end
 
-      # Returns +true+ when the connection adapter supports prepared statement
-      # caching, otherwise returns +false+
-      def supports_statement_cache? # :nodoc:
-        true
+      # Executes the truncate statement.
+      def truncate(table_name, name = nil)
+        execute(build_truncate_statement(table_name), name)
       end
-      deprecate :supports_statement_cache?
+
+      def truncate_tables(*table_names) # :nodoc:
+        table_names -= [schema_migration.table_name, InternalMetadata.table_name]
+
+        return if table_names.empty?
+
+        with_multi_statements do
+          disable_referential_integrity do
+            statements = build_truncate_statements(table_names)
+            execute_batch(statements, "Truncate Tables")
+          end
+        end
+      end
 
       # Runs the given block in a database transaction, and returns the result
       # of the block.
       #
       # == Nested transactions support
+      #
+      # #transaction calls can be nested. By default, this makes all database
+      # statements in the nested transaction block become part of the parent
+      # transaction. For example, the following behavior may be surprising:
+      #
+      #   ActiveRecord::Base.transaction do
+      #     Post.create(title: 'first')
+      #     ActiveRecord::Base.transaction do
+      #       Post.create(title: 'second')
+      #       raise ActiveRecord::Rollback
+      #     end
+      #   end
+      #
+      # This creates both "first" and "second" posts. Reason is the
+      # ActiveRecord::Rollback exception in the nested block does not issue a
+      # ROLLBACK. Since these exceptions are captured in transaction blocks,
+      # the parent block does not see it and the real transaction is committed.
       #
       # Most databases don't support true nested transactions. At the time of
       # writing, the only database that supports true nested transactions that
@@ -153,9 +228,7 @@ module ActiveRecord
       #
       # In order to get around this problem, #transaction will emulate the effect
       # of nested transactions, by using savepoints:
-      # http://dev.mysql.com/doc/refman/5.7/en/savepoint.html
-      # Savepoints are supported by MySQL and PostgreSQL. SQLite3 version >= '3.6.8'
-      # supports savepoints.
+      # https://dev.mysql.com/doc/refman/en/savepoint.html.
       #
       # It is safe to call this method if a database transaction is already open,
       # i.e. if #transaction is called within another #transaction block. In case
@@ -166,6 +239,26 @@ module ActiveRecord
       #   open database transaction.
       # - However, if +:requires_new+ is set, the block will be wrapped in a
       #   database savepoint acting as a sub-transaction.
+      #
+      # In order to get a ROLLBACK for the nested transaction you may ask for a
+      # real sub-transaction by passing <tt>requires_new: true</tt>.
+      # If anything goes wrong, the database rolls back to the beginning of
+      # the sub-transaction without rolling back the parent transaction.
+      # If we add it to the previous example:
+      #
+      #   ActiveRecord::Base.transaction do
+      #     Post.create(title: 'first')
+      #     ActiveRecord::Base.transaction(requires_new: true) do
+      #       Post.create(title: 'second')
+      #       raise ActiveRecord::Rollback
+      #     end
+      #   end
+      #
+      # only post with title "first" is created.
+      # This works on MySQL and PostgreSQL. SQLite3 version >= '3.6.8' also
+      # supports it.
+      #
+      # See ActiveRecord::Transactions to learn more.
       #
       # === Caveats
       #
@@ -205,8 +298,8 @@ module ActiveRecord
       # You should consult the documentation for your database to understand the
       # semantics of these different levels:
       #
-      # * http://www.postgresql.org/docs/current/static/transaction-iso.html
-      # * https://dev.mysql.com/doc/refman/5.7/en/set-transaction.html
+      # * https://www.postgresql.org/docs/current/static/transaction-iso.html
+      # * https://dev.mysql.com/doc/refman/en/set-transaction.html
       #
       # An ActiveRecord::TransactionIsolationError will be raised if:
       #
@@ -231,7 +324,9 @@ module ActiveRecord
 
       attr_reader :transaction_manager #:nodoc:
 
-      delegate :within_new_transaction, :open_transactions, :current_transaction, :begin_transaction, :commit_transaction, :rollback_transaction, to: :transaction_manager
+      delegate :within_new_transaction, :open_transactions, :current_transaction, :begin_transaction,
+               :commit_transaction, :rollback_transaction, :materialize_transactions,
+               :disable_lazy_transactions!, :enable_lazy_transactions!, to: :transaction_manager
 
       def transaction_open?
         current_transaction.open?
@@ -295,71 +390,29 @@ module ActiveRecord
       end
 
       # Inserts the given fixture into the table. Overridden in adapters that require
-      # something beyond a simple insert (eg. Oracle).
-      # Most of adapters should implement `insert_fixtures` that leverages bulk SQL insert.
+      # something beyond a simple insert (e.g. Oracle).
+      # Most of adapters should implement `insert_fixtures_set` that leverages bulk SQL insert.
       # We keep this method to provide fallback
       # for databases like sqlite that do not support bulk inserts.
       def insert_fixture(fixture, table_name)
-        fixture = fixture.stringify_keys
-
-        columns = schema_cache.columns_hash(table_name)
-        binds = fixture.map do |name, value|
-          if column = columns[name]
-            type = lookup_cast_type_from_column(column)
-            Relation::QueryAttribute.new(name, value, type)
-          else
-            raise Fixture::FixtureError, %(table "#{table_name}" has no column named #{name.inspect}.)
-          end
-        end
-
-        table = Arel::Table.new(table_name)
-
-        values = binds.map do |bind|
-          value = with_yaml_fallback(bind.value_for_database)
-          [table[bind.name], value]
-        end
-
-        manager = Arel::InsertManager.new
-        manager.into(table)
-        manager.insert(values)
-        execute manager.to_sql, "Fixture Insert"
+        execute(build_fixture_sql(Array.wrap(fixture), table_name), "Fixture Insert")
       end
 
-      # Inserts a set of fixtures into the table. Overridden in adapters that require
-      # something beyond a simple insert (eg. Oracle).
-      def insert_fixtures(fixtures, table_name)
-        return if fixtures.empty?
+      def insert_fixtures_set(fixture_set, tables_to_delete = [])
+        fixture_inserts = build_fixture_statements(fixture_set)
+        table_deletes = tables_to_delete.map { |table| "DELETE FROM #{quote_table_name(table)}" }
+        statements = table_deletes + fixture_inserts
 
-        columns = schema_cache.columns_hash(table_name)
-
-        values = fixtures.map do |fixture|
-          fixture = fixture.stringify_keys
-
-          unknown_columns = fixture.keys - columns.keys
-          if unknown_columns.any?
-            raise Fixture::FixtureError, %(table "#{table_name}" has no columns named #{unknown_columns.map(&:inspect).join(', ')}.)
-          end
-
-          columns.map do |name, column|
-            if fixture.key?(name)
-              type = lookup_cast_type_from_column(column)
-              bind = Relation::QueryAttribute.new(name, fixture[name], type)
-              with_yaml_fallback(bind.value_for_database)
-            else
-              Arel.sql("DEFAULT")
+        with_multi_statements do
+          disable_referential_integrity do
+            transaction(requires_new: true) do
+              execute_batch(statements, "Fixtures Load")
             end
           end
         end
-
-        table = Arel::Table.new(table_name)
-        manager = Arel::InsertManager.new
-        manager.into(table)
-        columns.each_key { |column| manager.columns << table[column] }
-        manager.values = manager.create_values_list(values)
-        execute manager.to_sql, "Fixtures Insert"
       end
 
-      def empty_insert_statement_value
+      def empty_insert_statement_value(primary_key = nil)
         "DEFAULT VALUES"
       end
 
@@ -377,23 +430,97 @@ module ActiveRecord
         end
       end
 
-      # The default strategy for an UPDATE with joins is to use a subquery. This doesn't work
-      # on MySQL (even when aliasing the tables), but MySQL allows using JOIN directly in
-      # an UPDATE statement, so in the MySQL adapters we redefine this to do that.
-      def join_to_update(update, select, key) # :nodoc:
-        subselect = subquery_for(key, select)
-
-        update.where key.in(subselect)
+      # Fixture value is quoted by Arel, however scalar values
+      # are not quotable. In this case we want to convert
+      # the column value to YAML.
+      def with_yaml_fallback(value) # :nodoc:
+        if value.is_a?(Hash) || value.is_a?(Array)
+          YAML.dump(value)
+        else
+          value
+        end
       end
-      alias join_to_delete join_to_update
 
       private
+        def execute_batch(statements, name = nil)
+          statements.each do |statement|
+            execute(statement, name)
+          end
+        end
 
-        # Returns a subquery for the given key using the join information.
-        def subquery_for(key, select)
-          subselect = select.clone
-          subselect.projections = [key]
-          subselect
+        DEFAULT_INSERT_VALUE = Arel.sql("DEFAULT").freeze
+        private_constant :DEFAULT_INSERT_VALUE
+
+        def default_insert_value(column)
+          DEFAULT_INSERT_VALUE
+        end
+
+        def build_fixture_sql(fixtures, table_name)
+          columns = schema_cache.columns_hash(table_name)
+
+          values_list = fixtures.map do |fixture|
+            fixture = fixture.stringify_keys
+
+            unknown_columns = fixture.keys - columns.keys
+            if unknown_columns.any?
+              raise Fixture::FixtureError, %(table "#{table_name}" has no columns named #{unknown_columns.map(&:inspect).join(', ')}.)
+            end
+
+            columns.map do |name, column|
+              if fixture.key?(name)
+                type = lookup_cast_type_from_column(column)
+                with_yaml_fallback(type.serialize(fixture[name]))
+              else
+                default_insert_value(column)
+              end
+            end
+          end
+
+          table = Arel::Table.new(table_name)
+          manager = Arel::InsertManager.new
+          manager.into(table)
+
+          if values_list.size == 1
+            values = values_list.shift
+            new_values = []
+            columns.each_key.with_index { |column, i|
+              unless values[i].equal?(DEFAULT_INSERT_VALUE)
+                new_values << values[i]
+                manager.columns << table[column]
+              end
+            }
+            values_list << new_values
+          else
+            columns.each_key { |column| manager.columns << table[column] }
+          end
+
+          manager.values = manager.create_values_list(values_list)
+          manager.to_sql
+        end
+
+        def build_fixture_statements(fixture_set)
+          fixture_set.map do |table_name, fixtures|
+            next if fixtures.empty?
+            build_fixture_sql(fixtures, table_name)
+          end.compact
+        end
+
+        def build_truncate_statement(table_name)
+          "TRUNCATE TABLE #{quote_table_name(table_name)}"
+        end
+
+        def build_truncate_statements(table_names)
+          table_names.map do |table_name|
+            build_truncate_statement(table_name)
+          end
+        end
+
+        def with_multi_statements
+          yield
+        end
+
+        def combine_multi_statements(total_sql)
+          total_sql.join(";\n")
         end
 
         # Returns an ActiveRecord::Result instance.
@@ -405,30 +532,24 @@ module ActiveRecord
           exec_query(sql, name, binds, prepare: true)
         end
 
-        def sql_for_insert(sql, pk, id_value, sequence_name, binds)
+        def sql_for_insert(sql, pk, binds)
           [sql, binds]
         end
 
         def last_inserted_id(result)
-          row = result.rows.first
+          single_value_from_rows(result.rows)
+        end
+
+        def single_value_from_rows(rows)
+          row = rows.first
           row && row.first
         end
 
-        def binds_from_relation(relation, binds)
-          if relation.is_a?(Relation) && binds.empty?
-            relation, binds = relation.arel, relation.bound_attributes
-          end
-          [relation, binds]
-        end
-
-        # Fixture value is quoted by Arel, however scalar values
-        # are not quotable. In this case we want to convert
-        # the column value to YAML.
-        def with_yaml_fallback(value)
-          if value.is_a?(Hash) || value.is_a?(Array)
-            YAML.dump(value)
+        def arel_from_relation(relation)
+          if relation.is_a?(Relation)
+            relation.arel
           else
-            value
+            relation
           end
         end
     end

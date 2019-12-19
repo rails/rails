@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module RailsGuides
   class Markdown
     class Renderer < Redcarpet::Render::HTML
@@ -6,15 +8,13 @@ module RailsGuides
       def block_code(code, language)
         <<-HTML
 <div class="code_container">
-<pre class="brush: #{brush_for(language)}; gutter: false; toolbar: false">
-#{ERB::Util.h(code)}
-</pre>
+<pre><code class="language-#{class_for(language)}">#{ERB::Util.h(code)}</code></pre>
 </div>
-HTML
+        HTML
       end
 
       def link(url, title, content)
-        if url.start_with?("http://api.rubyonrails.org")
+        if %r{https?://api\.rubyonrails\.org}.match?(url)
           %(<a href="#{api_link(url)}">#{content}</a>)
         elsif title
           %(<a href="#{url}" title="#{title}">#{content}</a>)
@@ -27,13 +27,18 @@ HTML
         # Always increase the heading level by 1, so we can use h1, h2 heading in the document
         header_level += 1
 
-        %(<h#{header_level}>#{text}</h#{header_level}>)
+        header_with_id = text.scan(/(.*){#(.*)}/)
+        unless header_with_id.empty?
+          %(<h#{header_level} id="#{header_with_id[0][1].strip}">#{header_with_id[0][0].strip}</h#{header_level}>)
+        else
+          %(<h#{header_level}>#{text}</h#{header_level}>)
+        end
       end
 
       def paragraph(text)
         if text =~ %r{^NOTE:\s+Defined\s+in\s+<code>(.*?)</code>\.?$}
           %(<div class="note"><p>Defined in <code><a href="#{github_file_url($1)}">#{$1}</a></code>.</p></div>)
-        elsif text =~ /^(TIP|IMPORTANT|CAUTION|WARNING|NOTE|INFO|TODO)[.:]/
+        elsif /^(TIP|IMPORTANT|CAUTION|WARNING|NOTE|INFO|TODO)[.:]/.match?(text)
           convert_notes(text)
         elsif text.include?("DO NOT READ THIS FILE ON GITHUB")
         elsif text =~ /^\[<sup>(\d+)\]:<\/sup> (.+)$/
@@ -46,7 +51,6 @@ HTML
       end
 
       private
-
         def convert_footnotes(text)
           text.gsub(/\[<sup>(\d+)\]<\/sup>/i) do
             %(<sup class="footnote" id="footnote-#{$1}-ref">) +
@@ -54,14 +58,16 @@ HTML
           end
         end
 
-        def brush_for(code_type)
+        def class_for(code_type)
           case code_type
-          when "ruby", "sql", "plain"
+          when "ruby", "sql", "plain", "js", "yaml"
             code_type
           when "erb", "html+erb"
-            "ruby; html-script: true"
+            "erb"
           when "html"
             "xml" # HTML is understood, but there are .xml rules in the CSS
+          when "bash"
+            "shell-session"
           else
             "plain"
           end
@@ -73,7 +79,7 @@ HTML
           #
           # It is important that we do not eat more than one newline
           # because formatting may be wrong otherwise. For example,
-          # if a bulleted list follows the first item is not rendered
+          # if a bulleted list follows, the first item is not rendered
           # as a list item, but as a paragraph starting with a plain
           # asterisk.
           body.gsub(/^(TIP|IMPORTANT|CAUTION|WARNING|NOTE|INFO|TODO)[.:](.*?)(\n(?=\n)|\Z)/m) do
@@ -108,7 +114,7 @@ HTML
         end
 
         def api_link(url)
-          if url =~ %r{http://api\.rubyonrails\.org/v\d+\.}
+          if %r{https?://api\.rubyonrails\.org/v\d+\.}.match?(url)
             url
           elsif edge
             url.sub("api", "edgeapi")

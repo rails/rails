@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 # The exhaustive tests are in the rails-html-sanitizer gem.
@@ -19,8 +21,8 @@ class SanitizeHelperTest < ActionView::TestCase
 
   def test_should_sanitize_illegal_style_properties
     raw      = %(display:block; position:absolute; left:0; top:0; width:100%; height:100%; z-index:1; background-color:black; background-image:url(http://www.ragingplatypus.com/i/cam-full.jpg); background-x:center; background-y:center; background-repeat:repeat;)
-    expected = %(display: block; width: 100%; height: 100%; background-color: black; background-x: center; background-y: center;)
-    assert_equal expected, sanitize_css(raw)
+    expected = %r(\Adisplay:\s?block;\s?width:\s?100%;\s?height:\s?100%;\s?background-color:\s?black;\s?background-x:\s?center;\s?background-y:\s?center;\z)
+    assert_match expected, sanitize_css(raw)
   end
 
   def test_strip_tags
@@ -36,6 +38,6 @@ class SanitizeHelperTest < ActionView::TestCase
   end
 
   def test_sanitize_is_marked_safe
-    assert sanitize("<html><script></script></html>").html_safe?
+    assert_predicate sanitize("<html><script></script></html>"), :html_safe?
   end
 end

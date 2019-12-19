@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Debugging Rails Applications
 ============================
@@ -147,7 +147,7 @@ TIP: The default Rails log level is `debug` in all environments.
 
 ### Sending Messages
 
-To write in the current log use the `logger.(debug|info|warn|error|fatal)` method from within a controller, model or mailer:
+To write in the current log use the `logger.(debug|info|warn|error|fatal|unknown)` method from within a controller, model, or mailer:
 
 ```ruby
 logger.debug "Person attributes hash: #{@person.attributes.inspect}"
@@ -162,44 +162,81 @@ class ArticlesController < ApplicationController
   # ...
 
   def create
-    @article = Article.new(params[:article])
+    @article = Article.new(article_params)
     logger.debug "New article: #{@article.attributes.inspect}"
     logger.debug "Article should be valid: #{@article.valid?}"
 
     if @article.save
-      flash[:notice] =  'Article was successfully created.'
       logger.debug "The article was saved and now the user is going to be redirected..."
-      redirect_to(@article)
+      redirect_to @article, notice: 'Article was successfully created.'
     else
-      render action: "new"
+      render :new
     end
   end
 
   # ...
+
+  private
+    def article_params
+      params.require(:article).permit(:title, :body, :published)
+    end
 end
 ```
 
 Here's an example of the log generated when this controller action is executed:
 
 ```
-Processing ArticlesController#create (for 127.0.0.1 at 2008-09-08 11:52:54) [POST]
-  Session ID: BAh7BzoMY3NyZl9pZCIlMDY5MWU1M2I1ZDRjODBlMzkyMWI1OTg2NWQyNzViZjYiCmZsYXNoSUM6J0FjdGl
-vbkNvbnRyb2xsZXI6OkZsYXNoOjpGbGFzaEhhc2h7AAY6CkB1c2VkewA=--b18cd92fba90eacf8137e5f6b3b06c4d724596a4
-  Parameters: {"commit"=>"Create", "article"=>{"title"=>"Debugging Rails",
- "body"=>"I'm learning how to print in logs!!!", "published"=>"0"},
- "authenticity_token"=>"2059c1286e93402e389127b1153204e0d1e275dd", "action"=>"create", "controller"=>"articles"}
-New article: {"updated_at"=>nil, "title"=>"Debugging Rails", "body"=>"I'm learning how to print in logs!!!",
- "published"=>false, "created_at"=>nil}
+Started POST "/articles" for 127.0.0.1 at 2018-10-18 20:09:23 -0400
+Processing by ArticlesController#create as HTML
+  Parameters: {"utf8"=>"✓", "authenticity_token"=>"XLveDrKzF1SwaiNRPTaMtkrsTzedtebPPkmxEFIU0ordLjICSnXsSNfrdMa4ccyBjuGwnnEiQhEoMN6H1Gtz3A==", "article"=>{"title"=>"Debugging Rails", "body"=>"I'm learning how to print in logs.", "published"=>"0"}, "commit"=>"Create Article"}
+New article: {"id"=>nil, "title"=>"Debugging Rails", "body"=>"I'm learning how to print in logs.", "published"=>false, "created_at"=>nil, "updated_at"=>nil}
 Article should be valid: true
-  Article Create (0.000443)   INSERT INTO "articles" ("updated_at", "title", "body", "published",
- "created_at") VALUES('2008-09-08 14:52:54', 'Debugging Rails',
- 'I''m learning how to print in logs!!!', 'f', '2008-09-08 14:52:54')
+   (0.0ms)  begin transaction
+  ↳ app/controllers/articles_controller.rb:31
+  Article Create (0.5ms)  INSERT INTO "articles" ("title", "body", "published", "created_at", "updated_at") VALUES (?, ?, ?, ?, ?)  [["title", "Debugging Rails"], ["body", "I'm learning how to print in logs."], ["published", 0], ["created_at", "2018-10-19 00:09:23.216549"], ["updated_at", "2018-10-19 00:09:23.216549"]]
+  ↳ app/controllers/articles_controller.rb:31
+   (2.3ms)  commit transaction
+  ↳ app/controllers/articles_controller.rb:31
 The article was saved and now the user is going to be redirected...
-Redirected to # Article:0x20af760>
-Completed in 0.01224 (81 reqs/sec) | DB: 0.00044 (3%) | 302 Found [http://localhost/articles]
+Redirected to http://localhost:3000/articles/1
+Completed 302 Found in 4ms (ActiveRecord: 0.8ms)
 ```
 
 Adding extra logging like this makes it easy to search for unexpected or unusual behavior in your logs. If you add extra logging, be sure to make sensible use of log levels to avoid filling your production logs with useless trivia.
+
+### Verbose Query Logs
+
+When looking at database query output in logs, it may not be immediately clear why multiple database queries are triggered when a single method is called:
+
+```
+irb(main):001:0> Article.pamplemousse
+  Article Load (0.4ms)  SELECT "articles".* FROM "articles"
+  Comment Load (0.2ms)  SELECT "comments".* FROM "comments" WHERE "comments"."article_id" = ?  [["article_id", 1]]
+  Comment Load (0.1ms)  SELECT "comments".* FROM "comments" WHERE "comments"."article_id" = ?  [["article_id", 2]]
+  Comment Load (0.1ms)  SELECT "comments".* FROM "comments" WHERE "comments"."article_id" = ?  [["article_id", 3]]
+=> #<Comment id: 2, author: "1", body: "Well, actually...", article_id: 1, created_at: "2018-10-19 00:56:10", updated_at: "2018-10-19 00:56:10">
+```
+
+After running `ActiveRecord::Base.verbose_query_logs = true` in the `rails console` session to enable verbose query logs and running the method again, it becomes obvious what single line of code is generating all these discrete database calls:
+
+```
+irb(main):003:0> Article.pamplemousse
+  Article Load (0.2ms)  SELECT "articles".* FROM "articles"
+  ↳ app/models/article.rb:5
+  Comment Load (0.1ms)  SELECT "comments".* FROM "comments" WHERE "comments"."article_id" = ?  [["article_id", 1]]
+  ↳ app/models/article.rb:6
+  Comment Load (0.1ms)  SELECT "comments".* FROM "comments" WHERE "comments"."article_id" = ?  [["article_id", 2]]
+  ↳ app/models/article.rb:6
+  Comment Load (0.1ms)  SELECT "comments".* FROM "comments" WHERE "comments"."article_id" = ?  [["article_id", 3]]
+  ↳ app/models/article.rb:6
+=> #<Comment id: 2, author: "1", body: "Well, actually...", article_id: 1, created_at: "2018-10-19 00:56:10", updated_at: "2018-10-19 00:56:10">
+```
+
+Below each database statement you can see arrows pointing to the specific source filename (and line number) of the method that resulted in a database call. This can help you identify and address performance problems caused by N+1 queries: single database queries that generates multiple additional queries.
+
+Verbose query logs are enabled by default in the development environment logs after Rails 5.2.
+
+WARNING: We recommend against using this setting in production environments. It relies on Ruby's `Kernel#caller` method which tends to allocate a lot of memory in order to generate stacktraces of method calls.
 
 ### Tagged Logging
 
@@ -313,10 +350,10 @@ For example:
 
 ```bash
 => Booting Puma
-=> Rails 5.1.0 application starting in development on http://0.0.0.0:3000
-=> Run `rails server -h` for more startup options
+=> Rails 6.0.0 application starting in development
+=> Run `rails server --help` for more startup options
 Puma starting in single mode...
-* Version 3.4.0 (ruby 2.3.1-p112), codename: Owl Bowl Brawl
+* Version 3.12.1 (ruby 2.5.7-p206), codename: Llamas in Pajamas
 * Min threads: 5, max threads: 5
 * Environment: development
 * Listening on tcp://localhost:3000
@@ -401,7 +438,7 @@ To see the previous ten lines you should type `list-` (or `l-`).
    7      byebug
    8      @articles = Article.find_recent
    9
-   10      respond_to do |format|
+   10     respond_to do |format|
 ```
 
 This way you can move inside the file and see the code above the line where you
@@ -485,7 +522,7 @@ stack frames.
 
 ### Threads
 
-The debugger can list, stop, resume and switch between running threads by using
+The debugger can list, stop, resume, and switch between running threads by using
 the `thread` command (or the abbreviated `th`). This command has a handful of
 options:
 
@@ -540,8 +577,8 @@ command later in this guide).
    7       byebug
    8       @articles = Article.find_recent
    9
-=> 10       respond_to do |format|
-   11         format.html # index.html.erb
+=> 10      respond_to do |format|
+   11        format.html # index.html.erb
    12        format.json { render json: @articles }
    13      end
    14    end
@@ -777,7 +814,7 @@ deleted when that breakpoint is reached.
 * `finish [n]`: execute until the selected stack frame returns. If no frame
 number is given, the application will run until the currently selected frame
 returns. The currently selected frame starts out the most-recent frame or 0 if
-no frame positioning (e.g up, down or frame) has been performed. If a frame
+no frame positioning (e.g up, down, or frame) has been performed. If a frame
 number is given it will run until the specified frame returns.
 
 ### Editing
@@ -875,7 +912,7 @@ location of the `console` call; it won't be rendered on the spot of its
 invocation but next to your HTML content.
 
 The console executes pure Ruby code: You can define and instantiate
-custom classes, create new models and inspect variables.
+custom classes, create new models, and inspect variables.
 
 NOTE: Only one console can be rendered per request. Otherwise `web-console`
 will raise an error on the second `console` invocation.
@@ -902,7 +939,7 @@ Debugging Memory Leaks
 A Ruby application (on Rails or not), can leak memory — either in the Ruby code
 or at the C code level.
 
-In this section, you will learn how to find and fix such leaks by using tool
+In this section, you will learn how to find and fix such leaks by using tools
 such as Valgrind.
 
 ### Valgrind
@@ -916,8 +953,12 @@ extension in the interpreter calls `malloc()` but doesn't properly call
 `free()`, this memory won't be available until the app terminates.
 
 For further information on how to install Valgrind and use with Ruby, refer to
-[Valgrind and Ruby](http://blog.evanweaver.com/articles/2008/02/05/valgrind-and-ruby/)
+[Valgrind and Ruby](https://blog.evanweaver.com/2008/02/05/valgrind-and-ruby/)
 by Evan Weaver.
+
+### Find a memory leak
+There is an excellent article about detecting and fixing memory leaks at Derailed, [which you can read here](https://github.com/schneems/derailed_benchmarks#is-my-app-leaking-memory).
+
 
 Plugins for Debugging
 ---------------------
@@ -925,15 +966,8 @@ Plugins for Debugging
 There are some Rails plugins to help you to find errors and debug your
 application. Here is a list of useful plugins for debugging:
 
-* [Footnotes](https://github.com/josevalim/rails-footnotes) Every Rails page has
-footnotes that give request information and link back to your source via
-TextMate.
 * [Query Trace](https://github.com/ruckus/active-record-query-trace/tree/master) Adds query
 origin tracing to your logs.
-* [Query Reviewer](https://github.com/nesquena/query_reviewer) This Rails plugin
-not only runs "EXPLAIN" before each of your select queries in development, but
-provides a small DIV in the rendered output of each page with the summary of
-warnings for each query that it analyzed.
 * [Exception Notifier](https://github.com/smartinez87/exception_notification/tree/master)
 Provides a mailer object and a default set of templates for sending email
 notifications when errors occur in a Rails application.

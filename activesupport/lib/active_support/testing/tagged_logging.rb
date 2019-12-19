@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveSupport
   module Testing
     # Logs a "PostsControllerTest: test name" heading before each test to

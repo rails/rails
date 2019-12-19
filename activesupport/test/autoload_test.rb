@@ -1,4 +1,6 @@
-require "abstract_unit"
+# frozen_string_literal: true
+
+require_relative "abstract_unit"
 
 class TestAutoloadModule < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation
@@ -14,6 +16,11 @@ class TestAutoloadModule < ActiveSupport::TestCase
   def setup
     @some_class_path = File.expand_path("test/fixtures/autoload/some_class.rb")
     @another_class_path = File.expand_path("test/fixtures/autoload/another_class.rb")
+    $LOAD_PATH << "test"
+  end
+
+  def teardown
+    $LOAD_PATH.pop
   end
 
   test "the autoload module works like normal autoload" do

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rack/utils"
 require "active_support/core_ext/uri"
 
@@ -14,7 +16,7 @@ module ActionDispatch
   # does not exist, a 404 "File not Found" response will be returned.
   class FileHandler
     def initialize(root, index: "index", headers: {})
-      @root          = root.chomp("/")
+      @root          = root.chomp("/").b
       @file_server   = ::Rack::File.new(@root, headers)
       @index         = index
     end
@@ -30,19 +32,13 @@ module ActionDispatch
       return false unless ::Rack::Utils.valid_path? path
       path = ::Rack::Utils.clean_path_info path
 
-      paths = [path, "#{path}#{ext}", "#{path}/#{@index}#{ext}"]
+      return ::Rack::Utils.escape_path(path).b if file_readable?(path)
 
-      if match = paths.detect { |p|
-        path = File.join(@root, p.force_encoding(Encoding::UTF_8))
-        begin
-          File.file?(path) && File.readable?(path)
-        rescue SystemCallError
-          false
-        end
+      path_with_ext = path + ext
+      return ::Rack::Utils.escape_path(path_with_ext).b if file_readable?(path_with_ext)
 
-      }
-        return ::Rack::Utils.escape_path(match)
-      end
+      path << "/" << @index << ext
+      return ::Rack::Utils.escape_path(path).b if file_readable?(path)
     end
 
     def call(env)
@@ -67,7 +63,7 @@ module ActionDispatch
 
       headers["Vary"] = "Accept-Encoding" if gzip_path
 
-      return [status, headers, body]
+      [status, headers, body]
     ensure
       request.path_info = path
     end
@@ -78,21 +74,29 @@ module ActionDispatch
       end
 
       def content_type(path)
-        ::Rack::Mime.mime_type(::File.extname(path), "text/plain".freeze)
+        ::Rack::Mime.mime_type(::File.extname(path), "text/plain")
       end
 
       def gzip_encoding_accepted?(request)
-        request.accept_encoding.any? { |enc, quality| enc =~ /\bgzip\b/i }
+        request.accept_encoding.any? { |enc, quality| /\bgzip\b/i.match?(enc) }
       end
 
       def gzip_file_path(path)
-        can_gzip_mime = content_type(path) =~ /\A(?:text\/|application\/javascript)/
+        can_gzip_mime = /\A(?:text\/|application\/javascript)/.match?(content_type(path))
         gzip_path     = "#{path}.gz"
         if can_gzip_mime && File.exist?(File.join(@root, ::Rack::Utils.unescape_path(gzip_path)))
           gzip_path
         else
           false
         end
+      end
+
+      def file_readable?(path)
+        file_stat = File.stat(File.join(@root, path.b))
+      rescue SystemCallError
+        false
+      else
+        file_stat.file? && file_stat.readable?
       end
   end
 
@@ -115,7 +119,7 @@ module ActionDispatch
       req = Rack::Request.new env
 
       if req.get? || req.head?
-        path = req.path_info.chomp("/".freeze)
+        path = req.path_info.chomp("/")
         if match = @file_handler.match?(path)
           req.path_info = match
           return @file_handler.serve(req)

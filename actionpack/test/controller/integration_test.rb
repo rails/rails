@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "controller/fake_controllers"
 require "rails/engine"
@@ -12,11 +14,11 @@ class SessionTest < ActiveSupport::TestCase
   end
 
   def test_https_bang_works_and_sets_truth_by_default
-    assert !@session.https?
+    assert_not_predicate @session, :https?
     @session.https!
-    assert @session.https?
+    assert_predicate @session, :https?
     @session.https! false
-    assert !@session.https?
+    assert_not_predicate @session, :https?
   end
 
   def test_host!
@@ -133,7 +135,15 @@ class IntegrationTestTest < ActiveSupport::TestCase
     session1 = @test.open_session { |sess| }
     session2 = @test.open_session # implicit session
 
-    assert !session1.equal?(session2)
+    assert_not session1.equal?(session2)
+  end
+
+  def test_child_session_assertions_bubble_up_to_root
+    assertions_before = @test.assertions
+    @test.open_session.assert(true)
+    assertions_after = @test.assertions
+
+    assert_equal 1, assertions_after - assertions_before
   end
 
   # RSpec mixes Matchers (which has a #method_missing) into
@@ -150,7 +160,7 @@ class IntegrationTestTest < ActiveSupport::TestCase
       assert_equal "pass", @test.foo
     ensure
       # leave other tests as unaffected as possible
-      mixin.__send__(:remove_method, :method_missing)
+      mixin.remove_method :method_missing
     end
   end
 end
@@ -177,6 +187,15 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
         format.xml { render xml: "<root></root>", status: 200 }
         format.rss { render xml: "<root></root>", status: 200 }
         format.atom { render xml: "<root></root>", status: 200 }
+      end
+    end
+
+    def get_with_vary_set_x_requested_with
+      respond_to do |format|
+        format.json do
+          response.headers["Vary"] = "X-Requested-With"
+          render json: "JSON OK", status: 200
+        end
       end
     end
 
@@ -209,6 +228,10 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
 
     def redirect
       redirect_to action_url("get")
+    end
+
+    def redirect_307
+      redirect_to action_url("post"), status: 307
     end
 
     def remove_header
@@ -335,6 +358,37 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_307_redirect_uses_the_same_http_verb
+    with_test_route_set do
+      post "/redirect_307"
+      assert_equal 307, status
+      follow_redirect!
+      assert_equal "POST", request.method
+    end
+  end
+
+  def test_redirect_reset_html_document
+    with_test_route_set do
+      get "/redirect"
+      previous_html_document = html_document
+
+      follow_redirect!
+
+      assert_response :ok
+      assert_not_same previous_html_document, html_document
+    end
+  end
+
+  def test_redirect_with_arguments
+    with_test_route_set do
+      get "/redirect"
+      follow_redirect! params: { foo: :bar }
+
+      assert_response :ok
+      assert_equal "bar", request.parameters["foo"]
+    end
+  end
+
   def test_xml_http_request_get
     with_test_route_set do
       get "/get", xhr: true
@@ -361,7 +415,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     a = open_session
     b = open_session
 
-    refute_same(a.integration_session, b.integration_session)
+    assert_not_same(a.integration_session, b.integration_session)
   end
 
   def test_get_with_query_string
@@ -398,11 +452,11 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
 
       get "/get_with_params", params: { foo: "bar" }
 
-      assert request.env["rack.input"].string.empty?
+      assert_empty request.env["rack.input"].string
       assert_equal "foo=bar", request.env["QUERY_STRING"]
       assert_equal "foo=bar", request.query_string
       assert_equal "bar", request.parameters["foo"]
-      assert request.parameters["leaks"].nil?
+      assert_predicate request.parameters["leaks"], :nil?
     end
   end
 
@@ -498,12 +552,45 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     with_test_route_set do
       get "/get", headers: { "Accept" => "application/json" }, xhr: true
       assert_equal "application/json", request.accept
-      assert_equal "application/json", response.content_type
+      assert_equal "application/json", response.media_type
 
       get "/get", headers: { "HTTP_ACCEPT" => "application/json" }, xhr: true
       assert_equal "application/json", request.accept
-      assert_equal "application/json", response.content_type
+      assert_equal "application/json", response.media_type
     end
+  end
+
+  def test_setting_vary_header_when_request_is_xhr_with_accept_header
+    with_test_route_set do
+      get "/get", headers: { "Accept" => "application/json" }, xhr: true
+      assert_equal "Accept", response.headers["Vary"]
+    end
+  end
+
+  def test_not_setting_vary_header_when_format_is_provided
+    with_test_route_set do
+      get "/get", params: { format: "json" }
+      assert_nil response.headers["Vary"]
+    end
+  end
+
+  def test_not_setting_vary_header_when_it_has_already_been_set
+    with_test_route_set do
+      get "/get_with_vary_set_x_requested_with", headers: { "Accept" => "application/json" }, xhr: true
+      assert_equal "X-Requested-With", response.headers["Vary"]
+    end
+  end
+
+  def test_not_setting_vary_header_when_ignore_accept_header_is_set
+    original_ignore_accept_header = ActionDispatch::Request.ignore_accept_header
+    ActionDispatch::Request.ignore_accept_header = true
+
+    with_test_route_set do
+      get "/get", headers: { "Accept" => "application/json" }, xhr: true
+      assert_nil response.headers["Vary"]
+    end
+  ensure
+    ActionDispatch::Request.ignore_accept_header = original_ignore_accept_header
   end
 
   private
@@ -543,7 +630,7 @@ class MetalIntegrationTest < ActionDispatch::IntegrationTest
 
   class Poller
     def self.call(env)
-      if env["PATH_INFO"] =~ /^\/success/
+      if /^\/success/.match?(env["PATH_INFO"])
         [200, { "Content-Type" => "text/plain", "Content-Length" => "12" }, ["Hello World!"]]
       else
         [404, { "Content-Type" => "text/plain", "Content-Length" => "0" }, []]
@@ -784,17 +871,17 @@ class UrlOptionsIntegrationTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "session uses default url options from routes" do
+  test "session uses default URL options from routes" do
     assert_equal "http://foo.com/foo", foos_url
   end
 
-  test "current host overrides default url options from routes" do
+  test "current host overrides default URL options from routes" do
     get "/foo"
     assert_response :success
     assert_equal "http://www.example.com/foo", foos_url
   end
 
-  test "controller can override default url options from request" do
+  test "controller can override default URL options from request" do
     get "/bar"
     assert_response :success
     assert_equal "http://bar.com/foo", foos_url
@@ -962,7 +1049,7 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
   def test_encoding_as_json
     post_to_foos as: :json do
       assert_response :success
-      assert_equal "application/json", request.content_type
+      assert_equal "application/json", request.media_type
       assert_equal "application/json", request.accepts.first.to_s
       assert_equal :json, request.format.ref
       assert_equal({ "foo" => "fighters" }, request.request_parameters)
@@ -1001,7 +1088,7 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
     post_to_foos as: :wibble do
       assert_response :success
       assert_equal "/foos_wibble", request.path
-      assert_equal "text/wibble", request.content_type
+      assert_equal "text/wibble", request.media_type
       assert_equal "text/wibble", request.accepts.first.to_s
       assert_equal :wibble, request.format.ref
       assert_equal Hash.new, request.request_parameters # Unregistered MIME Type can't be parsed.
@@ -1052,6 +1139,20 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
       assert_equal "POST", request.method
       assert_equal "GET", request.headers["X-Http-Method-Override"]
       assert_equal({ "foo" => "heyo" }, response.parsed_body)
+    end
+  end
+
+  def test_get_request_with_json_excludes_null_query_string
+    with_routing do |routes|
+      routes.draw do
+        ActiveSupport::Deprecation.silence do
+          get ":action" => FooController
+        end
+      end
+
+      get "/foos_json", as: :json
+
+      assert_equal "http://www.example.com/foos_json", request.url
     end
   end
 

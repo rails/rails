@@ -1,6 +1,8 @@
-require "abstract_unit"
+# frozen_string_literal: true
+
+require_relative "abstract_unit"
 require "active_support/descendants_tracker"
-require "descendants_tracker_test_cases"
+require_relative "descendants_tracker_test_cases"
 
 class DescendantsTrackerWithoutAutoloadingTest < ActiveSupport::TestCase
   include DescendantsTrackerTestCases
@@ -11,7 +13,7 @@ class DescendantsTrackerWithoutAutoloadingTest < ActiveSupport::TestCase
       parent_instance = Parent.new
       parent_instance.singleton_class.descendants
       ActiveSupport::DescendantsTracker.clear
-      assert !ActiveSupport::DescendantsTracker.class_variable_get(:@@direct_descendants).key?(parent_instance.singleton_class)
+      assert_not ActiveSupport::DescendantsTracker.class_variable_get(:@@direct_descendants).key?(parent_instance.singleton_class)
     end
   end
 end

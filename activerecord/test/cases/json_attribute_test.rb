@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "cases/json_shared_test_cases"
 
@@ -17,14 +19,14 @@ class JsonAttributeTest < ActiveRecord::TestCase
   def setup
     super
     @connection.create_table("json_data_type") do |t|
-      t.text "payload"
-      t.text "settings"
+      t.string "payload"
+      t.string "settings"
     end
   end
 
   private
     def column_type
-      :text
+      :string
     end
 
     def klass

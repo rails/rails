@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   # ActiveRecord::Suppressor prevents the receiver from being saved during
   # a given block.
@@ -38,11 +40,11 @@ module ActiveRecord
       end
     end
 
-    def save(*) # :nodoc:
+    def save(*, **) # :nodoc:
       SuppressorRegistry.suppressed[self.class.name] ? true : super
     end
 
-    def save!(*) # :nodoc:
+    def save!(*, **) # :nodoc:
       SuppressorRegistry.suppressed[self.class.name] ? true : super
     end
   end

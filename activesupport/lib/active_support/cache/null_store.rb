@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveSupport
   module Cache
     # A cache store implementation which doesn't actually store anything. Useful in
@@ -9,6 +11,11 @@ module ActiveSupport
     # ActiveSupport::Cache::Strategy::LocalCache for more details.
     class NullStore < Store
       prepend Strategy::LocalCache
+
+      # Advertise cache versioning support.
+      def self.supports_cache_versioning?
+        true
+      end
 
       def clear(options = nil)
       end
@@ -26,14 +33,14 @@ module ActiveSupport
       end
 
       private
-        def read_entry(key, options)
+        def read_entry(key, **options)
         end
 
-        def write_entry(key, entry, options)
+        def write_entry(key, entry, **options)
           true
         end
 
-        def delete_entry(key, options)
+        def delete_entry(key, **options)
           false
         end
     end

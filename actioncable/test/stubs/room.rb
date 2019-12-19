@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Room
   attr_reader :id, :name
 

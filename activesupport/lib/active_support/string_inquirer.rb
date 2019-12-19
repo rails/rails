@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveSupport
   # Wrapping a string in this class gives you a prettier way to test
   # for equality. The value returned by <tt>Rails.env</tt> is wrapped
@@ -16,7 +18,6 @@ module ActiveSupport
   #   vehicle.bike?  # => false
   class StringInquirer < String
     private
-
       def respond_to_missing?(method_name, include_private = false)
         (method_name[-1] == "?") || super
       end

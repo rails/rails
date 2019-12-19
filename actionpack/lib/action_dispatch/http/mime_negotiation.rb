@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/module/attribute_accessors"
 
 module ActionDispatch
@@ -5,14 +7,16 @@ module ActionDispatch
     module MimeNegotiation
       extend ActiveSupport::Concern
 
+      RESCUABLE_MIME_FORMAT_ERRORS = [
+        ActionController::BadRequest,
+        ActionDispatch::Http::Parameters::ParseError,
+      ]
+
       included do
         mattr_accessor :ignore_accept_header, default: false
       end
 
       # The MIME type of the HTTP request, such as Mime[:xml].
-      #
-      # For backward compatibility, the post \format is extracted from the
-      # X-Post-Data-Format HTTP header if present.
       def content_mime_type
         fetch_header("action_dispatch.request.content_type") do |k|
           v = if get_header("CONTENT_TYPE") =~ /^([^,\;]*)/
@@ -58,13 +62,7 @@ module ActionDispatch
 
       def formats
         fetch_header("action_dispatch.request.formats") do |k|
-          params_readable = begin
-                              parameters[:format]
-                            rescue ActionController::BadRequest
-                              false
-                            end
-
-          v = if params_readable
+          v = if params_readable?
             Array(Mime[parameters[:format]])
           elsif use_accept_header && valid_accept_header
             accepts
@@ -75,6 +73,11 @@ module ActionDispatch
           else
             [Mime[:html]]
           end
+
+          v = v.select do |format|
+            format.symbol || format.ref == "*/*"
+          end
+
           set_header k, v
         end
       end
@@ -86,10 +89,7 @@ module ActionDispatch
         if variant.all? { |v| v.is_a?(Symbol) }
           @variant = ActiveSupport::ArrayInquirer.new(variant)
         else
-          raise ArgumentError, "request.variant must be set to a Symbol or an Array of Symbols. " \
-            "For security reasons, never directly set the variant to a user-provided value, " \
-            "like params[:variant].to_sym. Check user-provided value against a whitelist first, " \
-            "then set the variant: request.variant = :tablet if params[:variant] == 'tablet'"
+          raise ArgumentError, "request.variant must be set to a Symbol or an Array of Symbols."
         end
       end
 
@@ -147,13 +147,24 @@ module ActionDispatch
         order.include?(Mime::ALL) ? format : nil
       end
 
-      private
+      def should_apply_vary_header?
+        !params_readable? && use_accept_header && valid_accept_header
+      end
 
+      private
+        # We use normal content negotiation unless you include */* in your list,
+        # in which case we assume you're a browser and send HTML.
         BROWSER_LIKE_ACCEPTS = /,\s*\*\/\*|\*\/\*\s*,/
+
+        def params_readable? # :doc:
+          parameters[:format]
+        rescue *RESCUABLE_MIME_FORMAT_ERRORS
+          false
+        end
 
         def valid_accept_header # :doc:
           (xhr? && (accept.present? || content_mime_type)) ||
-            (accept.present? && accept !~ BROWSER_LIKE_ACCEPTS)
+            (accept.present? && !accept.match?(BROWSER_LIKE_ACCEPTS))
         end
 
         def use_accept_header # :doc:

@@ -1,4 +1,6 @@
-require "abstract_unit"
+# frozen_string_literal: true
+
+require_relative "../../abstract_unit"
 require "active_support/cache"
 require_relative "../behaviors"
 

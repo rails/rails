@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 $:.unshift File.expand_path("lib", __dir__)
 $:.unshift File.expand_path("fixtures/helpers", __dir__)
 $:.unshift File.expand_path("fixtures/alternate_helpers", __dir__)
@@ -20,17 +22,6 @@ require "action_view"
 require "action_view/testing/resolvers"
 require "active_support/dependencies"
 require "active_model"
-require "active_record"
-
-require "pp" # require 'pp' early to prevent hidden_methods from not picking up the pretty-print methods until too late
-
-module Rails
-  class << self
-    def env
-      @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "test")
-    end
-  end
-end
 
 ActiveSupport::Dependencies.hook!
 
@@ -42,9 +33,6 @@ ActiveSupport::Deprecation.debug = true
 # Disable available locale checks to avoid warnings running the test suite.
 I18n.enforce_available_locales = false
 
-# Register danish language for testing
-I18n.backend.store_translations "da", {}
-I18n.backend.store_translations "pt-BR", {}
 ORIGINAL_LOCALES = I18n.available_locales.map(&:to_s).sort
 
 FIXTURE_LOAD_PATH = File.expand_path("fixtures", __dir__)
@@ -54,7 +42,8 @@ module RenderERBUtils
     @view ||= begin
       path = ActionView::FileSystemResolver.new(FIXTURE_LOAD_PATH)
       view_paths = ActionView::PathSet.new([path])
-      ActionView::Base.new(view_paths)
+      view = ActionView::Base.with_empty_template_cache
+      view.with_view_paths(view_paths)
     end
   end
 
@@ -64,53 +53,11 @@ module RenderERBUtils
     template = ActionView::Template.new(
       string.strip,
       "test template",
-      ActionView::Template::Handlers::ERB,
-      {})
+      ActionView::Template.handler_for_extension(:erb),
+      format: :html, locals: [])
 
-    template.render(self, {}).strip
-  end
-end
-
-SharedTestRoutes = ActionDispatch::Routing::RouteSet.new
-
-module ActionDispatch
-  module SharedRoutes
-    def before_setup
-      @routes = SharedTestRoutes
-      super
-    end
-  end
-
-  # Hold off drawing routes until all the possible controller classes
-  # have been loaded.
-  module DrawOnce
-    class << self
-      attr_accessor :drew
-    end
-    self.drew = false
-
-    def before_setup
-      super
-      return if DrawOnce.drew
-
-      ActiveSupport::Deprecation.silence do
-        SharedTestRoutes.draw do
-          get ":controller(/:action)"
-        end
-
-        ActionDispatch::IntegrationTest.app.routes.draw do
-          get ":controller(/:action)"
-        end
-      end
-
-      DrawOnce.drew = true
-    end
-  end
-end
-
-module ActiveSupport
-  class TestCase
-    include ActionDispatch::DrawOnce
+    view = ActionView::Base.with_empty_template_cache
+    template.render(view.empty, {}).strip
   end
 end
 
@@ -144,10 +91,11 @@ class BasicController
 end
 
 class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
-  include ActionDispatch::SharedRoutes
-
   def self.build_app(routes = nil)
-    RoutedRackApp.new(routes || ActionDispatch::Routing::RouteSet.new) do |middleware|
+    routes ||= ActionDispatch::Routing::RouteSet.new.tap { |rs|
+      rs.draw { }
+    }
+    RoutedRackApp.new(routes) do |middleware|
       middleware.use ActionDispatch::ShowExceptions, ActionDispatch::PublicExceptions.new("#{FIXTURE_LOAD_PATH}/public")
       middleware.use ActionDispatch::DebugExceptions
       middleware.use ActionDispatch::Callbacks
@@ -160,54 +108,13 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
 
   self.app = build_app
 
-  # Stub Rails dispatcher so it does not get controller references and
-  # simply return the controller#action as Rack::Body.
-  class StubDispatcher < ::ActionDispatch::Routing::RouteSet::Dispatcher
-    private
-      def controller_reference(controller_param)
-        controller_param
-      end
-
-      def dispatch(controller, action, env)
-        [200, { "Content-Type" => "text/html" }, ["#{controller}##{action}"]]
-      end
-  end
-
-  def self.stub_controllers
-    old_dispatcher = ActionDispatch::Routing::RouteSet::Dispatcher
-    ActionDispatch::Routing::RouteSet.module_eval { remove_const :Dispatcher }
-    ActionDispatch::Routing::RouteSet.module_eval { const_set :Dispatcher, StubDispatcher }
-    yield ActionDispatch::Routing::RouteSet.new
-  ensure
-    ActionDispatch::Routing::RouteSet.module_eval { remove_const :Dispatcher }
-    ActionDispatch::Routing::RouteSet.module_eval { const_set :Dispatcher, old_dispatcher }
-  end
-
   def with_routing(&block)
     temporary_routes = ActionDispatch::Routing::RouteSet.new
     old_app, self.class.app = self.class.app, self.class.build_app(temporary_routes)
-    old_routes = SharedTestRoutes
-    silence_warnings { Object.const_set(:SharedTestRoutes, temporary_routes) }
 
     yield temporary_routes
   ensure
     self.class.app = old_app
-    silence_warnings { Object.const_set(:SharedTestRoutes, old_routes) }
-  end
-
-  def with_autoload_path(path)
-    path = File.join(File.expand_path("fixtures", __dir__), path)
-    if ActiveSupport::Dependencies.autoload_paths.include?(path)
-      yield
-    else
-      begin
-        ActiveSupport::Dependencies.autoload_paths << path
-        yield
-      ensure
-        ActiveSupport::Dependencies.autoload_paths.reject! { |p| p == path }
-        ActiveSupport::Dependencies.clear
-      end
-    end
   end
 end
 
@@ -215,48 +122,37 @@ ActionView::RoutingUrlFor.include(ActionDispatch::Routing::UrlFor)
 
 module ActionController
   class Base
-    # This stub emulates the Railtie including the URL helpers from a Rails application
-    include SharedTestRoutes.url_helpers
-    include SharedTestRoutes.mounted_helpers
-
     self.view_paths = FIXTURE_LOAD_PATH
 
     def self.test_routes(&block)
       routes = ActionDispatch::Routing::RouteSet.new
       routes.draw(&block)
       include routes.url_helpers
+      routes
     end
   end
 
   class TestCase
     include ActionDispatch::TestProcess
-    include ActionDispatch::SharedRoutes
-  end
-end
 
-module ActionView
-  class TestCase
-    # Must repeat the setup because AV::TestCase is a duplication
-    # of AC::TestCase
-    include ActionDispatch::SharedRoutes
-  end
-end
+    def self.with_routes(&block)
+      routes = ActionDispatch::Routing::RouteSet.new
+      routes.draw(&block)
+      include Module.new {
+        define_method(:setup) do
+          super()
+          @routes = routes
+          @controller.singleton_class.include @routes.url_helpers
+        end
+      }
+      routes
+    end
 
-class Workshop
-  extend ActiveModel::Naming
-  include ActiveModel::Conversion
-  attr_accessor :id
-
-  def initialize(id)
-    @id = id
-  end
-
-  def persisted?
-    id.present?
-  end
-
-  def to_s
-    id.to_s
+    def with_routes(&block)
+      @routes = ActionDispatch::Routing::RouteSet.new
+      @routes.draw(&block)
+      @routes
+    end
   end
 end
 
@@ -272,14 +168,20 @@ module ActionDispatch
 end
 
 class ActiveSupport::TestCase
+  parallelize
+
   include ActiveSupport::Testing::MethodCallAssertions
 
-  # Skips the current run on Rubinius using Minitest::Assertions#skip
-  private def rubinius_skip(message = "")
-    skip message if RUBY_ENGINE == "rbx"
-  end
-  # Skips the current run on JRuby using Minitest::Assertions#skip
-  private def jruby_skip(message = "")
-    skip message if defined?(JRUBY_VERSION)
-  end
+  private
+    # Skips the current run on Rubinius using Minitest::Assertions#skip
+    def rubinius_skip(message = "")
+      skip message if RUBY_ENGINE == "rbx"
+    end
+
+    # Skips the current run on JRuby using Minitest::Assertions#skip
+    def jruby_skip(message = "")
+      skip message if defined?(JRUBY_VERSION)
+    end
 end
+
+require_relative "../../tools/test_common"

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "isolation/abstract_unit"
 
 module ApplicationTests
@@ -21,7 +23,7 @@ module ApplicationTests
           File.write("log/test.log", "test")
           File.write("log/dummy.log", "dummy")
 
-          `rails log:clear`
+          rails "log:clear"
 
           assert_equal 0, File.size("log/test.log")
           assert_equal 0, File.size("log/staging.log")

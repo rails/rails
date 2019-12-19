@@ -1,98 +1,216 @@
-*   Merging two relations representing nested joins no longer transforms the joins of
-    the merged relation into LEFT OUTER JOIN. Example to clarify:
+*   Remove `:connection_id` from the `sql.active_record` notification.
 
+    *Aaron Patterson*, *Rafael Mendonça França*
+
+*   The `:name` key will no longer be returned as part of `DatabaseConfig#configuration_hash`. Please use `DatabaseConfig#owner_name` instead.
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
+*   ActiveRecord's `belongs_to_required_by_default` flag can now be set per model.
+
+    You can now opt-out/opt-in specific models from having their associations required
+    by default.
+
+    This change is meant to ease the process of migrating all your models to have
+    their association required.
+
+    *Edouard Chin*
+
+*   The `connection_config` method has been deprecated, please use `connection_db_config` instead which will return a `DatabaseConfigurations::DatabaseConfig` instead of a `Hash`.
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
+*   Retain explicit selections on the base model after applying `includes` and `joins`.
+
+    Resolves #34889.
+
+    *Patrick Rebsch*
+
+*   The `database` kwarg is deprecated without replacement because it can't be used for sharding and creates an issue if it's used during a request. Applications that need to create new connections should use `connects_to` instead.
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
+*   Allow attributes to be fetched from Arel node groupings.
+
+    *Jeff Emminger*, *Gannon McGibbon*
+
+*   A database URL can now contain a querystring value that contains an equal sign. This is needed to support passing PostgreSQL `options`.
+
+    *Joshua Flanagan*
+
+*   Calling methods like `establish_connection` with a `Hash` which is invalid (eg: no `adapter`) will now raise an error the same way as connections defined in `config/database.yml`.
+
+    *John Crepezzi*
+
+*   Specifying `implicit_order_column` now subsorts the records by primary key if available to ensure deterministic results.
+
+    *Paweł Urbanek*
+
+*   `where(attr => [])` now loads an empty result without making a query.
+
+    *John Hawthorn*
+
+*   Fixed the performance regression for `primary_keys` introduced MySQL 8.0.
+
+    *Hiroyuki Ishii*
+
+*   Add support for `belongs_to` to `has_many` inversing.
+
+    *Gannon McGibbon*
+
+*   Allow length configuration for `has_secure_token` method. The minimum length
+    is set at 24 characters.
+
+    Before:
+
+    ```ruby
+    has_secure_token :auth_token
     ```
-    Author.joins(:posts).merge(Post.joins(:comments))
-    # Before the change:
-    #=> SELECT ... FROM authors INNER JOIN posts ON ... LEFT OUTER JOIN comments ON...
 
-    # After the change:
-    #=> SELECT ... FROM authors INNER JOIN posts ON ... INNER JOIN comments ON...
+    After:
+
+    ```ruby
+    has_secure_token :default_token             # 24 characters
+    has_secure_token :auth_token, length: 36    # 36 characters
+    has_secure_token :invalid_token, length: 12 # => ActiveRecord::SecureToken::MinimumLengthError
     ```
 
-    TODO: Add to the Rails 5.2 upgrade guide
+    *Bernardo de Araujo*
 
-    *Maxime Handfield Lapointe*
+*   Deprecate `DatabaseConfigurations#to_h`. These connection hashes are still available via `ActiveRecord::Base.configurations.configs_for`.
 
-*   `ActiveRecord::Persistence#touch` does not work well when optimistic locking enabled and
-    `locking_column`, without default value, is null in the database.
+    *Eileen Uchitelle*, *John Crepezzi*
 
-    *bogdanvlviv*
+*   Add `DatabaseConfig#configuration_hash` to return database configuration hashes with symbol keys, and use all symbol-key configuration hashes internally. Deprecate `DatabaseConfig#config` which returns a String-keyed `Hash` with the same values.
 
-*   Fix destroying existing object does not work well when optimistic locking enabled and
-    `locking column` is null in the database.
+    *John Crepezzi*, *Eileen Uchitelle*
 
-    *bogdanvlviv*
+*   Allow column names to be passed to `remove_index` positionally along with other options.
 
-*   Use bulk INSERT to insert fixtures for better performance.
+    Passing other options can be necessary to make `remove_index` correctly reversible.
+
+    Before:
+
+        add_index    :reports, :report_id               # => works
+        add_index    :reports, :report_id, unique: true # => works
+        remove_index :reports, :report_id               # => works
+        remove_index :reports, :report_id, unique: true # => ArgumentError
+
+    After:
+
+        remove_index :reports, :report_id, unique: true # => works
+
+    *Eugene Kenny*
+
+*   Allow bulk `ALTER` statements to drop and recreate indexes with the same name.
+
+    *Eugene Kenny*
+
+*   `insert`, `insert_all`, `upsert`, and `upsert_all` now clear the query cache.
+
+    *Eugene Kenny*
+
+*   Call `while_preventing_writes` directly from `connected_to`.
+
+    In some cases application authors want to use the database switching middleware and make explicit calls with `connected_to`. It's possible for an app to turn off writes and not turn them back on by the time we call `connected_to(role: :writing)`.
+
+    This change allows apps to fix this by assuming if a role is writing we want to allow writes, except in the case it's explicitly turned off.
+
+    *Eileen M. Uchitelle*
+
+*   Improve detection of ActiveRecord::StatementTimeout with mysql2 adapter in the edge case when the query is terminated during filesort.
 
     *Kir Shatrov*
 
-*   Prevent making bind param if casted value is nil.
+*   Stop trying to read yaml file fixtures when loading Active Record fixtures.
+
+    *Gannon McGibbon*
+
+*   Deprecate `.reorder(nil)` with `.first` / `.first!` taking non-deterministic result.
+
+    To continue taking non-deterministic result, use `.take` / `.take!` instead.
 
     *Ryuta Kamizono*
 
-*   Deprecate passing arguments and block at the same time to `count` and `sum` in `ActiveRecord::Calculations`.
+*   Ensure custom PK types are casted in through reflection queries.
+
+    *Gannon McGibbon*
+
+*   Preserve user supplied joins order as much as possible.
+
+    Fixes #36761, #34328, #24281, #12953.
 
     *Ryuta Kamizono*
 
-*   Loading model schema from database is now thread-safe.
+*   Allow `matches_regex` and `does_not_match_regexp` on the MySQL Arel visitor.
 
-    Fixes #28589.
+    *James Pearson*
 
-    *Vikrant Chaudhary*, *David Abdemoulaie*
+*   Allow specifying fixtures to be ignored by setting `ignore` in YAML file's '_fixture' section.
 
-*   Add `ActiveRecord::Base#cache_version` to support recyclable cache keys via the new versioned entries
-    in `ActiveSupport::Cache`. This also means that `ActiveRecord::Base#cache_key` will now return a stable key
-    that does not include a timestamp any more.
+    *Tongfei Gao*
 
-    NOTE: This feature is turned off by default, and `#cache_key` will still return cache keys with timestamps
-    until you set `ActiveRecord::Base.cache_versioning = true`. That's the setting for all new apps on Rails 5.2+
+*   Make the DATABASE_URL env variable only affect the primary connection. Add new env variables for multiple databases.
 
-    *DHH*
+    *John Crepezzi*, *Eileen Uchitelle*
 
-*   Respect `SchemaDumper.ignore_tables` in rake tasks for databases structure dump
+*   Add a warning for enum elements with 'not_' prefix.
 
-    *Rusty Geldmacher*, *Guillermo Iguaran*
+        class Foo
+          enum status: [:sent, :not_sent]
+        end
 
-*   Add type caster to `RuntimeReflection#alias_name`
+    *Edu Depetris*
 
-    Fixes #28959.
+*   Make currency symbols optional for money column type in PostgreSQL.
 
-    *Jon Moss*
+    *Joel Schneider*
 
-*   Deprecate `supports_statement_cache?`.
+*   Add support for beginless ranges, introduced in Ruby 2.7.
 
-    *Ryuta Kamizono*
+    *Josh Goodall*
 
-*   Quote database name in `db:create` grant statement (when database user does not have access to create the database).
+*   Add database_exists? method to connection adapters to check if a database exists.
 
-    *Rune Philosof*
+    *Guilherme Mansur*
 
-*   Raise error `UnknownMigrationVersionError` on the movement of migrations
-    when the current migration does not exist.
+*   Loading the schema for a model that has no `table_name` raises a `TableNotSpecified` error.
 
-    *bogdanvlviv*
+    *Guilherme Mansur*, *Eugene Kenny*
 
-*   Fix `bin/rails db:forward` first migration.
+*   PostgreSQL: Fix GROUP BY with ORDER BY virtual count attribute.
 
-    *bogdanvlviv*
-
-*   Support Descending Indexes for MySQL.
-
-    MySQL 8.0.1 and higher supports descending indexes: `DESC` in an index definition is no longer ignored.
-    See https://dev.mysql.com/doc/refman/8.0/en/descending-indexes.html.
+    Fixes #36022.
 
     *Ryuta Kamizono*
 
-*   Fix inconsistency with changed attributes when overriding AR attribute reader.
+*   Make ActiveRecord `ConnectionPool.connections` method thread-safe.
 
-    *bogdanvlviv*
+    Fixes #36465.
 
-*   When calling the dynamic fixture accessor method with no arguments it now returns all fixtures of this type.
-    Previously this method always returned an empty array.
+    *Jeff Doering*
 
-    *Kevin McPhillips*
+*   Add support for multiple databases to `rails db:abort_if_pending_migrations`.
+
+    *Mark Lee*
+
+*   Fix sqlite3 collation parsing when using decimal columns.
+
+    *Martin R. Schuster*
+
+*   Fix invalid schema when primary key column has a comment.
+
+    Fixes #29966.
+
+    *Guilherme Goettems Schneider*
+
+*   Fix table comment also being applied to the primary key column.
+
+    *Guilherme Goettems Schneider*
+
+*   Allow generated `create_table` migrations to include or skip timestamps.
+
+    *Michael Duchemin*
 
 
-Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/activerecord/CHANGELOG.md) for previous changes.
+Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/activerecord/CHANGELOG.md) for previous changes.

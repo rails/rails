@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/time/calculations"
 
 module ActiveSupport
@@ -96,7 +98,6 @@ module ActiveSupport
     end
 
     private
-
       def watched
         @watched || begin
           all = @files.select { |f| File.exist?(f) }

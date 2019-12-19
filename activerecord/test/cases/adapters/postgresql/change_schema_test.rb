@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 module ActiveRecord
@@ -31,7 +33,7 @@ module ActiveRecord
         connection.change_column :strings, :somedate, :timestamp, array: true, cast_as: :timestamp
         column = connection.columns(:strings).find { |c| c.name == "somedate" }
         assert_equal :datetime, column.type
-        assert column.array?
+        assert_predicate column, :array?
       end
     end
   end

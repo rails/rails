@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "strscan"
 
 module ActionDispatch
@@ -32,6 +33,12 @@ module ActionDispatch
       end
 
       private
+        # takes advantage of String @- deduping capabilities in Ruby 2.5 upwards
+        # see: https://bugs.ruby-lang.org/issues/13077
+        def dedup_scan(regex)
+          r = @ss.scan(regex)
+          r ? -r : nil
+        end
 
         def scan
           case
@@ -46,15 +53,15 @@ module ActionDispatch
             [:OR, "|"]
           when @ss.skip(/\./)
             [:DOT, "."]
-          when text = @ss.scan(/:\w+/)
+          when text = dedup_scan(/:\w+/)
             [:SYMBOL, text]
-          when text = @ss.scan(/\*\w+/)
+          when text = dedup_scan(/\*\w+/)
             [:STAR, text]
           when text = @ss.scan(/(?:[\w%\-~!$&'*+,;=@]|\\[:()])+/)
             text.tr! "\\", ""
-            [:LITERAL, text]
+            [:LITERAL, -text]
             # any char
-          when text = @ss.scan(/./)
+          when text = dedup_scan(/./)
             [:LITERAL, text]
           end
         end

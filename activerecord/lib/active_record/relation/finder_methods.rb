@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/string/filters"
 
 module ActiveRecord
@@ -5,8 +7,8 @@ module ActiveRecord
     ONE_AS_ONE = "1 AS one"
 
     # Find by id - This can either be a specific id (1), a list of ids (1, 5, 6), or an array of ids ([5, 6, 10]).
-    # If one or more records can not be found for the requested ids, then RecordNotFound will be raised. If the primary key
-    # is an integer, find by id coerces its arguments using +to_i+.
+    # If one or more records cannot be found for the requested ids, then ActiveRecord::RecordNotFound will be raised.
+    # If the primary key is an integer, find by id coerces its arguments by using +to_i+.
     #
     #   Person.find(1)          # returns the object for ID = 1
     #   Person.find("1")        # returns the object for ID = 1
@@ -16,9 +18,10 @@ module ActiveRecord
     #   Person.find([1])        # returns an array for the object with ID = 1
     #   Person.where("administrator = 1").order("created_on DESC").find(1)
     #
-    # NOTE: The returned records may not be in the same order as the ids you
-    # provide since database rows are unordered. You will need to provide an explicit QueryMethods#order
-    # option if you want the results to be sorted.
+    # NOTE: The returned records are in the same order as the ids you provide.
+    # If you want the results to be sorted by database, you can use ActiveRecord::QueryMethods#where
+    # method and provide an explicit ActiveRecord::QueryMethods#order option.
+    # But ActiveRecord::QueryMethods#where method doesn't raise ActiveRecord::RecordNotFound.
     #
     # ==== Find with lock
     #
@@ -76,17 +79,12 @@ module ActiveRecord
     #   Post.find_by "published_at < ?", 2.weeks.ago
     def find_by(arg, *args)
       where(arg, *args).take
-    rescue ::RangeError
-      nil
     end
 
     # Like #find_by, except that if no record is found, raises
     # an ActiveRecord::RecordNotFound error.
     def find_by!(arg, *args)
       where(arg, *args).take!
-    rescue ::RangeError
-      raise RecordNotFound.new("Couldn't find #{@klass.name} with an out of range value",
-                               @klass.name)
     end
 
     # Gives a record (or N records if a parameter is supplied) without any implied
@@ -116,6 +114,15 @@ module ActiveRecord
     #   Person.first(3) # returns the first three objects fetched by SELECT * FROM people ORDER BY people.id LIMIT 3
     #
     def first(limit = nil)
+      if !order_values.empty? && order_values.all?(&:blank?)
+        blank_value = order_values.first
+        ActiveSupport::Deprecation.warn(<<~MSG.squish)
+          `.reorder(#{blank_value.inspect})` with `.first` / `.first!` no longer
+          takes non-deterministic result in Rails 6.2.
+          To continue taking non-deterministic result, use `.take` / `.take!` instead.
+        MSG
+      end
+
       if limit
         find_nth_with_limit(0, limit)
       else
@@ -145,10 +152,9 @@ module ActiveRecord
     #
     #   [#<Person id:4>, #<Person id:3>, #<Person id:2>]
     def last(limit = nil)
-      return find_last(limit) if loaded? || limit_value
+      return find_last(limit) if loaded? || has_limit_or_offset?
 
-      result = limit(limit)
-      result.order!(arel_attribute(primary_key)) if order_values.empty? && primary_key
+      result = ordered_relation.limit(limit)
       result = result.reverse_order!
 
       limit ? result.reverse : result.first
@@ -283,7 +289,7 @@ module ActiveRecord
     # * Hash - Finds the record that matches these +find+-style conditions
     #   (such as <tt>{name: 'David'}</tt>).
     # * +false+ - Returns always +false+.
-    # * No args - Returns +false+ if the table is empty, +true+ otherwise.
+    # * No args - Returns +false+ if the relation is empty, +true+ otherwise.
     #
     # For more information about specifying conditions as a hash or array,
     # see the Conditions section in the introduction to ActiveRecord::Base.
@@ -299,6 +305,7 @@ module ActiveRecord
     #   Person.exists?(name: 'David')
     #   Person.exists?(false)
     #   Person.exists?
+    #   Person.where(name: 'Spartacus', rating: 4).exists?
     def exists?(conditions = :none)
       if Base === conditions
         raise ArgumentError, <<-MSG.squish
@@ -309,16 +316,14 @@ module ActiveRecord
 
       return false if !conditions || limit_value == 0
 
-      relation = self unless eager_loading?
-      relation ||= apply_join_dependency(self, construct_join_dependency(eager_loading: false))
+      if eager_loading?
+        relation = apply_join_dependency(eager_loading: false)
+        return relation.exists?(conditions)
+      end
 
-      return false if ActiveRecord::NullRelation === relation
+      relation = construct_relation_for_exists(conditions)
 
-      relation = construct_relation_for_exists(relation, conditions)
-
-      connection.select_value(relation, "#{name} Exists", relation.bound_attributes) ? true : false
-    rescue ::RangeError
-      false
+      skip_query_cache_if_necessary { connection.select_one(relation.arel, "#{name} Exists?") } ? true : false
     end
 
     # This method is called whenever no records are found with either a single
@@ -329,67 +334,43 @@ module ActiveRecord
     # of results obtained should be provided in the +result_size+ argument and
     # the expected number of results should be provided in the +expected_size+
     # argument.
-    def raise_record_not_found_exception!(ids = nil, result_size = nil, expected_size = nil, key = primary_key) # :nodoc:
-      conditions = arel.where_sql(@klass.arel_engine)
+    def raise_record_not_found_exception!(ids = nil, result_size = nil, expected_size = nil, key = primary_key, not_found_ids = nil) # :nodoc:
+      conditions = arel.where_sql(@klass)
       conditions = " [#{conditions}]" if conditions
       name = @klass.name
 
       if ids.nil?
-        error = "Couldn't find #{name}"
+        error = +"Couldn't find #{name}"
         error << " with#{conditions}" if conditions
-        raise RecordNotFound.new(error, name)
+        raise RecordNotFound.new(error, name, key)
       elsif Array(ids).size == 1
         error = "Couldn't find #{name} with '#{key}'=#{ids}#{conditions}"
         raise RecordNotFound.new(error, name, key, ids)
       else
-        error = "Couldn't find all #{name.pluralize} with '#{key}': "
-        error << "(#{ids.join(", ")})#{conditions} (found #{result_size} results, but was looking for #{expected_size})"
-
-        raise RecordNotFound.new(error, name, primary_key, ids)
+        error = +"Couldn't find all #{name.pluralize} with '#{key}': "
+        error << "(#{ids.join(", ")})#{conditions} (found #{result_size} results, but was looking for #{expected_size})."
+        error << " Couldn't find #{name.pluralize(not_found_ids.size)} with #{key.to_s.pluralize(not_found_ids.size)} #{not_found_ids.join(', ')}." if not_found_ids
+        raise RecordNotFound.new(error, name, key, ids)
       end
     end
 
     private
-
       def offset_index
         offset_value || 0
       end
 
-      def find_with_associations
-        # NOTE: the JoinDependency constructed here needs to know about
-        #       any joins already present in `self`, so pass them in
-        #
-        # failing to do so means that in cases like activerecord/test/cases/associations/inner_join_association_test.rb:136
-        # incorrect SQL is generated. In that case, the join dependency for
-        # SpecialCategorizations is constructed without knowledge of the
-        # preexisting join in joins_values to categorizations (by way of
-        # the `has_many :through` for categories).
-        #
-        join_dependency = construct_join_dependency(joins_values)
+      def construct_relation_for_exists(conditions)
+        conditions = sanitize_forbidden_attributes(conditions)
 
-        aliases  = join_dependency.aliases
-        relation = select aliases.columns
-        relation = apply_join_dependency(relation, join_dependency)
-
-        if block_given?
-          yield relation
+        if distinct_value && offset_value
+          relation = except(:order).limit!(1)
         else
-          if ActiveRecord::NullRelation === relation
-            []
-          else
-            arel = relation.arel
-            rows = connection.select_all(arel, "SQL", relation.bound_attributes)
-            join_dependency.instantiate(rows, aliases)
-          end
+          relation = except(:select, :distinct, :order)._select!(ONE_AS_ONE).limit!(1)
         end
-      end
-
-      def construct_relation_for_exists(relation, conditions)
-        relation = relation.except(:select, :distinct, :order)._select!(ONE_AS_ONE).limit!(1)
 
         case conditions
         when Array, Hash
-          relation.where!(conditions)
+          relation.where!(conditions) unless conditions.empty?
         else
           relation.where!(primary_key => conditions) unless conditions == :none
         end
@@ -397,37 +378,45 @@ module ActiveRecord
         relation
       end
 
-      def construct_join_dependency(joins = [], eager_loading: true)
-        including = eager_load_values + includes_values
-        ActiveRecord::Associations::JoinDependency.new(@klass, including, joins, eager_loading: eager_loading)
-      end
+      def apply_join_dependency(eager_loading: group_values.empty?)
+        join_dependency = construct_join_dependency(
+          eager_load_values + includes_values, Arel::Nodes::OuterJoin
+        )
+        relation = except(:includes, :eager_load, :preload).joins!(join_dependency)
 
-      def construct_relation_for_association_calculations
-        apply_join_dependency(self, construct_join_dependency(joins_values))
-      end
-
-      def apply_join_dependency(relation, join_dependency)
-        relation = relation.except(:includes, :eager_load, :preload).joins!(join_dependency)
-
-        if using_limitable_reflections?(join_dependency.reflections)
-          relation
-        else
-          if relation.limit_value
+        if eager_loading && !(
+            using_limitable_reflections?(join_dependency.reflections) &&
+            using_limitable_reflections?(
+              construct_join_dependency(
+                select_association_list(joins_values).concat(
+                  select_association_list(left_outer_joins_values)
+                ), nil
+              ).reflections
+            )
+        )
+          if has_limit_or_offset?
             limited_ids = limited_ids_for(relation)
             limited_ids.empty? ? relation.none! : relation.where!(primary_key => limited_ids)
           end
-          relation.except(:limit, :offset)
+          relation.limit_value = relation.offset_value = nil
+        end
+
+        if block_given?
+          yield relation, join_dependency
+        else
+          relation
         end
       end
 
       def limited_ids_for(relation)
         values = @klass.connection.columns_for_distinct(
-          "#{quoted_table_name}.#{quoted_primary_key}", relation.order_values)
+          connection.visitor.compile(arel_attribute(primary_key)),
+          relation.order_values
+        )
 
         relation = relation.except(:select).select(values).distinct!
-        arel = relation.arel
 
-        id_rows = @klass.connection.select_all(arel, "SQL", relation.bound_attributes)
+        id_rows = skip_query_cache_if_necessary { @klass.connection.select_all(relation.arel, "SQL") }
         id_rows.map { |row| row[primary_key] }
       end
 
@@ -439,21 +428,22 @@ module ActiveRecord
         raise UnknownPrimaryKey.new(@klass) if primary_key.nil?
 
         expects_array = ids.first.kind_of?(Array)
-        return ids.first if expects_array && ids.first.empty?
+        return [] if expects_array && ids.first.empty?
 
         ids = ids.flatten.compact.uniq
 
+        model_name = @klass.name
+
         case ids.size
         when 0
-          raise RecordNotFound, "Couldn't find #{@klass.name} without an ID"
+          error_message = "Couldn't find #{model_name} without an ID"
+          raise RecordNotFound.new(error_message, model_name, primary_key)
         when 1
           result = find_one(ids.first)
           expects_array ? [ result ] : result
         else
           find_some(ids)
         end
-      rescue ::RangeError
-        raise RecordNotFound, "Couldn't find #{@klass.name} with an out of range ID"
       end
 
       def find_one(id)
@@ -535,13 +525,13 @@ module ActiveRecord
         if loaded?
           records[index, limit] || []
         else
-          relation = if order_values.empty? && primary_key
-            order(arel_attribute(primary_key).asc)
-          else
-            self
+          relation = ordered_relation
+
+          if limit_value
+            limit = [limit_value - index, limit].min
           end
 
-          if limit_value.nil? || index < limit_value
+          if limit > 0
             relation = relation.offset(offset_index + index) unless index.zero?
             relation.limit(limit).to_a
           else
@@ -554,23 +544,30 @@ module ActiveRecord
         if loaded?
           records[-index]
         else
-          relation = if order_values.empty? && primary_key
-            order(arel_attribute(primary_key).asc)
-          else
-            self
-          end
+          relation = ordered_relation
 
-          relation.to_a[-index]
-          # TODO: can be made more performant on large result sets by
-          # for instance, last(index)[-index] (which would require
-          # refactoring the last(n) finder method to make test suite pass),
-          # or by using a combination of reverse_order, limit, and offset,
-          # e.g., reverse_order.offset(index-1).first
+          if equal?(relation) || has_limit_or_offset?
+            relation.records[-index]
+          else
+            relation.last(index)[-index]
+          end
         end
       end
 
       def find_last(limit)
         limit ? records.last(limit) : records.last
+      end
+
+      def ordered_relation
+        if order_values.empty? && (implicit_order_column || primary_key)
+          if implicit_order_column && primary_key && implicit_order_column != primary_key
+            order(arel_attribute(implicit_order_column).asc, arel_attribute(primary_key).asc)
+          else
+            order(arel_attribute(implicit_order_column || primary_key).asc)
+          end
+        else
+          self
+        end
       end
   end
 end

@@ -1,5 +1,4 @@
-require "active_support/core_ext/hash/except"
-require "active_support/core_ext/hash/slice"
+# frozen_string_literal: true
 
 module ActiveModel
   # == Active \Model \Serialization
@@ -148,7 +147,6 @@ module ActiveModel
     end
 
     private
-
       # Hook method defining how an attribute value should be retrieved for
       # serialization. By default this is assumed to be an instance named after
       # the attribute. Override this method in subclasses should you need to
@@ -177,7 +175,7 @@ module ActiveModel
         return unless includes = options[:include]
 
         unless includes.is_a?(Hash)
-          includes = Hash[Array(includes).map { |n| n.is_a?(Hash) ? n.to_a.first : [n, {}] }]
+          includes = Hash[Array(includes).flat_map { |n| n.is_a?(Hash) ? n.to_a : [[n, {}]] }]
         end
 
         includes.each do |association, opts|

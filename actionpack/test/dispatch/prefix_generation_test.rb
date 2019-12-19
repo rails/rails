@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "rack/test"
 require "rails/engine"
@@ -11,7 +13,7 @@ module TestGenerationPrefix
     end
 
     def self.model_name
-      klass = "Post"
+      klass = +"Post"
       def klass.name; self end
 
       ActiveModel::Name.new(klass)
@@ -149,17 +151,17 @@ module TestGenerationPrefix
     include BlogEngine.routes.mounted_helpers
 
     # Inside Engine
-    test "[ENGINE] generating engine's url use SCRIPT_NAME from request" do
+    test "[ENGINE] generating engine's URL use SCRIPT_NAME from request" do
       get "/pure-awesomeness/blog/posts/1"
       assert_equal "/pure-awesomeness/blog/posts/1", response.body
     end
 
-    test "[ENGINE] generating application's url never uses SCRIPT_NAME from request" do
+    test "[ENGINE] generating application's URL never uses SCRIPT_NAME from request" do
       get "/pure-awesomeness/blog/url_to_application"
       assert_equal "/generate", response.body
     end
 
-    test "[ENGINE] generating engine's url with polymorphic path" do
+    test "[ENGINE] generating engine's URL with polymorphic path" do
       get "/pure-awesomeness/blog/polymorphic_path_for_engine"
       assert_equal "/pure-awesomeness/blog/posts/1", response.body
     end
@@ -241,7 +243,7 @@ module TestGenerationPrefix
       assert_equal "/something/awesome/blog/posts/1", response.body
     end
 
-    test "[APP] generating engine's url with polymorphic path" do
+    test "[APP] generating engine's URL with polymorphic path" do
       get "/polymorphic_path_for_engine"
       assert_equal "/awesome/blog/posts/1", response.body
     end
@@ -251,7 +253,7 @@ module TestGenerationPrefix
       assert_equal "/posts/1", response.body
     end
 
-    test "[APP] generating engine's url with url_for(@post)" do
+    test "[APP] generating engine's URL with url_for(@post)" do
       get "/polymorphic_with_url_for"
       assert_equal "http://www.example.com/awesome/blog/posts/1", response.body
     end
@@ -302,7 +304,7 @@ module TestGenerationPrefix
       assert_equal "/omg/blog/posts/1", path
     end
 
-    test "[OBJECT] generating engine's route with named helpers" do
+    test "[OBJECT] generating engine's route with named route helpers" do
       path = engine_object.posts_path
       assert_equal "/awesome/blog/posts", path
 

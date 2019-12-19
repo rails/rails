@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   class PredicateBuilder
     class AssociationQueryValue # :nodoc:
@@ -7,15 +9,12 @@ module ActiveRecord
       end
 
       def queries
-        [associated_table.association_foreign_key.to_s => ids]
+        [associated_table.association_join_foreign_key.to_s => ids]
       end
 
-      # TODO Change this to private once we've dropped Ruby 2.2 support.
-      # Workaround for Ruby 2.2 "private attribute?" warning.
-      protected
+      private
         attr_reader :associated_table, :value
 
-      private
         def ids
           case value
           when Relation
@@ -28,7 +27,7 @@ module ActiveRecord
         end
 
         def primary_key
-          associated_table.association_primary_key
+          associated_table.association_join_primary_key
         end
 
         def convert_to_id(value)

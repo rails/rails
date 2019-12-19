@@ -1,14 +1,14 @@
-begin
-  require "bundler/inline"
-rescue LoadError => e
-  $stderr.puts "Bundler version 1.10 or later is required. Please update your Bundler"
-  raise e
-end
+# frozen_string_literal: true
+
+require "bundler/inline"
 
 gemfile(true) do
   source "https://rubygems.org"
+
+  git_source(:github) { |repo| "https://github.com/#{repo}.git" }
+
   # Activate the gem you are reporting the issue against.
-  gem "rails", "5.1.0"
+  gem "rails", "6.0.0"
 end
 
 require "rack/test"
@@ -16,8 +16,8 @@ require "action_controller/railtie"
 
 class TestApp < Rails::Application
   config.root = __dir__
+  config.hosts << "example.org"
   config.session_store :cookie_store, key: "cookie_store_key"
-  secrets.secret_token    = "secret_token"
   secrets.secret_key_base = "secret_key_base"
 
   config.logger = Logger.new($stdout)
@@ -37,9 +37,6 @@ class TestController < ActionController::Base
 end
 
 require "minitest/autorun"
-
-# Ensure backward compatibility with Minitest 4
-Minitest::Test = MiniTest::Unit::TestCase unless defined?(Minitest::Test)
 
 class BugTest < Minitest::Test
   include Rack::Test::Methods

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "irb"
 require "irb/completion"
 
@@ -24,6 +26,12 @@ module Rails
       @options = options
 
       app.sandbox = sandbox?
+
+      if sandbox? && app.config.disable_sandbox
+        puts "Error: Unable to start console in sandbox mode as sandbox mode is disabled (config.disable_sandbox is true)."
+        exit 1
+      end
+
       app.load_console
 
       @console = app.config.console || IRB
@@ -69,9 +77,6 @@ module Rails
 
       class_option :sandbox, aliases: "-s", type: :boolean, default: false,
         desc: "Rollback database modifications on exit."
-
-      class_option :environment, aliases: "-e", type: :string,
-        desc: "Specifies the environment to run this console under (test/development/production)."
 
       def initialize(args = [], local_options = {}, config = {})
         console_options = []

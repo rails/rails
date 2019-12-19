@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "action_dispatch/journey/gtg/transition_table"
 
 module ActionDispatch
@@ -126,7 +128,6 @@ module ActionDispatch
         end
 
         private
-
           def followpos_table
             @followpos ||= build_followpos
           end

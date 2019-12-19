@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/connection_helper"
 
@@ -11,7 +13,7 @@ class PostgreSQLReferentialIntegrityTest < ActiveRecord::PostgreSQLTestCase
   end
 
   module MissingSuperuserPrivileges
-    def execute(sql)
+    def execute(sql, name = nil)
       if IS_REFERENTIAL_INTEGRITY_SQL.call(sql)
         super "BROKEN;" rescue nil # put transaction in broken state
         raise ActiveRecord::StatementInvalid, "PG::InsufficientPrivilege"
@@ -22,7 +24,7 @@ class PostgreSQLReferentialIntegrityTest < ActiveRecord::PostgreSQLTestCase
   end
 
   module ProgrammerMistake
-    def execute(sql)
+    def execute(sql, name = nil)
       if IS_REFERENTIAL_INTEGRITY_SQL.call(sql)
         raise ArgumentError, "something is not right."
       else
@@ -99,12 +101,11 @@ class PostgreSQLReferentialIntegrityTest < ActiveRecord::PostgreSQLTestCase
     @connection.extend ProgrammerMistake
 
     assert_raises ArgumentError do
-      @connection.disable_referential_integrity {}
+      @connection.disable_referential_integrity { }
     end
   end
 
   private
-
     def assert_transaction_is_not_broken
       assert_equal 1, @connection.select_value("SELECT 1")
     end

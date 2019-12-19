@@ -2,9 +2,10 @@
 <html id="html">
   <head>
     <title><%= @title %></title>
+    <%= csp_meta_tag %>
     <link href="/vendor/qunit.css" media="screen" rel="stylesheet" type="text/css" media="screen, projection" />
-    <%= script_tag "http://code.jquery.com/jquery-2.2.0.js" %>
-    <script>
+    <script src="/vendor/jquery-2.2.0.js" type="text/javascript"></script>
+    <%= javascript_tag nonce: true do %>
       // This is for test in override.js.
       // Must go before rails-ujs.
       document.addEventListener('rails:attachBindings', function() {
@@ -15,8 +16,8 @@
           e.preventDefault();
         });
       });
-    </script>
-    <%= script_tag "/rails-ujs.js" %>
+    <% end %>
+    <%= javascript_include_tag "/rails-ujs.js" %>
   </head>
 
   <body id="body">

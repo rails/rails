@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/connection_helper"
 require "support/schema_dumping_helper"
@@ -27,20 +29,20 @@ class PostgresqlBitStringTest < ActiveRecord::PostgreSQLTestCase
     column = PostgresqlBitString.columns_hash["a_bit"]
     assert_equal :bit, column.type
     assert_equal "bit(8)", column.sql_type
-    assert_not column.array?
+    assert_not_predicate column, :array?
 
     type = PostgresqlBitString.type_for_attribute("a_bit")
-    assert_not type.binary?
+    assert_not_predicate type, :binary?
   end
 
   def test_bit_string_varying_column
     column = PostgresqlBitString.columns_hash["a_bit_varying"]
     assert_equal :bit_varying, column.type
     assert_equal "bit varying(4)", column.sql_type
-    assert_not column.array?
+    assert_not_predicate column, :array?
 
     type = PostgresqlBitString.type_for_attribute("a_bit_varying")
-    assert_not type.binary?
+    assert_not_predicate type, :binary?
   end
 
   def test_default

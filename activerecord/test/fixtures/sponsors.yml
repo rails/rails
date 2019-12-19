@@ -10,3 +10,6 @@ crazy_club_sponsor_for_groucho:
   sponsor_club: crazy_club
   sponsorable_id: 3
   sponsorable_type: Member
+sponsor_for_author_david:
+  sponsorable_id: 1
+  sponsorable_type: Author

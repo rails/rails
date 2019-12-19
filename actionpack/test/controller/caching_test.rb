@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "fileutils"
 require "abstract_unit"
 require "lib/controller/fake_models"
@@ -58,14 +60,6 @@ class FragmentCachingTest < ActionController::TestCase
     @m2v2 = ModelWithKeyAndVersion.new("model/2", "2")
   end
 
-  def test_fragment_cache_key
-    assert_deprecated do
-      assert_equal "views/what a key", @controller.fragment_cache_key("what a key")
-      assert_equal "views/test.host/fragment_caching_test/some_action",
-        @controller.fragment_cache_key(controller: "fragment_caching_test", action: "some_action")
-    end
-  end
-
   def test_combined_fragment_cache_key
     assert_equal [ :views, "what a key" ], @controller.combined_fragment_cache_key("what a key")
     assert_equal [ :views, "test.host/fragment_caching_test/some_action" ],
@@ -92,14 +86,14 @@ class FragmentCachingTest < ActionController::TestCase
   def test_fragment_exist_with_caching_enabled
     @store.write("views/name", "value")
     assert @controller.fragment_exist?("name")
-    assert !@controller.fragment_exist?("other_name")
+    assert_not @controller.fragment_exist?("other_name")
   end
 
   def test_fragment_exist_with_caching_disabled
     @controller.perform_caching = false
     @store.write("views/name", "value")
-    assert !@controller.fragment_exist?("name")
-    assert !@controller.fragment_exist?("other_name")
+    assert_not @controller.fragment_exist?("name")
+    assert_not @controller.fragment_exist?("other_name")
   end
 
   def test_write_fragment_with_caching_enabled
@@ -142,7 +136,7 @@ class FragmentCachingTest < ActionController::TestCase
     buffer = "generated till now -> ".html_safe
     buffer << view_context.send(:fragment_for, "expensive") { fragment_computed = true }
 
-    assert !fragment_computed
+    assert_not fragment_computed
     assert_equal "generated till now -> fragment content", buffer
   end
 
@@ -157,7 +151,7 @@ class FragmentCachingTest < ActionController::TestCase
 
     html_safe = @controller.read_fragment("name")
     assert_equal content, html_safe
-    assert html_safe.html_safe?
+    assert_predicate html_safe, :html_safe?
   end
 end
 
@@ -169,6 +163,9 @@ class FunctionalCachingController < CachingController
     respond_to do |format|
       format.html
     end
+  end
+
+  def xml_fragment_cached_with_html_partial
   end
 
   def formatted_fragment_cached
@@ -211,11 +208,11 @@ class FunctionalFragmentCachingTest < ActionController::TestCase
 Hello
 This bit's fragment cached
 Ciao
-CACHED
+    CACHED
     assert_equal expected_body, @response.body
 
     assert_equal "This bit's fragment cached",
-      @store.read("views/functional_caching/fragment_cached:#{template_digest("functional_caching/fragment_cached")}/fragment")
+      @store.read("views/functional_caching/fragment_cached:#{template_digest("functional_caching/fragment_cached", "html")}/fragment")
   end
 
   def test_fragment_caching_in_partials
@@ -224,7 +221,7 @@ CACHED
     assert_match(/Old fragment caching in a partial/, @response.body)
 
     assert_match("Old fragment caching in a partial",
-      @store.read("views/functional_caching/_partial:#{template_digest("functional_caching/_partial")}/test.host/functional_caching/html_fragment_cached_with_partial"))
+      @store.read("views/functional_caching/_partial:#{template_digest("functional_caching/_partial", "html")}/test.host/functional_caching/html_fragment_cached_with_partial"))
   end
 
   def test_skipping_fragment_cache_digesting
@@ -254,7 +251,7 @@ CACHED
     assert_match(/Some inline content/, @response.body)
     assert_match(/Some cached content/, @response.body)
     assert_match("Some cached content",
-      @store.read("views/functional_caching/inline_fragment_cached:#{template_digest("functional_caching/inline_fragment_cached")}/test.host/functional_caching/inline_fragment_cached"))
+      @store.read("views/functional_caching/inline_fragment_cached:#{template_digest("functional_caching/inline_fragment_cached", "html")}/test.host/functional_caching/inline_fragment_cached"))
   end
 
   def test_fragment_cache_instrumentation
@@ -274,48 +271,56 @@ CACHED
   end
 
   def test_html_formatted_fragment_caching
-    get :formatted_fragment_cached, format: "html"
+    format = "html"
+    get :formatted_fragment_cached, format: format
     assert_response :success
     expected_body = "<body>\n<p>ERB</p>\n</body>\n"
 
     assert_equal expected_body, @response.body
 
     assert_equal "<p>ERB</p>",
-      @store.read("views/functional_caching/formatted_fragment_cached:#{template_digest("functional_caching/formatted_fragment_cached")}/fragment")
+      @store.read("views/functional_caching/formatted_fragment_cached:#{template_digest("functional_caching/formatted_fragment_cached", format)}/fragment")
   end
 
   def test_xml_formatted_fragment_caching
-    get :formatted_fragment_cached, format: "xml"
+    format = "xml"
+    get :formatted_fragment_cached, format: format
     assert_response :success
     expected_body = "<body>\n  <p>Builder</p>\n</body>\n"
 
     assert_equal expected_body, @response.body
 
     assert_equal "  <p>Builder</p>\n",
-      @store.read("views/functional_caching/formatted_fragment_cached:#{template_digest("functional_caching/formatted_fragment_cached")}/fragment")
+      @store.read("views/functional_caching/formatted_fragment_cached:#{template_digest("functional_caching/formatted_fragment_cached", format)}/fragment")
   end
 
   def test_fragment_caching_with_variant
-    get :formatted_fragment_cached_with_variant, format: "html", params: { v: :phone }
+    format = "html"
+    get :formatted_fragment_cached_with_variant, format: format, params: { v: :phone }
     assert_response :success
     expected_body = "<body>\n<p>PHONE</p>\n</body>\n"
 
     assert_equal expected_body, @response.body
 
     assert_equal "<p>PHONE</p>",
-      @store.read("views/functional_caching/formatted_fragment_cached_with_variant:#{template_digest("functional_caching/formatted_fragment_cached_with_variant")}/fragment")
+      @store.read("views/functional_caching/formatted_fragment_cached_with_variant:#{template_digest("functional_caching/formatted_fragment_cached_with_variant", format)}/fragment")
+  end
+
+  def test_fragment_caching_with_html_partials_in_xml
+    get :xml_fragment_cached_with_html_partial, format: "*/*"
+    assert_response :success
   end
 
   private
-    def template_digest(name)
-      ActionView::Digestor.digest(name: name, finder: @controller.lookup_context)
+    def template_digest(name, format)
+      ActionView::Digestor.digest(name: name, format: format, finder: @controller.lookup_context)
     end
 end
 
 class CacheHelperOutputBufferTest < ActionController::TestCase
   class MockController
     def read_fragment(name, options)
-      return false
+      false
     end
 
     def write_fragment(name, fragment, options)
@@ -331,9 +336,9 @@ class CacheHelperOutputBufferTest < ActionController::TestCase
     output_buffer = ActionView::OutputBuffer.new
     controller = MockController.new
     cache_helper = Class.new do
-      def self.controller; end;
-      def self.output_buffer; end;
-      def self.output_buffer=; end;
+      def self.controller; end
+      def self.output_buffer; end
+      def self.output_buffer=; end
     end
     cache_helper.extend(ActionView::Helpers::CacheHelper)
 
@@ -352,9 +357,9 @@ class CacheHelperOutputBufferTest < ActionController::TestCase
     output_buffer = ActiveSupport::SafeBuffer.new
     controller = MockController.new
     cache_helper = Class.new do
-      def self.controller; end;
-      def self.output_buffer; end;
-      def self.output_buffer=; end;
+      def self.controller; end
+      def self.output_buffer; end
+      def self.output_buffer=; end
     end
     cache_helper.extend(ActionView::Helpers::CacheHelper)
 
@@ -380,7 +385,7 @@ class ViewCacheDependencyTest < ActionController::TestCase
   end
 
   def test_view_cache_dependencies_are_empty_by_default
-    assert NoDependenciesController.new.view_cache_dependencies.empty?
+    assert_empty NoDependenciesController.new.view_cache_dependencies
   end
 
   def test_view_cache_dependencies_are_listed_in_declaration_order

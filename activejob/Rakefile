@@ -1,6 +1,7 @@
+# frozen_string_literal: true
+
 require "rake/testtask"
 
-#TODO: add qu back to the list after it support Rails 5.1
 ACTIVEJOB_ADAPTERS = %w(async inline delayed_job que queue_classic resque sidekiq sneakers sucker_punch backburner test)
 ACTIVEJOB_ADAPTERS.delete("queue_classic") if defined?(JRUBY_VERSION)
 
@@ -27,6 +28,7 @@ namespace :test do
 
   task "env:integration" do
     ENV["AJ_INTEGRATION_TESTS"] = "1"
+    ENV["SKIP_REQUIRE_WEBPACKER"] = "true"
   end
 
   ACTIVEJOB_ADAPTERS.each do |adapter|
@@ -37,7 +39,7 @@ namespace :test do
       t.libs << "test"
       t.test_files = FileList["test/cases/**/*_test.rb"]
       t.verbose = true
-      t.warning = false
+      t.warning = true
       t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
     end
 
@@ -55,7 +57,7 @@ namespace :test do
         t.libs << "test"
         t.test_files = FileList["test/integration/**/*_test.rb"]
         t.verbose = true
-        t.warning = false
+        t.warning = true
         t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
       end
     end
@@ -66,12 +68,17 @@ def run_without_aborting(tasks)
   errors = []
 
   tasks.each do |task|
-    begin
-      Rake::Task[task].invoke
-    rescue Exception
-      errors << task
-    end
+    puts "\n\n---   rake #{task}\n"
+
+    Rake::Task[task].invoke
+  rescue Exception
+    puts "\n^^^ +++"
+
+    errors << task
   end
 
-  abort "Errors running #{errors.join(', ')}" if errors.any?
+  if errors.any?
+    puts "\n\n+++   Summary\n"
+    abort "Errors running #{errors.join(', ')}"
+  end
 end

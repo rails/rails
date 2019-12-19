@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 ActionController::Base.helpers_path = File.expand_path("../fixtures/helpers", __dir__)
@@ -106,7 +108,7 @@ class HelperTest < ActiveSupport::TestCase
 
   def setup
     # Increment symbol counter.
-    @symbol = (@@counter ||= "A0").succ!.dup
+    @symbol = (@@counter ||= "A0").succ.dup
 
     # Generate new controller class.
     controller_class_name = "Helper#{@symbol}Controller"
@@ -148,8 +150,8 @@ class HelperTest < ActiveSupport::TestCase
   end
 
   def test_default_helpers_only
-    assert_equal [JustMeHelper], JustMeController._helpers.ancestors.reject(&:anonymous?)
-    assert_equal [MeTooHelper, JustMeHelper], MeTooController._helpers.ancestors.reject(&:anonymous?)
+    assert_equal %w[JustMeHelper], JustMeController._helpers.ancestors.reject(&:anonymous?).map(&:to_s)
+    assert_equal %w[MeTooController::HelperMethods MeTooHelper JustMeHelper], MeTooController._helpers.ancestors.reject(&:anonymous?).map(&:to_s)
   end
 
   def test_base_helper_methods_after_clear_helpers

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "isolation/abstract_unit"
 require "rack/test"
 
@@ -16,7 +18,7 @@ class CurrentAttributesIntegrationTest < ActiveSupport::TestCase
 
         def customer=(customer)
           super
-          Time.zone = customer.try(:time_zone)
+          Time.zone = customer&.time_zone
         end
       end
     RUBY
@@ -37,6 +39,8 @@ class CurrentAttributesIntegrationTest < ActiveSupport::TestCase
 
     app_file "app/controllers/customers_controller.rb", <<-RUBY
       class CustomersController < ApplicationController
+        layout false
+
         def set_current_customer
           Current.customer = Customer.new("david")
           render :index
@@ -49,7 +53,7 @@ class CurrentAttributesIntegrationTest < ActiveSupport::TestCase
     RUBY
 
     app_file "app/views/customers/index.html.erb", <<-RUBY
-      <%= Current.customer.try(:name) || 'noone' %>,<%= Time.zone.name %>
+      <%= Current.customer&.name || 'noone' %>,<%= Time.zone.name %>
     RUBY
 
     require "#{app_path}/config/environment"

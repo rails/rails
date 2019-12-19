@@ -1,27 +1,34 @@
+# frozen_string_literal: true
+
 require "active_support/concern"
 require "active_support/core_ext/module/attribute_accessors"
-require "concurrent"
+require "active_support/logger_thread_safe_level"
 
 module LoggerSilence
   extend ActiveSupport::Concern
 
   included do
-    cattr_accessor :silencer, default: true
+    ActiveSupport::Deprecation.warn(
+      "Including LoggerSilence is deprecated and will be removed in Rails 6.1. " \
+      "Please use `ActiveSupport::LoggerSilence` instead"
+    )
+
+    include ActiveSupport::LoggerSilence
   end
+end
 
-  # Silences the logger for the duration of the block.
-  def silence(temporary_level = Logger::ERROR)
-    if silencer
-      begin
-        old_local_level            = local_level
-        self.local_level           = temporary_level
+module ActiveSupport
+  module LoggerSilence
+    extend ActiveSupport::Concern
 
-        yield self
-      ensure
-        self.local_level = old_local_level
-      end
-    else
-      yield self
+    included do
+      cattr_accessor :silencer, default: true
+      include ActiveSupport::LoggerThreadSafeLevel
+    end
+
+    # Silences the logger for the duration of the block.
+    def silence(severity = Logger::ERROR)
+      silencer ? log_at(severity) { yield self } : yield(self)
     end
   end
 end

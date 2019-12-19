@@ -1,4 +1,6 @@
-require "abstract_unit"
+# frozen_string_literal: true
+
+require_relative "../../abstract_unit"
 require "active_support/core_ext/array"
 require "active_support/core_ext/hash"
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Cat < ActiveRecord::Base
   self.abstract_class = true
 

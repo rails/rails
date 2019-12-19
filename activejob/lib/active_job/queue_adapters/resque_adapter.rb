@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "resque"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/array/access"

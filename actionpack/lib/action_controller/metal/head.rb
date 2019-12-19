@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionController
   module Head
     # Returns a response that has no content (merely headers). The options
@@ -27,7 +29,7 @@ module ActionController
       content_type = options.delete(:content_type)
 
       options.each do |key, value|
-        headers[key.to_s.dasherize.split("-").each { |v| v[0] = v[0].chr.upcase }.join("-")] = value.to_s
+        headers[key.to_s.split(/[-_]/).each { |v| v[0] = v[0].upcase }.join("-")] = value.to_s
       end
 
       self.status = status
@@ -36,7 +38,10 @@ module ActionController
       self.response_body = ""
 
       if include_content?(response_code)
-        self.content_type = content_type || (Mime[formats.first] if formats)
+        unless self.media_type
+          self.content_type = content_type || (Mime[formats.first] if formats) || Mime[:html]
+        end
+
         response.charset = false
       end
 

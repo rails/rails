@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class String
   # If you pass a single integer, returns a substring of one character at that
   # position. The first character of the string is at position 0, the next at
@@ -42,7 +44,7 @@ class String
   #   str.from(0).to(-1) # => "hello"
   #   str.from(1).to(-2) # => "ell"
   def from(position)
-    self[position..-1]
+    self[position, length]
   end
 
   # Returns a substring from the beginning of the string to the given position.
@@ -59,7 +61,8 @@ class String
   #   str.from(0).to(-1) # => "hello"
   #   str.from(1).to(-2) # => "ell"
   def to(position)
-    self[0..position]
+    position += size if position < 0
+    self[0, position + 1] || +""
   end
 
   # Returns the first character. If a limit is supplied, returns a substring
@@ -73,13 +76,7 @@ class String
   #   str.first(0) # => ""
   #   str.first(6) # => "hello"
   def first(limit = 1)
-    if limit == 0
-      ""
-    elsif limit >= size
-      dup
-    else
-      to(limit - 1)
-    end
+    self[0, limit] || raise(ArgumentError, "negative limit")
   end
 
   # Returns the last character of the string. If a limit is supplied, returns a substring
@@ -93,12 +90,6 @@ class String
   #   str.last(0) # => ""
   #   str.last(6) # => "hello"
   def last(limit = 1)
-    if limit == 0
-      ""
-    elsif limit >= size
-      dup
-    else
-      from(-limit)
-    end
+    self[[length - limit, 0].max, limit] || raise(ArgumentError, "negative limit")
   end
 end

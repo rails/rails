@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_record_unit"
 require "nokogiri"
 
@@ -11,7 +13,7 @@ class DebugHelperTest < ActionView::TestCase
   end
 
   def test_debug_with_marshal_error
-    obj = -> {}
+    obj = -> { }
     assert_match obj.inspect, Nokogiri.XML(debug(obj)).content
   end
 end

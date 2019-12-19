@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rails"
 require "action_cable"
 require "action_cable/helpers/action_cable_helper"

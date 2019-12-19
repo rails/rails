@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module AttributeDecorators # :nodoc:
     extend ActiveSupport::Concern
@@ -44,7 +46,6 @@ module ActiveRecord
       end
 
       private
-
         def load_schema!
           super
           attribute_types.each do |name, type|
@@ -73,7 +74,6 @@ module ActiveRecord
       end
 
       private
-
         def decorators_for(name, type)
           matching(name, type).map(&:last)
         end

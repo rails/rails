@@ -1,106 +1,156 @@
-*   Default `ActiveSupport::MessageEncryptor` to use AES 256 GCM encryption.
+*   Add block support to `ActiveSupport::Testing::TimeHelpers#travel_back`.
 
-    On for new Rails 5.2 apps. Upgrading apps can find the config as a new
-    framework default.
+    *Tim Masliuchenko*
 
-    *Assain Jaleel*
+*   Update `ActiveSupport::Messages::Metadata#fresh?` to work for cookies with expiry set when
+    `ActiveSupport.parse_json_times = true`.
 
-*   Cache: `write_multi`
+    *Christian Gregg*
 
-        Rails.cache.write_multi foo: 'bar', baz: 'qux'
+*   Support symbolic links for `content_path` in `ActiveSupport::EncryptedFile`.
 
-    Plus faster fetch_multi with stores that implement `write_multi_entries`.
-    Keys that aren't found may be written to the cache store in one shot
-    instead of separate writes.
+    *Takumi Shotoku*
 
-    The default implementation simply calls `write_entry` for each entry.
-    Stores may override if they're capable of one-shot bulk writes, like
-    Redis `MSET`.
+*   Improve `Range#===`, `Range#include?`, and `Range#cover?` to work with beginless (startless)
+    and endless range targets.
 
-    *Jeremy Daer*
+    *Allen Hsu*, *Andrew Hodgkinson*
 
-*   Add default option to module and class attribute accessors.
+*   Don't use `Process#clock_gettime(CLOCK_THREAD_CPUTIME_ID)` on Solaris.
 
-        mattr_accessor :settings, default: {}
+    *Iain Beeston*
 
-    Works for `mattr_reader`, `mattr_writer`, `cattr_accessor`, `cattr_reader`,
-    and `cattr_writer` as well.
+*   Prevent `ActiveSupport::Duration.build(value)` from creating instances of
+    `ActiveSupport::Duration` unless `value` is of type `Numeric`.
 
-    *Genadi Samokovarov*
-
-*   Add `Date#prev_occurring` and `Date#next_occurring` to return specified next/previous occurring day of week.
-
-    *Shota Iguchi*
-
-*   Add default option to `class_attribute`.
+    Addresses the errant set of behaviours described in #37012 where
+    `ActiveSupport::Duration` comparisons would fail confusingly
+    or return unexpected results when comparing durations built from instances of `String`.
 
     Before:
 
-        class_attribute :settings
-        self.settings = {}
+        small_duration_from_string = ActiveSupport::Duration.build('9')
+        large_duration_from_string = ActiveSupport::Duration.build('100000000000000')
+        small_duration_from_int = ActiveSupport::Duration.build(9)
 
-    Now:
+        large_duration_from_string > small_duration_from_string
+        # => false
 
-        class_attribute :settings, default: {}
+        small_duration_from_string == small_duration_from_int
+        # => false
 
-    *DHH*
+        small_duration_from_int < large_duration_from_string
+        # => ArgumentError (comparison of ActiveSupport::Duration::Scalar with ActiveSupport::Duration failed)
 
-*   `#singularize` and `#pluralize` now respect uncountables for the specified locale.
+        large_duration_from_string > small_duration_from_int
+        # => ArgumentError (comparison of String with ActiveSupport::Duration failed)
 
-    *Eilis Hamilton*
+    After:
 
-*   Add `ActiveSupport::CurrentAttributes` to provide a thread-isolated attributes singleton.
-    Primary use case is keeping all the per-request attributes easily available to the whole system.
+        small_duration_from_string = ActiveSupport::Duration.build('9')
+        # => TypeError (can't build an ActiveSupport::Duration from a String)
 
-    *DHH*
+    *Alexei Emam*
 
-*   Fix implicit coercion calculations with scalars and durations
+*   Add `ActiveSupport::Cache::Store#delete_multi` method to delete multiple keys from the cache store.
 
-    Previously calculations where the scalar is first would be converted to a duration
-    of seconds but this causes issues with dates being converted to times, e.g:
+    *Peter Zhu*
 
-        Time.zone = "Beijing"           # => Asia/Shanghai
-        date = Date.civil(2017, 5, 20)  # => Mon, 20 May 2017
-        2 * 1.day                       # => 172800 seconds
-        date + 2 * 1.day                # => Mon, 22 May 2017 00:00:00 CST +08:00
+*   Support multiple arguments in `HashWithIndifferentAccess` for `merge` and `update` methods, to
+    follow Ruby 2.6 addition.
 
-    Now the `ActiveSupport::Duration::Scalar` calculation methods will try to maintain
-    the part structure of the duration where possible, e.g:
+    *Wojciech Wnętrzak*
 
-        Time.zone = "Beijing"           # => Asia/Shanghai
-        date = Date.civil(2017, 5, 20)  # => Mon, 20 May 2017
-        2 * 1.day                       # => 2 days
-        date + 2 * 1.day                # => Mon, 22 May 2017
+*   Allow initializing `thread_mattr_*` attributes via `:default` option.
 
-    Fixes #29160, #28970.
+        class Scraper
+          thread_mattr_reader :client, default: Api::Client.new
+        end
 
-    *Andrew White*
+    *Guilherme Mansur*
 
-*   Add support for versioned cache entries. This enables the cache stores to recycle cache keys, greatly saving
-    on storage in cases with frequent churn. Works together with the separation of `#cache_key` and `#cache_version`
-    in Active Record and its use in Action Pack's fragment caching.
+*   Add `compact_blank` for those times when you want to remove #blank? values from
+    an Enumerable (also `compact_blank!` on Hash, Array, ActionController::Parameters).
 
-    *DHH*
+    *Dana Sherson*
 
-*   Pass gem name and deprecation horizon to deprecation notifications.
+*   Make ActiveSupport::Logger Fiber-safe.
 
-    *Willem van Bergen*
+    Use `Fiber.current.__id__` in `ActiveSupport::Logger#local_level=` in order
+    to make log level local to Ruby Fibers in addition to Threads.
 
-*   Add support for `:offset` and `:zone` to `ActiveSupport::TimeWithZone#change`
+    Example:
 
-    *Andrew White*
+        logger = ActiveSupport::Logger.new(STDOUT)
+        logger.level = 1
+        puts "Main is debug? #{logger.debug?}"
 
-*   Add support for `:offset` to `Time#change`
+        Fiber.new {
+          logger.local_level = 0
+          puts "Thread is debug? #{logger.debug?}"
+        }.resume
 
-    Fixes #28723.
+        puts "Main is debug? #{logger.debug?}"
 
-    *Andrew White*
+    Before:
 
-*   Add `fetch_values` for `HashWithIndifferentAccess`
+        Main is debug? false
+        Thread is debug? true
+        Main is debug? true
 
-    The method was originally added to `Hash` in Ruby 2.3.0.
+    After:
 
-    *Josh Pencheon*
+        Main is debug? false
+        Thread is debug? true
+        Main is debug? false
+
+    Fixes #36752.
+
+    *Alexander Varnin*
+
+*   Allow the `on_rotation` proc used when decrypting/verifying a message to be
+    passed at the constructor level.
+
+    Before:
+
+        crypt = ActiveSupport::MessageEncryptor.new('long_secret')
+        crypt.decrypt_and_verify(encrypted_message, on_rotation: proc { ... })
+        crypt.decrypt_and_verify(another_encrypted_message, on_rotation: proc { ... })
+
+    After:
+
+        crypt = ActiveSupport::MessageEncryptor.new('long_secret', on_rotation: proc { ... })
+        crypt.decrypt_and_verify(encrypted_message)
+        crypt.decrypt_and_verify(another_encrypted_message)
+
+    *Edouard Chin*
+
+*   `delegate_missing_to` would raise a `DelegationError` if the object
+    delegated to was `nil`. Now the `allow_nil` option has been added to enable
+    the user to specify they want `nil` returned in this case.
+
+    *Matthew Tanous*
+
+*   `truncate` would return the original string if it was too short to be truncated
+    and a frozen string if it were long enough to be truncated. Now truncate will
+    consistently return an unfrozen string regardless. This behavior is consistent
+    with `gsub` and `strip`.
+
+    Before:
+
+        'foobar'.truncate(5).frozen?
+        # => true
+        'foobar'.truncate(6).frozen?
+        # => false
+
+    After:
+
+        'foobar'.truncate(5).frozen?
+        # => false
+        'foobar'.truncate(6).frozen?
+        # => false
+
+    *Jordan Thomas*
 
 
-Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/activesupport/CHANGELOG.md) for previous changes.
+Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/activesupport/CHANGELOG.md) for previous changes.

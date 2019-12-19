@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/migration/helper"
 
 module ActiveRecord
@@ -124,7 +126,6 @@ module ActiveRecord
       end
 
       private
-
         def with_polymorphic_column
           add_column table_name, :supplier_type, :string
           add_index table_name, [:supplier_id, :supplier_type]

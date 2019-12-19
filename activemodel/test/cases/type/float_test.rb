@@ -1,5 +1,6 @@
+# frozen_string_literal: true
+
 require "cases/helper"
-require "active_model/type"
 
 module ActiveModel
   module Type
@@ -20,9 +21,12 @@ module ActiveModel
       def test_changing_float
         type = Type::Float.new
 
-        assert type.changed?(5.0, 5.0, "5wibble")
+        assert type.changed?(0.0, 0, "wibble")
+        assert type.changed?(5.0, 0, "wibble")
+        assert_not type.changed?(5.0, 5.0, "5wibble")
         assert_not type.changed?(5.0, 5.0, "5")
         assert_not type.changed?(5.0, 5.0, "5.0")
+        assert_not type.changed?(500.0, 500.0, "0.5E+4")
         assert_not type.changed?(nil, nil, nil)
       end
     end
