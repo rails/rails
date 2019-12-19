@@ -36,7 +36,7 @@ module ActiveRecord
       end
 
       def configuration_hash
-        @config
+        @config.freeze
       end
 
       # Determines whether a database configuration is for a replica / readonly

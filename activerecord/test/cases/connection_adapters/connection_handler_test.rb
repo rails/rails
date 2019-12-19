@@ -385,8 +385,8 @@ module ActiveRecord
           wr.binmode
 
           pid = fork do
-            ActiveRecord::Base.configurations["arunit"]["database"] = file.path
-            ActiveRecord::Base.establish_connection(:arunit)
+            config_hash = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary").configuration_hash.merge(database: file.path)
+            ActiveRecord::Base.establish_connection(config_hash)
 
             pid2 = fork do
               wr.write ActiveRecord::Base.connection_db_config.database

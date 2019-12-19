@@ -68,9 +68,7 @@ module ActiveRecord
       end
 
       def test_reaping_frequency_configuration
-        pool_config = duplicated_pool_config
-        pool_config.db_config.configuration_hash[:reaping_frequency] = "10.01"
-
+        pool_config = duplicated_pool_config(reaping_frequency: "10.01")
         pool = ConnectionPool.new(pool_config)
 
         assert_equal 10.01, pool.reaper.frequency
@@ -79,9 +77,7 @@ module ActiveRecord
       end
 
       def test_connection_pool_starts_reaper
-        pool_config = duplicated_pool_config
-        pool_config.db_config.configuration_hash[:reaping_frequency] = "0.0001"
-
+        pool_config = duplicated_pool_config(reaping_frequency: "0.0001")
         pool = ConnectionPool.new(pool_config)
 
         conn, child = new_conn_in_thread(pool)
@@ -97,8 +93,7 @@ module ActiveRecord
       end
 
       def test_reaper_works_after_pool_discard
-        pool_config = duplicated_pool_config
-        pool_config.db_config.configuration_hash[:reaping_frequency] = "0.0001"
+        pool_config = duplicated_pool_config(reaping_frequency: "0.0001")
 
         2.times do
           pool = ConnectionPool.new(pool_config)
@@ -129,9 +124,7 @@ module ActiveRecord
 
       if Process.respond_to?(:fork)
         def test_connection_pool_starts_reaper_in_fork
-          pool_config = duplicated_pool_config
-          pool_config.db_config.configuration_hash[:reaping_frequency] = "0.0001"
-
+          pool_config = duplicated_pool_config(reaping_frequency: "0.0001")
           pool = ConnectionPool.new(pool_config)
           pool.checkout
 
@@ -175,8 +168,8 @@ module ActiveRecord
       end
 
       private
-        def duplicated_pool_config
-          old_config = ActiveRecord::Base.connection_pool.db_config.configuration_hash
+        def duplicated_pool_config(merge_config_options = {})
+          old_config = ActiveRecord::Base.connection_pool.db_config.configuration_hash.merge(merge_config_options)
           db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("arunit", "primary", old_config.dup)
           PoolConfig.new("primary", db_config)
         end
