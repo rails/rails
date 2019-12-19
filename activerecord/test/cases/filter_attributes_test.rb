@@ -104,7 +104,11 @@ class FilterAttributesTest < ActiveRecord::TestCase
     actual = "".dup
     PP.pp(user, StringIO.new(actual))
 
-    assert_includes actual, "name: [FILTERED]"
+    if RUBY_VERSION >= "2.7"
+      assert_includes actual, 'name: "[FILTERED]"'
+    else
+      assert_includes actual, "name: [FILTERED]"
+    end
     assert_equal 1, actual.scan("[FILTERED]").length
   end
 
@@ -124,7 +128,11 @@ class FilterAttributesTest < ActiveRecord::TestCase
     actual = "".dup
     PP.pp(user, StringIO.new(actual))
 
-    assert_includes actual, "auth_token: [FILTERED]"
+    if RUBY_VERSION >= "2.7"
+      assert_includes actual, 'auth_token: "[FILTERED]"'
+    else
+      assert_includes actual, "auth_token: [FILTERED]"
+    end
     assert_includes actual, 'token: "[FILTERED]"'
   ensure
     User.remove_instance_variable(:@filter_attributes)
