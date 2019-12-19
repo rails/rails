@@ -379,8 +379,8 @@ module ActiveRecord
         t1_ref, t2_ref = [table_1, table_2].map { |t| t.to_s.singularize }
 
         create_table(join_table_name, **options.merge!(id: false)) do |td|
-          td.references t1_ref, column_options
-          td.references t2_ref, column_options
+          td.references t1_ref, **column_options
+          td.references t2_ref, **column_options
           yield td if block_given?
         end
       end
@@ -902,7 +902,7 @@ module ActiveRecord
       #   add_reference(:products, :supplier, foreign_key: {to_table: :firms})
       #
       def add_reference(table_name, ref_name, **options)
-        ReferenceDefinition.new(ref_name, options).add_to(update_table_definition(table_name, self))
+        ReferenceDefinition.new(ref_name, **options).add_to(update_table_definition(table_name, self))
       end
       alias :add_belongs_to :add_reference
 
@@ -930,7 +930,7 @@ module ActiveRecord
             foreign_key_options = { to_table: reference_name }
           end
           foreign_key_options[:column] ||= "#{ref_name}_id"
-          remove_foreign_key(table_name, foreign_key_options)
+          remove_foreign_key(table_name, **foreign_key_options)
         end
 
         remove_column(table_name, "#{ref_name}_id")
@@ -1152,8 +1152,8 @@ module ActiveRecord
           options[:precision] = 6
         end
 
-        add_column table_name, :created_at, :datetime, options
-        add_column table_name, :updated_at, :datetime, options
+        add_column table_name, :created_at, :datetime, **options
+        add_column table_name, :updated_at, :datetime, **options
       end
 
       # Removes the timestamp columns (+created_at+ and +updated_at+) from the table definition.
@@ -1374,7 +1374,7 @@ module ActiveRecord
 
         def foreign_key_for(from_table, **options)
           return unless supports_foreign_keys?
-          foreign_keys(from_table).detect { |fk| fk.defined_for?(options) }
+          foreign_keys(from_table).detect { |fk| fk.defined_for?(**options) }
         end
 
         def foreign_key_for!(from_table, to_table: nil, **options)

@@ -31,7 +31,7 @@ module ActiveRecord
           version_options = connection.internal_string_options_for_primary_key
 
           connection.create_table(table_name, id: false) do |t|
-            t.string :version, version_options
+            t.string :version, **version_options
           end
         end
       end
