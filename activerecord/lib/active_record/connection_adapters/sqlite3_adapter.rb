@@ -343,6 +343,10 @@ module ActiveRecord
         end
       end
 
+      def columns_for_distinct(columns, orders) # :nodoc:
+        columns
+      end
+
       private
         # See https://www.sqlite.org/limits.html,
         # the default value is 999 when not configured.

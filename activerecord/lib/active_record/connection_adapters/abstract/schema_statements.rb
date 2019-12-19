@@ -1142,8 +1142,9 @@ module ActiveRecord
       end
 
       # Given a set of columns and an ORDER BY clause, returns the columns for a SELECT DISTINCT.
-      # PostgreSQL, MySQL, and Oracle override this for custom DISTINCT syntax - they
-      # require the order columns appear in the SELECT.
+      # PostgreSQL, MySQL, and Oracle require the order columns appear in the SELECT.
+      #
+      # Sqlite3 overrides this because it does not have that requirement
       #
       #   columns_for_distinct("posts.id", ["posts.created_at desc"])
       #
