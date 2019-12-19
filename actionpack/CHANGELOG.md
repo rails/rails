@@ -1,7 +1,7 @@
 *   ActionController::ParamsWrapper wraps parameters for HasAndBelongsToMany relations.
 
     *Eike Send*
-
+    
 *   Fix possible information leak / session hijacking vulnerability.
 
     The `ActionDispatch::Session::MemcacheStore` is still vulnerable given it requires the
