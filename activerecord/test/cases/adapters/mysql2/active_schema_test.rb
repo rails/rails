@@ -10,7 +10,15 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
     ActiveRecord::Base.connection.send(:default_row_format)
     ActiveRecord::Base.connection.singleton_class.class_eval do
       alias_method :execute_without_stub, :execute
-      def execute(sql, name = nil) sql end
+      def execute(sql, name = nil)
+        ActiveSupport::Notifications.instrumenter.instrument(
+          "sql.active_record",
+          sql: sql,
+          name: name,
+          connection: self) do
+          sql
+        end
+      end
     end
   end
 
@@ -19,10 +27,6 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_add_index
-    # add_index calls data_source_exists? and index_name_exists? which can't work since execute is stubbed
-    def (ActiveRecord::Base.connection).data_source_exists?(*); true; end
-    def (ActiveRecord::Base.connection).index_name_exists?(*); false; end
-
     expected = "CREATE  INDEX `index_people_on_last_name`  ON `people` (`last_name`) "
     assert_equal expected, add_index(:people, :last_name, length: nil)
 
@@ -66,8 +70,6 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_index_in_create
-    def (ActiveRecord::Base.connection).data_source_exists?(*); false; end
-
     %w(SPATIAL FULLTEXT UNIQUE).each do |type|
       expected = /\ACREATE TABLE `people` \(#{type} INDEX `index_people_on_last_name`  \(`last_name`\)\)/
       actual = ActiveRecord::Base.connection.create_table(:people, id: false) do |t|
@@ -84,22 +86,21 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_index_in_bulk_change
-    def (ActiveRecord::Base.connection).data_source_exists?(*); true; end
-    def (ActiveRecord::Base.connection).index_name_exists?(*); false; end
-
     %w(SPATIAL FULLTEXT UNIQUE).each do |type|
       expected = "ALTER TABLE `people` ADD #{type} INDEX `index_people_on_last_name`  (`last_name`)"
-      actual = ActiveRecord::Base.connection.change_table(:people, bulk: true) do |t|
-        t.index :last_name, type: type
+      assert_sql(expected) do
+        ActiveRecord::Base.connection.change_table(:people, bulk: true) do |t|
+          t.index :last_name, type: type
+        end
       end
-      assert_equal expected, actual
     end
 
     expected = "ALTER TABLE `people` ADD  INDEX `index_people_on_last_name` USING btree (`last_name`(10)), ALGORITHM = COPY"
-    actual = ActiveRecord::Base.connection.change_table(:people, bulk: true) do |t|
-      t.index :last_name, length: 10, using: :btree, algorithm: :copy
+    assert_sql(expected) do
+      ActiveRecord::Base.connection.change_table(:people, bulk: true) do |t|
+        t.index :last_name, length: 10, using: :btree, algorithm: :copy
+      end
     end
-    assert_equal expected, actual
   end
 
   def test_drop_table
@@ -139,8 +140,8 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
     with_real_execute do
       ActiveRecord::Base.connection.create_table :delete_me
       ActiveRecord::Base.connection.add_timestamps :delete_me, null: true
-      assert column_present?("delete_me", "updated_at", "datetime")
-      assert column_present?("delete_me", "created_at", "datetime")
+      assert column_exists?("delete_me", "updated_at", "datetime")
+      assert column_exists?("delete_me", "created_at", "datetime")
     ensure
       ActiveRecord::Base.connection.drop_table :delete_me rescue nil
     end
@@ -152,27 +153,20 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
         t.timestamps null: true
       end
       ActiveRecord::Base.connection.remove_timestamps :delete_me, null: true
-      assert_not column_present?("delete_me", "updated_at", "datetime")
-      assert_not column_present?("delete_me", "created_at", "datetime")
+      assert_not column_exists?("delete_me", "updated_at", "datetime")
+      assert_not column_exists?("delete_me", "created_at", "datetime")
     ensure
       ActiveRecord::Base.connection.drop_table :delete_me rescue nil
     end
   end
 
   def test_indexes_in_create
-    assert_called_with(
-      ActiveRecord::Base.connection,
-      :data_source_exists?,
-      [:temp],
-      returns: false
-    ) do
-      expected = /\ACREATE TEMPORARY TABLE `temp` \( INDEX `index_temp_on_zip`  \(`zip`\)\)(?: ROW_FORMAT=DYNAMIC)? AS SELECT id, name, zip FROM a_really_complicated_query/
-      actual = ActiveRecord::Base.connection.create_table(:temp, temporary: true, as: "SELECT id, name, zip FROM a_really_complicated_query") do |t|
-        t.index :zip
-      end
-
-      assert_match expected, actual
+    expected = /\ACREATE TEMPORARY TABLE `temp` \( INDEX `index_temp_on_zip`  \(`zip`\)\)(?: ROW_FORMAT=DYNAMIC)? AS SELECT id, name, zip FROM a_really_complicated_query/
+    actual = ActiveRecord::Base.connection.create_table(:temp, temporary: true, as: "SELECT id, name, zip FROM a_really_complicated_query") do |t|
+      t.index :zip
     end
+
+    assert_match expected, actual
   end
 
   private
@@ -193,10 +187,5 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
 
     def method_missing(method_symbol, *arguments)
       ActiveRecord::Base.connection.send(method_symbol, *arguments)
-    end
-
-    def column_present?(table_name, column_name, type)
-      results = ActiveRecord::Base.connection.select_all("SHOW FIELDS FROM #{table_name} LIKE '#{column_name}'")
-      results.first && results.first["Type"] == type
     end
 end

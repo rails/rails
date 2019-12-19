@@ -1,5 +1,5 @@
 Blocked host: <%= @host %>
 
-To allow requests to <%= @host %>, add the following configuration:
+To allow requests to <%= @host %>, add the following to your environment configuration:
 
-  Rails.application.config.hosts << "<%= @host %>"
+  config.hosts << "<%= @host %>"

@@ -14,7 +14,7 @@ Today is mostly coordination tasks. Here are the things you must do today:
 Do not release with a Red CI. You can find the CI status here:
 
 ```
-https://travis-ci.org/rails/rails
+https://buildkite.com/rails/rails
 ```
 
 ### Is Sam Ruby happy? If not, make him happy.
@@ -25,7 +25,7 @@ sure the code samples in his book
 all work. These are valuable system tests
 for Rails. You can check the status of these tests here:
 
-[http://intertwingly.net/projects/dashboard.html](http://intertwingly.net/projects/dashboard.html)
+[https://intertwingly.net/projects/dashboard.html](https://intertwingly.net/projects/dashboard.html)
 
 Do not release with Red AWDwR tests.
 
@@ -119,13 +119,13 @@ npm user (`npm whoami`) is listed as an owner (`npm owner ls <pkg>`) of each
 package. Do not release until you're set up with npm!
 
 The release task will sign the release tag. If you haven't got commit signing
-set up, use https://git-scm.com/book/tr/v2/Git-Tools-Signing-Your-Work as a
+set up, use https://git-scm.com/book/en/v2/Git-Tools-Signing-Your-Work as a
 guide. You can generate keys with the GPG suite from here: https://gpgtools.org.
 
 Run `rake changelog:header` to put a header with the new version in every
 CHANGELOG. Don't commit this, the release task handles it.
 
-Run `rake release`. This will populate the gemspecs and NPM package.json with
+Run `rake release`. This will populate the gemspecs and npm package.json with
 the current RAILS_VERSION, commit the changes, tag it, and push the gems to
 rubygems.org.
 

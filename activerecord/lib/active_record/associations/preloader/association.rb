@@ -4,27 +4,41 @@ module ActiveRecord
   module Associations
     class Preloader
       class Association #:nodoc:
-        attr_reader :preloaded_records
-
         def initialize(klass, owners, reflection, preload_scope)
           @klass         = klass
           @owners        = owners
           @reflection    = reflection
           @preload_scope = preload_scope
           @model         = owners.first && owners.first.class
-          @preloaded_records = []
         end
 
-        def run(preloader)
-          records = load_records do |record|
-            owner = owners_by_key[convert_key(record[association_key_name])]
-            association = owner.association(reflection.name)
-            association.set_inverse_instance(record)
+        def run
+          if !preload_scope || preload_scope.empty_scope?
+            owners.each do |owner|
+              associate_records_to_owner(owner, records_by_owner[owner] || [])
+            end
+          else
+            # Custom preload scope is used and
+            # the association can not be marked as loaded
+            # Loading into a Hash instead
+            records_by_owner
           end
+          self
+        end
 
-          owners.each do |owner|
-            associate_records_to_owner(owner, records[convert_key(owner[owner_key_name])] || [])
+        def records_by_owner
+          # owners can be duplicated when a relation has a collection association join
+          # #compare_by_identity makes such owners different hash keys
+          @records_by_owner ||= preloaded_records.each_with_object({}.compare_by_identity) do |record, result|
+            owners_by_key[convert_key(record[association_key_name])].each do |owner|
+              (result[owner] ||= []) << record
+            end
           end
+        end
+
+        def preloaded_records
+          return @preloaded_records if defined?(@preloaded_records)
+          @preloaded_records = owner_keys.empty? ? [] : records_for(owner_keys)
         end
 
         private
@@ -42,11 +56,10 @@ module ActiveRecord
 
           def associate_records_to_owner(owner, records)
             association = owner.association(reflection.name)
-            association.loaded!
             if reflection.collection?
-              association.target.concat(records)
+              association.target = records
             else
-              association.target = records.first unless records.empty?
+              association.target = records.first
             end
           end
 
@@ -55,13 +68,10 @@ module ActiveRecord
           end
 
           def owners_by_key
-            unless defined?(@owners_by_key)
-              @owners_by_key = owners.each_with_object({}) do |owner, h|
-                key = convert_key(owner[owner_key_name])
-                h[key] = owner if key
-              end
+            @owners_by_key ||= owners.each_with_object({}) do |owner, result|
+              key = convert_key(owner[owner_key_name])
+              (result[key] ||= []) << owner if key
             end
-            @owners_by_key
           end
 
           def key_conversion_required?
@@ -88,21 +98,14 @@ module ActiveRecord
             @model.type_for_attribute(owner_key_name).type
           end
 
-          def load_records(&block)
-            return {} if owner_keys.empty?
-            # Some databases impose a limit on the number of ids in a list (in Oracle it's 1000)
-            # Make several smaller queries if necessary or make one query if the adapter supports it
-            slices = owner_keys.each_slice(klass.connection.in_clause_length || owner_keys.size)
-            @preloaded_records = slices.flat_map do |slice|
-              records_for(slice, &block)
+          def records_for(ids)
+            scope.where(association_key_name => ids).load do |record|
+              # Processing only the first owner
+              # because the record is modified but not an owner
+              owner = owners_by_key[convert_key(record[association_key_name])].first
+              association = owner.association(reflection.name)
+              association.set_inverse_instance(record)
             end
-            @preloaded_records.group_by do |record|
-              convert_key(record[association_key_name])
-            end
-          end
-
-          def records_for(ids, &block)
-            scope.where(association_key_name => ids).load(&block)
           end
 
           def scope
@@ -116,7 +119,7 @@ module ActiveRecord
           def build_scope
             scope = klass.scope_for_association
 
-            if reflection.type
+            if reflection.type && !reflection.through_reflection?
               scope.where!(reflection.type => model.polymorphic_name)
             end
 

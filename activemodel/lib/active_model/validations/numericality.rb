@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "bigdecimal/util"
+
 module ActiveModel
   module Validations
     class NumericalityValidator < EachValidator # :nodoc:
@@ -10,7 +12,6 @@ module ActiveModel
       RESERVED_OPTIONS = CHECKS.keys + [:only_integer]
 
       INTEGER_REGEX = /\A[+-]?\d+\z/
-      DECIMAL_REGEX = /\A[+-]?\d+\.?\d*(e|e[+-])?\d+\z/
 
       def check_validity!
         keys = CHECKS.keys - [:odd, :even]
@@ -43,12 +44,12 @@ module ActiveModel
         end
 
         unless is_number?(raw_value)
-          record.errors.add(attr_name, :not_a_number, filtered_options(raw_value))
+          record.errors.add(attr_name, :not_a_number, **filtered_options(raw_value))
           return
         end
 
         if allow_only_integer?(record) && !is_integer?(raw_value)
-          record.errors.add(attr_name, :not_an_integer, filtered_options(raw_value))
+          record.errors.add(attr_name, :not_an_integer, **filtered_options(raw_value))
           return
         end
 
@@ -58,7 +59,7 @@ module ActiveModel
           case option
           when :odd, :even
             unless value.to_i.send(CHECKS[option])
-              record.errors.add(attr_name, option, filtered_options(value))
+              record.errors.add(attr_name, option, **filtered_options(value))
             end
           else
             case option_value
@@ -71,14 +72,13 @@ module ActiveModel
             option_value = parse_as_number(option_value)
 
             unless value.send(CHECKS[option], option_value)
-              record.errors.add(attr_name, option, filtered_options(value).merge!(count: option_value))
+              record.errors.add(attr_name, option, **filtered_options(value).merge!(count: option_value))
             end
           end
         end
       end
 
     private
-
       def is_number?(raw_value)
         !parse_as_number(raw_value).nil?
       rescue ArgumentError, TypeError
@@ -92,8 +92,8 @@ module ActiveModel
           raw_value
         elsif is_integer?(raw_value)
           raw_value.to_i
-        elsif is_decimal?(raw_value) && !is_hexadecimal_literal?(raw_value)
-          BigDecimal(raw_value)
+        elsif !is_hexadecimal_literal?(raw_value)
+          Kernel.Float(raw_value).to_d
         end
       end
 
@@ -101,12 +101,8 @@ module ActiveModel
         INTEGER_REGEX.match?(raw_value.to_s)
       end
 
-      def is_decimal?(raw_value)
-        DECIMAL_REGEX.match?(raw_value.to_s)
-      end
-
       def is_hexadecimal_literal?(raw_value)
-        /\A0[xX]/.match?(raw_value)
+        /\A0[xX]/.match?(raw_value.to_s)
       end
 
       def filtered_options(value)

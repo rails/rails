@@ -49,11 +49,11 @@ class RedirectController < ActionController::Base
   end
 
   def url_redirect_with_status
-    redirect_to("http://www.example.com", status: :moved_permanently, allow_other_host: true)
+    redirect_to("http://www.example.com", status: :moved_permanently)
   end
 
   def url_redirect_with_status_hash
-    redirect_to("http://www.example.com", status: 301, allow_other_host: true)
+    redirect_to("http://www.example.com", status: 301)
   end
 
   def relative_url_redirect_with_status
@@ -68,8 +68,16 @@ class RedirectController < ActionController::Base
     redirect_back(fallback_location: "/things/stuff", status: 307)
   end
 
+  def redirect_back_with_status_and_fallback_location_to_another_host
+    redirect_back(fallback_location: "http://www.rubyonrails.org/", status: 307)
+  end
+
   def safe_redirect_back_with_status
     redirect_back(fallback_location: "/things/stuff", status: 307, allow_other_host: false)
+  end
+
+  def safe_redirect_back_with_status_and_fallback_location_to_another_host
+    redirect_back(fallback_location: "http://www.rubyonrails.org/", status: 307, allow_other_host: false)
   end
 
   def host_redirect
@@ -81,27 +89,19 @@ class RedirectController < ActionController::Base
   end
 
   def redirect_to_url
-    redirect_to "http://www.rubyonrails.org/", allow_other_host: true
-  end
-
-  def redirect_to_unsafe_url
     redirect_to "http://www.rubyonrails.org/"
   end
 
-  def redirect_to_relative_unsafe_url
-    redirect_to ".br"
-  end
-
   def redirect_to_url_with_unescaped_query_string
-    redirect_to "http://example.com/query?status=new", allow_other_host: true
+    redirect_to "http://example.com/query?status=new"
   end
 
   def redirect_to_url_with_complex_scheme
-    redirect_to "x-test+scheme.complex:redirect", allow_other_host: true
+    redirect_to "x-test+scheme.complex:redirect"
   end
 
   def redirect_to_url_with_network_path_reference
-    redirect_to "//www.rubyonrails.org/", allow_other_host: true
+    redirect_to "//www.rubyonrails.org/"
   end
 
   def redirect_to_existing_record
@@ -121,12 +121,12 @@ class RedirectController < ActionController::Base
   end
 
   def redirect_to_with_block
-    redirect_to proc { "http://www.rubyonrails.org/" }, allow_other_host: true
+    redirect_to proc { "http://www.rubyonrails.org/" }
   end
 
   def redirect_to_with_block_and_assigns
     @url = "http://www.rubyonrails.org/"
-    redirect_to proc { @url }, allow_other_host: true
+    redirect_to proc { @url }
   end
 
   def redirect_to_with_block_and_options
@@ -253,28 +253,6 @@ class RedirectTest < ActionController::TestCase
     assert_redirected_to "http://www.rubyonrails.org/"
   end
 
-  def test_redirect_to_unsafe_url
-    error = assert_raises(ArgumentError) do
-      get :redirect_to_unsafe_url
-    end
-    assert_equal <<~MSG.squish, error.message
-      Unsafe redirect \"http://www.rubyonrails.org/\",
-      use :fallback_location to specify a fallback or
-      :allow_other_host to redirect anyway.
-    MSG
-  end
-
-  def test_redirect_to_relative_unsafe_url
-    error = assert_raises(ArgumentError) do
-      get :redirect_to_relative_unsafe_url
-    end
-    assert_equal <<~MSG.squish, error.message
-      Unsafe redirect \"http://test.host.br\",
-      use :fallback_location to specify a fallback or
-      :allow_other_host to redirect anyway.
-    MSG
-  end
-
   def test_redirect_to_url_with_unescaped_query_string
     get :redirect_to_url_with_unescaped_query_string
     assert_response :redirect
@@ -310,6 +288,13 @@ class RedirectTest < ActionController::TestCase
     assert_equal "http://test.host/things/stuff", redirect_to_url
   end
 
+  def test_redirect_back_with_no_referer_redirects_to_another_host
+    get :redirect_back_with_status_and_fallback_location_to_another_host
+
+    assert_response 307
+    assert_equal "http://www.rubyonrails.org/", redirect_to_url
+  end
+
   def test_safe_redirect_back_from_other_host
     @request.env["HTTP_REFERER"] = "http://another.host/coming/from"
     get :safe_redirect_back_with_status
@@ -325,6 +310,20 @@ class RedirectTest < ActionController::TestCase
 
     assert_response 307
     assert_equal referer, redirect_to_url
+  end
+
+  def test_safe_redirect_back_with_no_referer
+    get :safe_redirect_back_with_status
+
+    assert_response 307
+    assert_equal "http://test.host/things/stuff", redirect_to_url
+  end
+
+  def test_safe_redirect_back_with_no_referer_redirects_to_another_host
+    get :safe_redirect_back_with_status_and_fallback_location_to_another_host
+
+    assert_response 307
+    assert_equal "http://www.rubyonrails.org/", redirect_to_url
   end
 
   def test_redirect_to_record

@@ -114,16 +114,16 @@ module ActiveRecord
       # if the value is a Time responding to usec.
       def quoted_date(value)
         if value.acts_like?(:time)
-          zone_conversion_method = ActiveRecord::Base.default_timezone == :utc ? :getutc : :getlocal
-
-          if value.respond_to?(zone_conversion_method)
-            value = value.send(zone_conversion_method)
+          if ActiveRecord::Base.default_timezone == :utc
+            value = value.getutc if value.respond_to?(:getutc) && !value.utc?
+          else
+            value = value.getlocal if value.respond_to?(:getlocal)
           end
         end
 
         result = value.to_s(:db)
         if value.respond_to?(:usec) && value.usec > 0
-          "#{result}.#{sprintf("%06d", value.usec)}"
+          result << "." << sprintf("%06d", value.usec)
         else
           result
         end
@@ -138,15 +138,72 @@ module ActiveRecord
         "'#{quote_string(value.to_s)}'"
       end
 
-      def type_casted_binds(binds) # :nodoc:
-        if binds.first.is_a?(Array)
-          binds.map { |column, value| type_cast(value, column) }
-        else
-          binds.map { |attr| type_cast(attr.value_for_database) }
-        end
+      def sanitize_as_sql_comment(value) # :nodoc:
+        value.to_s.gsub(%r{ (/ (?: | \g<1>) \*) \+? \s* | \s* (\* (?: | \g<2>) /) }x, "")
       end
 
+      def column_name_matcher # :nodoc:
+        COLUMN_NAME
+      end
+
+      def column_name_with_order_matcher # :nodoc:
+        COLUMN_NAME_WITH_ORDER
+      end
+
+      # Regexp for column names (with or without a table name prefix).
+      # Matches the following:
+      #
+      #   "#{table_name}.#{column_name}"
+      #   "#{column_name}"
+      COLUMN_NAME = /
+        \A
+        (
+          (?:
+            # table_name.column_name | function(one or no argument)
+            ((?:\w+\.)?\w+) | \w+\((?:|\g<2>)\)
+          )
+          (?:(?:\s+AS)?\s+\w+)?
+        )
+        (?:\s*,\s*\g<1>)*
+        \z
+      /ix
+
+      # Regexp for column names with order (with or without a table name prefix,
+      # with or without various order modifiers). Matches the following:
+      #
+      #   "#{table_name}.#{column_name}"
+      #   "#{table_name}.#{column_name} #{direction}"
+      #   "#{table_name}.#{column_name} #{direction} NULLS FIRST"
+      #   "#{table_name}.#{column_name} NULLS LAST"
+      #   "#{column_name}"
+      #   "#{column_name} #{direction}"
+      #   "#{column_name} #{direction} NULLS FIRST"
+      #   "#{column_name} NULLS LAST"
+      COLUMN_NAME_WITH_ORDER = /
+        \A
+        (
+          (?:
+            # table_name.column_name | function(one or no argument)
+            ((?:\w+\.)?\w+) | \w+\((?:|\g<2>)\)
+          )
+          (?:\s+ASC|\s+DESC)?
+          (?:\s+NULLS\s+(?:FIRST|LAST))?
+        )
+        (?:\s*,\s*\g<1>)*
+        \z
+      /ix
+
+      private_constant :COLUMN_NAME, :COLUMN_NAME_WITH_ORDER
+
       private
+        def type_casted_binds(binds)
+          if binds.first.is_a?(Array)
+            binds.map { |column, value| type_cast(value, column) }
+          else
+            binds.map { |attr| type_cast(attr.value_for_database) }
+          end
+        end
+
         def lookup_cast_type(sql_type)
           type_map.lookup(sql_type)
         end

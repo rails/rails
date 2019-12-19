@@ -49,11 +49,11 @@ module ActiveRecord
 
         attr_reader :model, :name, :attribute_names
 
-        def initialize(model, name)
+        def initialize(model, method_name)
           @model           = model
-          @name            = name.to_s
+          @name            = method_name.to_s
           @attribute_names = @name.match(self.class.pattern)[1].split("_and_")
-          @attribute_names.map! { |n| @model.attribute_aliases[n] || n }
+          @attribute_names.map! { |name| @model.attribute_aliases[name] || name }
         end
 
         def valid?
@@ -69,7 +69,6 @@ module ActiveRecord
         end
 
         private
-
           def body
             "#{finder}(#{attributes_hash})"
           end

@@ -15,7 +15,7 @@ After reading this guide, you will know:
 RDoc
 ----
 
-The [Rails API documentation](http://api.rubyonrails.org) is generated with
+The [Rails API documentation](https://api.rubyonrails.org) is generated with
 [RDoc](https://ruby.github.io/rdoc/). To generate it, make sure you are
 in the rails root directory, run `bundle install` and execute:
 
@@ -238,7 +238,7 @@ namespace as in `<tt>ActiveRecord::Base</tt>`.
 
 You can quickly test the RDoc output with the following command:
 
-```
+```bash
 $ echo "+:to_param+" | rdoc --pipe
 # => <p><code>:to_param</code></p>
 ```

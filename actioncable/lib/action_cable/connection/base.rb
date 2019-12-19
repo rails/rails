@@ -260,3 +260,5 @@ module ActionCable
     end
   end
 end
+
+ActiveSupport.run_load_hooks(:action_cable_connection, ActionCable::Connection::Base)

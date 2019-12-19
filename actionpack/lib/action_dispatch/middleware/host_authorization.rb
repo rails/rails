@@ -3,8 +3,8 @@
 require "action_dispatch/http/request"
 
 module ActionDispatch
-  # This middleware guards from DNS rebinding attacks by white-listing the
-  # hosts a request can be sent to.
+  # This middleware guards from DNS rebinding attacks by explicitly permitting
+  # the hosts a request can be sent to.
   #
   # When a request comes to an unauthorized host, the +response_app+
   # application will be executed and rendered. If no +response_app+ is given, a
@@ -30,7 +30,6 @@ module ActionDispatch
       end
 
       private
-
         def sanitize_hosts(hosts)
           Array(hosts).map do |host|
             case host
@@ -87,7 +86,6 @@ module ActionDispatch
     end
 
     private
-
       def authorized?(request)
         origin_host = request.get_header("HTTP_HOST").to_s.sub(/:\d+\z/, "")
         forwarded_host = request.x_forwarded_host.to_s.split(/,\s?/).last.to_s.sub(/:\d+\z/, "")

@@ -334,6 +334,13 @@ module ActiveSupport
       re === name || re === MAPPING[name]
     end
 
+    # Compare #name and TZInfo identifier to a supplied regexp, returning +true+
+    # if a match is found.
+    def match?(re)
+      (re == name) || (re == MAPPING[name]) ||
+        ((Regexp === re) && (re.match?(name) || re.match?(MAPPING[name])))
+    end
+
     # Returns a textual representation of this time zone.
     def to_s
       "(GMT#{formatted_offset}) #{name}"

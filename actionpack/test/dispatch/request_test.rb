@@ -103,6 +103,11 @@ class RequestIP < BaseRequestTest
 
     request = stub_request "HTTP_X_FORWARDED_FOR" => "not_ip_address"
     assert_nil request.remote_ip
+
+    request = stub_request "REMOTE_ADDR" => "1.2.3.4"
+    assert_equal "1.2.3.4", request.remote_ip
+    request.remote_ip = "2.3.4.5"
+    assert_equal "2.3.4.5", request.remote_ip
   end
 
   test "remote ip spoof detection" do
@@ -411,7 +416,7 @@ class RequestPath < BaseRequestTest
     assert_equal "/foo?bar", path
   end
 
-  test "original_url returns url built using ORIGINAL_FULLPATH" do
+  test "original_url returns URL built using ORIGINAL_FULLPATH" do
     request = stub_request("ORIGINAL_FULLPATH" => "/foo?bar",
                            "HTTP_HOST"         => "example.org",
                            "rack.url_scheme"   => "http")
@@ -681,7 +686,6 @@ end
 class RequestMethod < BaseRequestTest
   test "method returns environment's request method when it has not been
     overridden by middleware".squish do
-
     ActionDispatch::Request::HTTP_METHODS.each do |method|
       request = stub_request("REQUEST_METHOD" => method)
 
@@ -866,10 +870,26 @@ class RequestFormat < BaseRequestTest
     assert_not_predicate request.format, :json?
   end
 
-  test "format does not throw exceptions when malformed parameters" do
+  test "format does not throw exceptions when malformed GET parameters" do
     request = stub_request("QUERY_STRING" => "x[y]=1&x[y][][w]=2")
     assert request.formats
     assert_predicate request.format, :html?
+  end
+
+  test "format does not throw exceptions when invalid POST parameters" do
+    body = "{record:{content:127.0.0.1}}"
+    request = stub_request(
+      "REQUEST_METHOD" => "POST",
+      "CONTENT_LENGTH" => body.length,
+      "CONTENT_TYPE" => "application/json",
+      "rack.input" => StringIO.new(body),
+      "action_dispatch.logger" => Logger.new(output = StringIO.new)
+    )
+    assert request.formats
+    assert request.format.html?
+
+    output.rewind && (err = output.read)
+    assert_match(/Error occurred while parsing request parameters/, err)
   end
 
   test "formats with xhr request" do

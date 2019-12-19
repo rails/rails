@@ -42,6 +42,12 @@ class ActiveRecordTestConnector
       self.able_to_connect = false
     end
 
+    def reconnect
+      return unless able_to_connect
+      ActiveRecord::Base.connection.reconnect!
+      load_schema
+    end
+
     private
       def setup_connection
         if Object.const_defined?(:ActiveRecord)
@@ -102,3 +108,7 @@ class ActiveRecordTestCase < ActionController::TestCase
 end
 
 ActiveRecordTestConnector.setup
+
+ActiveSupport::Testing::Parallelization.after_fork_hook do
+  ActiveRecordTestConnector.reconnect
+end

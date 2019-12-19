@@ -31,7 +31,6 @@ module Arel # :nodoc: all
       end
 
       private
-
         def visit_Arel_Nodes_Ordering(o)
           visit_edge o, "expr"
         end
@@ -46,8 +45,8 @@ module Arel # :nodoc: all
           visit_edge o, "distinct"
         end
 
-        def visit_Arel_Nodes_Values(o)
-          visit_edge o, "expressions"
+        def visit_Arel_Nodes_ValuesList(o)
+          visit_edge o, "rows"
         end
 
         def visit_Arel_Nodes_StringJoin(o)
@@ -82,6 +81,7 @@ module Arel # :nodoc: all
         alias :visit_Arel_Nodes_Offset            :unary
         alias :visit_Arel_Nodes_On                :unary
         alias :visit_Arel_Nodes_UnqualifiedColumn :unary
+        alias :visit_Arel_Nodes_OptimizerHints    :unary
         alias :visit_Arel_Nodes_Preceding         :unary
         alias :visit_Arel_Nodes_Following         :unary
         alias :visit_Arel_Nodes_Rows              :unary
@@ -232,6 +232,10 @@ module Arel # :nodoc: all
           end
         end
         alias :visit_Set :visit_Array
+
+        def visit_Arel_Nodes_Comment(o)
+          visit_edge(o, "values")
+        end
 
         def visit_edge(o, method)
           edge(method) { visit o.send(method) }

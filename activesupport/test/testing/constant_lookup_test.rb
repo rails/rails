@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
-require "dependencies_test_helpers"
+require_relative "../abstract_unit"
+require_relative "../dependencies_test_helpers"
 
 class Foo; end
 class Bar < Foo

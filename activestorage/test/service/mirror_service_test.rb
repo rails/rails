@@ -17,6 +17,10 @@ class ActiveStorage::Service::MirrorServiceTest < ActiveSupport::TestCase
 
   include ActiveStorage::Service::SharedServiceTests
 
+  test "name" do
+    assert_equal :mirror, @service.name
+  end
+
   test "uploading to all services" do
     key      = SecureRandom.base58(24)
     data     = "Something else entirely!"
@@ -53,6 +57,20 @@ class ActiveStorage::Service::MirrorServiceTest < ActiveSupport::TestCase
     end
   end
 
+  test "mirroring a file from the primary service to secondary services where it doesn't exist" do
+    key      = SecureRandom.base58(24)
+    data     = "Something else entirely!"
+    checksum = Digest::MD5.base64digest(data)
+
+    @service.primary.upload key, StringIO.new(data), checksum: checksum
+    @service.mirrors.third.upload key, StringIO.new("Surprise!")
+
+    @service.mirror key, checksum: checksum
+    assert_equal data, @service.mirrors.first.download(key)
+    assert_equal data, @service.mirrors.second.download(key)
+    assert_equal "Surprise!", @service.mirrors.third.download(key)
+  end
+
   test "URL generation in primary service" do
     filename = ActiveStorage::Filename.new("test.txt")
 
@@ -60,5 +78,9 @@ class ActiveStorage::Service::MirrorServiceTest < ActiveSupport::TestCase
       assert_equal @service.primary.url(@key, expires_in: 2.minutes, disposition: :inline, filename: filename, content_type: "text/plain"),
         @service.url(@key, expires_in: 2.minutes, disposition: :inline, filename: filename, content_type: "text/plain")
     end
+  end
+
+  test "path for file in primary service" do
+    assert_equal @service.primary.path_for(@key), @service.path_for(@key)
   end
 end

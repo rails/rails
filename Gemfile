@@ -9,12 +9,13 @@ gemspec
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 11.1"
 
-gem "capybara", ">= 2.15"
+gem "capybara", ">= 3.26"
+gem "selenium-webdriver", ">= 3.141.592"
 
 gem "rack-cache", "~> 1.2"
 gem "sass-rails"
 gem "turbolinks", "~> 5"
-gem "webpacker", ">= 4.0.0.rc.3", require: ENV["SKIP_REQUIRE_WEBPACKER"] != "true"
+gem "webpacker", "~> 4.0", require: ENV["SKIP_REQUIRE_WEBPACKER"] != "true"
 # require: false so bcrypt is loaded only when has_secure_password is used.
 # This is to avoid Active Model (and by extension the entire framework)
 # being dependent on a binary library.
@@ -28,6 +29,8 @@ gem "uglifier", ">= 1.3.0", require: false
 gem "json", ">= 2.0.0"
 
 gem "rubocop", ">= 0.47", require: false
+gem "rubocop-performance", require: false
+gem "rubocop-rails", require: false
 
 group :doc do
   gem "sdoc", "~> 1.0"
@@ -38,12 +41,12 @@ end
 
 # Active Support
 gem "dalli"
-gem "listen", ">= 3.0.5", "< 3.2", require: false
+gem "listen", "~> 3.2", require: false
 gem "libxml-ruby", platforms: :ruby
 gem "connection_pool", require: false
 
 # for railties app_generator_test
-gem "bootsnap", ">= 1.1.0", require: false
+gem "bootsnap", ">= 1.4.4", require: false
 
 # Active Job
 group :job do
@@ -52,7 +55,7 @@ group :job do
   gem "sidekiq", require: false
   gem "sucker_punch", require: false
   gem "delayed_job", require: false
-  gem "queue_classic", github: "rafaelfranca/queue_classic", branch: "update-pg", require: false, platforms: :ruby
+  gem "queue_classic", github: "QueueClassic/queue_classic", require: false, platforms: :ruby
   gem "sneakers", require: false
   gem "que", require: false
   gem "backburner", require: false
@@ -80,7 +83,7 @@ end
 group :storage do
   gem "aws-sdk-s3", require: false
   gem "google-cloud-storage", "~> 1.11", require: false
-  gem "azure-storage", require: false
+  gem "azure-storage-blob", require: false
 
   gem "image_processing", "~> 1.2"
 end
@@ -91,7 +94,7 @@ gem "webmock"
 
 group :ujs do
   gem "qunit-selenium"
-  gem "chromedriver-helper"
+  gem "webdrivers"
 end
 
 # Add your own local bundler stuff.
@@ -101,6 +104,7 @@ instance_eval File.read local_gemfile if File.exist? local_gemfile
 group :test do
   gem "minitest-bisect"
   gem "minitest-retry"
+  gem "minitest-reporters"
 
   platforms :mri do
     gem "stackprof"
@@ -117,11 +121,11 @@ platforms :ruby, :mswin, :mswin64, :mingw, :x64_mingw do
   gem "racc", ">=1.4.6", require: false
 
   # Active Record.
-  gem "sqlite3", "~> 1.3.6"
+  gem "sqlite3", "~> 1.4"
 
   group :db do
     gem "pg", ">= 0.18.0"
-    gem "mysql2", ">= 0.4.10"
+    gem "mysql2", "~> 0.5"
   end
 end
 

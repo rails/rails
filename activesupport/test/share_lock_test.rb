@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 require "concurrent/atomic/count_down_latch"
 require "active_support/concurrency/share_lock"
 
@@ -38,7 +38,7 @@ class ShareLockTest < ActiveSupport::TestCase
     end
   end
 
-  def test_multiple_exlusives_are_able_to_progress
+  def test_multiple_exclusives_are_able_to_progress
     with_thread_waiting_in_lock_section(:sharing) do |sharing_thread_release_latch|
       exclusive_threads = (1..2).map do
         Thread.new do
@@ -488,12 +488,10 @@ class ShareLockTest < ActiveSupport::TestCase
   end
 
   private
-
     module CustomAssertions
       SUFFICIENT_TIMEOUT = 0.2
 
       private
-
         def assert_threads_stuck_but_releasable_by_latch(threads, latch)
           assert_threads_stuck threads
           latch.count_down

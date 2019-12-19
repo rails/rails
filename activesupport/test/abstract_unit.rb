@@ -2,6 +2,7 @@
 
 ORIG_ARGV = ARGV.dup
 
+require "bundler/setup"
 require "active_support/core_ext/kernel/reporting"
 
 silence_warnings do
@@ -40,3 +41,5 @@ class ActiveSupport::TestCase
       skip message if defined?(JRUBY_VERSION)
     end
 end
+
+require_relative "../../tools/test_common"

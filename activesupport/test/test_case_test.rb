@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 
 class AssertionsTest < ActiveSupport::TestCase
   def setup
@@ -315,7 +315,6 @@ class SetupAndTeardownTest < ActiveSupport::TestCase
   end
 
   private
-
     def reset_callback_record
       @called_back = []
     end

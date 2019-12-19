@@ -688,7 +688,6 @@ module ActionView
       end
 
       private
-
         def normalize_distance_of_time_argument_to_time(value)
           if value.is_a?(Numeric)
             Time.at(value)
@@ -831,7 +830,7 @@ module ActionView
       end
 
       def select_year
-        if !@datetime || @datetime == 0
+        if !year || @datetime == 0
           val = "1"
           middle_year = Date.today.year
         else

@@ -16,6 +16,15 @@ module Arel
           assert_equal 2, array.uniq.size
         end
       end
+
+      describe "functions as node expression" do
+        it "allows aliasing" do
+          aliased = And.new(["foo", "bar"]).as("baz")
+
+          assert_kind_of As, aliased
+          assert_kind_of SqlLiteral, aliased.right
+        end
+      end
     end
   end
 end

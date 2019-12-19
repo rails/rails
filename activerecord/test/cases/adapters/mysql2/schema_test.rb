@@ -11,7 +11,7 @@ module ActiveRecord
 
       def setup
         @connection = ActiveRecord::Base.connection
-        db          = Post.connection_pool.spec.config[:database]
+        db          = Post.connection_pool.db_config.database
         table       = Post.table_name
         @db_name    = db
 
@@ -41,7 +41,7 @@ module ActiveRecord
         column_24 = @connection.columns(:mysql_doubles).find { |c| c.name == "float_24" }
         column_25 = @connection.columns(:mysql_doubles).find { |c| c.name == "float_25" }
 
-        # Mysql floats are precision 0..24, Mysql doubles are precision 25..53
+        # MySQL floats are precision 0..24, MySQL doubles are precision 25..53
         assert_equal 24, column_no_limit.limit
         assert_equal 24, column_short.limit
         assert_equal 53, column_long.limit

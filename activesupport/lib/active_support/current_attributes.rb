@@ -91,7 +91,7 @@ module ActiveSupport
     class << self
       # Returns singleton instance for this class in this thread. If none exists, one is created.
       def instance
-        current_instances[name] ||= new
+        current_instances[current_instances_key] ||= new
       end
 
       # Declares one or more attributes that will be given both class and instance accessor methods.
@@ -119,10 +119,16 @@ module ActiveSupport
         end
       end
 
+      # Calls this block before #reset is called on the instance. Used for resetting external collaborators that depend on current values.
+      def before_reset(&block)
+        set_callback :reset, :before, &block
+      end
+
       # Calls this block after #reset is called on the instance. Used for resetting external collaborators, like Time.zone.
       def resets(&block)
         set_callback :reset, :after, &block
       end
+      alias_method :after_reset, :resets
 
       delegate :set, :reset, to: :instance
 
@@ -142,6 +148,10 @@ module ActiveSupport
 
         def current_instances
           Thread.current[:current_attributes_instances] ||= {}
+        end
+
+        def current_instances_key
+          @current_instances_key ||= name.to_sym
         end
 
         def method_missing(name, *args, &block)

@@ -58,7 +58,7 @@ module ActiveRecord
       super unless no_touching?
     end
 
-    def touch(*) # :nodoc:
+    def touch(*, **) # :nodoc:
       super unless no_touching?
     end
   end

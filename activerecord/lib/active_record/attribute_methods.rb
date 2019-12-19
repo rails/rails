@@ -35,7 +35,8 @@ module ActiveRecord
       end
 
       def initialize_generated_modules # :nodoc:
-        @generated_attribute_methods = GeneratedAttributeMethods.new
+        @generated_attribute_methods = const_set(:GeneratedAttributeMethods, GeneratedAttributeMethods.new)
+        private_constant :GeneratedAttributeMethods
         @attribute_methods_generated = false
         include @generated_attribute_methods
 
@@ -114,13 +115,11 @@ module ActiveRecord
       # A class method is 'dangerous' if it is already (re)defined by Active Record, but
       # not by any ancestors. (So 'puts' is not dangerous but 'new' is.)
       def dangerous_class_method?(method_name)
-        RESTRICTED_CLASS_METHODS.include?(method_name.to_s) || class_method_defined_within?(method_name, Base)
-      end
+        return true if RESTRICTED_CLASS_METHODS.include?(method_name.to_s)
 
-      def class_method_defined_within?(name, klass, superklass = klass.superclass) # :nodoc:
-        if klass.respond_to?(name, true)
-          if superklass.respond_to?(name, true)
-            klass.method(name).owner != superklass.method(name).owner
+        if Base.respond_to?(method_name, true)
+          if Object.respond_to?(method_name, true)
+            Base.method(method_name).owner != Object.method(method_name).owner
           else
             true
           end
@@ -155,57 +154,6 @@ module ActiveRecord
           attribute_types.keys
         else
           []
-        end
-      end
-
-      # Regexp for column names (with or without a table name prefix). Matches
-      # the following:
-      #   "#{table_name}.#{column_name}"
-      #   "#{column_name}"
-      COLUMN_NAME = /\A(?:\w+\.)?\w+\z/i
-
-      # Regexp for column names with order (with or without a table name
-      # prefix, with or without various order modifiers). Matches the following:
-      #   "#{table_name}.#{column_name}"
-      #   "#{table_name}.#{column_name} #{direction}"
-      #   "#{table_name}.#{column_name} #{direction} NULLS FIRST"
-      #   "#{table_name}.#{column_name} NULLS LAST"
-      #   "#{column_name}"
-      #   "#{column_name} #{direction}"
-      #   "#{column_name} #{direction} NULLS FIRST"
-      #   "#{column_name} NULLS LAST"
-      COLUMN_NAME_WITH_ORDER = /
-        \A
-        (?:\w+\.)?
-        \w+
-        (?:\s+asc|\s+desc)?
-        (?:\s+nulls\s+(?:first|last))?
-        \z
-      /ix
-
-      def disallow_raw_sql!(args, permit: COLUMN_NAME) # :nodoc:
-        unexpected = args.reject do |arg|
-          Arel.arel_node?(arg) ||
-            arg.to_s.split(/\s*,\s*/).all? { |part| permit.match?(part) }
-        end
-
-        return if unexpected.none?
-
-        if allow_unsafe_raw_sql == :deprecated
-          ActiveSupport::Deprecation.warn(
-            "Dangerous query method (method whose arguments are used as raw " \
-            "SQL) called with non-attribute argument(s): " \
-            "#{unexpected.map(&:inspect).join(", ")}. Non-attribute " \
-            "arguments will be disallowed in Rails 6.0. This method should " \
-            "not be called with user-provided values, such as request " \
-            "parameters or model attributes. Known-safe values can be passed " \
-            "by wrapping them in Arel.sql()."
-          )
-        else
-          raise(ActiveRecord::UnknownAttributeReference,
-            "Query method called with non-attribute argument(s): " +
-            unexpected.map(&:inspect).join(", ")
-          )
         end
       end
 
@@ -436,7 +384,7 @@ module ActiveRecord
       def attributes_for_update(attribute_names)
         attribute_names &= self.class.column_names
         attribute_names.delete_if do |name|
-          readonly_attribute?(name)
+          self.class.readonly_attribute?(name)
         end
       end
 
@@ -459,12 +407,8 @@ module ActiveRecord
         end
       end
 
-      def readonly_attribute?(name)
-        self.class.readonly_attributes.include?(name)
-      end
-
       def pk_attribute?(name)
-        name == self.class.primary_key
+        name == @primary_key
       end
   end
 end

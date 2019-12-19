@@ -21,7 +21,7 @@ module ActionMailbox
     end
 
     def route(inbound_email)
-      if mailbox = match_to_mailbox(inbound_email)
+      if mailbox = mailbox_for(inbound_email)
         mailbox.receive(inbound_email)
       else
         inbound_email.bounced!
@@ -30,12 +30,12 @@ module ActionMailbox
       end
     end
 
+    def mailbox_for(inbound_email)
+      routes.detect { |route| route.match?(inbound_email) }&.mailbox_class
+    end
+
     private
       attr_reader :routes
-
-      def match_to_mailbox(inbound_email)
-        routes.detect { |route| route.match?(inbound_email) }.try(:mailbox_class)
-      end
   end
 end
 

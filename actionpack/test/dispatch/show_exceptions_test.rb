@@ -9,6 +9,8 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
       case req.path
       when "/not_found"
         raise AbstractController::ActionNotFound
+      when "/invalid_mimetype"
+        raise Mime::Type::InvalidMimeType
       when "/bad_params", "/bad_params.json"
         begin
           raise StandardError.new
@@ -61,6 +63,10 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
 
     get "/unknown_http_method", env: { "action_dispatch.show_exceptions" => true }
     assert_response 405
+    assert_equal "", body
+
+    get "/invalid_mimetype", headers: { "Accept" => "text/html,*", "action_dispatch.show_exceptions" => true }
+    assert_response 406
     assert_equal "", body
   end
 

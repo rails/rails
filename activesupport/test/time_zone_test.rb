@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 require "active_support/time"
-require "time_zone_test_helpers"
+require_relative "time_zone_test_helpers"
 require "yaml"
 
 class TimeZoneTest < ActiveSupport::TestCase
@@ -32,7 +32,7 @@ class TimeZoneTest < ActiveSupport::TestCase
     end
   end
 
-  def test_period_for_local_with_ambigiuous_time
+  def test_period_for_local_with_ambiguous_time
     zone = ActiveSupport::TimeZone["Moscow"]
     period = zone.period_for_local(Time.utc(2015, 1, 1))
     assert_equal period, zone.period_for_local(Time.utc(2014, 10, 26, 1, 0, 0))
@@ -715,6 +715,13 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert zone =~ /Eastern/
     assert zone =~ /New_York/
     assert zone !~ /Nonexistent_Place/
+  end
+
+  def test_zone_match?
+    zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+    assert zone.match?(/Eastern/)
+    assert zone.match?(/New_York/)
+    assert_not zone.match?(/Nonexistent_Place/)
   end
 
   def test_to_s

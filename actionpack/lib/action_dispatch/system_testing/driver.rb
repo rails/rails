@@ -3,11 +3,14 @@
 module ActionDispatch
   module SystemTesting
     class Driver # :nodoc:
-      def initialize(name, **options)
+      def initialize(name, **options, &capabilities)
         @name = name
         @browser = Browser.new(options[:using])
         @screen_size = options[:screen_size]
-        @options = options[:options]
+        @options = options[:options] || {}
+        @capabilities = capabilities
+
+        @browser.preload unless name == :rack_test
       end
 
       def use
@@ -22,6 +25,8 @@ module ActionDispatch
         end
 
         def register
+          @browser.configure(&@capabilities)
+
           Capybara.register_driver @name do |app|
             case @name
             when :selenium then register_selenium(app)

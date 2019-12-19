@@ -94,10 +94,17 @@ module ActiveRecord
             t.rename :kind, :cultivar
           end
         end
-        assert_equal [
-          [:rename_column, [:fruits, :cultivar, :kind]],
-          [:remove_column, [:fruits, :name, :string, {}], nil],
-        ], @recorder.commands
+        if RUBY_VERSION < "2.7"
+          assert_equal [
+            [:rename_column, [:fruits, :cultivar, :kind]],
+            [:remove_column, [:fruits, :name, :string, {}], nil],
+          ], @recorder.commands
+        else
+          assert_equal [
+            [:rename_column, [:fruits, :cultivar, :kind]],
+            [:remove_column, [:fruits, :name, :string], nil],
+          ], @recorder.commands
+        end
 
         assert_raises(ActiveRecord::IrreversibleMigration) do
           @recorder.revert do
@@ -182,6 +189,40 @@ module ActiveRecord
         assert_equal [:change_column_default, [:table, :column, from: false, to: true]], change
       end
 
+      if ActiveRecord::Base.connection.supports_comments?
+        def test_invert_change_column_comment
+          assert_raises(ActiveRecord::IrreversibleMigration) do
+            @recorder.inverse_of :change_column_comment, [:table, :column, "comment"]
+          end
+        end
+
+        def test_invert_change_column_comment_with_from_and_to
+          change = @recorder.inverse_of :change_column_comment, [:table, :column, from: "old_value", to: "new_value"]
+          assert_equal [:change_column_comment, [:table, :column, from: "new_value", to: "old_value"]], change
+        end
+
+        def test_invert_change_column_comment_with_from_and_to_with_nil
+          change = @recorder.inverse_of :change_column_comment, [:table, :column, from: nil, to: "new_value"]
+          assert_equal [:change_column_comment, [:table, :column, from: "new_value", to: nil]], change
+        end
+
+        def test_invert_change_table_comment
+          assert_raises(ActiveRecord::IrreversibleMigration) do
+            @recorder.inverse_of :change_column_comment, [:table, :column, "comment"]
+          end
+        end
+
+        def test_invert_change_table_comment_with_from_and_to
+          change = @recorder.inverse_of :change_table_comment, [:table, from: "old_value", to: "new_value"]
+          assert_equal [:change_table_comment, [:table, from: "new_value", to: "old_value"]], change
+        end
+
+        def test_invert_change_table_comment_with_from_and_to_with_nil
+          change = @recorder.inverse_of :change_table_comment, [:table, from: nil, to: "new_value"]
+          assert_equal [:change_table_comment, [:table, from: "new_value", to: nil]], change
+        end
+      end
+
       def test_invert_change_column_null
         add = @recorder.inverse_of :change_column_null, [:table, :column, true]
         assert_equal [:change_column_null, [:table, :column, false]], add
@@ -220,7 +261,12 @@ module ActiveRecord
 
       def test_invert_remove_index
         add = @recorder.inverse_of :remove_index, [:table, :one]
-        assert_equal [:add_index, [:table, :one]], add
+        assert_equal [:add_index, [:table, :one, {}]], add
+      end
+
+      def test_invert_remove_index_with_positional_column
+        add = @recorder.inverse_of :remove_index, [:table, [:one, :two], { options: true }]
+        assert_equal [:add_index, [:table, [:one, :two], options: true]], add
       end
 
       def test_invert_remove_index_with_column

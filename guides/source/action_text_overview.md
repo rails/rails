@@ -45,7 +45,31 @@ happens after every keystroke, and avoids the need to use execCommand at all.
 
 ## Installation
 
-Run `rails action_text:install` to add the Yarn package and copy over the necessary migration.
+Run `rails action_text:install` to add the Yarn package and copy over the necessary migration. Also, you need to set up Active Storage for embedded images and other attachments. Please refer to the [Active Storage Overview](active_storage_overview.html) guide.
+
+After the installation is complete, a Rails app using Webpacker should have the following changes:
+
+1. Both `trix` and `@rails/actiontext` should be required in your JavaScript pack.
+
+```js
+// application.js
+require("trix")
+require("@rails/actiontext")
+```
+
+2. The`trix` stylesheet should be imported into `actiontext.scss`.
+
+```scss
+@import "trix/dist/trix";
+```
+
+Additionally this `actiontext.scss` file should be imported into your stylesheet pack.
+
+```
+// application.scss
+@import "./actiontext.scss";
+```
+
 
 ## Examples
 
@@ -58,11 +82,13 @@ class Message < ApplicationRecord
 end
 ```
 
+Note that you don't need to add a `content` field to your `messages` table.
+
 Then refer to this field in the form for the model:
 
 ```erb
 <%# app/views/messages/_form.html.erb %>
-<%= form_with(model: message) do |form| %>
+<%= form_with model: message do |form| %>
   <div class="field">
     <%= form.label :content %>
     <%= form.rich_text_area :content %>
@@ -91,9 +117,26 @@ end
 
 By default, the Action Text editor and content is styled by the Trix defaults.
 If you want to change these defaults, you'll want to remove
-the `app/assets/stylesheets/actiontext.css` linker and base your stylings on
+the `app/assets/stylesheets/actiontext.scss` linker and base your stylings on
 the [contents of that file](https://raw.githubusercontent.com/basecamp/trix/master/dist/trix.css).
 
 You can also style the HTML used for embedded images and other attachments (known as blobs).
 On installation, Action Text will copy over a partial to
 `app/views/active_storage/blobs/_blob.html.erb`, which you can specialize.
+
+## Just backend development (APIs)
+
+1. For just APIs development your API needs a separate endpoint for uploading files that creates an ActiveStorage::Blob and returns its attachable_sgid:
+
+```json
+{
+  "attachable_sgid": "BAh7CEkiCG…"
+}
+```
+
+2. Take that attachable_sgid and ask your frontend to insert it in rich text content using an <action-text-attachment> tag:
+```html
+<action-text-attachment sgid="BAh7CEkiCG…"></action-text-attachment>
+```
+
+This is based on basecamp so if you still can't find what you are looking for, check [Basecamp Doc](https://github.com/basecamp/bc3-api/blob/master/sections/rich_text.md)

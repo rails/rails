@@ -1,220 +1,235 @@
-## Rails 6.0.0.beta1 (January 18, 2019) ##
-
 *   ActionController::ParamsWrapper wraps parameters for HasAndBelongsToMany relations.
 
     *Eike Send*
 
-*   Remove deprecated `fragment_cache_key` helper in favor of `combined_fragment_cache_key`.
+*   Fix possible information leak / session hijacking vulnerability.
 
-    *Rafael Mendonça França*
+    The `ActionDispatch::Session::MemcacheStore` is still vulnerable given it requires the
+    gem dalli to be updated as well.
 
-*   Remove deprecated methods in `ActionDispatch::TestResponse`.
+    CVE-2019-16782.
 
-    `#success?`, `missing?` and `error?` were deprecated in Rails 5.2 in favor of
-    `#successful?`, `not_found?` and `server_error?`.
+*   Include child session assertion count in ActionDispatch::IntegrationTest
 
-    *Rafael Mendonça França*
+    `IntegrationTest#open_session` uses `dup` to create the new session, which
+    meant it had its own copy of `@assertions`. This prevented the assertions
+    from being correctly counted and reported.
 
-*   Ensure external redirects are explicitly allowed
+    Child sessions now have their `attr_accessor` overridden to delegate to the
+    root session.
 
-    Add `fallback_location` and `allow_other_host` options to `redirect_to`.
+    Fixes #32142
 
-    *Gannon McGibbon*
+    *Sam Bostock*
 
-*   Introduce ActionDispatch::HostAuthorization
+*   Add SameSite protection to every written cookie.
 
-    This is a new middleware that guards against DNS rebinding attacks by
-    white-listing the allowed hosts a request can be made to.
+    Enabling `SameSite` cookie protection is an addition to CSRF protection,
+    where cookies won't be sent by browsers in cross-site POST requests when set to `:lax`.
 
-    Each host is checked with the case operator (`#===`) to support `RegExp`,
-    `Proc`, `IPAddr` and custom objects as host allowances.
+    `:strict` disables cookies being sent in cross-site GET or POST requests.
 
-    *Genadi Samokovarov*
+    Passing `:none` disables this protection and is the same as previous versions albeit a `; SameSite=None` is appended to the cookie.
 
-*   Allow using `parsed_body` in `ActionController::TestCase`.
+    See upgrade instructions in config/initializers/new_framework_defaults_6_1.rb.
 
-    In addition to `ActionDispatch::IntegrationTest`, allow using
-    `parsed_body` in `ActionController::TestCase`:
+    More info [here](https://tools.ietf.org/html/draft-west-first-party-cookies-07)
 
+    _NB: Technically already possible as Rack supports SameSite protection, this is to ensure it's applied to all cookies_
+
+    *Cédric Fabianski*
+
+*   Bring back the feature that allows loading external route files from the router.
+
+    This feature existed back in 2012 but got reverted with the incentive that
+    https://github.com/rails/routing_concerns was a better approach. Turned out
+    that this wasn't fully the case and loading external route files from the router
+    can be helpful for applications with a really large set of routes.
+    Without this feature, application needs to implement routes reloading
+    themselves and it's not straightforward.
+
+    ```ruby
+    # config/routes.rb
+
+    Rails.application.routes.draw do
+      draw(:admin)
+    end
+
+    # config/routes/admin.rb
+
+    get :foo, to: 'foo#bar'
     ```
-    class SomeControllerTest < ActionController::TestCase
-      def test_some_action
-        post :action, body: { foo: 'bar' }
-        assert_equal({ "foo" => "bar" }, response.parsed_body)
+
+    *Yehuda Katz*, *Edouard Chin*
+
+*   Fix system test driver option initialization for non-headless browsers.
+
+    *glaszig*
+
+*   `redirect_to.action_controller` notifications now include the `ActionDispatch::Request` in
+    their payloads as `:request`.
+
+    *Austin Story*
+
+*   `respond_to#any` no longer returns a response's Content-Type based on the
+    request format but based on the block given.
+
+    Example:
+
+    ```ruby
+      def my_action
+        respond_to do |format|
+          format.any { render(json: { foo: 'bar' }) }
+        end
+      end
+
+      get('my_action.csv')
+    ```
+
+    The previous behaviour was to respond with a `text/csv` Content-Type which
+    is inaccurate since a JSON response is being rendered.
+
+    Now it correctly returns a `application/json` Content-Type.
+
+    *Edouard Chin*
+
+*   Replaces (back)slashes in failure screenshot image paths with dashes.
+
+    If a failed test case contained a slash or a backslash, a screenshot would be created in a
+    nested directory, causing issues with `tmp:clear`.
+
+    *Damir Zekic*
+
+*   Add `params.member?` to mimic Hash behavior.
+
+    *Younes Serraj*
+
+*   `process_action.action_controller` notifications now include the following in their payloads:
+
+    * `:request` - the `ActionDispatch::Request`
+    * `:response` - the `ActionDispatch::Response`
+
+    *George Claghorn*
+
+*   Updated `ActionDispatch::Request.remote_ip` setter to clear set the instance
+    `remote_ip` to `nil` before setting the header that the value is derived
+    from.
+
+    Fixes #37383.
+
+    *Norm Provost*
+
+*   `ActionController::Base.log_at` allows setting a different log level per request.
+
+    ```ruby
+    # Use the debug level if a particular cookie is set.
+    class ApplicationController < ActionController::Base
+      log_at :debug, if: -> { cookies[:debug] }
+    end
+    ```
+
+    *George Claghorn*
+
+*   Allow system test screen shots to be taken more than once in
+    a test by prefixing the file name with an incrementing counter.
+
+    Add an environment variable `RAILS_SYSTEM_TESTING_SCREENSHOT_HTML` to
+    enable saving of HTML during a screenshot in addition to the image.
+    This uses the same image name, with the extension replaced with `.html`
+
+    *Tom Fakes*
+
+*   Add `Vary: Accept` header when using `Accept` header for response
+
+    For some requests like `/users/1`, Rails uses requests' `Accept`
+    header to determine what to return. And if we don't add `Vary`
+    in the response header, browsers might accidentally cache different
+    types of content, which would cause issues: e.g. javascript got displayed
+    instead of html content. This PR fixes these issues by adding `Vary: Accept`
+    in these types of requests. For more detailed problem description, please read:
+
+    https://github.com/rails/rails/pull/36213
+
+    Fixes #25842.
+
+    *Stan Lo*
+
+*   Fix IntegrationTest `follow_redirect!` to follow redirection using the same HTTP verb when following
+    a 307 redirection.
+
+    *Edouard Chin*
+
+*   System tests require Capybara 3.26 or newer.
+
+    *George Claghorn*
+
+*   Reduced log noise handling ActionController::RoutingErrors.
+
+    *Alberto Fernández-Capel*
+
+*   Add DSL for configuring HTTP Feature Policy.
+
+    This new DSL provides a way to configure an HTTP Feature Policy at a
+    global or per-controller level. Full details of HTTP Feature Policy
+    specification and guidelines can be found at MDN:
+
+    https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy
+
+    Example global policy:
+
+    ```ruby
+    Rails.application.config.feature_policy do |f|
+      f.camera      :none
+      f.gyroscope   :none
+      f.microphone  :none
+      f.usb         :none
+      f.fullscreen  :self
+      f.payment     :self, "https://secure.example.com"
+    end
+    ```
+
+    Example controller level policy:
+
+    ```ruby
+    class PagesController < ApplicationController
+      feature_policy do |p|
+        p.geolocation "https://example.com"
       end
     end
     ```
 
-    Fixes #34676.
+    *Jacob Bednarz*
 
-    *Tobias Bühlmann*
+*   Add the ability to set the CSP nonce only to the specified directives.
 
-*   Raise an error on root route naming conflicts.
+    Fixes #35137.
 
-    Raises an ArgumentError when multiple root routes are defined in the
-    same context instead of assigning nil names to subsequent roots.
+    *Yuji Yaginuma*
 
-    *Gannon McGibbon*
+*   Keep part when scope option has value.
 
-*   Allow rescue from parameter parse errors:
+    When a route was defined within an optional scope, if that route didn't
+    take parameters the scope was lost when using path helpers. This commit
+    ensures scope is kept both when the route takes parameters or when it
+    doesn't.
 
-    ```
-    rescue_from ActionDispatch::Http::Parameters::ParseError do
-      head :unauthorized
-    end
-    ```
+    Fixes #33219.
 
-    *Gannon McGibbon*, *Josh Cheek*
+    *Alberto Almagro*
 
-*   Reset Capybara sessions if failed system test screenshot raising an exception.
+*   Added `deep_transform_keys` and `deep_transform_keys!` methods to ActionController::Parameters.
 
-    Reset Capybara sessions if `take_failed_screenshot` raise exception
-    in system test `after_teardown`.
+    *Gustavo Gutierrez*
 
-    *Maxim Perepelitsa*
+*   Calling `ActionController::Parameters#transform_keys`/`!` without a block now returns
+    an enumerator for the parameters instead of the underlying hash.
 
-*   Use request object for context if there's no controller
+    *Eugene Kenny*
 
-    There is no controller instance when using a redirect route or a
-    mounted rack application so pass the request object as the context
-    when resolving dynamic CSP sources in this scenario.
+*   Fix strong parameters blocks all attributes even when only some keys are invalid (non-numerical).
+    It should only block invalid key's values instead.
 
-    Fixes #34200.
+    *Stan Lo*
 
-    *Andrew White*
 
-*   Apply mapping to symbols returned from dynamic CSP sources
-
-    Previously if a dynamic source returned a symbol such as :self it
-    would be converted to a string implicity, e.g:
-
-        policy.default_src -> { :self }
-
-    would generate the header:
-
-        Content-Security-Policy: default-src self
-
-    and now it generates:
-
-        Content-Security-Policy: default-src 'self'
-
-    *Andrew White*
-
-*   Add `ActionController::Parameters#each_value`.
-
-    *Lukáš Zapletal*
-
-*   Deprecate `ActionDispatch::Http::ParameterFilter` in favor of `ActiveSupport::ParameterFilter`.
-
-    *Yoshiyuki Kinjo*
-
-*   Encode Content-Disposition filenames on `send_data` and `send_file`.
-    Previously, `send_data 'data', filename: "\u{3042}.txt"` sends
-    `"filename=\"\u{3042}.txt\""` as Content-Disposition and it can be
-    garbled.
-    Now it follows [RFC 2231](https://tools.ietf.org/html/rfc2231) and
-    [RFC 5987](https://tools.ietf.org/html/rfc5987) and sends
-    `"filename=\"%3F.txt\"; filename*=UTF-8''%E3%81%82.txt"`.
-    Most browsers can find filename correctly and old browsers fallback to ASCII
-    converted name.
-
-    *Fumiaki Matsushima*
-
-*   Expose `ActionController::Parameters#each_key` which allows iterating over
-    keys without allocating an array.
-
-    *Richard Schneeman*
-
-*   Purpose metadata for signed/encrypted cookies.
-
-    Rails can now thwart attacks that attempt to copy signed/encrypted value
-    of a cookie and use it as the value of another cookie.
-
-    It does so by stashing the cookie-name in the purpose field which is
-    then signed/encrypted along with the cookie value. Then, on a server-side
-    read, we verify the cookie-names and discard any attacked cookies.
-
-    Enable `action_dispatch.use_cookies_with_metadata` to use this feature, which
-    writes cookies with the new purpose and expiry metadata embedded.
-
-    *Assain Jaleel*
-
-*   Raises `ActionController::RespondToMismatchError` with confliciting `respond_to` invocations.
-
-    `respond_to` can match multiple types and lead to undefined behavior when
-    multiple invocations are made and the types do not match:
-
-        respond_to do |outer_type|
-          outer_type.js do
-            respond_to do |inner_type|
-              inner_type.html { render body: "HTML" }
-            end
-          end
-        end
-
-    *Patrick Toomey*
-
-*   `ActionDispatch::Http::UploadedFile` now delegates `to_path` to its tempfile.
-
-    This allows uploaded file objects to be passed directly to `File.read`
-    without raising a `TypeError`:
-
-        uploaded_file = ActionDispatch::Http::UploadedFile.new(tempfile: tmp_file)
-        File.read(uploaded_file)
-
-    *Aaron Kromer*
-
-*   Pass along arguments to underlying `get` method in `follow_redirect!`.
-
-    Now all arguments passed to `follow_redirect!` are passed to the underlying
-    `get` method. This for example allows to set custom headers for the
-    redirection request to the server.
-
-        follow_redirect!(params: { foo: :bar })
-
-    *Remo Fritzsche*
-
-*   Introduce a new error page to when the implicit render page is accessed in the browser.
-
-    Now instead of showing an error page that with exception and backtraces we now show only
-    one informative page.
-
-    *Vinicius Stock*
-
-*   Introduce `ActionDispatch::DebugExceptions.register_interceptor`.
-
-    Exception aware plugin authors can use the newly introduced
-    `.register_interceptor` method to get the processed exception, instead of
-    monkey patching DebugExceptions.
-
-        ActionDispatch::DebugExceptions.register_interceptor do |request, exception|
-          HypoteticalPlugin.capture_exception(request, exception)
-        end
-
-    *Genadi Samokovarov*
-
-*   Output only one Content-Security-Policy nonce header value per request.
-
-    Fixes #32597.
-
-    *Andrey Novikov*, *Andrew White*
-
-*   Move default headers configuration into their own module that can be included in controllers.
-
-    *Kevin Deisz*
-
-*   Add method `dig` to `session`.
-
-    *claudiob*, *Takumi Shotoku*
-
-*   Controller level `force_ssl` has been deprecated in favor of
-    `config.force_ssl`.
-
-    *Derek Prior*
-
-*   Rails 6 requires Ruby 2.5.0 or newer.
-
-    *Jeremy Daer*, *Kasper Timm Hansen*
-
-
-Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/actionpack/CHANGELOG.md) for previous changes.
+Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/actionpack/CHANGELOG.md) for previous changes.

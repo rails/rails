@@ -31,6 +31,7 @@ require "yaml"
 
 require "active_record/version"
 require "active_model/attribute_set"
+require "active_record/errors"
 
 module ActiveRecord
   extend ActiveSupport::Autoload
@@ -55,7 +56,6 @@ module ActiveRecord
   autoload :Persistence
   autoload :QueryCache
   autoload :Querying
-  autoload :CollectionCacheKey
   autoload :ReadonlyAttributes
   autoload :RecordInvalid, "active_record/validations"
   autoload :Reflection
@@ -74,11 +74,10 @@ module ActiveRecord
   autoload :Translation
   autoload :Validations
   autoload :SecureToken
+  autoload :DatabaseSelector, "active_record/middleware/database_selector"
 
   eager_autoload do
-    autoload :ActiveRecordError, "active_record/errors"
-    autoload :ConnectionNotEstablished, "active_record/errors"
-    autoload :ConnectionAdapters, "active_record/connection_adapters/abstract_adapter"
+    autoload :ConnectionAdapters
 
     autoload :Aggregations
     autoload :Associations
@@ -136,14 +135,6 @@ module ActiveRecord
     end
   end
 
-  module ConnectionAdapters
-    extend ActiveSupport::Autoload
-
-    eager_autoload do
-      autoload :AbstractAdapter
-    end
-  end
-
   module Scoping
     extend ActiveSupport::Autoload
 
@@ -151,6 +142,12 @@ module ActiveRecord
       autoload :Named
       autoload :Default
     end
+  end
+
+  module Middleware
+    extend ActiveSupport::Autoload
+
+    autoload :DatabaseSelector, "active_record/middleware/database_selector"
   end
 
   module Tasks

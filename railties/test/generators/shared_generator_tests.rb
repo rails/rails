@@ -191,10 +191,7 @@ module SharedGeneratorTests
       assert_no_match(/fixtures :all/, helper_content)
     end
     assert_file "#{application_path}/bin/setup" do |setup_content|
-      assert_no_match(/db:setup/, setup_content)
-    end
-    assert_file "#{application_path}/bin/update" do |update_content|
-      assert_no_match(/db:migrate/, update_content)
+      assert_no_match(/db:prepare/, setup_content)
     end
     assert_file ".gitignore" do |content|
       assert_no_match(/sqlite/i, content)

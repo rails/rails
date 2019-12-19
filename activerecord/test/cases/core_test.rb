@@ -78,7 +78,7 @@ class CoreTest < ActiveRecord::TestCase
        title: "The First Topic",
        author_name: "David",
        author_email_address: "david@loudthinking.com",
-       written_on: 2003-07-16 14:28:11 UTC,
+       written_on: 2003-07-16 14:28:11(?:\.2233)? UTC,
        bonus_time: 2000-01-01 14:28:00 UTC,
        last_read: Thu, 15 Apr 2004,
        content: "Have a nice day",

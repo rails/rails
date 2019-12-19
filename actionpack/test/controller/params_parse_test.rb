@@ -24,7 +24,6 @@ class ParamsParseTest < ActionController::TestCase
   end
 
   private
-
     def capture_log_output
       output = StringIO.new
       request.set_header "action_dispatch.logger", ActiveSupport::Logger.new(output)

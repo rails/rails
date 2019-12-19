@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "active_support/core_ext/integer/time"
 
 class DateHelperDistanceOfTimeInWordsI18nTests < ActiveSupport::TestCase
   include ActionView::Helpers::DateHelper

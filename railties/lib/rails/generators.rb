@@ -6,8 +6,6 @@ $:.unshift(activesupport_path) if File.directory?(activesupport_path) && !$:.inc
 require "thor/group"
 require "rails/command"
 
-require "active_support"
-require "active_support/core_ext/object/blank"
 require "active_support/core_ext/kernel/singleton_class"
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/hash/deep_merge"
@@ -35,6 +33,8 @@ module Rails
       rails: {
         actions: "-a",
         orm: "-o",
+        javascripts: "-j",
+        javascript_engine: "-je",
         resource_controller: "-c",
         scaffold_controller: "-c",
         stylesheets: "-y",
@@ -128,11 +128,6 @@ module Rails
         end
       end
 
-      # Remove the color from output.
-      def no_color!
-        Thor::Base.shell = Thor::Shell::Basic
-      end
-
       # Returns an array of generator namespaces that are hidden.
       # Generator namespaces may be hidden for a variety of reasons.
       # Some are aliased such as "rails:migration" and can be
@@ -165,7 +160,8 @@ module Rails
             "#{css}:scaffold",
             "#{css}:assets",
             "css:assets",
-            "css:scaffold"
+            "css:scaffold",
+            "action_text:install"
           ]
         end
       end
@@ -285,7 +281,6 @@ module Rails
       end
 
       private
-
         def print_list(base, namespaces) # :doc:
           namespaces = namespaces.reject { |n| hidden_namespaces.include?(n) }
           super

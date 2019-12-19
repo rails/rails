@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
-require "multibyte_test_helpers"
+require_relative "abstract_unit"
+require_relative "multibyte_test_helpers"
 
 class MultibyteGraphemeBreakConformanceTest < ActiveSupport::TestCase
   include MultibyteTestHelpers

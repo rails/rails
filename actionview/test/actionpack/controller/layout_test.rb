@@ -70,7 +70,7 @@ class LayoutAutoDiscoveryTest < ActionController::TestCase
   end
 
   def test_third_party_template_library_auto_discovers_layout
-    with_template_handler :mab, lambda { |template| template.source.inspect } do
+    with_template_handler :mab, lambda { |template, source| source.inspect } do
       @controller = ThirdPartyTemplateLibraryController.new
       get :hello
       assert_response :success
@@ -212,7 +212,7 @@ class LayoutSetInResponseTest < ActionController::TestCase
   end
 
   def test_layout_set_when_using_render
-    with_template_handler :mab, lambda { |template| template.source.inspect } do
+    with_template_handler :mab, lambda { |template, source| source.inspect } do
       @controller = SetsLayoutInRenderController.new
       get :hello
       assert_includes @response.body, "layouts/third_party_template_library.mab"
@@ -233,7 +233,9 @@ class LayoutSetInResponseTest < ActionController::TestCase
 
   def test_absolute_pathed_layout
     @controller = AbsolutePathLayoutController.new
-    get :hello
+    assert_deprecated do
+      get :hello
+    end
     assert_equal "layout_test.erb hello.erb", @response.body.strip
   end
 end

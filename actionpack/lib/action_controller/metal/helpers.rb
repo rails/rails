@@ -34,7 +34,7 @@ module ActionController
   #     end
   #   end
   #
-  # Then, in any view rendered by <tt>EventController</tt>, the <tt>format_time</tt> method can be called:
+  # Then, in any view rendered by <tt>EventsController</tt>, the <tt>format_time</tt> method can be called:
   #
   #   <% @events.each do |event| -%>
   #     <p>
@@ -73,9 +73,14 @@ module ActionController
       end
 
       # Provides a proxy to access helper methods from outside the view.
+      #
+      # Note that the proxy is rendered under a different view context.
+      # This may cause incorrect behaviour with capture methods. Consider
+      # using {helper}[rdoc-ref:AbstractController::Helpers::ClassMethods#helper]
+      # instead when using +capture+.
       def helpers
         @helper_proxy ||= begin
-          proxy = ActionView::Base.new
+          proxy = ActionView::Base.empty
           proxy.config = config.inheritable_copy
           proxy.extend(_helpers)
         end

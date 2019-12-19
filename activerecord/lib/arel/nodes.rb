@@ -45,7 +45,6 @@ require "arel/nodes/and"
 require "arel/nodes/function"
 require "arel/nodes/count"
 require "arel/nodes/extract"
-require "arel/nodes/values"
 require "arel/nodes/values_list"
 require "arel/nodes/named_function"
 
@@ -61,6 +60,8 @@ require "arel/nodes/inner_join"
 require "arel/nodes/outer_join"
 require "arel/nodes/right_outer_join"
 require "arel/nodes/string_join"
+
+require "arel/nodes/comment"
 
 require "arel/nodes/sql_literal"
 

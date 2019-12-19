@@ -28,7 +28,6 @@ module AbstractController
         self.fragment_cache_keys = []
 
         if respond_to?(:helper_method)
-          helper_method :fragment_cache_key
           helper_method :combined_fragment_cache_key
         end
       end

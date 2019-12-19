@@ -20,6 +20,9 @@ module ActiveSupport #:nodoc:
   module Dependencies #:nodoc:
     extend self
 
+    UNBOUND_METHOD_MODULE_NAME = Module.instance_method(:name)
+    private_constant :UNBOUND_METHOD_MODULE_NAME
+
     mattr_accessor :interlock, default: Interlock.new
 
     # :doc:
@@ -69,6 +72,11 @@ module ActiveSupport #:nodoc:
     # The set of directories from which automatically loaded constants are loaded
     # only once. All directories in this set must also be present in +autoload_paths+.
     mattr_accessor :autoload_once_paths, default: []
+
+    # This is a private set that collects all eager load paths during bootstrap.
+    # Useful for Zeitwerk integration. Its public interface is the config.* path
+    # accessors of each engine.
+    mattr_accessor :_eager_load_paths, default: Set.new
 
     # An array of qualified constant names that have been loaded. Adding a name
     # to this array will cause it to be unloaded the next time Dependencies are
@@ -196,6 +204,11 @@ module ActiveSupport #:nodoc:
         end
       end
 
+      def self.include_into(base)
+        base.include(self)
+        append_features(base)
+      end
+
       def const_missing(const_name)
         from_mod = anonymous? ? guess_for_anonymous(const_name) : self
         Dependencies.load_missing_constant(from_mod, const_name)
@@ -225,6 +238,21 @@ module ActiveSupport #:nodoc:
         base.class_eval do
           define_method(:load, Kernel.instance_method(:load))
           private :load
+
+          define_method(:require, Kernel.instance_method(:require))
+          private :require
+        end
+      end
+
+      def self.include_into(base)
+        base.include(self)
+
+        if base.instance_method(:load).owner == base
+          base.remove_method(:load)
+        end
+
+        if base.instance_method(:require).owner == base
+          base.remove_method(:require)
         end
       end
 
@@ -285,7 +313,6 @@ module ActiveSupport #:nodoc:
       end
 
       private
-
         def load(file, wrap = false)
           result = false
           load_dependency(file) { result = super }
@@ -321,9 +348,9 @@ module ActiveSupport #:nodoc:
     end
 
     def hook!
-      Object.class_eval { include Loadable }
-      Module.class_eval { include ModuleConstMissing }
-      Exception.class_eval { include Blamable }
+      Loadable.include_into(Object)
+      ModuleConstMissing.include_into(Module)
+      Exception.include(Blamable)
     end
 
     def unhook!
@@ -634,7 +661,7 @@ module ActiveSupport #:nodoc:
 
     # Determine if the given constant has been automatically loaded.
     def autoloaded?(desc)
-      return false if desc.is_a?(Module) && desc.anonymous?
+      return false if desc.is_a?(Module) && real_mod_name(desc).nil?
       name = to_constant_name desc
       return false unless qualified_const_defined?(name)
       autoloaded_constants.include?(name)
@@ -690,7 +717,7 @@ module ActiveSupport #:nodoc:
       when String then desc.sub(/^::/, "")
       when Symbol then desc.to_s
       when Module
-        desc.name ||
+        real_mod_name(desc) ||
           raise(ArgumentError, "Anonymous modules have no name to be referenced by")
       else raise TypeError, "Not a valid constant descriptor: #{desc.inspect}"
       end
@@ -764,6 +791,13 @@ module ActiveSupport #:nodoc:
     def log(message)
       logger.debug("autoloading: #{message}") if logger && verbose
     end
+
+    private
+      # Returns the original name of a class or module even if `name` has been
+      # overridden.
+      def real_mod_name(mod)
+        UNBOUND_METHOD_MODULE_NAME.bind(mod).call
+      end
   end
 end
 

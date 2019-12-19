@@ -38,7 +38,7 @@ module ActionView #:nodoc:
 
       # Converts the array to a comma-separated sentence where the last element is
       # joined by the connector word. This is the html_safe-aware version of
-      # ActiveSupport's {Array#to_sentence}[http://api.rubyonrails.org/classes/Array.html#method-i-to_sentence].
+      # ActiveSupport's {Array#to_sentence}[https://api.rubyonrails.org/classes/Array.html#method-i-to_sentence].
       #
       def to_sentence(array, options = {})
         options.assert_valid_keys(:words_connector, :two_words_connector, :last_word_connector, :locale)

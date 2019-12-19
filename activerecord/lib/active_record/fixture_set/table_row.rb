@@ -48,7 +48,6 @@ module ActiveRecord
       end
 
       private
-
         def model_metadata
           @table_rows.model_metadata
         end

@@ -22,15 +22,14 @@ module ActionController
         additions = ActionController::Base.log_process_action(payload)
         status = payload[:status]
 
-        if status.nil? && payload[:exception].present?
-          exception_class_name = payload[:exception].first
+        if status.nil? && (exception_class_name = payload[:exception].first)
           status = ActionDispatch::ExceptionWrapper.status_code_for_exception(exception_class_name)
         end
 
         additions << "Allocations: #{event.allocations}"
 
         message = +"Completed #{status} #{Rack::Utils::HTTP_STATUS_CODES[status]} in #{event.duration.round}ms"
-        message << " (#{additions.join(" | ")})" unless additions.empty?
+        message << " (#{additions.join(" | ")})"
         message << "\n\n" if defined?(Rails.env) && Rails.env.development?
 
         message

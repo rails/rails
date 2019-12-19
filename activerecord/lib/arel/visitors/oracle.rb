@@ -4,13 +4,12 @@ module Arel # :nodoc: all
   module Visitors
     class Oracle < Arel::Visitors::ToSql
       private
-
         def visit_Arel_Nodes_SelectStatement(o, collector)
           o = order_hacks(o)
 
           # if need to select first records without ORDER BY and GROUP BY and without DISTINCT
           # then can use simple ROWNUM in WHERE clause
-          if o.limit && o.orders.empty? && o.cores.first.groups.empty? && !o.offset && o.cores.first.set_quantifier.class.to_s !~ /Distinct/
+          if o.limit && o.orders.empty? && o.cores.first.groups.empty? && !o.offset && !o.cores.first.set_quantifier.class.to_s.match?(/Distinct/)
             o.cores.last.wheres.push Nodes::LessThanOrEqual.new(
               Nodes::SqlLiteral.new("ROWNUM"), o.limit.expr
             )
@@ -123,7 +122,7 @@ module Arel # :nodoc: all
           o.orders = []
           orders.each_with_index do |order, i|
             o.orders <<
-              Nodes::SqlLiteral.new("alias_#{i}__#{' DESC' if /\bdesc$/i === order}")
+              Nodes::SqlLiteral.new("alias_#{i}__#{' DESC' if /\bdesc$/i.match?(order)}")
           end
           o
         end

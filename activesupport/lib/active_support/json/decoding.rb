@@ -44,7 +44,6 @@ module ActiveSupport
       end
 
       private
-
         def convert_dates_from(data)
           case data
           when nil

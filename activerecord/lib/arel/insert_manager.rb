@@ -33,13 +33,13 @@ module Arel # :nodoc: all
           @ast.columns << column
           values << value
         end
-        @ast.values = create_values values, @ast.columns
+        @ast.values = create_values(values)
       end
       self
     end
 
-    def create_values(values, columns)
-      Nodes::Values.new values, columns
+    def create_values(values)
+      Nodes::ValuesList.new([values])
     end
 
     def create_values_list(rows)

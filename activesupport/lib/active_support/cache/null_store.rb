@@ -33,14 +33,14 @@ module ActiveSupport
       end
 
       private
-        def read_entry(key, options)
+        def read_entry(key, **options)
         end
 
-        def write_entry(key, entry, options)
+        def write_entry(key, entry, **options)
           true
         end
 
-        def delete_entry(key, options)
+        def delete_entry(key, **options)
           false
         end
     end

@@ -42,7 +42,7 @@ module Rails
   #   end
   #
   #   # lib/my_gem.rb
-  #   require 'my_gem/railtie' if defined?(Rails)
+  #   require 'my_gem/railtie' if defined?(Rails::Railtie)
   #
   # == Initializers
   #
@@ -228,7 +228,6 @@ module Rails
     end
 
     protected
-
       def run_console_blocks(app) #:nodoc:
         each_registered_block(:console) { |block| block.call(app) }
       end
@@ -247,7 +246,6 @@ module Rails
       end
 
     private
-
       # run `&block` in every registered block in `#register_block_for`
       def each_registered_block(type, &block)
         klass = self.class

@@ -63,33 +63,18 @@ class UpdateAllTest < ActiveRecord::TestCase
     assert_equal pets.count, pets.update_all(name: "Bob")
   end
 
-  def test_update_all_with_joins_and_limit
-    comments = Comment.joins(:post).where("posts.id" => posts(:welcome).id).limit(1)
-    assert_equal 1, comments.update_all(post_id: posts(:thinking).id)
-    assert_equal posts(:thinking), comments(:greetings).post
-  end
-
   def test_update_all_with_joins_and_limit_and_order
     comments = Comment.joins(:post).where("posts.id" => posts(:welcome).id).order("comments.id").limit(1)
+    assert_equal 1, comments.count
     assert_equal 1, comments.update_all(post_id: posts(:thinking).id)
     assert_equal posts(:thinking), comments(:greetings).post
     assert_equal posts(:welcome),  comments(:more_greetings).post
   end
 
-  def test_update_all_with_joins_and_offset
-    all_comments = Comment.joins(:post).where("posts.id" => posts(:welcome).id)
-    count        = all_comments.count
-    comments     = all_comments.offset(1)
-
-    assert_equal count - 1, comments.update_all(post_id: posts(:thinking).id)
-  end
-
   def test_update_all_with_joins_and_offset_and_order
-    all_comments = Comment.joins(:post).where("posts.id" => posts(:welcome).id).order("posts.id", "comments.id")
-    count        = all_comments.count
-    comments     = all_comments.offset(1)
-
-    assert_equal count - 1, comments.update_all(post_id: posts(:thinking).id)
+    comments = Comment.joins(:post).where("posts.id" => posts(:welcome).id).order("comments.id").offset(1)
+    assert_equal 1, comments.count
+    assert_equal 1, comments.update_all(post_id: posts(:thinking).id)
     assert_equal posts(:thinking), comments(:more_greetings).post
     assert_equal posts(:welcome),  comments(:greetings).post
   end
@@ -138,14 +123,6 @@ class UpdateAllTest < ActiveRecord::TestCase
     assert_equal new_time, developer.updated_at
   end
 
-  def test_touch_all_updates_locking_column
-    person = people(:david)
-
-    assert_difference -> { person.reload.lock_version }, +1 do
-      Person.where(first_name: "David").touch_all
-    end
-  end
-
   def test_update_on_relation
     topic1 = TopicWithCallbacks.create! title: "arel", author_name: nil
     topic2 = TopicWithCallbacks.create! title: "activerecord", author_name: nil
@@ -183,6 +160,101 @@ class UpdateAllTest < ActiveRecord::TestCase
     topic = Topic.create!(title: "Foo", author_name: nil)
     assert_raises(ArgumentError) do
       Topic.where(id: topic.id).update(topic, title: "Bar")
+    end
+  end
+
+  def test_update_all_cares_about_optimistic_locking
+    david = people(:david)
+
+    travel 5.seconds do
+      now = Time.now.utc
+      assert_not_equal now, david.updated_at
+
+      people = Person.where(id: people(:michael, :david, :susan))
+      expected = people.pluck(:lock_version)
+      expected.map! { |version| version + 1 }
+      people.update_all(updated_at: now)
+
+      assert_equal [now] * 3, people.pluck(:updated_at)
+      assert_equal expected, people.pluck(:lock_version)
+
+      assert_raises(ActiveRecord::StaleObjectError) do
+        david.touch(time: now)
+      end
+    end
+  end
+
+  def test_update_counters_cares_about_optimistic_locking
+    david = people(:david)
+
+    travel 5.seconds do
+      now = Time.now.utc
+      assert_not_equal now, david.updated_at
+
+      people = Person.where(id: people(:michael, :david, :susan))
+      expected = people.pluck(:lock_version)
+      expected.map! { |version| version + 1 }
+      people.update_counters(touch: [time: now])
+
+      assert_equal [now] * 3, people.pluck(:updated_at)
+      assert_equal expected, people.pluck(:lock_version)
+
+      assert_raises(ActiveRecord::StaleObjectError) do
+        david.touch(time: now)
+      end
+    end
+  end
+
+  def test_touch_all_cares_about_optimistic_locking
+    david = people(:david)
+
+    travel 5.seconds do
+      now = Time.now.utc
+      assert_not_equal now, david.updated_at
+
+      people = Person.where(id: people(:michael, :david, :susan))
+      expected = people.pluck(:lock_version)
+      expected.map! { |version| version + 1 }
+      people.touch_all(time: now)
+
+      assert_equal [now] * 3, people.pluck(:updated_at)
+      assert_equal expected, people.pluck(:lock_version)
+
+      assert_raises(ActiveRecord::StaleObjectError) do
+        david.touch(time: now)
+      end
+    end
+  end
+
+  def test_klass_level_update_all
+    travel 5.seconds do
+      now = Time.now.utc
+
+      Person.all.each do |person|
+        assert_not_equal now, person.updated_at
+      end
+
+      Person.update_all(updated_at: now)
+
+      Person.all.each do |person|
+        assert_equal now, person.updated_at
+      end
+    end
+  end
+
+  def test_klass_level_touch_all
+    travel 5.seconds do
+      now = Time.now.utc
+
+      Person.all.each do |person|
+        assert_not_equal now, person.updated_at
+      end
+
+      Person.touch_all(time: now)
+
+      Person.all.each do |person|
+        assert_equal now, person.updated_at
+      end
     end
   end
 

@@ -24,7 +24,6 @@ module ApplicationTests
           assert_no_match(/already exists/, output)
           assert File.exist?(expected_database)
 
-
           output = rails("db:drop")
           assert_match(/Dropped database/, output)
           assert_match_namespace(namespace, output)
@@ -108,8 +107,8 @@ module ApplicationTests
           ar_tables = lambda { rails("runner", "p ActiveRecord::Base.connection.tables").strip }
           animals_tables = lambda { rails("runner", "p AnimalsBase.connection.tables").strip }
 
-          assert_equal '["schema_migrations", "ar_internal_metadata", "books"]', ar_tables[]
-          assert_equal '["schema_migrations", "ar_internal_metadata", "dogs"]', animals_tables[]
+          assert_match '["schema_migrations", "ar_internal_metadata", "books"]', ar_tables[]
+          assert_match '["schema_migrations", "ar_internal_metadata", "dogs"]', animals_tables[]
         end
       end
 
@@ -133,6 +132,51 @@ module ApplicationTests
             assert_match(/up     \d+  Create books/, output)
           else
             assert_match(/up     \d+  Create dogs/, output)
+          end
+        end
+      end
+
+      def db_up_and_down(version, namespace = nil)
+        Dir.chdir(app_path) do
+          generate_models_for_animals
+          rails("db:migrate")
+
+          if namespace
+            down_output = rails("db:migrate:down:#{namespace}", "VERSION=#{version}")
+            up_output = rails("db:migrate:up:#{namespace}", "VERSION=#{version}")
+          else
+            assert_raises RuntimeError, /You're using a multiple database application/ do
+              down_output = rails("db:migrate:down", "VERSION=#{version}")
+            end
+
+            assert_raises RuntimeError, /You're using a multiple database application/ do
+              up_output = rails("db:migrate:up", "VERSION=#{version}")
+            end
+          end
+
+          case namespace
+          when "primary"
+            assert_match(/OneMigration: reverting/, down_output)
+            assert_match(/OneMigration: migrated/, up_output)
+          when nil
+          else
+            assert_match(/TwoMigration: reverting/, down_output)
+            assert_match(/TwoMigration: migrated/, up_output)
+          end
+        end
+      end
+
+      def db_prepare
+        Dir.chdir(app_path) do
+          generate_models_for_animals
+          output = rails("db:prepare")
+
+          ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
+            if db_config.spec_name == "primary"
+              assert_match(/CreateBooks: migrated/, output)
+            else
+              assert_match(/CreateDogs: migrated/, output)
+            end
           end
         end
       end
@@ -170,19 +214,37 @@ module ApplicationTests
         rails "generate", "model", "book", "title:string"
         rails "generate", "model", "dog", "name:string"
         write_models_for_animals
+        reload
       end
 
       test "db:create and db:drop works on all databases for env" do
         require "#{app_path}/config/environment"
         ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
-          db_create_and_drop db_config.spec_name, db_config.config["database"]
+          db_create_and_drop db_config.spec_name, db_config.database
         end
       end
 
       test "db:create:namespace and db:drop:namespace works on specified databases" do
         require "#{app_path}/config/environment"
         ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
-          db_create_and_drop_namespace db_config.spec_name, db_config.config["database"]
+          db_create_and_drop_namespace db_config.spec_name, db_config.database
+        end
+      end
+
+      test "db:migrate set back connection to its original state" do
+        Dir.chdir(app_path) do
+          dummy_task = <<~RUBY
+            task foo: :environment do
+              Book.first
+            end
+          RUBY
+          app_file("Rakefile", dummy_task, "a+")
+
+          generate_models_for_animals
+
+          assert_nothing_raised do
+            rails("db:migrate", "foo")
+          end
         end
       end
 
@@ -201,6 +263,34 @@ module ApplicationTests
         ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
           db_migrate_namespaced db_config.spec_name
         end
+      end
+
+      test "db:migrate:down and db:migrate:up without a namespace raises in a multi-db application" do
+        require "#{app_path}/config/environment"
+
+        app_file "db/migrate/01_one_migration.rb", <<-MIGRATION
+          class OneMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        db_up_and_down "01"
+      end
+
+      test "db:migrate:down:namespace and db:migrate:up:namespace works" do
+        require "#{app_path}/config/environment"
+
+        app_file "db/migrate/01_one_migration.rb", <<-MIGRATION
+          class OneMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        app_file "db/animals_migrate/02_two_migration.rb", <<-MIGRATION
+          class TwoMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        db_up_and_down "01", "primary"
+        db_up_and_down "02", "animals"
       end
 
       test "db:migrate:status works on all databases" do
@@ -224,6 +314,76 @@ module ApplicationTests
       test "db:schema:cache:clear works on all databases" do
         require "#{app_path}/config/environment"
         db_migrate_and_schema_cache_dump_and_schema_cache_clear
+      end
+
+      test "db:abort_if_pending_migrations works on all databases" do
+        require "#{app_path}/config/environment"
+
+        app_file "db/animals_migrate/02_two_migration.rb", <<-MIGRATION
+          class TwoMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        output = rails("db:abort_if_pending_migrations", allow_failure: true)
+        assert_match(/You have 1 pending migration/, output)
+      end
+
+      test "db:abort_if_pending_migrations:namespace works" do
+        require "#{app_path}/config/environment"
+
+        app_file "db/animals_migrate/02_two_migration.rb", <<-MIGRATION
+          class TwoMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        output = rails("db:abort_if_pending_migrations:primary")
+        assert_no_match(/You have \d+ pending migration/, output)
+        output = rails("db:abort_if_pending_migrations:animals", allow_failure: true)
+        assert_match(/You have 1 pending migration/, output)
+      end
+
+      test "db:prepare works on all databases" do
+        require "#{app_path}/config/environment"
+        db_prepare
+      end
+
+      test "db:prepare setups missing database without clearing existing one" do
+        require "#{app_path}/config/environment"
+        Dir.chdir(app_path) do
+          # Bug not visible on SQLite3. Can be simplified when https://github.com/rails/rails/issues/36383 resolved
+          use_postgresql(multi_db: true)
+          generate_models_for_animals
+
+          rails "db:create:animals", "db:migrate:animals", "db:create:primary", "db:migrate:primary", "db:schema:dump"
+          rails "db:drop:primary"
+          Dog.create!
+          output = rails("db:prepare")
+
+          assert_match(/Created database/, output)
+          assert_equal 1, Dog.count
+        ensure
+          Dog.connection.disconnect!
+          rails "db:drop" rescue nil
+        end
+      end
+
+      test "db:seed uses primary database connection" do
+        @old_rails_env = ENV["RAILS_ENV"]
+        @old_rack_env = ENV["RACK_ENV"]
+        ENV.delete "RAILS_ENV"
+        ENV.delete "RACK_ENV"
+
+        db_migrate_and_schema_dump_and_load "schema"
+
+        app_file "db/seeds.rb", <<-RUBY
+          print Book.connection.pool.db_config.database
+        RUBY
+
+        output = rails("db:seed")
+        assert_includes output, "db/development.sqlite3"
+      ensure
+        ENV["RAILS_ENV"] = @old_rails_env
+        ENV["RACK_ENV"] = @old_rack_env
       end
     end
   end

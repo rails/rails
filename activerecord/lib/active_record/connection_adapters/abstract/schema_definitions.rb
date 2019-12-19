@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/deprecation"
-
 module ActiveRecord
   module ConnectionAdapters #:nodoc:
     # Abstract representation of an index definition on a table. Instances of
@@ -104,16 +102,12 @@ module ActiveRecord
       alias validated? validate?
 
       def export_name_on_schema_dump?
-        name !~ ActiveRecord::SchemaDumper.fk_ignore_pattern
+        !ActiveRecord::SchemaDumper.fk_ignore_pattern.match?(name) if name
       end
 
-      def defined_for?(to_table_ord = nil, to_table: nil, **options)
-        if to_table_ord
-          self.to_table == to_table_ord.to_s
-        else
-          (to_table.nil? || to_table.to_s == self.to_table) &&
-            options.all? { |k, v| self.options[k].to_s == v.to_s }
-        end
+      def defined_for?(to_table: nil, **options)
+        (to_table.nil? || to_table.to_s == self.to_table) &&
+          options.all? { |k, v| self.options[k].to_s == v.to_s }
       end
 
       private
@@ -145,7 +139,8 @@ module ActiveRecord
 
       def add_to(table)
         columns.each do |column_options|
-          table.column(*column_options)
+          kwargs = column_options.extract_options!
+          table.column(*column_options, **kwargs)
         end
 
         if index
@@ -153,7 +148,7 @@ module ActiveRecord
         end
 
         if foreign_key
-          table.foreign_key(foreign_table_name, foreign_key_options)
+          table.foreign_key(foreign_table_name, **foreign_key_options)
         end
       end
 
@@ -200,41 +195,45 @@ module ActiveRecord
     end
 
     module ColumnMethods
+      extend ActiveSupport::Concern
+
       # Appends a primary key definition to the table definition.
       # Can be called multiple times, but this is probably not a good idea.
       def primary_key(name, type = :primary_key, **options)
-        column(name, type, options.merge(primary_key: true))
+        column(name, type, **options.merge(primary_key: true))
       end
 
+      ##
+      # :method: column
+      # :call-seq: column(name, type, **options)
+      #
       # Appends a column or columns of a specified type.
       #
       #  t.string(:goat)
       #  t.string(:goat, :sheep)
       #
       # See TableDefinition#column
-      [
-        :bigint,
-        :binary,
-        :boolean,
-        :date,
-        :datetime,
-        :decimal,
-        :float,
-        :integer,
-        :json,
-        :string,
-        :text,
-        :time,
-        :timestamp,
-        :virtual,
-      ].each do |column_type|
-        module_eval <<-CODE, __FILE__, __LINE__ + 1
-          def #{column_type}(*args, **options)
-            args.each { |name| column(name, :#{column_type}, options) }
-          end
-        CODE
+
+      included do
+        define_column_methods :bigint, :binary, :boolean, :date, :datetime, :decimal,
+          :float, :integer, :json, :string, :text, :time, :timestamp, :virtual
+
+        alias :numeric :decimal
       end
-      alias_method :numeric, :decimal
+
+      class_methods do
+        def define_column_methods(*column_types) # :nodoc:
+          column_types.each do |column_type|
+            module_eval <<-RUBY, __FILE__, __LINE__ + 1
+              def #{column_type}(*names, **options)
+                raise ArgumentError, "Missing column name(s) for #{column_type}" if names.empty?
+                names.each { |name| column(name, :#{column_type}, **options) }
+              end
+            RUBY
+          end
+        end
+        private :define_column_methods
+      end
     end
 
     # Represents the schema of an SQL table in an abstract way. This class
@@ -259,18 +258,17 @@ module ActiveRecord
       include ColumnMethods
 
       attr_reader :name, :temporary, :if_not_exists, :options, :as, :comment, :indexes, :foreign_keys
-      attr_writer :indexes
-      deprecate :indexes=
 
       def initialize(
+        conn,
         name,
         temporary: false,
         if_not_exists: false,
         options: nil,
         as: nil,
-        comment: nil,
-        **
+        comment: nil
       )
+        @conn = conn
         @columns_hash = {}
         @indexes = []
         @foreign_keys = []
@@ -363,7 +361,7 @@ module ActiveRecord
       #     t.references :tagger, polymorphic: true
       #     t.references :taggable, polymorphic: { default: 'Photo' }, index: false
       #   end
-      def column(name, type, options = {})
+      def column(name, type, **options)
         name = name.to_s
         type = type.to_sym if type
         options = options.dup
@@ -378,7 +376,7 @@ module ActiveRecord
 
         index_options = options.delete(:index)
         index(name, index_options.is_a?(Hash) ? index_options : {}) if index_options
-        @columns_hash[name] = new_column_definition(name, type, options)
+        @columns_hash[name] = new_column_definition(name, type, **options)
         self
       end
 
@@ -396,11 +394,8 @@ module ActiveRecord
         indexes << [column_name, options]
       end
 
-      def foreign_key(table_name, options = {}) # :nodoc:
-        table_name_prefix = ActiveRecord::Base.table_name_prefix
-        table_name_suffix = ActiveRecord::Base.table_name_suffix
-        table_name = "#{table_name_prefix}#{table_name}#{table_name_suffix}"
-        foreign_keys.push([table_name, options])
+      def foreign_key(table_name, **options) # :nodoc:
+        foreign_keys << [table_name, options]
       end
 
       # Appends <tt>:datetime</tt> columns <tt>:created_at</tt> and
@@ -410,19 +405,24 @@ module ActiveRecord
       def timestamps(**options)
         options[:null] = false if options[:null].nil?
 
-        column(:created_at, :datetime, options)
-        column(:updated_at, :datetime, options)
+        if !options.key?(:precision) && @conn.supports_datetime_with_precision?
+          options[:precision] = 6
+        end
+
+        column(:created_at, :datetime, **options)
+        column(:updated_at, :datetime, **options)
       end
 
       # Adds a reference.
       #
       #  t.references(:user)
       #  t.belongs_to(:supplier, foreign_key: true)
+      #  t.belongs_to(:supplier, foreign_key: true, type: :integer)
       #
       # See {connection.add_reference}[rdoc-ref:SchemaStatements#add_reference] for details of the options you can use.
       def references(*args, **options)
         args.each do |ref_name|
-          ReferenceDefinition.new(ref_name, options).add_to(self)
+          ReferenceDefinition.new(ref_name, **options).add_to(self)
         end
       end
       alias :belongs_to :references
@@ -477,10 +477,10 @@ module ActiveRecord
         @foreign_key_drops << name
       end
 
-      def add_column(name, type, options)
+      def add_column(name, type, **options)
         name = name.to_s
         type = type.to_sym
-        @adds << AddColumnDefinition.new(@td.new_column_definition(name, type, options))
+        @adds << AddColumnDefinition.new(@td.new_column_definition(name, type, **options))
       end
     end
 
@@ -517,6 +517,7 @@ module ActiveRecord
     #     t.json
     #     t.virtual
     #     t.remove
+    #     t.remove_foreign_key
     #     t.remove_references
     #     t.remove_belongs_to
     #     t.remove_index
@@ -538,9 +539,9 @@ module ActiveRecord
       #  t.column(:name, :string)
       #
       # See TableDefinition#column for details of the options you can use.
-      def column(column_name, type, options = {})
+      def column(column_name, type, **options)
         index_options = options.delete(:index)
-        @base.add_column(name, column_name, type, options)
+        @base.add_column(name, column_name, type, **options)
         index(column_name, index_options.is_a?(Hash) ? index_options : {}) if index_options
       end
 
@@ -550,7 +551,7 @@ module ActiveRecord
       #
       # See {connection.column_exists?}[rdoc-ref:SchemaStatements#column_exists?]
       def column_exists?(column_name, type = nil, options = {})
-        @base.column_exists?(name, column_name, type, options)
+        @base.column_exists?(name, column_name, type, **options)
       end
 
       # Adds a new index to the table. +column_name+ can be a single Symbol, or
@@ -630,10 +631,11 @@ module ActiveRecord
       #   t.remove_index(:branch_id)
       #   t.remove_index(column: [:branch_id, :party_id])
       #   t.remove_index(name: :by_branch_party)
+      #   t.remove_index(:branch_id, name: :by_branch_party)
       #
       # See {connection.remove_index}[rdoc-ref:SchemaStatements#remove_index]
-      def remove_index(options = {})
-        @base.remove_index(name, options)
+      def remove_index(column_name = nil, options = {})
+        @base.remove_index(name, column_name, options)
       end
 
       # Removes the timestamp columns (+created_at+ and +updated_at+) from the table.
@@ -662,7 +664,7 @@ module ActiveRecord
       # See {connection.add_reference}[rdoc-ref:SchemaStatements#add_reference] for details of the options you can use.
       def references(*args, **options)
         args.each do |ref_name|
-          @base.add_reference(name, ref_name, options)
+          @base.add_reference(name, ref_name, **options)
         end
       end
       alias :belongs_to :references
@@ -675,18 +677,29 @@ module ActiveRecord
       # See {connection.remove_reference}[rdoc-ref:SchemaStatements#remove_reference]
       def remove_references(*args, **options)
         args.each do |ref_name|
-          @base.remove_reference(name, ref_name, options)
+          @base.remove_reference(name, ref_name, **options)
         end
       end
       alias :remove_belongs_to :remove_references
 
-      # Adds a foreign key.
+      # Adds a foreign key to the table using a supplied table name.
       #
       #  t.foreign_key(:authors)
+      #  t.foreign_key(:authors, column: :author_id, primary_key: "id")
       #
       # See {connection.add_foreign_key}[rdoc-ref:SchemaStatements#add_foreign_key]
-      def foreign_key(*args)
-        @base.add_foreign_key(name, *args)
+      def foreign_key(*args, **options)
+        @base.add_foreign_key(name, *args, **options)
+      end
+
+      # Removes the given foreign key from the table.
+      #
+      #  t.remove_foreign_key(:authors)
+      #  t.remove_foreign_key(column: :author_id)
+      #
+      # See {connection.remove_foreign_key}[rdoc-ref:SchemaStatements#remove_foreign_key]
+      def remove_foreign_key(*args, **options)
+        @base.remove_foreign_key(name, *args, **options)
       end
 
       # Checks to see if a foreign key exists.

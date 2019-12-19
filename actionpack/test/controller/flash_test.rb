@@ -361,15 +361,13 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   private
-
     # Overwrite get to send SessionSecret in env hash
-    def get(path, *args)
-      args[0] ||= {}
-      args[0][:env] ||= {}
-      args[0][:env]["action_dispatch.key_generator"] ||= Generator
-      args[0][:env]["action_dispatch.cookies_rotations"] = Rotations
-      args[0][:env]["action_dispatch.signed_cookie_salt"] = SIGNED_COOKIE_SALT
-      super(path, *args)
+    def get(path, **options)
+      options[:env] ||= {}
+      options[:env]["action_dispatch.key_generator"] ||= Generator
+      options[:env]["action_dispatch.cookies_rotations"] = Rotations
+      options[:env]["action_dispatch.signed_cookie_salt"] = SIGNED_COOKIE_SALT
+      super(path, **options)
     end
 
     def with_test_route_set

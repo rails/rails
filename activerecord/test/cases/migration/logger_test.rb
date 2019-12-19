@@ -17,19 +17,20 @@ module ActiveRecord
 
       def setup
         super
-        ActiveRecord::SchemaMigration.create_table
-        ActiveRecord::SchemaMigration.delete_all
+        @schema_migration = ActiveRecord::Base.connection.schema_migration
+        @schema_migration.create_table
+        @schema_migration.delete_all
       end
 
       teardown do
-        ActiveRecord::SchemaMigration.drop_table
+        @schema_migration.drop_table
       end
 
       def test_migration_should_be_run_without_logger
         previous_logger = ActiveRecord::Base.logger
         ActiveRecord::Base.logger = nil
         migrations = [Migration.new("a", 1), Migration.new("b", 2), Migration.new("c", 3)]
-        ActiveRecord::Migrator.new(:up, migrations).migrate
+        ActiveRecord::Migrator.new(:up, migrations, @schema_migration).migrate
       ensure
         ActiveRecord::Base.logger = previous_logger
       end

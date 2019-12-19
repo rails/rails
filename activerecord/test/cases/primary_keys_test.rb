@@ -203,6 +203,14 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_queries(3, ignore_none: true) { klass.create! }
   end
 
+  def test_assign_id_raises_error_if_primary_key_doesnt_exist
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "dashboards"
+    end
+    dashboard = klass.new
+    assert_raises(ActiveModel::MissingAttributeError) { dashboard.id = "1" }
+  end
+
   if current_adapter?(:PostgreSQLAdapter)
     def test_serial_with_quoted_sequence_name
       column = MixedCaseMonkey.columns_hash[MixedCaseMonkey.primary_key]
