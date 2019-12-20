@@ -578,7 +578,8 @@ module ActionDispatch
         secret = request.key_generator.generate_key(request.signed_cookie_salt)
         @verifier = ActiveSupport::MessageVerifier.new(secret, digest: signed_cookie_digest, serializer: SERIALIZER)
 
-        request.cookies_rotations.signed.each do |*secrets, **options|
+        request.cookies_rotations.signed.each do |(*secrets)|
+          options = secrets.extract_options!
           @verifier.rotate(*secrets, serializer: SERIALIZER, **options)
         end
       end
