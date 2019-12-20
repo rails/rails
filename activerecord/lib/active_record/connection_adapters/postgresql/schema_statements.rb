@@ -439,7 +439,7 @@ module ActiveRecord
         end
 
         def add_index(table_name, column_name, options = {}) #:nodoc:
-          index_name, index_type, index_columns_and_opclasses, index_options, index_algorithm, index_using, comment = add_index_options(table_name, column_name, options)
+          index_name, index_type, index_columns_and_opclasses, index_options, index_algorithm, index_using, comment = add_index_options(table_name, column_name, **options)
           execute("CREATE #{index_type} INDEX #{index_algorithm} #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} #{index_using} (#{index_columns_and_opclasses})#{index_options}").tap do
             execute "COMMENT ON INDEX #{quote_column_name(index_name)} IS #{quote(comment)}" if comment
           end
@@ -613,8 +613,8 @@ module ActiveRecord
             PostgreSQL::SchemaCreation.new(self)
           end
 
-          def create_table_definition(*args)
-            PostgreSQL::TableDefinition.new(self, *args)
+          def create_table_definition(*args, **options)
+            PostgreSQL::TableDefinition.new(self, *args, **options)
           end
 
           def create_alter_table(name)
@@ -686,7 +686,7 @@ module ActiveRecord
 
           def change_column_for_alter(table_name, column_name, type, options = {})
             td = create_table_definition(table_name)
-            cd = td.new_column_definition(column_name, type, options)
+            cd = td.new_column_definition(column_name, type, **options)
             sqls = [schema_creation.accept(ChangeColumnDefinition.new(cd, column_name))]
             sqls << Proc.new { change_column_comment(table_name, column_name, options[:comment]) } if options.key?(:comment)
             sqls
@@ -733,7 +733,7 @@ module ActiveRecord
           end
 
           def add_options_for_index_columns(quoted_columns, **options)
-            quoted_columns = add_index_opclass(quoted_columns, options)
+            quoted_columns = add_index_opclass(quoted_columns, **options)
             super
           end
 

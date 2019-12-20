@@ -366,7 +366,7 @@ module ActiveRecord
       end
 
       def add_index(table_name, column_name, options = {}) #:nodoc:
-        index_name, index_type, index_columns, _, index_algorithm, index_using, comment = add_index_options(table_name, column_name, options)
+        index_name, index_type, index_columns, _, index_algorithm, index_using, comment = add_index_options(table_name, column_name, **options)
         sql = +"CREATE #{index_type} INDEX #{quote_column_name(index_name)} #{index_using} ON #{quote_table_name(table_name)} (#{index_columns}) #{index_algorithm}"
         execute add_sql_comment!(sql, comment)
       end
@@ -569,12 +569,12 @@ module ActiveRecord
           end
         end
 
-        def register_integer_type(mapping, key, options)
+        def register_integer_type(mapping, key, **options)
           mapping.register_type(key) do |sql_type|
             if /\bunsigned\b/.match?(sql_type)
-              Type::UnsignedInteger.new(options)
+              Type::UnsignedInteger.new(**options)
             else
-              Type::Integer.new(options)
+              Type::Integer.new(**options)
             end
           end
         end
@@ -656,7 +656,7 @@ module ActiveRecord
           end
 
           td = create_table_definition(table_name)
-          cd = td.new_column_definition(column.name, type, options)
+          cd = td.new_column_definition(column.name, type, **options)
           schema_creation.accept(ChangeColumnDefinition.new(cd, column.name))
         end
 
@@ -670,12 +670,12 @@ module ActiveRecord
 
           current_type = exec_query("SHOW COLUMNS FROM #{quote_table_name(table_name)} LIKE #{quote(column_name)}", "SCHEMA").first["Type"]
           td = create_table_definition(table_name)
-          cd = td.new_column_definition(new_column_name, current_type, options)
+          cd = td.new_column_definition(new_column_name, current_type, **options)
           schema_creation.accept(ChangeColumnDefinition.new(cd, column.name))
         end
 
         def add_index_for_alter(table_name, column_name, options = {})
-          index_name, index_type, index_columns, _, index_algorithm, index_using = add_index_options(table_name, column_name, options)
+          index_name, index_type, index_columns, _, index_algorithm, index_using = add_index_options(table_name, column_name, **options)
           index_algorithm[0, 0] = ", " if index_algorithm.present?
           "ADD #{index_type} INDEX #{quote_column_name(index_name)} #{index_using} (#{index_columns})#{index_algorithm}"
         end
@@ -795,7 +795,7 @@ module ActiveRecord
             options[:primary_key_column] = column_for(match[:target_table], match[:primary_key])
           end
 
-          MismatchedForeignKey.new(options)
+          MismatchedForeignKey.new(**options)
         end
 
         def version_string(full_version_string)

@@ -1322,8 +1322,8 @@ module ActiveRecord
           SchemaCreation.new(self)
         end
 
-        def create_table_definition(*args)
-          TableDefinition.new(self, *args)
+        def create_table_definition(*args, **options)
+          TableDefinition.new(self, *args, **options)
         end
 
         def create_alter_table(name)
@@ -1438,7 +1438,7 @@ module ActiveRecord
 
         def add_column_for_alter(table_name, column_name, type, options = {})
           td = create_table_definition(table_name)
-          cd = td.new_column_definition(column_name, type, options)
+          cd = td.new_column_definition(column_name, type, **options)
           schema_creation.accept(AddColumnDefinition.new(cd))
         end
 

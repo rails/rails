@@ -376,7 +376,7 @@ module ActiveRecord
                 fk.options[:column] = column
               end
               to_table = strip_table_name_prefix_and_suffix(fk.to_table)
-              definition.foreign_key(to_table, fk.options)
+              definition.foreign_key(to_table, **fk.options)
             end
 
             yield definition if block_given?

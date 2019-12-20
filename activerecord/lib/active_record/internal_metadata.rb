@@ -38,7 +38,7 @@ module ActiveRecord
           key_options = connection.internal_string_options_for_primary_key
 
           connection.create_table(table_name, id: false) do |t|
-            t.string :key, key_options
+            t.string :key, **key_options
             t.string :value
             t.timestamps
           end

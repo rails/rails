@@ -5,7 +5,7 @@ module ActiveRecord
     module MySQL
       module DatabaseStatements
         # Returns an ActiveRecord::Result instance.
-        def select_all(*) # :nodoc:
+        def select_all(*, **) # :nodoc:
           result = if ExplainRegistry.collect? && prepared_statements
             unprepared_statement { super }
           else
