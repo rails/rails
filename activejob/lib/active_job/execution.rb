@@ -38,7 +38,13 @@ module ActiveJob
       successfully_performed = false
 
       run_callbacks :perform do
-        perform(*arguments)
+        args = arguments
+        options = args.extract_options!
+        if options.empty?
+          perform(*args)
+        else
+          perform(*args, **options)
+        end
         successfully_performed = true
       end
 
