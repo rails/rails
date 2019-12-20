@@ -63,9 +63,13 @@ module AbstractController
 
         meths.each do |meth|
           _helpers.class_eval <<-ruby_eval, __FILE__, __LINE__ + 1
-            def #{meth}(*args, &blk)                               # def current_user(*args, &blk)
-              controller.send(%(#{meth}), *args, &blk)             #   controller.send(:current_user, *args, &blk)
-            end                                                    # end
+            def #{meth}(*args, **kwargs, &blk)                      # def current_user(*args, **kwargs, &blk)
+              if kwargs.empty?                                      #   if kwargs.empty?
+                controller.send(%(#{meth}), *args, &blk)            #     controller.send(:current_user, *args, &blk)
+              else                                                  #   else
+                controller.send(%(#{meth}), *args, **kwargs, &blk)  #     controller.send(:current_user, *args, **kwargs, &blk)
+              end                                                   #   end
+            end                                                     # end
           ruby_eval
         end
       end
