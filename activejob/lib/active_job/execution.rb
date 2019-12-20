@@ -36,7 +36,13 @@ module ActiveJob
 
       deserialize_arguments_if_needed
       run_callbacks :perform do
-        perform(*arguments)
+        args = arguments
+        options = args.extract_options!
+        if options.empty?
+          perform(*args)
+        else
+          perform(*args, **options)
+        end
       end
     rescue => exception
       rescue_with_handler(exception) || raise
