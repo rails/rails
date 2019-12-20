@@ -258,7 +258,7 @@ For more `add_reference` options, visit the [API documentation](https://api.ruby
 There is also a generator which will produce join tables if `JoinTable` is part of the name:
 
 ```bash
-$ rails g migration CreateJoinTableCustomerProduct customer product
+$ rails generate migration CreateJoinTableCustomerProduct customer product
 ```
 
 will produce the following migration:
