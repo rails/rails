@@ -15,8 +15,8 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-Introduction
-------------
+What is Action Cable?
+---------------------
 
 Action Cable seamlessly integrates
 [WebSockets](https://en.wikipedia.org/wiki/WebSocket) with the rest of your
@@ -57,8 +57,8 @@ As you can see, this is a fairly deep architectural stack. There's a lot of new
 terminology to identify the new pieces, and on top of that, you're dealing
 with both client and server side reflections of each unit.
 
-What is Pub/Sub
----------------
+What is Pub/Sub?
+----------------
 
 [Pub/Sub](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern), or
 Publish-Subscribe, refers to a message queue paradigm whereby senders of

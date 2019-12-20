@@ -15,8 +15,8 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-Introduction
-------------
+What is Action Mailbox?
+-----------------------
 
 Action Mailbox routes incoming emails to controller-like mailboxes for
 processing in Rails. It ships with ingresses for Mailgun, Mandrill, Postmark,
