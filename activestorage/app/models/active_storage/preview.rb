@@ -74,7 +74,7 @@ class ActiveStorage::Preview
     end
 
     def process
-      previewer.preview do |attachable|
+      previewer.preview(service_name: blob.service_name) do |attachable|
         ActiveRecord::Base.connected_to(role: ActiveRecord::Base.writing_role) do
           image.attach(attachable)
         end
