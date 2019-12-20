@@ -899,7 +899,7 @@ class CookiesTest < ActionController::TestCase
 
     key_generator = @request.env["action_dispatch.key_generator"]
     old_secret = key_generator.generate_key(@request.env["action_dispatch.signed_cookie_salt"])
-    old_value = ActiveSupport::MessageVerifier.new(old_secret).generate(bar: "baz")
+    old_value = ActiveSupport::MessageVerifier.new(old_secret).generate({ bar: "baz" })
 
     @request.headers["Cookie"] = "foo=#{old_value}"
     get :get_signed_cookie
