@@ -2059,6 +2059,7 @@ class FormWithActsLikeFormForTest < FormWithTest
           ("<label for='\#{field}'>\#{field.to_s.humanize}:</label> " + super + "<br/>").html_safe
         end
       RUBY_EVAL
+      ruby2_keywords(:fields) if respond_to?(:ruby2_keywords, true)
     end
   end
 
