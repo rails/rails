@@ -458,6 +458,19 @@ module ActiveRecord
         end
       end
 
+      def test_doesnt_error_when_a_read_query_with_cursors_is_called_while_preventing_writes
+        with_example_table do
+          @connection_handler.while_preventing_writes do
+            @connection.transaction do
+              assert_equal [], @connection.execute("DECLARE cur_ex CURSOR FOR SELECT * FROM ex").entries
+              assert_equal [], @connection.execute("FETCH cur_ex").entries
+              assert_equal [], @connection.execute("MOVE cur_ex").entries
+              assert_equal [], @connection.execute("CLOSE cur_ex").entries
+            end
+          end
+        end
+      end
+
       private
         def with_example_table(definition = "id serial primary key, number integer, data character varying(255)", &block)
           super(@connection, "ex", definition, &block)
