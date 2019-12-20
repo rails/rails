@@ -77,7 +77,7 @@ module ActiveSupport
       end
     end
 
-    def initialize(*args)
+    def initialize(*args, **kwargs)
       super
       @formatter = SimpleFormatter.new
     end
