@@ -148,7 +148,7 @@ module ActiveRecord
         end
 
         if foreign_key
-          table.foreign_key(foreign_table_name, foreign_key_options)
+          table.foreign_key(foreign_table_name, **foreign_key_options)
         end
       end
 

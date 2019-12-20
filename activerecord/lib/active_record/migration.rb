@@ -886,7 +886,12 @@ module ActiveRecord
           end
         end
         return super unless connection.respond_to?(method)
-        connection.send(method, *arguments, &block)
+        options = arguments.extract_options!
+        if options.empty?
+          connection.send(method, *arguments, &block)
+        else
+          connection.send(method, *arguments, **options, &block)
+        end
       end
     end
 

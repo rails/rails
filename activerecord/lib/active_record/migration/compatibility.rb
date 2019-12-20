@@ -97,7 +97,7 @@ module ActiveRecord
           end
         end
 
-        def create_table(table_name, options = {})
+        def create_table(table_name, **options)
           if connection.adapter_name == "Mysql2"
             super(table_name, options: "ENGINE=InnoDB", **options)
           else
@@ -119,7 +119,7 @@ module ActiveRecord
           alias :belongs_to :references
         end
 
-        def create_table(table_name, options = {})
+        def create_table(table_name, **options)
           if connection.adapter_name == "PostgreSQL"
             if options[:id] == :uuid && !options.key?(:default)
               options[:default] = "uuid_generate_v4()"
