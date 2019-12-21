@@ -34,13 +34,7 @@ module ActionDispatch
       end
 
       def build(app)
-        args = @args.dup
-        options = args.extract_options!
-        if options.empty?
-          klass.new(app, *args, &block)
-        else
-          klass.new(app, *args, **options, &block)
-        end
+        klass.new(app, *args, &block)
       end
 
       def build_instrumented(app)
