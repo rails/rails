@@ -60,6 +60,28 @@ module ApplicationTests
         db_create_and_drop database_url_db_name
       end
 
+      test "db:create and db:drop with database URL don't use YAML DBs" do
+        require "#{app_path}/config/environment"
+        set_database_url
+
+        File.write("#{app_path}/config/database.yml", <<~YAML)
+          test:
+            adapter: sqlite3
+            database: db/test.sqlite3
+
+          development:
+            adapter: sqlite3
+            database: db/development.sqlite3
+        YAML
+
+        with_rails_env "development" do
+          db_create_and_drop database_url_db_name do
+            assert_not File.exist?("#{app_path}/db/test.sqlite3")
+            assert_not File.exist?("#{app_path}/db/development.sqlite3")
+          end
+        end
+      end
+
       test "db:create and db:drop respect environment setting" do
         app_file "config/database.yml", <<-YAML
           <% 1 %>
