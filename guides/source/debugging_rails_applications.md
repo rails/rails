@@ -956,7 +956,7 @@ For further information on how to install Valgrind and use with Ruby, refer to
 [Valgrind and Ruby](https://blog.evanweaver.com/2008/02/05/valgrind-and-ruby/)
 by Evan Weaver.
 
-### Find a memory leak
+### Find a Memory Leak
 There is an excellent article about detecting and fixing memory leaks at Derailed, [which you can read here](https://github.com/schneems/derailed_benchmarks#is-my-app-leaking-memory).
 
 

@@ -356,7 +356,7 @@ $ bundle exec ruby -w -Itest test/mail_layout_test.rb -n test_explicit_class_lay
 
 The `-n` option allows you to run a single method instead of the whole file.
 
-#### Running tests with a specific seed
+#### Running Tests with a Specific Seed
 
 Test execution is randomized with a randomization seed. If you are experiencing random
 test failures you can more accurately reproduce a failing test scenario by specifically
@@ -609,7 +609,7 @@ the same way that you appreciate feedback on your patches.
 
 It's entirely possible that the feedback you get will suggest changes. Don't get discouraged: the whole point of contributing to an active open source project is to tap into the knowledge of the community. If people are encouraging you to tweak your code, then it's worth making the tweaks and resubmitting. If the feedback is that your code doesn't belong in the core, you might still think about releasing it as a gem.
 
-#### Squashing commits
+#### Squashing Commits
 
 One of the things that we may ask you to do is to "squash your commits", which
 will combine all of your commits into a single commit. We prefer pull requests
@@ -632,7 +632,7 @@ $ git push fork my_new_branch --force-with-lease
 You should be able to refresh the pull request on GitHub and see that it has
 been updated.
 
-#### Updating a pull request
+#### Updating a Pull Request
 
 Sometimes you will be asked to make some changes to the code you have
 already committed. This can include amending existing commits. In this
