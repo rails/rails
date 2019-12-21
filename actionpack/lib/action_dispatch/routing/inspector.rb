@@ -200,7 +200,7 @@ module ActionDispatch
       end
 
       class Expanded < Base
-        def initialize(width: IO.console_size.second)
+        def initialize(width: IO.console_size[1])
           @width = width
           super()
         end
