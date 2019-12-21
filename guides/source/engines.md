@@ -1454,7 +1454,9 @@ This snippet means that when this file is loaded, it will encounter `ActiveRecor
 `ActiveSupport.on_load` is a mechanism that can be used to defer the loading of code until it is actually needed. The snippet above can be changed to:
 
 ```ruby
-ActiveSupport.on_load(:active_record) { include MyActiveRecordHelper }
+ActiveSupport.on_load(:active_record) do
+  include MyActiveRecordHelper
+end
 ```
 
 This new snippet will only include `MyActiveRecordHelper` when `ActiveRecord::Base` is loaded.
@@ -1476,7 +1478,11 @@ ActiveRecord::Base.include(MyActiveRecordHelper)
 becomes
 
 ```ruby
-ActiveSupport.on_load(:active_record) { include MyActiveRecordHelper } # self refers to ActiveRecord::Base here, so we can simply #include
+ActiveSupport.on_load(:active_record) do
+  # self refers to ActiveRecord::Base here,
+  # so we can call .include
+  include MyActiveRecordHelper
+end
 ```
 
 **Modifying calls to `prepend`**
@@ -1488,7 +1494,11 @@ ActionController::Base.prepend(MyActionControllerHelper)
 becomes
 
 ```ruby
-ActiveSupport.on_load(:action_controller_base) { prepend MyActionControllerHelper } # self refers to ActionController::Base here, so we can simply #prepend
+ActiveSupport.on_load(:action_controller_base) do
+  # self refers to ActionController::Base here,
+  # so we can call .prepend
+  prepend MyActionControllerHelper
+end
 ```
 
 **Modifying calls to class methods**
@@ -1500,7 +1510,10 @@ ActiveRecord::Base.include_root_in_json = true
 becomes
 
 ```ruby
-ActiveSupport.on_load(:active_record) { self.include_root_in_json = true } # self refers to ActiveRecord::Base here
+ActiveSupport.on_load(:active_record) do
+  # self refers to ActiveRecord::Base here
+  self.include_root_in_json = true
+end
 ```
 
 ### Available Load Hooks
@@ -1555,7 +1568,9 @@ Configuration hooks can be called in the Engine class.
 ```ruby
 module Blorgh
   class Engine < ::Rails::Engine
-    config.before_configuration { puts 'I am called before any initializers' }
+    config.before_configuration do
+      puts 'I am called before any initializers'
+    end
   end
 end
 ```
