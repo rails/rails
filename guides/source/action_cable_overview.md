@@ -123,8 +123,9 @@ or unauthorized).
 If your authentication approach includes using a session, you use cookie store for the
 session, your session cookie is named `_session` and the user ID key is `user_id` you
 can use this approach:
+
 ```ruby
-  verified_user = User.find_by(id: cookies.encrypted['_session']['user_id'])
+verified_user = User.find_by(id: cookies.encrypted['_session']['user_id'])
 ```
 
 ### Channels
