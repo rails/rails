@@ -15,6 +15,10 @@ module ActiveSupport
 
     attr_reader :content
     attr_reader :context
+    
+    def self.read(content:, context: nil)
+      new(content:, context: nil).read
+    end
 
     def read
       if content.include?(INVISIBLE_WHITESPACE)
