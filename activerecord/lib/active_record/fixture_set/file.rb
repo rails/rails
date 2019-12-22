@@ -51,7 +51,7 @@ module ActiveRecord
 
         def raw_rows
           @raw_rows ||= begin
-            data = SettingFile.read(IO.read(@file), ActiveRecord::FixtureSet::RenderContext.create_subclass.new.get_binding)
+            data = ConfigurationFile.read(content: IO.read(@file), context: ActiveRecord::FixtureSet::RenderContext.create_subclass.new.get_binding)
             data ? validate(data).to_a : []
           end
         end
