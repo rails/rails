@@ -430,4 +430,9 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal 0, DateTime.civil(2000).subsec
     assert_equal Rational(1, 2), DateTime.civil(2000, 1, 1, 0, 0, Rational(1, 2)).subsec
   end
+
+  def test_compute_with_decimal_durations
+    assert_equal DateTime.civil(2019, 12, 19, 9), DateTime.civil(2019, 12, 19, 10) - BigDecimal(1).hour
+    assert_equal DateTime.civil(2019, 12, 19, 11), DateTime.civil(2019, 12, 19, 10) + BigDecimal(1).hour
+  end
 end
