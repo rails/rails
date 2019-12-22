@@ -3,7 +3,7 @@
 tap "homebrew/core"
 tap "homebrew/bundle"
 tap "homebrew/services"
-tap "caskroom/cask"
+tap "homebrew/cask"
 brew "ffmpeg"
 brew "memcached"
 brew "mysql"

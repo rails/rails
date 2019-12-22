@@ -144,17 +144,6 @@ task default: :test
       end
     end
 
-    def javascripts
-      return if options.skip_javascript?
-
-      if mountable?
-        template "rails/javascripts.js",
-                 "app/assets/javascripts/#{namespaced_name}/application.js"
-      elsif full?
-        empty_directory_with_keep_file "app/assets/javascripts/#{namespaced_name}"
-      end
-    end
-
     def bin(force = false)
       bin_file = engine? ? "bin/rails.tt" : "bin/test.tt"
       template bin_file, force: force do |content|
@@ -236,10 +225,6 @@ task default: :test
         build(:stylesheets) unless api?
       end
 
-      def create_javascript_files
-        build(:javascripts) unless api?
-      end
-
       def create_bin_files
         build(:bin)
       end
@@ -263,16 +248,6 @@ task default: :test
 
       public_task :apply_rails_template
 
-      def run_after_bundle_callbacks
-        unless @after_bundle_callbacks.empty?
-          ActiveSupport::Deprecation.warn("`after_bundle` is deprecated and will be removed in the next version of Rails. ")
-        end
-
-        @after_bundle_callbacks.each do |callback|
-          callback.call
-        end
-      end
-
       def name
         @name ||= begin
           # same as ActiveSupport::Inflector#underscore except not replacing '-'
@@ -294,7 +269,6 @@ task default: :test
       end
 
     private
-
       def create_dummy_app(path = nil)
         dummy_path(path) if path
 
@@ -349,9 +323,9 @@ task default: :test
       def wrap_in_modules(unwrapped_code)
         unwrapped_code = "#{unwrapped_code}".strip.gsub(/\s$\n/, "")
         modules.reverse.inject(unwrapped_code) do |content, mod|
-          str = "module #{mod}\n"
-          str += content.lines.map { |line| "  #{line}" }.join
-          str += content.present? ? "\nend" : "end"
+          str = +"module #{mod}\n"
+          str << content.lines.map { |line| "  #{line}" }.join
+          str << (content.present? ? "\nend" : "end")
         end
       end
 

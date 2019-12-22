@@ -147,7 +147,7 @@ TIP: The default Rails log level is `debug` in all environments.
 
 ### Sending Messages
 
-To write in the current log use the `logger.(debug|info|warn|error|fatal)` method from within a controller, model, or mailer:
+To write in the current log use the `logger.(debug|info|warn|error|fatal|unknown)` method from within a controller, model, or mailer:
 
 ```ruby
 logger.debug "Person attributes hash: #{@person.attributes.inspect}"
@@ -232,7 +232,7 @@ irb(main):003:0> Article.pamplemousse
 => #<Comment id: 2, author: "1", body: "Well, actually...", article_id: 1, created_at: "2018-10-19 00:56:10", updated_at: "2018-10-19 00:56:10">
 ```
 
-Below each database statement you can see arrows pointing to the specific source filename (and line number) of the method that resulted in a database call. This can help you identity and address performance problems caused by N+1 queries: single database queries that generates multiple additional queries.
+Below each database statement you can see arrows pointing to the specific source filename (and line number) of the method that resulted in a database call. This can help you identify and address performance problems caused by N+1 queries: single database queries that generates multiple additional queries.
 
 Verbose query logs are enabled by default in the development environment logs after Rails 5.2.
 
@@ -350,10 +350,10 @@ For example:
 
 ```bash
 => Booting Puma
-=> Rails 5.1.0 application starting in development on http://0.0.0.0:3000
-=> Run `rails server -h` for more startup options
+=> Rails 6.0.0 application starting in development
+=> Run `rails server --help` for more startup options
 Puma starting in single mode...
-* Version 3.4.0 (ruby 2.3.1-p112), codename: Owl Bowl Brawl
+* Version 3.12.1 (ruby 2.5.7-p206), codename: Llamas in Pajamas
 * Min threads: 5, max threads: 5
 * Environment: development
 * Listening on tcp://localhost:3000
@@ -939,7 +939,7 @@ Debugging Memory Leaks
 A Ruby application (on Rails or not), can leak memory — either in the Ruby code
 or at the C code level.
 
-In this section, you will learn how to find and fix such leaks by using tool
+In this section, you will learn how to find and fix such leaks by using tools
 such as Valgrind.
 
 ### Valgrind
@@ -953,8 +953,12 @@ extension in the interpreter calls `malloc()` but doesn't properly call
 `free()`, this memory won't be available until the app terminates.
 
 For further information on how to install Valgrind and use with Ruby, refer to
-[Valgrind and Ruby](http://blog.evanweaver.com/articles/2008/02/05/valgrind-and-ruby/)
+[Valgrind and Ruby](https://blog.evanweaver.com/2008/02/05/valgrind-and-ruby/)
 by Evan Weaver.
+
+### Find a memory leak
+There is an excellent article about detecting and fixing memory leaks at Derailed, [which you can read here](https://github.com/schneems/derailed_benchmarks#is-my-app-leaking-memory).
+
 
 Plugins for Debugging
 ---------------------
@@ -962,15 +966,8 @@ Plugins for Debugging
 There are some Rails plugins to help you to find errors and debug your
 application. Here is a list of useful plugins for debugging:
 
-* [Footnotes](https://github.com/josevalim/rails-footnotes) Every Rails page has
-footnotes that give request information and link back to your source via
-TextMate.
 * [Query Trace](https://github.com/ruckus/active-record-query-trace/tree/master) Adds query
 origin tracing to your logs.
-* [Query Reviewer](https://github.com/nesquena/query_reviewer) This Rails plugin
-not only runs "EXPLAIN" before each of your select queries in development, but
-provides a small DIV in the rendered output of each page with the summary of
-warnings for each query that it analyzed.
 * [Exception Notifier](https://github.com/smartinez87/exception_notification/tree/master)
 Provides a mailer object and a default set of templates for sending email
 notifications when errors occur in a Rails application.

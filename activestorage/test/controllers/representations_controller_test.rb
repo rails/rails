@@ -14,7 +14,9 @@ class ActiveStorage::RepresentationsControllerWithVariantsTest < ActionDispatch:
       signed_blob_id: @blob.signed_id,
       variation_key: ActiveStorage::Variation.encode(resize: "100x100"))
 
-    assert_redirected_to(/racecar\.jpg\?.*disposition=inline/)
+    assert_redirected_to(/racecar\.jpg/)
+    follow_redirect!
+    assert_match(/^inline/, response.headers["Content-Disposition"])
 
     image = read_image(@blob.variant(resize: "100x100"))
     assert_equal 100, image.width
@@ -43,7 +45,9 @@ class ActiveStorage::RepresentationsControllerWithPreviewsTest < ActionDispatch:
       variation_key: ActiveStorage::Variation.encode(resize: "100x100"))
 
     assert_predicate @blob.preview_image, :attached?
-    assert_redirected_to(/report\.png\?.*disposition=inline/)
+    assert_redirected_to(/report\.png/)
+    follow_redirect!
+    assert_match(/^inline/, response.headers["Content-Disposition"])
 
     image = read_image(@blob.preview_image.variant(resize: "100x100"))
     assert_equal 77, image.width

@@ -5,7 +5,6 @@ require "rails/ruby_version_check"
 require "pathname"
 
 require "active_support"
-require "active_support/dependencies/autoload"
 require "active_support/core_ext/kernel/reporting"
 require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/array/extract_options"
@@ -13,6 +12,7 @@ require "active_support/core_ext/object/blank"
 
 require "rails/application"
 require "rails/version"
+require "rails/autoloaders"
 
 require "active_support/railtie"
 require "action_dispatch/railtie"
@@ -86,11 +86,9 @@ module Rails
     # * The environment variable RAILS_GROUPS;
     # * The optional envs given as argument and the hash with group dependencies;
     #
-    #   groups assets: [:development, :test]
-    #
-    #   # Returns
-    #   # => [:default, "development", :assets] for Rails.env == "development"
-    #   # => [:default, "production"]           for Rails.env == "production"
+    #  Rails.groups assets: [:development, :test]
+    #  # => [:default, "development", :assets] for Rails.env == "development"
+    #  # => [:default, "production"]           for Rails.env == "production"
     def groups(*groups)
       hash = groups.extract_options!
       env = Rails.env
@@ -109,6 +107,10 @@ module Rails
     #     # => #<Pathname:/Users/someuser/some/path/project/public>
     def public_path
       application && Pathname.new(application.paths["public"].first)
+    end
+
+    def autoloaders
+      Autoloaders
     end
   end
 end

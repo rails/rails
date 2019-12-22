@@ -113,8 +113,8 @@ module ActiveRecord
       end
     end
 
-    def self.create(connection, block = Proc.new)
-      relation = block.call Params.new
+    def self.create(connection, callable = nil, &block)
+      relation = (callable || block).call Params.new
       query_builder, binds = connection.cacheable_query(self, relation.arel)
       bind_map = BindMap.new(binds)
       new(query_builder, bind_map, relation.klass)
@@ -132,6 +132,8 @@ module ActiveRecord
       sql = query_builder.sql_for bind_values, connection
 
       klass.find_by_sql(sql, bind_values, preparable: true, &block)
+    rescue ::RangeError
+      nil
     end
 
     def self.unsupported_value?(value)

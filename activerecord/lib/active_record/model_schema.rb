@@ -102,6 +102,21 @@ module ActiveRecord
     # If true, the default table name for a Product class will be "products". If false, it would just be "product".
     # See table_name for the full rules on table/class naming. This is true, by default.
 
+    ##
+    # :singleton-method: implicit_order_column
+    # :call-seq: implicit_order_column
+    #
+    # The name of the column records are ordered by if no explicit order clause
+    # is used during an ordered finder call. If not set the primary key is used.
+
+    ##
+    # :singleton-method: implicit_order_column=
+    # :call-seq: implicit_order_column=(column_name)
+    #
+    # Sets the column to sort records by when no explicit order clause is used
+    # during an ordered finder call. Useful when the primary key is not an
+    # auto-incrementing integer, for example when it's a UUID. Records are subsorted
+    # by the primary key if it exists to ensure deterministic results.
     included do
       mattr_accessor :primary_key_prefix_type, instance_writer: false
 
@@ -110,6 +125,7 @@ module ActiveRecord
       class_attribute :schema_migrations_table_name, instance_accessor: false, default: "schema_migrations"
       class_attribute :internal_metadata_table_name, instance_accessor: false, default: "ar_internal_metadata"
       class_attribute :pluralize_table_names, instance_writer: false, default: true
+      class_attribute :implicit_order_column, instance_accessor: false
 
       self.protected_environments = ["production"]
       self.inheritance_column = "type"
@@ -399,8 +415,7 @@ module ActiveRecord
         @content_columns ||= columns.reject do |c|
           c.name == primary_key ||
           c.name == inheritance_column ||
-          c.name.end_with?("_id") ||
-          c.name.end_with?("_count")
+          c.name.end_with?("_id", "_count")
         end
       end
 
@@ -440,13 +455,11 @@ module ActiveRecord
       end
 
       protected
-
         def initialize_load_schema_monitor
           @load_schema_monitor = Monitor.new
         end
 
       private
-
         def inherited(child_class)
           super
           child_class.initialize_load_schema_monitor
@@ -464,10 +477,16 @@ module ActiveRecord
             load_schema!
 
             @schema_loaded = true
+          rescue
+            reload_schema_from_cache # If the schema loading failed half way through, we must reset the state.
+            raise
           end
         end
 
         def load_schema!
+          unless table_name
+            raise ActiveRecord::TableNotSpecified, "#{self} has no table configured. Set one with #{self}.table_name="
+          end
           @columns_hash = connection.schema_cache.columns_hash(table_name).except(*ignored_columns)
           @columns_hash.each do |name, column|
             define_attribute(

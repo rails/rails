@@ -24,7 +24,7 @@ module ActiveSupport
     # The values are first processed by SHA256, so that we don't leak length info
     # via timing attacks.
     def secure_compare(a, b)
-      fixed_length_secure_compare(::Digest::SHA256.hexdigest(a), ::Digest::SHA256.hexdigest(b)) && a == b
+      fixed_length_secure_compare(::Digest::SHA256.digest(a), ::Digest::SHA256.digest(b)) && a == b
     end
     module_function :secure_compare
   end

@@ -81,19 +81,19 @@ module ActionView
         end
       end
 
-      def source_extract(indentation = 0, output = :console)
-        return unless num = line_number
+      def source_extract(indentation = 0)
+        return [] unless num = line_number
         num = num.to_i
 
-        source_code = @template.source.split("\n")
+        source_code = @template.encode!.split("\n")
 
         start_on_line = [ num - SOURCE_CODE_RADIUS - 1, 0 ].max
         end_on_line   = [ num + SOURCE_CODE_RADIUS - 1, source_code.length].min
 
         indent = end_on_line.to_s.size + indentation
-        return unless source_code = source_code[start_on_line..end_on_line]
+        return [] unless source_code = source_code[start_on_line..end_on_line]
 
-        formatted_code_for(source_code, start_on_line, indent, output)
+        formatted_code_for(source_code, start_on_line, indent)
       end
 
       def sub_template_of(template_path)
@@ -109,12 +109,11 @@ module ActionView
           end
       end
 
-      def annoted_source_code
+      def annotated_source_code
         source_extract(4)
       end
 
       private
-
         def source_location
           if line_number
             "on line ##{line_number} of "
@@ -123,19 +122,35 @@ module ActionView
           end + file_name
         end
 
-        def formatted_code_for(source_code, line_counter, indent, output)
-          start_value = (output == :html) ? {} : []
-          source_code.inject(start_value) do |result, line|
+        def formatted_code_for(source_code, line_counter, indent)
+          indent_template = "%#{indent}s: %s"
+          source_code.map do |line|
             line_counter += 1
-            if output == :html
-              result.update(line_counter.to_s => "%#{indent}s %s\n" % ["", line])
-            else
-              result << "%#{indent}s: %s" % [line_counter, line]
-            end
+            indent_template % [line_counter, line]
           end
         end
     end
   end
 
   TemplateError = Template::Error
+
+  class SyntaxErrorInTemplate < TemplateError #:nodoc
+    def initialize(template, offending_code_string)
+      @offending_code_string = offending_code_string
+      super(template)
+    end
+
+    def message
+      <<~MESSAGE
+        Encountered a syntax error while rendering template: check #{@offending_code_string}
+      MESSAGE
+    end
+
+    def annotated_source_code
+      @offending_code_string.split("\n").map.with_index(1) { |line, index|
+        indentation = " " * 4
+        "#{index}:#{indentation}#{line}"
+      }
+    end
+  end
 end

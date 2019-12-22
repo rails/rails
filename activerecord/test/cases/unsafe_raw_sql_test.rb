@@ -77,11 +77,22 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
     assert_equal ids_expected, ids_disabled
   end
 
-  test "order: allows table and column name" do
+  test "order: allows table and column names" do
     ids_expected = Post.order(Arel.sql("title")).pluck(:id)
 
     ids_depr     = with_unsafe_raw_sql_deprecated { Post.order("posts.title").pluck(:id) }
     ids_disabled = with_unsafe_raw_sql_disabled   { Post.order("posts.title").pluck(:id) }
+
+    assert_equal ids_expected, ids_depr
+    assert_equal ids_expected, ids_disabled
+  end
+
+  test "order: allows quoted table and column names" do
+    ids_expected = Post.order(Arel.sql("title")).pluck(:id)
+
+    quoted_title = Post.connection.quote_table_name("posts.title")
+    ids_depr     = with_unsafe_raw_sql_deprecated { Post.order(quoted_title).pluck(:id) }
+    ids_disabled = with_unsafe_raw_sql_disabled   { Post.order(quoted_title).pluck(:id) }
 
     assert_equal ids_expected, ids_depr
     assert_equal ids_expected, ids_disabled
@@ -116,10 +127,10 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
 
     ["asc", "desc", ""].each do |direction|
       %w(first last).each do |position|
-        ids_expected = Post.order(Arel.sql("type #{direction} nulls #{position}")).pluck(:id)
+        ids_expected = Post.order(Arel.sql("type::text #{direction} nulls #{position}")).pluck(:id)
 
-        ids_depr     = with_unsafe_raw_sql_deprecated { Post.order("type #{direction} nulls #{position}").pluck(:id) }
-        ids_disabled = with_unsafe_raw_sql_disabled   { Post.order("type #{direction} nulls #{position}").pluck(:id) }
+        ids_depr     = with_unsafe_raw_sql_deprecated { Post.order("type::text #{direction} nulls #{position}").pluck(:id) }
+        ids_disabled = with_unsafe_raw_sql_disabled   { Post.order("type::text #{direction} nulls #{position}").pluck(:id) }
 
         assert_equal ids_expected, ids_depr
         assert_equal ids_expected, ids_disabled
@@ -130,7 +141,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   test "order: disallows invalid column name" do
     with_unsafe_raw_sql_disabled do
       assert_raises(ActiveRecord::UnknownAttributeReference) do
-        Post.order("len(title) asc").pluck(:id)
+        Post.order("REPLACE(title, 'misc', 'zzzz') asc").pluck(:id)
       end
     end
   end
@@ -146,7 +157,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   test "order: disallows invalid column with direction" do
     with_unsafe_raw_sql_disabled do
       assert_raises(ActiveRecord::UnknownAttributeReference) do
-        Post.order("len(title)" => :asc).pluck(:id)
+        Post.order("REPLACE(title, 'misc', 'zzzz')" => :asc).pluck(:id)
       end
     end
   end
@@ -179,7 +190,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   test "order: disallows invalid Array arguments" do
     with_unsafe_raw_sql_disabled do
       assert_raises(ActiveRecord::UnknownAttributeReference) do
-        Post.order(["author_id", "length(title)"]).pluck(:id)
+        Post.order(["author_id", "REPLACE(title, 'misc', 'zzzz')"]).pluck(:id)
       end
     end
   end
@@ -187,8 +198,8 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   test "order: allows valid Array arguments" do
     ids_expected = Post.order(Arel.sql("author_id, length(title)")).pluck(:id)
 
-    ids_depr     = with_unsafe_raw_sql_deprecated { Post.order(["author_id", Arel.sql("length(title)")]).pluck(:id) }
-    ids_disabled = with_unsafe_raw_sql_disabled   { Post.order(["author_id", Arel.sql("length(title)")]).pluck(:id) }
+    ids_depr     = with_unsafe_raw_sql_deprecated { Post.order(["author_id", "length(title)"]).pluck(:id) }
+    ids_disabled = with_unsafe_raw_sql_disabled   { Post.order(["author_id", "length(title)"]).pluck(:id) }
 
     assert_equal ids_expected, ids_depr
     assert_equal ids_expected, ids_disabled
@@ -197,7 +208,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   test "order: logs deprecation warning for unrecognized column" do
     with_unsafe_raw_sql_deprecated do
       assert_deprecated(/Dangerous query method/) do
-        Post.order("length(title)")
+        Post.order("REPLACE(title, 'misc', 'zzzz')")
       end
     end
   end
@@ -207,6 +218,16 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
 
     titles_depr     = with_unsafe_raw_sql_deprecated { Post.pluck("title") }
     titles_disabled = with_unsafe_raw_sql_disabled   { Post.pluck("title") }
+
+    assert_equal titles_expected, titles_depr
+    assert_equal titles_expected, titles_disabled
+  end
+
+  test "pluck: allows string column name with function and alias" do
+    titles_expected = Post.pluck(Arel.sql("UPPER(title)"))
+
+    titles_depr     = with_unsafe_raw_sql_deprecated { Post.pluck("UPPER(title) AS title") }
+    titles_disabled = with_unsafe_raw_sql_disabled   { Post.pluck("UPPER(title) AS title") }
 
     assert_equal titles_expected, titles_depr
     assert_equal titles_expected, titles_disabled
@@ -262,10 +283,21 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
     assert_equal titles_expected, titles_disabled
   end
 
+  test "pluck: allows quoted table and column names" do
+    titles_expected = Post.pluck(Arel.sql("title"))
+
+    quoted_title    = Post.connection.quote_table_name("posts.title")
+    titles_depr     = with_unsafe_raw_sql_deprecated { Post.pluck(quoted_title) }
+    titles_disabled = with_unsafe_raw_sql_disabled   { Post.pluck(quoted_title) }
+
+    assert_equal titles_expected, titles_depr
+    assert_equal titles_expected, titles_disabled
+  end
+
   test "pluck: disallows invalid column name" do
     with_unsafe_raw_sql_disabled do
       assert_raises(ActiveRecord::UnknownAttributeReference) do
-        Post.pluck("length(title)")
+        Post.pluck("REPLACE(title, 'misc', 'zzzz')")
       end
     end
   end
@@ -273,7 +305,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   test "pluck: disallows invalid column name amongst valid names" do
     with_unsafe_raw_sql_disabled do
       assert_raises(ActiveRecord::UnknownAttributeReference) do
-        Post.pluck(:title, "length(title)")
+        Post.pluck(:title, "REPLACE(title, 'misc', 'zzzz')")
       end
     end
   end
@@ -281,7 +313,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   test "pluck: disallows invalid column names with includes" do
     with_unsafe_raw_sql_disabled do
       assert_raises(ActiveRecord::UnknownAttributeReference) do
-        Post.includes(:comments).pluck(:title, "length(title)")
+        Post.includes(:comments).pluck(:title, "REPLACE(title, 'misc', 'zzzz')")
       end
     end
   end
@@ -296,24 +328,25 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   test "pluck: logs deprecation warning" do
     with_unsafe_raw_sql_deprecated do
       assert_deprecated(/Dangerous query method/) do
-        Post.includes(:comments).pluck(:title, "length(title)")
+        Post.includes(:comments).pluck(:title, "REPLACE(title, 'misc', 'zzzz')")
       end
     end
   end
 
-  def with_unsafe_raw_sql_disabled(&blk)
-    with_config(:disabled, &blk)
-  end
+  private
+    def with_unsafe_raw_sql_disabled(&block)
+      with_config(:disabled, &block)
+    end
 
-  def with_unsafe_raw_sql_deprecated(&blk)
-    with_config(:deprecated, &blk)
-  end
+    def with_unsafe_raw_sql_deprecated(&block)
+      with_config(:deprecated, &block)
+    end
 
-  def with_config(new_value, &blk)
-    old_value = ActiveRecord::Base.allow_unsafe_raw_sql
-    ActiveRecord::Base.allow_unsafe_raw_sql = new_value
-    blk.call
-  ensure
-    ActiveRecord::Base.allow_unsafe_raw_sql = old_value
-  end
+    def with_config(new_value, &block)
+      old_value = ActiveRecord::Base.allow_unsafe_raw_sql
+      ActiveRecord::Base.allow_unsafe_raw_sql = new_value
+      yield
+    ensure
+      ActiveRecord::Base.allow_unsafe_raw_sql = old_value
+    end
 end

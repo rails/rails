@@ -22,9 +22,8 @@ module ActiveRecord
           when 1 then predicate_builder.build(attribute, values.first)
           else
             values.map! do |v|
-              bind = predicate_builder.build_bind_attribute(attribute.name, v)
-              bind if bind.value.boundable?
-            end.compact!
+              predicate_builder.build_bind_attribute(attribute.name, v)
+            end
             values.empty? ? NullPredicate : attribute.in(values)
           end
 

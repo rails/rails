@@ -8,15 +8,13 @@ module RailsGuides
       def block_code(code, language)
         <<-HTML
 <div class="code_container">
-<pre class="brush: #{brush_for(language)}; gutter: false; toolbar: false">
-#{ERB::Util.h(code)}
-</pre>
+<pre><code class="language-#{class_for(language)}">#{ERB::Util.h(code)}</code></pre>
 </div>
-HTML
+        HTML
       end
 
       def link(url, title, content)
-        if url.start_with?("http://api.rubyonrails.org")
+        if %r{https?://api\.rubyonrails\.org}.match?(url)
           %(<a href="#{api_link(url)}">#{content}</a>)
         elsif title
           %(<a href="#{url}" title="#{title}">#{content}</a>)
@@ -53,7 +51,6 @@ HTML
       end
 
       private
-
         def convert_footnotes(text)
           text.gsub(/\[<sup>(\d+)\]<\/sup>/i) do
             %(<sup class="footnote" id="footnote-#{$1}-ref">) +
@@ -61,14 +58,16 @@ HTML
           end
         end
 
-        def brush_for(code_type)
+        def class_for(code_type)
           case code_type
-          when "ruby", "sql", "plain"
+          when "ruby", "sql", "plain", "js", "yaml"
             code_type
           when "erb", "html+erb"
-            "ruby; html-script: true"
+            "erb"
           when "html"
             "xml" # HTML is understood, but there are .xml rules in the CSS
+          when "bash"
+            "shell-session"
           else
             "plain"
           end
@@ -115,7 +114,7 @@ HTML
         end
 
         def api_link(url)
-          if %r{http://api\.rubyonrails\.org/v\d+\.}.match?(url)
+          if %r{https?://api\.rubyonrails\.org/v\d+\.}.match?(url)
             url
           elsif edge
             url.sub("api", "edgeapi")

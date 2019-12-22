@@ -23,7 +23,7 @@ module ActionDispatch
     #   change { file: { code: "xxxx"} }
     #
     #   env["action_dispatch.parameter_filter"] = -> (k, v) do
-    #     v.reverse! if k =~ /secret/i
+    #     v.reverse! if k.match?(/secret/i)
     #   end
     #   => reverses the value to all keys matching /secret/i
     module FilterParameters
@@ -41,6 +41,8 @@ module ActionDispatch
       # Returns a hash of parameters with all sensitive data replaced.
       def filtered_parameters
         @filtered_parameters ||= parameter_filter.filter(parameters)
+      rescue ActionDispatch::Http::Parameters::ParseError
+        @filtered_parameters = {}
       end
 
       # Returns a hash of request.env with all sensitive data replaced.
@@ -54,7 +56,6 @@ module ActionDispatch
       end
 
     private
-
       def parameter_filter # :doc:
         parameter_filter_for fetch_header("action_dispatch.parameter_filter") {
           return NULL_PARAM_FILTER

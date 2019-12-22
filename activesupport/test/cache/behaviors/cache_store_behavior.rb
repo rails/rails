@@ -130,7 +130,7 @@ module CacheStoreBehavior
     assert_equal("fufu", @cache.read("fu"))
   end
 
-  def test_multi_with_objects
+  def test_fetch_multi_with_objects
     cache_struct = Struct.new(:cache_key, :title)
     foo = cache_struct.new("foo", "FOO!")
     bar = cache_struct.new("bar")
@@ -140,6 +140,14 @@ module CacheStoreBehavior
     values = @cache.fetch_multi(foo, bar) { |object| object.title }
 
     assert_equal({ foo => "FOO!", bar => "BAM!" }, values)
+  end
+
+  def test_fetch_multi_returns_ordered_names
+    @cache.write("bam", "BAM")
+
+    values = @cache.fetch_multi("foo", "bar", "bam") { |key| key.upcase }
+
+    assert_equal(%w(foo bar bam), values.keys)
   end
 
   def test_fetch_multi_without_block
@@ -367,6 +375,16 @@ module CacheStoreBehavior
     assert_not @cache.exist?("foo")
   end
 
+  def test_delete_multi
+    @cache.write("foo", "bar")
+    assert @cache.exist?("foo")
+    @cache.write("hello", "world")
+    assert @cache.exist?("hello")
+    assert_equal 2, @cache.delete_multi(["foo", "does_not_exist", "hello"])
+    assert_not @cache.exist?("foo")
+    assert_not @cache.exist?("hello")
+  end
+
   def test_original_store_objects_should_not_be_immutable
     bar = +"bar"
     @cache.write("foo", bar)
@@ -392,7 +410,7 @@ module CacheStoreBehavior
 
   def test_race_condition_protection_skipped_if_not_defined
     @cache.write("foo", "bar")
-    time = @cache.send(:read_entry, @cache.send(:normalize_key, "foo", {}), {}).expires_at
+    time = @cache.send(:read_entry, @cache.send(:normalize_key, "foo", {}), **{}).expires_at
 
     Time.stub(:now, Time.at(time)) do
       result = @cache.fetch("foo") do
@@ -499,7 +517,6 @@ module CacheStoreBehavior
   end
 
   private
-
     def assert_compressed(value, **options)
       assert_compression(true, value, **options)
     end
@@ -522,8 +539,8 @@ module CacheStoreBehavior
         assert_equal value, @cache.read("uncompressed")
       end
 
-      actual_entry = @cache.send(:read_entry, @cache.send(:normalize_key, "actual", {}), {})
-      uncompressed_entry = @cache.send(:read_entry, @cache.send(:normalize_key, "uncompressed", {}), {})
+      actual_entry = @cache.send(:read_entry, @cache.send(:normalize_key, "actual", {}), **{})
+      uncompressed_entry = @cache.send(:read_entry, @cache.send(:normalize_key, "uncompressed", {}), **{})
 
       actual_size = Marshal.dump(actual_entry).bytesize
       uncompressed_size = Marshal.dump(uncompressed_entry).bytesize

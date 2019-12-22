@@ -34,7 +34,7 @@ module ActionMailer
     def assert_emails(number, &block)
       if block_given?
         original_count = ActionMailer::Base.deliveries.size
-        perform_enqueued_jobs(only: [ActionMailer::DeliveryJob, ActionMailer::Parameterized::DeliveryJob], &block)
+        perform_enqueued_jobs(only: ->(job) { delivery_job_filter(job) }, &block)
         new_count = ActionMailer::Base.deliveries.size
         assert_equal number, new_count - original_count, "#{number} emails expected, but #{new_count - original_count} were sent"
       else
@@ -90,7 +90,7 @@ module ActionMailer
     #     end
     #   end
     def assert_enqueued_emails(number, &block)
-      assert_enqueued_jobs number, only: [ ActionMailer::DeliveryJob, ActionMailer::Parameterized::DeliveryJob ], &block
+      assert_enqueued_jobs(number, only: ->(job) { delivery_job_filter(job) }, &block)
     end
 
     # Asserts that a specific email has been enqueued, optionally
@@ -124,15 +124,12 @@ module ActionMailer
     #     end
     #   end
     def assert_enqueued_email_with(mailer, method, args: nil, queue: "mailers", &block)
-      if args.is_a? Hash
-        job = ActionMailer::Parameterized::DeliveryJob
-        args = [mailer.to_s, method.to_s, "deliver_now", args]
+      args = if args.is_a?(Hash)
+        [mailer.to_s, method.to_s, "deliver_now", params: args, args: []]
       else
-        job = ActionMailer::DeliveryJob
-        args = [mailer.to_s, method.to_s, "deliver_now", *args]
+        [mailer.to_s, method.to_s, "deliver_now", args: Array(args)]
       end
-
-      assert_enqueued_with(job: job, args: args, queue: queue, &block)
+      assert_enqueued_with(job: mailer.delivery_job, args: args, queue: queue, &block)
     end
 
     # Asserts that no emails are enqueued for later delivery.
@@ -151,7 +148,15 @@ module ActionMailer
     #     end
     #   end
     def assert_no_enqueued_emails(&block)
-      assert_no_enqueued_jobs only: [ ActionMailer::DeliveryJob, ActionMailer::Parameterized::DeliveryJob ], &block
+      assert_enqueued_emails 0, &block
     end
+
+    private
+      def delivery_job_filter(job)
+        job_class = job.is_a?(Hash) ? job.fetch(:job) : job.class
+
+        Base.descendants.map(&:delivery_job).include?(job_class) ||
+          ActionMailer::Parameterized::DeliveryJob == job_class
+      end
   end
 end

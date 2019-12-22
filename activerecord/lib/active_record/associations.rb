@@ -2,8 +2,6 @@
 
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/string/conversions"
-require "active_support/core_ext/module/remove_method"
-require "active_record/errors"
 
 module ActiveRecord
   class AssociationNotFoundError < ConfigurationError #:nodoc:
@@ -92,7 +90,7 @@ module ActiveRecord
         through_reflection      = reflection.through_reflection
         source_reflection_names = reflection.source_reflection_names
         source_associations     = reflection.through_reflection.klass._reflections.keys
-        super("Could not find the source association(s) #{source_reflection_names.collect(&:inspect).to_sentence(two_words_connector: ' or ', last_word_connector: ', or ', locale: :en)} in model #{through_reflection.klass}. Try 'has_many #{reflection.name.inspect}, :through => #{through_reflection.name.inspect}, :source => <name>'. Is it one of #{source_associations.to_sentence(two_words_connector: ' or ', last_word_connector: ', or ', locale: :en)}?")
+        super("Could not find the source association(s) #{source_reflection_names.collect(&:inspect).to_sentence(two_words_connector: ' or ', last_word_connector: ', or ')} in model #{through_reflection.klass}. Try 'has_many #{reflection.name.inspect}, :through => #{through_reflection.name.inspect}, :source => <name>'. Is it one of #{source_associations.to_sentence(two_words_connector: ' or ', last_word_connector: ', or ')}?")
       else
         super("Could not find the source association(s).")
       end
@@ -702,9 +700,9 @@ module ActiveRecord
       # inverse detection only works on #has_many, #has_one, and
       # #belongs_to associations.
       #
-      # Extra options on the associations, as defined in the
-      # <tt>AssociationReflection::INVALID_AUTOMATIC_INVERSE_OPTIONS</tt> constant, will
-      # also prevent the association's inverse from being found automatically.
+      # <tt>:foreign_key</tt> and <tt>:through</tt> options on the associations,
+      # or a custom scope, will also prevent the association's inverse
+      # from being found automatically.
       #
       # The automatic guessing of the inverse association uses a heuristic based
       # on the name of the class, so it may not work for all associations,
@@ -1291,10 +1289,12 @@ module ActiveRecord
         #   similar callbacks may affect the <tt>:dependent</tt> behavior, and the
         #   <tt>:dependent</tt> behavior may affect other callbacks.
         #
+        #   * <tt>nil</tt> do nothing (default).
         #   * <tt>:destroy</tt> causes all the associated objects to also be destroyed.
         #   * <tt>:delete_all</tt> causes all the associated objects to be deleted directly from the database (so callbacks will not be executed).
-        #   * <tt>:nullify</tt> causes the foreign keys to be set to +NULL+. Callbacks are not executed.
-        #   * <tt>:restrict_with_exception</tt> causes an exception to be raised if there are any associated records.
+        #   * <tt>:nullify</tt> causes the foreign keys to be set to +NULL+. Polymorphic type will also be nullified
+        #     on polymorphic associations. Callbacks are not executed.
+        #   * <tt>:restrict_with_exception</tt> causes an <tt>ActiveRecord::DeleteRestrictionError</tt> exception to be raised if there are any associated records.
         #   * <tt>:restrict_with_error</tt> causes an error to be added to the owner if there are any associated objects.
         #
         #   If using with the <tt>:through</tt> option, the association on the join model must be
@@ -1436,8 +1436,9 @@ module ActiveRecord
         #
         #   * <tt>:destroy</tt> causes the associated object to also be destroyed
         #   * <tt>:delete</tt> causes the associated object to be deleted directly from the database (so callbacks will not execute)
-        #   * <tt>:nullify</tt> causes the foreign key to be set to +NULL+. Callbacks are not executed.
-        #   * <tt>:restrict_with_exception</tt> causes an exception to be raised if there is an associated record
+        #   * <tt>:nullify</tt> causes the foreign key to be set to +NULL+. Polymorphic type column is also nullified
+        #     on polymorphic associations. Callbacks are not executed.
+        #   * <tt>:restrict_with_exception</tt> causes an <tt>ActiveRecord::DeleteRestrictionError</tt> exception to be raised if there is an associated record
         #   * <tt>:restrict_with_error</tt> causes an error to be added to the owner if there is an associated object
         #
         #   Note that <tt>:dependent</tt> option is ignored when using <tt>:through</tt> option.
@@ -1854,7 +1855,7 @@ module ActiveRecord
             hm_options[k] = options[k] if options.key? k
           end
 
-          has_many name, scope, hm_options, &extension
+          has_many name, scope, **hm_options, &extension
           _reflections[name.to_s].parent_reflection = habtm_reflection
         end
       end

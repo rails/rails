@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../abstract_unit"
 require "active_support/core_ext/array"
 require "active_support/core_ext/enumerable"
 
@@ -217,11 +217,18 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal false, GenericEnumerable.new([ 1 ]).exclude?(1)
   end
 
+  def test_excluding
+    assert_equal [1, 2, 4], GenericEnumerable.new((1..5).to_a).excluding(3, 5)
+    assert_equal [3, 4, 5], GenericEnumerable.new((1..5).to_a).excluding([1, 2])
+    assert_equal [[0, 1]], GenericEnumerable.new([[0, 1], [1, 0]]).excluding([[1, 0]])
+    assert_equal [1, 2, 4], (1..5).to_a.excluding(3, 5)
+    assert_equal [1, 2, 4], (1..5).to_set.excluding(3, 5)
+    assert_equal({ foo: 1, baz: 3 }, { foo: 1, bar: 2, baz: 3 }.excluding(:bar))
+  end
+
   def test_without
     assert_equal [1, 2, 4], GenericEnumerable.new((1..5).to_a).without(3, 5)
-    assert_equal [1, 2, 4], (1..5).to_a.without(3, 5)
-    assert_equal [1, 2, 4], (1..5).to_set.without(3, 5)
-    assert_equal({ foo: 1, baz: 3 }, { foo: 1, bar: 2, baz: 3 }.without(:bar))
+    assert_equal [3, 4, 5], GenericEnumerable.new((1..5).to_a).without([1, 2])
   end
 
   def test_pluck
@@ -234,5 +241,29 @@ class EnumerableTests < ActiveSupport::TestCase
       ExpandedPayment.new(10, 50)
     ])
     assert_equal [[5, 99], [15, 0], [10, 50]], payments.pluck(:dollars, :cents)
+  end
+
+  def test_compact_blank
+    values = GenericEnumerable.new([1, "", nil, 2, " ", [], {}, false, true])
+
+    assert_equal [1, 2, true], values.compact_blank
+  end
+
+  def test_array_compact_blank!
+    values = [1, "", nil, 2, " ", [], {}, false, true]
+    values.compact_blank!
+
+    assert_equal [1, 2, true], values
+  end
+
+  def test_hash_compact_blank
+    values = { a: "", b: 1, c: nil, d: [], e: false, f: true }
+    assert_equal({ b: 1, f: true }, values.compact_blank)
+  end
+
+  def test_hash_compact_blank!
+    values = { a: "", b: 1, c: nil, d: [], e: false, f: true }
+    values.compact_blank!
+    assert_equal({ b: 1, f: true }, values)
   end
 end

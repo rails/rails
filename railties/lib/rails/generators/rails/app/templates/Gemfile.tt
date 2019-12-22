@@ -18,20 +18,17 @@ ruby <%= "'#{RUBY_VERSION}'" -%>
 <% end -%>
 <% end -%>
 
-# Use ActiveModel has_secure_password
+# Use Active Model has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
 <% unless skip_active_storage? -%>
 
-# Use ActiveStorage variant
+# Use Active Storage variant
 # gem 'image_processing', '~> 1.2'
 <% end -%>
 
-# Use Capistrano for deployment
-# gem 'capistrano-rails', group: :development
-
 <% if depend_on_bootsnap? -%>
 # Reduces boot times through caching; required in config/boot.rb
-gem 'bootsnap', '>= 1.1.0', require: false
+gem 'bootsnap', '>= 1.4.4', require: false
 
 <%- end -%>
 <%- if options.api? -%>
@@ -56,26 +53,23 @@ group :development do
   <%- end -%>
 <%- end -%>
 <% if depend_on_listen? -%>
-  gem 'listen', '>= 3.0.5', '< 3.2'
+  gem 'listen', '~> 3.2'
 <% end -%>
 <% if spring_install? -%>
   # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
   gem 'spring'
-<% if depend_on_listen? -%>
-  gem 'spring-watcher-listen', '~> 2.0.0'
-<% end -%>
 <% end -%>
 end
 
 <%- if depends_on_system_test? -%>
 group :test do
   # Adds support for Capybara system testing and selenium driver
-  gem 'capybara', '>= 2.15'
+  gem 'capybara', '>= 3.26'
   gem 'selenium-webdriver'
-  # Easy installation and use of chromedriver to run system tests with Chrome
-  gem 'chromedriver-helper'
+  # Easy installation and use of web drivers to run system tests with browsers
+  gem 'webdrivers'
 end
-<%- end -%>
 
+<%- end -%>
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]

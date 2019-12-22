@@ -5,7 +5,7 @@ module ActiveRecord
     module PostgreSQL
       module OID # :nodoc:
         class Array < Type::Value # :nodoc:
-          include Type::Helpers::Mutable
+          include ActiveModel::Type::Helpers::Mutable
 
           Data = Struct.new(:encoder, :values) # :nodoc:
 
@@ -77,7 +77,6 @@ module ActiveRecord
           end
 
           private
-
             def type_cast_array(value, method)
               if value.is_a?(::Array)
                 value.map { |item| type_cast_array(item, method) }

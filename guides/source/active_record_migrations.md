@@ -5,8 +5,7 @@ Active Record Migrations
 
 Migrations are a feature of Active Record that allows you to evolve your
 database schema over time. Rather than write schema modifications in pure SQL,
-migrations allow you to use an easy Ruby DSL to describe changes to your
-tables.
+migrations allow you to use a Ruby DSL to describe changes to your tables.
 
 After reading this guide, you will know:
 
@@ -22,7 +21,7 @@ Migration Overview
 
 Migrations are a convenient way to
 [alter your database schema over time](https://en.wikipedia.org/wiki/Schema_migration)
-in a consistent and easy way. They use a Ruby DSL so that you don't have to
+in a consistent way. They use a Ruby DSL so that you don't have to
 write SQL by hand, allowing your schema and changes to be database independent.
 
 You can think of each migration as being a new 'version' of the database. A
@@ -126,7 +125,7 @@ generator to handle making it for you:
 $ rails generate migration AddPartNumberToProducts
 ```
 
-This will create an empty but appropriately named migration:
+This will create an appropriately named empty migration:
 
 ```ruby
 class AddPartNumberToProducts < ActiveRecord::Migration[5.0]
@@ -135,9 +134,14 @@ class AddPartNumberToProducts < ActiveRecord::Migration[5.0]
 end
 ```
 
-If the migration name is of the form "AddXXXToYYY" or "RemoveXXXFromYYY" and is
-followed by a list of column names and types then a migration containing the
-appropriate `add_column` and `remove_column` statements will be created.
+This generator can do much more than append a timestamp to the file name.
+Based on naming conventions and additional (optional) arguments it can
+also start fleshing out the migration.
+
+If the migration name is of the form "AddColumnToTable" or
+"RemoveColumnFromTable" and is followed by a list of column names and
+types then a migration containing the appropriate `add_column` and
+`remove_column` statements will be created.
 
 ```bash
 $ rails generate migration AddPartNumberToProducts part_number:string
@@ -220,6 +224,8 @@ class CreateProducts < ActiveRecord::Migration[5.0]
     create_table :products do |t|
       t.string :name
       t.string :part_number
+
+      t.timestamps
     end
   end
 end
@@ -247,12 +253,12 @@ end
 ```
 
 This migration will create a `user_id` column and appropriate index.
-For more `add_reference` options, visit the [API documentation](http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_reference).
+For more `add_reference` options, visit the [API documentation](https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_reference).
 
 There is also a generator which will produce join tables if `JoinTable` is part of the name:
 
 ```bash
-$ rails g migration CreateJoinTableCustomerProduct customer product
+$ rails generate migration CreateJoinTableCustomerProduct customer product
 ```
 
 will produce the following migration:
@@ -460,7 +466,6 @@ number of digits after the decimal point.
 * `default`      Allows to set a default value on the column. Note that if you
 are using a dynamic value (such as a date), the default will only be calculated
 the first time (i.e. on the date the migration is applied).
-* `index`        Adds an index for the column.
 * `comment`      Adds a comment for the column.
 
 Some adapters may support additional options; see the adapter specific API docs
@@ -479,7 +484,7 @@ add_foreign_key :articles, :authors
 
 This adds a new foreign key to the `author_id` column of the `articles`
 table. The key references the `id` column of the `authors` table. If the
-column names can not be derived from the table names, you can use the
+column names cannot be derived from the table names, you can use the
 `:column` and `:primary_key` options.
 
 Rails will generate a name for every foreign key starting with
@@ -491,10 +496,7 @@ NOTE: Active Record only supports single column foreign keys. `execute` and
 `structure.sql` are required to use composite foreign keys. See
 [Schema Dumping and You](#schema-dumping-and-you).
 
-NOTE: The SQLite3 adapter doesn't support `add_foreign_key` since SQLite supports
-only [a limited subset of ALTER TABLE](https://www.sqlite.org/lang_altertable.html).
-
-Removing a foreign key is easy as well:
+Foreign keys can also be removed:
 
 ```ruby
 # let Active Record figure out the column name
@@ -518,12 +520,12 @@ Product.connection.execute("UPDATE products SET price = 'free' WHERE 1=1")
 
 For more details and examples of individual methods, check the API documentation.
 In particular the documentation for
-[`ActiveRecord::ConnectionAdapters::SchemaStatements`](http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html)
+[`ActiveRecord::ConnectionAdapters::SchemaStatements`](https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html)
 (which provides the methods available in the `change`, `up` and `down` methods),
-[`ActiveRecord::ConnectionAdapters::TableDefinition`](http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/TableDefinition.html)
+[`ActiveRecord::ConnectionAdapters::TableDefinition`](https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/TableDefinition.html)
 (which provides the methods available on the object yielded by `create_table`)
 and
-[`ActiveRecord::ConnectionAdapters::Table`](http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/Table.html)
+[`ActiveRecord::ConnectionAdapters::Table`](https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/Table.html)
 (which provides the methods available on the object yielded by `change_table`).
 
 ### Using the `change` Method
@@ -786,7 +788,7 @@ $ rails db:migrate:redo STEP=3
 ```
 
 Neither of these rails commands do anything you could not do with `db:migrate`. They
-are simply more convenient, since you do not need to explicitly specify the
+are there for convenience, since you do not need to explicitly specify the
 version to migrate to.
 
 ### Setup the Database
@@ -946,7 +948,7 @@ If `:ruby` is selected, then the schema is stored in `db/schema.rb`. If you look
 at this file you'll find that it looks an awful lot like one very big migration:
 
 ```ruby
-ActiveRecord::Schema.define(version: 20080906171750) do
+ActiveRecord::Schema.define(version: 2008_09_06_171750) do
   create_table "authors", force: true do |t|
     t.string   "name"
     t.datetime "created_at"
@@ -1033,9 +1035,9 @@ end
 ```
 
 To add initial data after a database is created, Rails has a built-in
-'seeds' feature that makes the process quick and easy. This is especially
+'seeds' feature that speeds up the process. This is especially
 useful when reloading the database frequently in development and test environments.
-It's easy to get started with this feature: just fill up `db/seeds.rb` with some
+To get started with this feature, fill up `db/seeds.rb` with some
 Ruby code, and run `rails db:seed`:
 
 ```ruby

@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../../abstract_unit"
 require "json"
-require "json/encoding_test_cases"
+require_relative "../../json/encoding_test_cases"
 
 # These test cases were added to test that we do not interfere with json gem's
 # output when the AS encoder is loaded, primarily for problems reported in
@@ -22,7 +22,7 @@ class JsonGemEncodingTest < ActiveSupport::TestCase
 
   JSONTest::EncodingTestCases.constants.each_with_index do |name|
     JSONTest::EncodingTestCases.const_get(name).each_with_index do |(subject, _), i|
-      test("#{name[0..-6].underscore} #{i}") do
+      test("#{name[0..-6]} #{i}") do
         assert_same_with_or_without_active_support(subject)
       end
     end

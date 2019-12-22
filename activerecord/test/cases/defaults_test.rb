@@ -89,7 +89,7 @@ if current_adapter?(:PostgreSQLAdapter)
 
     test "schema dump includes default expression" do
       output = dump_table_schema("defaults")
-      if ActiveRecord::Base.connection.postgresql_version >= 100000
+      if ActiveRecord::Base.connection.database_version >= 100000
         assert_match %r/t\.date\s+"modified_date",\s+default: -> { "CURRENT_DATE" }/, output
         assert_match %r/t\.datetime\s+"modified_time",\s+default: -> { "CURRENT_TIMESTAMP" }/, output
       else
@@ -105,6 +105,13 @@ end
 if current_adapter?(:Mysql2Adapter)
   class MysqlDefaultExpressionTest < ActiveRecord::TestCase
     include SchemaDumpingHelper
+
+    if supports_default_expression?
+      test "schema dump includes default expression" do
+        output = dump_table_schema("defaults")
+        assert_match %r/t\.binary\s+"uuid",\s+limit: 36,\s+default: -> { "\(uuid\(\)\)" }/i, output
+      end
+    end
 
     if subsecond_precision_supported?
       test "schema dump datetime includes default expression" do
@@ -166,7 +173,7 @@ if current_adapter?(:Mysql2Adapter)
     # invalid or missing values and produces warnings. In strict mode,
     # you can produce this behavior by using INSERT IGNORE or UPDATE IGNORE.
     #
-    # https://dev.mysql.com/doc/refman/5.7/en/sql-mode.html#sql-mode-strict
+    # https://dev.mysql.com/doc/refman/en/sql-mode.html#sql-mode-strict
     def test_mysql_not_null_defaults_non_strict
       using_strict(false) do
         with_mysql_not_null_table do |klass|

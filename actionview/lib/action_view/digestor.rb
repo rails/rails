@@ -6,23 +6,18 @@ module ActionView
   class Digestor
     @@digest_mutex = Mutex.new
 
-    module PerExecutionDigestCacheExpiry
-      def self.before(target)
-        ActionView::LookupContext::DetailsKey.clear
-      end
-    end
-
     class << self
       # Supported options:
       #
-      # * <tt>name</tt>   - Template name
-      # * <tt>finder</tt>  - An instance of <tt>ActionView::LookupContext</tt>
-      # * <tt>dependencies</tt>  - An array of dependent views
-      def digest(name:, finder:, dependencies: nil)
+      # * <tt>name</tt>         - Template name
+      # * <tt>format</tt>       - Template format
+      # * <tt>finder</tt>       - An instance of <tt>ActionView::LookupContext</tt>
+      # * <tt>dependencies</tt> - An array of dependent views
+      def digest(name:, format: nil, finder:, dependencies: nil)
         if dependencies.nil? || dependencies.empty?
-          cache_key = "#{name}.#{finder.rendered_format}"
+          cache_key = "#{name}.#{format}"
         else
-          cache_key = [ name, finder.rendered_format, dependencies ].flatten.compact.join(".")
+          cache_key = [ name, format, dependencies ].flatten.compact.join(".")
         end
 
         # this is a correctly done double-checked locking idiom
@@ -48,8 +43,6 @@ module ActionView
         logical_name = name.gsub(%r|/_|, "/")
 
         if template = find_template(finder, logical_name, [], partial, [])
-          finder.rendered_format ||= template.formats.first
-
           if node = seen[template.identifier] # handle cycles in the tree
             node
           else
@@ -73,9 +66,7 @@ module ActionView
       private
         def find_template(finder, name, prefixes, partial, keys)
           finder.disable_cache do
-            format = finder.rendered_format
-            result = finder.find_all(name, prefixes, partial, keys, formats: [format]).first if format
-            result || finder.find_all(name, prefixes, partial, keys).first
+            finder.find_all(name, prefixes, partial, keys).first
           end
         end
     end

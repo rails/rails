@@ -5,7 +5,7 @@ require "rails/generators/rails/scaffold/scaffold_generator"
 
 class ScaffoldGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
-  arguments %w(product_line title:string product:belongs_to user:references)
+  arguments %w(product_line title:string approved:boolean product:belongs_to user:references)
 
   setup :copy_routes
 
@@ -17,6 +17,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     assert_file "test/models/product_line_test.rb", /class ProductLineTest < ActiveSupport::TestCase/
     assert_file "test/fixtures/product_lines.yml"
     assert_migration "db/migrate/create_product_lines.rb", /belongs_to :product/
+    assert_migration "db/migrate/create_product_lines.rb", /boolean :approved/
     assert_migration "db/migrate/create_product_lines.rb", /references :user/
 
     # Route
@@ -60,8 +61,8 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     assert_file "test/controllers/product_lines_controller_test.rb" do |test|
       assert_match(/class ProductLinesControllerTest < ActionDispatch::IntegrationTest/, test)
-      assert_match(/post product_lines_url, params: \{ product_line: \{ product_id: @product_line\.product_id, title: @product_line\.title, user_id: @product_line\.user_id \} \}/, test)
-      assert_match(/patch product_line_url\(@product_line\), params: \{ product_line: \{ product_id: @product_line\.product_id, title: @product_line\.title, user_id: @product_line\.user_id \} \}/, test)
+      assert_match(/post product_lines_url, params: \{ product_line: \{ approved: @product_line\.approved, product_id: @product_line\.product_id, title: @product_line\.title, user_id: @product_line\.user_id \} \}/, test)
+      assert_match(/patch product_line_url\(@product_line\), params: \{ product_line: \{ approved: @product_line\.approved, product_id: @product_line\.product_id, title: @product_line\.title, user_id: @product_line\.user_id \} \}/, test)
     end
 
     # System tests
@@ -69,6 +70,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       assert_match(/class ProductLinesTest < ApplicationSystemTestCase/, test)
       assert_match(/visit product_lines_url/, test)
       assert_match(/fill_in "Title", with: @product_line\.title/, test)
+      assert_match(/check "Approved" if @product_line\.approved/, test)
       assert_match(/assert_text "Product line was successfully updated"/, test)
     end
 
@@ -469,9 +471,65 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_scaffold_generator_attachments
+    run_generator ["message", "video:attachment", "photos:attachments", "images:attachments"]
+
+    assert_file "app/models/message.rb", /has_one_attached :video/
+    assert_file "app/models/message.rb", /has_many_attached :photos/
+
+    assert_file "app/controllers/messages_controller.rb" do |content|
+      assert_instance_method :message_params, content do |m|
+        assert_match(/permit\(:video, photos: \[\], images: \[\]\)/, m)
+      end
+    end
+
+    assert_file "app/views/messages/_form.html.erb" do |content|
+      assert_match(/^\W{4}<%= form\.file_field :video %>/, content)
+      assert_match(/^\W{4}<%= form\.file_field :photos, multiple: true %>/, content)
+    end
+
+    assert_file "app/views/messages/show.html.erb" do |content|
+      assert_match(/^\W{2}<%= link_to @message\.video\.filename, @message\.video if @message\.video\.attached\? %>/, content)
+      assert_match(/^\W{4}<div><%= link_to photo\.filename, photo %>/, content)
+    end
+
+    assert_file "test/system/messages_test.rb" do |content|
+      assert_no_match(/fill_in "Video"/, content)
+      assert_no_match(/fill_in "Photos"/, content)
+    end
+  end
+
+  def test_scaffold_generator_rich_text
+    run_generator ["message", "content:rich_text"]
+
+    assert_file "app/models/message.rb", /rich_text :content/
+
+    assert_file "app/controllers/messages_controller.rb" do |content|
+      assert_instance_method :message_params, content do |m|
+        assert_match(/permit\(:content\)/, m)
+      end
+    end
+
+    assert_file "app/views/messages/_form.html.erb" do |content|
+      assert_match(/^\W{4}<%= form\.rich_text_area :content %>/, content)
+    end
+
+    assert_file "test/system/messages_test.rb" do |content|
+      assert_no_match(/fill_in "Content"/, content)
+    end
+  end
+
   def test_scaffold_generator_database
     with_secondary_database_configuration do
       run_generator ["posts", "--database=secondary"]
+
+      assert_migration "db/secondary_migrate/create_posts.rb"
+    end
+  end
+
+  def test_scaffold_generator_database_with_aliases
+    with_secondary_database_configuration do
+      run_generator ["posts", "--db=secondary"]
 
       assert_migration "db/secondary_migrate/create_posts.rb"
     end

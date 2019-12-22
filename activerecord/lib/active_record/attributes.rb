@@ -41,6 +41,9 @@ module ActiveRecord
       # +range+ (PostgreSQL only) specifies that the type should be a range (see the
       # examples below).
       #
+      # When using a symbol for +cast_type+, extra options are forwarded to the
+      # constructor of the type object.
+      #
       # ==== Examples
       #
       # The type detected by Active Record can be overridden.
@@ -111,6 +114,16 @@ module ActiveRecord
       #       my_int_array: [1, 2, 3],
       #       my_float_range: 1.0..3.5
       #     }
+      #
+      # Passing options to the type constructor
+      #
+      #   # app/models/my_model.rb
+      #   class MyModel < ActiveRecord::Base
+      #     attribute :small_int, :integer, limit: 2
+      #   end
+      #
+      #   MyModel.create(small_int: 65537)
+      #   # => Error: 65537 is out of range for the limit of two bytes
       #
       # ==== Creating Custom Types
       #
@@ -242,7 +255,6 @@ module ActiveRecord
       end
 
       private
-
         NO_DEFAULT_PROVIDED = Object.new # :nodoc:
         private_constant :NO_DEFAULT_PROVIDED
 

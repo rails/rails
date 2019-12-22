@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/hash/except"
-require "active_support/core_ext/hash/slice"
-
 module ActiveModel
   # == Active \Model \Serialization
   #
@@ -150,7 +147,6 @@ module ActiveModel
     end
 
     private
-
       # Hook method defining how an attribute value should be retrieved for
       # serialization. By default this is assumed to be an instance named after
       # the attribute. Override this method in subclasses should you need to

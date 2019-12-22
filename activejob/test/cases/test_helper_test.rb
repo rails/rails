@@ -114,9 +114,29 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     end
   end
 
+  def test_assert_enqueued_jobs_with_only_option_as_proc
+    assert_nothing_raised do
+      assert_enqueued_jobs(1, only: ->(job) { job.fetch(:job).name == "HelloJob" }) do
+        HelloJob.perform_later("jeremy")
+        LoggingJob.perform_later
+        LoggingJob.perform_later
+      end
+    end
+  end
+
   def test_assert_enqueued_jobs_with_except_option
     assert_nothing_raised do
       assert_enqueued_jobs 1, except: LoggingJob do
+        HelloJob.perform_later("jeremy")
+        LoggingJob.perform_later
+        LoggingJob.perform_later
+      end
+    end
+  end
+
+  def test_assert_enqueued_jobs_with_except_option_as_proc
+    assert_nothing_raised do
+      assert_enqueued_jobs(1, except: ->(job) { job.fetch(:job).name == "LoggingJob" }) do
         HelloJob.perform_later("jeremy")
         LoggingJob.perform_later
         LoggingJob.perform_later
@@ -476,23 +496,23 @@ class EnqueuedJobsTest < ActiveJob::TestCase
 
   def test_assert_enqueued_with_returns
     job = assert_enqueued_with(job: LoggingJob) do
-      LoggingJob.set(wait_until: 5.minutes.from_now).perform_later(1, 2, 3)
+      LoggingJob.set(wait_until: 5.minutes.from_now).perform_later(1, 2, 3, keyword: true)
     end
 
     assert_instance_of LoggingJob, job
     assert_in_delta 5.minutes.from_now, job.scheduled_at, 1
     assert_equal "default", job.queue_name
-    assert_equal [1, 2, 3], job.arguments
+    assert_equal [1, 2, 3, { keyword: true }], job.arguments
   end
 
   def test_assert_enqueued_with_with_no_block_returns
-    LoggingJob.set(wait_until: 5.minutes.from_now).perform_later(1, 2, 3)
+    LoggingJob.set(wait_until: 5.minutes.from_now).perform_later(1, 2, 3, keyword: true)
     job = assert_enqueued_with(job: LoggingJob)
 
     assert_instance_of LoggingJob, job
     assert_in_delta 5.minutes.from_now, job.scheduled_at, 1
     assert_equal "default", job.queue_name
-    assert_equal [1, 2, 3], job.arguments
+    assert_equal [1, 2, 3, { keyword: true }], job.arguments
   end
 
   def test_assert_enqueued_with_failure
@@ -513,7 +533,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
       end
     end
 
-    assert_equal 'No enqueued job found with {:job=>NestedJob, :queue=>"low"}', error.message
+    assert_match(/No enqueued job found with {:job=>NestedJob, :queue=>"low"}/, error.message)
   end
 
   def test_assert_enqueued_with_with_no_block_failure
@@ -527,7 +547,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
       assert_enqueued_with(job: NestedJob, queue: "low")
     end
 
-    assert_equal 'No enqueued job found with {:job=>NestedJob, :queue=>"low"}', error.message
+    assert_match(/No enqueued job found with {:job=>NestedJob, :queue=>"low"}/, error.message)
   end
 
   def test_assert_enqueued_with_args
@@ -561,6 +581,33 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     end
   end
 
+  def test_assert_enqueued_with_time
+    now = Time.now
+    args = [{ argument1: [now] }]
+
+    assert_enqueued_with(job: MultipleKwargsJob, args: args) do
+      MultipleKwargsJob.perform_later(argument1: [now])
+    end
+  end
+
+  def test_assert_enqueued_with_date_time
+    now = DateTime.now
+    args = [{ argument1: [now] }]
+
+    assert_enqueued_with(job: MultipleKwargsJob, args: args) do
+      MultipleKwargsJob.perform_later(argument1: [now])
+    end
+  end
+
+  def test_assert_enqueued_with_time_with_zone
+    now = Time.now.in_time_zone("Tokyo")
+    args = [{ argument1: [now] }]
+
+    assert_enqueued_with(job: MultipleKwargsJob, args: args) do
+      MultipleKwargsJob.perform_later(argument1: [now])
+    end
+  end
+
   def test_assert_enqueued_with_with_no_block_args
     assert_raise ArgumentError do
       NestedJob.set(wait_until: Date.tomorrow.noon).perform_later
@@ -571,6 +618,12 @@ class EnqueuedJobsTest < ActiveJob::TestCase
   def test_assert_enqueued_with_with_at_option
     assert_enqueued_with(job: HelloJob, at: Date.tomorrow.noon) do
       HelloJob.set(wait_until: Date.tomorrow.noon).perform_later
+    end
+  end
+
+  def test_assert_enqueued_with_with_relative_at_option
+    assert_enqueued_with(job: HelloJob, at: 5.minutes.from_now) do
+      HelloJob.set(wait: 5.minutes).perform_later
     end
   end
 
@@ -606,8 +659,8 @@ class EnqueuedJobsTest < ActiveJob::TestCase
         HelloJob.perform_later(ricardo)
       end
     end
-
-    assert_equal "No enqueued job found with {:job=>HelloJob, :args=>[#{wilma.inspect}]}", error.message
+    assert_match(/No enqueued job found with {:job=>HelloJob, :args=>\[#{wilma.inspect}\]}/, error.message)
+    assert_match(/Potential matches: {:job=>HelloJob, :args=>\[#<Person.* @id=\"9\"\>\], :queue=>\"default\"}/, error.message)
   end
 
   def test_assert_enqueued_with_failure_with_no_block_with_global_id_args
@@ -618,7 +671,8 @@ class EnqueuedJobsTest < ActiveJob::TestCase
       assert_enqueued_with(job: HelloJob, args: [wilma])
     end
 
-    assert_equal "No enqueued job found with {:job=>HelloJob, :args=>[#{wilma.inspect}]}", error.message
+    assert_match(/No enqueued job found with {:job=>HelloJob, :args=>\[#{wilma.inspect}\]}/, error.message)
+    assert_match(/Potential matches: {:job=>HelloJob, :args=>\[#<Person.* @id=\"9\"\>\], :queue=>\"default\"}/, error.message)
   end
 
   def test_assert_enqueued_with_does_not_change_jobs_count
@@ -806,6 +860,54 @@ class PerformedJobsTest < ActiveJob::TestCase
     assert_performed_jobs 1, only: LoggingJob, queue: :other_queue
   end
 
+  def test_perform_enqueued_jobs_with_at_with_job_performed_now
+    HelloJob.perform_later("kevin")
+
+    perform_enqueued_jobs(at: Time.now)
+
+    assert_performed_jobs 1
+  end
+
+  def test_perform_enqueued_jobs_with_at_with_job_wait_in_past
+    HelloJob.set(wait_until: Time.now - 100).perform_later("kevin")
+
+    perform_enqueued_jobs(at: Time.now)
+
+    assert_performed_jobs 1
+  end
+
+  def test_perform_enqueued_jobs_with_at_with_job_wait_in_future
+    HelloJob.set(wait_until: Time.now + 100).perform_later("kevin")
+
+    perform_enqueued_jobs(at: Time.now)
+
+    assert_performed_jobs 0
+  end
+
+  def test_perform_enqueued_jobs_block_with_at_with_job_performed_now
+    perform_enqueued_jobs(at: Time.now) do
+      HelloJob.perform_later("kevin")
+    end
+
+    assert_performed_jobs 1
+  end
+
+  def test_perform_enqueued_jobs_block_with_at_with_job_wait_in_past
+    perform_enqueued_jobs(at: Time.now) do
+      HelloJob.set(wait_until: Time.now - 100).perform_later("kevin")
+    end
+
+    assert_performed_jobs 1
+  end
+
+  def test_perform_enqueued_jobs_block_with_at_with_job_wait_in_future
+    perform_enqueued_jobs(at: Time.now) do
+      HelloJob.set(wait_until: Time.now + 100).perform_later("kevin")
+    end
+
+    assert_performed_jobs 0
+  end
+
   def test_assert_performed_jobs
     assert_nothing_raised do
       assert_performed_jobs 1 do
@@ -911,6 +1013,15 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
   end
 
+  def test_assert_performed_jobs_with_only_option_as_proc
+    assert_nothing_raised do
+      assert_performed_jobs(1, only: ->(job) { job.is_a?(HelloJob) }) do
+        HelloJob.perform_later("jeremy")
+        LoggingJob.perform_later("bogdan")
+      end
+    end
+  end
+
   def test_assert_performed_jobs_without_block_with_only_option
     HelloJob.perform_later("jeremy")
     LoggingJob.perform_later("bogdan")
@@ -918,6 +1029,15 @@ class PerformedJobsTest < ActiveJob::TestCase
     perform_enqueued_jobs
 
     assert_performed_jobs 1, only: HelloJob
+  end
+
+  def test_assert_performed_jobs_without_block_with_only_option_as_proc
+    HelloJob.perform_later("jeremy")
+    LoggingJob.perform_later("bogdan")
+
+    perform_enqueued_jobs
+
+    assert_performed_jobs(1, only: ->(job) { job.fetch(:job).name == "HelloJob" })
   end
 
   def test_assert_performed_jobs_without_block_with_only_option_failure
@@ -942,6 +1062,15 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
   end
 
+  def test_assert_performed_jobs_with_except_option_as_proc
+    assert_nothing_raised do
+      assert_performed_jobs(1, except: ->(job) { job.is_a?(HelloJob) }) do
+        HelloJob.perform_later("jeremy")
+        LoggingJob.perform_later("bogdan")
+      end
+    end
+  end
+
   def test_assert_performed_jobs_without_block_with_except_option
     HelloJob.perform_later("jeremy")
     LoggingJob.perform_later("bogdan")
@@ -949,6 +1078,15 @@ class PerformedJobsTest < ActiveJob::TestCase
     perform_enqueued_jobs
 
     assert_performed_jobs 1, except: HelloJob
+  end
+
+  def test_assert_performed_jobs_without_block_with_except_option_as_proc
+    HelloJob.perform_later("jeremy")
+    LoggingJob.perform_later("bogdan")
+
+    perform_enqueued_jobs
+
+    assert_performed_jobs(1, except: ->(job) { job.fetch(:job).name == "HelloJob" })
   end
 
   def test_assert_performed_jobs_without_block_with_except_option_failure
@@ -1515,26 +1653,26 @@ class PerformedJobsTest < ActiveJob::TestCase
   end
 
   def test_assert_performed_with_returns
-    job = assert_performed_with(job: NestedJob, queue: "default") do
-      NestedJob.perform_later
+    job = assert_performed_with(job: LoggingJob, queue: "default") do
+      LoggingJob.perform_later(keyword: :sym)
     end
 
-    assert_instance_of NestedJob, job
+    assert_instance_of LoggingJob, job
     assert_nil job.scheduled_at
-    assert_equal [], job.arguments
+    assert_equal [{ keyword: :sym }], job.arguments
     assert_equal "default", job.queue_name
   end
 
   def test_assert_performed_with_without_block_returns
-    NestedJob.perform_later
+    LoggingJob.perform_later(keyword: :sym)
 
     perform_enqueued_jobs
 
-    job = assert_performed_with(job: NestedJob, queue: "default")
+    job = assert_performed_with(job: LoggingJob, queue: "default")
 
-    assert_instance_of NestedJob, job
+    assert_instance_of LoggingJob, job
     assert_nil job.scheduled_at
-    assert_equal [], job.arguments
+    assert_equal [{ keyword: :sym }], job.arguments
     assert_equal "default", job.queue_name
   end
 
@@ -1576,6 +1714,18 @@ class PerformedJobsTest < ActiveJob::TestCase
     assert_raise ActiveSupport::TestCase::Assertion do
       assert_performed_with(job: HelloJob, at: Date.today.noon) do
         HelloJob.set(wait_until: Date.tomorrow.noon).perform_later
+      end
+    end
+  end
+
+  def test_assert_performed_with_with_relative_at_option
+    assert_performed_with(job: HelloJob, at: 5.minutes.from_now) do
+      HelloJob.set(wait: 5.minutes).perform_later
+    end
+
+    assert_raise ActiveSupport::TestCase::Assertion do
+      assert_performed_with(job: HelloJob, at: 2.minutes.from_now) do
+        HelloJob.set(wait: 1.minute).perform_later
       end
     end
   end
@@ -1625,6 +1775,33 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
   end
 
+  def test_assert_performed_with_time
+    now = Time.now
+    args = [{ argument1: { now: now }, argument2: now }]
+
+    assert_performed_with(job: MultipleKwargsJob, args: args) do
+      MultipleKwargsJob.perform_later(argument1: { now: now }, argument2: now)
+    end
+  end
+
+  def test_assert_performed_with_date_time
+    now = DateTime.now
+    args = [{ argument1: { now: now }, argument2: now }]
+
+    assert_performed_with(job: MultipleKwargsJob, args: args) do
+      MultipleKwargsJob.perform_later(argument1: { now: now }, argument2: now)
+    end
+  end
+
+  def test_assert_performed_with_time_with_zone
+    now = Time.now.in_time_zone("Tokyo")
+    args = [{ argument1: { now: now }, argument2: now }]
+
+    assert_performed_with(job: MultipleKwargsJob, args: args) do
+      MultipleKwargsJob.perform_later(argument1: { now: now }, argument2: now)
+    end
+  end
+
   def test_assert_performed_with_with_global_id_args
     ricardo = Person.new(9)
     assert_performed_with(job: HelloJob, args: [ricardo]) do
@@ -1632,7 +1809,7 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
   end
 
-  def test_assert_performed_with_without_bllock_with_global_id_args
+  def test_assert_performed_with_without_block_with_global_id_args
     ricardo = Person.new(9)
     HelloJob.perform_later(ricardo)
     perform_enqueued_jobs
@@ -1647,8 +1824,8 @@ class PerformedJobsTest < ActiveJob::TestCase
         HelloJob.perform_later(ricardo)
       end
     end
-
-    assert_equal "No performed job found with {:job=>HelloJob, :args=>[#{wilma.inspect}]}", error.message
+    assert_match(/No performed job found with {:job=>HelloJob, :args=>\[#{wilma.inspect}\]}/, error.message)
+    assert_match(/Potential matches: {:job=>HelloJob, :args=>\[#<Person.* @id=\"9\"\>\], :queue=>\"default\"}/, error.message)
   end
 
   def test_assert_performed_with_without_block_failure_with_global_id_args
@@ -1660,7 +1837,8 @@ class PerformedJobsTest < ActiveJob::TestCase
       assert_performed_with(job: HelloJob, args: [wilma])
     end
 
-    assert_equal "No performed job found with {:job=>HelloJob, :args=>[#{wilma.inspect}]}", error.message
+    assert_match(/No performed job found with {:job=>HelloJob, :args=>\[#{wilma.inspect}\]}/, error.message)
+    assert_match(/Potential matches: {:job=>HelloJob, :args=>\[#<Person.* @id=\"9\"\>\], :queue=>\"default\"}/, error.message)
   end
 
   def test_assert_performed_with_does_not_change_jobs_count

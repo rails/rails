@@ -232,7 +232,7 @@ module ApplicationTests
       get "/someone/blog/generate_application_route"
       assert_equal "/", last_response.body
 
-      get "/somone/blog/application_route_in_view"
+      get "/someone/blog/application_route_in_view"
       assert_equal "/", last_response.body
 
       # test generating engine's route from other engine
@@ -258,8 +258,8 @@ module ApplicationTests
       assert_equal "http://example.org/anonymous/blog/posts/44", last_response.body
 
       # test that correct path is generated for the same polymorphic_path call in an engine
-      get "/somone/blog/engine_polymorphic_path"
-      assert_equal "/somone/blog/posts/44", last_response.body
+      get "/someone/blog/engine_polymorphic_path"
+      assert_equal "/someone/blog/posts/44", last_response.body
 
       # and in an application
       get "/application_polymorphic_path"

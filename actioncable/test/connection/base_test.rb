@@ -108,7 +108,7 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
       connection.process
 
       assert_called(connection.websocket, :close) do
-        connection.close
+        connection.close(reason: "testing")
       end
     end
   end

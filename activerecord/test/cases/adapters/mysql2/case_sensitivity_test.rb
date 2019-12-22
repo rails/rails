@@ -22,7 +22,7 @@ class Mysql2CaseSensitivityTest < ActiveRecord::Mysql2TestCase
     CollationTest.validates_uniqueness_of(:string_ci_column, case_sensitive: false)
     CollationTest.create!(string_ci_column: "A")
     invalid = CollationTest.new(string_ci_column: "a")
-    queries = assert_sql { invalid.save }
+    queries = capture_sql { invalid.save }
     ci_uniqueness_query = queries.detect { |q| q.match(/string_ci_column/) }
     assert_no_match(/lower/i, ci_uniqueness_query)
   end
@@ -31,7 +31,7 @@ class Mysql2CaseSensitivityTest < ActiveRecord::Mysql2TestCase
     CollationTest.validates_uniqueness_of(:string_cs_column, case_sensitive: false)
     CollationTest.create!(string_cs_column: "A")
     invalid = CollationTest.new(string_cs_column: "a")
-    queries = assert_sql { invalid.save }
+    queries = capture_sql { invalid.save }
     cs_uniqueness_query = queries.detect { |q| q.match(/string_cs_column/) }
     assert_match(/lower/i, cs_uniqueness_query)
   end
@@ -40,7 +40,7 @@ class Mysql2CaseSensitivityTest < ActiveRecord::Mysql2TestCase
     CollationTest.validates_uniqueness_of(:string_ci_column, case_sensitive: true)
     CollationTest.create!(string_ci_column: "A")
     invalid = CollationTest.new(string_ci_column: "A")
-    queries = assert_sql { invalid.save }
+    queries = capture_sql { invalid.save }
     ci_uniqueness_query = queries.detect { |q| q.match(/string_ci_column/) }
     assert_match(/binary/i, ci_uniqueness_query)
   end
@@ -49,7 +49,7 @@ class Mysql2CaseSensitivityTest < ActiveRecord::Mysql2TestCase
     CollationTest.validates_uniqueness_of(:string_cs_column, case_sensitive: true)
     CollationTest.create!(string_cs_column: "A")
     invalid = CollationTest.new(string_cs_column: "A")
-    queries = assert_sql { invalid.save }
+    queries = capture_sql { invalid.save }
     cs_uniqueness_query = queries.detect { |q| q.match(/string_cs_column/) }
     assert_no_match(/binary/i, cs_uniqueness_query)
   end
@@ -58,7 +58,7 @@ class Mysql2CaseSensitivityTest < ActiveRecord::Mysql2TestCase
     CollationTest.validates_uniqueness_of(:binary_column, case_sensitive: true)
     CollationTest.create!(binary_column: "A")
     invalid = CollationTest.new(binary_column: "A")
-    queries = assert_sql { invalid.save }
+    queries = capture_sql { invalid.save }
     bin_uniqueness_query = queries.detect { |q| q.match(/binary_column/) }
     assert_no_match(/\bBINARY\b/, bin_uniqueness_query)
   end

@@ -19,6 +19,10 @@ module ActiveRecord
       def readonly_attributes
         _attr_readonly
       end
+
+      def readonly_attribute?(name) # :nodoc:
+        _attr_readonly.include?(name)
+      end
     end
   end
 end

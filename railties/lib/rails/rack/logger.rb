@@ -30,7 +30,6 @@ module Rails
       end
 
       private
-
         def call_app(request, env) # :doc:
           instrumenter = ActiveSupport::Notifications.instrumenter
           instrumenter.start "request.action_dispatch", request: request

@@ -16,8 +16,8 @@ After reading this guide, you will know:
 --------------------------------------------------------------------------------
 
 
-Introduction
-------------
+What is Active Job?
+-------------------
 
 Active Job is a framework for declaring jobs and making them run on a variety
 of queuing backends. These jobs can be everything from regularly scheduled
@@ -121,7 +121,7 @@ production apps will need to pick a persistent backend.
 
 Active Job has built-in adapters for multiple queuing backends (Sidekiq,
 Resque, Delayed Job, and others). To get an up-to-date list of the adapters
-see the API Documentation for [ActiveJob::QueueAdapters](http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
+see the API Documentation for [ActiveJob::QueueAdapters](https://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
 
 ### Setting the Backend
 
@@ -165,6 +165,7 @@ Here is a noncomprehensive list of documentation:
 - [Sneakers](https://github.com/jondot/sneakers/wiki/How-To:-Rails-Background-Jobs-with-ActiveJob)
 - [Sucker Punch](https://github.com/brandonhilkert/sucker_punch#active-job)
 - [Queue Classic](https://github.com/QueueClassic/queue_classic#active-job)
+- [Delayed Job](https://github.com/collectiveidea/delayed_job#active-job)
 
 Queues
 ------
@@ -199,6 +200,19 @@ end
 # Now your job will run on queue production_low_priority on your
 # production environment and on staging_low_priority
 # on your staging environment
+```
+
+You can also configure the prefix on a per job basis.
+
+```ruby
+class GuestsCleanupJob < ApplicationJob
+  queue_as :low_priority
+  self.queue_name_prefix = nil
+  #....
+end
+
+# Now your job's queue won't be prefixed, overriding what
+# was configured in `config.active_job.queue_name_prefix`.
 ```
 
 The default queue name prefix delimiter is '\_'.  This can be changed by setting
@@ -289,7 +303,7 @@ style if the code inside your block is so short that it fits in a single line.
 For example, you could send metrics for every job enqueued:
 
 ```ruby
-class ApplicationJob
+class ApplicationJob < ActiveJob::Base
   before_enqueue { |job| $statsd.increment "#{job.class.name.underscore}.enqueue" }
 end
 ```
@@ -354,6 +368,8 @@ ActiveJob supports the following types of arguments by default:
   - `Hash` (Keys should be of `String` or `Symbol` type)
   - `ActiveSupport::HashWithIndifferentAccess`
   - `Array`
+  - `Module`
+  - `Class`
 
 ### GlobalID
 
@@ -437,7 +453,11 @@ class GuestsCleanupJob < ApplicationJob
 end
 ```
 
+If the exception is not rescued within the job, e.g. as shown above, then the job is referred to as "failed".
+
 ### Retrying or Discarding failed jobs
+
+A failed job will not be retried, unless configured otherwise.
 
 It's also possible to retry or discard a job if an exception is raised during execution.
 For example:
@@ -454,7 +474,7 @@ class RemoteServiceJob < ApplicationJob
 end
 ```
 
-To get more details see the API Documentation for [ActiveJob::Exceptions](http://api.rubyonrails.org/classes/ActiveJob/Exceptions/ClassMethods.html).
+To get more details see the API Documentation for [ActiveJob::Exceptions](https://api.rubyonrails.org/classes/ActiveJob/Exceptions/ClassMethods.html).
 
 ### Deserialization
 

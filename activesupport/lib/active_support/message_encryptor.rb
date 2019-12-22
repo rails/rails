@@ -53,7 +53,7 @@ module ActiveSupport
   #   crypt.encrypt_and_sign(parcel, expires_in: 1.month)
   #   crypt.encrypt_and_sign(doowad, expires_at: Time.now.end_of_year)
   #
-  # Then the messages can be verified and returned upto the expire time.
+  # Then the messages can be verified and returned up to the expire time.
   # Thereafter, verifying returns +nil+.
   #
   # === Rotating keys
@@ -172,7 +172,7 @@ module ActiveSupport
         iv = cipher.random_iv
         cipher.auth_data = "" if aead_mode?
 
-        encrypted_data = cipher.update(Messages::Metadata.wrap(@serializer.dump(value), metadata_options))
+        encrypted_data = cipher.update(Messages::Metadata.wrap(@serializer.dump(value), **metadata_options))
         encrypted_data << cipher.final
 
         blob = "#{::Base64.strict_encode64 encrypted_data}--#{::Base64.strict_encode64 iv}"

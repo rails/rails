@@ -6,7 +6,6 @@ module Arel # :nodoc: all
     # Abstract base class for all AST nodes
     class Node
       include Arel::FactoryMethods
-      include Enumerable
 
       ###
       # Factory method to create a Nodes::Not node that has the recipient of
@@ -37,13 +36,6 @@ module Arel # :nodoc: all
         collector = Arel::Collectors::SQLString.new
         collector = engine.connection.visitor.accept self, collector
         collector.value
-      end
-
-      # Iterate through AST, nodes will be yielded depth-first
-      def each(&block)
-        return enum_for(:each) unless block_given?
-
-        ::Arel::Visitors::DepthFirst.new(block).accept self
       end
     end
   end

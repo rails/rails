@@ -26,10 +26,8 @@ module ActionController
     included do
       class_attribute :etag_with_template_digest, default: true
 
-      ActiveSupport.on_load :action_view, yield: true do
-        etag do |options|
-          determine_template_etag(options) if etag_with_template_digest
-        end
+      etag do |options|
+        determine_template_etag(options) if etag_with_template_digest
       end
     end
 
@@ -51,7 +49,7 @@ module ActionController
       end
 
       def lookup_and_digest_template(template)
-        ActionView::Digestor.digest name: template, finder: lookup_context
+        ActionView::Digestor.digest name: template, format: nil, finder: lookup_context
       end
   end
 end

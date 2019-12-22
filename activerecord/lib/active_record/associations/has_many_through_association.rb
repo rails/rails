@@ -57,19 +57,12 @@ module ActiveRecord
           @through_records[record.object_id] ||= begin
             ensure_mutable
 
-            through_record = through_association.build(*options_for_through_record)
-            through_record.send("#{source_reflection.name}=", record)
+            attributes = through_scope_attributes
+            attributes[source_reflection.name] = record
+            attributes[source_reflection.foreign_type] = options[:source_type] if options[:source_type]
 
-            if options[:source_type]
-              through_record.send("#{source_reflection.foreign_type}=", options[:source_type])
-            end
-
-            through_record
+            through_association.build(attributes)
           end
-        end
-
-        def options_for_through_record
-          [through_scope_attributes]
         end
 
         def through_scope_attributes
@@ -160,6 +153,30 @@ module ActiveRecord
             update_counter(-count, through_reflection)
           else
             update_counter(-count)
+          end
+
+          count
+        end
+
+        def difference(a, b)
+          distribution = distribution(b)
+
+          a.reject { |record| mark_occurrence(distribution, record) }
+        end
+
+        def intersection(a, b)
+          distribution = distribution(b)
+
+          a.select { |record| mark_occurrence(distribution, record) }
+        end
+
+        def mark_occurrence(distribution, record)
+          distribution[record] > 0 && distribution[record] -= 1
+        end
+
+        def distribution(array)
+          array.each_with_object(Hash.new(0)) do |record, distribution|
+            distribution[record] += 1
           end
         end
 

@@ -54,6 +54,6 @@ module Minitest
     end
   end
 
-  # Backwardscompatibility with Rails 5.0 generated plugin test scripts
+  # Backwards compatibility with Rails 5.0 generated plugin test scripts
   mattr_reader :run_via, default: {}
 end

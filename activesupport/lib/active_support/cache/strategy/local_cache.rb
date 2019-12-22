@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/object/duplicable"
 require "active_support/core_ext/string/inflections"
 require "active_support/per_thread_registry"
 
@@ -50,32 +49,36 @@ module ActiveSupport
             @data.clear
           end
 
-          def read_entry(key, options)
+          def read_entry(key, **options)
             @data[key]
           end
 
-          def read_multi_entries(keys, options)
+          def read_multi_entries(keys, **options)
             values = {}
 
             keys.each do |name|
-              entry = read_entry(name, options)
+              entry = read_entry(name, **options)
               values[name] = entry.value if entry
             end
 
             values
           end
 
-          def write_entry(key, value, options)
-            @data[key] = value
+          def write_entry(key, entry, **options)
+            entry.dup_value!
+            @data[key] = entry
             true
           end
 
-          def delete_entry(key, options)
+          def delete_entry(key, **options)
             !!@data.delete(key)
           end
 
           def fetch_entry(key, options = nil) # :nodoc:
-            @data.fetch(key) { @data[key] = yield }
+            entry = @data.fetch(key) { @data[key] = yield }
+            dup_entry = entry.dup
+            dup_entry&.dup_value!
+            dup_entry
           end
         end
 
@@ -92,34 +95,34 @@ module ActiveSupport
             local_cache_key)
         end
 
-        def clear(options = nil) # :nodoc:
+        def clear(**options) # :nodoc:
           return super unless cache = local_cache
           cache.clear(options)
           super
         end
 
-        def cleanup(options = nil) # :nodoc:
+        def cleanup(**options) # :nodoc:
           return super unless cache = local_cache
           cache.clear
           super
         end
 
-        def increment(name, amount = 1, options = nil) # :nodoc:
+        def increment(name, amount = 1, **options) # :nodoc:
           return super unless local_cache
           value = bypass_local_cache { super }
-          write_cache_value(name, value, options)
+          write_cache_value(name, value, **options)
           value
         end
 
-        def decrement(name, amount = 1, options = nil) # :nodoc:
+        def decrement(name, amount = 1, **options) # :nodoc:
           return super unless local_cache
           value = bypass_local_cache { super }
-          write_cache_value(name, value, options)
+          write_cache_value(name, value, **options)
           value
         end
 
         private
-          def read_entry(key, options)
+          def read_entry(key, **options)
             if cache = local_cache
               cache.fetch_entry(key) { super }
             else
@@ -127,42 +130,42 @@ module ActiveSupport
             end
           end
 
-          def read_multi_entries(keys, options)
+          def read_multi_entries(keys, **options)
             return super unless local_cache
 
-            local_entries = local_cache.read_multi_entries(keys, options)
+            local_entries = local_cache.read_multi_entries(keys, **options)
             missed_keys = keys - local_entries.keys
 
             if missed_keys.any?
-              local_entries.merge!(super(missed_keys, options))
+              local_entries.merge!(super(missed_keys, **options))
             else
               local_entries
             end
           end
 
-          def write_entry(key, entry, options)
+          def write_entry(key, entry, **options)
             if options[:unless_exist]
-              local_cache.delete_entry(key, options) if local_cache
+              local_cache.delete_entry(key, **options) if local_cache
             else
-              local_cache.write_entry(key, entry, options) if local_cache
+              local_cache.write_entry(key, entry, **options) if local_cache
             end
 
             super
           end
 
-          def delete_entry(key, options)
-            local_cache.delete_entry(key, options) if local_cache
+          def delete_entry(key, **options)
+            local_cache.delete_entry(key, **options) if local_cache
             super
           end
 
-          def write_cache_value(name, value, options)
+          def write_cache_value(name, value, **options)
             name = normalize_key(name, options)
             cache = local_cache
             cache.mute do
               if value
                 cache.write(name, value, options)
               else
-                cache.delete(name, options)
+                cache.delete(name, **options)
               end
             end
           end

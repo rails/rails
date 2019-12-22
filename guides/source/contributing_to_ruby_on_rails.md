@@ -13,10 +13,10 @@ After reading this guide, you will know:
 * How to contribute to the Ruby on Rails documentation.
 * How to contribute to the Ruby on Rails code.
 
-Ruby on Rails is not "someone else's framework." Over the years, thousands of people have contributed to Ruby on Rails ranging from a single character to massive architectural changes or significant documentation - all with the goal of making Ruby on Rails better for everyone. Even if you don't feel up to writing code or documentation yet, there are a variety of other ways that you can contribute, from reporting issues to testing patches.
+Ruby on Rails is not "someone else's framework". Over the years, thousands of people have contributed to Ruby on Rails ranging from a single character to massive architectural changes or significant documentation - all with the goal of making Ruby on Rails better for everyone. Even if you don't feel up to writing code or documentation yet, there are a variety of other ways that you can contribute, from reporting issues to testing patches.
 
 As mentioned in [Rails'
-README](https://github.com/rails/rails/blob/master/README.md), everyone interacting in Rails and its sub-projects' codebases, issue trackers, chat rooms, and mailing lists is expected to follow the Rails [code of conduct](http://rubyonrails.org/conduct/).
+README](https://github.com/rails/rails/blob/master/README.md), everyone interacting in Rails and its sub-projects' codebases, issue trackers, chat rooms, and mailing lists is expected to follow the Rails [code of conduct](https://rubyonrails.org/conduct/).
 
 --------------------------------------------------------------------------------
 
@@ -43,17 +43,18 @@ Having a way to reproduce your issue will be very helpful for others to help con
 * Template for testing Active Record (migration) issues: [gem](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_record_migrations_gem.rb) / [master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_record_migrations_master.rb)
 * Template for Action Pack (controllers, routing) issues: [gem](https://github.com/rails/rails/blob/master/guides/bug_report_templates/action_controller_gem.rb) / [master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/action_controller_master.rb)
 * Template for Active Job issues: [gem](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_job_gem.rb) / [master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_job_master.rb)
+* Template for Active Storage issues: [gem](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_storage_gem.rb) / [master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_storage_master.rb)
 * Generic template for other issues: [gem](https://github.com/rails/rails/blob/master/guides/bug_report_templates/generic_gem.rb) / [master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/generic_master.rb)
 
 These templates include the boilerplate code to set up a test case against either a released version of Rails (`*_gem.rb`) or edge Rails (`*_master.rb`).
 
-Simply copy the content of the appropriate template into a `.rb` file and make the necessary changes to demonstrate the issue. You can execute it by running `ruby the_file.rb` in your terminal. If all goes well, you should see your test case failing.
+Copy the content of the appropriate template into a `.rb` file and make the necessary changes to demonstrate the issue. You can execute it by running `ruby the_file.rb` in your terminal. If all goes well, you should see your test case failing.
 
-You can then share your executable test case as a [gist](https://gist.github.com), or simply paste the content into the issue description.
+You can then share your executable test case as a [gist](https://gist.github.com), or paste the content into the issue description.
 
 ### Special Treatment for Security Issues
 
-WARNING: Please do not report security vulnerabilities with public GitHub issue reports. The [Rails security policy page](http://rubyonrails.org/security) details the procedure to follow for security issues.
+WARNING: Please do not report security vulnerabilities with public GitHub issue reports. The [Rails security policy page](https://rubyonrails.org/security) details the procedure to follow for security issues.
 
 ### What about Feature Requests?
 
@@ -76,7 +77,7 @@ a patch, please send an email to the [rails-core mailing
 list](https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core). You
 might get no response, which means that everyone is indifferent. You might find
 someone who's also interested in building that feature. You might get a "This
-won't be accepted." But it's the proper place to discuss new ideas. GitHub
+won't be accepted". But it's the proper place to discuss new ideas. GitHub
 Issues are not a particularly good venue for the sometimes long and involved
 discussions new features require.
 
@@ -132,14 +133,14 @@ Contributing to the Rails Documentation
 Ruby on Rails has two main sets of documentation: the guides, which help you
 learn about Ruby on Rails, and the API, which serves as a reference.
 
-You can help improve the Rails guides by making them more coherent, consistent, or readable, adding missing information, correcting factual errors, fixing typos, or bringing them up to date with the latest edge Rails.
+You can help improve the Rails guides or the API reference by making them more coherent, consistent, or readable, adding missing information, correcting factual errors, fixing typos, or bringing them up to date with the latest edge Rails.
 
-To do so, make changes to Rails guides source files (located [here](https://github.com/rails/rails/tree/master/guides/source) on GitHub). Then open a pull request to apply your
+To do so, make changes to Rails guides source files (located [here](https://github.com/rails/rails/tree/master/guides/source) on GitHub) or RDoc comments in source code. Then open a pull request to apply your
 changes to the master branch.
 
 When working with documentation, please take into account the [API Documentation Guidelines](api_documentation_guidelines.html) and the [Ruby on Rails Guides Guidelines](ruby_on_rails_guides_guidelines.html).
 
-NOTE: To help our CI servers you should add [ci skip] to your documentation commit message to skip build on that commit. Please remember to use it for commits containing only documentation changes.
+NOTE: For documentation changes, your commit message should include [ci skip]. This will skip running the test suite, helping us to cut down on our server costs. Keep in mind that you should only skip CI when your change touches documentation exclusively.
 
 Translating Rails Guides
 ------------------------
@@ -153,7 +154,7 @@ We are happy to have people volunteer to translate the Rails guides. Just follow
 
 Note that translations are not submitted to the Rails repository. As detailed above, your work happens in a fork. This is so because in practice documentation maintenance via patches is only sustainable in English.
 
-To generate the guides in HTML format cd into the *guides* directory then run (eg. for it-IT):
+To generate the guides in HTML format cd into the *guides* directory then run (e.g. for it-IT):
 
 ```bash
 $ bundle install
@@ -247,13 +248,13 @@ Rails follows a simple set of coding style conventions:
 
 * Two spaces, no tabs (for indentation).
 * No trailing whitespace. Blank lines should not have any spaces.
-* Indent after private/protected.
+* Indent and no blank line after private/protected.
 * Use Ruby >= 1.9 syntax for hashes. Prefer `{ a: :b }` over `{ :a => :b }`.
 * Prefer `&&`/`||` over `and`/`or`.
-* Prefer class << self over self.method for class methods.
+* Prefer `class << self` over `self.method` for class methods.
 * Use `my_method(my_arg)` not `my_method( my_arg )` or `my_method my_arg`.
 * Use `a = b` and not `a=b`.
-* Use assert\_not methods instead of refute.
+* Use `assert_not` methods instead of `refute`.
 * Prefer `method { do_stuff }` instead of `method{do_stuff}` for single-line blocks.
 * Follow the conventions in the source you see used already.
 
@@ -302,7 +303,7 @@ the recommended workflow with the [rails-dev-box](https://github.com/rails/rails
 As a compromise, test what your code obviously affects, and if the change is
 not in railties, run the whole test suite of the affected component. If all
 tests are passing, that's enough to propose your contribution. We have
-[Travis CI](https://travis-ci.org/rails/rails) as a safety net for catching
+[Buildkite](https://buildkite.com/rails/rails) as a safety net for catching
 unexpected breakages elsewhere.
 
 #### Entire Rails:
@@ -324,6 +325,26 @@ $ cd actionmailer
 $ bundle exec rake test
 ```
 
+#### For a Specific Directory
+
+If you want to run the tests located in a specific directory use the `TEST_DIR`
+environment variable. For example, this will run the tests in the
+`railties/test/generators` directory only:
+
+```bash
+$ cd railties
+$ TEST_DIR=generators bundle exec rake test
+```
+
+#### For a Specific File
+
+You can run the tests for a particular file by using:
+
+```bash
+$ cd actionview
+$ bundle exec ruby -w -Itest test/template/form_helper_test.rb
+```
+
 #### Running a Single Test
 
 You can run a single test through ruby. For instance:
@@ -333,8 +354,7 @@ $ cd actionmailer
 $ bundle exec ruby -w -Itest test/mail_layout_test.rb -n test_explicit_class_layout
 ```
 
-The `-n` option allows you to run a single method instead of the whole
-file.
+The `-n` option allows you to run a single method instead of the whole file.
 
 #### Running tests with a specific seed
 
@@ -361,9 +381,19 @@ $ SEED=15002 bundle exec ruby -w -Itest test/mail_layout_test.rb
 First, create the databases you'll need. You can find a list of the required
 table names, usernames, and passwords in `activerecord/test/config.example.yml`.
 
-For MySQL and PostgreSQL, running the SQL statements `create database
-activerecord_unittest` and `create database activerecord_unittest2` is
-sufficient. This is not necessary for SQLite3.
+For MySQL and PostgreSQL, it is sufficient to run:
+
+```bash
+$ cd activerecord
+$ bundle exec rake db:mysql:build
+```
+Or:
+
+```bash
+$ cd activerecord
+$ bundle exec rake db:postgresql:build
+```
+This is not necessary for SQLite3.
 
 This is how you run the Active Record test suite only for SQLite3:
 
@@ -399,7 +429,7 @@ To run a single test against all adapters, use:
 $ bundle exec rake TEST=test/cases/associations/has_many_associations_test.rb
 ```
 
-You can invoke `test_jdbcmysql`, `test_jdbcsqlite3` or `test_jdbcpostgresql` also. See the file `activerecord/RUNNING_UNIT_TESTS.rdoc` for information on running more targeted database tests, or the file `ci/travis.rb` for the test suite run by the continuous integration server.
+You can invoke `test_jdbcmysql`, `test_jdbcsqlite3` or `test_jdbcpostgresql` also. See the file `activerecord/RUNNING_UNIT_TESTS.rdoc` for information on running more targeted database tests.
 
 ### Warnings
 
@@ -635,7 +665,7 @@ TIP: You may want to [put your Git branch name in your shell prompt](http://qugs
 
 Changes that are merged into master are intended for the next major release of Rails. Sometimes, it might be beneficial for your changes to propagate back to the maintenance releases for older stable branches. Generally, security fixes and bug fixes are good candidates for a backport, while new features and patches that introduce a change in behavior will not be accepted. When in doubt, it is best to consult a Rails team member before backporting your changes to avoid wasted effort.
 
-For simple fixes, the easiest way to backport your changes is to [extract a diff from your changes in master and apply them to the target branch](http://ariejan.net/2009/10/26/how-to-create-and-apply-a-patch-with-git).
+For simple fixes, the easiest way to backport your changes is to [extract a diff from your changes in master and apply them to the target branch](https://www.devroom.io/2009/10/26/how-to-create-and-apply-a-patch-with-git/).
 
 First, make sure your changes are the only difference between your current branch and master:
 
@@ -658,11 +688,11 @@ $ git apply ~/my_changes.patch
 
 This works well for simple changes. However, if your changes are complicated or if the code in master has deviated significantly from your target branch, it might require more work on your part. The difficulty of a backport varies greatly from case to case, and sometimes it is simply not worth the effort.
 
-Once you have resolved all conflicts and made sure all the tests are passing, push your changes and open a separate pull request for your backport. It is also worth noting that older branches might have a different set of build targets than master. When possible, it is best to first test your backport locally against the Ruby versions listed in `.travis.yml` before submitting your pull request.
+Once you have resolved all conflicts and made sure all the tests are passing, push your changes and open a separate pull request for your backport. It is also worth noting that older branches might have a different set of build targets than master. When possible, it is best to first test your backport locally against the oldest Ruby version permitted by the target branch's `rails.gemspec` before submitting your pull request.
 
 And then... think about your next contribution!
 
 Rails Contributors
 ------------------
 
-All contributions get credit in [Rails Contributors](http://contributors.rubyonrails.org).
+All contributions get credit in [Rails Contributors](https://contributors.rubyonrails.org).

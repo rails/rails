@@ -27,7 +27,7 @@ module ActionController
 
   class MethodNotAllowed < ActionControllerError #:nodoc:
     def initialize(*allowed_methods)
-      super("Only #{allowed_methods.to_sentence(locale: :en)} requests are allowed.")
+      super("Only #{allowed_methods.to_sentence} requests are allowed.")
     end
   end
 
@@ -52,7 +52,7 @@ module ActionController
   end
 
   # Raised when a nested respond_to is triggered and the content types of each
-  # are incompatible. For exampe:
+  # are incompatible. For example:
   #
   #  respond_to do |outer_type|
   #    outer_type.js do

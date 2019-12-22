@@ -15,7 +15,7 @@ After reading this guide, you will know:
 Markdown
 -------
 
-Guides are written in [GitHub Flavored Markdown](https://help.github.com/articles/github-flavored-markdown). There is comprehensive [documentation for Markdown](http://daringfireball.net/projects/markdown/syntax), as well as a [cheatsheet](http://daringfireball.net/projects/markdown/basics).
+Guides are written in [GitHub Flavored Markdown](https://help.github.com/articles/github-flavored-markdown). There is comprehensive [documentation for Markdown](https://daringfireball.net/projects/markdown/syntax), as well as a [cheatsheet](https://daringfireball.net/projects/markdown/basics).
 
 Prologue
 --------
@@ -58,7 +58,7 @@ Links to the API (`api.rubyonrails.org`) are processed by the guides generator i
 Links that include a release tag are left untouched. For example
 
 ```
-http://api.rubyonrails.org/v5.0.1/classes/ActiveRecord/Attributes/ClassMethods.html
+https://api.rubyonrails.org/v5.0.1/classes/ActiveRecord/Attributes/ClassMethods.html
 ```
 
 is not modified.
@@ -68,25 +68,25 @@ Please use these in release notes, since they should point to the corresponding 
 If the link does not include a release tag and edge guides are being generated, the domain is replaced by `edgeapi.rubyonrails.org`. For example,
 
 ```
-http://api.rubyonrails.org/classes/ActionDispatch/Response.html
+https://api.rubyonrails.org/classes/ActionDispatch/Response.html
 ```
 
 becomes
 
 ```
-http://edgeapi.rubyonrails.org/classes/ActionDispatch/Response.html
+https://edgeapi.rubyonrails.org/classes/ActionDispatch/Response.html
 ```
 
 If the link does not include a release tag and release guides are being generated, the Rails version is injected. For example, if we are generating the guides for v5.1.0 the link
 
 ```
-http://api.rubyonrails.org/classes/ActionDispatch/Response.html
+https://api.rubyonrails.org/classes/ActionDispatch/Response.html
 ```
 
 becomes
 
 ```
-http://api.rubyonrails.org/v5.1.0/classes/ActionDispatch/Response.html
+https://api.rubyonrails.org/v5.1.0/classes/ActionDispatch/Response.html
 ```
 
 Please don't link to `edgeapi.rubyonrails.org` manually.
@@ -107,8 +107,8 @@ HTML Guides
 -----------
 
 Before generating the guides, make sure that you have the latest version of
-Bundler installed on your system. As of this writing, you must install Bundler
-1.3.5 or later on your device.
+Bundler installed on your system. You can find the latest Bundler version
+[here](https://rubygems.org/gems/bundler). As of this writing, it's v1.17.1.
 
 To install the latest version of Bundler, run `gem install bundler`.
 
@@ -139,7 +139,7 @@ By default, guides that have not been modified are not processed, so `ONLY` is r
 
 To force processing all the guides, pass `ALL=1`.
 
-If you want to generate guides in a language other than English, you can keep them in a separate directory under `source` (eg. `source/es`) and use the `GUIDES_LANGUAGE` environment variable:
+If you want to generate guides in a language other than English, you can keep them in a separate directory under `source` (e.g. `source/es`) and use the `GUIDES_LANGUAGE` environment variable:
 
 ```
 bundle exec rake guides:generate GUIDES_LANGUAGE=es

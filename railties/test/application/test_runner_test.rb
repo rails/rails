@@ -16,7 +16,7 @@ module ApplicationTests
       teardown_app
     end
 
-    def test_run_via_backwardscompatibility
+    def test_run_via_backwards_compatibility
       require "minitest/rails_plugin"
 
       assert_nothing_raised do
@@ -98,6 +98,17 @@ module ApplicationTests
       end
     end
 
+    def test_run_channels
+      create_test_file :channels, "foo_channel"
+      create_test_file :channels, "bar_channel"
+
+      rails("test:channels").tap do |output|
+        assert_match "FooChannelTest", output
+        assert_match "BarChannelTest", output
+        assert_match "2 runs, 2 assertions, 0 failures", output
+      end
+    end
+
     def test_run_controllers
       create_test_file :controllers, "foo_controller"
       create_test_file :controllers, "bar_controller"
@@ -131,6 +142,18 @@ module ApplicationTests
       end
     end
 
+    def test_run_mailboxes
+      create_test_file :mailboxes, "foo_mailbox"
+      create_test_file :mailboxes, "bar_mailbox"
+      create_test_file :models, "foo"
+
+      rails("test:mailboxes").tap do |output|
+        assert_match "FooMailboxTest", output
+        assert_match "BarMailboxTest", output
+        assert_match "2 runs, 2 assertions, 0 failures", output
+      end
+    end
+
     def test_run_functionals
       create_test_file :mailers, "foo_mailer"
       create_test_file :controllers, "bar_controller"
@@ -155,11 +178,11 @@ module ApplicationTests
     end
 
     def test_run_all_suites
-      suites = [:models, :helpers, :unit, :controllers, :mailers, :functional, :integration, :jobs]
+      suites = [:models, :helpers, :unit, :channels, :controllers, :mailers, :functional, :integration, :jobs, :mailboxes]
       suites.each { |suite| create_test_file suite, "foo_#{suite}" }
       run_test_command("") .tap do |output|
         suites.each { |suite| assert_match "Foo#{suite.to_s.camelize}Test", output }
-        assert_match "8 runs, 8 assertions, 0 failures", output
+        assert_match "10 runs, 10 assertions, 0 failures", output
       end
     end
 
@@ -523,6 +546,8 @@ module ApplicationTests
     end
 
     def test_run_in_parallel_with_processes
+      exercise_parallelization_regardless_of_machine_core_count(with: :processes)
+
       file_name = create_parallel_processes_test_file
 
       app_file "db/schema.rb", <<-RUBY
@@ -539,12 +564,26 @@ module ApplicationTests
       assert_no_match "create_table(:users)", output
     end
 
+    def test_run_in_parallel_with_process_worker_crash
+      exercise_parallelization_regardless_of_machine_core_count(with: :processes)
+
+      file_name = app_file("test/models/parallel_test.rb", <<-RUBY)
+        require 'test_helper'
+
+        class ParallelTest < ActiveSupport::TestCase
+          def test_crash
+            Kernel.exit 1
+          end
+        end
+      RUBY
+
+      output = run_test_command(file_name)
+
+      assert_match %r{Queue not empty, but all workers have finished. This probably means that a worker crashed and 1 tests were missed.}, output
+    end
+
     def test_run_in_parallel_with_threads
-      app_path("/test/test_helper.rb") do |file_name|
-        file = File.read(file_name)
-        file.sub!(/parallelize\(([^\)]*)\)/, "parallelize(\\1, with: :threads)")
-        File.write(file_name, file)
-      end
+      exercise_parallelization_regardless_of_machine_core_count(with: :threads)
 
       file_name = create_parallel_threads_test_file
 
@@ -560,6 +599,49 @@ module ApplicationTests
 
       assert_match %r{Finished in.*\n2 runs, 2 assertions}, output
       assert_no_match "create_table(:users)", output
+    end
+
+    def test_run_in_parallel_with_unmarshable_exception
+      exercise_parallelization_regardless_of_machine_core_count(with: :processes)
+
+      file = app_file "test/fail_test.rb", <<-RUBY
+        require "test_helper"
+        class FailTest < ActiveSupport::TestCase
+          class BadError < StandardError
+            def initialize
+              super
+              @proc = ->{ }
+            end
+          end
+
+          test "fail" do
+            raise BadError
+            assert true
+          end
+        end
+      RUBY
+
+      output = run_test_command(file)
+
+      assert_match "DRb::DRbRemoteError: FailTest::BadError", output
+      assert_match "1 runs, 0 assertions, 0 failures, 1 errors", output
+    end
+
+    def test_run_in_parallel_with_unknown_object
+      exercise_parallelization_regardless_of_machine_core_count(with: :processes)
+
+      create_scaffold
+
+      app_file "config/environments/test.rb", <<-RUBY
+        Rails.application.configure do
+          config.action_controller.allow_forgery_protection = true
+          config.action_dispatch.show_exceptions = false
+        end
+      RUBY
+
+      output = run_test_command("-n test_should_create_user")
+
+      assert_match "ActionController::InvalidAuthenticityToken", output
     end
 
     def test_raise_error_when_specified_file_does_not_exist
@@ -678,6 +760,7 @@ module ApplicationTests
     def test_reset_sessions_before_rollback_on_system_tests
       app_file "test/system/reset_session_before_rollback_test.rb", <<-RUBY
         require "application_system_test_case"
+        require "selenium/webdriver"
 
         class ResetSessionBeforeRollbackTest < ApplicationSystemTestCase
           def teardown_fixtures
@@ -701,6 +784,58 @@ module ApplicationTests
         assert_match "reset sessions\nrollback", output
         assert_match "1 runs, 0 assertions, 0 failures, 0 errors, 0 skips", output
       end
+    end
+
+    def test_reset_sessions_on_failed_system_test_screenshot
+      app_file "test/system/reset_sessions_on_failed_system_test_screenshot_test.rb", <<~RUBY
+        require "application_system_test_case"
+        require "selenium/webdriver"
+
+        class ResetSessionsOnFailedSystemTestScreenshotTest < ApplicationSystemTestCase
+          ActionDispatch::SystemTestCase.class_eval do
+            def take_failed_screenshot
+              raise Capybara::CapybaraError
+            end
+          end
+
+          Capybara.instance_eval do
+            def reset_sessions!
+              puts "Capybara.reset_sessions! called"
+            end
+          end
+
+          test "dummy" do
+          end
+        end
+      RUBY
+      output = run_test_command("test/system/reset_sessions_on_failed_system_test_screenshot_test.rb")
+      assert_match "Capybara.reset_sessions! called", output
+    end
+
+    def test_failed_system_test_screenshot_should_be_taken_before_other_teardown
+      app_file "test/system/failed_system_test_screenshot_should_be_taken_before_other_teardown_test.rb", <<~RUBY
+        require "application_system_test_case"
+        require "selenium/webdriver"
+
+        class FailedSystemTestScreenshotShouldBeTakenBeforeOtherTeardownTest < ApplicationSystemTestCase
+          ActionDispatch::SystemTestCase.class_eval do
+            def take_failed_screenshot
+              puts "take_failed_screenshot called"
+              super
+            end
+          end
+
+          def teardown
+            puts "test teardown called"
+            super
+          end
+
+          test "dummy" do
+          end
+        end
+      RUBY
+      output = run_test_command("test/system/failed_system_test_screenshot_should_be_taken_before_other_teardown_test.rb")
+      assert_match(/take_failed_screenshot called\n.*test teardown called/, output)
     end
 
     def test_system_tests_are_not_run_with_the_default_test_command
@@ -737,6 +872,7 @@ module ApplicationTests
     def test_system_tests_are_run_through_rake_test_when_given_in_TEST
       app_file "test/system/dummy_test.rb", <<-RUBY
         require "application_system_test_case"
+        require "selenium/webdriver"
 
         class DummyTest < ApplicationSystemTestCase
           test "something" do
@@ -830,8 +966,8 @@ module ApplicationTests
 
           class EnvironmentTest < ActiveSupport::TestCase
             def test_environment
-              test_db = ActiveRecord::Base.configurations[#{env.dump}]["database"]
-              db_file = ActiveRecord::Base.connection_config[:database]
+              test_db = ActiveRecord::Base.configurations[#{env.dump}][:database]
+              db_file = ActiveRecord::Base.connection_db_config.database
               assert_match(test_db, db_file)
               assert_equal #{env.dump}, ENV["RAILS_ENV"]
             end
@@ -901,6 +1037,14 @@ module ApplicationTests
             end
           end
         RUBY
+      end
+
+      def exercise_parallelization_regardless_of_machine_core_count(with:)
+        app_path("test/test_helper.rb") do |file_name|
+          file = File.read(file_name)
+          file.sub!(/parallelize\(([^\)]*)\)/, "parallelize(workers: 2, with: :#{with})")
+          File.write(file_name, file)
+        end
       end
 
       def create_env_test

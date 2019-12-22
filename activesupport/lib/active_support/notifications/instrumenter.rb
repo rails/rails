@@ -13,14 +13,15 @@ module ActiveSupport
         @notifier = notifier
       end
 
-      # Instrument the given block by measuring the time taken to execute it
-      # and publish it. Notice that events get sent even if an error occurs
-      # in the passed-in block.
+      # Given a block, instrument it by measuring the time taken to execute
+      # and publish it. Without a block, simply send a message via the
+      # notifier. Notice that events get sent even if an error occurs in the
+      # passed-in block.
       def instrument(name, payload = {})
         # some of the listeners might have state
         listeners_state = start name, payload
         begin
-          yield payload
+          yield payload if block_given?
         rescue Exception => e
           payload[:exception] = [e.class.name, e.message]
           payload[:exception_object] = e
@@ -45,15 +46,21 @@ module ActiveSupport
       end
 
       private
-
         def unique_id
           SecureRandom.hex(10)
         end
     end
 
     class Event
-      attr_reader :name, :time, :transaction_id, :payload, :children
-      attr_accessor :end
+      attr_reader :name, :time, :end, :transaction_id, :children
+      attr_accessor :payload
+
+      def self.clock_gettime_supported? # :nodoc:
+        defined?(Process::CLOCK_THREAD_CPUTIME_ID) &&
+          !Gem.win_platform? &&
+          !RUBY_PLATFORM.match?(/solaris/i)
+      end
+      private_class_method :clock_gettime_supported?
 
       def initialize(name, start, ending, transaction_id, payload)
         @name           = name
@@ -62,9 +69,8 @@ module ActiveSupport
         @transaction_id = transaction_id
         @end            = ending
         @children       = []
-        @duration       = nil
-        @cpu_time_start = nil
-        @cpu_time_finish = nil
+        @cpu_time_start = 0
+        @cpu_time_finish = 0
         @allocation_count_start = 0
         @allocation_count_finish = 0
       end
@@ -81,6 +87,11 @@ module ActiveSupport
         @cpu_time_finish = now_cpu
         @end = now
         @allocation_count_finish = now_allocations
+      end
+
+      def end=(ending)
+        ActiveSupport::Deprecation.deprecation_warning(:end=, :finish!)
+        @end = ending
       end
 
       # Returns the CPU time (in milliseconds) passed since the call to
@@ -114,7 +125,7 @@ module ActiveSupport
       #
       #   @event.duration # => 1000.138
       def duration
-        @duration ||= 1000.0 * (self.end - time)
+        1000.0 * (self.end - time)
       end
 
       def <<(event)
@@ -127,12 +138,12 @@ module ActiveSupport
 
       private
         def now
-          Process.clock_gettime(Process::CLOCK_MONOTONIC)
+          Concurrent.monotonic_time
         end
 
-        if defined?(Process::CLOCK_PROCESS_CPUTIME_ID)
+        if clock_gettime_supported?
           def now_cpu
-            Process.clock_gettime(Process::CLOCK_PROCESS_CPUTIME_ID)
+            Process.clock_gettime(Process::CLOCK_THREAD_CPUTIME_ID)
           end
         else
           def now_cpu

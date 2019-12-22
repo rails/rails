@@ -144,9 +144,18 @@ class ValidationsTest < ActiveRecord::TestCase
     assert_equal "100,000", d.salary_before_type_cast
   end
 
+  def test_validates_acceptance_of_with_undefined_attribute_methods
+    klass = Class.new(Topic)
+    klass.validates_acceptance_of(:approved)
+    topic = klass.new(approved: true)
+    klass.undefine_attribute_methods
+    assert topic.approved
+  end
+
   def test_validates_acceptance_of_as_database_column
-    Topic.validates_acceptance_of(:approved)
-    topic = Topic.create("approved" => true)
+    klass = Class.new(Topic)
+    klass.validates_acceptance_of(:approved)
+    topic = klass.create("approved" => true)
     assert topic["approved"]
   end
 

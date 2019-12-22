@@ -26,20 +26,18 @@ class JsonSerializationTest < ActiveModel::TestCase
   end
 
   test "should include root in json if include_root_in_json is true" do
-    begin
-      original_include_root_in_json = Contact.include_root_in_json
-      Contact.include_root_in_json = true
-      json = @contact.to_json
+    original_include_root_in_json = Contact.include_root_in_json
+    Contact.include_root_in_json = true
+    json = @contact.to_json
 
-      assert_match %r{^\{"contact":\{}, json
-      assert_match %r{"name":"Konata Izumi"}, json
-      assert_match %r{"age":16}, json
-      assert_includes json, %("created_at":#{ActiveSupport::JSON.encode(Time.utc(2006, 8, 1))})
-      assert_match %r{"awesome":true}, json
-      assert_match %r{"preferences":\{"shows":"anime"\}}, json
-    ensure
-      Contact.include_root_in_json = original_include_root_in_json
-    end
+    assert_match %r{^\{"contact":\{}, json
+    assert_match %r{"name":"Konata Izumi"}, json
+    assert_match %r{"age":16}, json
+    assert_includes json, %("created_at":#{ActiveSupport::JSON.encode(Time.utc(2006, 8, 1))})
+    assert_match %r{"awesome":true}, json
+    assert_match %r{"preferences":\{"shows":"anime"\}}, json
+  ensure
+    Contact.include_root_in_json = original_include_root_in_json
   end
 
   test "should include root in json (option) even if the default is set to false" do
@@ -134,19 +132,17 @@ class JsonSerializationTest < ActiveModel::TestCase
   end
 
   test "as_json should return a hash if include_root_in_json is true" do
-    begin
-      original_include_root_in_json = Contact.include_root_in_json
-      Contact.include_root_in_json = true
-      json = @contact.as_json
+    original_include_root_in_json = Contact.include_root_in_json
+    Contact.include_root_in_json = true
+    json = @contact.as_json
 
-      assert_kind_of Hash, json
-      assert_kind_of Hash, json["contact"]
-      %w(name age created_at awesome preferences).each do |field|
-        assert_equal @contact.send(field).as_json, json["contact"][field]
-      end
-    ensure
-      Contact.include_root_in_json = original_include_root_in_json
+    assert_kind_of Hash, json
+    assert_kind_of Hash, json["contact"]
+    %w(name age created_at awesome preferences).each do |field|
+      assert_equal @contact.send(field).as_json, json["contact"][field]
     end
+  ensure
+    Contact.include_root_in_json = original_include_root_in_json
   end
 
   test "from_json should work without a root (class attribute)" do

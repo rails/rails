@@ -191,21 +191,6 @@ class IntegrationTest < ActiveRecord::TestCase
     end
   end
 
-  def test_named_timestamps_for_cache_key
-    assert_deprecated do
-      owner = owners(:blackbeard)
-      assert_equal "owners/#{owner.id}-#{owner.happy_at.utc.to_s(:usec)}", owner.cache_key(:updated_at, :happy_at)
-    end
-  end
-
-  def test_cache_key_when_named_timestamp_is_nil
-    assert_deprecated do
-      owner = owners(:blackbeard)
-      owner.happy_at = nil
-      assert_equal "owners/#{owner.id}", owner.cache_key(:happy_at)
-    end
-  end
-
   def test_cache_key_is_stable_with_versioning_on
     with_cache_versioning do
       developer = Developer.first

@@ -48,8 +48,16 @@ class FormCollectionsHelperTest < ActionView::TestCase
 
   test "collection radio should sanitize collection values for labels correctly" do
     with_collection_radio_buttons :user, :name, ["$0.99", "$1.99"], :to_s, :to_s
-    assert_select "label[for=user_name_099]", "$0.99"
-    assert_select "label[for=user_name_199]", "$1.99"
+    assert_select "label[for=user_name_0_99]", "$0.99"
+    assert_select "label[for=user_name_1_99]", "$1.99"
+  end
+
+  test "collection radio correctly builds unique DOM IDs for float values" do
+    with_collection_radio_buttons :user, :name, [1.0, 10], :to_s, :to_s
+    assert_select "label[for=user_name_1_0]", "1.0"
+    assert_select "label[for=user_name_10]", "10"
+    assert_select 'input#user_name_1_0[type=radio][value="1.0"]'
+    assert_select 'input#user_name_10[type=radio][value="10"]'
   end
 
   test "collection radio accepts checked item" do
@@ -302,8 +310,16 @@ class FormCollectionsHelperTest < ActionView::TestCase
 
   test "collection check box should sanitize collection values for labels correctly" do
     with_collection_check_boxes :user, :name, ["$0.99", "$1.99"], :to_s, :to_s
-    assert_select "label[for=user_name_099]", "$0.99"
-    assert_select "label[for=user_name_199]", "$1.99"
+    assert_select "label[for=user_name_0_99]", "$0.99"
+    assert_select "label[for=user_name_1_99]", "$1.99"
+  end
+
+  test "collection check boxes correctly builds unique DOM IDs for float values" do
+    with_collection_check_boxes :user, :name, [1.0, 10], :to_s, :to_s
+    assert_select "label[for=user_name_1_0]", "1.0"
+    assert_select "label[for=user_name_10]", "10"
+    assert_select 'input#user_name_1_0[type=checkbox][value="1.0"]'
+    assert_select 'input#user_name_10[type=checkbox][value="10"]'
   end
 
   test "collection check boxes generates labels for non-English values correctly" do

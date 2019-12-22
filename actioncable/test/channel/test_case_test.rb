@@ -93,13 +93,39 @@ class StreamsTestChannelTest < ActionCable::Channel::TestCase
   def test_stream_without_params
     subscribe
 
-    assert_equal "test_0", streams.last
+    assert_has_stream "test_0"
   end
 
   def test_stream_with_params
     subscribe id: 42
 
-    assert_equal "test_42", streams.last
+    assert_has_stream "test_42"
+  end
+end
+
+class StreamsForTestChannel < ActionCable::Channel::Base
+  def subscribed
+    stream_for User.new(params[:id])
+  end
+end
+
+class StreamsForTestChannelTest < ActionCable::Channel::TestCase
+  def test_stream_with_params
+    subscribe id: 42
+
+    assert_has_stream_for User.new(42)
+  end
+end
+
+class NoStreamsTestChannel < ActionCable::Channel::Base
+  def subscribed; end # no-op
+end
+
+class NoStreamsTestChannelTest < ActionCable::Channel::TestCase
+  def test_stream_with_params
+    subscribe
+
+    assert_no_streams
   end
 end
 
@@ -110,7 +136,7 @@ class PerformTestChannel < ActionCable::Channel::Base
   end
 
   def ping
-    transmit type: "pong"
+    transmit({ type: "pong" })
   end
 end
 
@@ -147,14 +173,14 @@ class BroadcastsTestChannel < ActionCable::Channel::Base
   def broadcast(data)
     ActionCable.server.broadcast(
       "broadcast_#{params[:id]}",
-      text: data["message"], user_id: user_id
+      { text: data["message"], user_id: user_id }
     )
   end
 
   def broadcast_to_user(data)
     user = User.new user_id
 
-    self.class.broadcast_to user, text: data["message"]
+    broadcast_to user, text: data["message"]
   end
 end
 

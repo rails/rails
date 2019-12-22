@@ -26,7 +26,9 @@ module ActiveRecord
         chain = get_chain(reflection, association, scope.alias_tracker)
 
         scope.extending! reflection.extensions
-        add_constraints(scope, owner, chain)
+        scope = add_constraints(scope, owner, chain)
+        scope.limit!(1) unless reflection.collection?
+        scope
       end
 
       def self.get_bind_values(owner, chain)

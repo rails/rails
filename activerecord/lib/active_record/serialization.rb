@@ -11,7 +11,7 @@ module ActiveRecord #:nodoc:
     end
 
     def serializable_hash(options = nil)
-      options = options.try(:dup) || {}
+      options = options ? options.dup : {}
 
       options[:except] = Array(options[:except]).map(&:to_s)
       options[:except] |= Array(self.class.inheritance_column)

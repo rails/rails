@@ -239,13 +239,12 @@ Skipping Callbacks
 
 Just as with validations, it is also possible to skip callbacks by using the following methods:
 
-* `decrement`
+* `decrement!`
 * `decrement_counter`
 * `delete`
 * `delete_all`
-* `increment`
+* `increment!`
 * `increment_counter`
-* `toggle`
 * `update_column`
 * `update_columns`
 * `update_all`
@@ -310,7 +309,7 @@ end
 
 ### Using `:if` and `:unless` with a `Proc`
 
-Finally, it is possible to associate `:if` and `:unless` with a `Proc` object. This option is best suited when writing short validation methods, usually one-liners:
+It is possible to associate `:if` and `:unless` with a `Proc` object. This option is best suited when writing short validation methods, usually one-liners:
 
 ```ruby
 class Order < ApplicationRecord
@@ -338,10 +337,24 @@ class Comment < ApplicationRecord
 end
 ```
 
+### Combining Callback Conditions
+
+When multiple conditions define whether or not a callback should happen, an `Array` can be used. Moreover, you can apply both `:if` and `:unless` to the same callback.
+
+```ruby
+class Comment < ApplicationRecord
+  after_create :send_email_to_author,
+    if: [Proc.new { |c| c.user.allow_send_email? }, :author_wants_emails?],
+    unless: Proc.new { |c| c.article.ignore_comments? }
+end
+```
+
+The callback only runs when all the `:if` conditions and none of the `:unless` conditions are evaluated to `true`.
+
 Callback Classes
 ----------------
 
-Sometimes the callback methods that you'll write will be useful enough to be reused by other models. Active Record makes it possible to create classes that encapsulate the callback methods, so it becomes very easy to reuse them.
+Sometimes the callback methods that you'll write will be useful enough to be reused by other models. Active Record makes it possible to create classes that encapsulate the callback methods, so they can be reused.
 
 Here's an example where we create a class with an `after_destroy` callback for a `PictureFile` model:
 
@@ -460,10 +473,25 @@ end
 => User was saved to database
 ```
 
-To register callbacks for both create and update actions, use `after_commit` instead.
+There is also an alias for using the `after_commit` callback for both create and update together:
+
+* `after_save_commit`
 
 ```ruby
 class User < ApplicationRecord
-  after_commit :log_user_saved_to_db, on: [:create, :update]
+  after_save_commit :log_user_saved_to_db
+
+  private
+  def log_user_saved_to_db
+    puts 'User was saved to database'
+  end
 end
+
+# creating a User
+>> @user = User.create
+=> User was saved to database
+
+# updating @user
+>> @user.save
+=> User was saved to database
 ```

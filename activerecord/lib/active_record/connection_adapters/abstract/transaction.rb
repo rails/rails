@@ -5,10 +5,11 @@ module ActiveRecord
     class TransactionState
       def initialize(state = nil)
         @state = state
-        @children = []
+        @children = nil
       end
 
       def add_child(state)
+        @children ||= []
         @children << state
       end
 
@@ -40,31 +41,13 @@ module ActiveRecord
         committed? || rolledback?
       end
 
-      def set_state(state)
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          The set_state method is deprecated and will be removed in
-          Rails 6.0. Please use rollback! or commit! to set transaction
-          state directly.
-        MSG
-        case state
-        when :rolledback
-          rollback!
-        when :committed
-          commit!
-        when nil
-          nullify!
-        else
-          raise ArgumentError, "Invalid transaction state: #{state}"
-        end
-      end
-
       def rollback!
-        @children.each { |c| c.rollback! }
+        @children&.each { |c| c.rollback! }
         @state = :rolledback
       end
 
       def full_rollback!
-        @children.each { |c| c.rollback! }
+        @children&.each { |c| c.rollback! }
         @state = :fully_rolledback
       end
 
@@ -93,18 +76,19 @@ module ActiveRecord
     class Transaction #:nodoc:
       attr_reader :connection, :state, :records, :savepoint_name, :isolation_level
 
-      def initialize(connection, options, run_commit_callbacks: false)
+      def initialize(connection, isolation: nil, joinable: true, run_commit_callbacks: false)
         @connection = connection
         @state = TransactionState.new
-        @records = []
-        @isolation_level = options[:isolation]
+        @records = nil
+        @isolation_level = isolation
         @materialized = false
-        @joinable = options.fetch(:joinable, true)
+        @joinable = joinable
         @run_commit_callbacks = run_commit_callbacks
       end
 
       def add_record(record)
-        records << record
+        @records ||= []
+        @records << record
       end
 
       def materialize!
@@ -116,32 +100,42 @@ module ActiveRecord
       end
 
       def rollback_records
-        ite = records.uniq
+        return unless records
+        ite = records.uniq(&:object_id)
+        already_run_callbacks = {}
         while record = ite.shift
-          record.rolledback!(force_restore_state: full_rollback?)
+          trigger_callbacks = record.trigger_transactional_callbacks?
+          should_run_callbacks = !already_run_callbacks[record] && trigger_callbacks
+          already_run_callbacks[record] ||= trigger_callbacks
+          record.rolledback!(force_restore_state: full_rollback?, should_run_callbacks: should_run_callbacks)
         end
       ensure
-        ite.each do |i|
+        ite&.each do |i|
           i.rolledback!(force_restore_state: full_rollback?, should_run_callbacks: false)
         end
       end
 
       def before_commit_records
-        records.uniq.each(&:before_committed!) if @run_commit_callbacks
+        records.uniq.each(&:before_committed!) if records && @run_commit_callbacks
       end
 
       def commit_records
-        ite = records.uniq
+        return unless records
+        ite = records.uniq(&:object_id)
+        already_run_callbacks = {}
         while record = ite.shift
           if @run_commit_callbacks
-            record.committed!
+            trigger_callbacks = record.trigger_transactional_callbacks?
+            should_run_callbacks = !already_run_callbacks[record] && trigger_callbacks
+            already_run_callbacks[record] ||= trigger_callbacks
+            record.committed!(should_run_callbacks: should_run_callbacks)
           else
             # if not running callbacks, only adds the record to the parent transaction
-            record.add_to_transaction
+            connection.add_transaction_record(record)
           end
         end
       ensure
-        ite.each { |i| i.committed!(should_run_callbacks: false) }
+        ite&.each { |i| i.committed!(should_run_callbacks: false) }
       end
 
       def full_rollback?; true; end
@@ -151,8 +145,8 @@ module ActiveRecord
     end
 
     class SavepointTransaction < Transaction
-      def initialize(connection, savepoint_name, parent_transaction, *args)
-        super(connection, *args)
+      def initialize(connection, savepoint_name, parent_transaction, **options)
+        super(connection, **options)
 
         parent_transaction.state.add_child(@state)
 
@@ -212,20 +206,34 @@ module ActiveRecord
         @lazy_transactions_enabled = true
       end
 
-      def begin_transaction(options = {})
+      def begin_transaction(isolation: nil, joinable: true, _lazy: true)
         @connection.lock.synchronize do
           run_commit_callbacks = !current_transaction.joinable?
           transaction =
             if @stack.empty?
-              RealTransaction.new(@connection, options, run_commit_callbacks: run_commit_callbacks)
+              RealTransaction.new(
+                @connection,
+                isolation: isolation,
+                joinable: joinable,
+                run_commit_callbacks: run_commit_callbacks
+              )
             else
-              SavepointTransaction.new(@connection, "active_record_#{@stack.size}", @stack.last, options,
-                                       run_commit_callbacks: run_commit_callbacks)
+              SavepointTransaction.new(
+                @connection,
+                "active_record_#{@stack.size}",
+                @stack.last,
+                isolation: isolation,
+                joinable: joinable,
+                run_commit_callbacks: run_commit_callbacks
+              )
             end
 
-          transaction.materialize! unless @connection.supports_lazy_transactions? && lazy_transactions_enabled?
+          if @connection.supports_lazy_transactions? && lazy_transactions_enabled? && _lazy
+            @has_unmaterialized_transactions = true
+          else
+            transaction.materialize!
+          end
           @stack.push(transaction)
-          @has_unmaterialized_transactions = true if @connection.supports_lazy_transactions?
           transaction
         end
       end
@@ -281,28 +289,26 @@ module ActiveRecord
         end
       end
 
-      def within_new_transaction(options = {})
+      def within_new_transaction(isolation: nil, joinable: true)
         @connection.lock.synchronize do
-          begin
-            transaction = begin_transaction options
-            yield
-          rescue Exception => error
-            if transaction
+          transaction = begin_transaction(isolation: isolation, joinable: joinable)
+          yield
+        rescue Exception => error
+          if transaction
+            rollback_transaction
+            after_failure_actions(transaction, error)
+          end
+          raise
+        ensure
+          if !error && transaction
+            if Thread.current.status == "aborting"
               rollback_transaction
-              after_failure_actions(transaction, error)
-            end
-            raise
-          ensure
-            unless error
-              if Thread.current.status == "aborting"
-                rollback_transaction if transaction
-              else
-                begin
-                  commit_transaction if transaction
-                rescue Exception
-                  rollback_transaction(transaction) unless transaction.state.completed?
-                  raise
-                end
+            else
+              begin
+                commit_transaction
+              rescue Exception
+                rollback_transaction(transaction) unless transaction.state.completed?
+                raise
               end
             end
           end
@@ -318,7 +324,6 @@ module ActiveRecord
       end
 
       private
-
         NULL_TRANSACTION = NullTransaction.new
 
         # Deallocate invalidated prepared statements outside of the transaction

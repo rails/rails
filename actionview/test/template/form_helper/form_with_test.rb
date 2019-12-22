@@ -62,7 +62,7 @@ class FormWithActsLikeFormTagTest < FormWithTest
   end
 
   def whole_form(action = "http://www.example.com", options = {})
-    out = form_text(action, options) + hidden_fields(options)
+    out = form_text(action, **options) + hidden_fields(options)
 
     if block_given?
       out << yield << "</form>"
@@ -168,7 +168,7 @@ class FormWithActsLikeFormTagTest < FormWithTest
 end
 
 class FormWithActsLikeFormForTest < FormWithTest
-  def form_with(*)
+  def form_with(*, **)
     @output_buffer = super
   end
 
@@ -994,7 +994,7 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_submit_with_object_as_new_record_and_locale_strings
-    with_locale :submit do
+    I18n.with_locale :submit do
       @post.persisted = false
       @post.stub(:to_key, nil) do
         form_with(model: @post) do |f|
@@ -1011,7 +1011,7 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_submit_with_object_as_existing_record_and_locale_strings
-    with_locale :submit do
+    I18n.with_locale :submit do
       form_with(model: @post) do |f|
         concat f.submit
       end
@@ -1025,7 +1025,7 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_submit_without_object_and_locale_strings
-    with_locale :submit do
+    I18n.with_locale :submit do
       form_with(scope: :post) do |f|
         concat f.submit class: "extra"
       end
@@ -1039,7 +1039,7 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_submit_with_object_which_is_overwritten_by_scope_option
-    with_locale :submit do
+    I18n.with_locale :submit do
       form_with(model: @post, scope: :another_post) do |f|
         concat f.submit
       end
@@ -1054,7 +1054,7 @@ class FormWithActsLikeFormForTest < FormWithTest
 
   def test_submit_with_object_which_is_namespaced
     blog_post = Blog::Post.new("And his name will be forty and four.", 44)
-    with_locale :submit do
+    I18n.with_locale :submit do
       form_with(model: blog_post) do |f|
         concat f.submit
       end
@@ -2059,6 +2059,7 @@ class FormWithActsLikeFormForTest < FormWithTest
           ("<label for='\#{field}'>\#{field.to_s.humanize}:</label> " + super + "<br/>").html_safe
         end
       RUBY_EVAL
+      ruby2_keywords(:fields) if respond_to?(:ruby2_keywords, true)
     end
   end
 
@@ -2356,12 +2357,5 @@ class FormWithActsLikeFormForTest < FormWithTest
 
     def protect_against_forgery?
       false
-    end
-
-    def with_locale(testing_locale = :label)
-      old_locale, I18n.locale = I18n.locale, testing_locale
-      yield
-    ensure
-      I18n.locale = old_locale
     end
 end

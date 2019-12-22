@@ -32,16 +32,19 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
            :posts, :tags, :taggings, :comments, :sponsors, :members
 
   def test_belongs_to
-    firm = Client.find(3).firm
-    assert_not_nil firm
-    assert_equal companies(:first_firm).name, firm.name
+    client = Client.find(3)
+    first_firm = companies(:first_firm)
+    assert_sql(/LIMIT|ROWNUM <=|FETCH FIRST/) do
+      assert_equal first_firm, client.firm
+      assert_equal first_firm.name, client.firm.name
+    end
   end
 
   def test_assigning_belongs_to_on_destroyed_object
     client = Client.create!(name: "Client")
     client.destroy!
-    assert_raise(frozen_error_class) { client.firm = nil }
-    assert_raise(frozen_error_class) { client.firm = Firm.new(name: "Firm") }
+    assert_raise(FrozenError) { client.firm = nil }
+    assert_raise(FrozenError) { client.firm = Firm.new(name: "Firm") }
   end
 
   def test_eager_loading_wont_mutate_owner_record
@@ -57,10 +60,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_belongs_to_does_not_use_order_by
-    ActiveRecord::SQLCounter.clear_log
-    Client.find(3).firm
-  ensure
-    assert ActiveRecord::SQLCounter.log_all.all? { |sql| /order by/i !~ sql }, "ORDER BY was used in the query"
+    sql_log = capture_sql { Client.find(3).firm }
+    assert sql_log.all? { |sql| !/order by/i.match?(sql) }, "ORDER BY was used in the query: #{sql_log}"
   end
 
   def test_belongs_to_with_primary_key
@@ -81,6 +82,33 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
       assert_no_match(/"firm_with_primary_keys_companies"\."id"/, sql)
       assert_match(/"firm_with_primary_keys_companies"\."name"/, sql)
     end
+  end
+
+  def test_optional_relation_can_be_set_per_model
+    model1 = Class.new(ActiveRecord::Base) do
+      self.table_name = "accounts"
+      self.belongs_to_required_by_default = false
+
+      belongs_to :company
+
+      def self.name
+        "FirstModel"
+      end
+    end.new
+
+    model2 = Class.new(ActiveRecord::Base) do
+      self.table_name = "accounts"
+      self.belongs_to_required_by_default = true
+
+      belongs_to :company
+
+      def self.name
+        "SecondModel"
+      end
+    end.new
+
+    assert_predicate model1, :valid?
+    assert_not_predicate model2, :valid?
   end
 
   def test_optional_relation
@@ -444,8 +472,13 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_with_select
-    assert_equal 1, Company.find(2).firm_with_select.attributes.size
-    assert_equal 1, Company.all.merge!(includes: :firm_with_select).find(2).firm_with_select.attributes.size
+    assert_equal 1, Post.find(2).author_with_select.attributes.size
+    assert_equal 1, Post.includes(:author_with_select).find(2).author_with_select.attributes.size
+  end
+
+  def test_custom_attribute_with_select
+    assert_equal 2, Company.find(2).firm_with_select.attributes.size
+    assert_equal 2, Company.includes(:firm_with_select).find(2).firm_with_select.attributes.size
   end
 
   def test_belongs_to_without_counter_cache_option
@@ -1290,17 +1323,17 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_belongs_to_with_out_of_range_value_assigning
-    model = Class.new(Comment) do
+    model = Class.new(Author) do
       def self.name; "Temp"; end
-      validates :post, presence: true
+      validates :author_address, presence: true
     end
 
-    comment = model.new
-    comment.post_id = 9223372036854775808 # out of range in the bigint
+    author = model.new
+    author.author_address_id = 9223372036854775808 # out of range in the bigint
 
-    assert_nil comment.post
-    assert_not_predicate comment, :valid?
-    assert_equal [{ error: :blank }], comment.errors.details[:post]
+    assert_nil author.author_address
+    assert_not_predicate author, :valid?
+    assert_equal [{ error: :blank }], author.errors.details[:author_address]
   end
 
   def test_polymorphic_with_custom_primary_key

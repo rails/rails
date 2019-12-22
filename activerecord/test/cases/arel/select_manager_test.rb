@@ -17,7 +17,7 @@ module Arel
           manager = Arel::SelectManager.new
           manager.project :id
           manager.from table
-          manager.to_sql.must_be_like %{
+          _(manager.to_sql).must_be_like %{
             SELECT id FROM "users"
           }
         end
@@ -30,7 +30,7 @@ module Arel
           manager.project Nodes::SqlLiteral.new "*"
           manager.from table
           manager.order :foo
-          manager.to_sql.must_be_like %{ SELECT * FROM "users" ORDER BY foo }
+          _(manager.to_sql).must_be_like %{ SELECT * FROM "users" ORDER BY foo }
         end
       end
 
@@ -40,7 +40,7 @@ module Arel
           manager = Arel::SelectManager.new
           manager.from table
           manager.group :foo
-          manager.to_sql.must_be_like %{ SELECT FROM "users" GROUP BY foo }
+          _(manager.to_sql).must_be_like %{ SELECT FROM "users" GROUP BY foo }
         end
       end
 
@@ -68,7 +68,7 @@ module Arel
           manager = Arel::SelectManager.new
           manager.project Arel.sql("name")
           manager.from as
-          manager.to_sql.must_be_like "SELECT name FROM (SELECT * FROM zomg) foo"
+          _(manager.to_sql).must_be_like "SELECT name FROM (SELECT * FROM zomg) foo"
         end
       end
 
@@ -80,7 +80,7 @@ module Arel
           manager.from table
           manager.from "users"
           manager.project table["id"]
-          manager.to_sql.must_be_like 'SELECT "users"."id" FROM users'
+          _(manager.to_sql).must_be_like 'SELECT "users"."id" FROM users'
         end
 
         it "should support any ast" do
@@ -95,7 +95,7 @@ module Arel
           as = manager2.as Arel.sql("omg")
           manager1.from(as)
 
-          manager1.to_sql.must_be_like %{
+          _(manager1.to_sql).must_be_like %{
             SELECT lol FROM (SELECT * FROM "users") omg
           }
         end
@@ -106,7 +106,7 @@ module Arel
           table = Table.new :users
           mgr = table.from
           mgr.having Arel.sql("foo")
-          mgr.to_sql.must_be_like %{ SELECT FROM "users" HAVING foo }
+          _(mgr.to_sql).must_be_like %{ SELECT FROM "users" HAVING foo }
         end
 
         it "can have multiple items specified separately" do
@@ -114,14 +114,14 @@ module Arel
           mgr = table.from
           mgr.having Arel.sql("foo")
           mgr.having Arel.sql("bar")
-          mgr.to_sql.must_be_like %{ SELECT FROM "users" HAVING foo AND bar }
+          _(mgr.to_sql).must_be_like %{ SELECT FROM "users" HAVING foo AND bar }
         end
 
         it "can receive any node" do
           table = Table.new :users
           mgr = table.from
           mgr.having Arel::Nodes::And.new([Arel.sql("foo"), Arel.sql("bar")])
-          mgr.to_sql.must_be_like %{ SELECT FROM "users" HAVING foo AND bar }
+          _(mgr.to_sql).must_be_like %{ SELECT FROM "users" HAVING foo AND bar }
         end
       end
 
@@ -131,7 +131,7 @@ module Arel
           right = table.alias
           mgr   = table.from
           mgr.join(right).on("omg")
-          mgr.to_sql.must_be_like %{ SELECT FROM "users" INNER JOIN "users" "users_2" ON omg }
+          _(mgr.to_sql).must_be_like %{ SELECT FROM "users" INNER JOIN "users" "users_2" ON omg }
         end
 
         it "converts to sqlliterals with multiple items" do
@@ -139,7 +139,7 @@ module Arel
           right = table.alias
           mgr   = table.from
           mgr.join(right).on("omg", "123")
-          mgr.to_sql.must_be_like %{ SELECT FROM "users" INNER JOIN "users" "users_2" ON omg AND 123 }
+          _(mgr.to_sql).must_be_like %{ SELECT FROM "users" INNER JOIN "users" "users_2" ON omg AND 123 }
         end
       end
     end
@@ -150,7 +150,7 @@ module Arel
         mgr = table.from
         m2 = mgr.clone
         m2.project "foo"
-        mgr.to_sql.wont_equal m2.to_sql
+        _(mgr.to_sql).wont_equal m2.to_sql
       end
 
       it "makes updates to the correct copy" do
@@ -159,8 +159,8 @@ module Arel
         m2 = mgr.clone
         m3 = m2.clone
         m2.project "foo"
-        mgr.to_sql.wont_equal m2.to_sql
-        m3.to_sql.must_equal mgr.to_sql
+        _(mgr.to_sql).wont_equal m2.to_sql
+        _(m3.to_sql).must_equal mgr.to_sql
       end
     end
 
@@ -169,7 +169,7 @@ module Arel
         table = Table.new :users, as: "foo"
         mgr = table.from
         mgr.skip 10
-        mgr.to_sql.must_be_like %{ SELECT FROM "users" "foo" OFFSET 10 }
+        _(mgr.to_sql).must_be_like %{ SELECT FROM "users" "foo" OFFSET 10 }
       end
     end
 
@@ -178,13 +178,13 @@ module Arel
         table = Table.new :users
         mgr = table.from
         mgr.skip 10
-        mgr.to_sql.must_be_like %{ SELECT FROM "users" OFFSET 10 }
+        _(mgr.to_sql).must_be_like %{ SELECT FROM "users" OFFSET 10 }
       end
 
       it "should chain" do
         table = Table.new :users
         mgr = table.from
-        mgr.skip(10).to_sql.must_be_like %{ SELECT FROM "users" OFFSET 10 }
+        _(mgr.skip(10).to_sql).must_be_like %{ SELECT FROM "users" OFFSET 10 }
       end
     end
 
@@ -193,17 +193,17 @@ module Arel
         table = Table.new :users
         mgr = table.from
         mgr.offset = 10
-        mgr.to_sql.must_be_like %{ SELECT FROM "users" OFFSET 10 }
+        _(mgr.to_sql).must_be_like %{ SELECT FROM "users" OFFSET 10 }
       end
 
       it "should remove an offset" do
         table = Table.new :users
         mgr = table.from
         mgr.offset = 10
-        mgr.to_sql.must_be_like %{ SELECT FROM "users" OFFSET 10 }
+        _(mgr.to_sql).must_be_like %{ SELECT FROM "users" OFFSET 10 }
 
         mgr.offset = nil
-        mgr.to_sql.must_be_like %{ SELECT FROM "users" }
+        _(mgr.to_sql).must_be_like %{ SELECT FROM "users" }
       end
 
       it "should return the offset" do
@@ -221,7 +221,7 @@ module Arel
         manager.project Nodes::SqlLiteral.new "*"
         m2 = Arel::SelectManager.new
         m2.project manager.exists
-        m2.to_sql.must_be_like %{ SELECT EXISTS (#{manager.to_sql}) }
+        _(m2.to_sql).must_be_like %{ SELECT EXISTS (#{manager.to_sql}) }
       end
 
       it "can be aliased" do
@@ -230,7 +230,7 @@ module Arel
         manager.project Nodes::SqlLiteral.new "*"
         m2 = Arel::SelectManager.new
         m2.project manager.exists.as("foo")
-        m2.to_sql.must_be_like %{ SELECT EXISTS (#{manager.to_sql}) AS foo }
+        _(m2.to_sql).must_be_like %{ SELECT EXISTS (#{manager.to_sql}) AS foo }
       end
     end
 
@@ -252,7 +252,7 @@ module Arel
         node = @m1.union @m2
 
         # maybe FIXME: decide when wrapper parens are needed
-        node.to_sql.must_be_like %{
+        _(node.to_sql).must_be_like %{
           ( SELECT * FROM "users"  WHERE "users"."age" < 18 UNION SELECT * FROM "users"  WHERE "users"."age" > 99 )
         }
       end
@@ -260,7 +260,7 @@ module Arel
       it "should union all" do
         node = @m1.union :all, @m2
 
-        node.to_sql.must_be_like %{
+        _(node.to_sql).must_be_like %{
           ( SELECT * FROM "users"  WHERE "users"."age" < 18 UNION ALL SELECT * FROM "users"  WHERE "users"."age" > 99 )
         }
       end
@@ -284,7 +284,7 @@ module Arel
         node = @m1.intersect @m2
 
         # maybe FIXME: decide when wrapper parens are needed
-        node.to_sql.must_be_like %{
+        _(node.to_sql).must_be_like %{
           ( SELECT * FROM "users"  WHERE "users"."age" > 18 INTERSECT SELECT * FROM "users"  WHERE "users"."age" < 99 )
         }
       end
@@ -308,7 +308,7 @@ module Arel
         node = @m1.except @m2
 
         # maybe FIXME: decide when wrapper parens are needed
-        node.to_sql.must_be_like %{
+        _(node.to_sql).must_be_like %{
           ( SELECT * FROM "users"  WHERE "users"."age" BETWEEN 18 AND 60 EXCEPT SELECT * FROM "users"  WHERE "users"."age" BETWEEN 40 AND 99 )
         }
       end
@@ -325,7 +325,7 @@ module Arel
         select_manager = comments.project(Arel.star).with(users_as)
                           .where(comments[:author_id].in(users_top.project(users_top[:id])))
 
-        select_manager.to_sql.must_be_like %{
+        _(select_manager.to_sql).must_be_like %{
           WITH "users_top" AS (SELECT "users"."id" FROM "users" WHERE "users"."karma" > 100) SELECT * FROM "comments" WHERE "comments"."author_id" IN (SELECT "users_top"."id" FROM "users_top")
         }
       end
@@ -352,7 +352,7 @@ module Arel
         manager.with(:recursive, as_statement).from(replies).project(Arel.star)
 
         sql = manager.to_sql
-        sql.must_be_like %{
+        _(sql).must_be_like %{
           WITH RECURSIVE "replies" AS (
               SELECT "comments"."id", "comments"."parent_id" FROM "comments" WHERE "comments"."id" = 42
             UNION
@@ -369,23 +369,13 @@ module Arel
         mgr = table.from
         assert mgr.ast
       end
-
-      it "should allow orders to work when the ast is grepped" do
-        table = Table.new :users
-        mgr = table.from
-        mgr.project Arel.sql "*"
-        mgr.from table
-        mgr.orders << Arel::Nodes::Ascending.new(Arel.sql("foo"))
-        mgr.ast.grep(Arel::Nodes::OuterJoin)
-        mgr.to_sql.must_be_like %{ SELECT * FROM "users" ORDER BY foo ASC }
-      end
     end
 
     describe "taken" do
       it "should return limit" do
         manager = Arel::SelectManager.new
         manager.take 10
-        manager.taken.must_equal 10
+        _(manager.taken).must_equal 10
       end
     end
 
@@ -394,7 +384,7 @@ module Arel
       it "adds a lock node" do
         table = Table.new :users
         mgr = table.from
-        mgr.lock.to_sql.must_be_like %{ SELECT FROM "users" FOR UPDATE }
+        _(mgr.lock.to_sql).must_be_like %{ SELECT FROM "users" FOR UPDATE }
       end
     end
 
@@ -404,7 +394,7 @@ module Arel
         manager = Arel::SelectManager.new
         order = table[:id]
         manager.order table[:id]
-        manager.orders.must_equal [order]
+        _(manager.orders).must_equal [order]
       end
     end
 
@@ -415,7 +405,7 @@ module Arel
         manager.project Nodes::SqlLiteral.new "*"
         manager.from table
         manager.order table[:id]
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           SELECT * FROM "users" ORDER BY "users"."id"
         }
       end
@@ -427,7 +417,7 @@ module Arel
         manager.project Nodes::SqlLiteral.new "*"
         manager.from table
         manager.order table[:id], table[:name]
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           SELECT * FROM "users" ORDER BY "users"."id", "users"."name"
         }
       end
@@ -435,7 +425,7 @@ module Arel
       it "chains" do
         table   = Table.new :users
         manager = Arel::SelectManager.new
-        manager.order(table[:id]).must_equal manager
+        _(manager.order(table[:id])).must_equal manager
       end
 
       it "has order attributes" do
@@ -444,7 +434,7 @@ module Arel
         manager.project Nodes::SqlLiteral.new "*"
         manager.from table
         manager.order table[:id].desc
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           SELECT * FROM "users" ORDER BY "users"."id" DESC
         }
       end
@@ -459,7 +449,7 @@ module Arel
 
         manager.from left
         manager.join(right).on(predicate, predicate)
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
            SELECT FROM "users"
              INNER JOIN "users" "users_2"
                ON "users"."id" = "users_2"."id" AND
@@ -479,7 +469,7 @@ module Arel
           predicate,
           left[:name].eq(right[:name])
         )
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
            SELECT FROM "users"
              INNER JOIN "users" "users_2"
                ON "users"."id" = "users_2"."id" AND
@@ -524,7 +514,7 @@ module Arel
       assert_equal "bar", join.right
     end
 
-    it "should create join nodes with a outer join klass" do
+    it "should create join nodes with an outer join klass" do
       relation = Arel::SelectManager.new
       join = relation.create_join "foo", "bar", Arel::Nodes::OuterJoin
       assert_kind_of Arel::Nodes::OuterJoin, join
@@ -549,7 +539,7 @@ module Arel
 
         manager.from left
         manager.join(right).on(predicate)
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
            SELECT FROM "users"
              INNER JOIN "users" "users_2"
                ON "users"."id" = "users_2"."id"
@@ -564,7 +554,7 @@ module Arel
 
         manager.from left
         manager.join(right, Nodes::OuterJoin).on(predicate)
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
            SELECT FROM "users"
              LEFT OUTER JOIN "users" "users_2"
                ON "users"."id" = "users_2"."id"
@@ -579,7 +569,7 @@ module Arel
 
         manager.from left
         manager.join(right, Nodes::FullOuterJoin).on(predicate)
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
            SELECT FROM "users"
              FULL OUTER JOIN "users" "users_2"
                ON "users"."id" = "users_2"."id"
@@ -594,7 +584,7 @@ module Arel
 
         manager.from left
         manager.join(right, Nodes::RightOuterJoin).on(predicate)
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
            SELECT FROM "users"
              RIGHT OUTER JOIN "users" "users_2"
                ON "users"."id" = "users_2"."id"
@@ -603,7 +593,7 @@ module Arel
 
       it "noops on nil" do
         manager = Arel::SelectManager.new
-        manager.join(nil).must_equal manager
+        _(manager.join(nil)).must_equal manager
       end
 
       it "raises EmptyJoinError on empty" do
@@ -626,7 +616,7 @@ module Arel
 
         manager.from left
         manager.outer_join(right).on(predicate)
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
            SELECT FROM "users"
              LEFT OUTER JOIN "users" "users_2"
                ON "users"."id" = "users_2"."id"
@@ -635,7 +625,7 @@ module Arel
 
       it "noops on nil" do
         manager = Arel::SelectManager.new
-        manager.outer_join(nil).must_equal manager
+        _(manager.outer_join(nil)).must_equal manager
       end
     end
 
@@ -670,7 +660,7 @@ module Arel
           ).as("counts")
 
         joins = users.join(counts).on(counts[:user_id].eq(10))
-        joins.to_sql.must_be_like %{
+        _(joins.to_sql).must_be_like %{
           SELECT FROM "users" INNER JOIN (SELECT "comments"."user_id" AS user_id, COUNT("comments"."user_id") AS count FROM "comments" GROUP BY "comments"."user_id") counts ON counts."user_id" = 10
         }
       end
@@ -682,9 +672,9 @@ module Arel
 
         mgr = left.join(right)
         mgr.project Nodes::SqlLiteral.new("*")
-        mgr.on(predicate).must_equal mgr
+        _(mgr.on(predicate)).must_equal mgr
 
-        mgr.to_sql.must_be_like %{
+        _(mgr.to_sql).must_be_like %{
            SELECT * FROM "users"
              INNER JOIN "users" "users_2"
                ON "users"."id" = "users_2"."id"
@@ -704,7 +694,7 @@ module Arel
         manager = Arel::SelectManager.new
         manager.from table
         manager.group table[:id]
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           SELECT FROM "users" GROUP BY "users"."id"
         }
       end
@@ -712,7 +702,7 @@ module Arel
       it "chains" do
         table   = Table.new :users
         manager = Arel::SelectManager.new
-        manager.group(table[:id]).must_equal manager
+        _(manager.group(table[:id])).must_equal manager
       end
 
       it "takes multiple args" do
@@ -720,7 +710,7 @@ module Arel
         manager = Arel::SelectManager.new
         manager.from table
         manager.group table[:id], table[:name]
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           SELECT FROM "users" GROUP BY "users"."id", "users"."name"
         }
       end
@@ -731,7 +721,7 @@ module Arel
         manager = Arel::SelectManager.new
         manager.from table
         manager.group "foo"
-        manager.to_sql.must_be_like %{ SELECT FROM "users" GROUP BY foo }
+        _(manager.to_sql).must_be_like %{ SELECT FROM "users" GROUP BY foo }
       end
     end
 
@@ -741,7 +731,7 @@ module Arel
         manager = Arel::SelectManager.new
         manager.from table
         manager.window("a_window")
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           SELECT FROM "users" WINDOW "a_window" AS ()
         }
       end
@@ -751,7 +741,7 @@ module Arel
         manager = Arel::SelectManager.new
         manager.from table
         manager.window("a_window").order(table["foo"].asc)
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           SELECT FROM "users" WINDOW "a_window" AS (ORDER BY "users"."foo" ASC)
         }
       end
@@ -761,7 +751,7 @@ module Arel
         manager = Arel::SelectManager.new
         manager.from table
         manager.window("a_window").order(table["foo"].asc, table["bar"].desc)
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           SELECT FROM "users" WINDOW "a_window" AS (ORDER BY "users"."foo" ASC, "users"."bar" DESC)
         }
       end
@@ -771,7 +761,7 @@ module Arel
         manager = Arel::SelectManager.new
         manager.from table
         manager.window("a_window").partition(table["bar"])
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           SELECT FROM "users" WINDOW "a_window" AS (PARTITION BY "users"."bar")
         }
       end
@@ -781,7 +771,7 @@ module Arel
         manager = Arel::SelectManager.new
         manager.from table
         manager.window("a_window").partition(table["foo"]).order(table["foo"].asc)
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           SELECT FROM "users" WINDOW "a_window" AS (PARTITION BY "users"."foo"
             ORDER BY "users"."foo" ASC)
         }
@@ -792,7 +782,7 @@ module Arel
         manager = Arel::SelectManager.new
         manager.from table
         manager.window("a_window").partition(table["bar"], table["baz"])
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           SELECT FROM "users" WINDOW "a_window" AS (PARTITION BY "users"."bar", "users"."baz")
         }
       end
@@ -802,7 +792,7 @@ module Arel
         manager = Arel::SelectManager.new
         manager.from table
         manager.window("a_window").rows(Arel::Nodes::Preceding.new)
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           SELECT FROM "users" WINDOW "a_window" AS (ROWS UNBOUNDED PRECEDING)
         }
       end
@@ -812,7 +802,7 @@ module Arel
         manager = Arel::SelectManager.new
         manager.from table
         manager.window("a_window").rows(Arel::Nodes::Preceding.new(5))
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           SELECT FROM "users" WINDOW "a_window" AS (ROWS 5 PRECEDING)
         }
       end
@@ -822,7 +812,7 @@ module Arel
         manager = Arel::SelectManager.new
         manager.from table
         manager.window("a_window").rows(Arel::Nodes::Following.new)
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           SELECT FROM "users" WINDOW "a_window" AS (ROWS UNBOUNDED FOLLOWING)
         }
       end
@@ -832,7 +822,7 @@ module Arel
         manager = Arel::SelectManager.new
         manager.from table
         manager.window("a_window").rows(Arel::Nodes::Following.new(5))
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           SELECT FROM "users" WINDOW "a_window" AS (ROWS 5 FOLLOWING)
         }
       end
@@ -842,7 +832,7 @@ module Arel
         manager = Arel::SelectManager.new
         manager.from table
         manager.window("a_window").rows(Arel::Nodes::CurrentRow.new)
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           SELECT FROM "users" WINDOW "a_window" AS (ROWS CURRENT ROW)
         }
       end
@@ -859,7 +849,7 @@ module Arel
               Arel::Nodes::Preceding.new,
               Arel::Nodes::CurrentRow.new
             ])))
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           SELECT FROM "users" WINDOW "a_window" AS (ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)
         }
       end
@@ -869,7 +859,7 @@ module Arel
         manager = Arel::SelectManager.new
         manager.from table
         manager.window("a_window").range(Arel::Nodes::Preceding.new)
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           SELECT FROM "users" WINDOW "a_window" AS (RANGE UNBOUNDED PRECEDING)
         }
       end
@@ -879,7 +869,7 @@ module Arel
         manager = Arel::SelectManager.new
         manager.from table
         manager.window("a_window").range(Arel::Nodes::Preceding.new(5))
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           SELECT FROM "users" WINDOW "a_window" AS (RANGE 5 PRECEDING)
         }
       end
@@ -889,7 +879,7 @@ module Arel
         manager = Arel::SelectManager.new
         manager.from table
         manager.window("a_window").range(Arel::Nodes::Following.new)
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           SELECT FROM "users" WINDOW "a_window" AS (RANGE UNBOUNDED FOLLOWING)
         }
       end
@@ -899,7 +889,7 @@ module Arel
         manager = Arel::SelectManager.new
         manager.from table
         manager.window("a_window").range(Arel::Nodes::Following.new(5))
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           SELECT FROM "users" WINDOW "a_window" AS (RANGE 5 FOLLOWING)
         }
       end
@@ -909,7 +899,7 @@ module Arel
         manager = Arel::SelectManager.new
         manager.from table
         manager.window("a_window").range(Arel::Nodes::CurrentRow.new)
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           SELECT FROM "users" WINDOW "a_window" AS (RANGE CURRENT ROW)
         }
       end
@@ -926,7 +916,7 @@ module Arel
               Arel::Nodes::Preceding.new,
               Arel::Nodes::CurrentRow.new
             ])))
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           SELECT FROM "users" WINDOW "a_window" AS (RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)
         }
       end
@@ -939,7 +929,7 @@ module Arel
         manager.from table
         stmt = manager.compile_delete
 
-        stmt.to_sql.must_be_like %{ DELETE FROM "users" }
+        _(stmt.to_sql).must_be_like %{ DELETE FROM "users" }
       end
 
       it "copies where" do
@@ -949,7 +939,7 @@ module Arel
         manager.where table[:id].eq 10
         stmt = manager.compile_delete
 
-        stmt.to_sql.must_be_like %{
+        _(stmt.to_sql).must_be_like %{
           DELETE FROM "users" WHERE "users"."id" = 10
         }
       end
@@ -961,7 +951,7 @@ module Arel
         manager = Arel::SelectManager.new
         manager.from table
         manager.where table[:id].eq 10
-        manager.where_sql.must_be_like %{ WHERE "users"."id" = 10 }
+        _(manager.where_sql).must_be_like %{ WHERE "users"."id" = 10 }
       end
 
       it "joins wheres with AND" do
@@ -970,7 +960,7 @@ module Arel
         manager.from table
         manager.where table[:id].eq 10
         manager.where table[:id].eq 11
-        manager.where_sql.must_be_like %{ WHERE "users"."id" = 10 AND "users"."id" = 11}
+        _(manager.where_sql).must_be_like %{ WHERE "users"."id" = 10 AND "users"."id" = 11}
       end
 
       it "handles database specific statements" do
@@ -981,7 +971,7 @@ module Arel
         manager.from table
         manager.where table[:id].eq 10
         manager.where table[:name].matches "foo%"
-        manager.where_sql.must_be_like %{ WHERE "users"."id" = 10 AND "users"."name" ILIKE 'foo%' }
+        _(manager.where_sql).must_be_like %{ WHERE "users"."id" = 10 AND "users"."name" ILIKE 'foo%' }
         Table.engine.connection.visitor = old_visitor
       end
 
@@ -989,7 +979,7 @@ module Arel
         table   = Table.new :users
         manager = Arel::SelectManager.new
         manager.from table
-        manager.where_sql.must_be_nil
+        _(manager.where_sql).must_be_nil
       end
     end
 
@@ -1000,7 +990,7 @@ module Arel
         manager.from table
         stmt = manager.compile_update({ table[:id] => 1 }, Arel::Attributes::Attribute.new(table, "id"))
 
-        stmt.to_sql.must_be_like %{
+        _(stmt.to_sql).must_be_like %{
           UPDATE "users" SET "id" = 1
         }
       end
@@ -1011,7 +1001,7 @@ module Arel
         manager.from table
         stmt = manager.compile_update(Nodes::SqlLiteral.new("foo = bar"), Arel::Attributes::Attribute.new(table, "id"))
 
-        stmt.to_sql.must_be_like %{ UPDATE "users" SET foo = bar }
+        _(stmt.to_sql).must_be_like %{ UPDATE "users" SET foo = bar }
       end
 
       it "copies limits" do
@@ -1022,7 +1012,7 @@ module Arel
         stmt = manager.compile_update(Nodes::SqlLiteral.new("foo = bar"), Arel::Attributes::Attribute.new(table, "id"))
         stmt.key = table["id"]
 
-        stmt.to_sql.must_be_like %{
+        _(stmt.to_sql).must_be_like %{
           UPDATE "users" SET foo = bar
           WHERE "users"."id" IN (SELECT "users"."id" FROM "users" LIMIT 1)
         }
@@ -1036,7 +1026,7 @@ module Arel
         stmt = manager.compile_update(Nodes::SqlLiteral.new("foo = bar"), Arel::Attributes::Attribute.new(table, "id"))
         stmt.key = table["id"]
 
-        stmt.to_sql.must_be_like %{
+        _(stmt.to_sql).must_be_like %{
           UPDATE "users" SET foo = bar
           WHERE "users"."id" IN (SELECT "users"."id" FROM "users" ORDER BY foo)
         }
@@ -1049,7 +1039,7 @@ module Arel
         manager.from table
         stmt = manager.compile_update({ table[:id] => 1 }, Arel::Attributes::Attribute.new(table, "id"))
 
-        stmt.to_sql.must_be_like %{
+        _(stmt.to_sql).must_be_like %{
           UPDATE "users" SET "id" = 1 WHERE "users"."id" = 10
         }
       end
@@ -1062,7 +1052,7 @@ module Arel
         manager.from table
         stmt = manager.compile_update({ table[:id] => 1 }, Arel::Attributes::Attribute.new(table, "id"))
 
-        stmt.to_sql.must_be_like %{
+        _(stmt.to_sql).must_be_like %{
           UPDATE "users" SET "id" = 1 WHERE "users"."id" IN (SELECT "users"."id" FROM "users" WHERE "users"."foo" = 10 LIMIT 42)
         }
       end
@@ -1072,20 +1062,20 @@ module Arel
       it "takes sql literals" do
         manager = Arel::SelectManager.new
         manager.project Nodes::SqlLiteral.new "*"
-        manager.to_sql.must_be_like %{ SELECT * }
+        _(manager.to_sql).must_be_like %{ SELECT * }
       end
 
       it "takes multiple args" do
         manager = Arel::SelectManager.new
         manager.project Nodes::SqlLiteral.new("foo"),
           Nodes::SqlLiteral.new("bar")
-        manager.to_sql.must_be_like %{ SELECT foo, bar }
+        _(manager.to_sql).must_be_like %{ SELECT foo, bar }
       end
 
       it "takes strings" do
         manager = Arel::SelectManager.new
         manager.project "*"
-        manager.to_sql.must_be_like %{ SELECT * }
+        _(manager.to_sql).must_be_like %{ SELECT * }
       end
     end
 
@@ -1093,7 +1083,7 @@ module Arel
       it "reads projections" do
         manager = Arel::SelectManager.new
         manager.project Arel.sql("foo"), Arel.sql("bar")
-        manager.projections.must_equal [Arel.sql("foo"), Arel.sql("bar")]
+        _(manager.projections).must_equal [Arel.sql("foo"), Arel.sql("bar")]
       end
     end
 
@@ -1102,7 +1092,7 @@ module Arel
         manager = Arel::SelectManager.new
         manager.project Arel.sql("foo")
         manager.projections = [Arel.sql("bar")]
-        manager.to_sql.must_be_like %{ SELECT bar }
+        _(manager.to_sql).must_be_like %{ SELECT bar }
       end
     end
 
@@ -1114,7 +1104,7 @@ module Arel
         manager.where(table["id"].eq(1))
         manager.take 1
 
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           SELECT "users"."id"
           FROM "users"
           WHERE "users"."id" = 1
@@ -1124,7 +1114,7 @@ module Arel
 
       it "chains" do
         manager = Arel::SelectManager.new
-        manager.take(1).must_equal manager
+        _(manager.take(1)).must_equal manager
       end
 
       it "removes LIMIT when nil is passed" do
@@ -1143,7 +1133,7 @@ module Arel
         manager = Arel::SelectManager.new
         manager.from(table).project(table["id"])
         manager.where(table["id"].eq(1))
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           SELECT "users"."id"
           FROM "users"
           WHERE "users"."id" = 1
@@ -1154,7 +1144,7 @@ module Arel
         table   = Table.new :users
         manager = Arel::SelectManager.new
         manager.from(table)
-        manager.project(table["id"]).where(table["id"].eq 1).must_equal manager
+        _(manager.project(table["id"]).where(table["id"].eq 1)).must_equal manager
       end
     end
 
@@ -1165,21 +1155,21 @@ module Arel
 
         manager.from table
         manager.project table["id"]
-        manager.to_sql.must_be_like 'SELECT "users"."id" FROM "users"'
+        _(manager.to_sql).must_be_like 'SELECT "users"."id" FROM "users"'
       end
 
       it "chains" do
         table   = Table.new :users
         manager = Arel::SelectManager.new
-        manager.from(table).project(table["id"]).must_equal manager
-        manager.to_sql.must_be_like 'SELECT "users"."id" FROM "users"'
+        _(manager.from(table).project(table["id"])).must_equal manager
+        _(manager.to_sql).must_be_like 'SELECT "users"."id" FROM "users"'
       end
     end
 
     describe "source" do
       it "returns the join source of the select core" do
         manager = Arel::SelectManager.new
-        manager.source.must_equal manager.ast.cores.last.source
+        _(manager.source).must_equal manager.ast.cores.last.source
       end
     end
 
@@ -1188,16 +1178,16 @@ module Arel
         manager = Arel::SelectManager.new
 
         manager.distinct
-        manager.ast.cores.last.set_quantifier.class.must_equal Arel::Nodes::Distinct
+        _(manager.ast.cores.last.set_quantifier.class).must_equal Arel::Nodes::Distinct
 
         manager.distinct(false)
-        manager.ast.cores.last.set_quantifier.must_be_nil
+        _(manager.ast.cores.last.set_quantifier).must_be_nil
       end
 
       it "chains" do
         manager = Arel::SelectManager.new
-        manager.distinct.must_equal manager
-        manager.distinct(false).must_equal manager
+        _(manager.distinct).must_equal manager
+        _(manager.distinct(false)).must_equal manager
       end
     end
 
@@ -1207,18 +1197,41 @@ module Arel
         table = Table.new :users
 
         manager.distinct_on(table["id"])
-        manager.ast.cores.last.set_quantifier.must_equal Arel::Nodes::DistinctOn.new(table["id"])
+        _(manager.ast.cores.last.set_quantifier).must_equal Arel::Nodes::DistinctOn.new(table["id"])
 
         manager.distinct_on(false)
-        manager.ast.cores.last.set_quantifier.must_be_nil
+        _(manager.ast.cores.last.set_quantifier).must_be_nil
       end
 
       it "chains" do
         manager = Arel::SelectManager.new
         table = Table.new :users
 
-        manager.distinct_on(table["id"]).must_equal manager
-        manager.distinct_on(false).must_equal manager
+        _(manager.distinct_on(table["id"])).must_equal manager
+        _(manager.distinct_on(false)).must_equal manager
+      end
+    end
+
+    describe "comment" do
+      it "chains" do
+        manager = Arel::SelectManager.new
+        _(manager.comment("selecting")).must_equal manager
+      end
+
+      it "appends a comment to the generated query" do
+        manager = Arel::SelectManager.new
+        table = Table.new :users
+        manager.from(table).project(table["id"])
+
+        manager.comment("selecting")
+        _(manager.to_sql).must_be_like %{
+          SELECT "users"."id" FROM "users" /* selecting */
+        }
+
+        manager.comment("selecting", "with", "comment")
+        _(manager.to_sql).must_be_like %{
+          SELECT "users"."id" FROM "users" /* selecting */ /* with */ /* comment */
+        }
       end
     end
   end

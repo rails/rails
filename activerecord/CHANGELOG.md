@@ -1,307 +1,242 @@
-*   Fix collection cache key with limit and custom select to avoid ambiguous timestamp column error.
+*   Skip test database when running `db:create` or `db:drop` in development
+    with `DATABASE_URL` set.
 
-    Fixes #33056.
+    *Brian Buchalter*
 
-    *Federico Martinez*
+*   Don't allow mutations on the datbase configurations hash.
 
-*   Add basic API for connection switching to support multiple databases.
+    Freeze the configurations hash to disallow directly changing the configurations hash. If applications need to change the hash, for example to create adatabases for parallelization, they should use the `DatabaseConfig` object directly.
 
-    1) Adds a `connects_to` method for models to connect to multiple databases. Example:
+    Before:
 
-    ```
-    class AnimalsModel < ApplicationRecord
-      self.abstract_class = true
-
-      connects_to database: { writing: :animals_primary, reading: :animals_replica }
-    end
-
-    class Dog < AnimalsModel
-      # connected to both the animals_primary db for writing and the animals_replica for reading
-    end
+    ```ruby
+    @db_config = ActiveRecord::Base.configurations.configs_for(env_name: "test", spec_name: "primary")
+    @db_config.configuration_hash.merge!(idle_timeout: "0.02")
     ```
 
-    2) Adds a `connected_to` block method for switching connection roles or connecting to
-    a database that the model didn't connect to. Connecting to the database in this block is
-    useful when you have another defined connection, for example `slow_replica` that you don't
-    want to connect to by default but need in the console, or a specific code block.
+    After:
 
-    ```
-    ActiveRecord::Base.connected_to(role: :reading) do
-      Dog.first # finds dog from replica connected to AnimalsBase
-      Book.first # doesn't have a reading connection, will raise an error
-    end
+    ```ruby
+    @db_config = ActiveRecord::Base.configurations.configs_for(env_name: "test", spec_name: "primary")
+    config = @db_config.configuration_hash.merge(idle_timeout: "0.02")
+    db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(@db_config.env_name, @db_config.spec_name, config)
     ```
 
-    ```
-    ActiveRecord::Base.connected_to(database: :slow_replica) do
-      SlowReplicaModel.first # if the db config has a slow_replica configuration this will be used to do the lookup, otherwise this will throw an exception
-    end
-    ```
+    *Eileen M. Uchitelle*, *John Crepezzi*
 
-    *Eileen M. Uchitelle*
+*   Remove `:connection_id` from the `sql.active_record` notification.
 
-*   Enum raises on invalid definition values
+    *Aaron Patterson*, *Rafael Mendonça França*
 
-    When defining a Hash enum it can be easy to use [] instead of {}. This
-    commit checks that only valid definition values are provided, those can
-    be a Hash, an array of Symbols or an array of Strings. Otherwise it
-    raises an ArgumentError.
+*   The `:name` key will no longer be returned as part of `DatabaseConfig#configuration_hash`. Please use `DatabaseConfig#owner_name` instead.
 
-    Fixes #33961
+    *Eileen M. Uchitelle*, *John Crepezzi*
 
-    *Alberto Almagro*
+*   ActiveRecord's `belongs_to_required_by_default` flag can now be set per model.
 
-*   Reloading associations now clears the Query Cache like `Persistence#reload` does.
+    You can now opt-out/opt-in specific models from having their associations required
+    by default.
 
-    ```
-    class Post < ActiveRecord::Base
-      has_one :category
-      belongs_to :author
-      has_many :comments
-    end
+    This change is meant to ease the process of migrating all your models to have
+    their association required.
 
-    # Each of the following will now clear the query cache.
-    post.reload_category
-    post.reload_author
-    post.comments.reload
-    ```
+    *Edouard Chin*
 
-    *Christophe Maximin*
+*   The `connection_config` method has been deprecated, please use `connection_db_config` instead which will return a `DatabaseConfigurations::DatabaseConfig` instead of a `Hash`.
 
-*   Added `index` option for `change_table` migration helpers.
-    With this change you can create indexes while adding new
-    columns into the existing tables.
+    *Eileen M. Uchitelle*, *John Crepezzi*
 
-    Example:
+*   Retain explicit selections on the base model after applying `includes` and `joins`.
 
-        change_table(:languages) do |t|
-          t.string :country_code, index: true
-        end
+    Resolves #34889.
 
-    *Mehmet Emin İNAÇ*
+    *Patrick Rebsch*
 
-*   Fix `transaction` reverting for migrations.
+*   The `database` kwarg is deprecated without replacement because it can't be used for sharding and creates an issue if it's used during a request. Applications that need to create new connections should use `connects_to` instead.
 
-    Before: Commands inside a `transaction` in a reverted migration ran uninverted.
-    Now: This change fixes that by reverting commands inside `transaction` block.
+    *Eileen M. Uchitelle*, *John Crepezzi*
 
-    *fatkodima*, *David Verhasselt*
+*   Allow attributes to be fetched from Arel node groupings.
 
-*   Raise an error instead of scanning the filesystem root when `fixture_path` is blank.
+    *Jeff Emminger*, *Gannon McGibbon*
 
-    *Gannon McGibbon*, *Max Albrecht*
+*   A database URL can now contain a querystring value that contains an equal sign. This is needed to support passing PostgreSQL `options`.
 
-*   Allow `ActiveRecord::Base.configurations=` to be set with a symbolized hash.
+    *Joshua Flanagan*
+
+*   Calling methods like `establish_connection` with a `Hash` which is invalid (eg: no `adapter`) will now raise an error the same way as connections defined in `config/database.yml`.
+
+    *John Crepezzi*
+
+*   Specifying `implicit_order_column` now subsorts the records by primary key if available to ensure deterministic results.
+
+    *Paweł Urbanek*
+
+*   `where(attr => [])` now loads an empty result without making a query.
+
+    *John Hawthorn*
+
+*   Fixed the performance regression for `primary_keys` introduced MySQL 8.0.
+
+    *Hiroyuki Ishii*
+
+*   Add support for `belongs_to` to `has_many` inversing.
 
     *Gannon McGibbon*
 
-*   Don't update counter cache unless the record is actually saved.
+*   Allow length configuration for `has_secure_token` method. The minimum length
+    is set at 24 characters.
 
-    Fixes #31493, #33113, #33117.
+    Before:
+
+    ```ruby
+    has_secure_token :auth_token
+    ```
+
+    After:
+
+    ```ruby
+    has_secure_token :default_token             # 24 characters
+    has_secure_token :auth_token, length: 36    # 36 characters
+    has_secure_token :invalid_token, length: 12 # => ActiveRecord::SecureToken::MinimumLengthError
+    ```
+
+    *Bernardo de Araujo*
+
+*   Deprecate `DatabaseConfigurations#to_h`. These connection hashes are still available via `ActiveRecord::Base.configurations.configs_for`.
+
+    *Eileen Uchitelle*, *John Crepezzi*
+
+*   Add `DatabaseConfig#configuration_hash` to return database configuration hashes with symbol keys, and use all symbol-key configuration hashes internally. Deprecate `DatabaseConfig#config` which returns a String-keyed `Hash` with the same values.
+
+    *John Crepezzi*, *Eileen Uchitelle*
+
+*   Allow column names to be passed to `remove_index` positionally along with other options.
+
+    Passing other options can be necessary to make `remove_index` correctly reversible.
+
+    Before:
+
+        add_index    :reports, :report_id               # => works
+        add_index    :reports, :report_id, unique: true # => works
+        remove_index :reports, :report_id               # => works
+        remove_index :reports, :report_id, unique: true # => ArgumentError
+
+    After:
+
+        remove_index :reports, :report_id, unique: true # => works
+
+    *Eugene Kenny*
+
+*   Allow bulk `ALTER` statements to drop and recreate indexes with the same name.
+
+    *Eugene Kenny*
+
+*   `insert`, `insert_all`, `upsert`, and `upsert_all` now clear the query cache.
+
+    *Eugene Kenny*
+
+*   Call `while_preventing_writes` directly from `connected_to`.
+
+    In some cases application authors want to use the database switching middleware and make explicit calls with `connected_to`. It's possible for an app to turn off writes and not turn them back on by the time we call `connected_to(role: :writing)`.
+
+    This change allows apps to fix this by assuming if a role is writing we want to allow writes, except in the case it's explicitly turned off.
+
+    *Eileen M. Uchitelle*
+
+*   Improve detection of ActiveRecord::StatementTimeout with mysql2 adapter in the edge case when the query is terminated during filesort.
+
+    *Kir Shatrov*
+
+*   Stop trying to read yaml file fixtures when loading Active Record fixtures.
+
+    *Gannon McGibbon*
+
+*   Deprecate `.reorder(nil)` with `.first` / `.first!` taking non-deterministic result.
+
+    To continue taking non-deterministic result, use `.take` / `.take!` instead.
 
     *Ryuta Kamizono*
 
-*   Deprecate `ActiveRecord::Result#to_hash` in favor of `ActiveRecord::Result#to_a`.
+*   Ensure custom PK types are casted in through reflection queries.
 
-    *Gannon McGibbon*, *Kevin Cheng*
+    *Gannon McGibbon*
 
-*   SQLite3 adapter supports expression indexes.
+*   Preserve user supplied joins order as much as possible.
 
-    ```
-    create_table :users do |t|
-      t.string :email
-    end
-
-    add_index :users, 'lower(email)', name: 'index_users_on_email', unique: true
-    ```
-
-    *Gray Kemmey*
-
-*   Allow subclasses to redefine autosave callbacks for associated records.
-
-    Fixes #33305.
-
-    *Andrey Subbota*
-
-*   Bump minimum MySQL version to 5.5.8.
-
-    *Yasuo Honda*
-
-*   Use MySQL utf8mb4 character set by default.
-
-    `utf8mb4` character set with 4-Byte encoding supports supplementary characters including emoji.
-    The previous default 3-Byte encoding character set `utf8` is not enough to support them.
-
-    *Yasuo Honda*
-
-*   Fix duplicated record creation when using nested attributes with `create_with`.
-
-    *Darwin Wu*
-
-*   Configuration item `config.filter_parameters` could also filter out
-    sensitive values of database columns when call `#inspect`.
-    We also added `ActiveRecord::Base::filter_attributes`/`=` in order to
-    specify sensitive attributes to specific model.
-
-    ```
-    Rails.application.config.filter_parameters += [:credit_card_number]
-    Account.last.inspect # => #<Account id: 123, name: "DHH", credit_card_number: [FILTERED] ...>
-    SecureAccount.filter_attributes += [:name]
-    SecureAccount.last.inspect # => #<SecureAccount id: 42, name: [FILTERED], credit_card_number: [FILTERED] ...>
-    ```
-
-    *Zhang Kang*
-
-*   Deprecate `column_name_length`, `table_name_length`, `columns_per_table`,
-    `indexes_per_table`, `columns_per_multicolumn_index`, `sql_query_length`,
-    and `joins_per_query` methods in `DatabaseLimits`.
+    Fixes #36761, #34328, #24281, #12953.
 
     *Ryuta Kamizono*
 
-*   `ActiveRecord::Base.configurations` now returns an object.
+*   Allow `matches_regex` and `does_not_match_regexp` on the MySQL Arel visitor.
 
-    `ActiveRecord::Base.configurations` used to return a hash, but this
-    is an inflexible data model. In order to improve multiple-database
-    handling in Rails, we've changed this to return an object. Some methods
-    are provided to make the object behave hash-like in order to ease the
-    transition process. Since most applications don't manipulate the hash
-    we've decided to add backwards-compatible functionality that will throw
-    a deprecation warning if used, however calling `ActiveRecord::Base.configurations`
-    will use the new version internally and externally.
+    *James Pearson*
 
-    For example, the following `database.yml`:
+*   Allow specifying fixtures to be ignored by setting `ignore` in YAML file's '_fixture' section.
 
-    ```
-    development:
-      adapter: sqlite3
-      database: db/development.sqlite3
-    ```
+    *Tongfei Gao*
 
-    Used to become a hash:
+*   Make the DATABASE_URL env variable only affect the primary connection. Add new env variables for multiple databases.
 
-    ```
-    { "development" => { "adapter" => "sqlite3", "database" => "db/development.sqlite3" } }
-    ```
+    *John Crepezzi*, *Eileen Uchitelle*
 
-    Is now converted into the following object:
+*   Add a warning for enum elements with 'not_' prefix.
 
-    ```
-    #<ActiveRecord::DatabaseConfigurations:0x00007fd1acbdf800 @configurations=[
-      #<ActiveRecord::DatabaseConfigurations::HashConfig:0x00007fd1acbded10 @env_name="development",
-        @spec_name="primary", @config={"adapter"=>"sqlite3", "database"=>"db/development.sqlite3"}>
-      ]
-    ```
+        class Foo
+          enum status: [:sent, :not_sent]
+        end
 
-    Iterating over the database configurations has also changed. Instead of
-    calling hash methods on the `configurations` hash directly, a new method `configs_for` has
-    been provided that allows you to select the correct configuration. `env_name`, and
-    `spec_name` arguments are optional. For example these return an array of
-    database config objects for the requested environment and a single database config object
-    will be returned for the requested environment and specification name respectively.
+    *Edu Depetris*
 
-    ```
-    ActiveRecord::Base.configurations.configs_for(env_name: "development")
-    ActiveRecord::Base.configurations.configs_for(env_name: "development", spec_name: "primary")
-    ```
+*   Make currency symbols optional for money column type in PostgreSQL.
 
-    *Eileen M. Uchitelle*, *Aaron Patterson*
+    *Joel Schneider*
 
-*   Add database configuration to disable advisory locks.
+*   Add support for beginless ranges, introduced in Ruby 2.7.
 
-    ```
-    production:
-      adapter: postgresql
-      advisory_locks: false
-    ```
+    *Josh Goodall*
 
-    *Guo Xiang*
+*   Add database_exists? method to connection adapters to check if a database exists.
 
-*   SQLite3 adapter `alter_table` method restores foreign keys.
+    *Guilherme Mansur*
 
-    *Yasuo Honda*
+*   Loading the schema for a model that has no `table_name` raises a `TableNotSpecified` error.
 
-*   Allow `:to_table` option to `invert_remove_foreign_key`.
+    *Guilherme Mansur*, *Eugene Kenny*
 
-    Example:
+*   PostgreSQL: Fix GROUP BY with ORDER BY virtual count attribute.
 
-       remove_foreign_key :accounts, to_table: :owners
-
-    *Nikolay Epifanov*, *Rich Chen*
-
-*   Add environment & load_config dependency to `bin/rake db:seed` to enable
-    seed load in environments without Rails and custom DB configuration
-
-    *Tobias Bielohlawek*
-
-*   Fix default value for mysql time types with specified precision.
-
-    *Nikolay Kondratyev*
-
-*   Fix `touch` option to behave consistently with `Persistence#touch` method.
+    Fixes #36022.
 
     *Ryuta Kamizono*
 
-*   Migrations raise when duplicate column definition.
+*   Make ActiveRecord `ConnectionPool.connections` method thread-safe.
 
-    Fixes #33024.
+    Fixes #36465.
 
-    *Federico Martinez*
+    *Jeff Doering*
 
-*   Bump minimum SQLite version to 3.8
+*   Add support for multiple databases to `rails db:abort_if_pending_migrations`.
 
-    *Yasuo Honda*
+    *Mark Lee*
 
-*   Fix parent record should not get saved with duplicate children records.
+*   Fix sqlite3 collation parsing when using decimal columns.
 
-    Fixes #32940.
+    *Martin R. Schuster*
 
-    *Santosh Wadghule*
+*   Fix invalid schema when primary key column has a comment.
 
-*   Fix logic on disabling commit callbacks so they are not called unexpectedly when errors occur.
+    Fixes #29966.
 
-    *Brian Durand*
+    *Guilherme Goettems Schneider*
 
-*   Ensure `Associations::CollectionAssociation#size` and `Associations::CollectionAssociation#empty?`
-    use loaded association ids if present.
+*   Fix table comment also being applied to the primary key column.
 
-    *Graham Turner*
+    *Guilherme Goettems Schneider*
 
-*   Add support to preload associations of polymorphic associations when not all the records have the requested associations.
+*   Allow generated `create_table` migrations to include or skip timestamps.
 
-    *Dana Sherson*
-
-*   Add `touch_all` method to `ActiveRecord::Relation`.
-
-    Example:
-
-        Person.where(name: "David").touch_all(time: Time.new(2020, 5, 16, 0, 0, 0))
-
-    *fatkodima*, *duggiefresh*
-
-*   Add `ActiveRecord::Base.base_class?` predicate.
-
-    *Bogdan Gusiev*
-
-*   Add custom prefix/suffix options to `ActiveRecord::Store.store_accessor`.
-
-    *Tan Huynh*, *Yukio Mizuta*
-
-*   Rails 6 requires Ruby 2.4.1 or newer.
-
-    *Jeremy Daer*
-
-*   Deprecate `update_attributes`/`!` in favor of `update`/`!`.
-
-    *Eddie Lebow*
-
-*   Add `ActiveRecord::Base.create_or_find_by`/`!` to deal with the SELECT/INSERT race condition in
-    `ActiveRecord::Base.find_or_create_by`/`!` by leaning on unique constraints in the database.
-
-    *DHH*
-
-*   Add `Relation#pick` as short-hand for single-value plucks.
-
-    *DHH*
+    *Michael Duchemin*
 
 
-Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/activerecord/CHANGELOG.md) for previous changes.
+Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/activerecord/CHANGELOG.md) for previous changes.

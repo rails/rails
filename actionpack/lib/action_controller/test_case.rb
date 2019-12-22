@@ -26,7 +26,7 @@ module ActionController
     end
   end
 
-  # ActionController::TestCase will be deprecated and moved to a gem in Rails 5.1.
+  # ActionController::TestCase will be deprecated and moved to a gem in the future.
   # Please use ActionDispatch::IntegrationTest going forward.
   class TestRequest < ActionDispatch::TestRequest #:nodoc:
     DEFAULT_ENV = ActionDispatch::TestRequest::DEFAULT_ENV.dup
@@ -158,7 +158,6 @@ module ActionController
     end.new
 
     private
-
       def params_parsers
         super.merge @custom_param_parsers
       end
@@ -208,7 +207,6 @@ module ActionController
     end
 
     private
-
       def load!
         @id
       end
@@ -275,9 +273,6 @@ module ActionController
   #      of the last HTTP response. In the above example, <tt>@response</tt> becomes valid
   #      after calling +post+. If the various assert methods are not sufficient, then you
   #      may use this object to inspect the HTTP response in detail.
-  #
-  # (Earlier versions of \Rails required each functional test to subclass
-  # Test::Unit::TestCase and define @controller, @request, @response in +setup+.)
   #
   # == Controller is automatically inferred
   #
@@ -457,9 +452,10 @@ module ActionController
       # respectively which will make tests more expressive.
       #
       # Note that the request method is not verified.
-      def process(action, method: "GET", params: {}, session: nil, body: nil, flash: {}, format: nil, xhr: false, as: nil)
+      def process(action, method: "GET", params: nil, session: nil, body: nil, flash: {}, format: nil, xhr: false, as: nil)
         check_required_ivars
 
+        action = +action.to_s
         http_method = method.to_s.upcase
 
         @html_document = nil
@@ -485,17 +481,17 @@ module ActionController
           format ||= as
         end
 
-        parameters = params.symbolize_keys
+        parameters = (params || {}).symbolize_keys
 
         if format
           parameters[:format] = format
         end
 
-        generated_extras = @routes.generate_extras(parameters.merge(controller: controller_class_name, action: action.to_s))
+        generated_extras = @routes.generate_extras(parameters.merge(controller: controller_class_name, action: action))
         generated_path = generated_path(generated_extras)
         query_string_keys = query_parameter_names(generated_extras)
 
-        @request.assign_parameters(@routes, controller_class_name, action.to_s, parameters, generated_path, query_string_keys)
+        @request.assign_parameters(@routes, controller_class_name, action, parameters, generated_path, query_string_keys)
 
         @request.session.update(session) if session
         @request.flash.update(flash || {})
@@ -597,12 +593,10 @@ module ActionController
       end
 
       private
-
         def scrub_env!(env)
-          env.delete_if { |k, v| k =~ /^(action_dispatch|rack)\.request/ }
-          env.delete_if { |k, v| k =~ /^action_dispatch\.rescue/ }
-          env.delete "action_dispatch.request.query_parameters"
-          env.delete "action_dispatch.request.request_parameters"
+          env.delete_if do |k, _|
+            k.start_with?("rack.request", "action_dispatch.request", "action_dispatch.rescue")
+          end
           env["rack.input"] = StringIO.new
           env.delete "CONTENT_LENGTH"
           env.delete "RAW_POST_DATA"

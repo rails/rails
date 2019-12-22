@@ -1,123 +1,158 @@
-*   Add `ActiveStorage.routes_prefix` for configuring generated routes.
+*   Previews are created on the same service as the original blob.
 
-    *Chris Bisnett*
+    *Peter Zhu*
 
-*   `ActiveStorage::Service::AzureStorageService` only handles specifically
-    relevant types of `Azure::Core::Http::HTTPError`. It previously obscured
-    other types of `HTTPError`, which is the azure-storage gem’s catch-all
-    exception class.
+*   Remove unused `disposition` and `content_type` query parameters for `DiskService`.
 
-    *Cameron Bothner*
+    *Peter Zhu*
 
-*   `ActiveStorage::DiskController#show` generates a 404 Not Found response when
-    the requested file is missing from the disk service. It previously raised
-    `Errno::ENOENT`.
+*   Use `DiskController` for both public and private files.
 
-    *Cameron Bothner*
+    `DiskController` is able to handle multiple services by adding a
+    `service_name` field in the generated URL in `DiskService`.
 
-*   `ActiveStorage::Blob#download` and `ActiveStorage::Blob#open` raise
-    `ActiveStorage::FileNotFoundError` when the corresponding file is missing
-    from the storage service. Services translate service-specific missing object
-    exceptions (e.g. `Google::Cloud::NotFoundError` for the GCS service and
-    `Errno::ENOENT` for the disk service) into
-    `ActiveStorage::FileNotFoundError`.
+    *Peter Zhu*
 
-    *Cameron Bothner*
-
-*   Added the `ActiveStorage::SetCurrent` concern for custom Active Storage
-    controllers that can't inherit from `ActiveStorage::BaseController`.
+*   Variants are tracked in the database to avoid existence checks in the storage service.
 
     *George Claghorn*
 
-*   Active Storage error classes like `ActiveStorage::IntegrityError` and
-    `ActiveStorage::UnrepresentableError` now inherit from `ActiveStorage::Error`
-    instead of `StandardError`. This permits rescuing `ActiveStorage::Error` to
-    handle all Active Storage errors.
+*   Deprecate `service_url` methods in favour of `url`.
 
-    *Andrei Makarov*, *George Claghorn*
+    Deprecate `Variant#service_url` and `Preview#service_url` to instead use
+    `#url` method to be consistent with `Blob`.
 
-*   Uploaded files assigned to a record are persisted to storage when the record
-    is saved instead of immediately.
+    *Peter Zhu*
 
-    In Rails 5.2, the following causes an uploaded file in `params[:avatar]` to
-    be stored:
+*   Permanent URLs for public storage blobs.
+
+    Services can be configured in `config/storage.yml` with a new key
+    `public: true | false` to indicate whether a service holds public
+    blobs or private blobs. Public services will always return a permanent URL.
+
+    Deprecates `Blob#service_url` in favor of `Blob#url`.
+
+    *Peter Zhu*
+
+*   Make services aware of configuration names.
+
+    *Gannon McGibbon*
+
+*   The `Content-Type` header is set on image variants when they're uploaded to third-party storage services.
+
+    *Kyle Ribordy*
+
+*   Allow storage services to be configured per attachment.
 
     ```ruby
-    @user.avatar = params[:avatar]
+    class User < ActiveRecord::Base
+      has_one_attached :avatar, service: :s3
+    end
+
+    class Gallery < ActiveRecord::Base
+      has_many_attached :photos, service: :s3
+    end
     ```
 
-    In Rails 6, the uploaded file is stored when `@user` is successfully saved.
+    *Dmitry Tsepelev*
+
+*   You can optionally provide a custom blob key when attaching a new file:
+
+    ```ruby
+    user.avatar.attach key: "avatars/#{user.id}.jpg",
+      io: io, content_type: "image/jpeg", filename: "avatar.jpg"
+    ```
+
+    Active Storage will store the blob's data on the configured service at the provided key.
 
     *George Claghorn*
 
-*   Add the ability to reflect on defined attachments using the existing
-    ActiveRecord reflection mechanism.
+*   Replace `Blob.create_after_upload!` with `Blob.create_and_upload!` and deprecate the former.
 
-    *Kevin Deisz*
+    `create_after_upload!` has been removed since it could lead to data
+    corruption by uploading to a key on the storage service which happened to
+    be already taken. Creating the record would then correctly raise a
+    database uniqueness exception but the stored object would already have
+    overwritten another. `create_and_upload!` swaps the order of operations
+    so that the key gets reserved up-front or the uniqueness error gets raised,
+    before the upload to a key takes place.
 
-*   Variant arguments of `false` or `nil` will no longer be passed to the
-    processor. For example, the following will not have the monochrome
-    variation applied:
+    *Julik Tarkhanov*
 
-    ```ruby
-      avatar.variant(monochrome: false)
-    ```
+*   Set content disposition in direct upload using `filename` and `disposition` parameters to `ActiveStorage::Service#headers_for_direct_upload`.
 
-    *Jacob Smith*
+    *Peter Zhu*
 
-*   Generated attachment getter and setter methods are created
-    within the model's `GeneratedAssociationMethods` module to
-    allow overriding and composition using `super`.
+*   Allow record to be optionally passed to blob finders to make sharding
+    easier.
 
-    *Josh Susser*, *Jamon Douglas*
+    *Gannon McGibbon*
 
-*   Add `ActiveStorage::Blob#open`, which downloads a blob to a tempfile on disk
-    and yields the tempfile. Deprecate `ActiveStorage::Downloading`.
+*   Switch from `azure-storage` gem to `azure-storage-blob` gem for Azure service.
 
-    *David Robertson*, *George Claghorn*
+    *Peter Zhu*
 
-*   Pass in `identify: false` as an argument when providing a `content_type` for
-    `ActiveStorage::Attached::{One,Many}#attach` to bypass automatic content
-    type inference. For example:
+*   Add `config.active_storage.draw_routes` to disable Active Storage routes.
 
-    ```ruby
-      @message.image.attach(
-        io: File.open('/path/to/file'),
-        filename: 'file.pdf',
-        content_type: 'application/pdf',
-        identify: false
-      )
-    ```
+    *Gannon McGibbon*
 
-    *Ryan Davidson*
+*   Image analysis is skipped if ImageMagick returns an error.
 
-*   The Google Cloud Storage service properly supports streaming downloads.
-    It now requires version 1.11 or newer of the google-cloud-storage gem.
+    `ActiveStorage::Analyzer::ImageAnalyzer#metadata` would previously raise a
+    `MiniMagick::Error`, which caused persistent `ActiveStorage::AnalyzeJob`
+    failures. It now logs the error and returns `{}`, resulting in no metadata
+    being added to the offending image blob.
 
     *George Claghorn*
 
-*   Use the [ImageProcessing](https://github.com/janko-m/image_processing) gem
-    for Active Storage variants, and deprecate the MiniMagick backend.
+*   Method calls on singular attachments return `nil` when no file is attached.
 
-    This means that variants are now automatically oriented if the original
-    image was rotated. Also, in addition to the existing ImageMagick
-    operations, variants can now use `:resize_to_fit`, `:resize_to_fill`, and
-    other ImageProcessing macros. These are now recommended over raw `:resize`,
-    as they also sharpen the thumbnail after resizing.
+    Previously, assuming the following User model, `user.avatar.filename` would
+    raise a `Module::DelegationError` if no avatar was attached:
 
-    The ImageProcessing gem also comes with a backend implemented on
-    [libvips](http://jcupitt.github.io/libvips/), an alternative to
-    ImageMagick which has significantly better performance than
-    ImageMagick in most cases, both in terms of speed and memory usage. In
-    Active Storage it's now possible to switch to the libvips backend by
-    changing `Rails.application.config.active_storage.variant_processor` to
-    `:vips`.
+    ```ruby
+    class User < ApplicationRecord
+      has_one_attached :avatar
+    end
+    ```
 
-    *Janko Marohnić*
+    They now return `nil`.
 
-*   Rails 6 requires Ruby 2.4.1 or newer.
+    *Matthew Tanous*
 
-    *Jeremy Daer*
+*   The mirror service supports direct uploads.
+
+    New files are directly uploaded to the primary service. When a
+    directly-uploaded file is attached to a record, a background job is enqueued
+    to copy it to each secondary service.
+
+    Configure the queue used to process mirroring jobs by setting
+    `config.active_storage.queues.mirror`. The default is `:active_storage_mirror`.
+
+    *George Claghorn*
+
+*   The S3 service now permits uploading files larger than 5 gigabytes.
+
+    When uploading a file greater than 100 megabytes in size, the service
+    transparently switches to [multipart uploads](https://docs.aws.amazon.com/AmazonS3/latest/dev/mpuoverview.html)
+    using a part size computed from the file's total size and S3's part count limit.
+
+    No application changes are necessary to take advantage of this feature. You
+    can customize the default 100 MB multipart upload threshold in your S3
+    service's configuration:
+
+    ```yaml
+    production:
+      service: s3
+      access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
+      secret_access_key: <%= Rails.application.credentials.dig(:aws, :secret_access_key) %>
+      region: us-east-1
+      bucket: my-bucket
+      upload:
+        multipart_threshold: <%= 250.megabytes %>
+    ```
+
+    *George Claghorn*
 
 
-Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/activestorage/CHANGELOG.md) for previous changes.
+Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/activestorage/CHANGELOG.md) for previous changes.

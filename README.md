@@ -1,6 +1,6 @@
 # Welcome to Rails
 
-## What's Rails
+## What's Rails?
 
 Rails is a web-application framework that includes everything needed to
 create database-backed web applications according to the
@@ -25,7 +25,7 @@ the [Active Model](activemodel/README.rdoc) module.
 ## Controller layer
 
 The _**Controller layer**_ is responsible for handling incoming HTTP requests and
-providing a suitable response. Usually this means returning HTML, but Rails controllers
+providing a suitable response. Usually, this means returning HTML, but Rails controllers
 can also generate XML, JSON, PDFs, mobile-specific views, and more. Controllers load and
 manipulate models, and render view templates in order to generate the appropriate HTTP response.
 In Rails, incoming requests are routed by Action Dispatch to an appropriate controller, and
@@ -37,18 +37,18 @@ are bundled together in [Action Pack](actionpack/README.rdoc).
 The _**View layer**_ is composed of "templates" that are responsible for providing
 appropriate representations of your application's resources. Templates can
 come in a variety of formats, but most view templates are HTML with embedded
-Ruby code (ERB files). Views are typically rendered to generate a controller response,
+Ruby code (ERB files). Views are typically rendered to generate a controller response 
 or to generate the body of an email. In Rails, View generation is handled by [Action View](actionview/README.rdoc).
 
 ## Frameworks and libraries
 
 [Active Record](activerecord/README.rdoc), [Active Model](activemodel/README.rdoc), [Action Pack](actionpack/README.rdoc), and [Action View](actionview/README.rdoc) can each be used independently outside Rails.
 In addition to that, Rails also comes with [Action Mailer](actionmailer/README.rdoc), a library
-to generate and send emails; [Active Job](activejob/README.md), a
-framework for declaring jobs and making them run on a variety of queueing
+to generate and send emails; [Action Mailbox](actionmailbox/README.md), a library to receive emails within a Rails application;
+[Active Job](activejob/README.md), a framework for declaring jobs and making them run on a variety of queuing
 backends; [Action Cable](actioncable/README.md), a framework to
 integrate WebSockets with a Rails application; [Active Storage](activestorage/README.md), a library to attach cloud
-and local files to Rails applications;
+and local files to Rails applications; [Action Text](actiontext/README.md), a library to handle rich text content;
 and [Active Support](activesupport/README.rdoc), a collection
 of utility classes and standard library extensions that are useful for Rails,
 and may also be used independently outside Rails.
@@ -80,7 +80,6 @@ and may also be used independently outside Rails.
     * [Getting Started with Rails](https://guides.rubyonrails.org/getting_started.html)
     * [Ruby on Rails Guides](https://guides.rubyonrails.org)
     * [The API Documentation](https://api.rubyonrails.org)
-    * [Ruby on Rails Tutorial](https://www.railstutorial.org/book)
 
 ## Contributing
 
@@ -97,7 +96,7 @@ Everyone interacting in Rails and its sub-projects' codebases, issue trackers, c
 
 ## Code Status
 
-[![Build Status](https://travis-ci.org/rails/rails.svg?branch=master)](https://travis-ci.org/rails/rails)
+[![Build Status](https://badge.buildkite.com/ab1152b6a1f6a61d3ea4ec5b3eece8d4c2b830998459c75352.svg?branch=master)](https://buildkite.com/rails/rails)
 
 ## License
 

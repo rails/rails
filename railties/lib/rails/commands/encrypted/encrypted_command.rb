@@ -16,6 +16,7 @@ module Rails
         def help
           say "Usage:\n  #{self.class.banner}"
           say ""
+          say self.class.desc
         end
       end
 

@@ -206,6 +206,7 @@ module ActiveModel
           raise ActiveModel::MissingAttributeError, "can't write unknown attribute `#{name}`"
         end
         alias_method :with_value_from_user, :with_value_from_database
+        alias_method :with_cast_value, :with_value_from_database
       end
 
       class Uninitialized < Attribute # :nodoc:

@@ -7,8 +7,8 @@ module ActiveRecord
     ONE_AS_ONE = "1 AS one"
 
     # Find by id - This can either be a specific id (1), a list of ids (1, 5, 6), or an array of ids ([5, 6, 10]).
-    # If one or more records can not be found for the requested ids, then RecordNotFound will be raised. If the primary key
-    # is an integer, find by id coerces its arguments using +to_i+.
+    # If one or more records cannot be found for the requested ids, then ActiveRecord::RecordNotFound will be raised.
+    # If the primary key is an integer, find by id coerces its arguments by using +to_i+.
     #
     #   Person.find(1)          # returns the object for ID = 1
     #   Person.find("1")        # returns the object for ID = 1
@@ -79,17 +79,12 @@ module ActiveRecord
     #   Post.find_by "published_at < ?", 2.weeks.ago
     def find_by(arg, *args)
       where(arg, *args).take
-    rescue ::RangeError
-      nil
     end
 
     # Like #find_by, except that if no record is found, raises
     # an ActiveRecord::RecordNotFound error.
     def find_by!(arg, *args)
       where(arg, *args).take!
-    rescue ::RangeError
-      raise RecordNotFound.new("Couldn't find #{@klass.name} with an out of range value",
-                               @klass.name, @klass.primary_key)
     end
 
     # Gives a record (or N records if a parameter is supplied) without any implied
@@ -119,6 +114,15 @@ module ActiveRecord
     #   Person.first(3) # returns the first three objects fetched by SELECT * FROM people ORDER BY people.id LIMIT 3
     #
     def first(limit = nil)
+      if !order_values.empty? && order_values.all?(&:blank?)
+        blank_value = order_values.first
+        ActiveSupport::Deprecation.warn(<<~MSG.squish)
+          `.reorder(#{blank_value.inspect})` with `.first` / `.first!` no longer
+          takes non-deterministic result in Rails 6.2.
+          To continue taking non-deterministic result, use `.take` / `.take!` instead.
+        MSG
+      end
+
       if limit
         find_nth_with_limit(0, limit)
       else
@@ -319,9 +323,7 @@ module ActiveRecord
 
       relation = construct_relation_for_exists(conditions)
 
-      skip_query_cache_if_necessary { connection.select_value(relation.arel, "#{name} Exists") } ? true : false
-    rescue ::RangeError
-      false
+      skip_query_cache_if_necessary { connection.select_one(relation.arel, "#{name} Exists?") } ? true : false
     end
 
     # This method is called whenever no records are found with either a single
@@ -353,17 +355,22 @@ module ActiveRecord
     end
 
     private
-
       def offset_index
         offset_value || 0
       end
 
       def construct_relation_for_exists(conditions)
-        relation = except(:select, :distinct, :order)._select!(ONE_AS_ONE).limit!(1)
+        conditions = sanitize_forbidden_attributes(conditions)
+
+        if distinct_value && offset_value
+          relation = except(:order).limit!(1)
+        else
+          relation = except(:select, :distinct, :order)._select!(ONE_AS_ONE).limit!(1)
+        end
 
         case conditions
         when Array, Hash
-          relation.where!(conditions)
+          relation.where!(conditions) unless conditions.empty?
         else
           relation.where!(primary_key => conditions) unless conditions == :none
         end
@@ -371,17 +378,22 @@ module ActiveRecord
         relation
       end
 
-      def construct_join_dependency(associations)
-        ActiveRecord::Associations::JoinDependency.new(
-          klass, table, associations
-        )
-      end
-
       def apply_join_dependency(eager_loading: group_values.empty?)
-        join_dependency = construct_join_dependency(eager_load_values + includes_values)
+        join_dependency = construct_join_dependency(
+          eager_load_values + includes_values, Arel::Nodes::OuterJoin
+        )
         relation = except(:includes, :eager_load, :preload).joins!(join_dependency)
 
-        if eager_loading && !using_limitable_reflections?(join_dependency.reflections)
+        if eager_loading && !(
+            using_limitable_reflections?(join_dependency.reflections) &&
+            using_limitable_reflections?(
+              construct_join_dependency(
+                select_association_list(joins_values).concat(
+                  select_association_list(left_outer_joins_values)
+                ), nil
+              ).reflections
+            )
+        )
           if has_limit_or_offset?
             limited_ids = limited_ids_for(relation)
             limited_ids.empty? ? relation.none! : relation.where!(primary_key => limited_ids)
@@ -432,9 +444,6 @@ module ActiveRecord
         else
           find_some(ids)
         end
-      rescue ::RangeError
-        error_message = "Couldn't find #{model_name} with an out of range ID"
-        raise RecordNotFound.new(error_message, model_name, primary_key, ids)
       end
 
       def find_one(id)
@@ -550,8 +559,12 @@ module ActiveRecord
       end
 
       def ordered_relation
-        if order_values.empty? && primary_key
-          order(arel_attribute(primary_key).asc)
+        if order_values.empty? && (implicit_order_column || primary_key)
+          if implicit_order_column && primary_key && implicit_order_column != primary_key
+            order(arel_attribute(implicit_order_column).asc, arel_attribute(primary_key).asc)
+          else
+            order(arel_attribute(implicit_order_column || primary_key).asc)
+          end
         else
           self
         end

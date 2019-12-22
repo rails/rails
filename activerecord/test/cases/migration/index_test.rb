@@ -49,13 +49,6 @@ module ActiveRecord
         assert connection.index_name_exists?(table_name, "old_idx")
       end
 
-      def test_double_add_index
-        connection.add_index(table_name, [:foo], name: "some_idx")
-        assert_raises(ArgumentError) {
-          connection.add_index(table_name, [:foo], name: "some_idx")
-        }
-      end
-
       def test_remove_nonexistent_index
         assert_raise(ArgumentError) { connection.remove_index(table_name, "no_such_index") }
       end
@@ -158,14 +151,11 @@ module ActiveRecord
         connection.add_index("testings", ["last_name", "first_name"])
         connection.remove_index("testings", column: ["last_name", "first_name"])
 
-        # Oracle adapter cannot have specified index name larger than 30 characters
-        # Oracle adapter is shortening index name when just column list is given
-        unless current_adapter?(:OracleAdapter)
-          connection.add_index("testings", ["last_name", "first_name"])
-          connection.remove_index("testings", name: :index_testings_on_last_name_and_first_name)
-          connection.add_index("testings", ["last_name", "first_name"])
-          connection.remove_index("testings", "last_name_and_first_name")
-        end
+        connection.add_index("testings", ["last_name", "first_name"])
+        connection.remove_index("testings", name: :index_testings_on_last_name_and_first_name)
+        connection.add_index("testings", ["last_name", "first_name"])
+        connection.remove_index("testings", "last_name_and_first_name")
+
         connection.add_index("testings", ["last_name", "first_name"])
         connection.remove_index("testings", ["last_name", "first_name"])
 
@@ -180,6 +170,9 @@ module ActiveRecord
 
         connection.add_index("testings", ["last_name", "first_name"], length: { last_name: 10, first_name: 20 })
         connection.remove_index("testings", ["last_name", "first_name"])
+
+        connection.add_index("testings", "key", unique: true)
+        connection.remove_index("testings", "key", unique: true)
 
         connection.add_index("testings", ["key"], name: "key_idx", unique: true)
         connection.remove_index("testings", name: "key_idx", unique: true)

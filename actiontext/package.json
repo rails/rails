@@ -1,0 +1,29 @@
+{
+  "name": "@rails/actiontext",
+  "version": "6.1.0-alpha",
+  "description": "Edit and display rich text in Rails applications",
+  "main": "app/javascript/actiontext/index.js",
+  "files": [
+    "app/javascript/actiontext/*.js"
+  ],
+  "homepage": "https://rubyonrails.org/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rails/rails.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rails/rails/issues"
+  },
+  "author": "Basecamp, LLC",
+  "contributors": [
+    "Javan Makhmali <javan@javan.us>",
+    "Sam Stephenson <sstephenson@gmail.com>"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@rails/activestorage": "^6.0.0-alpha"
+  },
+  "peerDependencies": {
+    "trix": "^1.2.0"
+  }
+}

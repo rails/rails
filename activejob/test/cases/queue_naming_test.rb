@@ -2,12 +2,13 @@
 
 require "helper"
 require "jobs/hello_job"
+require "jobs/prefixed_job"
 require "jobs/logging_job"
 require "jobs/nested_job"
 
 class QueueNamingTest < ActiveSupport::TestCase
   test "name derived from base" do
-    assert_equal "default", HelloJob.queue_name
+    assert_equal "default", HelloJob.new.queue_name
   end
 
   test "uses given queue name job" do
@@ -94,6 +95,51 @@ class QueueNamingTest < ActiveSupport::TestCase
       ActiveJob::Base.queue_name_prefix = original_queue_name_prefix
       ActiveJob::Base.queue_name_delimiter = original_queue_name_delimiter
       HelloJob.queue_name = original_queue_name
+    end
+  end
+
+  test "using a custom default_queue_name" do
+    original_default_queue_name = ActiveJob::Base.default_queue_name
+
+    begin
+      ActiveJob::Base.default_queue_name = "default_queue_name"
+
+      assert_equal "default_queue_name", HelloJob.new.queue_name
+    ensure
+      ActiveJob::Base.default_queue_name = original_default_queue_name
+    end
+  end
+
+  test "queue_name_prefix prepended to the default_queue_name" do
+    original_queue_name_prefix = ActiveJob::Base.queue_name_prefix
+    original_default_queue_name = ActiveJob::Base.default_queue_name
+
+    begin
+      ActiveJob::Base.queue_name_prefix = "prefix"
+      ActiveJob::Base.default_queue_name = "default_queue_name"
+
+      assert_equal "prefix_default_queue_name", HelloJob.new.queue_name
+    ensure
+      ActiveJob::Base.queue_name_prefix = original_queue_name_prefix
+      ActiveJob::Base.default_queue_name = original_default_queue_name
+    end
+  end
+
+  test "can change queue_name_prefix in a job class definition without affecting other jobs" do
+    assert_equal "production", PrefixedJob.queue_name_prefix
+    assert_nil HelloJob.queue_name_prefix
+  end
+
+  test "can change queue_name_prefix in a job class without affecting other jobs" do
+    original_prefix = PrefixedJob.queue_name_prefix
+
+    begin
+      PrefixedJob.queue_name_prefix = "staging"
+
+      assert_equal "staging", PrefixedJob.queue_name_prefix
+      assert_nil HelloJob.queue_name_prefix
+    ensure
+      PrefixedJob.queue_name_prefix = original_prefix
     end
   end
 

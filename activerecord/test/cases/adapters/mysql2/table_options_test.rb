@@ -73,7 +73,7 @@ class Mysql2DefaultEngineOptionSchemaDumpTest < ActiveRecord::Mysql2TestCase
       end
     end.new
 
-    ActiveRecord::Migrator.new(:up, [migration]).migrate
+    ActiveRecord::Migrator.new(:up, [migration], ActiveRecord::Base.connection.schema_migration).migrate
 
     output  = dump_table_schema("mysql_table_options")
     options = %r{create_table "mysql_table_options", options: "(?<options>.*)"}.match(output)[:options]
@@ -112,7 +112,7 @@ class Mysql2DefaultEngineOptionSqlOutputTest < ActiveRecord::Mysql2TestCase
       end
     end.new
 
-    ActiveRecord::Migrator.new(:up, [migration]).migrate
+    ActiveRecord::Migrator.new(:up, [migration], ActiveRecord::Base.connection.schema_migration).migrate
 
     assert_match %r{ENGINE=InnoDB}, @log.string
   end

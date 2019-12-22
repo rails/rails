@@ -30,6 +30,8 @@ module ActiveSupport
       #   end
       def assert_nothing_raised
         yield
+      rescue => error
+        raise Minitest::UnexpectedError.new(error)
       end
 
       # Test numeric difference between the return value of an expression as a
@@ -95,7 +97,7 @@ module ActiveSupport
         }
         before = exps.map(&:call)
 
-        retval = yield
+        retval = assert_nothing_raised(&block)
 
         expressions.zip(exps, before) do |(code, diff), exp, before_value|
           error  = "#{code.inspect} didn't change by #{diff}"
@@ -172,7 +174,7 @@ module ActiveSupport
         exp = expression.respond_to?(:call) ? expression : -> { eval(expression.to_s, block.binding) }
 
         before = exp.call
-        retval = yield
+        retval = assert_nothing_raised(&block)
 
         unless from == UNTRACKED
           error = "#{expression.inspect} isn't #{from.inspect}"
@@ -214,7 +216,7 @@ module ActiveSupport
         exp = expression.respond_to?(:call) ? expression : -> { eval(expression.to_s, block.binding) }
 
         before = exp.call
-        retval = yield
+        retval = assert_nothing_raised(&block)
         after = exp.call
 
         error = "#{expression.inspect} did change to #{after}"

@@ -35,6 +35,13 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal clubs(:boring_club), @member.club
   end
 
+  def test_has_one_through_executes_limited_query
+    boring_club = clubs(:boring_club)
+    assert_sql(/LIMIT|ROWNUM <=|FETCH FIRST/) do
+      assert_equal boring_club, @member.general_club
+    end
+  end
+
   def test_creating_association_creates_through_record
     new_member = Member.create(name: "Chris")
     new_member.club = Club.create(name: "LRUG")

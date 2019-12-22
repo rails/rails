@@ -1,9 +1,13 @@
 actioncable:
   - "actioncable/**/*"
+actionmailbox:
+  - "actionmailbox/**/*"
 actionmailer:
   - "actionmailer/**/*"
 actionpack:
   - "actionpack/**/*"
+actiontext:
+  - "actiontext/**/*"
 actionview:
   - "actionview/**/*"
 activejob:

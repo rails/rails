@@ -131,6 +131,10 @@ class ValidatesTest < ActiveModel::TestCase
     assert_raise(ArgumentError) { Person.validates :karma, unknown: true }
   end
 
+  def test_validates_with_disabled_unknown_validator
+    assert_raise(ArgumentError) { Person.validates :karma, unknown: false }
+  end
+
   def test_validates_with_included_validator
     PersonWithValidator.validates :title, presence: true
     person = PersonWithValidator.new

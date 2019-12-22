@@ -80,7 +80,6 @@ module ActiveSupport
       end
 
       private
-
         def finished?
           scanner.eos?
         end

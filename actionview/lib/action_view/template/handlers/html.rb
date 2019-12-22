@@ -3,7 +3,7 @@
 module ActionView
   module Template::Handlers
     class Html < Raw
-      def call(template)
+      def call(template, source)
         "ActionView::OutputBuffer.new #{super}"
       end
     end

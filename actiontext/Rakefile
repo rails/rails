@@ -1,0 +1,21 @@
+# frozen_string_literal: true
+
+require "bundler/setup"
+require "bundler/gem_tasks"
+require "rake/testtask"
+
+task :package
+
+Rake::TestTask.new do |t|
+  t.libs << "test"
+  t.test_files = FileList["test/**/*_test.rb"].exclude("test/system/**/*", "test/dummy/**/*")
+  t.verbose = true
+end
+
+Rake::TestTask.new "test:system" do |t|
+  t.libs << "test"
+  t.test_files = FileList["test/system/**/*_test.rb"]
+  t.verbose = true
+end
+
+task default: :test

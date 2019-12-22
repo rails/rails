@@ -23,7 +23,7 @@ control:
                                 # too that you may or may not want (like yarn)
 
 If you already have Rails binstubs in source control, you might be
-inadverently overwriting them during deployment by using bundle install
+inadvertently overwriting them during deployment by using bundle install
 with the --binstubs option.
 
 If your application was created prior to Rails 4, here's how to upgrade:

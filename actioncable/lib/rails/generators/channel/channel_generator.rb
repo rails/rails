@@ -11,6 +11,8 @@ module Rails
 
       check_class_collision suffix: "Channel"
 
+      hook_for :test_framework
+
       def create_channel_file
         template "channel.rb", File.join("app/channels", class_path, "#{file_name}_channel.rb")
 

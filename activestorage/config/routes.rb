@@ -20,6 +20,7 @@ Rails.application.routes.draw do
   end
 
   resolve("ActiveStorage::Variant") { |variant, options| route_for(:rails_representation, variant, options) }
+  resolve("ActiveStorage::VariantWithRecord") { |variant, options| route_for(:rails_representation, variant, options) }
   resolve("ActiveStorage::Preview") { |preview, options| route_for(:rails_representation, preview, options) }
 
 
@@ -29,4 +30,4 @@ Rails.application.routes.draw do
 
   resolve("ActiveStorage::Blob")       { |blob, options| route_for(:rails_blob, blob, options) }
   resolve("ActiveStorage::Attachment") { |attachment, options| route_for(:rails_blob, attachment.blob, options) }
-end
+end if ActiveStorage.draw_routes

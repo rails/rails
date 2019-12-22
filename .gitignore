@@ -16,4 +16,4 @@ package-lock.json
 pkg/
 /tmp/
 /yarn-error.log
-/yarn.lock
+/test-reports/

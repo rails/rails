@@ -45,19 +45,19 @@ module ActiveModel
       #   end
       #
       #   user = User.new(name: 'david', password: '', password_confirmation: 'nomatch')
-      #   user.save                                                       # => false, password required
+      #   user.save                                                  # => false, password required
       #   user.password = 'mUc3m00RsqyRe'
-      #   user.save                                                       # => false, confirmation doesn't match
+      #   user.save                                                  # => false, confirmation doesn't match
       #   user.password_confirmation = 'mUc3m00RsqyRe'
-      #   user.save                                                       # => true
+      #   user.save                                                  # => true
       #   user.recovery_password = "42password"
-      #   user.recovery_password_digest                                   # => "$2a$04$iOfhwahFymCs5weB3BNH/uXkTG65HR.qpW.bNhEjFP3ftli3o5DQC"
-      #   user.save                                                       # => true
-      #   user.authenticate('notright')                                   # => false
-      #   user.authenticate('mUc3m00RsqyRe')                              # => user
-      #   user.authenticate_recovery_password('42password')               # => user
-      #   User.find_by(name: 'david').try(:authenticate, 'notright')      # => false
-      #   User.find_by(name: 'david').try(:authenticate, 'mUc3m00RsqyRe') # => user
+      #   user.recovery_password_digest                              # => "$2a$04$iOfhwahFymCs5weB3BNH/uXkTG65HR.qpW.bNhEjFP3ftli3o5DQC"
+      #   user.save                                                  # => true
+      #   user.authenticate('notright')                              # => false
+      #   user.authenticate('mUc3m00RsqyRe')                         # => user
+      #   user.authenticate_recovery_password('42password')          # => user
+      #   User.find_by(name: 'david')&.authenticate('notright')      # => false
+      #   User.find_by(name: 'david')&.authenticate('mUc3m00RsqyRe') # => user
       def has_secure_password(attribute = :password, validations: true)
         # Load bcrypt gem only when has_secure_password is used.
         # This is to avoid ActiveModel (and by extension the entire framework)
@@ -69,6 +69,27 @@ module ActiveModel
           raise
         end
 
+        include InstanceMethodsOnActivation.new(attribute)
+
+        if validations
+          include ActiveModel::Validations
+
+          # This ensures the model has a password by checking whether the password_digest
+          # is present, so that this works with both new and existing records. However,
+          # when there is an error, the message is added to the password attribute instead
+          # so that the error message will make sense to the end-user.
+          validate do |record|
+            record.errors.add(attribute, :blank) unless record.send("#{attribute}_digest").present?
+          end
+
+          validates_length_of attribute, maximum: ActiveModel::SecurePassword::MAX_PASSWORD_LENGTH_ALLOWED
+          validates_confirmation_of attribute, allow_blank: true
+        end
+      end
+    end
+
+    class InstanceMethodsOnActivation < Module
+      def initialize(attribute)
         attr_reader attribute
 
         define_method("#{attribute}=") do |unencrypted_password|
@@ -101,21 +122,6 @@ module ActiveModel
         end
 
         alias_method :authenticate, :authenticate_password if attribute == :password
-
-        if validations
-          include ActiveModel::Validations
-
-          # This ensures the model has a password by checking whether the password_digest
-          # is present, so that this works with both new and existing records. However,
-          # when there is an error, the message is added to the password attribute instead
-          # so that the error message will make sense to the end-user.
-          validate do |record|
-            record.errors.add(attribute, :blank) unless record.send("#{attribute}_digest").present?
-          end
-
-          validates_length_of attribute, maximum: ActiveModel::SecurePassword::MAX_PASSWORD_LENGTH_ALLOWED
-          validates_confirmation_of attribute, allow_blank: true
-        end
       end
     end
   end

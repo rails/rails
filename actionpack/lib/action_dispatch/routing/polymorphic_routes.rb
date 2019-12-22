@@ -156,7 +156,6 @@ module ActionDispatch
       end
 
       private
-
         def polymorphic_url_for_action(action, record_or_hash, options)
           polymorphic_url(record_or_hash, options.merge(action: action))
         end
@@ -174,15 +173,15 @@ module ActionDispatch
         end
 
         class HelperMethodBuilder # :nodoc:
-          CACHE = { "path" => {}, "url" => {} }
+          CACHE = { path: {}, url: {} }
 
           def self.get(action, type)
-            type = type.to_s
+            type = type.to_sym
             CACHE[type].fetch(action) { build action, type }
           end
 
-          def self.url;  CACHE["url"][nil]; end
-          def self.path; CACHE["path"][nil]; end
+          def self.url;  CACHE[:url][nil]; end
+          def self.path; CACHE[:path][nil]; end
 
           def self.build(action, type)
             prefix = action ? "#{action}_" : ""
@@ -323,7 +322,6 @@ module ActionDispatch
           end
 
           private
-
             def polymorphic_mapping(target, record)
               if record.respond_to?(:to_model)
                 target._routes.polymorphic_mappings[record.to_model.model_name.name]
@@ -342,8 +340,8 @@ module ActionDispatch
             end
 
             [nil, "new", "edit"].each do |action|
-              CACHE["url"][action]  = build action, "url"
-              CACHE["path"][action] = build action, "path"
+              CACHE[:url][action]  = build action, "url"
+              CACHE[:path][action] = build action, "path"
             end
         end
     end

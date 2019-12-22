@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 require "openssl"
 require "active_support/time"
 require "active_support/json"
@@ -65,7 +65,7 @@ class MessageEncryptorTest < ActiveSupport::TestCase
     prev = ActiveSupport.use_standard_json_time_format
     ActiveSupport.use_standard_json_time_format = true
     encryptor = ActiveSupport::MessageEncryptor.new(SecureRandom.random_bytes(32), SecureRandom.random_bytes(128), serializer: JSONSerializer.new)
-    message = encryptor.encrypt_and_sign(:foo => 123, "bar" => Time.utc(2010))
+    message = encryptor.encrypt_and_sign({ :foo => 123, "bar" => Time.utc(2010) })
     exp = { "foo" => 123, "bar" => "2010-01-01T00:00:00.000Z" }
     assert_equal exp, encryptor.decrypt_and_verify(message)
   ensure
@@ -126,7 +126,7 @@ class MessageEncryptorTest < ActiveSupport::TestCase
 
   def test_rotating_serializer
     old_message = ActiveSupport::MessageEncryptor.new(secrets[:old], cipher: "aes-256-gcm", serializer: JSON).
-      encrypt_and_sign(ahoy: :hoy)
+      encrypt_and_sign({ ahoy: :hoy })
 
     encryptor = ActiveSupport::MessageEncryptor.new(@secret, cipher: "aes-256-gcm", serializer: JSON)
     encryptor.rotate secrets[:old]
@@ -158,7 +158,7 @@ class MessageEncryptorTest < ActiveSupport::TestCase
   end
 
   def test_on_rotation_is_called_and_returns_modified_messages
-    older_message = ActiveSupport::MessageEncryptor.new(secrets[:older], "older sign").encrypt_and_sign(encoded: "message")
+    older_message = ActiveSupport::MessageEncryptor.new(secrets[:older], "older sign").encrypt_and_sign({ encoded: "message" })
 
     encryptor = ActiveSupport::MessageEncryptor.new(@secret)
     encryptor.rotate secrets[:old]
@@ -169,6 +169,34 @@ class MessageEncryptorTest < ActiveSupport::TestCase
 
     assert_equal({ encoded: "message" }, message)
     assert rotated
+  end
+
+  def test_on_rotation_can_be_passed_at_the_constructor_level
+    older_message = ActiveSupport::MessageEncryptor.new(secrets[:older], "older sign").encrypt_and_sign({ encoded: "message" })
+
+    rotated = rotated = false  # double assigning to suppress "assigned but unused variable" warning
+    encryptor = ActiveSupport::MessageEncryptor.new(@secret, on_rotation: proc { rotated = true })
+    encryptor.rotate secrets[:older], "older sign"
+
+    assert_changes(:rotated, from: false, to: true) do
+      message = encryptor.decrypt_and_verify(older_message)
+
+      assert_equal({ encoded: "message" }, message)
+    end
+  end
+
+  def test_on_rotation_option_takes_precedence_over_the_one_given_in_constructor
+    older_message = ActiveSupport::MessageEncryptor.new(secrets[:older], "older sign").encrypt_and_sign({ encoded: "message" })
+
+    rotated = rotated = false  # double assigning to suppress "assigned but unused variable" warning
+    encryptor = ActiveSupport::MessageEncryptor.new(@secret, on_rotation: proc { rotated = true })
+    encryptor.rotate secrets[:older], "older sign"
+
+    assert_changes(:rotated, from: false, to: "Yes") do
+      message = encryptor.decrypt_and_verify(older_message, on_rotation: proc { rotated = "Yes" })
+
+      assert_equal({ encoded: "message" }, message)
+    end
   end
 
   def test_with_rotated_metadata
@@ -216,19 +244,19 @@ class MessageEncryptorMetadataTest < ActiveSupport::TestCase
 
   setup do
     @secret    = SecureRandom.random_bytes(32)
-    @encryptor = ActiveSupport::MessageEncryptor.new(@secret, encryptor_options)
+    @encryptor = ActiveSupport::MessageEncryptor.new(@secret, **encryptor_options)
   end
 
   private
     def generate(message, **options)
-      @encryptor.encrypt_and_sign(message, options)
+      @encryptor.encrypt_and_sign(message, **options)
     end
 
     def parse(data, **options)
-      @encryptor.decrypt_and_verify(data, options)
+      @encryptor.decrypt_and_verify(data, **options)
     end
 
-    def encryptor_options; end
+    def encryptor_options; {} end
 end
 
 class MessageEncryptorMetadataMarshalTest < MessageEncryptorMetadataTest

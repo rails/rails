@@ -30,9 +30,9 @@ module ActionController
     # :stopdoc:
     include BasicImplicitRender
 
-    def default_render(*args)
+    def default_render
       if template_exists?(action_name.to_s, _prefixes, variants: request.variant)
-        render(*args)
+        render
       elsif any_templates?(action_name.to_s, _prefixes)
         message = "#{self.class.name}\##{action_name} is missing a template " \
           "for this request format and variant.\n" \

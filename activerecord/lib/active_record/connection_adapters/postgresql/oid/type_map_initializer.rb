@@ -36,7 +36,7 @@ module ActiveRecord
           def query_conditions_for_initial_load
             known_type_names = @store.keys.map { |n| "'#{n}'" }
             known_type_types = %w('r' 'e' 'd')
-            <<-SQL % [known_type_names.join(", "), known_type_types.join(", ")]
+            <<~SQL % [known_type_names.join(", "), known_type_types.join(", ")]
               WHERE
                 t.typname IN (%s)
                 OR t.typtype IN (%s)

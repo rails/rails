@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 require "active_support/inflector"
 
-require "inflector_test_cases"
-require "constantize_test_cases"
+require_relative "inflector_test_cases"
+require_relative "constantize_test_cases"
 
 class InflectorTest < ActiveSupport::TestCase
   include InflectorTestCases
@@ -224,12 +224,6 @@ class InflectorTest < ActiveSupport::TestCase
     assert_equal("json_html_api", ActiveSupport::Inflector.underscore("JSONHTMLAPI"))
   end
 
-  def test_acronym_regexp_is_deprecated
-    assert_deprecated do
-      ActiveSupport::Inflector.inflections.acronym_regex
-    end
-  end
-
   def test_underscore
     CamelToUnderscore.each do |camel, underscore|
       assert_equal(underscore, ActiveSupport::Inflector.underscore(camel))
@@ -308,6 +302,12 @@ class InflectorTest < ActiveSupport::TestCase
     StringToParameterized.each do |some_string, parameterized_string|
       assert_equal(parameterized_string.gsub("-", "__sep__"), ActiveSupport::Inflector.parameterize(some_string, separator: "__sep__"))
     end
+  end
+
+  def test_parameterize_with_locale
+    word = "Fünf autos"
+    I18n.backend.store_translations(:de, i18n: { transliterate: { rule: { "ü" => "ue" } } })
+    assert_equal("fuenf-autos", ActiveSupport::Inflector.parameterize(word, locale: :de))
   end
 
   def test_classify

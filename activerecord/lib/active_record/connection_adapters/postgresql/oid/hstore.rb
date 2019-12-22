@@ -5,7 +5,7 @@ module ActiveRecord
     module PostgreSQL
       module OID # :nodoc:
         class Hstore < Type::Value # :nodoc:
-          include Type::Helpers::Mutable
+          include ActiveModel::Type::Helpers::Mutable
 
           def type
             :hstore
@@ -46,7 +46,6 @@ module ActiveRecord
           end
 
           private
-
             HstorePair = begin
               quoted_string = /"[^"\\]*(?:\\.[^"\\]*)*"/
               unquoted_string = /(?:\\.|[^\s,])[^\s=,\\]*(?:\\.[^\s=,\\]*|=[^,>])*/

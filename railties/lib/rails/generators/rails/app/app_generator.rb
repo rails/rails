@@ -125,6 +125,7 @@ module Rails
       rack_cors_config_exist         = File.exist?("config/initializers/cors.rb")
       assets_config_exist            = File.exist?("config/initializers/assets.rb")
       csp_config_exist               = File.exist?("config/initializers/content_security_policy.rb")
+      feature_policy_config_exist    = File.exist?("config/initializers/feature_policy.rb")
 
       @config_target_version = Rails.application.config.loaded_config_version || "5.0"
 
@@ -157,6 +158,10 @@ module Rails
 
         unless csp_config_exist
           remove_file "config/initializers/content_security_policy.rb"
+        end
+
+        unless feature_policy_config_exist
+          remove_file "config/initializers/feature_policy.rb"
         end
       end
     end
@@ -205,7 +210,6 @@ module Rails
     end
 
     def test
-      empty_directory_with_keep_file "test/fixtures"
       empty_directory_with_keep_file "test/fixtures/files"
       empty_directory_with_keep_file "test/controllers"
       empty_directory_with_keep_file "test/mailers"
@@ -213,6 +217,7 @@ module Rails
       empty_directory_with_keep_file "test/helpers"
       empty_directory_with_keep_file "test/integration"
 
+      template "test/channels/application_cable/connection_test.rb"
       template "test/test_helper.rb"
     end
 
@@ -224,6 +229,7 @@ module Rails
 
     def tmp
       empty_directory_with_keep_file "tmp"
+      empty_directory_with_keep_file "tmp/pids"
       empty_directory "tmp/cache"
       empty_directory "tmp/cache/assets"
     end
@@ -241,9 +247,10 @@ module Rails
     # We need to store the RAILS_DEV_PATH in a constant, otherwise the path
     # can change in Ruby 1.8.7 when we FileUtils.cd.
     RAILS_DEV_PATH = File.expand_path("../../../../../..", __dir__)
-    RESERVED_NAMES = %w[application destroy plugin runner test]
 
-    class AppGenerator < AppBase # :nodoc:
+    class AppGenerator < AppBase
+      # :stopdoc:
+
       WEBPACKS = %w( react vue angular elm stimulus )
 
       add_shared_options_for "application"
@@ -258,8 +265,8 @@ module Rails
       class_option :skip_bundle, type: :boolean, aliases: "-B", default: false,
                                  desc: "Don't run bundle install"
 
-      class_option :webpack, type: :string, default: nil,
-                             desc: "Preconfigure Webpack with a particular framework (options: #{WEBPACKS.join('/')})"
+      class_option :webpack, type: :string, aliases: "--webpacker", default: nil,
+                             desc: "Preconfigure Webpack with a particular framework (options: #{WEBPACKS.join(", ")})"
 
       class_option :skip_webpack_install, type: :boolean, default: false,
                                           desc: "Don't run Webpack install"
@@ -268,7 +275,7 @@ module Rails
         super
 
         if !options[:skip_active_record] && !DATABASES.include?(options[:database])
-          raise Error, "Invalid value for --database option. Supported for preconfiguration are: #{DATABASES.join(", ")}."
+          raise Error, "Invalid value for --database option. Supported preconfigurations are: #{DATABASES.join(", ")}."
         end
 
         # Force sprockets and yarn to be skipped when generating API only apps.
@@ -276,6 +283,8 @@ module Rails
         if options[:api]
           self.options = options.merge(skip_sprockets: true, skip_javascript: true).freeze
         end
+
+        @after_bundle_callbacks = []
       end
 
       public_task :set_default_accessors!
@@ -304,6 +313,13 @@ module Rails
         build(:bin_when_updating)
       end
       remove_task :update_bin_files
+
+      def update_active_storage
+        unless skip_active_storage?
+          rails_command "active_storage:update"
+        end
+      end
+      remove_task :update_active_storage
 
       def create_config_files
         build(:config)
@@ -440,6 +456,7 @@ module Rails
         if options[:skip_action_cable]
           remove_dir "app/javascript/channels"
           remove_dir "app/channels"
+          remove_dir "test/channels"
         end
       end
 
@@ -447,6 +464,7 @@ module Rails
         if options[:api]
           remove_file "config/initializers/cookies_serializer.rb"
           remove_file "config/initializers/content_security_policy.rb"
+          remove_file "config/initializers/feature_policy.rb"
         end
       end
 
@@ -458,7 +476,7 @@ module Rails
 
       def delete_new_framework_defaults
         unless options[:update]
-          remove_file "config/initializers/new_framework_defaults_6_0.rb"
+          remove_file "config/initializers/new_framework_defaults_6_1.rb"
         end
       end
 
@@ -482,65 +500,22 @@ module Rails
         "rails new #{arguments.map(&:usage).join(' ')} [options]"
       end
 
-    private
+    # :startdoc:
 
+    private
       # Define file as an alias to create_file for backwards compatibility.
       def file(*args, &block)
         create_file(*args, &block)
       end
 
-      def app_name
-        @app_name ||= original_app_name.tr("-", "_")
-      end
-
-      def original_app_name
-        @original_app_name ||= (defined_app_const_base? ? defined_app_name : File.basename(destination_root)).tr('\\', "").tr(". ", "_")
-      end
-
-      def defined_app_name
-        defined_app_const_base.underscore
-      end
-
-      def defined_app_const_base
-        Rails.respond_to?(:application) && defined?(Rails::Application) &&
-          Rails.application.is_a?(Rails::Application) && Rails.application.class.name.sub(/::Application$/, "")
-      end
-
-      alias :defined_app_const_base? :defined_app_const_base
-
-      def app_const_base
-        @app_const_base ||= defined_app_const_base || app_name.gsub(/\W/, "_").squeeze("_").camelize
-      end
-      alias :camelized :app_const_base
-
-      def app_const
-        @app_const ||= "#{app_const_base}::Application"
-      end
-
-      def valid_const?
-        if /^\d/.match?(app_const)
-          raise Error, "Invalid application name #{original_app_name}. Please give a name which does not start with numbers."
-        elsif RESERVED_NAMES.include?(original_app_name)
-          raise Error, "Invalid application name #{original_app_name}. Please give a " \
-                       "name which does not match one of the reserved rails " \
-                       "words: #{RESERVED_NAMES.join(", ")}"
-        elsif Object.const_defined?(app_const_base)
-          raise Error, "Invalid application name #{original_app_name}, constant #{app_const_base} is already in use. Please choose another application name."
-        end
-      end
-
-      def mysql_socket
-        @mysql_socket ||= [
-          "/tmp/mysql.sock",                        # default
-          "/var/run/mysqld/mysqld.sock",            # debian/gentoo
-          "/var/tmp/mysql.sock",                    # freebsd
-          "/var/lib/mysql/mysql.sock",              # fedora
-          "/opt/local/lib/mysql/mysql.sock",        # fedora
-          "/opt/local/var/run/mysqld/mysqld.sock",  # mac + darwinports + mysql
-          "/opt/local/var/run/mysql4/mysqld.sock",  # mac + darwinports + mysql4
-          "/opt/local/var/run/mysql5/mysqld.sock",  # mac + darwinports + mysql5
-          "/opt/lampp/var/mysql/mysql.sock"         # xampp for linux
-        ].find { |f| File.exist?(f) } unless Gem.win_platform?
+      # Registers a callback to be executed after bundle and spring binstubs
+      # have run.
+      #
+      #   after_bundle do
+      #     git add: '.'
+      #   end
+      def after_bundle(&block) # :doc:
+        @after_bundle_callbacks << block
       end
 
       def get_builder_class
@@ -572,7 +547,6 @@ module Rails
       end
 
       private
-
         def handle_version_request!(argument)
           if ["--version", "-v"].include?(argument)
             require "rails/version"

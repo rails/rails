@@ -37,7 +37,7 @@ end
 
 def in_memory_db?
   current_adapter?(:SQLite3Adapter) &&
-  ActiveRecord::Base.connection_pool.spec.config[:database] == ":memory:"
+  ActiveRecord::Base.connection_pool.db_config.database == ":memory:"
 end
 
 def subsecond_precision_supported?
@@ -48,8 +48,27 @@ def mysql_enforcing_gtid_consistency?
   current_adapter?(:Mysql2Adapter) && "ON" == ActiveRecord::Base.connection.show_variable("enforce_gtid_consistency")
 end
 
-def supports_savepoints?
-  ActiveRecord::Base.connection.supports_savepoints?
+def supports_default_expression?
+  if current_adapter?(:PostgreSQLAdapter)
+    true
+  elsif current_adapter?(:Mysql2Adapter)
+    conn = ActiveRecord::Base.connection
+    !conn.mariadb? && conn.database_version >= "8.0.13"
+  end
+end
+
+%w[
+  supports_savepoints?
+  supports_partial_index?
+  supports_insert_returning?
+  supports_insert_on_duplicate_skip?
+  supports_insert_on_duplicate_update?
+  supports_insert_conflict_target?
+  supports_optimizer_hints?
+].each do |method_name|
+  define_method method_name do
+    ActiveRecord::Base.connection.public_send(method_name)
+  end
 end
 
 def with_env_tz(new_tz = "US/Eastern")
@@ -170,7 +189,6 @@ end
 
 module InTimeZone
   private
-
     def in_time_zone(zone)
       old_zone  = Time.zone
       old_tz    = ActiveRecord::Base.time_zone_aware_attributes
@@ -183,3 +201,5 @@ module InTimeZone
       ActiveRecord::Base.time_zone_aware_attributes = old_tz
     end
 end
+
+require_relative "../../../tools/test_common"

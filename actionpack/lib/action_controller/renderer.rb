@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/hash/keys"
-
 module ActionController
   # ActionController::Renderer allows you to render arbitrary templates
   # without requirement of being in controller actions.
@@ -67,7 +65,7 @@ module ActionController
     def initialize(controller, env, defaults)
       @controller = controller
       @defaults = defaults
-      @env = normalize_keys defaults.merge(env)
+      @env = normalize_keys defaults, env
     end
 
     # Render templates with any options from ActionController::Base#render_to_string.
@@ -76,7 +74,7 @@ module ActionController
     # * <tt>:partial</tt> - See <tt>ActionView::PartialRenderer</tt> for details.
     # * <tt>:file</tt> - Renders an explicit template file. Add <tt>:locals</tt> to pass in, if so desired.
     #   It shouldn’t be used directly with unsanitized user input due to lack of validation.
-    # * <tt>:inline</tt> - Renders a ERB template string.
+    # * <tt>:inline</tt> - Renders an ERB template string.
     # * <tt>:plain</tt> - Renders provided text and sets the content type as <tt>text/plain</tt>.
     # * <tt>:html</tt> - Renders the provided HTML safe string, otherwise
     #   performs HTML escape on the string first. Sets the content type as <tt>text/html</tt>.
@@ -99,8 +97,9 @@ module ActionController
     end
 
     private
-      def normalize_keys(env)
+      def normalize_keys(defaults, env)
         new_env = {}
+        defaults.each_pair { |k, v| new_env[rack_key_for(k)] = rack_value_for(k, v) }
         env.each_pair { |k, v| new_env[rack_key_for(k)] = rack_value_for(k, v) }
         new_env["rack.url_scheme"] = new_env["HTTPS"] == "on" ? "https" : "http"
         new_env
@@ -118,11 +117,11 @@ module ActionController
 
       RACK_VALUE_TRANSLATION = {
         https: ->(v) { v ? "on" : "off" },
-        method: ->(v) { v.upcase },
+        method: ->(v) { -v.upcase },
       }
 
       def rack_key_for(key)
-        RACK_KEY_TRANSLATION.fetch(key, key.to_s)
+        RACK_KEY_TRANSLATION[key] || key.to_s
       end
 
       def rack_value_for(key, value)

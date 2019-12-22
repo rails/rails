@@ -5,7 +5,6 @@ module ActiveRecord
     module PostgreSQL
       class SchemaDumper < ConnectionAdapters::SchemaDumper # :nodoc:
         private
-
           def extensions(stream)
             extensions = @connection.extensions
             if extensions.any?

@@ -119,7 +119,8 @@ module ActionDispatch
 
         class UnanchoredRegexp < AnchoredRegexp # :nodoc:
           def accept(node)
-            %r{\A#{visit node}}
+            path = visit node
+            path == "/" ? %r{\A/} : %r{\A#{path}(?:\b|\Z|/)}
           end
         end
 
@@ -134,6 +135,10 @@ module ActionDispatch
 
           def captures
             Array.new(length - 1) { |i| self[i + 1] }
+          end
+
+          def named_captures
+            @names.zip(captures).to_h
           end
 
           def [](x)
@@ -160,6 +165,10 @@ module ActionDispatch
         end
         alias :=~ :match
 
+        def match?(other)
+          to_regexp.match?(other)
+        end
+
         def source
           to_regexp.source
         end
@@ -169,7 +178,6 @@ module ActionDispatch
         end
 
         private
-
           def regexp_visitor
             @anchored ? AnchoredRegexp : UnanchoredRegexp
           end

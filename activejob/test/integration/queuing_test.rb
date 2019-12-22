@@ -4,6 +4,7 @@ require "helper"
 require "jobs/logging_job"
 require "jobs/hello_job"
 require "jobs/provider_jid_job"
+require "jobs/thread_job"
 require "active_support/core_ext/numeric/time"
 
 class QueuingTest < ActiveSupport::TestCase
@@ -60,25 +61,21 @@ class QueuingTest < ActiveSupport::TestCase
   end
 
   test "should not run job enqueued in the future" do
-    begin
-      TestJob.set(wait: 10.minutes).perform_later @id
-      wait_for_jobs_to_finish_for(5.seconds)
-      assert_not job_executed
-    rescue NotImplementedError
-      skip
-    end
+    TestJob.set(wait: 10.minutes).perform_later @id
+    wait_for_jobs_to_finish_for(5.seconds)
+    assert_not job_executed
+  rescue NotImplementedError
+    skip
   end
 
   test "should run job enqueued in the future at the specified time" do
-    begin
-      TestJob.set(wait: 5.seconds).perform_later @id
-      wait_for_jobs_to_finish_for(2.seconds)
-      assert_not job_executed
-      wait_for_jobs_to_finish_for(10.seconds)
-      assert job_executed
-    rescue NotImplementedError
-      skip
-    end
+    TestJob.set(wait: 5.seconds).perform_later @id
+    wait_for_jobs_to_finish_for(2.seconds)
+    assert_not job_executed
+    wait_for_jobs_to_finish_for(10.seconds)
+    assert job_executed
+  rescue NotImplementedError
+    skip
   end
 
   test "should supply a provider_job_id when available for immediate jobs" do
@@ -148,5 +145,22 @@ class QueuingTest < ActiveSupport::TestCase
     assert job_executed "#{@id}.1"
     assert job_executed "#{@id}.2"
     assert job_executed_at("#{@id}.2") < job_executed_at("#{@id}.1")
+  end
+
+  test "inline jobs run on separate threads" do
+    skip unless adapter_is?(:inline)
+
+    after_job_thread = Thread.new do
+      ThreadJob.latch.wait
+      assert_nil Thread.current[:job_ran]
+      assert ThreadJob.thread[:job_ran]
+      ThreadJob.test_latch.count_down
+    end
+
+    ThreadJob.perform_later
+
+    after_job_thread.join
+
+    assert_nil Thread.current[:job_ran]
   end
 end

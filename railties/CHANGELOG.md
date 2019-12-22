@@ -1,182 +1,109 @@
-*   Use Ids instead of memory addresses when displaying references in scaffold views.
+*   Allow configuration of eager_load behaviour for rake environment:
 
-    Fixes #29200.
+        `config.rake_eager_load`
 
-    *Rasesh Patel*
+    Defaults to `false` as per previous behaviour.
 
-*   Adds support for multiple databases to `rails db:migrate:status`.
-    Subtasks are also added to get the status of individual databases (eg. `rails db:migrate:status:animals`).
+    *Thierry Joyal*
 
-    *Gannon McGibbon*
+*   Ensure Rails migration generator respects system-wide primary key config
 
-*   Use Webpacker by default to manage app-level JavaScript through the new app/javascript directory.
-    Sprockets is now solely in charge, by default, of compiling CSS and other static assets.
-    Action Cable channel generators will create ES6 stubs rather than use CoffeeScript.
-    Active Storage, Action Cable, Turbolinks, and Rails-UJS are loaded by a new application.js pack.
-    Generators no longer generate JavaScript stubs.
-
-    *DHH*, *Lachlan Sylvester*
-
-*   Add `database` (aliased as `db`) option to model generator to allow
-    setting the database. This is useful for applications that use
-    multiple databases and put migrations per database in their own directories.
-
+    When rails is configured to use a specific primary key type:
     ```
-    bin/rails g model Room capacity:integer --database=kingston
-          invoke  active_record
-          create    db/kingston_migrate/20180830151055_create_rooms.rb
+    config.generators do |g|
+      g.orm :active_record, primary_key_type: :uuid
+    end
     ```
-
-    Because rails scaffolding uses the model generator, you can
-    also specify a database with the scaffold generator.
-
-    *Gannon McGibbon*
-
-*   Raise an error when "recyclable cache keys" are being used by a cache store
-    that does not explicitly support it. Custom cache keys that do support this feature
-    can bypass this error by implementing the `supports_cache_versioning?` method on their
-    class and returning a truthy value.
-
-    *Richard Schneeman*
-
-*   Support environment specific credentials file.
-
-    For `production` environment look first for `config/credentials/production.yml.enc` file that can be decrypted by
-    `ENV["RAILS_MASTER_KEY"]` or `config/credentials/production.key` master key.
-    Edit given environment credentials file by command `rails credentials:edit --environment production`.
-    Default paths can be overwritten by setting `config.credentials.content_path` and `config.credentials.key_path`.
-
-    *Wojciech Wnętrzak*
-
-*   Make `ActiveSupport::Cache::NullStore` the default cache store in the test environment.
-
-    *Michael C. Nelson*
-
-*   Emit warning for unknown inflection rule when generating model.
-
-    *Yoshiyuki Kinjo*
-
-*   Add `database` (aliased as `db`) option to migration generator.
-
-    If you're using multiple databases and have a folder for each database
-    for migrations (ex db/migrate and db/new_db_migrate) you can now pass the
-    `--database` option to the generator to make sure the the migration
-    is inserted into the correct folder.
-
-    ```
-    rails g migration CreateHouses --database=kingston
-      invoke  active_record
-      create    db/kingston_migrate/20180830151055_create_houses.rb
-    ```
-
-    *Eileen M. Uchitelle*
-
-*   Deprecate `rake routes` in favor of `rails routes`.
-
-    *Yuji Yaginuma*
-
-*   Deprecate `rake initializers` in favor of `rails initializers`.
-
-    *Annie-Claude Côté*
-
-*   Deprecate `rake dev:cache` in favor of `rails dev:cache`.
-
-    *Annie-Claude Côté*
-
-*   Deprecate `rails notes` subcommands in favor of passing an `annotations` argument to `rails notes`.
-
-    The following subcommands are replaced by passing `--annotations` or `-a` to `rails notes`:
-    - `rails notes:custom ANNOTATION=custom` is deprecated in favor of using `rails notes -a custom`.
-    - `rails notes:optimize` is deprecated in favor of using `rails notes -a OPTIMIZE`.
-    - `rails notes:todo` is deprecated in favor of  using`rails notes -a TODO`.
-    - `rails notes:fixme` is deprecated in favor of using `rails notes -a FIXME`.
-
-    *Annie-Claude Côté*
-
-*   Deprecate `SOURCE_ANNOTATION_DIRECTORIES` environment variable used by `rails notes`
-    through `Rails::SourceAnnotationExtractor::Annotation` in favor of using `config.annotations.register_directories`.
-
-    *Annie-Claude Côté*
-
-*   Deprecate `rake notes` in favor of `rails notes`.
-
-    *Annie-Claude Côté*
-
-*   Don't generate unused files in `app:update` task.
-
-    Skip the assets' initializer when sprockets isn't loaded.
-
-    Skip `config/spring.rb` when spring isn't loaded.
-
-    Skip yarn's contents when yarn integration isn't used.
-
-    *Tsukuru Tanimichi*
-
-*   Make the master.key file read-only for the owner upon generation on
-    POSIX-compliant systems.
 
     Previously:
 
-        $ ls -l config/master.key
-        -rw-r--r--   1 owner  group      32 Jan 1 00:00 master.key
+    $ bin/rails g migration add_location_to_users location:references
 
-    Now:
+    The references line in the migration would not have `type: :uuid`.
+    This change causes the type to be applied appropriately.
 
-        $ ls -l config/master.key
-        -rw-------   1 owner  group      32 Jan 1 00:00 master.key
+    *Louis-Michel Couture* *Dermot Haughey*
 
-    Fixes #32604.
+*  Deprecate `Rails::DBConsole#config`
 
-    *Jose Luis Duran*
+  `Rails::DBConsole#config` is deprecated without replacement. Use `Rails::DBConsole.db_config.configuration_hash` instead.
 
-*   Deprecate support for using the `HOST` environment to specify the server IP.
+    *Eileen M. Uchitelle*, *John Crepezzi*
 
-    The `BINDING` environment should be used instead.
+* `Rails.application.config_for` merges shared configuration deeply.
 
-    Fixes #29516.
-
-    *Yuji Yaginuma*
-
-*   Deprecate passing Rack server name as a regular argument to `rails server`.
-
-    Previously:
-
-        $ bin/rails server thin
-
-    There wasn't an explicit option for the Rack server to use, now we have the
-    `--using` option with the `-u` short switch.
-
-    Now:
-
-        $ bin/rails server -u thin
-
-    This change also improves the error message if a missing or mistyped rack
-    server is given.
-
-    *Genadi Samokovarov*
-
-*   Add "rails routes --expanded" option to output routes in expanded mode like
-    "psql --expanded". Result looks like:
-
-    ```
-    $ rails routes --expanded
-    --[ Route 1 ]------------------------------------------------------------
-    Prefix            | high_scores
-    Verb              | GET
-    URI               | /high_scores(.:format)
-    Controller#Action | high_scores#index
-    --[ Route 2 ]------------------------------------------------------------
-    Prefix            | new_high_score
-    Verb              | GET
-    URI               | /high_scores/new(.:format)
-    Controller#Action | high_scores#new
+    ```yaml
+    # config/example.yml
+    shared:
+      foo:
+        bar:
+          baz: 1
+    development:
+      foo:
+        bar:
+          qux: 2
     ```
 
-    *Benoit Tigeot*
+    ```ruby
+    # Previously
+    Rails.application.config_for(:example)[:foo][:bar] #=> { qux: 2 }
 
-*   Rails 6 requires Ruby 2.4.1 or newer.
+    # Now
+    Rails.application.config_for(:example)[:foo][:bar] #=> { baz: 1, qux: 2 }
+    ```
 
-    *Jeremy Daer*
+    *Yuhei Kiriyama*
+
+*   Remove access to values in nested hashes returned by `Rails.application.config_for` via String keys.
+
+    ```yaml
+    # config/example.yml
+    development:
+      options:
+        key: value
+    ```
+
+    ```ruby
+    Rails.application.config_for(:example).options
+    ```
+
+    This used to return a Hash on which you could access values with String keys. This was deprecated in 6.0, and now doesn't work anymore.
+
+    *Étienne Barrié*
+
+*   Configuration files for environments (`config/environments/*.rb`) are
+    now able to modify `autoload_paths`, `autoload_once_paths`, and
+    `eager_load_paths`.
+
+    As a consequence, applications cannot autoload within those files. Before, they technnically could, but changes in autoloaded classes or modules had no effect anyway in the configuration because reloading does not reboot.
+
+    Ways to use application code in these files:
+
+    * Define early in the boot process a class that is not reloadable, from which the application takes configuration values that get passed to the framework.
+
+        ```ruby
+        # In config/application.rb, for example.
+        require "#{Rails.root}/lib/my_app/config"
+
+        # In config/environments/development.rb, for example.
+        config.foo = MyApp::Config.foo
+        ```
+
+    * If the class has to be reloadable, then wrap the configuration code in a `to_prepare` block:
+
+        ```ruby
+        config.to_prepare do
+          config.foo = MyModel.foo
+        end
+        ```
+
+      That assigns the latest `MyModel.foo` to `config.foo` when the application boots, and each time there is a reload. But whether that has an effect or not depends on the configuration point, since it is not uncommon for engines to read the application configuration during initialization and set their own state from them. That process happens only on boot, not on reloads, and if that is how `config.foo` worked, resetting it would have no effect in the state of the engine.
+
+    *Allen Hsu* & *Xavier Noria*
+
+*   Support using environment variable to set pidfile.
+
+    *Ben Thorner*
 
 
-Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/railties/CHANGELOG.md) for previous changes.
+Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/railties/CHANGELOG.md) for previous changes.

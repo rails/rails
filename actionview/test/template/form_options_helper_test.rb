@@ -29,13 +29,25 @@ class FormOptionsHelperTest < ActionView::TestCase
                   end
     Continent   = Struct.new("Continent", :continent_name, :countries)
     Country     = Struct.new("Country", :country_id, :country_name)
-    Firm        = Struct.new("Firm", :time_zone)
     Album       = Struct.new("Album", :id, :title, :genre)
+  end
+
+  class Firm
+    include ActiveModel::Validations
+    extend ActiveModel::Naming
+
+    attr_accessor :time_zone
+
+    def initialize(time_zone = nil)
+      @time_zone = time_zone
+    end
   end
 
   module FakeZones
     FakeZone = Struct.new(:name) do
       def to_s; name; end
+      def =~(_re); end
+      def match?(_re); end
     end
 
     module ClassMethods
@@ -814,6 +826,24 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_select_with_nil_as_selected_value
+    @post = Post.new
+    @post.category = nil
+    assert_dom_equal(
+      "<select name=\"post[category]\" id=\"post_category\"><option selected=\"selected\" value=\"\">none</option>\n<option value=\"1\">programming</option>\n<option value=\"2\">economics</option></select>",
+      select("post", "category", none: nil, programming: 1, economics: 2)
+    )
+  end
+
+  def test_select_with_nil_and_selected_option_as_nil
+    @post = Post.new
+    @post.category = nil
+    assert_dom_equal(
+      "<select name=\"post[category]\" id=\"post_category\"><option value=\"\">none</option>\n<option value=\"1\">programming</option>\n<option value=\"2\">economics</option></select>",
+      select("post", "category", { none: nil, programming: 1, economics: 2 }, { selected: nil })
+    )
+  end
+
   def test_required_select
     assert_dom_equal(
       %(<select id="post_category" name="post[category]" required="required"><option value=""></option>\n<option value="abe">abe</option>\n<option value="mus">mus</option>\n<option value="hest">hest</option></select>),
@@ -1255,6 +1285,7 @@ class FormOptionsHelperTest < ActionView::TestCase
 
     @fake_timezones.each do |tz|
       def tz.=~(re); %(A D).include?(name) end
+      def tz.match?(re); %(A D).include?(name) end
     end
 
     html = time_zone_select("firm", "time_zone", /A|D/)
@@ -1293,7 +1324,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   def test_time_zone_select_with_priority_zones_and_errors
     @firm = Firm.new("D")
     @firm.extend ActiveModel::Validations
-    @firm.errors[:time_zone] << "invalid"
+    assert_deprecated { @firm.errors[:time_zone] << "invalid" }
     zones = [ ActiveSupport::TimeZone.new("A"), ActiveSupport::TimeZone.new("D") ]
     html = time_zone_select("firm", "time_zone", zones)
     assert_dom_equal "<div class=\"field_with_errors\">" \
@@ -1461,7 +1492,6 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   private
-
     def dummy_posts
       [ Post.new("<Abe> went home", "<Abe>", "To a little house", "shh!"),
         Post.new("Babe went home", "Babe", "To a little house", "shh!"),

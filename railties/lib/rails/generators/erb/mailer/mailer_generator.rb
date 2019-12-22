@@ -29,7 +29,6 @@ module Erb # :nodoc:
       end
 
       private
-
         def formats
           [:text, :html]
         end

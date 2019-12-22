@@ -29,7 +29,7 @@ module ActionDispatch
         assert_not empty?
       end
 
-      test "url helpers are added when route is added" do
+      test "URL helpers are added when route is added" do
         draw do
           get "foo", to: SimpleApp.new("foo#index")
         end
@@ -48,7 +48,7 @@ module ActionDispatch
         assert_equal "/bar", url_helpers.bar_path
       end
 
-      test "url helpers are updated when route is updated" do
+      test "URL helpers are updated when route is updated" do
         draw do
           get "bar", to: SimpleApp.new("bar#index"), as: :bar
         end
@@ -62,7 +62,7 @@ module ActionDispatch
         assert_equal "/baz", url_helpers.bar_path
       end
 
-      test "url helpers are removed when route is removed" do
+      test "URL helpers are removed when route is removed" do
         draw do
           get "foo", to: SimpleApp.new("foo#index")
           get "bar", to: SimpleApp.new("bar#index")

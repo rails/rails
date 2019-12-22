@@ -4,34 +4,6 @@ module Arel # :nodoc: all
   module Visitors
     class MySQL < Arel::Visitors::ToSql
       private
-        def visit_Arel_Nodes_Union(o, collector, suppress_parens = false)
-          unless suppress_parens
-            collector << "( "
-          end
-
-          case o.left
-          when Arel::Nodes::Union
-            visit_Arel_Nodes_Union o.left, collector, true
-          else
-            visit o.left, collector
-          end
-
-          collector << " UNION "
-
-          case o.right
-          when Arel::Nodes::Union
-            visit_Arel_Nodes_Union o.right, collector, true
-          else
-            visit o.right, collector
-          end
-
-          if suppress_parens
-            collector
-          else
-            collector << " )"
-          end
-        end
-
         def visit_Arel_Nodes_Bin(o, collector)
           collector << "BINARY "
           visit o.expr, collector
@@ -43,7 +15,9 @@ module Arel # :nodoc: all
 
         ###
         # :'(
-        # http://dev.mysql.com/doc/refman/5.0/en/select.html#id3482214
+        # To retrieve all rows from a certain offset up to the end of the result set,
+        # you can use some large number for the second parameter.
+        # https://dev.mysql.com/doc/refman/en/select.html
         def visit_Arel_Nodes_SelectStatement(o, collector)
           if o.offset && !o.limit
             o.limit = Arel::Nodes::Limit.new(18446744073709551615)
@@ -63,6 +37,25 @@ module Arel # :nodoc: all
           visit o.right, collector
           collector << ") "
           collector
+        end
+
+        def visit_Arel_Nodes_IsNotDistinctFrom(o, collector)
+          collector = visit o.left, collector
+          collector << " <=> "
+          visit o.right, collector
+        end
+
+        def visit_Arel_Nodes_IsDistinctFrom(o, collector)
+          collector << "NOT "
+          visit_Arel_Nodes_IsNotDistinctFrom o, collector
+        end
+
+        def visit_Arel_Nodes_Regexp(o, collector)
+          infix_value o, collector, " REGEXP "
+        end
+
+        def visit_Arel_Nodes_NotRegexp(o, collector)
+          infix_value o, collector, " NOT REGEXP "
         end
 
         # In the simple case, MySQL allows us to place JOINs directly into the UPDATE

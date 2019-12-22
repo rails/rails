@@ -19,6 +19,8 @@ module ActiveRecord
         @conn = Base.sqlite3_connection database: ":memory:",
                                         adapter: "sqlite3",
                                         timeout: 100
+
+        @connection_handler = ActiveRecord::Base.connection_handler
       end
 
       def test_bad_connection
@@ -26,6 +28,17 @@ module ActiveRecord
           connection = ActiveRecord::Base.sqlite3_connection(adapter: "sqlite3", database: "/tmp/should/_not/_exist/-cinco-dog.db")
           connection.drop_table "ex", if_exists: true
         end
+      end
+
+      def test_database_exists_returns_false_when_the_database_does_not_exist
+        assert_not SQLite3Adapter.database_exists?(adapter: "sqlite3", database: "non_extant_db"),
+          "expected non_extant_db to not exist"
+      end
+
+      def test_database_exists_returns_true_when_databae_exists
+        config = ActiveRecord::Base.configurations["arunit"]
+        assert SQLite3Adapter.database_exists?(config),
+          "expected #{config[:database]} to exist"
       end
 
       unless in_memory_db?
@@ -51,15 +64,20 @@ module ActiveRecord
         end
       end
 
+      def test_database_exists_returns_true_for_an_in_memory_db
+        assert SQLite3Adapter.database_exists?(database: ":memory:"),
+          "Expected in memory database to exist"
+      end
+
       def test_column_types
         owner = Owner.create!(name: "hello".encode("ascii-8bit"))
         owner.reload
         select = Owner.columns.map { |c| "typeof(#{c.name})" }.join ", "
-        result = Owner.connection.exec_query <<-esql
+        result = Owner.connection.exec_query <<~SQL
           SELECT #{select}
           FROM   #{Owner.table_name}
           WHERE  #{Owner.primary_key} = #{owner.id}
-        esql
+        SQL
 
         assert_not(result.rows.first.include?("blob"), "should not store blobs")
       ensure
@@ -160,13 +178,13 @@ module ActiveRecord
       end
 
       def test_quote_binary_column_escapes_it
-        DualEncoding.connection.execute(<<-eosql)
+        DualEncoding.connection.execute(<<~SQL)
           CREATE TABLE IF NOT EXISTS dual_encodings (
             id integer PRIMARY KEY AUTOINCREMENT,
             name varchar(255),
             data binary
           )
-        eosql
+        SQL
         str = (+"\x80").force_encoding("ASCII-8BIT")
         binary = DualEncoding.new name: "いただきます！", data: str
         binary.save!
@@ -261,7 +279,7 @@ module ActiveRecord
       end
 
       def test_tables_logs_name
-        sql = <<-SQL
+        sql = <<~SQL
           SELECT name FROM sqlite_master WHERE name <> 'sqlite_sequence' AND type IN ('table')
         SQL
         assert_logged [[sql.squish, "SCHEMA", []]] do
@@ -271,7 +289,7 @@ module ActiveRecord
 
       def test_table_exists_logs_name
         with_example_table do
-          sql = <<-SQL
+          sql = <<~SQL
             SELECT name FROM sqlite_master WHERE name <> 'sqlite_sequence' AND name = 'ex' AND type IN ('table')
           SQL
           assert_logged [[sql.squish, "SCHEMA", []]] do
@@ -519,8 +537,7 @@ module ActiveRecord
       end
 
       def test_statement_closed
-        db = ::SQLite3::Database.new(ActiveRecord::Base.
-                                   configurations["arunit"]["database"])
+        db = ::SQLite3::Database.new(ActiveRecord::Base.configurations["arunit"][:database])
         statement = ::SQLite3::Statement.new(db,
                                            "CREATE TABLE statement_test (number integer not null)")
         statement.stub(:step, -> { raise ::SQLite3::BusyException.new("busy") }) do
@@ -534,10 +551,6 @@ module ActiveRecord
             end
           end
         end
-      end
-
-      def test_deprecate_valid_alter_table_type
-        assert_deprecated { @conn.valid_alter_table_type?(:string) }
       end
 
       def test_db_is_not_readonly_when_readonly_option_is_false
@@ -573,8 +586,73 @@ module ActiveRecord
         end
       end
 
-      private
+      def test_errors_when_an_insert_query_is_called_while_preventing_writes
+        with_example_table "id int, data string" do
+          assert_raises(ActiveRecord::ReadOnlyError) do
+            @connection_handler.while_preventing_writes do
+              @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
+            end
+          end
+        end
+      end
 
+      def test_errors_when_an_update_query_is_called_while_preventing_writes
+        with_example_table "id int, data string" do
+          @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
+
+          assert_raises(ActiveRecord::ReadOnlyError) do
+            @connection_handler.while_preventing_writes do
+              @conn.execute("UPDATE ex SET data = '9989' WHERE data = '138853948594'")
+            end
+          end
+        end
+      end
+
+      def test_errors_when_a_delete_query_is_called_while_preventing_writes
+        with_example_table "id int, data string" do
+          @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
+
+          assert_raises(ActiveRecord::ReadOnlyError) do
+            @connection_handler.while_preventing_writes do
+              @conn.execute("DELETE FROM ex where data = '138853948594'")
+            end
+          end
+        end
+      end
+
+      def test_errors_when_a_replace_query_is_called_while_preventing_writes
+        with_example_table "id int, data string" do
+          @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
+
+          assert_raises(ActiveRecord::ReadOnlyError) do
+            @connection_handler.while_preventing_writes do
+              @conn.execute("REPLACE INTO ex (data) VALUES ('249823948')")
+            end
+          end
+        end
+      end
+
+      def test_doesnt_error_when_a_select_query_is_called_while_preventing_writes
+        with_example_table "id int, data string" do
+          @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
+
+          @connection_handler.while_preventing_writes do
+            assert_equal 1, @conn.execute("SELECT data from ex WHERE data = '138853948594'").count
+          end
+        end
+      end
+
+      def test_doesnt_error_when_a_read_query_with_leading_chars_is_called_while_preventing_writes
+        with_example_table "id int, data string" do
+          @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
+
+          @connection_handler.while_preventing_writes do
+            assert_equal 1, @conn.execute("  SELECT data from ex WHERE data = '138853948594'").count
+          end
+        end
+      end
+
+      private
         def assert_logged(logs)
           subscriber = SQLSubscriber.new
           subscription = ActiveSupport::Notifications.subscribe("sql.active_record", subscriber)
@@ -585,7 +663,7 @@ module ActiveRecord
         end
 
         def with_example_table(definition = nil, table_name = "ex", &block)
-          definition ||= <<-SQL
+          definition ||= <<~SQL
             id integer PRIMARY KEY AUTOINCREMENT,
             number integer
           SQL

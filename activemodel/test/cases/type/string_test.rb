@@ -12,6 +12,14 @@ module ActiveModel
         assert_equal "123", type.cast(123)
       end
 
+      test "type casting for database" do
+        type = Type::String.new
+        object, array, hash = Object.new, [true], { a: :b }
+        assert_equal object, type.serialize(object)
+        assert_equal array, type.serialize(array)
+        assert_equal hash, type.serialize(hash)
+      end
+
       test "cast strings are mutable" do
         type = Type::String.new
 

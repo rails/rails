@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../abstract_unit"
 require "active_support/core_ext/file"
 
 class AtomicWriteTest < ActiveSupport::TestCase
@@ -57,6 +57,20 @@ class AtomicWriteTest < ActiveSupport::TestCase
     assert_equal contents, File.read(file_name)
   ensure
     File.unlink(file_name) rescue nil
+  end
+
+  def test_atomic_write_preserves_file_permissions_same_directory
+    Dir.mktmpdir do |temp_dir|
+      File.chmod 0700, temp_dir
+
+      probed_permissions = File.probe_stat_in(temp_dir).mode.to_s(8)
+
+      File.atomic_write(File.join(temp_dir, file_name), &:close)
+
+      actual_permissions = File.stat(File.join(temp_dir, file_name)).mode.to_s(8)
+
+      assert_equal actual_permissions, probed_permissions
+    end
   end
 
   def test_atomic_write_returns_result_from_yielded_block

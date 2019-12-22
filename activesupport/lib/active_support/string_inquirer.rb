@@ -18,7 +18,6 @@ module ActiveSupport
   #   vehicle.bike?  # => false
   class StringInquirer < String
     private
-
       def respond_to_missing?(method_name, include_private = false)
         (method_name[-1] == "?") || super
       end

@@ -8,10 +8,18 @@ ActiveRecord::Schema.define do
   #                                                                     #
   # ------------------------------------------------------------------- #
 
+  case_sensitive_options =
+    if current_adapter?(:Mysql2Adapter)
+      { collation: "utf8mb4_bin" }
+    else
+      {}
+    end
+
   create_table :accounts, force: true do |t|
     t.references :firm, index: false
     t.string  :firm_name
     t.integer :credit_limit
+    t.integer "a" * max_identifier_length
   end
 
   create_table :admin_accounts, force: true do |t|
@@ -93,19 +101,24 @@ ActiveRecord::Schema.define do
     t.integer :pirate_id
   end
 
-  create_table :books, force: true do |t|
+  create_table :books, id: :integer, force: true do |t|
+    default_zero = { default: 0 }
     t.references :author
     t.string :format
     t.column :name, :string
-    t.column :status, :integer, default: 0
-    t.column :read_status, :integer, default: 0
+    t.column :status, :integer, **default_zero
+    t.column :read_status, :integer, **default_zero
     t.column :nullable_status, :integer
-    t.column :language, :integer, default: 0
-    t.column :author_visibility, :integer, default: 0
-    t.column :illustrator_visibility, :integer, default: 0
-    t.column :font_size, :integer, default: 0
-    t.column :difficulty, :integer, default: 0
+    t.column :language, :integer, **default_zero
+    t.column :author_visibility, :integer, **default_zero
+    t.column :illustrator_visibility, :integer, **default_zero
+    t.column :font_size, :integer, **default_zero
+    t.column :difficulty, :integer, **default_zero
     t.column :cover, :string, default: "hard"
+    t.string :isbn, **case_sensitive_options
+    t.datetime :published_on
+    t.index [:author_id, :name], unique: true
+    t.index :isbn, where: "published_on IS NOT NULL", unique: true
   end
 
   create_table :booleans, force: true do |t|
@@ -158,8 +171,8 @@ ActiveRecord::Schema.define do
   end
 
   create_table :citations, force: true do |t|
-    t.column :book1_id, :integer
-    t.column :book2_id, :integer
+    t.references :book1
+    t.references :book2
     t.references :citation
   end
 
@@ -216,7 +229,7 @@ ActiveRecord::Schema.define do
     t.index [:firm_id, :type, :rating], name: "company_index", length: { type: 10 }, order: { rating: :desc }
     t.index [:firm_id, :type], name: "company_partial_index", where: "(rating > 10)"
     t.index :name, name: "company_name_index", using: :btree
-    t.index "(CASE WHEN rating > 0 THEN lower(name) END)", name: "company_expression_index" if supports_expression_index?
+    t.index "(CASE WHEN rating > 0 THEN lower(name) END) DESC", name: "company_expression_index" if supports_expression_index?
   end
 
   create_table :content, force: true do |t|
@@ -247,6 +260,8 @@ ActiveRecord::Schema.define do
   create_table :contracts, force: true do |t|
     t.references :developer, index: false
     t.references :company, index: false
+    t.string :metadata
+    t.integer :count
   end
 
   create_table :customers, force: true do |t|
@@ -264,7 +279,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :dashboards, force: true, id: false do |t|
-    t.string :dashboard_id
+    t.string :dashboard_id, **case_sensitive_options
     t.string :name
   end
 
@@ -328,7 +343,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :essays, force: true do |t|
-    t.string :name
+    t.string :name, **case_sensitive_options
     t.string :writer_id
     t.string :writer_type
     t.string :category_id
@@ -336,7 +351,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :events, force: true do |t|
-    t.string :title, limit: 5
+    t.string :title, limit: 5, **case_sensitive_options
   end
 
   create_table :eyes, force: true do |t|
@@ -378,7 +393,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :guids, force: true do |t|
-    t.column :key, :string
+    t.column :key, :string, **case_sensitive_options
   end
 
   create_table :guitars, force: true do |t|
@@ -386,8 +401,8 @@ ActiveRecord::Schema.define do
   end
 
   create_table :inept_wizards, force: true do |t|
-    t.column :name, :string, null: false
-    t.column :city, :string, null: false
+    t.column :name, :string, null: false, **case_sensitive_options
+    t.column :city, :string, null: false, **case_sensitive_options
     t.column :type, :string
   end
 
@@ -510,6 +525,8 @@ ActiveRecord::Schema.define do
     t.integer :club_id, :member_id
     t.boolean :favourite, default: false
     t.integer :type
+    t.datetime :created_at
+    t.datetime :updated_at
   end
 
   create_table :member_types, force: true do |t|
@@ -544,6 +561,10 @@ ActiveRecord::Schema.define do
     t.integer  :rgt
     t.integer  :root_id
     t.string   :type
+  end
+
+  create_table :mice, force: true do |t|
+    t.string   :name
   end
 
   create_table :movies, force: true, id: false do |t|
@@ -601,33 +622,55 @@ ActiveRecord::Schema.define do
     t.integer :non_poly_two_id
   end
 
-  create_table :parrots, force: true do |t|
-    t.column :name, :string
-    t.column :color, :string
-    t.column :parrot_sti_class, :string
-    t.column :killer_id, :integer
-    t.column :updated_count, :integer, default: 0
-    if subsecond_precision_supported?
-      t.column :created_at, :datetime, precision: 0
-      t.column :created_on, :datetime, precision: 0
-      t.column :updated_at, :datetime, precision: 0
-      t.column :updated_on, :datetime, precision: 0
-    else
-      t.column :created_at, :datetime
-      t.column :created_on, :datetime
-      t.column :updated_at, :datetime
-      t.column :updated_on, :datetime
+  disable_referential_integrity do
+    create_table :parrots, force: :cascade do |t|
+      t.string :name
+      t.string :color
+      t.string :parrot_sti_class
+      t.integer :killer_id
+      t.integer :updated_count, :integer, default: 0
+      if subsecond_precision_supported?
+        t.datetime :created_at, precision: 0
+        t.datetime :created_on, precision: 0
+        t.datetime :updated_at, precision: 0
+        t.datetime :updated_on, precision: 0
+      else
+        t.datetime :created_at
+        t.datetime :created_on
+        t.datetime :updated_at
+        t.datetime :updated_on
+      end
     end
-  end
 
-  create_table :parrots_pirates, id: false, force: true do |t|
-    t.column :parrot_id, :integer
-    t.column :pirate_id, :integer
-  end
+    create_table :pirates, force: :cascade do |t|
+      t.string :catchphrase
+      t.integer :parrot_id
+      t.integer :non_validated_parrot_id
+      if subsecond_precision_supported?
+        t.datetime :created_on, precision: 6
+        t.datetime :updated_on, precision: 6
+      else
+        t.datetime :created_on
+        t.datetime :updated_on
+      end
+    end
 
-  create_table :parrots_treasures, id: false, force: true do |t|
-    t.column :parrot_id, :integer
-    t.column :treasure_id, :integer
+    create_table :treasures, force: :cascade do |t|
+      t.string :name
+      t.string :type
+      t.references :looter, polymorphic: true
+      t.references :ship
+    end
+
+    create_table :parrots_pirates, id: false, force: true do |t|
+      t.references :parrot, foreign_key: true
+      t.references :pirate, foreign_key: true
+    end
+
+    create_table :parrots_treasures, id: false, force: true do |t|
+      t.references :parrot, foreign_key: true
+      t.references :treasure, foreign_key: true
+    end
   end
 
   create_table :people, force: true do |t|
@@ -660,30 +703,13 @@ ActiveRecord::Schema.define do
   create_table :pets, primary_key: :pet_id, force: true do |t|
     t.string :name
     t.integer :owner_id, :integer
-    if subsecond_precision_supported?
-      t.timestamps null: false, precision: 6
-    else
-      t.timestamps null: false
-    end
+    t.timestamps
   end
 
   create_table :pets_treasures, force: true do |t|
     t.column :treasure_id, :integer
     t.column :pet_id, :integer
     t.column :rainbow_color, :string
-  end
-
-  create_table :pirates, force: true do |t|
-    t.column :catchphrase, :string
-    t.column :parrot_id, :integer
-    t.integer :non_validated_parrot_id
-    if subsecond_precision_supported?
-      t.column :created_on, :datetime, precision: 6
-      t.column :updated_on, :datetime, precision: 6
-    else
-      t.column :created_on, :datetime
-      t.column :updated_on, :datetime
-    end
   end
 
   create_table :posts, force: true do |t|
@@ -720,6 +746,7 @@ ActiveRecord::Schema.define do
     t.string :estimate_of_type
     t.integer :estimate_of_id
     t.integer :price
+    t.string :currency
   end
 
   create_table :products, force: true do |t|
@@ -773,6 +800,24 @@ ActiveRecord::Schema.define do
     t.integer :lock_version, default: 0
   end
 
+  disable_referential_integrity do
+    create_table :seminars, force: :cascade do |t|
+      t.string :name
+    end
+
+    create_table :sessions, force: :cascade do |t|
+      t.date :start_date
+      t.date :end_date
+      t.string :name
+    end
+
+    create_table :sections, force: :cascade do |t|
+      t.string :short_name
+      t.belongs_to :session, foreign_key: true
+      t.belongs_to :seminar, foreign_key: true
+    end
+  end
+
   create_table :shape_expressions, force: true do |t|
     t.string  :paint_type
     t.integer :paint_id
@@ -801,6 +846,10 @@ ActiveRecord::Schema.define do
     else
       t.datetime :updated_at
     end
+  end
+
+  create_table :squeaks, force: true do |t|
+    t.integer :mouse_id
   end
 
   create_table :prisoners, force: true do |t|
@@ -869,8 +918,8 @@ ActiveRecord::Schema.define do
   end
 
   create_table :topics, force: true do |t|
-    t.string   :title, limit: 250
-    t.string   :author_name
+    t.string   :title, limit: 250, **case_sensitive_options
+    t.string   :author_name, **case_sensitive_options
     t.string   :author_email_address
     if subsecond_precision_supported?
       t.datetime :written_on, precision: 6
@@ -882,10 +931,10 @@ ActiveRecord::Schema.define do
     # use VARCHAR2(4000) instead of CLOB datatype as CLOB data type has many limitations in
     # Oracle SELECT WHERE clause which causes many unit test failures
     if current_adapter?(:OracleAdapter)
-      t.string   :content, limit: 4000
+      t.string   :content, limit: 4000, **case_sensitive_options
       t.string   :important, limit: 4000
     else
-      t.text     :content
+      t.text     :content, **case_sensitive_options
       t.text     :important
     end
     t.boolean  :approved, default: true
@@ -895,11 +944,7 @@ ActiveRecord::Schema.define do
     t.string   :parent_title
     t.string   :type
     t.string   :group
-    if subsecond_precision_supported?
-      t.timestamps null: true, precision: 6
-    else
-      t.timestamps null: true
-    end
+    t.timestamps null: true
   end
 
   create_table :toys, primary_key: :toy_id, force: true do |t|
@@ -914,14 +959,6 @@ ActiveRecord::Schema.define do
     t.text     :long_state, null: false
     t.datetime :created_at
     t.datetime :updated_at
-  end
-
-  create_table :treasures, force: true do |t|
-    t.column :name, :string
-    t.column :type, :string
-    t.column :looter_id, :integer
-    t.column :looter_type, :string
-    t.belongs_to :ship
   end
 
   create_table :tuning_pegs, force: true do |t|
@@ -983,14 +1020,16 @@ ActiveRecord::Schema.define do
     t.references :wheelable, polymorphic: true
   end
 
-  create_table :countries, force: true, id: false, primary_key: "country_id" do |t|
-    t.string :country_id
+  create_table :countries, force: true, id: false do |t|
+    t.string :country_id, primary_key: true
     t.string :name
   end
-  create_table :treaties, force: true, id: false, primary_key: "treaty_id" do |t|
-    t.string :treaty_id
+
+  create_table :treaties, force: true, id: false do |t|
+    t.string :treaty_id, primary_key: true
     t.string :name
   end
+
   create_table :countries_treaties, force: true, primary_key: [:country_id, :treaty_id] do |t|
     t.string :country_id, null: false
     t.string :treaty_id, null: false
@@ -1032,6 +1071,7 @@ ActiveRecord::Schema.define do
   create_table :cake_designers, force: true do |t|
   end
   create_table :drink_designers, force: true do |t|
+    t.string :name
   end
   create_table :chefs, force: true do |t|
     t.integer :employable_id
@@ -1039,6 +1079,7 @@ ActiveRecord::Schema.define do
     t.integer :department_id
     t.string :employable_list_type
     t.integer :employable_list_id
+    t.timestamps
   end
   create_table :recipes, force: true do |t|
     t.integer :chef_id
@@ -1076,6 +1117,7 @@ ActiveRecord::Schema.define do
 
   create_table :non_primary_keys, force: true, id: false do |t|
     t.integer :id
+    t.datetime :created_at
   end
 end
 

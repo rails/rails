@@ -22,7 +22,7 @@ module ActiveSupport
 
         @stubs[object.object_id][method_name] = Stub.new(object, method_name, new_name)
 
-        object.singleton_class.send :alias_method, new_name, method_name
+        object.singleton_class.alias_method new_name, method_name
         object.define_singleton_method(method_name, &block)
       end
 
@@ -39,13 +39,16 @@ module ActiveSupport
         @stubs[object.object_id][method_name]
       end
 
-      private
+      def stubbed?
+        !@stubs.empty?
+      end
 
+      private
         def unstub_object(stub)
           singleton_class = stub.object.singleton_class
-          singleton_class.send :silence_redefinition_of_method, stub.method_name
-          singleton_class.send :alias_method, stub.method_name, stub.original_method
-          singleton_class.send :undef_method, stub.original_method
+          singleton_class.silence_redefinition_of_method stub.method_name
+          singleton_class.alias_method stub.method_name, stub.original_method
+          singleton_class.undef_method stub.original_method
         end
     end
 
@@ -161,12 +164,32 @@ module ActiveSupport
       # +travel+, +travel_to+, and +freeze_time+.
       #
       #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
+      #
       #   travel_to Time.zone.local(2004, 11, 24, 01, 04, 44)
       #   Time.current # => Wed, 24 Nov 2004 01:04:44 EST -05:00
+      #
       #   travel_back
       #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
+      #
+      # This method also accepts a block, which brings the stubs back at the end of the block:
+      #
+      #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
+      #
+      #   travel_to Time.zone.local(2004, 11, 24, 01, 04, 44)
+      #   Time.current # => Wed, 24 Nov 2004 01:04:44 EST -05:00
+      #
+      #   travel_back do
+      #     Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
+      #   end
+      #
+      #   Time.current # => Wed, 24 Nov 2004 01:04:44 EST -05:00
       def travel_back
+        stubbed_time = Time.current if block_given? && simple_stubs.stubbed?
+
         simple_stubs.unstub_all!
+        yield if block_given?
+      ensure
+        travel_to stubbed_time if stubbed_time
       end
       alias_method :unfreeze_time, :travel_back
 
@@ -191,7 +214,6 @@ module ActiveSupport
       end
 
       private
-
         def simple_stubs
           @simple_stubs ||= SimpleStubs.new
         end
