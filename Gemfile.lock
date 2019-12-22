@@ -71,7 +71,7 @@ PATH
       i18n (>= 0.7, < 2)
       minitest (~> 5.1)
       tzinfo (~> 1.1)
-      zeitwerk (~> 2.2)
+      zeitwerk (~> 2.2, >= 2.2.2)
     rails (6.0.2.1)
       actioncable (= 6.0.2.1)
       actionmailbox (= 6.0.2.1)
