@@ -292,7 +292,6 @@ module ActiveSupport
     include Comparable
     attr_reader :name
     attr_reader :tz_name
-    attr_reader :description
     attr_reader :tzinfo
 
     # Create a new TimeZone object with the given name and offset. The
