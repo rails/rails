@@ -45,19 +45,17 @@ class Mysql2TableOptionsTest < ActiveRecord::Mysql2TestCase
   test "schema dump works with NO_TABLE_OPTIONS sql mode" do
     skip "As of MySQL 5.7.22, NO_TABLE_OPTIONS is deprecated. It will be removed in a future version of MySQL." if @connection.database_version >= "5.7.22"
 
-    old_sql_mode = @connection.exec_query("SELECT @@session.sql_mode").first["@@session.sql_mode"]
-    new_sql_mode = old_sql_mode.split(",") + ["NO_TABLE_OPTIONS"]
+    old_sql_mode = @connection.query_value("SELECT @@SESSION.sql_mode")
+    new_sql_mode = old_sql_mode + ",NO_TABLE_OPTIONS"
 
     begin
-      @connection.execute("SET @@session.sql_mode=\"#{new_sql_mode.join(",")}\"")
+      @connection.execute("SET @@SESSION.sql_mode='#{new_sql_mode}'")
 
       @connection.create_table "mysql_table_options", force: true
-      output  = dump_table_schema("mysql_table_options")
+      output = dump_table_schema("mysql_table_options")
       assert_no_match %r{options:}, output
-    rescue
-      assert(false, "Changing sql mode failed")
     ensure
-      @connection.execute("SET @@session.sql_mode=\"#{old_sql_mode}\"")
+      @connection.execute("SET @@SESSION.sql_mode='#{old_sql_mode}'")
     end
   end
 end
