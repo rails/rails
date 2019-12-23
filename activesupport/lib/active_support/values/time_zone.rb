@@ -303,10 +303,10 @@ module ActiveSupport
         @name = tz_string
         @tz_name = tz_string
       else
-        # name "Helsinki" 
+        # name "Helsinki"
         @name = MAPPING.invert[tz_string] || tz_string
         # tz_name "Europe/Helsinki"
-        @tz_name =  MAPPING[tz_string] || tz_string 
+        @tz_name =  MAPPING[tz_string] || tz_string
       end
       @utc_offset = utc_offset
       @tzinfo = tzinfo || TimeZone.find_tzinfo(tz_string)
