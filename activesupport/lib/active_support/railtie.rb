@@ -46,7 +46,7 @@ module ActiveSupport
     initializer "active_support.tz_name_as_provided" do |app|
       ActiveSupport.on_load(:active_support) do
         TimeZone.tz_name_as_provided = app.config.active_support.delete(:tz_name_as_provided)
-        
+
         if TimeZone.tz_name_as_provided
           ActiveSupport::Deprecation.warn(
             "TimeZone.name will start returning uniform output instead of the same string as in intialization. "\
