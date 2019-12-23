@@ -17,7 +17,7 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
       end
     RUBY
 
-    assert_equal <<~OUTPUT, run_routes_command([ "-c", "PostController" ])
+    assert_match <<~OUTPUT, run_routes_command([ "-c", "PostController" ])
                              Prefix Verb   URI Pattern                                             Controller#Action
                            new_post GET    /post/new(.:format)                                     posts#new
                           edit_post GET    /post/edit(.:format)                                    posts#edit
@@ -29,7 +29,7 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
       rails_postmark_inbound_emails POST   /rails/action_mailbox/postmark/inbound_emails(.:format) action_mailbox/ingresses/postmark/inbound_emails#create
     OUTPUT
 
-    assert_equal <<~OUTPUT, run_routes_command([ "-c", "UserPermissionController" ])
+    assert_match <<~OUTPUT, run_routes_command([ "-c", "UserPermissionController" ])
                     Prefix Verb   URI Pattern                     Controller#Action
        new_user_permission GET    /user_permission/new(.:format)  user_permissions#new
       edit_user_permission GET    /user_permission/edit(.:format) user_permissions#edit
@@ -50,7 +50,7 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
       end
     RUBY
 
-    assert_equal <<~MESSAGE, run_routes_command([ "-g", "show" ])
+    assert_match <<~MESSAGE, run_routes_command([ "-g", "show" ])
                              Prefix Verb URI Pattern                                                                              Controller#Action
                                cart GET  /cart(.:format)                                                                          cart#show
       rails_conductor_inbound_email GET  /rails/conductor/action_mailbox/inbound_emails/:id(.:format)                             rails/conductor/action_mailbox/inbound_emails#show
@@ -59,7 +59,7 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
                  rails_disk_service GET  /rails/active_storage/disk/:encoded_key/*filename(.:format)                              active_storage/disk#show
     MESSAGE
 
-    assert_equal <<~MESSAGE, run_routes_command([ "-g", "POST" ])
+    assert_match <<~MESSAGE, run_routes_command([ "-g", "POST" ])
                                      Prefix Verb URI Pattern                                                         Controller#Action
                                             POST /cart(.:format)                                                     cart#create
               rails_mandrill_inbound_emails POST /rails/action_mailbox/mandrill/inbound_emails(.:format)             action_mailbox/ingresses/mandrill/inbound_emails#create
@@ -72,7 +72,7 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
                        rails_direct_uploads POST /rails/active_storage/direct_uploads(.:format)                      active_storage/direct_uploads#create
     MESSAGE
 
-    assert_equal <<~MESSAGE, run_routes_command([ "-g", "basketballs" ])
+    assert_match <<~MESSAGE, run_routes_command([ "-g", "basketballs" ])
            Prefix Verb URI Pattern            Controller#Action
       basketballs GET  /basketballs(.:format) basketball#index
     MESSAGE
@@ -89,24 +89,24 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
 
     expected_cart_output = "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n"
     output = run_routes_command(["-c", "cart"])
-    assert_equal expected_cart_output, output
+    assert_match expected_cart_output, output
 
     output = run_routes_command(["-c", "Cart"])
-    assert_equal expected_cart_output, output
+    assert_match expected_cart_output, output
 
     output = run_routes_command(["-c", "CartController"])
-    assert_equal expected_cart_output, output
+    assert_match expected_cart_output, output
 
     expected_perm_output = ["         Prefix Verb URI Pattern                Controller#Action",
                             "user_permission GET  /user_permission(.:format) user_permission#index\n"].join("\n")
     output = run_routes_command(["-c", "user_permission"])
-    assert_equal expected_perm_output, output
+    assert_match expected_perm_output, output
 
     output = run_routes_command(["-c", "UserPermission"])
-    assert_equal expected_perm_output, output
+    assert_match expected_perm_output, output
 
     output = run_routes_command(["-c", "UserPermissionController"])
-    assert_equal expected_perm_output, output
+    assert_match expected_perm_output, output
   end
 
   test "rails routes with namespaced controller search key" do
@@ -119,7 +119,7 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
       end
     RUBY
 
-    assert_equal <<~OUTPUT, run_routes_command([ "-c", "Admin::PostController" ])
+    assert_match <<~OUTPUT, run_routes_command([ "-c", "Admin::PostController" ])
                Prefix Verb   URI Pattern                Controller#Action
        new_admin_post GET    /admin/post/new(.:format)  admin/posts#new
       edit_admin_post GET    /admin/post/edit(.:format) admin/posts#edit
@@ -130,7 +130,7 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
                       POST   /admin/post(.:format)      admin/posts#create
     OUTPUT
 
-    assert_equal <<~OUTPUT, run_routes_command([ "-c", "PostController" ])
+    assert_match <<~OUTPUT, run_routes_command([ "-c", "PostController" ])
                              Prefix Verb   URI Pattern                                             Controller#Action
                      new_admin_post GET    /admin/post/new(.:format)                               admin/posts#new
                     edit_admin_post GET    /admin/post/edit(.:format)                              admin/posts#edit
@@ -153,8 +153,8 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
                                  POST   /admin/user_permission(.:format)      admin/user_permissions#create
     OUTPUT
 
-    assert_equal expected_permission_output, run_routes_command([ "-c", "Admin::UserPermissionController" ])
-    assert_equal expected_permission_output, run_routes_command([ "-c", "UserPermissionController" ])
+    assert_match expected_permission_output, run_routes_command([ "-c", "Admin::UserPermissionController" ])
+    assert_match expected_permission_output, run_routes_command([ "-c", "UserPermissionController" ])
   end
 
   test "rails routes displays message when no routes are defined" do
@@ -163,7 +163,7 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
       end
     RUBY
 
-    assert_equal <<~MESSAGE, run_routes_command
+    assert_match <<~MESSAGE, run_routes_command
                                      Prefix Verb   URI Pattern                                                                              Controller#Action
               rails_mandrill_inbound_emails POST   /rails/action_mailbox/mandrill/inbound_emails(.:format)                                  action_mailbox/ingresses/mandrill/inbound_emails#create
               rails_postmark_inbound_emails POST   /rails/action_mailbox/postmark/inbound_emails(.:format)                                  action_mailbox/ingresses/postmark/inbound_emails#create
@@ -188,17 +188,18 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
   end
 
   test "rails routes with expanded option" do
-    previous_console_winsize = IO.console.winsize
-    IO.console.winsize = [0, 27]
-
     app_file "config/routes.rb", <<-RUBY
       Rails.application.routes.draw do
         get '/cart', to: 'cart#show'
       end
     RUBY
 
+    output = IO.stub(:console_size, [0, 27]) do
+      run_routes_command([ "--expanded" ])
+    end
+
     # rubocop:disable Layout/TrailingWhitespace
-    assert_equal <<~MESSAGE, run_routes_command([ "--expanded" ])
+    assert_match <<~MESSAGE, output
       --[ Route 1 ]--------------
       Prefix            | cart
       Verb              | GET
@@ -301,8 +302,6 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
       Controller#Action | active_storage/direct_uploads#create
     MESSAGE
     # rubocop:enable Layout/TrailingWhitespace
-  ensure
-    IO.console.winsize = previous_console_winsize
   end
 
   private

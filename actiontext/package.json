@@ -6,7 +6,7 @@
   "files": [
     "app/javascript/actiontext/*.js"
   ],
-  "homepage": "http://rubyonrails.org/",
+  "homepage": "https://rubyonrails.org/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rails/rails.git"

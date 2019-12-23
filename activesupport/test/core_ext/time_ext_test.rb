@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../abstract_unit"
 require "active_support/time"
-require "core_ext/date_and_time_behavior"
-require "time_zone_test_helpers"
+require_relative "../core_ext/date_and_time_behavior"
+require_relative "../time_zone_test_helpers"
 
 class TimeExtCalculationsTest < ActiveSupport::TestCase
   def date_time_init(year, month, day, hour, minute, second, usec = 0)
@@ -110,17 +110,19 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_sec_fraction
-    time = Time.utc(2016, 4, 23, 0, 0, Rational(1, 10000000000))
-    assert_equal Rational(1, 10000000000), time.sec_fraction
+    time = Time.utc(2016, 4, 23, 0, 0, Rational(1, 1_000_000_000))
+    assert_equal Rational(1, 1_000_000_000), time.sec_fraction
 
-    time = Time.utc(2016, 4, 23, 0, 0, 0.0000000001)
-    assert_equal 0.0000000001.to_r, time.sec_fraction
+    time = Time.utc(2016, 4, 23, 0, 0, 0.000_000_001)
+    assert_kind_of Rational, time.sec_fraction
+    assert_equal 0.000_000_001, time.sec_fraction.to_f
 
-    time = Time.utc(2016, 4, 23, 0, 0, 0, Rational(1, 10000))
-    assert_equal Rational(1, 10000000000), time.sec_fraction
+    time = Time.utc(2016, 4, 23, 0, 0, 0, Rational(1, 1_000))
+    assert_equal Rational(1, 1_000_000_000), time.sec_fraction
 
-    time = Time.utc(2016, 4, 23, 0, 0, 0, 0.0001)
-    assert_equal 0.0001.to_r / 1000000, time.sec_fraction
+    time = Time.utc(2016, 4, 23, 0, 0, 0, 0.001)
+    assert_kind_of Rational, time.sec_fraction
+    assert_equal 0.001.to_r / 1000000, time.sec_fraction.to_f
   end
 
   def test_beginning_of_day

@@ -382,9 +382,9 @@ class SerializedAttributeTest < ActiveRecord::TestCase
 
     # This isn't strictly necessary for the test, but a little bit of
     # knowledge of internals allows us to make failures far more likely.
-    model.define_singleton_method(:define_attribute) do |*args|
+    model.define_singleton_method(:define_attribute) do |*args, **options|
       Thread.pass
-      super(*args)
+      super(*args, **options)
     end
 
     threads = 4.times.map do

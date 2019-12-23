@@ -3,7 +3,7 @@
 require "active_record/connection_adapters/abstract_mysql_adapter"
 require "active_record/connection_adapters/mysql/database_statements"
 
-gem "mysql2", ">= 0.4.4"
+gem "mysql2", "~> 0.5"
 require "mysql2"
 
 module ActiveRecord
@@ -39,8 +39,8 @@ module ActiveRecord
       include MySQL::DatabaseStatements
 
       def initialize(connection, logger, connection_options, config)
-        super
-        @prepared_statements = false unless config.key?(:prepared_statements)
+        superclass_config = config.reverse_merge(prepared_statements: false)
+        super(connection, logger, connection_options, superclass_config)
         configure_connection
       end
 
@@ -139,6 +139,14 @@ module ActiveRecord
 
         def get_full_version
           @connection.server_info[:version]
+        end
+
+        def translate_exception(exception, message:, sql:, binds:)
+          if exception.is_a?(Mysql2::Error::TimeoutError) && !exception.error_number
+            ActiveRecord::AdapterTimeout.new(message, sql: sql, binds: binds)
+          else
+            super
+          end
         end
     end
   end

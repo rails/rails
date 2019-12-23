@@ -108,11 +108,9 @@ module ActiveRecord
           owner._read_attribute(reflection.foreign_key)
         end
 
-        # NOTE - for now, we're only supporting inverse setting from belongs_to back onto
-        # has_one associations.
         def invertible_for?(record)
           inverse = inverse_reflection_for(record)
-          inverse && inverse.has_one?
+          inverse && (inverse.has_one? || ActiveRecord::Base.has_many_inversing)
         end
 
         def stale_state

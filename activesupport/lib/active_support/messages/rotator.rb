@@ -21,12 +21,12 @@ module ActiveSupport
         def decrypt_and_verify(*args, on_rotation: @on_rotation, **options)
           super
         rescue MessageEncryptor::InvalidMessage, MessageVerifier::InvalidSignature
-          run_rotations(on_rotation) { |encryptor| encryptor.decrypt_and_verify(*args, options) } || raise
+          run_rotations(on_rotation) { |encryptor| encryptor.decrypt_and_verify(*args, **options) } || raise
         end
 
         private
           def build_rotation(secret = @secret, sign_secret = @sign_secret, options)
-            self.class.new(secret, sign_secret, options)
+            self.class.new(secret, sign_secret, **options)
           end
       end
 
@@ -34,12 +34,12 @@ module ActiveSupport
         include Rotator
 
         def verified(*args, on_rotation: @on_rotation, **options)
-          super || run_rotations(on_rotation) { |verifier| verifier.verified(*args, options) }
+          super || run_rotations(on_rotation) { |verifier| verifier.verified(*args, **options) }
         end
 
         private
           def build_rotation(secret = @secret, options)
-            self.class.new(secret, options)
+            self.class.new(secret, **options)
           end
       end
 

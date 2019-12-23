@@ -56,8 +56,9 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
       @view.render(template: "test/hello_world")
       wait
 
-      assert_equal 2, @logger.logged(:info).size
-      assert_match(/Rendering test\/hello_world\.erb/, @logger.logged(:info).first)
+      assert_equal 1, @logger.logged(:debug).size
+      assert_equal 1, @logger.logged(:info).size
+      assert_match(/Rendering test\/hello_world\.erb/, @logger.logged(:debug).last)
       assert_match(/Rendered test\/hello_world\.erb/, @logger.logged(:info).last)
     end
   end
@@ -67,8 +68,9 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
       @view.render(file: "#{FIXTURE_LOAD_PATH}/test/hello_world.erb")
       wait
 
-      assert_equal 2, @logger.logged(:info).size
-      assert_match(/Rendering test\/hello_world\.erb/, @logger.logged(:info).first)
+      assert_equal 1, @logger.logged(:debug).size
+      assert_equal 1, @logger.logged(:info).size
+      assert_match(/Rendering test\/hello_world\.erb/, @logger.logged(:debug).last)
       assert_match(/Rendered test\/hello_world\.erb/, @logger.logged(:info).last)
     end
   end
@@ -78,8 +80,9 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
       @view.render(plain: "TEXT")
       wait
 
-      assert_equal 2, @logger.logged(:info).size
-      assert_match(/Rendering text template/, @logger.logged(:info).first)
+      assert_equal 1, @logger.logged(:debug).size
+      assert_equal 1, @logger.logged(:info).size
+      assert_match(/Rendering text template/, @logger.logged(:debug).last)
       assert_match(/Rendered text template/, @logger.logged(:info).last)
     end
   end
@@ -89,8 +92,9 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
       @view.render(inline: "<%= 'TEXT' %>")
       wait
 
-      assert_equal 2, @logger.logged(:info).size
-      assert_match(/Rendering inline template/, @logger.logged(:info).first)
+      assert_equal 1, @logger.logged(:debug).size
+      assert_equal 1, @logger.logged(:info).size
+      assert_match(/Rendering inline template/, @logger.logged(:debug).last)
       assert_match(/Rendered inline template/, @logger.logged(:info).last)
     end
   end
@@ -100,8 +104,8 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
       @view.render(Customer.new("david"), greeting: "hi")
       wait
 
-      assert_equal 1, @logger.logged(:info).size
-      assert_match(/Rendered customers\/_customer\.html\.erb/, @logger.logged(:info).last)
+      assert_equal 1, @logger.logged(:debug).size
+      assert_match(/Rendered customers\/_customer\.html\.erb/, @logger.logged(:debug).last)
     end
   end
 
@@ -113,8 +117,8 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
       @view.render(partial: "test/cached_customer", locals: { cached_customer: Customer.new("david") })
       wait
 
-      assert_equal 1, @logger.logged(:info).size
-      assert_match(/Rendered test\/_cached_customer\.erb (.*) \[cache miss\]/, @logger.logged(:info).last)
+      assert_equal 1, @logger.logged(:debug).size
+      assert_match(/Rendered test\/_cached_customer\.erb (.*) \[cache miss\]/, @logger.logged(:debug).last)
     end
   end
 
@@ -128,8 +132,8 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
       @view.render(partial: "test/cached_customer", locals: { cached_customer: Customer.new("david") })
       wait
 
-      assert_equal 2, @logger.logged(:info).size
-      assert_match(/Rendered test\/_cached_customer\.erb (.*) \[cache hit\]/, @logger.logged(:info).last)
+      assert_equal 2, @logger.logged(:debug).size
+      assert_match(/Rendered test\/_cached_customer\.erb (.*) \[cache hit\]/, @logger.logged(:debug).last)
     end
   end
 
@@ -140,14 +144,14 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
 
       @view.render(partial: "test/nested_cached_customer", locals: { cached_customer: Customer.new("Stan") })
       wait
-      *, cached_inner, uncached_outer = @logger.logged(:info)
+      *, cached_inner, uncached_outer = @logger.logged(:debug)
       assert_match(/Rendered test\/_cached_customer\.erb (.*) \[cache miss\]/, cached_inner)
       assert_match(/Rendered test\/_nested_cached_customer\.erb \(Duration: .*?ms \| Allocations: .*?\)$/, uncached_outer)
 
       # Second render hits the cache for the _cached_customer partial. Outer template's log shouldn't be affected.
       @view.render(partial: "test/nested_cached_customer", locals: { cached_customer: Customer.new("Stan") })
       wait
-      *, cached_inner, uncached_outer = @logger.logged(:info)
+      *, cached_inner, uncached_outer = @logger.logged(:debug)
       assert_match(/Rendered test\/_cached_customer\.erb (.*) \[cache hit\]/, cached_inner)
       assert_match(/Rendered test\/_nested_cached_customer\.erb \(Duration: .*?ms \| Allocations: .*?\)$/, uncached_outer)
     end
@@ -160,16 +164,16 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
 
       @view.render(partial: "test/cached_nested_cached_customer", locals: { cached_customer: Customer.new("Stan") })
       wait
-      *, cached_inner, cached_outer = @logger.logged(:info)
+      *, cached_inner, cached_outer = @logger.logged(:debug)
       assert_match(/Rendered test\/_cached_customer\.erb (.*) \[cache miss\]/, cached_inner)
       assert_match(/Rendered test\/_cached_nested_cached_customer\.erb (.*) \[cache miss\]/, cached_outer)
 
       # One render: inner partial skipped, because the outer has been cached.
-      assert_difference -> { @logger.logged(:info).size }, +1 do
+      assert_difference -> { @logger.logged(:debug).size }, +1 do
         @view.render(partial: "test/cached_nested_cached_customer", locals: { cached_customer: Customer.new("Stan") })
         wait
       end
-      assert_match(/Rendered test\/_cached_nested_cached_customer\.erb (.*) \[cache hit\]/, @logger.logged(:info).last)
+      assert_match(/Rendered test\/_cached_nested_cached_customer\.erb (.*) \[cache hit\]/, @logger.logged(:debug).last)
     end
   end
 
@@ -180,58 +184,65 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
 
       @view.render(partial: "test/cached_customer", locals: { cached_customer: Customer.new("david") })
       wait
-      assert_match(/Rendered test\/_cached_customer\.erb (.*) \[cache miss\]/, @logger.logged(:info).last)
+      assert_match(/Rendered test\/_cached_customer\.erb (.*) \[cache miss\]/, @logger.logged(:debug).last)
 
       @view.render(partial: "test/cached_customer", locals: { cached_customer: Customer.new("david") })
       wait
-      assert_match(/Rendered test\/_cached_customer\.erb (.*) \[cache hit\]/, @logger.logged(:info).last)
+      assert_match(/Rendered test\/_cached_customer\.erb (.*) \[cache hit\]/, @logger.logged(:debug).last)
 
       @view.render(partial: "test/cached_customer", locals: { cached_customer: Customer.new("Stan") })
       wait
-      assert_match(/Rendered test\/_cached_customer\.erb (.*) \[cache miss\]/, @logger.logged(:info).last)
+      assert_match(/Rendered test\/_cached_customer\.erb (.*) \[cache miss\]/, @logger.logged(:debug).last)
     end
   end
 
   def test_render_collection_template
     Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
+      set_cache_controller
+
       @view.render(partial: "test/customer", collection: [ Customer.new("david"), Customer.new("mary") ])
       wait
 
-      assert_equal 1, @logger.logged(:info).size
-      assert_match(/Rendered collection of test\/_customer.erb \[2 times\]/, @logger.logged(:info).last)
+      assert_equal 1, @logger.logged(:debug).size
+      assert_match(/Rendered collection of test\/_customer.erb \[2 times\]/, @logger.logged(:debug).last)
     end
   end
 
   def test_render_collection_with_implicit_path
     Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
+      set_cache_controller
+
       @view.render([ Customer.new("david"), Customer.new("mary") ], greeting: "hi")
       wait
 
-      assert_equal 1, @logger.logged(:info).size
-      assert_match(/Rendered collection of customers\/_customer\.html\.erb \[2 times\]/, @logger.logged(:info).last)
+      assert_equal 1, @logger.logged(:debug).size
+      assert_match(/Rendered collection of customers\/_customer\.html\.erb \[2 times\]/, @logger.logged(:debug).last)
     end
   end
 
   def test_render_collection_template_without_path
     Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
+      set_cache_controller
+
       @view.render([ GoodCustomer.new("david"), Customer.new("mary") ], greeting: "hi")
       wait
 
-      assert_equal 1, @logger.logged(:info).size
-      assert_match(/Rendered collection of templates/, @logger.logged(:info).last)
+      assert_equal 1, @logger.logged(:debug).size
+      assert_match(/Rendered collection of templates/, @logger.logged(:debug).last)
     end
   end
 
   def test_render_collection_with_cached_set
     Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
       set_view_cache_dependencies
+      set_cache_controller
 
       @view.render(partial: "customers/customer", collection: [ Customer.new("david"), Customer.new("mary") ], cached: true,
         locals: { greeting: "hi" })
       wait
 
-      assert_equal 1, @logger.logged(:info).size
-      assert_match(/Rendered collection of customers\/_customer\.html\.erb \[0 \/ 2 cache hits\]/, @logger.logged(:info).last)
+      assert_equal 1, @logger.logged(:debug).size
+      assert_match(/Rendered collection of customers\/_customer\.html\.erb \[0 \/ 2 cache hits\]/, @logger.logged(:debug).last)
     end
   end
 end

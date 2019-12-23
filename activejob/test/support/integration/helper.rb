@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-puts "\n\n*** rake test:integration:#{ENV['AJ_ADAPTER']} ***\n"
-
 ENV["RAILS_ENV"] = "test"
 ActiveJob::Base.queue_name_prefix = nil
 

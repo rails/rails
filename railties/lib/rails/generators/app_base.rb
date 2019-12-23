@@ -86,10 +86,10 @@ module Rails
                                            desc: "Skip bootsnap gem"
 
         class_option :dev,                 type: :boolean, default: false,
-                                           desc: "Setup the #{name} with Gemfile pointing to your Rails checkout"
+                                           desc: "Set up the #{name} with Gemfile pointing to your Rails checkout"
 
         class_option :edge,                type: :boolean, default: false,
-                                           desc: "Setup the #{name} with Gemfile pointing to Rails repository"
+                                           desc: "Set up the #{name} with Gemfile pointing to Rails repository"
 
         class_option :rc,                  type: :string, default: nil,
                                            desc: "Path to file containing extra configuration options for rails command"
@@ -191,7 +191,7 @@ module Rails
       def web_server_gemfile_entry # :doc:
         return [] if options[:skip_puma]
         comment = "Use Puma as the app server"
-        GemfileEntry.new("puma", "~> 3.11", comment)
+        GemfileEntry.new("puma", "~> 4.1", comment)
       end
 
       def include_all_railties? # :doc:
@@ -306,7 +306,7 @@ module Rails
       def assets_gemfile_entry
         return [] if options[:skip_sprockets]
 
-        GemfileEntry.version("sass-rails", ">= 5", "Use SCSS for stylesheets")
+        GemfileEntry.version("sass-rails", ">= 6", "Use SCSS for stylesheets")
       end
 
       def webpacker_gemfile_entry

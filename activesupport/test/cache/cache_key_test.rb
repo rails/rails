@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../abstract_unit"
 require "active_support/cache"
 
 class CacheKeyTest < ActiveSupport::TestCase
   def test_entry_legacy_optional_ivars
     legacy = Class.new(ActiveSupport::Cache::Entry) do
-      def initialize(value, options = {})
+      def initialize(value, **options)
         @value = value
         @expires_in = nil
         @created_at = nil

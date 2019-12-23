@@ -7,10 +7,47 @@ module ActiveRecord
     # as this is the parent class for the types of database configuration objects.
     class DatabaseConfig # :nodoc:
       attr_reader :env_name, :spec_name
+      attr_accessor :owner_name
 
       def initialize(env_name, spec_name)
         @env_name = env_name
         @spec_name = spec_name
+      end
+
+      def config
+        raise NotImplementedError
+      end
+
+      def adapter_method
+        "#{adapter}_connection"
+      end
+
+      def host
+        raise NotImplementedError
+      end
+
+      def database
+        raise NotImplementedError
+      end
+
+      def adapter
+        raise NotImplementedError
+      end
+
+      def pool
+        raise NotImplementedError
+      end
+
+      def checkout_timeout
+        raise NotImplementedError
+      end
+
+      def reaping_frequency
+        raise NotImplementedError
+      end
+
+      def idle_timeout
+        raise NotImplementedError
       end
 
       def replica?
@@ -19,14 +56,6 @@ module ActiveRecord
 
       def migrations_paths
         raise NotImplementedError
-      end
-
-      def url_config?
-        false
-      end
-
-      def to_legacy_hash
-        { env_name => config }
       end
 
       def for_current_env?

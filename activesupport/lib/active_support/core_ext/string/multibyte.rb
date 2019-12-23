@@ -47,9 +47,9 @@ class String
   #   iso_str.is_utf8?   # => false
   def is_utf8?
     case encoding
-    when Encoding::UTF_8
+    when Encoding::UTF_8, Encoding::US_ASCII
       valid_encoding?
-    when Encoding::ASCII_8BIT, Encoding::US_ASCII
+    when Encoding::ASCII_8BIT
       dup.force_encoding(Encoding::UTF_8).valid_encoding?
     else
       false

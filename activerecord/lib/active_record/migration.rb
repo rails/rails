@@ -3,6 +3,7 @@
 require "benchmark"
 require "set"
 require "zlib"
+require "active_support/core_ext/enumerable"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/actionable_error"
 
@@ -553,21 +554,37 @@ module ActiveRecord
     # This class is used to verify that all migrations have been run before
     # loading a web page if <tt>config.active_record.migration_error</tt> is set to :page_load
     class CheckPending
-      def initialize(app)
+      def initialize(app, file_watcher: ActiveSupport::FileUpdateChecker)
         @app = app
-        @last_check = 0
+        @needs_check = true
+        @mutex = Mutex.new
+        @file_watcher = file_watcher
       end
 
       def call(env)
-        mtime = ActiveRecord::Base.connection.migration_context.last_migration.mtime.to_i
-        if @last_check < mtime
-          ActiveRecord::Migration.check_pending!(connection)
-          @last_check = mtime
+        @mutex.synchronize do
+          @watcher ||= build_watcher do
+            @needs_check = true
+            ActiveRecord::Migration.check_pending!(connection)
+            @needs_check = false
+          end
+
+          if @needs_check
+            @watcher.execute
+          else
+            @watcher.execute_if_updated
+          end
         end
+
         @app.call(env)
       end
 
       private
+        def build_watcher(&block)
+          paths = Array(connection.migration_context.migrations_paths)
+          @file_watcher.new([], paths.index_with(["rb"]), &block)
+        end
+
         def connection
           ActiveRecord::Base.connection
         end
@@ -587,11 +604,11 @@ module ActiveRecord
       end
 
       def load_schema_if_pending!
-        current_config = Base.connection_config
+        current_db_config = Base.connection_db_config
         all_configs = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env)
 
         needs_update = !all_configs.all? do |db_config|
-          Tasks::DatabaseTasks.schema_up_to_date?(db_config.config, ActiveRecord::Base.schema_format, nil, Rails.env, db_config.spec_name)
+          Tasks::DatabaseTasks.schema_up_to_date?(db_config, ActiveRecord::Base.schema_format)
         end
 
         if needs_update
@@ -604,7 +621,7 @@ module ActiveRecord
         end
 
         # Establish a new connection, the old database may be gone (db:test:prepare uses purge)
-        Base.establish_connection(current_config)
+        Base.establish_connection(current_db_config)
 
         check_pending!
       end
@@ -886,7 +903,12 @@ module ActiveRecord
           end
         end
         return super unless connection.respond_to?(method)
-        connection.send(method, *arguments, &block)
+        options = arguments.extract_options!
+        if options.empty?
+          connection.send(method, *arguments, &block)
+        else
+          connection.send(method, *arguments, **options, &block)
+        end
       end
     end
 
@@ -993,10 +1015,6 @@ module ActiveRecord
       File.basename(filename)
     end
 
-    def mtime
-      File.mtime filename
-    end
-
     delegate :migrate, :announce, :write, :disable_ddl_transaction, to: :migration
 
     private
@@ -1008,16 +1026,6 @@ module ActiveRecord
         require(File.expand_path(filename))
         name.constantize.new(name, version)
       end
-  end
-
-  class NullMigration < MigrationProxy #:nodoc:
-    def initialize
-      super(nil, 0, nil, nil)
-    end
-
-    def mtime
-      0
-    end
   end
 
   class MigrationContext #:nodoc:
@@ -1096,10 +1104,6 @@ module ActiveRecord
 
     def any_migrations?
       migrations.any?
-    end
-
-    def last_migration #:nodoc:
-      migrations.last || NullMigration.new
     end
 
     def migrations

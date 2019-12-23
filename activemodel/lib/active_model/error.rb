@@ -17,7 +17,7 @@ module ActiveModel
       attribute = attribute.to_s
 
       if i18n_customize_full_message && base_class.respond_to?(:i18n_scope)
-        attribute = attribute.remove(/\[\d\]/)
+        attribute = attribute.remove(/\[\d+\]/)
         parts = attribute.split(".")
         attribute_name = parts.pop
         namespace = parts.join("/") unless parts.empty?
@@ -69,6 +69,8 @@ module ActiveModel
 
       if base.class.respond_to?(:i18n_scope)
         i18n_scope = base.class.i18n_scope.to_s
+        attribute = attribute.to_s.remove(/\[\d+\]/)
+
         defaults = base.class.lookup_ancestors.flat_map do |klass|
           [ :"#{i18n_scope}.errors.models.#{klass.model_name.i18n_key}.attributes.#{attribute}.#{type}",
             :"#{i18n_scope}.errors.models.#{klass.model_name.i18n_key}.#{type}" ]
@@ -76,7 +78,7 @@ module ActiveModel
         defaults << :"#{i18n_scope}.errors.messages.#{type}"
 
         catch(:exception) do
-          translation = I18n.translate(defaults.first, options.merge(default: defaults.drop(1), throw: true))
+          translation = I18n.translate(defaults.first, **options.merge(default: defaults.drop(1), throw: true))
           return translation unless translation.nil?
         end unless options[:message]
       else
@@ -90,7 +92,7 @@ module ActiveModel
       defaults = options.delete(:message) if options[:message]
       options[:default] = defaults
 
-      I18n.translate(key, options)
+      I18n.translate(key, **options)
     end
 
     def initialize(base, attribute, type = :invalid, **options)

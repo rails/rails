@@ -238,7 +238,7 @@ namespace as in `<tt>ActiveRecord::Base</tt>`.
 
 You can quickly test the RDoc output with the following command:
 
-```
+```bash
 $ echo "+:to_param+" | rdoc --pipe
 # => <p><code>:to_param</code></p>
 ```

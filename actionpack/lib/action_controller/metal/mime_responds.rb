@@ -209,7 +209,7 @@ module ActionController #:nodoc:
           raise ActionController::RespondToMismatchError
         end
         _process_format(format)
-        _set_rendered_content_type format
+        _set_rendered_content_type(format) unless collector.any_response?
         response = collector.response
         response.call if response
       else
@@ -266,6 +266,10 @@ module ActionController #:nodoc:
         else
           VariantCollector.new(@variant)
         end
+      end
+
+      def any_response?
+        !@responses.fetch(format, false) && @responses[Mime::ALL]
       end
 
       def response

@@ -27,7 +27,7 @@ module ActiveRecord
     # is computed directly through SQL and does not trigger by itself the
     # instantiation of the actual post records.
     class CollectionProxy < Relation
-      def initialize(klass, association) #:nodoc:
+      def initialize(klass, association, **) #:nodoc:
         @association = association
         super klass
 
@@ -373,7 +373,7 @@ module ActiveRecord
       #   person.pets
       #   # => [#<Pet id: 1, name: "Gorby", group: "cats", person_id: 1>]
       #
-      #   other_pets = [Pet.new(name: 'Puff', group: 'celebrities']
+      #   other_pets = [Pet.new(name: 'Puff', group: 'celebrities')]
       #
       #   person.pets.replace(other_pets)
       #

@@ -24,16 +24,18 @@ if current_adapter?(:Mysql2Adapter)
       end
 
       def test_establishes_connection_without_database
+        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration)
+
         ActiveRecord::Base.stub(:connection, @connection) do
           assert_called_with(
             ActiveRecord::Base,
             :establish_connection,
             [
-              [ "adapter" => "mysql2", "database" => nil ],
-              [ "adapter" => "mysql2", "database" => "my-app-db" ],
+              [adapter: "mysql2", database: nil],
+              [db_config]
             ]
           ) do
-            ActiveRecord::Tasks::DatabaseTasks.create @configuration
+            ActiveRecord::Tasks::DatabaseTasks.create(db_config)
           end
         end
       end
@@ -67,16 +69,18 @@ if current_adapter?(:Mysql2Adapter)
       end
 
       def test_establishes_connection_to_database
+        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration)
+
         ActiveRecord::Base.stub(:connection, @connection) do
           assert_called_with(
             ActiveRecord::Base,
             :establish_connection,
             [
-              ["adapter" => "mysql2", "database" => nil],
-              [@configuration]
+              [adapter: "mysql2", database: nil],
+              [db_config]
             ]
           ) do
-            ActiveRecord::Tasks::DatabaseTasks.create @configuration
+            ActiveRecord::Tasks::DatabaseTasks.create(db_config)
           end
         end
       end
@@ -154,13 +158,15 @@ if current_adapter?(:Mysql2Adapter)
       end
 
       def test_establishes_connection_to_mysql_database
+        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration)
+
         ActiveRecord::Base.stub(:connection, @connection) do
           assert_called_with(
             ActiveRecord::Base,
             :establish_connection,
-            [@configuration]
+            [db_config]
           ) do
-            ActiveRecord::Tasks::DatabaseTasks.drop @configuration
+            ActiveRecord::Tasks::DatabaseTasks.drop(db_config)
           end
         end
       end
@@ -201,13 +207,15 @@ if current_adapter?(:Mysql2Adapter)
       end
 
       def test_establishes_connection_to_the_appropriate_database
+        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration)
+
         ActiveRecord::Base.stub(:connection, @connection) do
           assert_called_with(
             ActiveRecord::Base,
             :establish_connection,
-            [@configuration]
+            [db_config]
           ) do
-            ActiveRecord::Tasks::DatabaseTasks.purge @configuration
+            ActiveRecord::Tasks::DatabaseTasks.purge(db_config)
           end
         end
       end

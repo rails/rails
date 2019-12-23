@@ -72,6 +72,61 @@ The new Rails version might have different configuration defaults than the previ
 
 To allow you to upgrade to new defaults one by one, the update task has created a file `config/initializers/new_framework_defaults.rb`. Once your application is ready to run with new defaults, you can remove this file and flip the `config.load_defaults` value.
 
+Upgrading from Rails 6.0 to Rails 6.1
+-------------------------------------
+
+### `Rails.application.config_for` return value no longer supports access with String keys.
+
+Given a configuration file like this:
+
+```yaml
+# config/example.yml
+development:
+  options:
+    key: value
+```
+
+```ruby
+Rails.application.config_for(:example).options
+```
+
+This used to return a hash on which you could access values with String keys. That was deprecated in 6.0, and now doesn't work anymore.
+
+You can call `with_indifferent_access` on the return value of `config_for` if you still want to access values with String keys, e.g.:
+
+```ruby
+Rails.application.config_for(:example).with_indifferent_access.dig('options', 'key')
+```
+
+
+### Response's Content-Type when using `respond_to#any`
+
+The Content-Type header returned in the response can differ from what Rails 6.0 returned,
+more specifically if your application uses `respond_to { |format| format.any }`.
+The Content-Type will now be based on the given block rather than the request's format.
+
+Example:
+
+```ruby
+  def my_action
+    respond_to do |format|
+      format.any { render(json: { foo: 'bar' }) }
+    end
+  end
+
+  get('my_action.csv')
+```
+
+Previous behaviour was returning a `text/csv` response's Content-Type which is inaccurate since a JSON response is being rendered.
+Current behaviour correctly returns a `application/json` response's Content-Type.
+
+If your application relies on the previous incorrect behaviour, you are encouraged to specify
+which formats your action accepts, i.e.
+
+```ruby
+  format.any(:xml, :json) { render request.format.to_sym => @people }
+```
+
 
 Upgrading from Rails 5.2 to Rails 6.0
 -------------------------------------
@@ -111,6 +166,18 @@ This new embed metadata make those cookies incompatible with versions of Rails o
 If you require your cookies to be read by Rails 5.2 and older, or you are still validating your 6.0 deploy and want
 to be able to rollback set
 `Rails.application.config.action_dispatch.use_cookies_with_metadata` to `false`.
+
+### All npm packages have been moved to the `@rails` scope
+
+If you were previously loading any of the `actioncable`, `activestorage`,
+or `rails-ujs` packages through npm/yarn, you must update the names of these
+dependencies before you can upgrade them to `6.0.0`:
+
+```
+actioncable   → @rails/actioncable
+activestorage → @rails/activestorage
+rails-ujs     → @rails/ujs
+```
 
 ### Action Cable JavaScript API Changes
 
@@ -412,6 +479,8 @@ config.load_defaults "6.0"
 config.autoloader = :classic
 ```
 
+When using the Classic Autoloader in Rails 6 application it is recommended to set concurrency level to 1 in development environment, for the web servers and background processors, due to the thread-safety concerns.
+
 ### Active Storage assignment behavior change
 
 In Rails 5.2, assigning to a collection of attachments declared with `has_many_attached` appended new files:
@@ -422,7 +491,7 @@ class User < ApplicationRecord
 end
 
 user.highlights.attach(filename: "funky.jpg", ...)
-user.higlights.count # => 1
+user.highlights.count # => 1
 
 blob = ActiveStorage::Blob.create_after_upload!(filename: "town.jpg", ...)
 user.update!(highlights: [ blob ])
@@ -516,6 +585,16 @@ To:
 Rails.application.secrets[:smtp_settings][:address]
 ```
 
+### Removed deprecated support to `:text` and `:nothing` in `render`
+
+If your views are using `render :text`, they will no longer work. The new method
+of rendering text with MIME type of `text/plain` is to use `render :plain`.
+
+Similarly, `render :nothing` is also removed and you should use the `head` method
+to send responses that contain only headers. For example, `head :ok` sends a
+200 response with no body to render.
+
+
 Upgrading from Rails 4.2 to Rails 5.0
 -------------------------------------
 
@@ -597,7 +676,7 @@ See [#19034](https://github.com/rails/rails/pull/19034) for more details.
 continue using these methods in your controller tests, add `gem 'rails-controller-testing'` to
 your `Gemfile`.
 
-If you are using Rspec for testing, please see the extra configuration required in the gem's
+If you are using RSpec for testing, please see the extra configuration required in the gem's
 documentation.
 
 #### New behavior when uploading files
@@ -765,6 +844,26 @@ This default will be automatically configured in new applications. If existing a
 want to add this feature it will need to be turned on in an initializer.
 
     config.active_record.belongs_to_required_by_default = true
+
+The configuration is by default global for all your models, but you can
+override it on a per model basis. This should help you migrate all your models to have their
+associations required by default.
+
+```ruby
+class Book < ApplicationRecord
+  # model is not yet ready to have its association required by default
+
+  self.belongs_to_required_by_default = false
+  belongs_to(:author)
+end
+
+class Car < ApplicationRecord
+  # model is ready to have its association required by default
+
+  self.belongs_to_required_by_default = true
+  belongs_to(:pilot)
+end
+```
 
 #### Per-form CSRF Tokens
 
@@ -1193,7 +1292,7 @@ If your application currently depends on MultiJSON directly, you have a few opti
 
 WARNING: Do not simply replace `MultiJson.dump` and `MultiJson.load` with
 `JSON.dump` and `JSON.load`. These JSON gem APIs are meant for serializing and
-deserializing arbitrary Ruby objects and are generally [unsafe](http://www.ruby-doc.org/stdlib-2.2.2/libdoc/json/rdoc/JSON.html#method-i-load).
+deserializing arbitrary Ruby objects and are generally [unsafe](https://ruby-doc.org/stdlib-2.2.2/libdoc/json/rdoc/JSON.html#method-i-load).
 
 #### JSON gem compatibility
 

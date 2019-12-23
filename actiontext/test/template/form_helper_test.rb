@@ -5,7 +5,7 @@ require "test_helper"
 class ActionText::FormHelperTest < ActionView::TestCase
   tests ActionText::TagHelper
 
-  def form_with(*)
+  def form_with(*, **)
     @output_buffer = super
   end
 

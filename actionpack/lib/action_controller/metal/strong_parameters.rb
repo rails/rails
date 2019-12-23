@@ -181,6 +181,14 @@ module ActionController
     # Returns true if the given key is present in the parameters.
 
     ##
+    # :method: member?
+    #
+    # :call-seq:
+    #   member?(key)
+    #
+    # Returns true if the given key is present in the parameters.
+
+    ##
     # :method: keys
     #
     # :call-seq:
@@ -211,7 +219,7 @@ module ActionController
     #   values()
     #
     # Returns a new array of the values of the parameters.
-    delegate :keys, :key?, :has_key?, :values, :has_value?, :value?, :empty?, :include?,
+    delegate :keys, :key?, :has_key?, :member?, :values, :has_value?, :value?, :empty?, :include?,
       :as_json, :to_s, :each_key, to: :@parameters
 
     # By default, never raise an UnpermittedParameters exception if these

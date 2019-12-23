@@ -110,8 +110,10 @@ module ActionDispatch
             @url_helpers_module.undef_method url_name
           end
           routes[key] = route
-          define_url_helper @path_helpers_module, route, path_name, route.defaults, name, PATH
-          define_url_helper @url_helpers_module,  route, url_name,  route.defaults, name, UNKNOWN
+
+          helper = UrlHelper.create(route, route.defaults, name)
+          define_url_helper @path_helpers_module, path_name, helper, PATH
+          define_url_helper @url_helpers_module, url_name, helper, UNKNOWN
 
           @path_helpers << path_name
           @url_helpers << url_name
@@ -169,30 +171,30 @@ module ActionDispatch
         end
 
         class UrlHelper
-          def self.create(route, options, route_name, url_strategy)
+          def self.create(route, options, route_name)
             if optimize_helper?(route)
-              OptimizedUrlHelper.new(route, options, route_name, url_strategy)
+              OptimizedUrlHelper.new(route, options, route_name)
             else
-              new route, options, route_name, url_strategy
+              new(route, options, route_name)
             end
           end
 
           def self.optimize_helper?(route)
-            !route.glob? && route.path.requirements.empty?
+            route.path.requirements.empty? && !route.glob?
           end
 
-          attr_reader :url_strategy, :route_name
+          attr_reader :route_name
 
           class OptimizedUrlHelper < UrlHelper
             attr_reader :arg_size
 
-            def initialize(route, options, route_name, url_strategy)
+            def initialize(route, options, route_name)
               super
               @required_parts = @route.required_parts
               @arg_size       = @required_parts.size
             end
 
-            def call(t, args, inner_options)
+            def call(t, args, inner_options, url_strategy)
               if args.size == arg_size && !inner_options && optimize_routes_generation?(t)
                 options = t.url_options.merge @options
                 options[:path] = optimized_helper(args)
@@ -249,15 +251,14 @@ module ActionDispatch
               end
           end
 
-          def initialize(route, options, route_name, url_strategy)
+          def initialize(route, options, route_name)
             @options      = options
             @segment_keys = route.segment_keys.uniq
             @route        = route
-            @url_strategy = url_strategy
             @route_name   = route_name
           end
 
-          def call(t, args, inner_options)
+          def call(t, args, inner_options, url_strategy)
             controller_options = t.url_options
             options = controller_options.merge @options
             hash = handle_positional_args(controller_options,
@@ -312,8 +313,7 @@ module ActionDispatch
           #
           #   foo_url(bar, baz, bang, sort_by: 'baz')
           #
-          def define_url_helper(mod, route, name, opts, route_key, url_strategy)
-            helper = UrlHelper.create(route, opts, route_key, url_strategy)
+          def define_url_helper(mod, name, helper, url_strategy)
             mod.define_method(name) do |*args|
               last = args.last
               options = \
@@ -323,7 +323,7 @@ module ActionDispatch
                 when ActionController::Parameters
                   args.pop.to_h
                 end
-              helper.call self, args, options
+              helper.call(self, args, options, url_strategy)
             end
           end
       end
@@ -334,7 +334,7 @@ module ActionDispatch
 
       attr_accessor :formatter, :set, :named_routes, :default_scope, :router
       attr_accessor :disable_clear_and_finalize, :resources_path_names
-      attr_accessor :default_url_options
+      attr_accessor :default_url_options, :draw_paths
       attr_reader :env_key, :polymorphic_mappings
 
       alias :routes :set
@@ -366,6 +366,7 @@ module ActionDispatch
         self.named_routes = NamedRouteCollection.new
         self.resources_path_names = self.class.default_resources_path_names
         self.default_url_options = {}
+        self.draw_paths = []
 
         @config                     = config
         @append                     = []
@@ -476,6 +477,14 @@ module ActionDispatch
       end
 
       def url_helpers(supports_path = true)
+        if supports_path
+          @url_helpers_with_paths ||= generate_url_helpers(true)
+        else
+          @url_helpers_without_paths ||= generate_url_helpers(false)
+        end
+      end
+
+      def generate_url_helpers(supports_path)
         routes = self
 
         Module.new do

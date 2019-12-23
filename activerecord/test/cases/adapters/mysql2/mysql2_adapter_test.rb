@@ -217,11 +217,23 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
     end
   end
 
+  def test_doesnt_error_when_a_describe_query_is_called_while_preventing_writes
+    @connection_handler.while_preventing_writes do
+      assert_equal 2, @conn.execute("DESCRIBE engines").entries.count
+    end
+  end
+
+  def test_doesnt_error_when_a_desc_query_is_called_while_preventing_writes
+    @connection_handler.while_preventing_writes do
+      assert_equal 2, @conn.execute("DESC engines").entries.count
+    end
+  end
+
   def test_doesnt_error_when_a_read_query_with_leading_chars_is_called_while_preventing_writes
     @conn.execute("INSERT INTO `engines` (`car_id`) VALUES ('138853948594')")
 
     @connection_handler.while_preventing_writes do
-      assert_equal 1, @conn.execute("(\n( SELECT `engines`.* FROM `engines` WHERE `engines`.`car_id` = '138853948594' ) )").entries.count
+      assert_equal 1, @conn.execute("/*action:index*/(\n( SELECT `engines`.* FROM `engines` WHERE `engines`.`car_id` = '138853948594' ) )").entries.count
     end
   end
 
@@ -238,6 +250,28 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
     assert_equal Mysql2::Error::TimeoutError, error.cause.class
   ensure
     ActiveRecord::Base.establish_connection :arunit
+  end
+
+  def test_statement_timeout_error_codes
+    raw_conn = @conn.raw_connection
+    assert_raises(ActiveRecord::StatementTimeout) do
+      raw_conn.stub(:query, ->(_sql) { raise Mysql2::Error.new("fail", 50700, ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter::ER_FILSORT_ABORT) }) {
+        @conn.execute("SELECT 1")
+      }
+    end
+
+    assert_raises(ActiveRecord::StatementTimeout) do
+      raw_conn.stub(:query, ->(_sql) { raise Mysql2::Error.new("fail", 50700, ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter::ER_QUERY_TIMEOUT) }) {
+        @conn.execute("SELECT 1")
+      }
+    end
+  end
+
+  def test_doesnt_error_when_a_use_query_is_called_while_preventing_writes
+    @connection_handler.while_preventing_writes do
+      db_name = ActiveRecord::Base.configurations["arunit"][:database]
+      assert_nil @conn.execute("USE #{db_name}")
+    end
   end
 
   private

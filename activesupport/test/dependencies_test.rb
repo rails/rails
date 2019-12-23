@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 require "pp"
 require "active_support/dependencies"
-require "dependencies_test_helpers"
+require_relative "dependencies_test_helpers"
 
 module ModuleWithMissing
   mattr_accessor :missing_count
@@ -22,11 +22,13 @@ class DependenciesTest < ActiveSupport::TestCase
 
   setup do
     @loaded_features_copy = $LOADED_FEATURES.dup
+    $LOAD_PATH << "test"
   end
 
   teardown do
     ActiveSupport::Dependencies.clear
     $LOADED_FEATURES.replace(@loaded_features_copy)
+    $LOAD_PATH.pop
   end
 
   def test_depend_on_path

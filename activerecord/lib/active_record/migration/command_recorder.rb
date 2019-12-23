@@ -73,7 +73,12 @@ module ActiveRecord
       #   recorder.record(:method_name, [:arg1, :arg2])
       def record(*command, &block)
         if @reverting
-          @commands << inverse_of(*command, &block)
+          inverse_command = inverse_of(*command, &block)
+          if inverse_command[0].is_a?(Array)
+            @commands = @commands.concat(inverse_command)
+          else
+            @commands << inverse_command
+          end
         else
           @commands << (command << block)
         end
@@ -83,6 +88,11 @@ module ActiveRecord
       #
       #   recorder.inverse_of(:rename_table, [:old, :new])
       #   # => [:rename_table, [:new, :old]]
+      #
+      # If the inverse of a command requires several commands, returns array of commands.
+      #
+      #   recorder.inverse_of(:remove_columns, [:some_table, :foo, :bar, type: :string])
+      #   # => [[:add_column, :some_table, :foo, :string], [:add_column, :some_table, :bar, :string]]
       #
       # This method will raise an +IrreversibleMigration+ exception if it cannot
       # invert the +command+.
@@ -168,6 +178,18 @@ module ActiveRecord
           super
         end
 
+        def invert_remove_columns(args)
+          unless args[-1].is_a?(Hash) && args[-1].has_key?(:type)
+            raise ActiveRecord::IrreversibleMigration, "remove_columns is only reversible if given a type."
+          end
+
+          column_options = args.extract_options!
+          type = column_options.delete(:type)
+          args[1..-1].map do |arg|
+            [:add_column, [args[0], arg, type, column_options]]
+          end
+        end
+
         def invert_rename_index(args)
           [:rename_index, [args.first] + args.last(2).reverse]
         end
@@ -187,16 +209,19 @@ module ActiveRecord
         end
 
         def invert_remove_index(args)
-          table, options_or_column = *args
-          if (options = options_or_column).is_a?(Hash)
-            unless options[:column]
-              raise ActiveRecord::IrreversibleMigration, "remove_index is only reversible if given a :column option."
-            end
-            options = options.dup
-            [:add_index, [table, options.delete(:column), options]]
-          elsif (column = options_or_column).present?
-            [:add_index, [table, column]]
+          table, columns, options = *args
+          options ||= {}
+
+          if columns.is_a?(Hash)
+            options = columns.dup
+            columns = options.delete(:column)
           end
+
+          unless columns
+            raise ActiveRecord::IrreversibleMigration, "remove_index is only reversible if given a :column option."
+          end
+
+          [:add_index, [table, columns, options]]
         end
 
         alias :invert_add_belongs_to :invert_add_reference

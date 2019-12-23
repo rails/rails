@@ -27,7 +27,7 @@ module ActionDispatch
             @verb = verb
           end
 
-          def call(request); @verb === request.request_method; end
+          def call(request); @verb == request.request_method; end
         end
 
         class All

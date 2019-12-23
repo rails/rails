@@ -1,3 +1,153 @@
+*   Skip test database when running `db:create` or `db:drop` in development
+    with `DATABASE_URL` set.
+
+    *Brian Buchalter*
+
+*   Don't allow mutations on the datbase configurations hash.
+
+    Freeze the configurations hash to disallow directly changing the configurations hash. If applications need to change the hash, for example to create adatabases for parallelization, they should use the `DatabaseConfig` object directly.
+
+    Before:
+
+    ```ruby
+    @db_config = ActiveRecord::Base.configurations.configs_for(env_name: "test", spec_name: "primary")
+    @db_config.configuration_hash.merge!(idle_timeout: "0.02")
+    ```
+
+    After:
+
+    ```ruby
+    @db_config = ActiveRecord::Base.configurations.configs_for(env_name: "test", spec_name: "primary")
+    config = @db_config.configuration_hash.merge(idle_timeout: "0.02")
+    db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(@db_config.env_name, @db_config.spec_name, config)
+    ```
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
+*   Remove `:connection_id` from the `sql.active_record` notification.
+
+    *Aaron Patterson*, *Rafael Mendonça França*
+
+*   The `:name` key will no longer be returned as part of `DatabaseConfig#configuration_hash`. Please use `DatabaseConfig#owner_name` instead.
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
+*   ActiveRecord's `belongs_to_required_by_default` flag can now be set per model.
+
+    You can now opt-out/opt-in specific models from having their associations required
+    by default.
+
+    This change is meant to ease the process of migrating all your models to have
+    their association required.
+
+    *Edouard Chin*
+
+*   The `connection_config` method has been deprecated, please use `connection_db_config` instead which will return a `DatabaseConfigurations::DatabaseConfig` instead of a `Hash`.
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
+*   Retain explicit selections on the base model after applying `includes` and `joins`.
+
+    Resolves #34889.
+
+    *Patrick Rebsch*
+
+*   The `database` kwarg is deprecated without replacement because it can't be used for sharding and creates an issue if it's used during a request. Applications that need to create new connections should use `connects_to` instead.
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
+*   Allow attributes to be fetched from Arel node groupings.
+
+    *Jeff Emminger*, *Gannon McGibbon*
+
+*   A database URL can now contain a querystring value that contains an equal sign. This is needed to support passing PostgreSQL `options`.
+
+    *Joshua Flanagan*
+
+*   Calling methods like `establish_connection` with a `Hash` which is invalid (eg: no `adapter`) will now raise an error the same way as connections defined in `config/database.yml`.
+
+    *John Crepezzi*
+
+*   Specifying `implicit_order_column` now subsorts the records by primary key if available to ensure deterministic results.
+
+    *Paweł Urbanek*
+
+*   `where(attr => [])` now loads an empty result without making a query.
+
+    *John Hawthorn*
+
+*   Fixed the performance regression for `primary_keys` introduced MySQL 8.0.
+
+    *Hiroyuki Ishii*
+
+*   Add support for `belongs_to` to `has_many` inversing.
+
+    *Gannon McGibbon*
+
+*   Allow length configuration for `has_secure_token` method. The minimum length
+    is set at 24 characters.
+
+    Before:
+
+    ```ruby
+    has_secure_token :auth_token
+    ```
+
+    After:
+
+    ```ruby
+    has_secure_token :default_token             # 24 characters
+    has_secure_token :auth_token, length: 36    # 36 characters
+    has_secure_token :invalid_token, length: 12 # => ActiveRecord::SecureToken::MinimumLengthError
+    ```
+
+    *Bernardo de Araujo*
+
+*   Deprecate `DatabaseConfigurations#to_h`. These connection hashes are still available via `ActiveRecord::Base.configurations.configs_for`.
+
+    *Eileen Uchitelle*, *John Crepezzi*
+
+*   Add `DatabaseConfig#configuration_hash` to return database configuration hashes with symbol keys, and use all symbol-key configuration hashes internally. Deprecate `DatabaseConfig#config` which returns a String-keyed `Hash` with the same values.
+
+    *John Crepezzi*, *Eileen Uchitelle*
+
+*   Allow column names to be passed to `remove_index` positionally along with other options.
+
+    Passing other options can be necessary to make `remove_index` correctly reversible.
+
+    Before:
+
+        add_index    :reports, :report_id               # => works
+        add_index    :reports, :report_id, unique: true # => works
+        remove_index :reports, :report_id               # => works
+        remove_index :reports, :report_id, unique: true # => ArgumentError
+
+    After:
+
+        remove_index :reports, :report_id, unique: true # => works
+
+    *Eugene Kenny*
+
+*   Allow bulk `ALTER` statements to drop and recreate indexes with the same name.
+
+    *Eugene Kenny*
+
+*   `insert`, `insert_all`, `upsert`, and `upsert_all` now clear the query cache.
+
+    *Eugene Kenny*
+
+*   Call `while_preventing_writes` directly from `connected_to`.
+
+    In some cases application authors want to use the database switching middleware and make explicit calls with `connected_to`. It's possible for an app to turn off writes and not turn them back on by the time we call `connected_to(role: :writing)`.
+
+    This change allows apps to fix this by assuming if a role is writing we want to allow writes, except in the case it's explicitly turned off.
+
+    *Eileen M. Uchitelle*
+
+*   Improve detection of ActiveRecord::StatementTimeout with mysql2 adapter in the edge case when the query is terminated during filesort.
+
+    *Kir Shatrov*
+
 *   Stop trying to read yaml file fixtures when loading Active Record fixtures.
 
     *Gannon McGibbon*
@@ -38,7 +188,7 @@
 
     *Edu Depetris*
 
-*   Make currency symbols optional for money column type in PostgreSQL
+*   Make currency symbols optional for money column type in PostgreSQL.
 
     *Joel Schneider*
 

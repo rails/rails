@@ -29,7 +29,7 @@ module ActionText
           attachment_gallery.attachments.map do |attachment|
             attachment.node.inner_html = render(attachment, in_gallery: true).chomp
             attachment.to_html
-          end.join("").html_safe
+          end.join.html_safe
         end.chomp
       end
     end

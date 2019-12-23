@@ -3,6 +3,7 @@
 require "active_record/database_configurations/database_config"
 require "active_record/database_configurations/hash_config"
 require "active_record/database_configurations/url_config"
+require "active_record/database_configurations/connection_url_resolver"
 
 module ActiveRecord
   # ActiveRecord::DatabaseConfigurations returns an array of DatabaseConfig
@@ -30,12 +31,14 @@ module ActiveRecord
     # * <tt>env_name:</tt> The environment name. Defaults to +nil+ which will collect
     #   configs for all environments.
     # * <tt>spec_name:</tt> The specification name (i.e. primary, animals, etc.). Defaults
-    #   to +nil+.
+    #   to +nil+. If no +env_name+ is specified the config for the default env and the
+    #   passed +spec_name+ will be returned.
     # * <tt>include_replicas:</tt> Determines whether to include replicas in
     #   the returned list. Most of the time we're only iterating over the write
     #   connection (i.e. migrations don't need to run for the write and read connection).
     #   Defaults to +false+.
     def configs_for(env_name: nil, spec_name: nil, include_replicas: false)
+      env_name ||= default_env if spec_name
       configs = env_with_configs(env_name)
 
       unless include_replicas
@@ -59,9 +62,9 @@ module ActiveRecord
     # return the first config hash for the environment.
     #
     #   { database: "my_db", adapter: "mysql2" }
-    def default_hash(env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call.to_s)
+    def default_hash(env = default_env)
       default = find_db_config(env)
-      default.config if default
+      default.configuration_hash if default
     end
     alias :[] :default_hash
 
@@ -78,12 +81,11 @@ module ActiveRecord
 
     # Returns the DatabaseConfigurations object as a Hash.
     def to_h
-      configs = configurations.reverse.inject({}) do |memo, db_config|
-        memo.merge(db_config.to_legacy_hash)
+      configurations.inject({}) do |memo, db_config|
+        memo.merge(db_config.env_name => db_config.configuration_hash.stringify_keys)
       end
-
-      Hash[configs.to_a.reverse]
     end
+    deprecate to_h: "You can use `ActiveRecord::Base.configurations.configs_for(env_name: 'env', spec_name: 'primary').configuration_hash` to get the configuration hashes."
 
     # Checks if the application's configurations are empty.
     #
@@ -96,17 +98,53 @@ module ActiveRecord
     def each
       throw_getter_deprecation(:each)
       configurations.each { |config|
-        yield [config.env_name, config.config]
+        yield [config.env_name, config.configuration_hash]
       }
     end
 
     def first
       throw_getter_deprecation(:first)
       config = configurations.first
-      [config.env_name, config.config]
+      [config.env_name, config.configuration_hash]
+    end
+
+    # Returns fully resolved connection, accepts hash, string or symbol.
+    # Always returns a DatabaseConfiguration::DatabaseConfig
+    #
+    # == Examples
+    #
+    # Symbol representing current environment.
+    #
+    #   DatabaseConfigurations.new("production" => {}).resolve(:production)
+    #   # => DatabaseConfigurations::HashConfig.new(env_name: "production", config: {})
+    #
+    # One layer deep hash of connection values.
+    #
+    #   DatabaseConfigurations.new({}).resolve("adapter" => "sqlite3")
+    #   # => DatabaseConfigurations::HashConfig.new(config: {"adapter" => "sqlite3"})
+    #
+    # Connection URL.
+    #
+    #   DatabaseConfigurations.new({}).resolve("postgresql://localhost/foo")
+    #   # => DatabaseConfigurations::UrlConfig.new(config: {"adapter" => "postgresql", "host" => "localhost", "database" => "foo"})
+    def resolve(config, pool_name = nil) # :nodoc:
+      return config if DatabaseConfigurations::DatabaseConfig === config
+
+      case config
+      when Symbol
+        resolve_symbol_connection(config, pool_name)
+      when Hash, String
+        build_db_config_from_raw_config(default_env, "primary", config)
+      else
+        raise TypeError, "Invalid type for configuration. Expected Symbol, String, or Hash. Got #{config.inspect}"
+      end
     end
 
     private
+      def default_env
+        ActiveRecord::ConnectionHandling::DEFAULT_ENV.call.to_s
+      end
+
       def env_with_configs(env = nil)
         if env
           configurations.select { |db_config| db_config.env_name == env }
@@ -127,13 +165,11 @@ module ActiveRecord
           end
         end
 
-        current_env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call.to_s
-
         unless db_configs.find(&:for_current_env?)
-          db_configs << environment_url_config(current_env, "primary", {})
+          db_configs << environment_url_config(default_env, "primary", {})
         end
 
-        merge_db_environment_variables(current_env, db_configs.compact)
+        merge_db_environment_variables(default_env, db_configs.compact)
       end
 
       def walk_configs(env_name, config)
@@ -142,12 +178,44 @@ module ActiveRecord
         end
       end
 
+      def resolve_symbol_connection(env_name, pool_name)
+        db_config = find_db_config(env_name)
+
+        if db_config
+          config = db_config.configuration_hash.dup
+          db_config = DatabaseConfigurations::HashConfig.new(db_config.env_name, db_config.spec_name, config)
+          db_config.owner_name = pool_name.to_s
+          db_config
+        else
+          raise AdapterNotSpecified, <<~MSG
+            The `#{env_name}` database is not configured for the `#{default_env}` environment.
+
+              Available databases configurations are:
+
+              #{build_configuration_sentence}
+          MSG
+        end
+      end
+
+      def build_configuration_sentence
+        configs = configs_for(include_replicas: true)
+
+        configs.group_by(&:env_name).map do |env, config|
+          namespaces = config.map(&:spec_name)
+          if namespaces.size > 1
+            "#{env}: #{namespaces.join(", ")}"
+          else
+            env
+          end
+        end.join("\n")
+      end
+
       def build_db_config_from_raw_config(env_name, spec_name, config)
         case config
         when String
           build_db_config_from_string(env_name, spec_name, config)
         when Hash
-          build_db_config_from_hash(env_name, spec_name, config.stringify_keys)
+          build_db_config_from_hash(env_name, spec_name, config.symbolize_keys)
         else
           raise InvalidConfigurationError, "'{ #{env_name} => #{config} }' is not a valid configuration. Expected '#{config}' to be a URL string or a Hash."
         end
@@ -157,29 +225,29 @@ module ActiveRecord
         url = config
         uri = URI.parse(url)
         if uri.scheme
-          ActiveRecord::DatabaseConfigurations::UrlConfig.new(env_name, spec_name, url)
+          UrlConfig.new(env_name, spec_name, url)
         else
           raise InvalidConfigurationError, "'{ #{env_name} => #{config} }' is not a valid configuration. Expected '#{config}' to be a URL string or a Hash."
         end
       end
 
       def build_db_config_from_hash(env_name, spec_name, config)
-        if config.has_key?("url")
-          url = config["url"]
+        if config.has_key?(:url)
+          url = config[:url]
           config_without_url = config.dup
-          config_without_url.delete "url"
+          config_without_url.delete :url
 
-          ActiveRecord::DatabaseConfigurations::UrlConfig.new(env_name, spec_name, url, config_without_url)
+          UrlConfig.new(env_name, spec_name, url, config_without_url)
         else
-          ActiveRecord::DatabaseConfigurations::HashConfig.new(env_name, spec_name, config)
+          HashConfig.new(env_name, spec_name, config)
         end
       end
 
       def merge_db_environment_variables(current_env, configs)
         configs.map do |config|
-          next config if config.url_config? || config.env_name != current_env
+          next config if config.is_a?(UrlConfig) || config.env_name != current_env
 
-          url_config = environment_url_config(current_env, config.spec_name, config.config)
+          url_config = environment_url_config(current_env, config.spec_name, config.configuration_hash)
           url_config || config
         end
       end
@@ -188,7 +256,7 @@ module ActiveRecord
         url = environment_value_for(spec_name)
         return unless url
 
-        ActiveRecord::DatabaseConfigurations::UrlConfig.new(env, spec_name, url, config)
+        UrlConfig.new(env, spec_name, url, config)
       end
 
       def environment_value_for(spec_name)
@@ -205,7 +273,7 @@ module ActiveRecord
           configs_for(env_name: args.first)
         when :values
           throw_getter_deprecation(method)
-          configurations.map(&:config)
+          configurations.map(&:configuration_hash)
         when :[]=
           throw_setter_deprecation(method)
 

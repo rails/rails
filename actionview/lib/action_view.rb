@@ -58,6 +58,7 @@ module ActionView
     autoload_at "action_view/template/resolver" do
       autoload :Resolver
       autoload :PathResolver
+      autoload :FileSystemResolver
       autoload :OptimizedFileSystemResolver
       autoload :FallbackFileSystemResolver
     end

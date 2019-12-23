@@ -73,6 +73,21 @@ class ActionText::PlainTextConversionTest < ActiveSupport::TestCase
     )
   end
 
+  test "deeply nested tags are converted" do
+    assert_converted_to(
+      "Hello world!\nHow are you?",
+      ActionText::Fragment.wrap("<div>Hello world!</div><div></div>").tap do |fragment|
+        node = fragment.source.children.last
+        1_000.times do
+          child = node.clone
+          child.parent = node
+          node = child
+        end
+        node.inner_html = "How are you?"
+      end
+    )
+  end
+
   test "preserves non-linebreak whitespace after text" do
     assert_converted_to(
       "Hello world!",

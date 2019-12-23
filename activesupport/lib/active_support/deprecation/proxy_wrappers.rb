@@ -121,7 +121,7 @@ module ActiveSupport
     #        (Backtrace information…)
     #        ["Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"]
     class DeprecatedConstantProxy < Module
-      def self.new(*args, &block)
+      def self.new(*args, **options, &block)
         object = args.first
 
         return object unless object
@@ -144,6 +144,10 @@ module ActiveSupport
       def inspect
         target.inspect
       end
+
+      # Don't give a deprecation warning on methods that IRB may invoke
+      # during tab-completion.
+      delegate :hash, :instance_methods, :name, to: :target
 
       # Returns the class of the new constant.
       #

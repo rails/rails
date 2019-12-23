@@ -338,6 +338,10 @@ module Mime
       true
     end
 
+    def to_s
+      ""
+    end
+
     def ref; end
 
     private

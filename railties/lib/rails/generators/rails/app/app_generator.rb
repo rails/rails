@@ -210,7 +210,6 @@ module Rails
     end
 
     def test
-      empty_directory_with_keep_file "test/fixtures"
       empty_directory_with_keep_file "test/fixtures/files"
       empty_directory_with_keep_file "test/controllers"
       empty_directory_with_keep_file "test/mailers"
@@ -230,6 +229,7 @@ module Rails
 
     def tmp
       empty_directory_with_keep_file "tmp"
+      empty_directory_with_keep_file "tmp/pids"
       empty_directory "tmp/cache"
       empty_directory "tmp/cache/assets"
     end
@@ -476,7 +476,7 @@ module Rails
 
       def delete_new_framework_defaults
         unless options[:update]
-          remove_file "config/initializers/new_framework_defaults_6_0.rb"
+          remove_file "config/initializers/new_framework_defaults_6_1.rb"
         end
       end
 

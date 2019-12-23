@@ -45,7 +45,7 @@ module ActiveRecord
       association = klass._reflect_on_association(table_name) || klass._reflect_on_association(table_name.to_s.singularize)
 
       if !association && table_name == arel_table.name
-        return self
+        self
       elsif association && !association.polymorphic?
         association_klass = association.klass
         arel_table = association_klass.arel_table.alias(table_name)

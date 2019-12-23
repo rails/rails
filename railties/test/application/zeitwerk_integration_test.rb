@@ -385,4 +385,16 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
       assert_nil autoloader.logger
     end
   end
+
+  test "autoloaders.log!" do
+    app_file "extras/utils.rb", "module Utils; end"
+
+    add_to_config %(config.autoload_once_paths << "\#{Rails.root}/extras")
+    add_to_config "Rails.autoloaders.log!"
+
+    out, _err = capture_io { boot }
+
+    assert_match %r/^Zeitwerk@rails.main: autoload set for ApplicationRecord/, out
+    assert_match %r/^Zeitwerk@rails.once: autoload set for Utils/, out
+  end
 end

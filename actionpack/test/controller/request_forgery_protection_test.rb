@@ -613,8 +613,8 @@ module RequestForgeryProtectionTests
     assert_response :success
   end
 
-  def assert_not_blocked
-    assert_nothing_raised { yield }
+  def assert_not_blocked(&block)
+    assert_nothing_raised(&block)
     assert_response :success
   end
 
@@ -1019,8 +1019,8 @@ class SkipProtectionControllerTest < ActionController::TestCase
     end
   end
 
-  def assert_not_blocked
-    assert_nothing_raised { yield }
+  def assert_not_blocked(&block)
+    assert_nothing_raised(&block)
     assert_response :success
   end
 end

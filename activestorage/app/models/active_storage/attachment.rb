@@ -5,6 +5,8 @@ require "active_support/core_ext/module/delegation"
 # Attachments associate records with blobs. Usually that's a one record-many blobs relationship,
 # but it is possible to associate many different records with the same blob. A foreign-key constraint
 # on the attachments table prevents blobs from being purged if they’re still attached to any records.
+#
+# Attachments also have access to all methods from {ActiveStorage::Blob}[rdoc-ref:ActiveStorage::Blob].
 class ActiveStorage::Attachment < ActiveRecord::Base
   self.table_name = "active_storage_attachments"
 

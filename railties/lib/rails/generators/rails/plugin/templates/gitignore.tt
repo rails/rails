@@ -5,6 +5,7 @@ pkg/
 <% if sqlite3? -%>
 <%= dummy_path %>/db/*.sqlite3
 <%= dummy_path %>/db/*.sqlite3-journal
+<%= dummy_path %>/db/*.sqlite3-*
 <% end -%>
 <%= dummy_path %>/log/*.log
 <% unless options[:skip_javascript] -%>
@@ -16,3 +17,4 @@ pkg/
 <% end -%>
 <%= dummy_path %>/tmp/
 <% end -%>
+.byebug_history

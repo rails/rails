@@ -43,13 +43,13 @@ module ActionView
         end
       end
 
-      # preallocate all the default blocks for performance/memory consumption reasons
+      # Preallocate all the default blocks for performance/memory consumption reasons
       PARTIAL_BLOCK = lambda { |cache, partial| cache[partial] = SmallCache.new }
       PREFIX_BLOCK  = lambda { |cache, prefix|  cache[prefix]  = SmallCache.new(&PARTIAL_BLOCK) }
       NAME_BLOCK    = lambda { |cache, name|    cache[name]    = SmallCache.new(&PREFIX_BLOCK) }
       KEY_BLOCK     = lambda { |cache, key|     cache[key]     = SmallCache.new(&NAME_BLOCK) }
 
-      # usually a majority of template look ups return nothing, use this canonical preallocated array to save memory
+      # Usually a majority of template look ups return nothing, use this canonical preallocated array to save memory
       NO_TEMPLATES = [].freeze
 
       def initialize
@@ -58,7 +58,7 @@ module ActionView
       end
 
       def inspect
-        "#<#{self.class.name}:0x#{(object_id << 1).to_s(16)} keys=#{@data.size} queries=#{@query_cache.size}>"
+        "#{to_s[0..-2]} keys=#{@data.size} queries=#{@query_cache.size}>"
       end
 
       # Cache the templates returned by the block
@@ -75,7 +75,7 @@ module ActionView
         @query_cache.clear
       end
 
-      # Get the cache size.  Do not call this
+      # Get the cache size. Do not call this
       # method. This method is not guaranteed to be here ever.
       def size # :nodoc:
         size = 0
@@ -249,7 +249,7 @@ module ActionView
         query.gsub!(/:prefix(\/)?/, prefix)
 
         partial = escape_entry(path.partial? ? "_#{path.name}" : path.name)
-        query.gsub!(/:action/, partial)
+        query.gsub!(":action", partial)
 
         details.each do |ext, candidates|
           if ext == :variants && candidates == :any
@@ -350,13 +350,16 @@ module ActionView
       end
 
       def build_regex(path, details)
-        query = escape_entry(File.join(@path, path))
+        query = Regexp.escape(File.join(@path, path))
         exts = EXTENSIONS.map do |ext, prefix|
           match =
             if ext == :variants && details[ext] == :any
               ".*?"
             else
-              details[ext].compact.uniq.map { |e| Regexp.escape(e) }.join("|")
+              arr = details[ext].compact
+              arr.uniq!
+              arr.map! { |e| Regexp.escape(e) }
+              arr.join("|")
             end
           prefix = Regexp.escape(prefix)
           "(#{prefix}(?<#{ext}>#{match}))?"

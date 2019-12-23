@@ -35,7 +35,7 @@ require "models/tuning_peg"
 require "models/reply"
 
 class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
-  def test_autosave_validation
+  def test_autosave_does_not_pass_through_non_custom_validation_contexts
     person = Class.new(ActiveRecord::Base) {
       self.table_name = "people"
       validate :should_be_cool, on: :create
@@ -55,8 +55,11 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
     }
 
     u = person.create!(first_name: "cool")
-    u.update!(first_name: "nah") # still valid because validation only applies on 'create'
-    assert_predicate reference.create!(person: u), :persisted?
+    u.first_name = "nah"
+
+    assert_predicate u, :valid?
+    r = reference.new(person: u)
+    assert_predicate r, :valid?
   end
 
   def test_should_not_add_the_same_callbacks_multiple_times_for_has_one
@@ -848,7 +851,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
   def test_should_rollback_destructions_if_an_exception_occurred_while_saving_a_child
     # Stub the save method of the @pirate.ship instance to destroy and then raise an exception
     class << @pirate.ship
-      def save(*args)
+      def save(*, **)
         super
         destroy
         raise "Oh noes!"
@@ -911,7 +914,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
   def test_should_rollback_destructions_if_an_exception_occurred_while_saving_a_parent
     # Stub the save method of the @ship.pirate instance to destroy and then raise an exception
     class << @ship.pirate
-      def save(*args)
+      def save(*, **)
         super
         destroy
         raise "Oh noes!"
@@ -1298,7 +1301,7 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
 
     # Stub the save method of the @pirate.ship instance to raise an exception
     class << @pirate.ship
-      def save(*args)
+      def save(*, **)
         super
         raise "Oh noes!"
       end
@@ -1335,7 +1338,7 @@ class TestAutosaveAssociationOnAHasOneThroughAssociation < ActiveRecord::TestCas
     member = create_member_with_organization
 
     class << member.organization
-      def save(*args)
+      def save(*, **)
         super
         raise "Oh noes!"
       end
@@ -1356,7 +1359,7 @@ class TestAutosaveAssociationOnAHasOneThroughAssociation < ActiveRecord::TestCas
     author = create_author_with_post_with_comment
 
     class << author.comment_on_first_post
-      def save(*args)
+      def save(*, **)
         super
         raise "Oh noes!"
       end
@@ -1446,7 +1449,7 @@ class TestAutosaveAssociationOnABelongsToAssociation < ActiveRecord::TestCase
 
     # Stub the save method of the @ship.pirate instance to raise an exception
     class << @ship.pirate
-      def save(*args)
+      def save(*, **)
         super
         raise "Oh noes!"
       end
@@ -1600,7 +1603,7 @@ module AutosaveAssociationOnACollectionAssociationTests
 
     # Stub the save method of the first child instance to raise an exception
     class << @pirate.send(@association_name).first
-      def save(*args)
+      def save(*, **)
         super
         raise "Oh noes!"
       end
@@ -1736,6 +1739,14 @@ class TestAutosaveAssociationValidationsOnAHasManyAssociation < ActiveRecord::Te
     assert_equal(author_count_before_save, Author.count)
     assert_equal(book_count_before_save, Book.count)
   end
+
+  def test_validations_still_fire_on_unchanged_association_with_custom_validation_context
+    pirate = FamousPirate.create!(catchphrase: "Avast Ye!")
+    pirate.famous_ships.create!
+
+    assert pirate.valid?
+    assert_not pirate.valid?(:conference)
+  end
 end
 
 class TestAutosaveAssociationValidationsOnAHasOneAssociation < ActiveRecord::TestCase
@@ -1779,6 +1790,13 @@ class TestAutosaveAssociationValidationsOnABelongsToAssociation < ActiveRecord::
     assert_predicate @pirate, :valid?
     @pirate.non_validated_parrot = Parrot.new(name: "")
     assert_predicate @pirate, :valid?
+  end
+
+  def test_validations_still_fire_on_unchanged_association_with_custom_validation_context
+    firm_with_low_credit = Firm.create!(name: "Something", account: Account.new(credit_limit: 50))
+
+    assert firm_with_low_credit.valid?
+    assert_not firm_with_low_credit.valid?(:bank_loan)
   end
 end
 

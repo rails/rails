@@ -57,7 +57,7 @@ The autoloading `zeitwerk` mode is enabled by default in Rails 6 applications ru
 
 ```ruby
 # config/application.rb
-config.load_defaults "6.x" # enables zeitwerk mode in CRuby
+config.load_defaults "6.0" # enables zeitwerk mode in CRuby
 ```
 
 In `zeitwerk` mode, Rails uses [Zeitwerk](https://github.com/fxn/zeitwerk) internally to autoload, reload, and eager load. Rails instantiates and configures a dedicated Zeitwerk instance that manages the project.
@@ -71,30 +71,30 @@ In a Rails application file names have to match the constants they define, with 
 
 For example, the file `app/helpers/users_helper.rb` should define `UsersHelper` and the file `app/controllers/admin/payments_controller.rb` should define `Admin::PaymentsController`.
 
-Rails configures Zeitwerk to inflect file names with `String#camelize`. For example, it expects that `app/controllers/users_controller.rb` defines the constant `UsersController` because
+By default, Rails configures Zeitwerk to inflect file names with `String#camelize`. For example, it expects that `app/controllers/users_controller.rb` defines the constant `UsersController` because
 
 ```ruby
 "users_controller".camelize # => UsersController
 ```
 
-If you need to customize any of these inflections, for example to add an acronym, please have a look at `config/initializers/inflections.rb`.
+The section _Customizing Inflections_ below documents ways to override this default.
 
 Please, check the [Zeitwerk documentation](https://github.com/fxn/zeitwerk#file-structure) for further details.
 
 Autoload paths
 --------------
 
-We call _autoload paths_ to the list of application directories whose contents are to be autoloaded. For example, `app/models`. Such directories represent the root namespace: `Object`.
+We refer to the list of application directories whose contents are to be autoloaded as _autoload paths_. For example, `app/models`. Such directories represent the root namespace: `Object`.
 
 INFO. Autoload paths are called _root directories_ in Zeitwerk documentation, but we'll stay with "autoload path" in this guide.
 
 Within an autoload path, file names must match the constants they define as documented [here](https://github.com/fxn/zeitwerk#file-structure).
 
-By default, the autoload paths of an application consist of all the subdirectories of `app` that exist when the application boots ---except for `assets`, `javascripts`, `views`,--- plus the autoload paths of engines it might depend on.
+By default, the autoload paths of an application consist of all the subdirectories of `app` that exist when the application boots ---except for `assets`, `javascript`, `views`,--- plus the autoload paths of engines it might depend on.
 
 For example, if `UsersHelper` is implemented in `app/helpers/users_helper.rb`, the module is autoloadable, you do not need (and should not write) a `require` call for it:
 
-```
+```bash
 $ bin/rails runner 'p UsersHelper'
 UsersHelper
 ```
@@ -133,7 +133,7 @@ In a Rails console there is no file watcher active regardless of the value of `c
 
 However, you can force a reload in the console executing `reload!`:
 
-```
+```bash
 $ bin/rails c
 Loading development environment (Rails 6.0.0)
 irb(main):001:0> User.object_id
@@ -171,7 +171,7 @@ Similarly, in the Rails console, if you have a user instance and reload:
 > reload!
 ```
 
-the `user` object is instance of a stale class object. Ruby gives you a new class if you evaluate `User` again, but does not update the class `user` is instance of.
+the `user` object is an instance of a stale class object. Ruby gives you a new class if you evaluate `User` again, but does not update the class `user` is an instance of.
 
 Another use case of this gotcha is subclassing reloadable classes in a place that is not reloaded:
 
@@ -267,6 +267,77 @@ class Triangle < Polygon
 end
 ```
 
+Customizing Inflections
+-----------------------
+
+By default, Rails uses `String#camelize` to know which constant should a given file or directory name define. For example, `posts_controller.rb` should define `PostsController` because that is what `"posts_controller".camelize` returns.
+
+It could be the case that some particular file or directory name does not get inflected as you want. For instance, `html_parser.rb` is expected to define `HtmlParser` by default. What if you prefer the class to be `HTMLParser`? There are a few ways to customize this.
+
+The easiest way is to define acronyms in `config/initializers/inflections.rb`:
+
+```ruby
+ActiveSupport::Inflector.inflections(:en) do |inflect|
+  inflect.acronym "HTML"
+  inflect.acronym "SSL"
+end
+```
+
+Doing so affects how Active Support inflects globally. That may be fine in some applications, but you can also customize how to camelize individual basenames independently from Active Support by passing a collection of overrides to the default inflectors:
+
+```ruby
+# config/initializers/zeitwerk.rb
+Rails.autoloaders.each do |autoloader|
+  autoloader.inflector.inflect(
+    "html_parser" => "HTMLParser",
+    "ssl_error"   => "SSLError"
+  )
+end
+```
+
+That technique still depends on `String#camelize`, though, because that is what the default inflectors use as fallback. If you instead prefer not to depend on Active Support inflections at all and have absolute control over inflections, configure the inflectors to be instances of `Zeitwerk::Inflector`:
+
+```ruby
+# config/initializers/zeitwerk.rb
+Rails.autoloaders.each do |autoloader|
+  autoloader.inflector = Zeitwerk::Inflector.new
+  autoloader.inflector.inflect(
+    "html_parser" => "HTMLParser",
+    "ssl_error"   => "SSLError"
+  )
+end
+```
+
+There is no global configuration that can affect said instances, they are deterministic.
+
+You can even define a custom inflector for full flexibility. Please, check the [Zeitwerk documentation](https://github.com/fxn/zeitwerk#custom-inflector) for further details.
+
+Troubleshooting
+---------------
+
+The best way to follow what the loaders are doing is to inspect their activity.
+
+The easiest way to do that is to throw
+
+```ruby
+Rails.autoloaders.log!
+```
+
+to `config/application.rb` after loading the framework defaults. That will print traces to standard output.
+
+If you prefer logging to a file, configure this instead:
+
+```ruby
+Rails.autoloaders.logger = Logger.new("#{Rails.root}/log/autoloading.log")
+```
+
+The Rails logger is still not ready in `config/application.rb`, but it is in initializers:
+
+```ruby
+# config/initializers/log_autoloaders.rb
+Rails.autoloaders.logger = Rails.logger
+```
+
 Rails.autoloaders
 -----------------
 
@@ -292,7 +363,7 @@ Applications can load Rails 6 defaults and still use the classic autoloader this
 
 ```ruby
 # config/application.rb
-config.load_defaults "6.x"
+config.load_defaults "6.0"
 config.autoloader = :classic
 ```
 

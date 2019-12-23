@@ -118,6 +118,7 @@ module ActionDispatch
 
     def initialize(*) # :nodoc:
       super
+      self.class.driven_by(:selenium) unless self.class.driver?
       self.class.driver.use
     end
 
@@ -154,10 +155,8 @@ module ActionDispatch
     def self.driven_by(driver, using: :chrome, screen_size: [1400, 1400], options: {}, &capabilities)
       driver_options = { using: using, screen_size: screen_size, options: options }
 
-      self.driver = SystemTesting::Driver.new(driver, driver_options, &capabilities)
+      self.driver = SystemTesting::Driver.new(driver, **driver_options, &capabilities)
     end
-
-    driven_by :selenium
 
     private
       def url_helpers
@@ -165,6 +164,7 @@ module ActionDispatch
           if ActionDispatch.test_app
             Class.new do
               include ActionDispatch.test_app.routes.url_helpers
+              include ActionDispatch.test_app.routes.mounted_helpers
 
               def url_options
                 default_url_options.reverse_merge(host: Capybara.app_host || Capybara.current_session.server_url)

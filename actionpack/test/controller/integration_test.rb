@@ -138,6 +138,14 @@ class IntegrationTestTest < ActiveSupport::TestCase
     assert_not session1.equal?(session2)
   end
 
+  def test_child_session_assertions_bubble_up_to_root
+    assertions_before = @test.assertions
+    @test.open_session.assert(true)
+    assertions_after = @test.assertions
+
+    assert_equal 1, assertions_after - assertions_before
+  end
+
   # RSpec mixes Matchers (which has a #method_missing) into
   # IntegrationTest's superclass.  Make sure IntegrationTest does not
   # try to delegate these methods to the session object.
@@ -179,6 +187,15 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
         format.xml { render xml: "<root></root>", status: 200 }
         format.rss { render xml: "<root></root>", status: 200 }
         format.atom { render xml: "<root></root>", status: 200 }
+      end
+    end
+
+    def get_with_vary_set_x_requested_with
+      respond_to do |format|
+        format.json do
+          response.headers["Vary"] = "X-Requested-With"
+          render json: "JSON OK", status: 200
+        end
       end
     end
 
@@ -554,6 +571,13 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     with_test_route_set do
       get "/get", params: { format: "json" }
       assert_nil response.headers["Vary"]
+    end
+  end
+
+  def test_not_setting_vary_header_when_it_has_already_been_set
+    with_test_route_set do
+      get "/get_with_vary_set_x_requested_with", headers: { "Accept" => "application/json" }, xhr: true
+      assert_equal "X-Requested-With", response.headers["Vary"]
     end
   end
 

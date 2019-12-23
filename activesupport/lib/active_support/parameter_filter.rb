@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/object/duplicable"
-require "active_support/core_ext/array/extract"
 
 module ActiveSupport
   # +ParameterFilter+ allows you to specify keys for sensitive data from
@@ -59,24 +58,30 @@ module ActiveSupport
       def self.compile(filters, mask:)
         return lambda { |params| params.dup } if filters.empty?
 
-        strings, regexps, blocks = [], [], []
+        strings, regexps, blocks, deep_regexps, deep_strings = [], [], [], nil, nil
 
         filters.each do |item|
           case item
           when Proc
             blocks << item
           when Regexp
-            regexps << item
+            if item.to_s.include?("\\.")
+              (deep_regexps ||= []) << item
+            else
+              regexps << item
+            end
           else
-            strings << Regexp.escape(item.to_s)
+            s = Regexp.escape(item.to_s)
+            if s.include?("\\.")
+              (deep_strings ||= []) << s
+            else
+              strings << s
+            end
           end
         end
 
-        deep_regexps = regexps.extract! { |r| r.to_s.include?("\\.") }
-        deep_strings = strings.extract! { |s| s.include?("\\.") }
-
         regexps << Regexp.new(strings.join("|"), true) unless strings.empty?
-        deep_regexps << Regexp.new(deep_strings.join("|"), true) unless deep_strings.empty?
+        (deep_regexps ||= []) << Regexp.new(deep_strings.join("|"), true) if deep_strings&.any?
 
         new regexps, deep_regexps, blocks, mask: mask
       end
@@ -85,7 +90,7 @@ module ActiveSupport
 
       def initialize(regexps, deep_regexps, blocks, mask:)
         @regexps = regexps
-        @deep_regexps = deep_regexps.any? ? deep_regexps : nil
+        @deep_regexps = deep_regexps&.any? ? deep_regexps : nil
         @blocks = blocks
         @mask = mask
       end

@@ -203,7 +203,7 @@ module ActiveModel
       defaults << @human
 
       options = { scope: [@klass.i18n_scope, :models], count: 1, default: defaults }.merge!(options.except(:default))
-      I18n.translate(defaults.shift, options)
+      I18n.translate(defaults.shift, **options)
     end
 
     private

@@ -107,7 +107,7 @@ module ActiveModel
     # Imports one error
     # Imported errors are wrapped as a NestedError,
     # providing access to original error object.
-    # If attribute or type needs to be overriden, use `override_options`.
+    # If attribute or type needs to be overridden, use `override_options`.
     #
     # override_options - Hash
     # @option override_options [Symbol] :attribute Override the attribute the error belongs to
@@ -162,9 +162,9 @@ module ActiveModel
     #   person.errors.where(:name, :too_short) # => all name errors being too short
     #   person.errors.where(:name, :too_short, minimum: 2) # => all name errors being too short and minimum is 2
     def where(attribute, type = nil, **options)
-      attribute, type, options = normalize_arguments(attribute, type, options)
+      attribute, type, options = normalize_arguments(attribute, type, **options)
       @errors.select { |error|
-        error.match?(attribute, type, options)
+        error.match?(attribute, type, **options)
       }
     end
 
@@ -188,8 +188,8 @@ module ActiveModel
     #   person.errors.delete(:name) # => ["cannot be nil"]
     #   person.errors[:name]        # => []
     def delete(attribute, type = nil, **options)
-      attribute, type, options = normalize_arguments(attribute, type, options)
-      matches = where(attribute, type, options)
+      attribute, type, options = normalize_arguments(attribute, type, **options)
+      matches = where(attribute, type, **options)
       matches.each do |error|
         @errors.delete(error)
       end
@@ -305,7 +305,7 @@ module ActiveModel
 
     def to_h
       ActiveSupport::Deprecation.warn(<<~EOM)
-        ActiveModel::Errors#to_h is deprecated and will be removed in Rails 6.2
+        ActiveModel::Errors#to_h is deprecated and will be removed in Rails 6.2.
         Please use `ActiveModel::Errors.to_hash` instead. The values in the hash
         returned by `ActiveModel::Errors.to_hash` is an array of error messages.
       EOM
@@ -371,10 +371,8 @@ module ActiveModel
     #   person.errors.details
     #   # => {:base=>[{error: :name_or_email_blank}]}
     def add(attribute, type = :invalid, **options)
-      error = Error.new(
-        @base,
-        *normalize_arguments(attribute, type, options)
-      )
+      attribute, type, options = normalize_arguments(attribute, type, **options)
+      error = Error.new(@base, attribute, type, **options)
 
       if exception = options[:strict]
         exception = ActiveModel::StrictValidationFailed if exception == true
@@ -403,11 +401,11 @@ module ActiveModel
     #   person.errors.added? :name, :too_long                                # => false
     #   person.errors.added? :name, "is too long"                            # => false
     def added?(attribute, type = :invalid, options = {})
-      attribute, type, options = normalize_arguments(attribute, type, options)
+      attribute, type, options = normalize_arguments(attribute, type, **options)
 
       if type.is_a? Symbol
         @errors.any? { |error|
-          error.strict_match?(attribute, type, options)
+          error.strict_match?(attribute, type, **options)
         }
       else
         messages_for(attribute).include?(type)
@@ -538,7 +536,7 @@ module ActiveModel
         details.each { |attribute, errors|
           errors.each { |error|
             type = error.delete(:error)
-            add(attribute, type, error)
+            add(attribute, type, **error)
           }
         }
       end
@@ -567,6 +565,12 @@ module ActiveModel
       end
 
       __setobj__ prepare_content
+    end
+
+    def delete(attribute)
+      ActiveSupport::Deprecation.warn("Calling `delete` to an ActiveModel::Errors messages hash is deprecated. Please call `ActiveModel::Errors#delete` instead.")
+
+      @errors.delete(attribute)
     end
 
     private
@@ -598,6 +602,12 @@ module ActiveModel
       @errors.add(@attribute, message)
       __setobj__ @errors.messages_for(@attribute)
       self
+    end
+
+    def clear
+      ActiveSupport::Deprecation.warn("Calling `clear` to an ActiveModel::Errors message array in order to delete all errors is deprecated. Please call `ActiveModel::Errors#delete` instead.")
+
+      @errors.delete(@attribute)
     end
   end
 

@@ -28,7 +28,7 @@
   "bugs": {
     "url": "https://github.com/rails/rails/issues"
   },
-  "homepage": "http://rubyonrails.org/",
+  "homepage": "https://rubyonrails.org/",
   "devDependencies": {
     "coffeelint": "^2.1.0",
     "eslint": "^2.13.1"

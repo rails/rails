@@ -152,6 +152,8 @@ module ActionDispatch
       end
 
       private
+        # We use normal content negotiation unless you include */* in your list,
+        # in which case we assume you're a browser and send HTML.
         BROWSER_LIKE_ACCEPTS = /,\s*\*\/\*|\*\/\*\s*,/
 
         def params_readable? # :doc:

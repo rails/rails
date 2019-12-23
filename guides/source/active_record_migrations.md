@@ -5,8 +5,7 @@ Active Record Migrations
 
 Migrations are a feature of Active Record that allows you to evolve your
 database schema over time. Rather than write schema modifications in pure SQL,
-migrations allow you to use an easy Ruby DSL to describe changes to your
-tables.
+migrations allow you to use a Ruby DSL to describe changes to your tables.
 
 After reading this guide, you will know:
 
@@ -22,7 +21,7 @@ Migration Overview
 
 Migrations are a convenient way to
 [alter your database schema over time](https://en.wikipedia.org/wiki/Schema_migration)
-in a consistent and easy way. They use a Ruby DSL so that you don't have to
+in a consistent way. They use a Ruby DSL so that you don't have to
 write SQL by hand, allowing your schema and changes to be database independent.
 
 You can think of each migration as being a new 'version' of the database. A
@@ -259,7 +258,7 @@ For more `add_reference` options, visit the [API documentation](https://api.ruby
 There is also a generator which will produce join tables if `JoinTable` is part of the name:
 
 ```bash
-$ rails g migration CreateJoinTableCustomerProduct customer product
+$ rails generate migration CreateJoinTableCustomerProduct customer product
 ```
 
 will produce the following migration:
@@ -497,7 +496,7 @@ NOTE: Active Record only supports single column foreign keys. `execute` and
 `structure.sql` are required to use composite foreign keys. See
 [Schema Dumping and You](#schema-dumping-and-you).
 
-Removing a foreign key is easy as well:
+Foreign keys can also be removed:
 
 ```ruby
 # let Active Record figure out the column name
@@ -789,7 +788,7 @@ $ rails db:migrate:redo STEP=3
 ```
 
 Neither of these rails commands do anything you could not do with `db:migrate`. They
-are simply more convenient, since you do not need to explicitly specify the
+are there for convenience, since you do not need to explicitly specify the
 version to migrate to.
 
 ### Setup the Database
@@ -1036,9 +1035,9 @@ end
 ```
 
 To add initial data after a database is created, Rails has a built-in
-'seeds' feature that makes the process quick and easy. This is especially
+'seeds' feature that speeds up the process. This is especially
 useful when reloading the database frequently in development and test environments.
-It's easy to get started with this feature: just fill up `db/seeds.rb` with some
+To get started with this feature, fill up `db/seeds.rb` with some
 Ruby code, and run `rails db:seed`:
 
 ```ruby

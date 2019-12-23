@@ -49,6 +49,28 @@ module ActiveRecord
       assert called
     end
 
+    def test_can_write_while_reading_from_replicas_if_explicit
+      @session_store[:last_write] = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session.convert_time_to_timestamp(Time.now)
+
+      resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver.new(@session)
+
+      called = false
+      resolver.read do
+        called = true
+        assert ActiveRecord::Base.connected_to?(role: :writing)
+        assert_predicate ActiveRecord::Base.connection, :preventing_writes?
+
+        ActiveRecord::Base.connected_to(role: :writing, prevent_writes: false) do
+          assert ActiveRecord::Base.connected_to?(role: :writing)
+          assert_not_predicate ActiveRecord::Base.connection, :preventing_writes?
+        end
+
+        assert ActiveRecord::Base.connected_to?(role: :writing)
+        assert_predicate ActiveRecord::Base.connection, :preventing_writes?
+      end
+      assert called
+    end
+
     def test_read_from_primary
       @session_store[:last_write] = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session.convert_time_to_timestamp(Time.now)
 

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../../abstract_unit"
 require "active_support/core_ext/class/attribute"
 
 class ClassAttributeTest < ActiveSupport::TestCase
@@ -92,6 +92,16 @@ class ClassAttributeTest < ActiveSupport::TestCase
     object = @klass.new
     object.singleton_class.setting = "foo"
     assert_equal "foo", object.setting
+  end
+
+  test "works well with module singleton classes" do
+    @module = Module.new do
+      class << self
+        class_attribute :settings, default: 42
+      end
+    end
+
+    assert_equal 42, @module.settings
   end
 
   test "setter returns set value" do

@@ -2,6 +2,24 @@
 
 require "abstract_unit"
 
+class Workshop
+  extend ActiveModel::Naming
+  include ActiveModel::Conversion
+  attr_accessor :id
+
+  def initialize(id)
+    @id = id
+  end
+
+  def persisted?
+    id.present?
+  end
+
+  def to_s
+    id.to_s
+  end
+end
+
 class UrlHelperTest < ActiveSupport::TestCase
   # In a few cases, the helper proxies to 'controller'
   # or request.
@@ -562,13 +580,13 @@ class UrlHelperTest < ActiveSupport::TestCase
   def test_current_page_with_escaped_params
     @request = request_for_url("/category/administra%c3%a7%c3%a3o")
 
-    assert current_page?(controller: "foo", action: "category", category: "administração")
+    assert current_page?({ controller: "foo", action: "category", category: "administração" })
   end
 
   def test_current_page_with_escaped_params_with_different_encoding
     @request = request_for_url("/")
     @request.stub(:path, (+"/category/administra%c3%a7%c3%a3o").force_encoding(Encoding::ASCII_8BIT)) do
-      assert current_page?(controller: "foo", action: "category", category: "administração")
+      assert current_page?({ controller: "foo", action: "category", category: "administração" })
       assert current_page?("http://www.example.com/category/administra%c3%a7%c3%a3o")
     end
   end
@@ -576,7 +594,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   def test_current_page_with_double_escaped_params
     @request = request_for_url("/category/administra%c3%a7%c3%a3o?callback_url=http%3a%2f%2fexample.com%2ffoo")
 
-    assert current_page?(controller: "foo", action: "category", category: "administração", callback_url: "http://example.com/foo")
+    assert current_page?({ controller: "foo", action: "category", category: "administração", callback_url: "http://example.com/foo" })
   end
 
   def test_current_page_with_trailing_slash
@@ -838,7 +856,7 @@ class UrlHelperTest < ActiveSupport::TestCase
     request_forgery
   end
 
-  def form_authenticity_token(*args)
+  def form_authenticity_token(**)
     "secret"
   end
 

@@ -1,8 +1,50 @@
+*   Added `class_names` helper to create a CSS class value with conditional classes.
+
+    *Joel Hawksley*, *Aaron Patterson*
+
+*   Add support for conditional values to TagBuilder.
+
+    *Joel Hawksley*
+
+*   `ActionView::Helpers::FormOptionsHelper#select` should mark option for `nil` as selected.
+
+    ```ruby
+    @post = Post.new
+    @post.category = nil
+
+    # Before
+    select("post", "category", none: nil, programming: 1, economics: 2)
+    # =>
+    # <select name="post[category]" id="post_category">
+    #   <option value="">none</option>
+    #  <option value="1">programming</option>
+    #  <option value="2">economics</option>
+    # </select>
+
+    # After
+    select("post", "category", none: nil, programming: 1, economics: 2)
+    # =>
+    # <select name="post[category]" id="post_category">
+    #   <option selected="selected" value="">none</option>
+    #  <option value="1">programming</option>
+    #  <option value="2">economics</option>
+    # </select>
+    ```
+
+    *bogdanvlviv*
+
+*   Log lines for partial renders and started template renders are now
+    emitted at the `DEBUG` level instead of `INFO`.
+
+    Completed template renders are still logged at the `INFO` level.
+
+    *DHH*
+
 *   ActionView::Helpers::SanitizeHelper: support rails-html-sanitizer 1.1.0.
 
     *Juanito Fatas*
 
-*   Added `phone_to` helper method to create a link from mobile numbers
+*   Added `phone_to` helper method to create a link from mobile numbers.
 
     *Pietro Moro*
 
@@ -15,7 +57,7 @@
 
     *Guilherme Mansur*, *Gannon McGibbon*
 
-*   `RenderingHelper` supports rendering objects that `respond_to?` `:render_in`
+*   `RenderingHelper` supports rendering objects that `respond_to?` `:render_in`.
 
     *Joel Hawksley*, *Natasha Umer*, *Aaron Patterson*, *Shawn Allen*, *Emily Plummer*, *Diana Mounter*, *John Hawthorn*, *Nathan Herald*, *Zaid Zawaideh*, *Zach Ahn*
 

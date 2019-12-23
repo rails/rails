@@ -167,7 +167,7 @@ your form will be using Ajax. You can opt out of this behavior by
 passing the `:local` option `form_with`.
 
 ```erb
-<%= form_with(model: @article) do |f| %>
+<%= form_with model: @article do |form| %>
   ...
 <% end %>
 ```
@@ -338,8 +338,8 @@ This also works for links with `data-method` attribute.
 For example:
 
 ```erb
-<%= form_with(model: @article.new) do |f| %>
-  <%= f.submit data: { "disable-with": "Saving..." } %>
+<%= form_with model: @article.new do |form| %>
+  <%= form.submit data: { disable_with: "Saving..." } %>
 <%= end %>
 ```
 
@@ -429,10 +429,10 @@ The index view (`app/views/users/index.html.erb`) contains:
 
 <br>
 
-<%= form_with(model: @user) do |f| %>
-  <%= f.label :name %><br>
-  <%= f.text_field :name %>
-  <%= f.submit %>
+<%= form_with model: @user do |form| %>
+  <%= form.label :name %><br>
+  <%= form.text_field :name %>
+  <%= form.submit %>
 <% end %>
 ```
 

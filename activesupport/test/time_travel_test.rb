@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 require "active_support/core_ext/date_time"
 require "active_support/core_ext/numeric/time"
-require "time_zone_test_helpers"
+require_relative "time_zone_test_helpers"
 
 class TimeTravelTest < ActiveSupport::TestCase
   include TimeZoneTestHelpers
@@ -97,6 +97,29 @@ class TimeTravelTest < ActiveSupport::TestCase
       assert_not_equal expected_time, Time.now
       assert_not_equal Date.new(2004, 11, 24), Date.today
       assert_not_equal expected_time.to_datetime, DateTime.now
+    ensure
+      travel_back
+    end
+  end
+
+  def test_time_helper_travel_back_with_block
+    Time.stub(:now, Time.now) do
+      expected_time = Time.new(2004, 11, 24, 01, 04, 44)
+
+      travel_to expected_time
+      assert_equal expected_time, Time.now
+      assert_equal Date.new(2004, 11, 24), Date.today
+      assert_equal expected_time.to_datetime, DateTime.now
+
+      travel_back do
+        assert_not_equal expected_time, Time.now
+        assert_not_equal Date.new(2004, 11, 24), Date.today
+        assert_not_equal expected_time.to_datetime, DateTime.now
+      end
+
+      assert_equal expected_time, Time.now
+      assert_equal Date.new(2004, 11, 24), Date.today
+      assert_equal expected_time.to_datetime, DateTime.now
     ensure
       travel_back
     end

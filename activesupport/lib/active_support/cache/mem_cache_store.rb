@@ -28,7 +28,7 @@ module ActiveSupport
       # Provide support for raw values in the local cache strategy.
       module LocalCacheWithRaw # :nodoc:
         private
-          def read_entry(key, options)
+          def read_entry(key, **options)
             entry = super
             if options[:raw] && local_cache && entry
               entry = deserialize_entry(entry.value)
@@ -36,11 +36,11 @@ module ActiveSupport
             entry
           end
 
-          def write_entry(key, entry, options)
+          def write_entry(key, entry, **options)
             if options[:raw] && local_cache
               raw_entry = Entry.new(entry.value.to_s)
               raw_entry.expires_at = entry.expires_at
-              super(key, raw_entry, options)
+              super(key, raw_entry, **options)
             else
               super
             end
@@ -142,12 +142,12 @@ module ActiveSupport
 
       private
         # Read an entry from the cache.
-        def read_entry(key, options)
+        def read_entry(key, **options)
           rescue_error_with(nil) { deserialize_entry(@data.with { |c| c.get(key, options) }) }
         end
 
         # Write an entry to the cache.
-        def write_entry(key, entry, options)
+        def write_entry(key, entry, **options)
           method = options && options[:unless_exist] ? :add : :set
           value = options[:raw] ? entry.value.to_s : entry
           expires_in = options[:expires_in].to_i
@@ -156,12 +156,12 @@ module ActiveSupport
             expires_in += 5.minutes
           end
           rescue_error_with false do
-            @data.with { |c| c.send(method, key, value, expires_in, options) }
+            @data.with { |c| c.send(method, key, value, expires_in, **options) }
           end
         end
 
         # Reads multiple entries from the cache implementation.
-        def read_multi_entries(names, options)
+        def read_multi_entries(names, **options)
           keys_to_names = Hash[names.map { |name| [normalize_key(name, options), name] }]
 
           raw_values = @data.with { |c| c.get_multi(keys_to_names.keys) }
@@ -179,7 +179,7 @@ module ActiveSupport
         end
 
         # Delete an entry from the cache.
-        def delete_entry(key, options)
+        def delete_entry(key, **options)
           rescue_error_with(false) { @data.with { |c| c.delete(key) } }
         end
 

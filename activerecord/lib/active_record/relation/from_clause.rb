@@ -19,7 +19,7 @@ module ActiveRecord
       end
 
       def self.empty
-        @empty ||= new(nil, nil)
+        @empty ||= new(nil, nil).freeze
       end
     end
   end

@@ -43,7 +43,7 @@ Let's say we have an application with a single primary database and we need to a
 new database for some new tables we're adding. The name of the new database will be
 "animals".
 
-The database.yml looks like this:
+The `database.yml` looks like this:
 
 ```yaml
 production:
@@ -53,7 +53,7 @@ production:
 ```
 
 Let's add a replica for the primary, a new writer called animals and a replica for that
-as well. To do this we need to change our database.yml from a 2-tier to a 3-tier config.
+as well. To do this we need to change our `database.yml` from a 2-tier to a 3-tier config.
 
 ```yaml
 production:
@@ -128,12 +128,12 @@ clients have a limit to the number of open connections there can be and if you d
 multiply the number of connections you have since Rails uses the model class name for the
 connection specification name.
 
-Now that we have the database.yml and the new model set up it's time to create the databases.
+Now that we have the `database.yml` and the new model set up it's time to create the databases.
 Rails 6.0 ships with all the rails tasks you need to use multiple databases in Rails.
 
 You can run `rails -T` to see all the commands you're able to run. You should see the following:
 
-```
+```bash
 $ rails -T
 rails db:create                          # Creates the database from DATABASE_URL or config/database.yml for the ...
 rails db:create:animals                  # Create animals database for current environment
@@ -166,8 +166,8 @@ For example the `animals` database would look in the `db/animals_migrate` direct
 `primary` would look in `db/migrate`. Rails generators now take a `--database` option
 so that the file is generated in the correct directory. The command can be run like so:
 
-```
-$ rails g migration CreateDogs name:string --database animals
+```bash
+$ rails generate migration CreateDogs name:string --database animals
 ```
 
 ## Activating automatic connection switching
@@ -239,18 +239,6 @@ end
 The "role" in the `connected_to` call looks up the connections that are connected on that
 connection handler (or role). The `reading` connection handler will hold all the connections
 that were connected via `connects_to` with the role name of `reading`.
-
-There also may be a case where you have a database that you don't always want to connect to
-on application boot but may need for a slow query or analytics. After defining that database
-in the database.yml you can connect by passing a database argument to `connected_to`
-
-```ruby
-ActiveRecord::Base.connected_to(database: { reading_slow: :animals_slow_replica }) do
-  # do something while connected to the slow replica
-end
-```
-
-The `database` argument for `connected_to` will take a symbol or a config hash.
 
 Note that `connected_to` with a role will look up an existing connection and switch
 using the connection specification name. This means that if you pass an unknown role

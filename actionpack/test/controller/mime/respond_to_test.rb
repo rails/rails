@@ -13,6 +13,12 @@ class RespondToController < ActionController::Base
     end
   }
 
+  def my_html_fragment
+    respond_to do |type|
+      type.html_fragment { render body: "neat" }
+    end
+  end
+
   def html_xml_or_rss
     respond_to do |type|
       type.html { render body: "HTML"    }
@@ -148,6 +154,13 @@ class RespondToController < ActionController::Base
     respond_to do |type|
       type.html { render body: "HTML" }
       type.any(:js, :xml) { render body: "Either JS or XML" }
+    end
+  end
+
+  def handle_any_doesnt_set_request_content_type
+    respond_to do |type|
+      type.html { render body: "HTML" }
+      type.any { render json: { foo: "bar" } }
     end
   end
 
@@ -321,6 +334,7 @@ class RespondToControllerTest < ActionController::TestCase
     Mime::Type.register_alias("text/html", :iphone)
     Mime::Type.register("text/x-mobile", :mobile)
     Mime::Type.register("application/fancy-xml", :fancy_xml)
+    Mime::Type.register("text/html; fragment", :html_fragment)
   end
 
   def teardown
@@ -328,6 +342,14 @@ class RespondToControllerTest < ActionController::TestCase
     Mime::Type.unregister(:iphone)
     Mime::Type.unregister(:mobile)
     Mime::Type.unregister(:fancy_xml)
+    Mime::Type.unregister(:html_fragment)
+  end
+
+  def test_html_fragment
+    @request.accept = "text/html; fragment"
+    get :my_html_fragment
+    assert_equal "text/html; fragment; charset=utf-8", @response.headers["Content-Type"]
+    assert_equal "neat", @response.body
   end
 
   def test_html
@@ -532,6 +554,12 @@ class RespondToControllerTest < ActionController::TestCase
     @request.accept = "text/xml"
     get :handle_any
     assert_equal "Either JS or XML", @response.body
+  end
+
+  def test_handle_any_doesnt_set_request_content_type
+    @request.accept = "text/csv"
+    get :handle_any_doesnt_set_request_content_type
+    assert_equal "application/json", @response.media_type
   end
 
   def test_handle_any_any
