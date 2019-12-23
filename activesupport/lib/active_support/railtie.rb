@@ -8,6 +8,7 @@ module ActiveSupport
     config.active_support = ActiveSupport::OrderedOptions.new
 
     config.eager_load_namespaces << ActiveSupport
+    config.active_support.tz_name_as_provided = true
 
     initializer "active_support.set_authenticated_message_encryption" do |app|
       config.after_initialize do
@@ -40,6 +41,20 @@ module ActiveSupport
       end
       require "active_support/core_ext/time/zones"
       Time.zone_default = Time.find_zone!(app.config.time_zone)
+    end
+
+    initializer "active_support.tz_name_as_provided" do |app|
+      ActiveSupport.on_load(:active_support) do
+        TimeZone.tz_name_as_provided = app.config.active_support.delete(:tz_name_as_provided)
+        
+        if TimeZone.tz_name_as_provided 
+          ActiveSupport::Deprecation.warn(
+            "TimeZone.name will start returning uniform output instead of the same string as in intialization. "\
+            "For timezone name ('Europe/Helsinki') use TimeZone.tz_name, for friendly name ('Helsinki') "\
+            "use TimeZone.name. You can switch to new behaviour through config.active_support.tz_name_as_provided = False"
+          )
+        end
+      end
     end
 
     # Sets the default week start

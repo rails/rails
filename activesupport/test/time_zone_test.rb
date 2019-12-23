@@ -769,7 +769,9 @@ class TimeZoneTest < ActiveSupport::TestCase
     helsinki_name = ActiveSupport::TimeZone["Helsinki"]
     helsinki_tz = ActiveSupport::TimeZone["Europe/Helsinki"]
     assert_equal "Helsinki", helsinki_tz.name
+    assert_equal "Europe/Helsinki", helsinki_tz.tz_name
     assert_equal helsinki_name.name, helsinki_tz.name
+    assert_equal helsinki_name.tz_name, helsinki_tz.tz_name
   end
 
   def test_unknown_zone_raises_exception

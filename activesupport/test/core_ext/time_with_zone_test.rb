@@ -1151,6 +1151,7 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < ActiveSupport::TestCase
     assert_kind_of ActiveSupport::TimeZone, Time.zone
     assert_equal tzinfo, Time.zone.tzinfo
     assert_equal "Eastern Time (US & Canada)", Time.zone.name
+    assert_equal "America/New_York", Time.zone.tz_name
     assert_equal "America/New_York", Time.zone.tzinfo.name
     assert_equal(-18_000, Time.zone.utc_offset)
   end
@@ -1159,6 +1160,7 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < ActiveSupport::TestCase
     Time.zone = "America/New_York"
     assert_kind_of ActiveSupport::TimeZone, Time.zone
     assert_equal "America/New_York", Time.zone.tzinfo.name
+    assert_equal "America/New_York", Time.zone.tz_name
     assert_equal "Eastern Time (US & Canada)", Time.zone.name
     assert_equal(-18_000, Time.zone.utc_offset)
   end

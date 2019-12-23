@@ -23,10 +23,13 @@ module ActiveSupport
   #     config.time_zone = 'Eastern Time (US & Canada)'
   #   end
   #
-  #   Time.zone      # => #<ActiveSupport::TimeZone:0x514834...>
-  #   Time.zone.name # => "Eastern Time (US & Canada)"
+  #   Time.zone             # => #<ActiveSupport::TimeZone:0x514834...>
+  #   Time.zone.name        # => "Eastern Time (US & Canada)"
+  #   Time.zone.tz_name     # => "America/New_York"
   #   Time.zone.now  # => Sun, 18 May 2008 14:30:44 EDT -04:00
   class TimeZone
+    class_attribute :keep_tz_name_as_provided, default: false
+
     # Keys are Rails TimeZone names, values are TZInfo identifiers.
     MAPPING = {
       "International Date Line West" => "Etc/GMT+12",
@@ -288,16 +291,26 @@ module ActiveSupport
 
     include Comparable
     attr_reader :name
+    attr_reader :tz_name
+    attr_reader :description
     attr_reader :tzinfo
 
     # Create a new TimeZone object with the given name and offset. The
     # offset is the number of seconds that this time zone is offset from UTC
     # (GMT). Seconds were chosen as the offset unit because that is the unit
     # that Ruby uses to represent time zone offsets (see Time#utc_offset).
-    def initialize(name, utc_offset = nil, tzinfo = nil)
-      @name = MAPPING.invert[name] || name
+    def initialize(tz_string, utc_offset = nil, tzinfo = nil)
+      if self.keep_tz_name_as_provided
+        @name = tz_string
+        @tz_name = tz_string
+      else
+        # name "Helsinki" 
+        @name = MAPPING.invert[tz_string] || tz_string
+        # tz_name "Europe/Helsinki"
+        @tz_name =  MAPPING[tz_string] || tz_string 
+      end
       @utc_offset = utc_offset
-      @tzinfo = tzinfo || TimeZone.find_tzinfo(name)
+      @tzinfo = tzinfo || TimeZone.find_tzinfo(tz_string)
     end
 
     # Returns the offset of this time zone from UTC in seconds.
