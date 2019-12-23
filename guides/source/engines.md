@@ -18,7 +18,7 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-What are engines?
+What are Engines?
 -----------------
 
 Engines can be considered miniature applications that provide functionality to
@@ -69,7 +69,7 @@ Finally, engines would not have been possible without the work of James Adam,
 Piotr Sarnacki, the Rails Core Team, and a number of other people. If you ever
 meet them, don't forget to say thanks!
 
-Generating an engine
+Generating an Engine
 --------------------
 
 To generate an engine, you will need to run the plugin generator and pass it
@@ -328,7 +328,7 @@ integration tests for the engine should be placed. Other directories can be
 created in the `test` directory as well. For example, you may wish to create a
 `test/models` directory for your model tests.
 
-Providing engine functionality
+Providing Engine Functionality
 ------------------------------
 
 The engine that this guide covers provides submitting articles and commenting
@@ -707,7 +707,7 @@ you specify custom helpers (such as `devise_for`) in the routes. These helpers
 do exactly the same thing, mounting pieces of the engines's functionality at a
 pre-defined path which may be customizable.
 
-### Engine setup
+### Engine Setup
 
 The engine contains migrations for the `blorgh_articles` and `blorgh_comments`
 table which need to be created in the application's database so that the
@@ -1031,7 +1031,7 @@ application. The same thing goes if you want to use a standard initializer.
 For locales, simply place the locale files in the `config/locales` directory,
 just like you would in an application.
 
-Testing an engine
+Testing an Engine
 -----------------
 
 When an engine is generated, there is a smaller dummy application created inside
@@ -1094,7 +1094,7 @@ there, rather than the application's one.
 This also ensures that the engine's URL helpers will work as expected in your
 tests.
 
-Improving engine functionality
+Improving Engine Functionality
 ------------------------------
 
 This section explains how to add and/or override engine MVC functionality in the

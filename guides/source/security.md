@@ -1171,7 +1171,7 @@ Environmental Security
 
 It is beyond the scope of this guide to inform you on how to secure your application code and environments. However, please secure your database configuration, e.g. `config/database.yml`, master key for `credentials.yml`, and other unencrypted secrets. You may want to further restrict access, using environment-specific versions of these files and any others that may contain sensitive information.
 
-### Custom credentials
+### Custom Credentials
 
 Rails stores secrets in `config/credentials.yml.enc`, which is encrypted and hence cannot be edited directly. Rails uses `config/master.key` or alternatively looks for environment variable `ENV["RAILS_MASTER_KEY"]` to encrypt the credentials file. The credentials file can be stored in version control, as long as master key is kept safe.
 

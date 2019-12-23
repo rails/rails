@@ -405,7 +405,7 @@ The comments resource here will have the following routes generated for it:
 | PATCH/PUT | /comments/:id(.:format)                      | comments#update   | sekret_comment_path         |
 | DELETE    | /comments/:id(.:format)                      | comments#destroy  | sekret_comment_path         |
 
-### Routing concerns
+### Routing Concerns
 
 Routing concerns allow you to declare common routes that can be reused inside other resources and routes. To define a concern:
 
@@ -448,7 +448,7 @@ namespace :articles do
 end
 ```
 
-### Creating Paths and URLs From Objects
+### Creating Paths and URLs from Objects
 
 In addition to using the routing helpers, Rails can also create paths and URLs from an array of parameters. For example, suppose you have this set of routes:
 
@@ -868,7 +868,7 @@ end
 root to: "home#index"
 ```
 
-### Unicode character routes
+### Unicode Character Routes
 
 You can specify unicode character routes directly. For example:
 
@@ -876,7 +876,7 @@ You can specify unicode character routes directly. For example:
 get 'こんにちは', to: 'welcome#index'
 ```
 
-### Direct routes
+### Direct Routes
 
 You can create custom URL helpers directly. For example:
 
