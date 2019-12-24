@@ -93,6 +93,14 @@ module ActiveSupport
   def self.to_time_preserves_timezone=(value)
     DateAndTime::Compatibility.preserve_timezone = value
   end
+
+  def self.tzinfo_compatibility_version
+    DateAndTime::Compatibility.tzinfo_compatibility_version
+  end
+
+  def self.tzinfo_compatibility_version=(value)
+    DateAndTime::Compatibility.tzinfo_compatibility_version = value.to_s
+  end
 end
 
 autoload :I18n, "active_support/i18n"

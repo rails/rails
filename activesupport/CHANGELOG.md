@@ -1,9 +1,10 @@
 *   Update to TZInfo v2.0.0.
 
-    `TimeZone#utc_to_local` now returns local times with the appropriate UTC
-    offset (instead of returning local times as UTC).
+    To fully adopt the new version, set
+    `ActiveSupport.tzinfo_compatibility_version = 2` (the default is 1).
+    See documentation of `tzinfo_compatibility_version` for details.
 
-    *Phil Ross*
+    *Phil Ross and Jared Beck*
 
 *   When an instance of `ActiveSupport::Duration` is converted to an `iso8601` duration string, if `weeks` are mixed with `date` parts, the `week` part will be converted to days.
     This keeps the parser and serializer on the same page.

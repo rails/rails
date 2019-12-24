@@ -305,7 +305,16 @@ module ActiveSupport
       if @utc_offset
         @utc_offset
       else
-        tzinfo.current_period.base_utc_offset if tzinfo && tzinfo.current_period
+        if tzinfo && tzinfo.current_period
+          case ActiveSupport.tzinfo_compatibility_version
+          when "1"
+            tzinfo.current_period.observed_utc_offset
+          when "2"
+            tzinfo.current_period.base_utc_offset
+          else
+            raise "Invalid tzinfo_compatibility_version"
+          end
+        end
       end
     end
 
@@ -510,8 +519,18 @@ module ActiveSupport
     # represented by +self+. Returns a local time with the appropriate offset
     # -- if you want an ActiveSupport::TimeWithZone instance, use
     # Time#in_time_zone() instead.
+    #
+    # As of tzinfo 2, utc_to_local returns a Time with a non-zero utc_offset.
     def utc_to_local(time)
-      tzinfo.utc_to_local(time)
+      t = tzinfo.utc_to_local(time)
+      case ActiveSupport.tzinfo_compatibility_version
+      when "1"
+        Time.utc(t.year, t.month, t.day, t.hour, t.min, t.sec, t.sec_fraction)
+      when "2"
+        t
+      else
+        raise "Invalid tzinfo_compatibility_version"
+      end
     end
 
     # Adjust the given time to the simultaneous time in UTC. Returns a
