@@ -171,9 +171,56 @@ class ChatChannel < ApplicationCable::Channel
   # Called when the consumer has successfully
   # become a subscriber to this channel.
   def subscribed
+    # stream_from "some_channel"
+  end
+
+  def unsubscribed
+    # Any cleanup needed when channel is unsubscribed
   end
 end
 ```
+
+#### Actions
+
+Unlike subclasses of ActionController::Base, channels do not follow a RESTful
+constraint form for their actions. Instead, Action Cable operates through a
+remote-procedure call model. You can declare any public method on the
+channel (optionally taking a `data` argument), and this method is
+automatically exposed as callable to the client.
+
+Example:
+
+```ruby
+class AppearanceChannel < ApplicationCable::Channel
+  def subscribed
+    @connection_token = generate_connection_token
+  end
+
+  def unsubscribed
+    current_user.disappear @connection_token
+  end
+
+  def appear(data)
+    current_user.appear @connection_token, on: data['appearing_on']
+  end
+
+  def away
+    current_user.away @connection_token
+  end
+
+  private
+    def generate_connection_token
+      SecureRandom.hex(36)
+    end
+end
+```
+
+In this example, the subscribed and unsubscribed methods are not callable
+methods, as they were already declared in ActionCable::Channel::Base, but
+`#appear` and `#away` are. `#generate_connection_token` is also not callable,
+since it's a private method. You'll see that appear accepts a data parameter,
+which it then uses as part of its model call. `#away` does not, since it's
+simply a trigger action.
 
 ## Client-Side Components
 
