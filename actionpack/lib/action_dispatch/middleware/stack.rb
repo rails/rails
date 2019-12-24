@@ -8,10 +8,11 @@ module ActionDispatch
     class Middleware
       attr_reader :args, :block, :klass
 
-      def initialize(klass, args, block)
+      def initialize(klass, args, block, &build_block)
         @klass = klass
         @args  = args
         @block = block
+        @build_block = build_block
       end
 
       def name; klass.name; end
@@ -34,7 +35,7 @@ module ActionDispatch
       end
 
       def build(app)
-        klass.new(app, *args, &block)
+        @build_block&.call(app) || klass.new(app, *args, &block)
       end
 
       def build_instrumented(app)
@@ -119,8 +120,13 @@ module ActionDispatch
     end
 
     def use(klass, *args, &block)
-      middlewares.push(build_middleware(klass, args, block))
+      middlewares.push(
+        build_middleware(klass, args, block) do |app|
+          klass.new(app, *args, &block)
+        end
+      )
     end
+    ruby2_keywords(:use) if respond_to?(:ruby2_keywords, true)
 
     def build(app = nil, &block)
       instrumenting = ActiveSupport::Notifications.notifier.listening?(InstrumentationProxy::EVENT_NAME)
@@ -140,8 +146,8 @@ module ActionDispatch
         i
       end
 
-      def build_middleware(klass, args, block)
-        Middleware.new(klass, args, block)
+      def build_middleware(klass, args, block, &build_block)
+        Middleware.new(klass, args, block, &build_block)
       end
   end
 end
