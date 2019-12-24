@@ -236,6 +236,16 @@ class EnumTest < ActiveRecord::TestCase
     assert_nil @book.status
   end
 
+  test "assign false value to a field defined as not boolean" do
+    @book.status = false
+    assert_nil @book.status
+  end
+
+  test "assign false value to a field defined as boolean" do
+    @book.boolean_status = false
+    assert_equal "disabled", @book.boolean_status
+  end
+
   test "assign long empty string value" do
     @book.status = "   "
     assert_nil @book.status
