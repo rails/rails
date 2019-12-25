@@ -90,11 +90,7 @@ module ActionDispatch
     end
 
     def unshift(klass, *args, &block)
-      middlewares.unshift(
-        build_middleware(klass, args, block) do |app|
-          klass.new(app, *args, &block)
-        end
-      )
+      middlewares.unshift(build_middleware(klass, *args, &block))
     end
     ruby2_keywords(:unshift) if respond_to?(:ruby2_keywords, true)
 
@@ -104,12 +100,7 @@ module ActionDispatch
 
     def insert(index, klass, *args, &block)
       index = assert_index(index, :before)
-      middlewares.insert(
-        index,
-        build_middleware(klass, args, block) do |app|
-          klass.new(app, *args, &block)
-        end
-      )
+      middlewares.insert(index, build_middleware(klass, *args, &block))
     end
     ruby2_keywords(:insert) if respond_to?(:ruby2_keywords, true)
 
@@ -133,11 +124,7 @@ module ActionDispatch
     end
 
     def use(klass, *args, &block)
-      middlewares.push(
-        build_middleware(klass, args, block) do |app|
-          klass.new(app, *args, &block)
-        end
-      )
+      middlewares.push(build_middleware(klass, *args, &block))
     end
     ruby2_keywords(:use) if respond_to?(:ruby2_keywords, true)
 
@@ -159,8 +146,11 @@ module ActionDispatch
         i
       end
 
-      def build_middleware(klass, args, block, &build_block)
-        Middleware.new(klass, args, block, &build_block)
+      def build_middleware(klass, *args, &block)
+        Middleware.new(klass, args, block) do |app|
+          klass.new(app, *args, &block)
+        end
       end
+      ruby2_keywords(:build_middleware) if respond_to?(:ruby2_keywords, true)
   end
 end
