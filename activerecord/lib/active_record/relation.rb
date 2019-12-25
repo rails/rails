@@ -317,7 +317,7 @@ module ActiveRecord
       query_signature = ActiveSupport::Digest.hexdigest(to_sql)
       key = "#{klass.model_name.cache_key}/query-#{query_signature}"
 
-      if cache_version(timestamp_column)
+      if collection_cache_versioning
         key
       else
         "#{key}-#{compute_cache_version(timestamp_column)}"
