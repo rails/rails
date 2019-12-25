@@ -353,7 +353,6 @@ module Rails
 
       super()
       ...
->>>>>>> c5102225a36d254dc067c6d5a606856233d46e99
     end
 
     private
