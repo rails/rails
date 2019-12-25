@@ -207,7 +207,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
 
   test "order: logs deprecation warning for unrecognized column" do
     with_unsafe_raw_sql_deprecated do
-      assert_deprecated(/Dangerous query method/) do
+      assert_deprecated(/Query method called with raw SQL/) do
         Post.order("REPLACE(title, 'misc', 'zzzz')")
       end
     end
@@ -327,7 +327,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
 
   test "pluck: logs deprecation warning" do
     with_unsafe_raw_sql_deprecated do
-      assert_deprecated(/Dangerous query method/) do
+      assert_deprecated(/Query method called with raw SQL/) do
         Post.includes(:comments).pluck(:title, "REPLACE(title, 'misc', 'zzzz')")
       end
     end
