@@ -17,7 +17,7 @@ class Rails::Command::NotesTest < ActiveSupport::TestCase
 
     app_file "some_other_dir/blah.rb", "# TODO: note in some_other directory"
 
-    assert_match <<~OUTPUT, run_notes_command
+    assert_equal <<~OUTPUT, run_notes_command
       app/controllers/some_controller.rb:
         * [  1] [OPTIMIZE] note in app directory
 
@@ -37,7 +37,7 @@ class Rails::Command::NotesTest < ActiveSupport::TestCase
   end
 
   test "`rails notes` displays an empty string when no results were found" do
-    assert_match "", run_notes_command
+    assert_equal "", run_notes_command
   end
 
   test "`rails notes --annotations` displays results for a single annotation without being prefixed by a tag" do
@@ -47,7 +47,7 @@ class Rails::Command::NotesTest < ActiveSupport::TestCase
     app_file "app/controllers/some_controller.rb", "# OPTIMIZE: note in app directory"
     app_file "config/initializers/some_initializer.rb", "# TODO: note in config directory"
 
-    assert_match <<~OUTPUT, run_notes_command(["--annotations", "FIXME"])
+    assert_equal <<~OUTPUT, run_notes_command(["--annotations", "FIXME"])
       db/some_seeds.rb:
         * [1] note in db directory
 
@@ -64,7 +64,7 @@ class Rails::Command::NotesTest < ActiveSupport::TestCase
 
     app_file "test/some_test.rb", "# FIXME: note in test directory"
 
-    assert_match <<~OUTPUT, run_notes_command(["--annotations", "FOOBAR", "TODO"])
+    assert_equal <<~OUTPUT, run_notes_command(["--annotations", "FOOBAR", "TODO"])
       app/controllers/some_controller.rb:
         * [1] [FOOBAR] note in app directory
 
@@ -85,7 +85,7 @@ class Rails::Command::NotesTest < ActiveSupport::TestCase
 
     add_to_config "config.annotations.register_directories \"spec\""
 
-    assert_match <<~OUTPUT, run_notes_command
+    assert_equal <<~OUTPUT, run_notes_command
       db/some_seeds.rb:
         * [1] [FIXME] note in db directory
 
@@ -108,7 +108,7 @@ class Rails::Command::NotesTest < ActiveSupport::TestCase
     app_file "app/assets/stylesheets/application.css.scss", "// TODO: note in scss"
     app_file "app/assets/stylesheets/application.css.sass", "// TODO: note in sass"
 
-    assert_match <<~OUTPUT, run_notes_command
+    assert_equal <<~OUTPUT, run_notes_command
       app/assets/stylesheets/application.css.sass:
         * [1] [TODO] note in sass
 
@@ -128,7 +128,7 @@ class Rails::Command::NotesTest < ActiveSupport::TestCase
 
     add_to_config 'config.annotations.register_tags "TESTME", "DEPRECATEME"'
 
-    assert_match <<~OUTPUT, run_notes_command
+    assert_equal <<~OUTPUT, run_notes_command
       app/controllers/hello_controller.rb:
         * [1] [DEPRECATEME] this action is no longer needed
 
@@ -149,7 +149,7 @@ class Rails::Command::NotesTest < ActiveSupport::TestCase
 
     add_to_config 'config.annotations.register_tags "TESTME", "DEPRECATEME"'
 
-    assert_match <<~OUTPUT, run_notes_command
+    assert_equal <<~OUTPUT, run_notes_command
       app/controllers/hello_controller.rb:
         * [1] [DEPRECATEME] this action is no longer needed
 
