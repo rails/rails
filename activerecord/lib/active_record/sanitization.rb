@@ -145,17 +145,15 @@ module ActiveRecord
 
         if allow_unsafe_raw_sql == :deprecated
           ActiveSupport::Deprecation.warn(
-            "Dangerous query method (method whose arguments are used as raw " \
-            "SQL) called with non-attribute argument(s): " \
-            "#{unexpected.map(&:inspect).join(", ")}. Non-attribute " \
-            "arguments will be disallowed in Rails 6.1. This method should " \
-            "not be called with user-provided values, such as request " \
-            "parameters or model attributes. Known-safe values can be passed " \
-            "by wrapping them in Arel.sql()."
+            "Query method called with raw SQL as argument(s): " \
+            "#{unexpected.map(&:inspect).join(", ")}. String arguments " \
+            "containing anything other than column names and directions for ordering " \
+            "(ASC, DESC) will be disallowed in Rails 6.1. Known-safe arguments " \
+            "can be passed by wrapping them in Arel.sql()."
           )
         else
           raise(ActiveRecord::UnknownAttributeReference,
-            "Query method called with non-attribute argument(s): " +
+            "Query method called with raw SQL as argument(s): " +
             unexpected.map(&:inspect).join(", ")
           )
         end
