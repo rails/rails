@@ -107,8 +107,8 @@ module ApplicationTests
           ar_tables = lambda { rails("runner", "p ActiveRecord::Base.connection.tables").strip }
           animals_tables = lambda { rails("runner", "p AnimalsBase.connection.tables").strip }
 
-          assert_match '["schema_migrations", "ar_internal_metadata", "books"]', ar_tables[]
-          assert_match '["schema_migrations", "ar_internal_metadata", "dogs"]', animals_tables[]
+          assert_equal '["schema_migrations", "ar_internal_metadata", "books"]', ar_tables[]
+          assert_equal '["schema_migrations", "ar_internal_metadata", "dogs"]', animals_tables[]
         end
       end
 
@@ -380,7 +380,7 @@ module ApplicationTests
         RUBY
 
         output = rails("db:seed")
-        assert_includes output, "db/development.sqlite3"
+        assert_equal output, "db/development.sqlite3"
       ensure
         ENV["RAILS_ENV"] = @old_rails_env
         ENV["RACK_ENV"] = @old_rack_env
