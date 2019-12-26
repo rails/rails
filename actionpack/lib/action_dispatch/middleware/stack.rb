@@ -151,6 +151,5 @@ module ActionDispatch
           klass.new(app, *args, &block)
         end
       end
-      ruby2_keywords(:build_middleware) if respond_to?(:ruby2_keywords, true)
   end
 end
