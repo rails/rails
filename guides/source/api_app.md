@@ -333,25 +333,24 @@ will be:
 ```
 
 ### Using Session Middlewares
-The following middlewares are (by default) included for session management.  If one of your API clients is a browser, you might want to add one of these back in:
+The following middlewares, used for session management, are excluded from API apps since they normally don't need sessions.  If one of your API clients is a browser, you might want to add one of these back in:
 - `ActionDispatch::Session::CacheStore`
 - `ActionDispatch::Session::CookieStore`
 - `ActionDispatch::Session::MemCacheStore`
 
 The trick to adding these back in is that, by default, they are passed `session_options`
 when added (including the session key), so you can't just add a `session_store.rb` initializer, add
-`use ActionDispatch::Session::CookieStore` and have sessions functioning as normal.
+`use ActionDispatch::Session::CookieStore` and have sessions functioning as usual.  (To be clear: sessions
+may work, but your session options will be ignored - i.e the session key will default to `_session_id`)
 
-To be clear: sessions may work, but your session options will be ignored (i.e the session key will default
-to `_session_id`).  Instead of the initializer, you'll have to set the relevant options somewhere
-before your middleware is built (like `application.rb`) and pass them to your prefered middleware,
-like this:
+Instead of the initializer, you'll have to set the relevant options somewhere before your middleware is
+built (like `application.rb`) and pass them to your prefered middleware, like this:
 
 **application.rb:**
 ```ruby
-config.session_store :cookie_store, key: '_interslice_session'
-config.middleware.use ActionDispatch::Cookies # Required for all session management
-config.middleware.use ActionDispatch::Session::CookieStore, config.session_options
+config.session_store :cookie_store, key: '_interslice_session' # <-- this also configures session_options for use below
+config.middleware.use ActionDispatch::Cookies # Required for all session management (regardless of session_store)
+config.middleware.use config.session_store, config.session_options
 ```
 
 ### Other Middleware
