@@ -24,5 +24,10 @@ markComment: >
   Thank you for all your contributions.
 # Comment to post when closing a stale issue. Set to `false` to disable
 closeComment: false
-# Limit to only `issues` or `pulls`
-only: issues
+
+pulls:
+  markComment: >
+    This pull request has been automatically marked as stale because it has not had
+    recent activity. It will be closed if no further activity occurs.
+
+    Thank you for your contributions.

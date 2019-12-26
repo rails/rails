@@ -295,6 +295,13 @@ module ActiveRecord
         end
       end
 
+      def test_remove_drops_multiple_columns_when_column_options_are_given
+        with_change_table do |t|
+          @connection.expect :remove_columns, nil, [:delete_me, :bar, :baz, type: :string, null: false]
+          t.remove :bar, :baz, type: :string, null: false
+        end
+      end
+
       def test_remove_index_removes_index_with_options
         with_change_table do |t|
           @connection.expect :remove_index, nil, [:delete_me, :bar, { unique: true }]

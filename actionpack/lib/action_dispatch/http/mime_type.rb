@@ -231,7 +231,7 @@ module Mime
     class InvalidMimeType < StandardError; end
 
     def initialize(string, symbol = nil, synonyms = [])
-      if string.nil? || ! MIME_REGEXP.match?(string)
+      unless MIME_REGEXP.match?(string)
         raise InvalidMimeType, "#{string.inspect} is not a valid MIME type"
       end
       @symbol, @synonyms = symbol, synonyms
@@ -336,6 +336,10 @@ module Mime
 
     def nil?
       true
+    end
+
+    def to_s
+      ""
     end
 
     def ref; end

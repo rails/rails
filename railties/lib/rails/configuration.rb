@@ -41,34 +41,39 @@ module Rails
       end
 
       def insert_before(*args, &block)
-        @operations << [__method__, args, block]
+        @operations << -> middleware { middleware.send(__method__, *args, &block) }
       end
+      ruby2_keywords(:insert_before) if respond_to?(:ruby2_keywords, true)
 
       alias :insert :insert_before
 
       def insert_after(*args, &block)
-        @operations << [__method__, args, block]
+        @operations << -> middleware { middleware.send(__method__, *args, &block) }
       end
+      ruby2_keywords(:insert_after) if respond_to?(:ruby2_keywords, true)
 
       def swap(*args, &block)
-        @operations << [__method__, args, block]
+        @operations << -> middleware { middleware.send(__method__, *args, &block) }
       end
+      ruby2_keywords(:swap) if respond_to?(:ruby2_keywords, true)
 
       def use(*args, &block)
-        @operations << [__method__, args, block]
+        @operations << -> middleware { middleware.send(__method__, *args, &block) }
       end
+      ruby2_keywords(:use) if respond_to?(:ruby2_keywords, true)
 
       def delete(*args, &block)
-        @delete_operations << [__method__, args, block]
+        @delete_operations << -> middleware { middleware.send(__method__, *args, &block) }
       end
 
       def unshift(*args, &block)
-        @operations << [__method__, args, block]
+        @operations << -> middleware { middleware.send(__method__, *args, &block) }
       end
+      ruby2_keywords(:unshift) if respond_to?(:ruby2_keywords, true)
 
       def merge_into(other) #:nodoc:
-        (@operations + @delete_operations).each do |operation, args, block|
-          other.send(operation, *args, &block)
+        (@operations + @delete_operations).each do |operation|
+          operation.call(other)
         end
 
         other
@@ -110,7 +115,13 @@ module Rails
       def method_missing(method, *args)
         method = method.to_s.sub(/=$/, "").to_sym
 
-        return @options[method] if args.empty?
+        if args.empty?
+          if method == :rails
+            return @options[method]
+          else
+            return @options[:rails][method]
+          end
+        end
 
         if method == :rails || args.first.is_a?(Hash)
           namespace, configuration = method, args.shift

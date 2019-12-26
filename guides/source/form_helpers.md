@@ -54,10 +54,10 @@ One of the most basic forms you see on the web is a search form. This form conta
 To create this form you will use `form_with`, `label_tag`, `text_field_tag`, and `submit_tag`, respectively. Like this:
 
 ```erb
-<%= form_with(url: "/search", method: "get") do %>
-  <%= label_tag(:q, "Search for:") %>
-  <%= text_field_tag(:q) %>
-  <%= submit_tag("Search") %>
+<%= form_with url: "/search", method: :get do |form| %>
+  <%= form.label :q, "Search for:" %>
+  <%= form.text_field :q %>
+  <%= form.submit "Search" %>
 <% end %>
 ```
 
@@ -236,10 +236,10 @@ end
 The corresponding view `app/views/articles/new.html.erb` using `form_with` looks like this:
 
 ```erb
-<%= form_with model: @article, class: "nifty_form" do |f| %>
-  <%= f.text_field :title %>
-  <%= f.text_area :body, size: "60x12" %>
-  <%= f.submit "Create" %>
+<%= form_with model: @article, class: "nifty_form" do |form| %>
+  <%= form.text_field :title %>
+  <%= form.text_area :body, size: "60x12" %>
+  <%= form.submit "Create" %>
 <% end %>
 ```
 
@@ -629,12 +629,12 @@ A common task is uploading some sort of file, whether it's a picture of a person
 The following two forms both upload a file.
 
 ```erb
-<%= form_with(url: {action: :upload}, multipart: true) do %>
-  <%= file_field_tag 'picture' %>
+<%= form_with model: @person do |form| %>
+  <%= form.file_field :picture %>
 <% end %>
 
-<%= form_with model: @person do |f| %>
-  <%= f.file_field :picture %>
+<%= form_with url: "/uploads", multipart: true do |form| %>
+  <%= form.file_field 'picture' %>
 <% end %>
 ```
 
@@ -661,16 +661,16 @@ Customizing Form Builders
 The object yielded by `form_with` and `fields_for` is an instance of [`ActionView::Helpers::FormBuilder`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html). Form builders encapsulate the notion of displaying form elements for a single object. While you can write helpers for your forms in the usual way, you can also create subclass `ActionView::Helpers::FormBuilder` and add the helpers there. For example:
 
 ```erb
-<%= form_with model: @person do |f| %>
-  <%= text_field_with_label f, :first_name %>
+<%= form_with model: @person do |form| %>
+  <%= text_field_with_label form, :first_name %>
 <% end %>
 ```
 
 can be replaced with
 
 ```erb
-<%= form_with model: @person, builder: LabellingFormBuilder do |f| %>
-  <%= f.text_field :first_name %>
+<%= form_with model: @person, builder: LabellingFormBuilder do |form| %>
+  <%= form.text_field :first_name %>
 <% end %>
 ```
 
@@ -880,10 +880,10 @@ This creates an `addresses_attributes=` method on `Person` that allows you to cr
 The following form allows a user to create a `Person` and its associated addresses.
 
 ```html+erb
-<%= form_with model: @person do |f| %>
+<%= form_with model: @person do |form| %>
   Addresses:
   <ul>
-    <%= f.fields_for :addresses do |addresses_form| %>
+    <%= form.fields_for :addresses do |addresses_form| %>
       <li>
         <%= addresses_form.label :kind %>
         <%= addresses_form.text_field :kind %>
@@ -967,10 +967,10 @@ evaluates to `true` (e.g. 1, '1', true, or 'true') then the object will be destr
 This form allows users to remove addresses:
 
 ```erb
-<%= form_with model: @person do |f| %>
+<%= form_with model: @person do |form| %>
   Addresses:
   <ul>
-    <%= f.fields_for :addresses do |addresses_form| %>
+    <%= form.fields_for :addresses do |addresses_form| %>
       <li>
         <%= addresses_form.check_box :_destroy %>
         <%= addresses_form.label :kind %>

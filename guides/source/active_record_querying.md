@@ -18,7 +18,12 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
+What is the Active Record Query Interface?
+------------------------------------------
+
 If you're used to using raw SQL to find database records, then you will generally find that there are better ways to carry out the same operations in Rails. Active Record insulates you from the need to use SQL in most cases.
+
+Active Record will perform queries on the database for you and is compatible with most database systems, including MySQL, MariaDB, PostgreSQL, and SQLite. Regardless of which database system you're using, the Active Record method format will always be the same.
 
 Code examples throughout this guide will refer to one or more of the following models:
 
@@ -49,8 +54,6 @@ class Role < ApplicationRecord
   has_and_belongs_to_many :clients
 end
 ```
-
-Active Record will perform queries on the database for you and is compatible with most database systems, including MySQL, MariaDB, PostgreSQL, and SQLite. Regardless of which database system you're using, the Active Record method format will always be the same.
 
 Retrieving Objects from the Database
 ------------------------------------
@@ -1805,7 +1808,7 @@ Client.pluck(:name)
 
 You are not limited to querying fields from a single table, you can query multiple tables as well.
 
-```
+```ruby
 Client.joins(:comments, :categories).pluck("clients.email, comments.title, categories.name")
 ```
 
@@ -2001,7 +2004,7 @@ User.where(id: 1).joins(:articles).explain
 
 may yield
 
-```
+```sql
 EXPLAIN for: SELECT `users`.* FROM `users` INNER JOIN `articles` ON `articles`.`user_id` = `users`.`id` WHERE `users`.`id` = 1
 +----+-------------+----------+-------+---------------+
 | id | select_type | table    | type  | possible_keys |
@@ -2025,7 +2028,7 @@ Active Record performs a pretty printing that emulates that of the
 corresponding database shell. So, the same query running with the
 PostgreSQL adapter would yield instead
 
-```
+```sql
 EXPLAIN for: SELECT "users".* FROM "users" INNER JOIN "articles" ON "articles"."user_id" = "users"."id" WHERE "users"."id" = 1
                                   QUERY PLAN
 ------------------------------------------------------------------------------
@@ -2048,7 +2051,7 @@ User.where(id: 1).includes(:articles).explain
 
 yields
 
-```
+```sql
 EXPLAIN for: SELECT `users`.* FROM `users`  WHERE `users`.`id` = 1
 +----+-------------+-------+-------+---------------+
 | id | select_type | table | type  | possible_keys |

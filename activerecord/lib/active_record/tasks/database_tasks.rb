@@ -242,7 +242,7 @@ module ActiveRecord
         end
 
         # output
-        puts "\ndatabase: #{ActiveRecord::Base.connection_config[:database]}\n\n"
+        puts "\ndatabase: #{ActiveRecord::Base.connection_db_config.database}\n\n"
         puts "#{'Status'.center(8)}  #{'Migration ID'.ljust(14)}  Migration Name"
         puts "-" * 50
         ActiveRecord::Base.connection.migration_context.migrations_status.each do |status, version, name|
@@ -456,8 +456,7 @@ module ActiveRecord
 
       private
         def resolve_configuration(configuration)
-          resolver = ConnectionAdapters::Resolver.new(ActiveRecord::Base.configurations)
-          resolver.resolve(configuration)
+          Base.configurations.resolve(configuration)
         end
 
         def verbose?
@@ -485,7 +484,7 @@ module ActiveRecord
 
         def each_current_configuration(environment, spec_name = nil)
           environments = [environment]
-          environments << "test" if environment == "development"
+          environments << "test" if environment == "development" && !ENV["DATABASE_URL"]
 
           environments.each do |env|
             ActiveRecord::Base.configurations.configs_for(env_name: env).each do |db_config|
@@ -509,7 +508,7 @@ module ActiveRecord
         end
 
         def local_database?(db_config)
-          host = db_config.configuration_hash[:host]
+          host = db_config.host
           host.blank? || LOCAL_HOSTS.include?(host)
         end
 

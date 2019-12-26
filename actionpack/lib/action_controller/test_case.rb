@@ -594,10 +594,9 @@ module ActionController
 
       private
         def scrub_env!(env)
-          env.delete_if { |k, v| k.match?(/^(action_dispatch|rack)\.request/) }
-          env.delete_if { |k, v| k.match?(/^action_dispatch\.rescue/) }
-          env.delete "action_dispatch.request.query_parameters"
-          env.delete "action_dispatch.request.request_parameters"
+          env.delete_if do |k, _|
+            k.start_with?("rack.request", "action_dispatch.request", "action_dispatch.rescue")
+          end
           env["rack.input"] = StringIO.new
           env.delete "CONTENT_LENGTH"
           env.delete "RAW_POST_DATA"

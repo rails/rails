@@ -29,7 +29,7 @@ class ScrollsController < ActionController::Base
             end
           end
         end
-    EOT
+  EOT
   FEEDS["entry_options"] = <<-EOT
         atom_feed do |feed|
           feed.title("My great blog!")
@@ -46,7 +46,7 @@ class ScrollsController < ActionController::Base
             end
           end
         end
-    EOT
+  EOT
   FEEDS["entry_type_options"] = <<-EOT
         atom_feed(:schema_date => '2008') do |feed|
           feed.title("My great blog!")
@@ -63,7 +63,7 @@ class ScrollsController < ActionController::Base
             end
           end
         end
-    EOT
+  EOT
   FEEDS["entry_url_false_option"] = <<-EOT
         atom_feed do |feed|
           feed.title("My great blog!")
@@ -80,7 +80,7 @@ class ScrollsController < ActionController::Base
             end
           end
         end
-    EOT
+  EOT
   FEEDS["xml_block"] = <<-EOT
         atom_feed do |feed|
           feed.title("My great blog!")
@@ -97,7 +97,7 @@ class ScrollsController < ActionController::Base
             end
           end
         end
-    EOT
+  EOT
   FEEDS["feed_with_atomPub_namespace"] = <<-EOT
         atom_feed({'xmlns:app' => 'http://www.w3.org/2007/app',
                  'xmlns:openSearch' => 'http://a9.com/-/spec/opensearch/1.1/'}) do |feed|
@@ -116,7 +116,7 @@ class ScrollsController < ActionController::Base
             end
           end
         end
-    EOT
+  EOT
   FEEDS["feed_with_overridden_ids"] = <<-EOT
         atom_feed({:id => 'tag:test.rubyonrails.org,2008:test/'}) do |feed|
           feed.title("My great blog!")
@@ -134,7 +134,7 @@ class ScrollsController < ActionController::Base
             end
           end
         end
-    EOT
+  EOT
   FEEDS["feed_with_xml_processing_instructions"] = <<-EOT
         atom_feed(:schema_date => '2008',
           :instruct => {'xml-stylesheet' => { :href=> 't.css', :type => 'text/css' }}) do |feed|
@@ -152,7 +152,7 @@ class ScrollsController < ActionController::Base
             end
           end
         end
-    EOT
+  EOT
   FEEDS["feed_with_xml_processing_instructions_duplicate_targets"] = <<-EOT
         atom_feed(:schema_date => '2008',
           :instruct => {'target1' => [{ :a => '1', :b => '2' }, { :c => '3', :d => '4' }]}) do |feed|
@@ -170,7 +170,7 @@ class ScrollsController < ActionController::Base
             end
           end
         end
-    EOT
+  EOT
   FEEDS["feed_with_xhtml_content"] = <<-'EOT'
         atom_feed do |feed|
           feed.title("My great blog!")
@@ -192,7 +192,7 @@ class ScrollsController < ActionController::Base
             end
           end
         end
-    EOT
+  EOT
   FEEDS["provide_builder"] = <<-'EOT'
           # we pass in the new_xml to the helper so it doesn't
           # call anything on the original builder
@@ -212,7 +212,7 @@ class ScrollsController < ActionController::Base
               end
             end
           end
-    EOT
+  EOT
   def index
     @scrolls = [
       Scroll.new(1, "1", "Hello One", "Something <i>COOL!</i>", Time.utc(2007, 12, 12, 15), Time.utc(2007, 12, 12, 15)),

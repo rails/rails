@@ -378,7 +378,7 @@ class LoadingTest < ActiveSupport::TestCase
 
   test "frameworks aren't loaded during initialization" do
     app_file "config/initializers/raise_when_frameworks_load.rb", <<-RUBY
-      %i(action_controller action_mailer active_job active_record).each do |framework|
+      %i(action_controller action_mailer active_job active_record action_view).each do |framework|
         ActiveSupport.on_load(framework) { raise "\#{framework} loaded!" }
       end
     RUBY

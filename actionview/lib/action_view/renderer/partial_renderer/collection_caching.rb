@@ -12,7 +12,7 @@ module ActionView
 
     private
       def cache_collection_render(instrumentation_payload, view, template)
-        return yield unless @options[:cached]
+        return yield unless @options[:cached] && view.controller.respond_to?(:perform_caching) && view.controller.perform_caching
 
         # Result is a hash with the key represents the
         # key used for cache lookup and the value is the item

@@ -31,12 +31,14 @@ module ActiveRecord
     # * <tt>env_name:</tt> The environment name. Defaults to +nil+ which will collect
     #   configs for all environments.
     # * <tt>spec_name:</tt> The specification name (i.e. primary, animals, etc.). Defaults
-    #   to +nil+.
+    #   to +nil+. If no +env_name+ is specified the config for the default env and the
+    #   passed +spec_name+ will be returned.
     # * <tt>include_replicas:</tt> Determines whether to include replicas in
     #   the returned list. Most of the time we're only iterating over the write
     #   connection (i.e. migrations don't need to run for the write and read connection).
     #   Defaults to +false+.
     def configs_for(env_name: nil, spec_name: nil, include_replicas: false)
+      env_name ||= default_env if spec_name
       configs = env_with_configs(env_name)
 
       unless include_replicas
@@ -60,7 +62,7 @@ module ActiveRecord
     # return the first config hash for the environment.
     #
     #   { database: "my_db", adapter: "mysql2" }
-    def default_hash(env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call.to_s)
+    def default_hash(env = default_env)
       default = find_db_config(env)
       default.configuration_hash if default
     end
@@ -106,7 +108,43 @@ module ActiveRecord
       [config.env_name, config.configuration_hash]
     end
 
+    # Returns fully resolved connection, accepts hash, string or symbol.
+    # Always returns a DatabaseConfiguration::DatabaseConfig
+    #
+    # == Examples
+    #
+    # Symbol representing current environment.
+    #
+    #   DatabaseConfigurations.new("production" => {}).resolve(:production)
+    #   # => DatabaseConfigurations::HashConfig.new(env_name: "production", config: {})
+    #
+    # One layer deep hash of connection values.
+    #
+    #   DatabaseConfigurations.new({}).resolve("adapter" => "sqlite3")
+    #   # => DatabaseConfigurations::HashConfig.new(config: {"adapter" => "sqlite3"})
+    #
+    # Connection URL.
+    #
+    #   DatabaseConfigurations.new({}).resolve("postgresql://localhost/foo")
+    #   # => DatabaseConfigurations::UrlConfig.new(config: {"adapter" => "postgresql", "host" => "localhost", "database" => "foo"})
+    def resolve(config, pool_name = nil) # :nodoc:
+      return config if DatabaseConfigurations::DatabaseConfig === config
+
+      case config
+      when Symbol
+        resolve_symbol_connection(config, pool_name)
+      when Hash, String
+        build_db_config_from_raw_config(default_env, "primary", config)
+      else
+        raise TypeError, "Invalid type for configuration. Expected Symbol, String, or Hash. Got #{config.inspect}"
+      end
+    end
+
     private
+      def default_env
+        ActiveRecord::ConnectionHandling::DEFAULT_ENV.call.to_s
+      end
+
       def env_with_configs(env = nil)
         if env
           configurations.select { |db_config| db_config.env_name == env }
@@ -127,19 +165,49 @@ module ActiveRecord
           end
         end
 
-        current_env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call.to_s
-
         unless db_configs.find(&:for_current_env?)
-          db_configs << environment_url_config(current_env, "primary", {})
+          db_configs << environment_url_config(default_env, "primary", {})
         end
 
-        merge_db_environment_variables(current_env, db_configs.compact)
+        merge_db_environment_variables(default_env, db_configs.compact)
       end
 
       def walk_configs(env_name, config)
         config.map do |spec_name, sub_config|
           build_db_config_from_raw_config(env_name, spec_name.to_s, sub_config)
         end
+      end
+
+      def resolve_symbol_connection(env_name, pool_name)
+        db_config = find_db_config(env_name)
+
+        if db_config
+          config = db_config.configuration_hash.dup
+          db_config = DatabaseConfigurations::HashConfig.new(db_config.env_name, db_config.spec_name, config)
+          db_config.owner_name = pool_name.to_s
+          db_config
+        else
+          raise AdapterNotSpecified, <<~MSG
+            The `#{env_name}` database is not configured for the `#{default_env}` environment.
+
+              Available databases configurations are:
+
+              #{build_configuration_sentence}
+          MSG
+        end
+      end
+
+      def build_configuration_sentence
+        configs = configs_for(include_replicas: true)
+
+        configs.group_by(&:env_name).map do |env, config|
+          namespaces = config.map(&:spec_name)
+          if namespaces.size > 1
+            "#{env}: #{namespaces.join(", ")}"
+          else
+            env
+          end
+        end.join("\n")
       end
 
       def build_db_config_from_raw_config(env_name, spec_name, config)

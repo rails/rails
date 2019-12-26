@@ -626,7 +626,10 @@ module ActiveRecord
     #
     #   Post.where(published: true).load # => #<ActiveRecord::Relation>
     def load(&block)
-      exec_queries(&block) unless loaded?
+      unless loaded?
+        @records = exec_queries(&block)
+        @loaded = true
+      end
 
       self
     end
@@ -809,7 +812,7 @@ module ActiveRecord
 
       def exec_queries(&block)
         skip_query_cache_if_necessary do
-          @records =
+          records =
             if where_clause.contradiction?
               []
             elsif eager_loading?
@@ -826,12 +829,11 @@ module ActiveRecord
               klass.find_by_sql(arel, &block).freeze
             end
 
-          preload_associations(@records) unless skip_preloading_value
+          preload_associations(records) unless skip_preloading_value
 
-          @records.each(&:readonly!) if readonly_value
+          records.each(&:readonly!) if readonly_value
 
-          @loaded = true
-          @records
+          records
         end
       end
 

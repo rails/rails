@@ -412,12 +412,13 @@ module ActiveRecord
         create_table_info = create_table_info(table_name)
 
         # strip create_definitions and partition_options
-        raw_table_options = create_table_info.sub(/\A.*\n\) /m, "").sub(/\n\/\*!.*\*\/\n\z/m, "").strip
+        # Be aware that `create_table_info` might not include any table options due to `NO_TABLE_OPTIONS` sql mode.
+        raw_table_options = create_table_info.sub(/\A.*\n\) ?/m, "").sub(/\n\/\*!.*\*\/\n\z/m, "").strip
 
         # strip AUTO_INCREMENT
         raw_table_options.sub!(/(ENGINE=\w+)(?: AUTO_INCREMENT=\d+)/, '\1')
 
-        table_options[:options] = raw_table_options
+        table_options[:options] = raw_table_options unless raw_table_options.blank?
 
         # strip COMMENT
         if raw_table_options.sub!(/ COMMENT='.+'/, "")

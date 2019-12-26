@@ -200,8 +200,11 @@ module ActiveRecord
 
       def test_idle_timeout_configuration
         @pool.disconnect!
-        @db_config.configuration_hash.merge!(idle_timeout: "0.02")
-        pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new("primary", @db_config)
+
+        config = @db_config.configuration_hash.merge(idle_timeout: "0.02")
+        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(@db_config.env_name, @db_config.spec_name, config)
+
+        pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new("primary", db_config)
         @pool = ConnectionPool.new(pool_config)
         idle_conn = @pool.checkout
         @pool.checkin(idle_conn)
@@ -225,8 +228,10 @@ module ActiveRecord
 
       def test_disable_flush
         @pool.disconnect!
-        @db_config.configuration_hash.merge!(idle_timeout: -5)
-        pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new("primary", @db_config)
+
+        config = @db_config.configuration_hash.merge(idle_timeout: -5)
+        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(@db_config.env_name, @db_config.spec_name, config)
+        pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new("primary", db_config)
         @pool = ConnectionPool.new(pool_config)
         idle_conn = @pool.checkout
         @pool.checkin(idle_conn)
@@ -496,7 +501,7 @@ module ActiveRecord
         end
         ConnectionTestModel.establish_connection :arunit
 
-        assert_equal [:config, :connection_id, :spec_name], payloads[0].keys.sort
+        assert_equal [:config, :spec_name], payloads[0].keys.sort
         assert_equal "ActiveRecord::ConnectionAdapters::ConnectionPoolTest::ConnectionTestModel", payloads[0][:spec_name]
       ensure
         ActiveSupport::Notifications.unsubscribe(subscription) if subscription
@@ -720,12 +725,10 @@ module ActiveRecord
 
       private
         def with_single_connection_pool
-          old_config = @db_config.configuration_hash
-          db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("arunit", "primary", old_config.dup)
-
-          db_config.configuration_hash[:pool] = 1 # this is safe to do, because .dupped PoolConfig also auto-dups its config
-
+          config = @db_config.configuration_hash.merge(pool: 1)
+          db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("arunit", "primary", config)
           pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new("primary", db_config)
+
           yield(pool = ConnectionPool.new(pool_config))
         ensure
           pool.disconnect! if pool

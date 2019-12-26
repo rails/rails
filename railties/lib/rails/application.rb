@@ -220,27 +220,25 @@ module Rails
     #       config.middleware.use ExceptionNotifier, config_for(:exception_notification)
     #     end
     def config_for(name, env: Rails.env)
-      if name.is_a?(Pathname)
-        yaml = name
-      else
-        yaml = Pathname.new("#{paths["config"].existent.first}/#{name}.yml")
-      end
+      yaml = name.is_a?(Pathname) ? name : Pathname.new("#{paths["config"].existent.first}/#{name}.yml")
 
       if yaml.exist?
         require "erb"
-        config = YAML.load(ERB.new(yaml.read).result) || {}
-        config = (config["shared"] || {}).merge(config[env] || {})
+        all_configs    = YAML.load(ERB.new(yaml.read).result, symbolize_names: true) || {}
+        config, shared = all_configs[env.to_sym], all_configs[:shared]
 
-        ActiveSupport::OrderedOptions.new.tap do |options|
-          options.update(NonSymbolAccessDeprecatedHash.new(config))
+        if config.is_a?(Hash)
+          ActiveSupport::OrderedOptions.new.update(shared&.deep_merge(config) || config)
+        else
+          config || shared
         end
       else
         raise "Could not load configuration. No such file - #{yaml}"
       end
-    rescue Psych::SyntaxError => e
+    rescue Psych::SyntaxError => error
       raise "YAML syntax error occurred while parsing #{yaml}. " \
         "Please note that YAML must be consistently indented using spaces. Tabs are not allowed. " \
-        "Error: #{e.message}"
+        "Error: #{error.message}"
     end
 
     # Stores some of the Rails initial environment parameters which
@@ -267,6 +265,7 @@ module Rails
           "action_dispatch.cookies_serializer" => config.action_dispatch.cookies_serializer,
           "action_dispatch.cookies_digest" => config.action_dispatch.cookies_digest,
           "action_dispatch.cookies_rotations" => config.action_dispatch.cookies_rotations,
+          "action_dispatch.cookies_same_site_protection" => config.action_dispatch.cookies_same_site_protection,
           "action_dispatch.use_cookies_with_metadata" => config.action_dispatch.use_cookies_with_metadata,
           "action_dispatch.content_security_policy" => config.content_security_policy,
           "action_dispatch.content_security_policy_report_only" => config.content_security_policy_report_only,
@@ -506,7 +505,7 @@ module Rails
       super
       require "rails/tasks"
       task :environment do
-        ActiveSupport.on_load(:before_initialize) { config.eager_load = false }
+        ActiveSupport.on_load(:before_initialize) { config.eager_load = config.rake_eager_load }
 
         require_environment!
       end
@@ -603,52 +602,6 @@ module Rails
 
       def build_middleware
         config.app_middleware + super
-      end
-
-      class NonSymbolAccessDeprecatedHash < HashWithIndifferentAccess # :nodoc:
-        def initialize(value = nil)
-          if value.is_a?(Hash)
-            value.each_pair { |k, v| self[k] = v }
-          else
-            super
-          end
-        end
-
-        def []=(key, value)
-          regular_writer(key.to_sym, convert_value(value, for: :assignment))
-        end
-
-        private
-          def convert_key(key)
-            unless key.kind_of?(Symbol)
-              ActiveSupport::Deprecation.warn(<<~MESSAGE.squish)
-                Accessing hashes returned from config_for by non-symbol keys
-                is deprecated and will be removed in Rails 6.1.
-                Use symbols for access instead.
-              MESSAGE
-
-              key = key.to_sym
-            end
-
-            key
-          end
-
-          def convert_value(value, options = {}) # :doc:
-            if value.is_a? Hash
-              if options[:for] == :to_hash
-                value.to_hash
-              else
-                self.class.new(value)
-              end
-            elsif value.is_a?(Array)
-              if options[:for] != :assignment || value.frozen?
-                value = value.dup
-              end
-              value.map! { |e| convert_value(e, options) }
-            else
-              value
-            end
-          end
       end
   end
 end

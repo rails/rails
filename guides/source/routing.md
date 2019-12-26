@@ -405,7 +405,7 @@ The comments resource here will have the following routes generated for it:
 | PATCH/PUT | /comments/:id(.:format)                      | comments#update   | sekret_comment_path         |
 | DELETE    | /comments/:id(.:format)                      | comments#destroy  | sekret_comment_path         |
 
-### Routing concerns
+### Routing Concerns
 
 Routing concerns allow you to declare common routes that can be reused inside other resources and routes. To define a concern:
 
@@ -448,7 +448,7 @@ namespace :articles do
 end
 ```
 
-### Creating Paths and URLs From Objects
+### Creating Paths and URLs from Objects
 
 In addition to using the routing helpers, Rails can also create paths and URLs from an array of parameters. For example, suppose you have this set of routes:
 
@@ -868,7 +868,7 @@ end
 root to: "home#index"
 ```
 
-### Unicode character routes
+### Unicode Character Routes
 
 You can specify unicode character routes directly. For example:
 
@@ -876,7 +876,7 @@ You can specify unicode character routes directly. For example:
 get 'こんにちは', to: 'welcome#index'
 ```
 
-### Direct routes
+### Direct Routes
 
 You can create custom URL helpers directly. For example:
 
@@ -912,7 +912,7 @@ resolve("Basket") { [:basket] }
 ```
 
 ``` erb
-<%= form_for @basket do |form| %>
+<%= form_with model: @basket do |form| %>
   <!-- basket form -->
 <% end %>
 ```
@@ -1164,6 +1164,43 @@ end
 video = Video.find_by(identifier: "Roman-Holiday")
 edit_video_path(video) # => "/videos/Roman-Holiday/edit"
 ```
+
+Breaking up *very* large route file into multiple small ones:
+-------------------------------------------------------
+
+If you work in a large application with thousands of routes,
+a single `config/routes.rb` file can become cumbersome and hard to read.
+
+Rails offers a way to break a gigantic single `routes.rb` file into multiple small ones using the `draw` macro.
+
+```ruby
+# config/routes.rb
+
+Rails.application.routes.draw do
+  get 'foo', to: 'foo#bar'
+
+  draw(:admin) # Will load another route file located in `config/routes/admin.rb`
+end
+
+# config/routes/admin.rb
+
+namespace :admin do
+  resources :comments
+end
+```
+
+Calling `draw(:admin)` inside the `Rails.application.routes.draw` block itself will try to load a route
+file that has the same name as the argument given (`admin.rb` in this case).
+The file need to be located inside the `config/routes` directory or any sub-directory (i.e. `config/routes/admin.rb` , `config/routes/external/admin.rb`).
+
+You can use the normal routing DSL inside the `admin.rb` routing file, **however** you shouldn't surround it with the `Rails.application.routes.draw` block like you did in the main `config/routes.rb` file.
+
+### When to use and not use this feature
+
+Drawing routes from external files can be very useful to organise a large set of routes into multiple organised ones. You could have a `admin.rb` route that contains all the routes for the admin area, another `api.rb` file to route API related resources etc...
+
+However, you shouldn't abuse this feature as having too many route files make discoverability and understandability more difficult. Depending on the application, it might be easier for developers to have a single routing file even if you have few hundreds routes. You shouldn't try to create a new routing file for each category (admin, api ...) at all cost; the Rails routing DSL already offers a way to break routes in a organised manner with `namespaces` and `scopes`.
+
 
 Inspecting and Testing Routes
 -----------------------------

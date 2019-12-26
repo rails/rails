@@ -954,7 +954,6 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
         payload = {
           spec_name: "book",
           config: nil,
-          connection_id: connection.object_id
         }
 
         message_bus.instrument("!connection.active_record", payload) { }
@@ -1395,13 +1394,6 @@ class MultipleDatabaseFixturesTest < ActiveRecord::TestCase
 
     with_temporary_connection_pool do
       ActiveRecord::Base.connects_to database: { writing: :arunit, reading: :arunit2 }
-
-      rw_conn = ActiveRecord::Base.connection
-      ro_conn = ActiveRecord::Base.connection_handlers[:reading].connection_pool_list.first.connection
-
-      assert_not_equal rw_conn, ro_conn
-
-      enlist_fixture_connections
 
       rw_conn = ActiveRecord::Base.connection
       ro_conn = ActiveRecord::Base.connection_handlers[:reading].connection_pool_list.first.connection

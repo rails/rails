@@ -83,7 +83,7 @@ module ActiveRecord
       end
 
       def self.empty
-        @empty ||= new([])
+        @empty ||= new([]).tap(&:referenced_columns).freeze
       end
 
       def contradiction?

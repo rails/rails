@@ -10,6 +10,7 @@ require "jobs/nested_job"
 require "jobs/rescue_job"
 require "jobs/retry_job"
 require "jobs/disable_log_job"
+require "jobs/abort_before_enqueue_job"
 require "models/person"
 
 class LoggingTest < ActiveSupport::TestCase
@@ -112,6 +113,27 @@ class LoggingTest < ActiveSupport::TestCase
     assert_equal(key, "enqueue.active_job")
   end
 
+  def test_enqueue_job_log_error_when_callback_chain_is_halted
+    events = subscribed { AbortBeforeEnqueueJob.perform_later }
+    assert_match(/Failed enqueuing AbortBeforeEnqueueJob.* a before_enqueue callback halted/, @logger.messages)
+    assert_equal(events.count, 1)
+    key, * = events.first
+    assert_equal(key, "enqueue.active_job")
+  end
+
+  def test_enqueue_job_log_error_when_error_is_raised_during_callback_chain
+    events = subscribed do
+      assert_raises(AbortBeforeEnqueueJob::MyError) do
+        AbortBeforeEnqueueJob.perform_later(:raise)
+      end
+    end
+
+    assert_match(/Failed enqueuing AbortBeforeEnqueueJob/, @logger.messages)
+    assert_equal(events.count, 1)
+    key, * = events.first
+    assert_equal(key, "enqueue.active_job")
+  end
+
   def test_perform_job_logging
     perform_enqueued_jobs do
       LoggingJob.perform_later "Dummy"
@@ -121,6 +143,11 @@ class LoggingTest < ActiveSupport::TestCase
       assert_match(/Dummy, here is it: Dummy/, @logger.messages)
       assert_match(/Performed LoggingJob \(Job ID: .*?\) from .*? in .*ms/, @logger.messages)
     end
+  end
+
+  def test_perform_job_log_error_when_callback_chain_is_halted
+    subscribed { AbortBeforeEnqueueJob.perform_now }
+    assert_match(/Error performing AbortBeforeEnqueueJob.* a before_perform callback halted/, @logger.messages)
   end
 
   def test_perform_disabled_job_logging
@@ -157,6 +184,27 @@ class LoggingTest < ActiveSupport::TestCase
     assert_equal(key, "enqueue_at.active_job")
   rescue NotImplementedError
     skip
+  end
+
+  def test_enqueue_at_job_log_error_when_callback_chain_is_halted
+    events = subscribed { AbortBeforeEnqueueJob.set(wait: 1.second).perform_later }
+    assert_match(/Failed enqueuing AbortBeforeEnqueueJob.* a before_enqueue callback halted/, @logger.messages)
+    assert_equal(events.count, 1)
+    key, * = events.first
+    assert_equal(key, "enqueue_at.active_job")
+  end
+
+  def test_enqueue_at_job_log_error_when_error_is_raised_during_callback_chain
+    events = subscribed do
+      assert_raises(AbortBeforeEnqueueJob::MyError) do
+        AbortBeforeEnqueueJob.set(wait: 1.second).perform_later(:raise)
+      end
+    end
+
+    assert_match(/Failed enqueuing AbortBeforeEnqueueJob/, @logger.messages)
+    assert_equal(events.count, 1)
+    key, * = events.first
+    assert_equal(key, "enqueue_at.active_job")
   end
 
   def test_enqueue_in_job_logging

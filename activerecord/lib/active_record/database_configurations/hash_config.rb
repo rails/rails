@@ -36,7 +36,7 @@ module ActiveRecord
       end
 
       def configuration_hash
-        @config
+        @config.freeze
       end
 
       # Determines whether a database configuration is for a replica / readonly
@@ -51,6 +51,10 @@ module ActiveRecord
       # will return its value.
       def migrations_paths
         configuration_hash[:migrations_paths]
+      end
+
+      def host
+        configuration_hash[:host]
       end
 
       def database

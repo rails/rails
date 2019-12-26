@@ -15,10 +15,10 @@ module ActionController
   #
   class MiddlewareStack < ActionDispatch::MiddlewareStack #:nodoc:
     class Middleware < ActionDispatch::MiddlewareStack::Middleware #:nodoc:
-      def initialize(klass, args, actions, strategy, block)
+      def initialize(klass, args, actions, strategy, block, &build_block)
         @actions = actions
         @strategy = strategy
-        super(klass, args, block)
+        super(klass, args, block, &build_block)
       end
 
       def valid?(action)
@@ -39,7 +39,7 @@ module ActionController
       EXCLUDE = ->(list, action) { !list.include? action }
       NULL    = ->(list, action) { true }
 
-      def build_middleware(klass, args, block)
+      def build_middleware(klass, *args, &block)
         options = args.extract_options!
         only   = Array(options.delete(:only)).map(&:to_s)
         except = Array(options.delete(:except)).map(&:to_s)
@@ -56,7 +56,9 @@ module ActionController
           list     = except
         end
 
-        Middleware.new(klass, args, list, strategy, block)
+        Middleware.new(klass, args, list, strategy, block) do |app|
+          klass.new(app, *args, &block)
+        end
       end
   end
 
@@ -216,10 +218,13 @@ module ActionController
       super
     end
 
-    # Pushes the given Rack middleware and its arguments to the bottom of the
-    # middleware stack.
-    def self.use(*args, &block)
-      middleware_stack.use(*args, &block)
+    class << self
+      # Pushes the given Rack middleware and its arguments to the bottom of the
+      # middleware stack.
+      def use(*args, &block)
+        middleware_stack.use(*args, &block)
+      end
+      ruby2_keywords(:use) if respond_to?(:ruby2_keywords, true)
     end
 
     # Alias for +middleware_stack+.

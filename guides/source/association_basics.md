@@ -406,7 +406,7 @@ NOTE: Using `t.bigint :supplier_id` makes the foreign key naming obvious and exp
 
 ### Choosing Between `has_many :through` and `has_and_belongs_to_many`
 
-Rails offers two different ways to declare a many-to-many relationship between models. The simpler way is to use `has_and_belongs_to_many`, which allows you to make the association directly:
+Rails offers two different ways to declare a many-to-many relationship between models. The first way is to use `has_and_belongs_to_many`, which allows you to make the association directly:
 
 ```ruby
 class Assembly < ApplicationRecord
@@ -2459,7 +2459,7 @@ Let's say we have Car, Motorcycle, and Bicycle models. We will want to share
 the `color` and `price` fields and some methods for all of them, but having some
 specific behavior for each, and separated controllers too.
 
-Rails makes this quite easy. First, let's generate the base Vehicle model:
+First, let's generate the base Vehicle model:
 
 ```bash
 $ rails generate model vehicle type:string color:string price:decimal{10.2}
@@ -2503,7 +2503,7 @@ will generate the following SQL:
 INSERT INTO "vehicles" ("type", "color", "price") VALUES ('Car', 'Red', 10000)
 ```
 
-Querying car records will just search for vehicles that are cars:
+Querying car records will search only for vehicles that are cars:
 
 ```ruby
 Car.all

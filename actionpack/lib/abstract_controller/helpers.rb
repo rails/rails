@@ -65,13 +65,15 @@ module AbstractController
         file, line = location.path, location.lineno
 
         meths.each do |meth|
-          method_def = [
-            "def #{meth}(*args, &blk)",
-            "  controller.send(%(#{meth}), *args, &blk)",
-            "end"
-          ].join(";")
-
-          _helpers.class_eval method_def, file, line
+          _helpers.class_eval <<-ruby_eval, file, line
+            def #{meth}(*args, **kwargs, &blk)                      # def current_user(*args, **kwargs, &blk)
+              if kwargs.empty?                                      #   if kwargs.empty?
+                controller.send(%(#{meth}), *args, &blk)            #     controller.send(:current_user, *args, &blk)
+              else                                                  #   else
+                controller.send(%(#{meth}), *args, **kwargs, &blk)  #     controller.send(:current_user, *args, **kwargs, &blk)
+              end                                                   #   end
+            end                                                     # end
+          ruby_eval
         end
       end
 

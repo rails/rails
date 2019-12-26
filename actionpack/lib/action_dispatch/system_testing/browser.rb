@@ -3,10 +3,11 @@
 module ActionDispatch
   module SystemTesting
     class Browser # :nodoc:
-      attr_reader :name
+      attr_reader :name, :options
 
       def initialize(name)
         @name = name
+        set_default_options
       end
 
       def type
@@ -20,23 +21,9 @@ module ActionDispatch
         end
       end
 
-      def options
-        case name
-        when :headless_chrome
-          headless_chrome_browser_options
-        when :headless_firefox
-          headless_firefox_browser_options
-        end
-      end
-
-      def capabilities
-        @option ||=
-          case type
-          when :chrome
-            ::Selenium::WebDriver::Chrome::Options.new
-          when :firefox
-            ::Selenium::WebDriver::Firefox::Options.new
-          end
+      def configure
+        initialize_options
+        yield options if block_given? && options
       end
 
       # driver_path can be configured as a proc. The webdrivers gem uses this
@@ -63,17 +50,36 @@ module ActionDispatch
       end
 
       private
-        def headless_chrome_browser_options
-          capabilities.args << "--headless"
-          capabilities.args << "--disable-gpu" if Gem.win_platform?
-
-          capabilities
+        def initialize_options
+          @options ||=
+            case type
+            when :chrome
+              ::Selenium::WebDriver::Chrome::Options.new
+            when :firefox
+              ::Selenium::WebDriver::Firefox::Options.new
+            end
         end
 
-        def headless_firefox_browser_options
-          capabilities.args << "-headless"
+        def set_default_options
+          case name
+          when :headless_chrome
+            set_headless_chrome_browser_options
+          when :headless_firefox
+            set_headless_firefox_browser_options
+          end
+        end
 
-          capabilities
+        def set_headless_chrome_browser_options
+          configure do |capabilities|
+            capabilities.args << "--headless"
+            capabilities.args << "--disable-gpu" if Gem.win_platform?
+          end
+        end
+
+        def set_headless_firefox_browser_options
+          configure do |capabilities|
+            capabilities.args << "-headless"
+          end
         end
     end
   end

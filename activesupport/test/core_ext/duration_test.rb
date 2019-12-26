@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../abstract_unit"
 require "active_support/inflector"
 require "active_support/time"
 require "active_support/json"
-require "time_zone_test_helpers"
+require_relative "../time_zone_test_helpers"
 require "yaml"
 
 class DurationTest < ActiveSupport::TestCase
@@ -62,6 +62,7 @@ class DurationTest < ActiveSupport::TestCase
 
   def test_inspect
     assert_equal "0 seconds",                       0.seconds.inspect
+    assert_equal "0 days",                          0.days.inspect
     assert_equal "1 month",                         1.month.inspect
     assert_equal "1 month and 1 day",               (1.month + 1.day).inspect
     assert_equal "6 months and -2 days",            (6.months - 2.days).inspect
@@ -74,6 +75,7 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal "2 weeks",                         1.fortnight.inspect
     assert_equal "0 seconds",                       (10 % 5.seconds).inspect
     assert_equal "10 minutes",                      (10.minutes + 0.seconds).inspect
+    assert_equal "3600 seconds",                    (1.day / 24).inspect
   end
 
   def test_inspect_locale
@@ -154,20 +156,29 @@ class DurationTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::Duration, 13.months % 1.year
   end
 
+  def test_date_added_with_zero_days
+    assert_equal Date.civil(2017, 1, 1), Date.civil(2017, 1, 1) + 0.days
+    assert_instance_of Date, Date.civil(2017, 1, 1) + 0.days
+  end
+
   def test_date_added_with_multiplied_duration
     assert_equal Date.civil(2017, 1, 3), Date.civil(2017, 1, 1) + 1.day * 2
+    assert_instance_of Date, Date.civil(2017, 1, 1) + 1.day * 2
   end
 
   def test_date_added_with_multiplied_duration_larger_than_one_month
     assert_equal Date.civil(2017, 2, 15), Date.civil(2017, 1, 1) + 1.day * 45
+    assert_instance_of Date, Date.civil(2017, 1, 1) + 1.day * 45
   end
 
   def test_date_added_with_divided_duration
     assert_equal Date.civil(2017, 1, 3), Date.civil(2017, 1, 1) + 4.days / 2
+    assert_instance_of Date, Date.civil(2017, 1, 1) + 4.days / 2
   end
 
   def test_date_added_with_divided_duration_larger_than_one_month
     assert_equal Date.civil(2017, 2, 15), Date.civil(2017, 1, 1) + 90.days / 2
+    assert_instance_of Date, Date.civil(2017, 1, 1) + 90.days / 2
   end
 
   def test_plus_with_time
@@ -203,7 +214,9 @@ class DurationTest < ActiveSupport::TestCase
   def test_since_and_ago
     t = Time.local(2000)
     assert_equal t + 1, 1.second.since(t)
+    assert_equal t + 1, (1.minute / 60).since(t)
     assert_equal t - 1, 1.second.ago(t)
+    assert_equal t - 1, (1.minute / 60).ago(t)
   end
 
   def test_since_and_ago_without_argument
@@ -560,6 +573,9 @@ class DurationTest < ActiveSupport::TestCase
     expectations = [
       ["P1Y",           1.year                           ],
       ["P1W",           1.week                           ],
+      ["P4W",           4.week                           ],
+      ["P1Y7D",         1.year + 1.week                  ],
+      ["P1Y1M21D",      1.year + 1.month + 3.week        ],
       ["P1Y1M",         1.year + 1.month                 ],
       ["P1Y1M1D",       1.year + 1.month + 1.day         ],
       ["-P1Y1D",        -1.year - 1.day                  ],

@@ -33,7 +33,7 @@ module ApplicationTests
           assert_match(/Created database/, output)
           assert File.exist?(expected_database)
           yield if block_given?
-          assert_equal expected_database, ActiveRecord::Base.connection_config[:database] if environment_loaded
+          assert_equal expected_database, ActiveRecord::Base.connection_db_config.database if environment_loaded
           output = rails("db:drop")
           assert_match(/Dropped database/, output)
           assert_not File.exist?(expected_database)
@@ -58,6 +58,28 @@ module ApplicationTests
         require "#{app_path}/config/environment"
         set_database_url
         db_create_and_drop database_url_db_name
+      end
+
+      test "db:create and db:drop with database URL don't use YAML DBs" do
+        require "#{app_path}/config/environment"
+        set_database_url
+
+        File.write("#{app_path}/config/database.yml", <<~YAML)
+          test:
+            adapter: sqlite3
+            database: db/test.sqlite3
+
+          development:
+            adapter: sqlite3
+            database: db/development.sqlite3
+        YAML
+
+        with_rails_env "development" do
+          db_create_and_drop database_url_db_name do
+            assert_not File.exist?("#{app_path}/db/test.sqlite3")
+            assert_not File.exist?("#{app_path}/db/development.sqlite3")
+          end
+        end
       end
 
       test "db:create and db:drop respect environment setting" do
@@ -343,7 +365,7 @@ module ApplicationTests
           reload
           rails "db:migrate", "db:fixtures:load"
 
-          assert_match expected_database, ActiveRecord::Base.connection_config[:database]
+          assert_match expected_database, ActiveRecord::Base.connection_db_config.database
           assert_equal 2, Book.count
         end
       end
@@ -376,7 +398,7 @@ module ApplicationTests
           structure_dump = File.read("db/structure.sql")
           assert_match(/CREATE TABLE (?:IF NOT EXISTS )?\"books\"/, structure_dump)
           rails "environment", "db:drop", "db:structure:load"
-          assert_match expected_database, ActiveRecord::Base.connection_config[:database]
+          assert_match expected_database, ActiveRecord::Base.connection_db_config.database
           require "#{app_path}/app/models/book"
           # if structure is not loaded correctly, exception would be raised
           assert_equal 0, Book.count
@@ -398,8 +420,8 @@ module ApplicationTests
         require "#{app_path}/config/environment"
         db_structure_dump_and_load ActiveRecord::Base.configurations[Rails.env][:database]
 
-        assert_match "test", rails("runner", "-e", "test", "puts ActiveRecord::InternalMetadata[:environment]").strip
-        assert_match "development", rails("runner", "puts ActiveRecord::InternalMetadata[:environment]").strip
+        assert_equal "test", rails("runner", "-e", "test", "puts ActiveRecord::InternalMetadata[:environment]").strip
+        assert_equal "development", rails("runner", "puts ActiveRecord::InternalMetadata[:environment]").strip
       end
 
       test "db:structure:dump does not dump schema information when no migrations are used" do
@@ -423,16 +445,16 @@ module ApplicationTests
 
         list_tables = lambda { rails("runner", "p ActiveRecord::Base.connection.tables").strip }
 
-        assert_match '["posts"]', list_tables[].to_s
+        assert_equal '["posts"]', list_tables[]
         rails "db:schema:load"
-        assert_match '["posts", "comments", "schema_migrations", "ar_internal_metadata"]', list_tables[].to_s
+        assert_equal '["posts", "comments", "schema_migrations", "ar_internal_metadata"]', list_tables[]
 
         app_file "db/structure.sql", <<-SQL
           CREATE TABLE "users" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "name" varchar(255));
         SQL
 
         rails "db:structure:load"
-        assert_match '["posts", "comments", "schema_migrations", "ar_internal_metadata", "users"]', list_tables[].to_s
+        assert_equal '["posts", "comments", "schema_migrations", "ar_internal_metadata", "users"]', list_tables[]
       end
 
       test "db:schema:load with inflections" do
@@ -458,7 +480,7 @@ module ApplicationTests
         assert_match(/"geese"/, tables)
 
         columns = rails("runner", "p ActiveRecord::Base.connection.columns('geese').map(&:name)").strip
-        assert_includes columns, '["gooseid", "name"]'
+        assert_equal columns, '["gooseid", "name"]'
       end
 
       test "db:schema:load fails if schema.rb doesn't exist yet" do
@@ -476,7 +498,7 @@ module ApplicationTests
           # if structure is not loaded correctly, exception would be raised
           assert_equal 0, Book.count
           assert_match ActiveRecord::Base.configurations["test"][:database],
-            ActiveRecord::Base.connection_config[:database]
+            ActiveRecord::Base.connection_db_config.database
         end
       end
 
@@ -497,10 +519,10 @@ module ApplicationTests
                 t.string :name
               end
             end
-          RUBY
+        RUBY
 
         app_file "db/seeds.rb", <<-RUBY
-          puts ActiveRecord::Base.connection_config[:database]
+          puts ActiveRecord::Base.connection_db_config.database
         RUBY
 
         database_path = rails("db:setup")
@@ -517,8 +539,8 @@ module ApplicationTests
         test_environment = lambda { rails("runner", "-e", "test", "puts ActiveRecord::InternalMetadata[:environment]").strip }
         development_environment = lambda { rails("runner", "puts ActiveRecord::InternalMetadata[:environment]").strip }
 
-        assert_match "test", test_environment.call
-        assert_match "development", development_environment.call
+        assert_equal "test", test_environment.call
+        assert_equal "development", development_environment.call
 
         app_file "db/structure.sql", ""
         app_file "config/initializers/enable_sql_schema_format.rb", <<-RUBY
@@ -527,8 +549,8 @@ module ApplicationTests
 
         rails "db:setup"
 
-        assert_match "test", test_environment.call
-        assert_match "development", development_environment.call
+        assert_equal "test", test_environment.call
+        assert_equal "development", development_environment.call
       end
 
       test "db:test:prepare sets test ar_internal_metadata" do
@@ -537,7 +559,7 @@ module ApplicationTests
 
         test_environment = lambda { rails("runner", "-e", "test", "puts ActiveRecord::InternalMetadata[:environment]").strip }
 
-        assert_match "test", test_environment.call
+        assert_equal "test", test_environment.call
 
         app_file "db/structure.sql", ""
         app_file "config/initializers/enable_sql_schema_format.rb", <<-RUBY
@@ -546,7 +568,7 @@ module ApplicationTests
 
         rails "db:test:prepare"
 
-        assert_match "test", test_environment.call
+        assert_equal "test", test_environment.call
       end
 
       test "db:seed:replant truncates all non-internal tables and loads the seeds" do

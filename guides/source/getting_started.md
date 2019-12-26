@@ -389,7 +389,7 @@ create and read. The form for doing this will look like this:
 It will look a little basic for now, but that's ok. We'll look at improving the
 styling for it afterwards.
 
-### Laying down the groundwork
+### Laying down the Groundwork
 
 Firstly, you need a place within the application to create a new article. A
 great place for that would be at `/articles/new`. With the route already
@@ -591,7 +591,7 @@ NOTE: By default `form_with` submits forms using Ajax thereby skipping full page
 redirects. To make this guide easier to get into we've disabled that with
 `local: true` for now.
 
-### Creating articles
+### Creating Articles
 
 To make the "Unknown action" go away, you can define a `create` action within
 the `ArticlesController` class in `app/controllers/articles_controller.rb`,
@@ -643,7 +643,7 @@ This action is now displaying the parameters for the article that are coming in
 from the form. However, this isn't really all that helpful. Yes, you can see the
 parameters but nothing in particular is being done with them.
 
-### Creating the Article model
+### Creating the Article Model
 
 Models in Rails use a singular name, and their corresponding database tables
 use a plural name. Rails provides a generator for creating models, which most
@@ -725,7 +725,7 @@ command will apply to the database defined in the `development` section of your
 environment, for instance in production, you must explicitly pass it when
 invoking the command: `rails db:migrate RAILS_ENV=production`.
 
-### Saving data in the controller
+### Saving Data in the Controller
 
 Back in `ArticlesController`, we need to change the `create` action
 to use the new `Article` model to save the data in the database.
@@ -870,7 +870,7 @@ Visit <http://localhost:3000/articles/new> and give it a try!
 
 ![Show action for articles](images/getting_started/show_action_for_articles.png)
 
-### Listing all articles
+### Listing all Articles
 
 We still need a way to list all our articles, so let's do that.
 The route for this as per output of `rails routes` is:
@@ -926,7 +926,7 @@ And then finally, add the view for this action, located at
 Now if you go to <http://localhost:3000/articles> you will see a list of all the
 articles that you have created.
 
-### Adding links
+### Adding Links
 
 You can now create, show, and list articles. Now let's add some links to
 navigate through pages.
@@ -1129,8 +1129,9 @@ you attempt to do just that on the new article form
 We've covered the "CR" part of CRUD. Now let's focus on the "U" part, updating
 articles.
 
-The first step we'll take is adding an `edit` action to the `ArticlesController`,
-generally between the `new` and `create` actions, as shown:
+The first step we'll take is adding an `edit` action to the 
+`ArticlesController`, generally between the `new` and `create` 
+actions, as shown:
 
 ```ruby
 def new
@@ -1152,6 +1153,10 @@ def create
 end
 ```
 
+NOTE:  We're using `edit` to render a view. For the actual
+saving of the changes to the Article, we'll add an `update` action later.
+
+
 The view will contain a form similar to the one we used when creating
 new articles. Create a file called `app/views/articles/edit.html.erb` and make
 it look as follows:
@@ -1159,7 +1164,7 @@ it look as follows:
 ```html+erb
 <h1>Edit Article</h1>
 
-<%= form_with(model: @article, local: true) do |form| %>
+<%= form_with model: @article, local: true do |form| %>
 
   <% if @article.errors.any? %>
     <div id="error_explanation">
@@ -1214,6 +1219,10 @@ Next, we need to create the `update` action in
 Add it between the `create` action and the `private` method:
 
 ```ruby
+def edit
+  @article = Article.find(params[:id])
+end
+
 def create
   @article = Article.new(article_params)
 
@@ -1681,7 +1690,7 @@ So first, we'll wire up the Article show template
 </p>
 
 <h2>Add a comment:</h2>
-<%= form_with(model: [ @article, @article.comments.build ], local: true) do |form| %>
+<%= form_with model: [ @article, @article.comments.build ], local: true do |form| %>
   <p>
     <%= form.label :commenter %><br>
     <%= form.text_field :commenter %>
@@ -1762,7 +1771,7 @@ add that to the `app/views/articles/show.html.erb`.
 <% end %>
 
 <h2>Add a comment:</h2>
-<%= form_with(model: [ @article, @article.comments.build ], local: true) do |form| %>
+<%= form_with model: [ @article, @article.comments.build ], local: true do |form| %>
   <p>
     <%= form.label :commenter %><br>
     <%= form.text_field :commenter %>
@@ -1828,7 +1837,7 @@ following:
 <%= render @article.comments %>
 
 <h2>Add a comment:</h2>
-<%= form_with(model: [ @article, @article.comments.build ], local: true) do |form| %>
+<%= form_with model: [ @article, @article.comments.build ], local: true do |form| %>
   <p>
     <%= form.label :commenter %><br>
     <%= form.text_field :commenter %>
@@ -1858,7 +1867,7 @@ Let us also move that new comment section out to its own partial. Again, you
 create a file `app/views/comments/_form.html.erb` containing:
 
 ```html+erb
-<%= form_with(model: [ @article, @article.comments.build ], local: true) do |form| %>
+<%= form_with model: [ @article, @article.comments.build ], local: true do |form| %>
   <p>
     <%= form.label :commenter %><br>
     <%= form.text_field :commenter %>
@@ -2058,7 +2067,6 @@ getting up and running with Rails, feel free to consult these support
 resources:
 
 * The [Ruby on Rails Guides](index.html)
-* The [Ruby on Rails Tutorial](https://www.railstutorial.org/book)
 * The [Ruby on Rails mailing list](https://groups.google.com/group/rubyonrails-talk)
 * The [#rubyonrails](irc://irc.freenode.net/#rubyonrails) channel on irc.freenode.net
 

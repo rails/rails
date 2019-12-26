@@ -604,7 +604,7 @@ module ActiveRecord
       end
 
       def load_schema_if_pending!
-        current_config = Base.connection_config
+        current_db_config = Base.connection_db_config
         all_configs = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env)
 
         needs_update = !all_configs.all? do |db_config|
@@ -621,7 +621,7 @@ module ActiveRecord
         end
 
         # Establish a new connection, the old database may be gone (db:test:prepare uses purge)
-        Base.establish_connection(current_config)
+        Base.establish_connection(current_db_config)
 
         check_pending!
       end
@@ -903,7 +903,12 @@ module ActiveRecord
           end
         end
         return super unless connection.respond_to?(method)
-        connection.send(method, *arguments, &block)
+        options = arguments.extract_options!
+        if options.empty?
+          connection.send(method, *arguments, &block)
+        else
+          connection.send(method, *arguments, **options, &block)
+        end
       end
     end
 

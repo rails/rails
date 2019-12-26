@@ -21,6 +21,7 @@ module ActiveSupport
     require "active_support/deprecation/method_wrappers"
     require "active_support/deprecation/proxy_wrappers"
     require "active_support/core_ext/module/deprecation"
+    require "concurrent/atomic/thread_local_var"
 
     include Singleton
     include InstanceDelegator

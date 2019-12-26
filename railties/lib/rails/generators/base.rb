@@ -26,6 +26,10 @@ module Rails
       add_runtime_options!
       strict_args_position!
 
+      def self.exit_on_failure? # :nodoc:
+        false
+      end
+
       # Returns the source root for this generator using default_source_root as default.
       def self.source_root(path = nil)
         @_source_root = path if path
@@ -233,7 +237,7 @@ module Rails
         # Invoke source_root so the default_source_root is set.
         base.source_root
 
-        if base.name && !base.name.match?(/Base$/)
+        if base.name && !base.name.end_with?("Base")
           Rails::Generators.subclasses << base
 
           Rails::Generators.templates_path.each do |path|

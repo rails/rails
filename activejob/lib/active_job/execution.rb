@@ -35,9 +35,21 @@ module ActiveJob
       self.executions = (executions || 0) + 1
 
       deserialize_arguments_if_needed
+      successfully_performed = false
+
       run_callbacks :perform do
-        perform(*arguments)
+        args = arguments
+        options = args.extract_options!
+        if options.empty?
+          perform(*args)
+        else
+          perform(*args, **options)
+        end
+        successfully_performed = true
       end
+
+      warn_against_after_callbacks_execution_deprecation(_perform_callbacks) unless successfully_performed
+      successfully_performed
     rescue => exception
       rescue_with_handler(exception) || raise
     end
