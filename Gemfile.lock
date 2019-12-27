@@ -349,7 +349,7 @@ GEM
       mini_portile2 (~> 2.4.0)
     os (1.0.1)
     parallel (1.19.1)
-    parser (2.7.0.0)
+    parser (2.6.5.0)
       ast (~> 2.4.0)
     path_expander (1.1.0)
     pg (1.2.0)
