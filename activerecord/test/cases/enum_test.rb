@@ -231,6 +231,11 @@ class EnumTest < ActiveRecord::TestCase
     assert_nil @book.status
   end
 
+  test "assign nil value to enum which defines nil value to hash" do
+    @book.read_status = nil
+    assert_equal "forgotten", @book.read_status
+  end
+
   test "assign empty string value" do
     @book.status = ""
     assert_nil @book.status
