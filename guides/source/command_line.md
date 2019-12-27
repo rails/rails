@@ -19,14 +19,14 @@ Command Line Basics
 
 There are a few commands that are absolutely critical to your everyday usage of Rails. In the order of how much you'll probably use them are:
 
-* `rails console`
-* `rails server`
-* `rails test`
-* `rails generate`
-* `rails db:migrate`
-* `rails db:create`
-* `rails routes`
-* `rails dbconsole`
+* `bin/rails console`
+* `bin/rails server`
+* `bin/rails test`
+* `bin/rails generate`
+* `bin/rails db:migrate`
+* `bin/rails db:create`
+* `bin/rails routes`
+* `bin/rails dbconsole`
 * `rails new app_name`
 
 You can get a list of rails commands available to you, which will often depend on your current directory, by typing `rails --help`. Each command has a description, and should help you find the thing you need.
@@ -122,7 +122,7 @@ With no further work, `rails server` will run our new shiny Rails app:
 
 ```bash
 $ cd commandsapp
-$ rails server
+$ bin/rails server
 => Booting Puma
 => Rails 6.0.0 application starting in development
 => Run `rails server --help` for more startup options
@@ -141,19 +141,19 @@ INFO: You can also use the alias "s" to start the server: `rails s`.
 The server can be run on a different port using the `-p` option. The default development environment can be changed using `-e`.
 
 ```bash
-$ rails server -e production -p 4000
+$ bin/rails server -e production -p 4000
 ```
 
 The `-b` option binds Rails to the specified IP, by default it is localhost. You can run a server as a daemon by passing a `-d` option.
 
 ### `rails generate`
 
-The `rails generate` command uses templates to create a whole lot of things. Running `rails generate` by itself gives a list of available generators:
+The `bin/rails generate` command uses templates to create a whole lot of things. Running `bin/rails generate` by itself gives a list of available generators:
 
-INFO: You can also use the alias "g" to invoke the generator command: `rails g`.
+INFO: You can also use the alias "g" to invoke the generator command: `bin/rails g`.
 
 ```bash
-$ rails generate
+$ bin/rails generate
 Usage: rails generate GENERATOR [args] [options]
 
 ...
@@ -179,8 +179,8 @@ Let's make our own controller with the controller generator. But what command sh
 INFO: All Rails console utilities have help text. As with most *nix utilities, you can try adding `--help` or `-h` to the end, for example `rails server --help`.
 
 ```bash
-$ rails generate controller
-Usage: rails generate controller NAME [action action] [options]
+$ bin/rails generate controller
+Usage: bin/rails generate controller NAME [action action] [options]
 
 ...
 ...
@@ -193,7 +193,7 @@ Description:
     ...
 
 Example:
-    `rails generate controller CreditCards open debit credit close`
+    `bin/rails generate controller CreditCards open debit credit close`
 
     Credit card controller with URLs like /credit_cards/debit.
         Controller: app/controllers/credit_cards_controller.rb
@@ -205,7 +205,7 @@ Example:
 The controller generator is expecting parameters in the form of `generate controller ControllerName action1 action2`. Let's make a `Greetings` controller with an action of **hello**, which will say something nice to us.
 
 ```bash
-$ rails generate controller Greetings hello
+$ bin/rails generate controller Greetings hello
      create  app/controllers/greetings_controller.rb
       route  get 'greetings/hello'
      invoke  erb
@@ -243,7 +243,7 @@ Then the view, to display our message (in `app/views/greetings/hello.html.erb`):
 Fire up your server using `rails server`.
 
 ```bash
-$ rails server
+$ bin/rails server
 => Booting Puma...
 ```
 
@@ -254,9 +254,9 @@ INFO: With a normal, plain-old Rails application, your URLs will generally follo
 Rails comes with a generator for data models too.
 
 ```bash
-$ rails generate model
+$ bin/rails generate model
 Usage:
-  rails generate model NAME [field[:type][:index] field[:type][:index]] [options]
+  bin/rails generate model NAME [field[:type][:index] field[:type][:index]] [options]
 
 ...
 
@@ -280,7 +280,7 @@ But instead of generating a model directly (which we'll be doing later), let's s
 We will set up a simple resource called "HighScore" that will keep track of our highest score on video games we play.
 
 ```bash
-$ rails generate scaffold HighScore game:string score:integer
+$ bin/rails generate scaffold HighScore game:string score:integer
     invoke  active_record
     create    db/migrate/20190416145729_create_high_scores.rb
     create    app/models/high_score.rb
@@ -320,7 +320,7 @@ The generator checks that there exist the directories for models, controllers, h
 The migration requires that we **migrate**, that is, run some Ruby code (living in that `20130717151933_create_high_scores.rb`) to modify the schema of our database. Which database? The SQLite3 database that Rails will create for you when we run the `rails db:migrate` command. We'll talk more about that command below.
 
 ```bash
-$ rails db:migrate
+$ bin/rails db:migrate
 ==  CreateHighScores: migrating ===============================================
 -- create_table(:high_scores)
    -> 0.0017s
@@ -338,7 +338,7 @@ look at unit testing.
 Let's see the interface Rails created for us.
 
 ```bash
-$ rails server
+$ bin/rails server
 ```
 
 Go to your browser and open [http://localhost:3000/high_scores](http://localhost:3000/high_scores), now we can create new high scores (55,160 on Space Invaders!)
@@ -352,13 +352,13 @@ INFO: You can also use the alias "c" to invoke the console: `rails c`.
 You can specify the environment in which the `console` command should operate.
 
 ```bash
-$ rails console -e staging
+$ bin/rails console -e staging
 ```
 
 If you wish to test out some code without changing any data, you can do that by invoking `rails console --sandbox`.
 
 ```bash
-$ rails console --sandbox
+$ bin/rails console --sandbox
 Loading development environment in sandbox (Rails 5.1.0)
 Any modifications you make will be rolled back on exit
 irb(main):001:0>
@@ -393,14 +393,14 @@ With the `helper` method it is possible to access Rails and your application's h
 
 `rails dbconsole` figures out which database you're using and drops you into whichever command line interface you would use with it (and figures out the command line parameters to give to it, too!). It supports MySQL (including MariaDB), PostgreSQL, and SQLite3.
 
-INFO: You can also use the alias "db" to invoke the dbconsole: `rails db`.
+INFO: You can also use the alias "db" to invoke the dbconsole: `bin/rails db`.
 
 ### `rails runner`
 
 `runner` runs Ruby code in the context of Rails non-interactively. For instance:
 
 ```bash
-$ rails runner "Model.long_running_method"
+$ bin/rails runner "Model.long_running_method"
 ```
 
 INFO: You can also use the alias "r" to invoke the runner: `rails r`.
@@ -408,13 +408,13 @@ INFO: You can also use the alias "r" to invoke the runner: `rails r`.
 You can specify the environment in which the `runner` command should operate using the `-e` switch.
 
 ```bash
-$ rails runner -e staging "Model.long_running_method"
+$ bin/rails runner -e staging "Model.long_running_method"
 ```
 
 You can even execute ruby code written in a file with runner.
 
 ```bash
-$ rails runner lib/code_to_be_run.rb
+$ bin/rails runner lib/code_to_be_run.rb
 ```
 
 ### `rails destroy`
@@ -424,7 +424,7 @@ Think of `destroy` as the opposite of `generate`. It'll figure out what generate
 INFO: You can also use the alias "d" to invoke the destroy command: `rails d`.
 
 ```bash
-$ rails generate model Oops
+$ bin/rails generate model Oops
       invoke  active_record
       create    db/migrate/20120528062523_create_oops.rb
       create    app/models/oops.rb
@@ -433,7 +433,7 @@ $ rails generate model Oops
       create      test/fixtures/oops.yml
 ```
 ```bash
-$ rails destroy model Oops
+$ bin/rails destroy model Oops
       invoke  active_record
       remove    db/migrate/20120528062523_create_oops.rb
       remove    app/models/oops.rb
@@ -447,7 +447,7 @@ $ rails destroy model Oops
 `rails about` gives information about version numbers for Ruby, RubyGems, Rails, the Rails subcomponents, your application's folder, the current Rails environment name, your app's database adapter, and schema version. It is useful when you need to ask for help, check if a security patch might affect you, or when you need some stats for an existing Rails installation.
 
 ```bash
-$ rails about
+$ bin/rails about
 About your application's environment
 Rails version             6.0.0
 Ruby version              2.5.0 (x86_64-linux)
@@ -480,7 +480,7 @@ More information about migrations can be found in the [Migrations](active_record
 By default, it will search in `app`, `config`, `db`, `lib`, and `test` directories for FIXME, OPTIMIZE, and TODO annotations in files with extension `.builder`, `.rb`, `.rake`, `.yml`, `.yaml`, `.ruby`, `.css`, `.js`, and `.erb`.
 
 ```bash
-$ rails notes
+$ bin/rails notes
 app/controllers/admin/users_controller.rb:
   * [ 20] [TODO] any other way to do this?
   * [132] [FIXME] high priority for next deploy
@@ -496,7 +496,7 @@ You can pass specific annotations by using the `--annotations` argument. By defa
 Note that annotations are case sensitive.
 
 ```bash
-$ rails notes --annotations FIXME RELEASE
+$ bin/rails notes --annotations FIXME RELEASE
 app/controllers/admin/users_controller.rb:
   * [101] [RELEASE] We need to look at this before next release
   * [132] [FIXME] high priority for next deploy
@@ -530,7 +530,7 @@ config.annotations.register_directories("spec", "vendor")
 ```
 
 ```bash
-$ rails notes
+$ bin/rails notes
 app/controllers/admin/users_controller.rb:
   * [ 20] [TODO] any other way to do this?
   * [132] [FIXME] high priority for next deploy
@@ -555,7 +555,7 @@ config.annotations.register_extensions("scss", "sass") { |annotation| /\/\/\s*(#
 ```
 
 ```bash
-$ rails notes
+$ bin/rails notes
 app/controllers/admin/users_controller.rb:
   * [ 20] [TODO] any other way to do this?
   * [132] [FIXME] high priority for next deploy
@@ -593,25 +593,25 @@ The `Rails.root/tmp` directory is, like the *nix /tmp directory, the holding pla
 
 The `tmp:` namespaced commands will help you clear and create the `Rails.root/tmp` directory:
 
-* `rails tmp:cache:clear` clears `tmp/cache`.
-* `rails tmp:sockets:clear` clears `tmp/sockets`.
-* `rails tmp:screenshots:clear` clears `tmp/screenshots`.
-* `rails tmp:clear` clears all cache, sockets, and screenshot files.
-* `rails tmp:create` creates tmp directories for cache, sockets, and pids.
+* `bin/rails tmp:cache:clear` clears `tmp/cache`.
+* `bin/rails tmp:sockets:clear` clears `tmp/sockets`.
+* `bin/rails tmp:screenshots:clear` clears `tmp/screenshots`.
+* `bin/rails tmp:clear` clears all cache, sockets, and screenshot files.
+* `bin/rails tmp:create` creates tmp directories for cache, sockets, and pids.
 
 ### Miscellaneous
 
-* `rails initializers` prints out all defined initializers in the order they are invoked by Rails.
-* `rails middleware` lists Rack middleware stack enabled for your app.
-* `rails stats` is great for looking at statistics on your code, displaying things like KLOCs (thousands of lines of code) and your code to test ratio.
-* `rails secret` will give you a pseudo-random key to use for your session secret.
-* `rails time:zones:all` lists all the timezones Rails knows about.
+* `bin/rails initializers` prints out all defined initializers in the order they are invoked by Rails.
+* `bin/rails middleware` lists Rack middleware stack enabled for your app.
+* `bin/rails stats` is great for looking at statistics on your code, displaying things like KLOCs (thousands of lines of code) and your code to test ratio.
+* `bin/rails secret` will give you a pseudo-random key to use for your session secret.
+* `bin/rails time:zones:all` lists all the timezones Rails knows about.
 
 ### Custom Rake Tasks
 
 Custom rake tasks have a `.rake` extension and are placed in
 `Rails.root/lib/tasks`. You can create these custom rake tasks with the
-`rails generate task` command.
+`bin/rails generate task` command.
 
 ```ruby
 desc "I am short, but comprehensive description for my cool task"
@@ -643,9 +643,9 @@ end
 Invocation of the tasks will look like:
 
 ```bash
-$ rails task_name
-$ rails "task_name[value 1]" # entire argument string should be quoted
-$ rails db:nothing
+$ bin/rails task_name
+$ bin/rails "task_name[value 1]" # entire argument string should be quoted
+$ bin/rails db:nothing
 ```
 
 NOTE: If you need to interact with your application models, perform database queries, and so on, your task should depend on the `environment` task, which will load your application code.

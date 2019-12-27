@@ -37,8 +37,8 @@ with the rest of your domain model.
 Install migrations needed for `InboundEmail` and ensure Active Storage is set up:
 
 ```bash
-$ rails action_mailbox:install
-$ rails db:migrate
+$ bin/rails action_mailbox:install
+$ bin/rails db:migrate
 ```
 
 ## Configuration
@@ -54,7 +54,7 @@ config.action_mailbox.ingress = :relay
 
 Generate a strong password that Action Mailbox can use to authenticate requests to the relay ingress.
 
-Use `rails credentials:edit` to add the password to your application's encrypted credentials under
+Use `bin/rails credentials:edit` to add the password to your application's encrypted credentials under
 `action_mailbox.ingress_password`, where Action Mailbox will automatically find it:
 
 ```yaml
@@ -79,7 +79,7 @@ Give Action Mailbox your
 [Mailgun API key](https://help.mailgun.com/hc/en-us/articles/203380100-Where-can-I-find-my-API-key-and-SMTP-credentials)
 so it can authenticate requests to the Mailgun ingress.
 
-Use `rails credentials:edit` to add your API key to your application's
+Use `bin/rails credentials:edit` to add your API key to your application's
 encrypted credentials under `action_mailbox.mailgun_api_key`,
 where Action Mailbox will automatically find it:
 
@@ -108,7 +108,7 @@ fully-qualified URL `https://example.com/rails/action_mailbox/mailgun/inbound_em
 Give Action Mailbox your Mandrill API key so it can authenticate requests to
 the Mandrill ingress.
 
-Use `rails credentials:edit` to add your API key to your application's
+Use `bin/rails credentials:edit` to add your API key to your application's
 encrypted credentials under `action_mailbox.mandrill_api_key`,
 where Action Mailbox will automatically find it:
 
@@ -143,7 +143,7 @@ config.action_mailbox.ingress = :relay
 
 Generate a strong password that Action Mailbox can use to authenticate requests to the relay ingress.
 
-Use `rails credentials:edit` to add the password to your application's encrypted credentials under
+Use `bin/rails credentials:edit` to add the password to your application's encrypted credentials under
 `action_mailbox.ingress_password`, where Action Mailbox will automatically find it:
 
 ```yaml
@@ -175,7 +175,7 @@ config.action_mailbox.ingress = :postmark
 Generate a strong password that Action Mailbox can use to authenticate
 requests to the Postmark ingress.
 
-Use `rails credentials:edit` to add the password to your application's
+Use `bin/rails credentials:edit` to add the password to your application's
 encrypted credentials under `action_mailbox.ingress_password`,
 where Action Mailbox will automatically find it:
 
@@ -210,7 +210,7 @@ config.action_mailbox.ingress = :relay
 
 Generate a strong password that Action Mailbox can use to authenticate requests to the relay ingress.
 
-Use `rails credentials:edit` to add the password to your application's encrypted credentials under
+Use `bin/rails credentials:edit` to add the password to your application's encrypted credentials under
 `action_mailbox.ingress_password`, where Action Mailbox will automatically find it:
 
 ```yaml
@@ -241,7 +241,7 @@ config.action_mailbox.ingress = :sendgrid
 Generate a strong password that Action Mailbox can use to authenticate
 requests to the SendGrid ingress.
 
-Use `rails credentials:edit` to add the password to your application's
+Use `bin/rails credentials:edit` to add the password to your application's
 encrypted credentials under `action_mailbox.ingress_password`,
 where Action Mailbox will automatically find it:
 

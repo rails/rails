@@ -167,7 +167,7 @@ For example the `animals` database would look in the `db/animals_migrate` direct
 so that the file is generated in the correct directory. The command can be run like so:
 
 ```bash
-$ rails generate migration CreateDogs name:string --database animals
+$ bin/rails generate migration CreateDogs name:string --database animals
 ```
 
 ## Activating automatic connection switching

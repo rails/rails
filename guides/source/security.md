@@ -100,7 +100,7 @@ verification key used for
 [signed](https://api.rubyonrails.org/classes/ActionDispatch/Cookies/ChainedCookieJars.html#method-i-signed)
 cookies, is derived from the `secret_key_base` configuration value.
 
-TIP: Secrets must be long and random. Use `rails secret` to get new unique secrets.
+TIP: Secrets must be long and random. Use `bin/rails secret` to get new unique secrets.
 
 INFO: Learn more about [managing credentials later in this guide](security.html#custom-credentials)
 

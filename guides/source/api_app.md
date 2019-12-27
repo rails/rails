@@ -226,7 +226,7 @@ building, and make sense in an API-only Rails application.
 You can get a list of all middleware in your application via:
 
 ```bash
-$ rails middleware
+$ bin/rails middleware
 ```
 
 ### Using the Cache Middleware
@@ -408,7 +408,7 @@ Other plugins may add additional modules. You can get a list of all modules
 included into `ActionController::API` in the rails console:
 
 ```bash
-$ rails c
+$ bin/rails c
 >> ActionController::API.ancestors - ActionController::Metal.ancestors
 => [ActionController::API,
     ActiveRecord::Railties::ControllerRuntime,

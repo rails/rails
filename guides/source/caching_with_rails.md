@@ -670,9 +670,9 @@ in development mode. Rails provides the rails command `dev:cache` to
 easily toggle caching on/off.
 
 ```bash
-$ rails dev:cache
+$ bin/rails dev:cache
 Development mode is now being cached.
-$ rails dev:cache
+$ bin/rails dev:cache
 Development mode is no longer being cached.
 ```
 
