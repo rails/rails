@@ -123,12 +123,12 @@ module ActiveRecord
       end
 
       def cast(value)
-        return if value.blank?
-
         if mapping.has_key?(value)
           value.to_s
         elsif mapping.has_value?(value)
           mapping.key(value)
+        elsif value.blank?
+          nil
         else
           assert_valid_value(value)
         end
