@@ -66,7 +66,13 @@ class DriverTest < ActiveSupport::TestCase
     end
     driver.use
 
-    expected = { "goog:chromeOptions" => { args: ["start-maximized"], mobileEmulation: { deviceName: "iphone 6" }, prefs: { detach: true } } }
+    expected = {
+      "goog:chromeOptions" => {
+        "args" => ["start-maximized"],
+        "mobileEmulation" => { "deviceName" => "iphone 6" },
+        "prefs" => { "detach" => true }
+      }
+    }
     assert_equal expected, driver_option.as_json
   end
 
@@ -81,7 +87,13 @@ class DriverTest < ActiveSupport::TestCase
     end
     driver.use
 
-    expected = { "goog:chromeOptions" => { args: ["start-maximized"], mobileEmulation: { deviceName: "iphone 6" }, prefs: { detach: true } } }
+    expected = {
+      "goog:chromeOptions" => {
+        "args" => ["--headless", "start-maximized"],
+        "mobileEmulation" => { "deviceName" => "iphone 6" },
+        "prefs" => { "detach" => true }
+      }
+    }
     assert_equal expected, driver_option.as_json
   end
 
@@ -95,7 +107,12 @@ class DriverTest < ActiveSupport::TestCase
     end
     driver.use
 
-    expected = { "moz:firefoxOptions" => { args: ["--host=127.0.0.1"], prefs: { "browser.startup.homepage" => "http://www.seleniumhq.com/" } } }
+    expected = {
+      "moz:firefoxOptions" => {
+        "args" => ["--host=127.0.0.1"],
+        "prefs" => { "browser.startup.homepage" => "http://www.seleniumhq.com/" }
+      }
+    }
     assert_equal expected, driver_option.as_json
   end
 
@@ -109,7 +126,12 @@ class DriverTest < ActiveSupport::TestCase
     end
     driver.use
 
-    expected = { "moz:firefoxOptions" => { args: ["--host=127.0.0.1"], prefs: { "browser.startup.homepage" => "http://www.seleniumhq.com/" } } }
+    expected = {
+      "moz:firefoxOptions" => {
+        "args" => ["-headless", "--host=127.0.0.1"],
+        "prefs" => { "browser.startup.homepage" => "http://www.seleniumhq.com/" }
+      }
+    }
     assert_equal expected, driver_option.as_json
   end
 
