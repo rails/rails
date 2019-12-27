@@ -573,8 +573,8 @@ class ActionsTest < Rails::Generators::TestCase
   end
 
   private
-    def action(*args, &block)
-      capture(:stdout) { generator.send(*args, &block) }
+    def action(*args, **kwargs, &block)
+      capture(:stdout) { generator.send(*args, **kwargs, &block) }
     end
 
     def assert_runs(commands, config = {}, &block)
