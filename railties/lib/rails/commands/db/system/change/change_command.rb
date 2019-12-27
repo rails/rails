@@ -8,7 +8,7 @@ module Rails
     module Db
       module System
         class ChangeCommand < Base # :nodoc:
-          class_option :to, desc: "The database system to switch to."
+          class_option :to, desc: "The database system to switch to. (options: #{Rails::Generators::Database::DATABASES.join('/')})"
 
           def perform
             Rails::Generators::Db::System::ChangeGenerator.start
