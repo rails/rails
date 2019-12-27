@@ -339,7 +339,7 @@ module ActiveRecord
         _run_commit_callbacks
       end
     ensure
-      @_committed_already_called = false
+      @_committed_already_called = @_trigger_update_callback = @_trigger_destroy_callback = false
     end
 
     # Call the #after_rollback callbacks. The +force_restore_state+ argument indicates if the record
@@ -352,6 +352,7 @@ module ActiveRecord
     ensure
       restore_transaction_record_state(force_restore_state)
       clear_transaction_record_state
+      @_trigger_update_callback = @_trigger_destroy_callback = false if force_restore_state
     end
 
     # Executes +method+ within a transaction and captures its return value as a
