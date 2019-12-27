@@ -37,9 +37,9 @@ module AbstractController
 
     # Override <tt>AbstractController::Base#process_action</tt> to run the
     # <tt>process_action</tt> callbacks around the normal behavior.
-    def process_action(*)
+    def process_action(*args, **kwargs)
       run_callbacks(:process_action) do
-        super
+        super(*args, **kwargs)
       end
     end
 

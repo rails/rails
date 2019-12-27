@@ -124,7 +124,7 @@ module AbstractController
     #
     # ==== Returns
     # * <tt>self</tt>
-    def process(action, *args)
+    def process(action, *args, **kwargs)
       @_action_name = action.to_s
 
       unless action_name = _find_action_name(@_action_name)
@@ -133,7 +133,7 @@ module AbstractController
 
       @_response_body = nil
 
-      process_action(action_name, *args)
+      process_action(action_name, *args, **kwargs)
     end
 
     # Delegates to the class' ::controller_path
@@ -191,8 +191,8 @@ module AbstractController
       #
       # Notice that the first argument is the method to be dispatched
       # which is *not* necessarily the same as the action name.
-      def process_action(method_name, *args)
-        send_action(method_name, *args)
+      def process_action(method_name, *args, **kwargs)
+        send_action(method_name, *args, **kwargs)
       end
 
       # Actually call the method associated with the action. Override

@@ -20,9 +20,9 @@ module ActionMailer #:nodoc:
     end
 
     private
-      def process(*)
+      def process(*args, **kwargs)
         handle_exceptions do
-          super
+          super(*args, **kwargs)
         end
       end
   end

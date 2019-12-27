@@ -15,8 +15,8 @@ module ActionMailer
   #   Notifier.welcome(User.first).deliver_later # enqueue email delivery as a job through Active Job
   #   Notifier.welcome(User.first).message       # a Mail::Message object
   class MessageDelivery < Delegator
-    def initialize(mailer_class, action, *args) #:nodoc:
-      @mailer_class, @action, @args = mailer_class, action, args
+    def initialize(mailer_class, action, *args, **kwargs) #:nodoc:
+      @mailer_class, @action, @args, @kwargs = mailer_class, action, args, kwargs
 
       # The mail is only processed if we try to call any methods on it.
       # Typical usage will leave it unloaded and call deliver_later.
@@ -120,7 +120,7 @@ module ActionMailer
       # on hand so we can delegate exception handling to it.
       def processed_mailer
         @processed_mailer ||= @mailer_class.new.tap do |mailer|
-          mailer.process @action, *@args
+          mailer.process @action, *@args, **@kwargs
         end
       end
 
@@ -143,9 +143,9 @@ module ActionMailer
 
       def arguments_for(delivery_job, delivery_method)
         if delivery_job <= MailDeliveryJob
-          [@mailer_class.name, @action.to_s, delivery_method.to_s, args: @args]
+          [@mailer_class.name, @action.to_s, delivery_method.to_s, args: @args, kwargs: @kwargs]
         else
-          [@mailer_class.name, @action.to_s, delivery_method.to_s, *@args]
+          [@mailer_class.name, @action.to_s, delivery_method.to_s, *@args, **@kwargs]
         end
       end
   end
