@@ -57,13 +57,13 @@ require("trix")
 require("@rails/actiontext")
 ```
 
-2. The`trix` stylesheet should be imported into `actiontext.scss`.
+2. The `trix` stylesheet should be imported into `actiontext.scss`.
 
 ```scss
 @import "trix/dist/trix";
 ```
 
-Additionally this `actiontext.scss` file should be imported into your stylesheet pack.
+Additionally, this `actiontext.scss` file should be imported into your stylesheet pack.
 
 ```
 // application.scss
@@ -96,7 +96,7 @@ Then refer to this field in the form for the model:
 <% end %>
 ```
 
-And finally display the sanitized rich text on a page:
+And finally, display the sanitized rich text on a page:
 
 ```erb
 <%= @message.content %>
@@ -134,7 +134,7 @@ On installation, Action Text will copy over a partial to
 }
 ```
 
-2. Take that attachable_sgid and ask your frontend to insert it in rich text content using an <action-text-attachment> tag:
+2. Take that attachable_sgid and ask your frontend to insert it in rich text content using an `<action-text-attachment>` tag:
 ```html
 <action-text-attachment sgid="BAh7CEkiCG…"></action-text-attachment>
 ```
