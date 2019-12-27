@@ -89,7 +89,7 @@ class DriverTest < ActiveSupport::TestCase
 
     expected = {
       "goog:chromeOptions" => {
-        "args" => ["--headless", "start-maximized"],
+        "args" => ["start-maximized"],
         "mobileEmulation" => { "deviceName" => "iphone 6" },
         "prefs" => { "detach" => true }
       }
@@ -128,7 +128,7 @@ class DriverTest < ActiveSupport::TestCase
 
     expected = {
       "moz:firefoxOptions" => {
-        "args" => ["-headless", "--host=127.0.0.1"],
+        "args" => ["--host=127.0.0.1"],
         "prefs" => { "browser.startup.homepage" => "http://www.seleniumhq.com/" }
       }
     }
