@@ -82,8 +82,8 @@ module ActiveStorage
       raise NotImplementedError
     end
 
-    def open(*args, &block)
-      ActiveStorage::Downloader.new(self).open(*args, &block)
+    def open(*args, **options, &block)
+      ActiveStorage::Downloader.new(self).open(*args, **options, &block)
     end
 
     # Delete the file at the +key+.
