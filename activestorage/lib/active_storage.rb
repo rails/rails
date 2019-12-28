@@ -40,7 +40,6 @@ module ActiveStorage
   autoload :Service
   autoload :Previewer
   autoload :Analyzer
-  autoload :DeliveryMethod
 
   mattr_accessor :logger
   mattr_accessor :verifier
