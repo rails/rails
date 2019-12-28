@@ -161,11 +161,11 @@ module ActiveRecord
       end
 
       def test_url_with_equals_in_query_value
-         config   = { "default_env" => { "url" => "postgresql://localhost/foo?options=-cmyoption=on" } }
-         actual   = resolve_config(config)
-         expected = { "default_env" => { "options" => "-cmyoption=on", "adapter" => "postgresql", "database" => "foo", "host" => "localhost" } }
-         assert_equal expected, actual
-       end
+        config   = { "default_env" => { "url" => "postgresql://localhost/foo?options=-cmyoption=on" } }
+        actual   = resolve_config(config)
+        expected = { "default_env" => { "options" => "-cmyoption=on", "adapter" => "postgresql", "database" => "foo", "host" => "localhost" } }
+        assert_equal expected, actual
+      end
 
       def test_hash
         config = { "production" => { "adapter" => "postgres", "database" => "foo" } }
