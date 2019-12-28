@@ -135,7 +135,7 @@ module ActiveStorage
       end
 
       def client
-        @client ||= Google::Cloud::Storage.new(config.except(:bucket))
+        @client ||= Google::Cloud::Storage.new(**config.except(:bucket))
       end
   end
 end
