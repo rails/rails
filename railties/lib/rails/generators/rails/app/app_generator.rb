@@ -68,7 +68,7 @@ module Rails
 
     def version_control
       if !options[:skip_git] && !options[:pretend]
-        run "git init", capture: options[:quiet]
+        run "git init", capture: true
       end
     end
 
