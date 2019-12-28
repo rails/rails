@@ -15,10 +15,10 @@ module ActionController
   #
   class MiddlewareStack < ActionDispatch::MiddlewareStack #:nodoc:
     class Middleware < ActionDispatch::MiddlewareStack::Middleware #:nodoc:
-      def initialize(klass, args, actions, strategy, block, &build_block)
+      def initialize(klass, args, actions, strategy, block)
         @actions = actions
         @strategy = strategy
-        super(klass, args, block, &build_block)
+        super(klass, args, block)
       end
 
       def valid?(action)
@@ -39,7 +39,7 @@ module ActionController
       EXCLUDE = ->(list, action) { !list.include? action }
       NULL    = ->(list, action) { true }
 
-      def build_middleware(klass, *args, &block)
+      def build_middleware(klass, args, block)
         options = args.extract_options!
         only   = Array(options.delete(:only)).map(&:to_s)
         except = Array(options.delete(:except)).map(&:to_s)
@@ -56,9 +56,7 @@ module ActionController
           list     = except
         end
 
-        Middleware.new(klass, args, list, strategy, block) do |app|
-          klass.new(app, *args, &block)
-        end
+        Middleware.new(klass, args, list, strategy, block)
       end
   end
 
