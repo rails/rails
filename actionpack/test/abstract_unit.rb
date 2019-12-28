@@ -16,7 +16,7 @@ end
 if ENV["TRAVIS"]
   PROCESS_COUNT = 0
 else
-  PROCESS_COUNT = (ENV["N"] || 4).to_i
+  PROCESS_COUNT = (ENV["MT_CPU"] || 4).to_i
 end
 
 require "active_support/testing/autorun"
