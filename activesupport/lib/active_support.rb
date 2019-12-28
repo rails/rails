@@ -41,7 +41,7 @@ module ActiveSupport
   autoload :ExecutionWrapper
   autoload :Executor
   autoload :FileUpdateChecker
-  autoload :SettingFile
+  autoload :ConfigurationFile
   autoload :EventedFileUpdateChecker
   autoload :ForkTracker
   autoload :LogSubscriber
