@@ -160,6 +160,15 @@ class ActiveStorage::Blob < ActiveRecord::Base
     content_type.start_with?("text")
   end
 
+  def deliver_by(method = :redirection, options = { only_path: true })
+    Rails.application.routes.url_helpers.url_for({
+      controller: "active_storage/blobs/#{method}",
+      action: 'show',
+      signed_id: signed_id,
+      filename: filename
+    }.merge(options))
+  end
+
   # Returns the URL of the blob on the service. This returns a permanent URL for public files, and returns a
   # short-lived URL for private files. Private files are signed, and not for public use. Instead,
   # the URL should only be exposed as a redirect from a stable, possibly authenticated URL. Hiding the

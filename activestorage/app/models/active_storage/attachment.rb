@@ -30,10 +30,6 @@ class ActiveStorage::Attachment < ActiveRecord::Base
     blob&.purge_later
   end
 
-  def url(delivery_method = ActiveStorage.default_delivery_method)
-    ActiveStorage.delivery_methods.fetch(delivery_method).blob_url(signed_id, filename)
-  end
-
   private
     def identify_blob
       blob.identify

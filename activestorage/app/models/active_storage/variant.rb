@@ -68,6 +68,16 @@ class ActiveStorage::Variant
     self
   end
 
+  def deliver_by(method = :redirection, options = { only_path: true })
+    Rails.application.routes.url_helpers.url_for({
+      controller: "active_storage/representations/#{method}",
+      action: 'show',
+      signed_blob_id: blob.signed_id,
+      variation_key: variation.key,
+      filename: blob.filename
+    }.merge(options))
+  end
+
   # Returns a combination key of the blob and the variation that together identifies a specific variant.
   def key
     "variants/#{blob.key}/#{Digest::SHA256.hexdigest(variation.key)}"
