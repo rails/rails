@@ -8,7 +8,7 @@ module ActiveSupport
   # non-breaking spaces) it will warn you.
   class ConfigurationFile
     INVISIBILE_WHITESPACE = /\U+A0/
-    
+
     class FormatError < FixtureError #:nodoc:
     end
 
@@ -19,7 +19,7 @@ module ActiveSupport
 
     attr_reader :content
     attr_reader :context
-    
+
     def self.read(content:, context: nil)
       new(content: content, context: context).read
     end
