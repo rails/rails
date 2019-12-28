@@ -1,13 +1,17 @@
 # frozen_string_literal: true
 
 module ActiveSupport
+  # Reads a YAML file that might have ERB syntax, evaluates the ERB, and then
+  # parses the resulting YAML.
+  #
+  # If there are characters that will confuse YAML (Like invisible
+  # non-breaking spaces) it will warn you.
   class ConfigurationFile
     INVISIBILE_WHITESPACE = /\U+A0/
-    # Reads a YAML file that might have ERB syntax, evaluates the ERB, and then
-    # parses the resulting YAML.
-    #
-    # If there are characters that will confuse YAML (Like invisible
-    # non-breaking spaces) it will warn you.
+    
+    class FormatError < FixtureError #:nodoc:
+    end
+
     def initialize(content:, context: nil)
       @content = content
       @context = context
@@ -34,7 +38,7 @@ module ActiveSupport
 
       YAML.safe_load(yaml) || {}
     rescue ArgumentError, Psych::SyntaxError => error
-      raise Fixture::FormatError, "a YAML error occurred parsing #{path}. Please note that YAML must be consistently indented using spaces. Tabs are not allowed. Please have a look at https://www.yaml.org/faq.html\nThe exact error was:\n  #{error.class}: #{error}", error.backtrace
+      raise FormatError, "a YAML error occurred parsing #{path}. Please note that YAML must be consistently indented using spaces. Tabs are not allowed. Please have a look at https://www.yaml.org/faq.html\nThe exact error was:\n  #{error.class}: #{error}", error.backtrace
     end
   end
 end
