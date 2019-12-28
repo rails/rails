@@ -21,7 +21,7 @@ module ActiveSupport
     attr_reader :context
     
     def self.read(content:, context: nil)
-      new(content:, context: nil).read
+      new(content: content, context: context).read
     end
 
     def read
