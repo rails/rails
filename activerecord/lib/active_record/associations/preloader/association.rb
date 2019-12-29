@@ -38,7 +38,24 @@ module ActiveRecord
 
         def preloaded_records
           return @preloaded_records if defined?(@preloaded_records)
-          @preloaded_records = owner_keys.empty? ? [] : records_for(owner_keys)
+
+          raw_records = owner_keys.empty? ? [] : records_for(owner_keys)
+          seen_records_by_owner = {}.compare_by_identity
+
+          @preloaded_records = raw_records.select do |record|
+            assignments = []
+
+            owners_by_key[convert_key(record[association_key_name])].each do |owner|
+              entries = (seen_records_by_owner[owner] ||= [])
+
+              if reflection.collection? || entries.empty?
+                entries << record
+                assignments << record
+              end
+            end
+
+            !assignments.empty?
+          end
         end
 
         private
