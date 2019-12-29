@@ -1,3 +1,15 @@
+*   `Array#to_sentence` no longer returns a frozen string.
+
+    Before:
+        ['one', 'two'].to_sentence.frozen?
+        # => true
+
+    After:
+        ['one', 'two'].to_sentence.frozen?
+        # => false
+
+    *Nicolas Dular*
+
 *   When an instance of `ActiveSupport::Duration` is converted to an `iso8601` duration string, if `weeks` are mixed with `date` parts, the `week` part will be converted to days.
     This keeps the parser and serializer on the same page.
 
