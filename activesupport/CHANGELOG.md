@@ -1,3 +1,15 @@
+*   `Array#to_sentence` no longer returns a frozen string.
+
+    Before:
+        ['one', 'two'].to_sentence.frozen?
+        # => true
+
+    After:
+        ['one', 'two'].to_sentence.frozen?
+        # => false
+
+    *Nicolas Dular*
+
 *   Update `ActiveSupport::Messages::Metadata#fresh?` to work for cookies with expiry set when
     `ActiveSupport.parse_json_times = true`.
 
