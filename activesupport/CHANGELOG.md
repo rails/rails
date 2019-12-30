@@ -1,10 +1,12 @@
 *   `Array#to_sentence` no longer returns a frozen string.
 
     Before:
+
         ['one', 'two'].to_sentence.frozen?
         # => true
 
     After:
+
         ['one', 'two'].to_sentence.frozen?
         # => false
 
