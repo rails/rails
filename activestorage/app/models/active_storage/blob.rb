@@ -37,6 +37,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
   self.table_name = "active_storage_blobs"
 
   MINIMUM_TOKEN_LENGTH = 28
+  KEY_PATH_SEPARATOR = "/"
 
   has_secure_token :key, length: MINIMUM_TOKEN_LENGTH
   store :metadata, accessors: [ :analyzed, :identified, :composed ], coder: ActiveRecord::Coders::JSON
@@ -67,6 +68,11 @@ class ActiveStorage::Blob < ActiveStorage::Record
         errors.add(:service_name, :invalid)
       end
     end
+  end
+
+  def move_to!(target_key)
+    service.move(key, target_key)
+    update_columns(key: target_key)
   end
 
   class << self
@@ -159,6 +165,24 @@ class ActiveStorage::Blob < ActiveStorage::Record
         combined_blob.compose(*blobs.pluck(:key))
         combined_blob.save!
       end
+    end
+
+    # Interpolates the custom storage key if needed and appends to it a unique_secure_token
+    def generate_unique_interpolated_secure_key(key:, record:, blob:, length: MINIMUM_TOKEN_LENGTH)
+      [
+        interpolate(key: key, record: record, blob: blob),
+        generate_unique_secure_token(length: length)
+      ].compact.join(KEY_PATH_SEPARATOR)
+    end
+
+    # Interpolates configured variables into keys,
+    # with procs coming from key_interpolation_procs configuration hash
+    def interpolate(key:, record:, blob:)
+      key.split(KEY_PATH_SEPARATOR).map do |key_part|
+        key_part.gsub(/:(\w*)/) do
+          ActiveStorage.key_interpolation_procs[$1.to_sym].call(record, blob)
+        end
+      end.join(KEY_PATH_SEPARATOR)
     end
   end
 

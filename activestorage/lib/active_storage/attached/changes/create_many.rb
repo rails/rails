@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 module ActiveStorage
-  class Attached::Changes::CreateMany # :nodoc:
-    attr_reader :name, :record, :attachables
+  class Attached::Changes::CreateMany #:nodoc:
+    attr_reader :name, :record, :attachables, :key
 
-    def initialize(name, record, attachables)
-      @name, @record, @attachables = name, record, Array(attachables)
+    def initialize(name, record, attachables, key)
+      @name, @record, @attachables, @key = name, record, Array(attachables), key
       blobs.each(&:identify_without_saving)
       attachments
     end
@@ -25,6 +25,14 @@ module ActiveStorage
     def save
       assign_associated_attachments
       reset_associated_blobs
+
+      unless key.blank?
+        blobs.each |blob| do
+          blob.move_to!(
+            ActiveStorage::Blob.generate_unique_interpolated_secure_key(key: key, record: record, blob: blob)
+          )
+        end
+      end
     end
 
     private
@@ -33,7 +41,7 @@ module ActiveStorage
       end
 
       def build_subchange_from(attachable)
-        ActiveStorage::Attached::Changes::CreateOneOfMany.new(name, record, attachable)
+        ActiveStorage::Attached::Changes::CreateOneOfMany.new(name, record, attachable, key)
       end
 
       def assign_associated_attachments

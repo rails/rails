@@ -45,6 +45,9 @@ Rails.configuration.active_storage.service = "local"
 ActiveStorage.logger = ActiveSupport::Logger.new(nil)
 ActiveStorage.verifier = ActiveSupport::MessageVerifier.new("Testing")
 ActiveStorage::FixtureSet.file_fixture_path = File.expand_path("fixtures/files", __dir__)
+ActiveStorage.key_interpolation_procs = {
+  record_id: ->(record, attachable) { record.id }
+}
 
 class ActiveSupport::TestCase
   self.file_fixture_path = ActiveStorage::FixtureSet.file_fixture_path
@@ -170,12 +173,14 @@ class User < ActiveRecord::Base
   validates :name, presence: true
 
   has_one_attached :avatar
+  has_one_attached :gravatar, key: "users/:record_id/gravatar"
   has_one_attached :cover_photo, dependent: false, service: :local
   has_one_attached :avatar_with_variants do |attachable|
     attachable.variant :thumb, resize_to_limit: [100, 100]
   end
 
   has_many_attached :highlights
+  has_many_attached :photos, key: "users/:record_id/photos"
   has_many_attached :vlogs, dependent: false, service: :local
   has_many_attached :highlights_with_variants do |attachable|
     attachable.variant :thumb, resize_to_limit: [100, 100]

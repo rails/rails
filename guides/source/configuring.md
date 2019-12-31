@@ -1695,6 +1695,17 @@ Allowed values are:
 
 The default is `:rails_storage_redirect`.
 
+* `config.active_storage.key_interpolation_procs` can be used to set the procs used by Active Storage in custom storage key interpolations. Accepts a hash with symbols as keys and procs as values. There are 2 parameters available passed to the procs: record and blob. The default is `{}`.
+
+```ruby
+# For example, if you consider using the following custom key -> "tenants/:tenant/users/:record_id/:blob_type"
+config.active_storage.key_interpolation_procs = {
+  tenant:    ->(_record, _blob) { Apartment::Tenant.current.parameterize },
+  record_id: ->(record, _blob)  { record.id },
+  blob_type: ->(_record, blob)  { blob.content_type.parameterize }
+}
+```
+
 #### `config.active_storage.video_preview_arguments`
 
 Can be used to alter the way ffmpeg generates video preview images.

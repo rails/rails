@@ -794,6 +794,50 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
         @user.update! highlights: [create_blob(filename: "whenever.jpg")]
       end
     end
+
+  test "attaching a new blob from a Hash with custom storage key" do
+    @user.photos.attach(
+      { io: StringIO.new("STUFF"), filename: "funky.jpg", content_type: "image/jpg" },
+      { io: StringIO.new("THINGS"), filename: "town.jpg", content_type: "image/jpeg" }
+    )
+
+    assert_equal "funky.jpg", @user.photos.first.filename.to_s
+    assert_equal "town.jpg", @user.photos.second.filename.to_s
+
+    assert_match "users/#{@user.id}/photos", @user.photos.first.key.to_s
+    assert_match "users/#{@user.id}/photos", @user.photos.second.key.to_s
+  end
+
+  test "attaching a new blob from an uploaded file with custom storage key" do
+    @user.photos.attach fixture_file_upload("racecar.jpg"), fixture_file_upload("video.mp4")
+
+    assert_equal "racecar.jpg", @user.photos.first.filename.to_s
+    assert_equal "video.mp4", @user.photos.second.filename.to_s
+
+    assert_match "users/#{@user.id}/photos", @user.photos.first.key.to_s
+    assert_match "users/#{@user.id}/photos", @user.photos.second.key.to_s
+  end
+
+  test "attaching a new blob from a Hash with a specified key does override default custom storage key" do
+    @user.photos.attach(
+      { io: StringIO.new("STUFF"), filename: "funky.jpg", content_type: "image/jpg" },
+      { io: StringIO.new("THINGS"), filename: "town.jpg", content_type: "image/jpeg", key: "some/specific/key" }
+    )
+
+    assert_equal "funky.jpg", @user.photos.first.filename.to_s
+    assert_equal "town.jpg", @user.photos.second.filename.to_s
+
+    assert_match "users/#{@user.id}/photos", @user.photos.first.key.to_s
+    assert_match "some/specific/key", @user.photos.second.key.to_s
+  end
+
+  test "raises error when misconfigured interpolation key is passed" do
+    error = assert_raises ArgumentError do
+      User.class_eval do
+        has_many_attached :featured_photos, key: "some/:unconfigured/interpolation/key"
+      end
+    end
+    assert_match(/Cannot configure :unconfigured in interpolation key 'some\/:unconfigured\/interpolation\/key' for User#featured_photos/, error.message)
   end
 
   private

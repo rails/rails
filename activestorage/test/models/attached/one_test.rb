@@ -45,9 +45,11 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
   test "attaching a new blob from a Hash to an existing record passes record" do
     hash = { io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpeg" }
     blob = ActiveStorage::Blob.build_after_unfurling(**hash)
-    arguments = [hash.merge(record: @user, service_name: nil)]
-    assert_called_with(ActiveStorage::Blob, :build_after_unfurling, arguments, returns: blob) do
-      @user.avatar.attach hash
+    arguments = [hash.merge(record: @user, service_name: nil, key: blob.key)]
+    assert_called(ActiveStorage::Blob, :generate_unique_secure_token, returns: blob.key) do
+      assert_called_with(ActiveStorage::Blob, :build_after_unfurling, arguments, returns: blob) do
+        @user.avatar.attach hash
+      end
     end
   end
 
@@ -63,8 +65,11 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     end
     arguments = { io: upload.open, filename: upload.original_filename, content_type: upload.content_type, record: @user, service_name: nil }
     blob = ActiveStorage::Blob.build_after_unfurling(**arguments)
-    assert_called_with(ActiveStorage::Blob, :build_after_unfurling, [arguments], returns: blob) do
-      @user.avatar.attach upload
+    arguments[:key] = blob.key
+    assert_called(ActiveStorage::Blob, :generate_unique_secure_token, returns: blob.key) do
+      assert_called_with(ActiveStorage::Blob, :build_after_unfurling, [arguments], returns: blob) do
+        @user.avatar.attach upload
+      end
     end
   end
 
@@ -687,5 +692,36 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     end
 
     assert_match(/Cannot find variant :unknown for User#avatar_with_variants/, error.message)
+  end
+
+  test "attaching a new blob from a Hash with custom storage key" do
+    @user.gravatar.attach io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg"
+
+    assert_equal "town.jpg", @user.gravatar.filename.to_s
+    assert_match "users/#{@user.id}/gravatar", @user.gravatar.key.to_s
+  end
+
+  test "attaching a new blob from an uploaded file with custom storage key" do
+    @user.gravatar.attach fixture_file_upload("racecar.jpg")
+
+    assert_equal "racecar.jpg", @user.gravatar.filename.to_s
+    assert_match "users/#{@user.id}/gravatar", @user.gravatar.key.to_s
+  end
+
+  test "attaching a new blob from a Hash with a specified key does override default custom storage key" do
+    @user.gravatar.attach io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg", key: "some/other/key"
+
+    assert_equal "town.jpg", @user.gravatar.filename.to_s
+    assert_equal "some/other/key", @user.gravatar.key.to_s
+  end
+
+  test "raises error when misconfigured interpolation key is passed" do
+    error = assert_raises ArgumentError do
+      User.class_eval do
+        has_one_attached :featured_photo, key: "some/:unconfigured/interpolation/key"
+      end
+    end
+
+    assert_match(/Cannot configure :unconfigured in interpolation key 'some\/:unconfigured\/interpolation\/key' for User#featured_photo/, error.message)
   end
 end

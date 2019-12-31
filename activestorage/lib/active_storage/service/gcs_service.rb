@@ -87,6 +87,14 @@ module ActiveStorage
       end
     end
 
+    def move(source_key, target_key)
+      instrument :move, source_key: source_key, target_key: target_key do
+        file = file_for(source_key)
+        file.copy target_key
+        file.delete
+      end
+    end
+
     def url_for_direct_upload(key, expires_in:, checksum:, custom_metadata: {}, **)
       instrument :url, key: key do |payload|
         headers = {}

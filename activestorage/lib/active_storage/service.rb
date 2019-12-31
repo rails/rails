@@ -110,6 +110,10 @@ module ActiveStorage
       raise NotImplementedError
     end
 
+    def move(source_key, target_key)
+      raise NotImplementedError
+    end
+
     # Returns the URL for the file at the +key+. This returns a permanent URL for public files, and returns a
     # short-lived URL for private files. For private files you can provide the +disposition+ (+:inline+ or +:attachment+),
     # +filename+, and +content_type+ that you wish the file to be served with on request. Additionally, you can also provide

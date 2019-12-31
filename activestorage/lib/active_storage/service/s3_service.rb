@@ -77,6 +77,12 @@ module ActiveStorage
       end
     end
 
+    def move(source_key, target_key)
+      instrument :move, source_key: source_key, target_key: target_key do
+        bucket.object(source_key).copy_to(bucket.object(target_key))
+      end
+    end
+
     def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:, custom_metadata: {})
       instrument :url, key: key do |payload|
         generated_url = object_for(key).presigned_url :put, expires_in: expires_in.to_i,

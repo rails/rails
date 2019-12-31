@@ -4,11 +4,11 @@ require "action_dispatch"
 require "action_dispatch/http/upload"
 
 module ActiveStorage
-  class Attached::Changes::CreateOne # :nodoc:
-    attr_reader :name, :record, :attachable
+  class Attached::Changes::CreateOne #:nodoc:
+    attr_reader :name, :record, :attachable, :key
 
-    def initialize(name, record, attachable)
-      @name, @record, @attachable = name, record, attachable
+    def initialize(name, record, attachable, key)
+      @name, @record, @attachable, @key = name, record, attachable, key
       blob.identify_without_saving
     end
 
@@ -32,6 +32,12 @@ module ActiveStorage
     def save
       record.public_send("#{name}_attachment=", attachment)
       record.public_send("#{name}_blob=", blob)
+
+      unless key.blank?
+        blob.move_to!(
+          ActiveStorage::Blob.generate_unique_interpolated_secure_key(key: key, record: record, blob: blob)
+        )
+      end
     end
 
     private
