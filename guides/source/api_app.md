@@ -332,7 +332,9 @@ will be:
 ```
 
 ### Using Session Middlewares
+
 The following middlewares, used for session management, are excluded from API apps since they normally don't need sessions.  If one of your API clients is a browser, you might want to add one of these back in:
+
 - `ActionDispatch::Session::CacheStore`
 - `ActionDispatch::Session::CookieStore`
 - `ActionDispatch::Session::MemCacheStore`
@@ -343,9 +345,8 @@ when added (including the session key), so you can't just add a `session_store.r
 may work, but your session options will be ignored - i.e the session key will default to `_session_id`)
 
 Instead of the initializer, you'll have to set the relevant options somewhere before your middleware is
-built (like `application.rb`) and pass them to your prefered middleware, like this:
+built (like `config/application.rb`) and pass them to your prefered middleware, like this:
 
-**application.rb:**
 ```ruby
 config.session_store :cookie_store, key: '_interslice_session' # <-- this also configures session_options for use below
 config.middleware.use ActionDispatch::Cookies # Required for all session management (regardless of session_store)
