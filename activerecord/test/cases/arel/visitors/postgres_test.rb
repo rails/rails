@@ -315,6 +315,22 @@ module Arel
           _(sql).must_be_like %{ "users"."name" IS DISTINCT FROM NULL }
         end
       end
+
+      describe "Nodes::Ordering" do
+        it "should handle nulls first" do
+          test = Table.new(:users)[:first_name].desc.nulls_first
+          _(compile(test)).must_be_like %{
+            "users"."first_name" DESC NULLS FIRST
+          }
+        end
+
+        it "should handle nulls last" do
+          test = Table.new(:users)[:first_name].desc.nulls_last
+          _(compile(test)).must_be_like %{
+            "users"."first_name" DESC NULLS LAST
+          }
+        end
+      end
     end
   end
 end
