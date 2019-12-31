@@ -3,9 +3,9 @@
 
     *Brian Buchalter*
 
-*   Don't allow mutations on the datbase configurations hash.
+*   Don't allow mutations on the database configurations hash.
 
-    Freeze the configurations hash to disallow directly changing the configurations hash. If applications need to change the hash, for example to create adatabases for parallelization, they should use the `DatabaseConfig` object directly.
+    Freeze the configurations hash to disallow directly changing it. If applications need to change the hash, for example to create databases for parallelization, they should use the `DatabaseConfig` object directly.
 
     Before:
 
