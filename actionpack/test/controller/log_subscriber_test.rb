@@ -121,6 +121,20 @@ class ACLogSubscriberTest < ActionController::TestCase
     assert_equal "Processing by Another::LogSubscribersController#show as HTML", logs.first
   end
 
+  def test_start_processing_as_json
+    get :show, format: "json"
+    wait
+    assert_equal 2, logs.size
+    assert_equal "Processing by Another::LogSubscribersController#show as JSON", logs.first
+  end
+
+  def test_start_processing_as_non_exten
+    get :show, format: "noext"
+    wait
+    assert_equal 2, logs.size
+    assert_equal "Processing by Another::LogSubscribersController#show as */*", logs.first
+  end
+
   def test_halted_callback
     get :never_executed
     wait
