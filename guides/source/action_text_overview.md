@@ -51,25 +51,24 @@ After the installation is complete, a Rails app using Webpacker should have the 
 
 1. Both `trix` and `@rails/actiontext` should be required in your JavaScript pack.
 
-```js
-// application.js
-require("trix")
-require("@rails/actiontext")
-```
+    ```js
+    // application.js
+    require("trix")
+    require("@rails/actiontext")
+    ```
 
 2. The `trix` stylesheet should be imported into `actiontext.scss`.
 
-```scss
-@import "trix/dist/trix";
-```
+    ```scss
+    @import "trix/dist/trix";
+    ```
 
-Additionally, this `actiontext.scss` file should be imported into your stylesheet pack.
+    Additionally, this `actiontext.scss` file should be imported into your stylesheet pack.
 
-```
-// application.scss
-@import "./actiontext.scss";
-```
-
+    ```
+    // application.scss
+    @import "./actiontext.scss";
+    ```
 
 ## Examples
 
@@ -124,19 +123,20 @@ You can also style the HTML used for embedded images and other attachments (know
 On installation, Action Text will copy over a partial to
 `app/views/active_storage/blobs/_blob.html.erb`, which you can specialize.
 
-## Just backend development (APIs)
+## API / Backend development
 
-1. For just APIs development your API needs a separate endpoint for uploading files that creates an ActiveStorage::Blob and returns its attachable_sgid:
+1. A backend API (for example, using JSON) needs a separate endpoint for uploading files that creates an `ActiveStorage::Blob` and returns its `attachable_sgid`:
 
-```json
-{
-  "attachable_sgid": "BAh7CEkiCG…"
-}
-```
+    ```json
+    {
+      "attachable_sgid": "BAh7CEkiCG…"
+    }
+    ```
 
-2. Take that attachable_sgid and ask your frontend to insert it in rich text content using an `<action-text-attachment>` tag:
-```html
-<action-text-attachment sgid="BAh7CEkiCG…"></action-text-attachment>
-```
+2. Take that `attachable_sgid` and ask your frontend to insert it in rich text content using an `<action-text-attachment>` tag:
 
-This is based on basecamp so if you still can't find what you are looking for, check [Basecamp Doc](https://github.com/basecamp/bc3-api/blob/master/sections/rich_text.md)
+    ```html
+    <action-text-attachment sgid="BAh7CEkiCG…"></action-text-attachment>
+    ```
+
+This is based on Basecamp, so if you still can't find what you are looking for, check this [Basecamp Doc](https://github.com/basecamp/bc3-api/blob/master/sections/rich_text.md).
