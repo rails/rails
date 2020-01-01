@@ -122,7 +122,7 @@ module ActiveRecord
         end
 
         def into
-          "INTO #{model.quoted_table_name}(#{columns_list})"
+          "INTO #{model.quoted_table_name} (#{columns_list})"
         end
 
         def values_list
