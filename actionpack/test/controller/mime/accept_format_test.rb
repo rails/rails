@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
-ActionView::Base.default_formats ||= Mime::SET.symbols
 
 class StarStarMimeController < ActionController::Base
   layout nil
