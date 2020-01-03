@@ -1096,4 +1096,9 @@ class CalculationsTest < ActiveRecord::TestCase
       end
     end
   end
+
+  test "#each works as class method" do
+    assert_respond_to Account, :each
+    assert Account.each.is_a?(Enumerable)
+  end
 end
