@@ -143,10 +143,11 @@ module ActionDispatch
         #   - X-Forwarded-For will be a list of IPs, one per proxy, or blank
         #   - Client-Ip is propagated from the outermost proxy, or is blank
         #   - REMOTE_ADDR will be the IP that made the request to Rack
-        ips = [forwarded_ips, client_ips, remote_addr].flatten.compact
+        ips = [forwarded_ips, client_ips].flatten.compact
 
-        # If every single IP option is in the trusted list, just return REMOTE_ADDR
-        filter_proxies(ips).first || remote_addr
+        # If every single IP option is in the trusted list, return the IP
+        # that's furthest away
+        filter_proxies(ips + [remote_addr]).first || ips.last || remote_addr
       end
 
       # Memoizes the value returned by #calculate_ip and returns it for
