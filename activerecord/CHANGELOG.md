@@ -1,3 +1,11 @@
+*   Enforce fresh ETag header after a collection's contents change by adding
+    ActiveRecord::Relation#cache_key_with_version. This method will be used by
+    ActionController::ConditionalGet to ensure that when collection cache versioning
+    is enabled, requests using ConditionalGet don't return the same ETag header
+    after a collection is modified. Fixes #38078.
+
+    *Aaron Lipman*
+
 *   A database URL can now contain a querystring value that contains an equal sign. This is needed to support passing PostgresSQL `options`.
 
      *Joshua Flanagan*
