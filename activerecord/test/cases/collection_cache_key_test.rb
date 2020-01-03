@@ -198,6 +198,16 @@ module ActiveRecord
       end
     end
 
+    test "cache_key_with_version contains key and version regardless of collection_cache_versioning setting" do
+      key_with_version_1 = Developer.all.cache_key_with_version
+      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, key_with_version_1)
+
+      with_collection_cache_versioning do
+        key_with_version_2 = Developer.all.cache_key_with_version
+        assert_equal(key_with_version_1, key_with_version_2)
+      end
+    end
+
     def with_collection_cache_versioning(value = true)
       @old_collection_cache_versioning = ActiveRecord::Base.collection_cache_versioning
       ActiveRecord::Base.collection_cache_versioning = value
