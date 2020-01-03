@@ -101,6 +101,19 @@ module ActiveJob
       #     end
       #   end
       #
+      # You can access the return value of the job only if the execution wasn't halted.
+      #
+      #   class VideoProcessJob < ActiveJob::Base
+      #     around_perform do |job, block|
+      #       value = block.call
+      #       puts value # => "Hello World!"
+      #     end
+      #
+      #     def perform
+      #       "Hello World!"
+      #     end
+      #   end
+      #
       def around_perform(*filters, &blk)
         set_callback(:perform, :around, *filters, &blk)
       end
