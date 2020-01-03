@@ -32,11 +32,13 @@ module ActiveSupport
           number
         end
 
+        # TODO: Why can't we just do this???!!! I don't get it!
+        # BigDecimal(number).round(precision, options.fetch(:rounding_mode, :default))
         def round_significant(number)
           return 0 if number.zero?
           digits = digit_count(number)
           multiplier = 10**(digits - precision)
-          (number / BigDecimal(multiplier.to_f.to_s)).round * multiplier
+          (number / BigDecimal(multiplier.to_f.to_s)).round(0, options.fetch(:rounding_mode, :default)) * multiplier
         end
 
         def convert_to_decimal(number)
