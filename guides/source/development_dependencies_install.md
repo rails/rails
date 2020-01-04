@@ -127,7 +127,8 @@ To install all run:
 
 ```bash
 $ sudo pacman -S sqlite mariadb libmariadbclient mariadb-clients postgresql postgresql-libs redis memcached imagemagick ffmpeg mupdf mupdf-tools poppler yarn libxml2
-$ sudo systemctl start redis
+$ sudo mariadb-install-db --user=mysql --basedir=/usr --datadir=/var/lib/mysql
+$ sudo systemctl start redis mariadb memcached
 ```
 
 NOTE: If you are running Arch Linux, MySQL isn't supported anymore so you will need to
