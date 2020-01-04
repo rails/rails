@@ -139,6 +139,14 @@ module ActiveRecord
       end
     end
 
+    def test_or_with_annotate
+      quoted_posts = Regexp.escape(Post.quoted_table_name)
+      assert_match %r{#{quoted_posts} /\* foo \*/\z}, Post.annotate("foo").or(Post.all).to_sql
+      assert_match %r{#{quoted_posts} /\* foo \*/\z}, Post.annotate("foo").or(Post.annotate("foo")).to_sql
+      assert_match %r{#{quoted_posts} /\* foo \*/\z}, Post.annotate("foo").or(Post.annotate("bar")).to_sql
+      assert_match %r{#{quoted_posts} /\* foo \*/ /\* bar \*/\z}, Post.annotate("foo", "bar").or(Post.annotate("foo")).to_sql
+    end
+
     def test_structurally_incompatible_values
       assert_nothing_raised do
         Post.includes(:author).includes(:author).or(Post.includes(:author))
