@@ -113,12 +113,8 @@ module ActiveRecord
     end
 
     module ClassMethods # :nodoc:
-      def create(klass, *args, **options)
-        if options.empty?
-          relation_class_for(klass).new(klass, *args)
-        else
-          relation_class_for(klass).new(klass, *args, **options)
-        end
+      def create(klass, *args, **kwargs)
+        relation_class_for(klass).new(klass, *args, **kwargs)
       end
 
       private

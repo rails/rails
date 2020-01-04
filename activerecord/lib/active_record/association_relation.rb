@@ -2,7 +2,7 @@
 
 module ActiveRecord
   class AssociationRelation < Relation
-    def initialize(klass, association)
+    def initialize(klass, association, **)
       super(klass)
       @association = association
     end
