@@ -363,7 +363,8 @@ module ActiveRecord
         # See: https://www.sqlite.org/lang_altertable.html
         # SQLite has an additional restriction on the ALTER TABLE statement
         def invalid_alter_table_type?(type, options)
-          type.to_sym == :primary_key || options[:primary_key]
+          type.to_sym == :primary_key || options[:primary_key] ||
+            options[:null] == false && options[:default].nil?
         end
 
         def alter_table(table_name, foreign_keys = foreign_keys(table_name), **options)

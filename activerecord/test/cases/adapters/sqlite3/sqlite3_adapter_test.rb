@@ -324,6 +324,14 @@ module ActiveRecord
         end
       end
 
+      def test_add_column_with_not_null
+        with_example_table "id integer PRIMARY KEY AUTOINCREMENT, number integer not null" do
+          assert_nothing_raised { @conn.add_column :ex, :name, :string, null: false }
+          column = @conn.columns("ex").find { |x| x.name == "name" }
+          assert_not column.null, "column should not be null"
+        end
+      end
+
       def test_indexes_logs
         with_example_table do
           assert_logged [["PRAGMA index_list(\"ex\")", "SCHEMA", []]] do
