@@ -147,6 +147,7 @@ module ActiveRecord
         Post.group(:author_id).group(:author_id).or(Post.group(:author_id))
         Post.joins(:author).joins(:author).or(Post.joins(:author))
         Post.left_outer_joins(:author).left_outer_joins(:author).or(Post.left_outer_joins(:author))
+        Post.from("posts").or(Post.from("posts"))
       end
     end
   end

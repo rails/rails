@@ -18,6 +18,10 @@ module ActiveRecord
         value.nil?
       end
 
+      def ==(other)
+        other.is_a?(FromClause) && name == other.name && value == other.value
+      end
+
       def self.empty
         @empty ||= new(nil, nil).freeze
       end
