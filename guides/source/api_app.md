@@ -345,7 +345,7 @@ when added (including the session key), so you can't just add a `session_store.r
 may work, but your session options will be ignored - i.e the session key will default to `_session_id`)
 
 Instead of the initializer, you'll have to set the relevant options somewhere before your middleware is
-built (like `config/application.rb`) and pass them to your prefered middleware, like this:
+built (like `config/application.rb`) and pass them to your preferred middleware, like this:
 
 ```ruby
 config.session_store :cookie_store, key: '_interslice_session' # <-- this also configures session_options for use below
