@@ -18,6 +18,10 @@ module ActiveRecord
         value.nil?
       end
 
+      def ==(other)
+        self.class == other.class && value == other.value && name == other.name
+      end
+
       def self.empty
         @empty ||= new(nil, nil).freeze
       end
