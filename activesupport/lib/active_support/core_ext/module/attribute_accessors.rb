@@ -49,11 +49,13 @@ class Module
   #
   #   Person.new.hair_colors # => [:brown, :black, :blonde, :red]
   def mattr_reader(*syms, instance_reader: true, instance_accessor: true, default: nil, location: nil)
+    raise TypeError, "module attributes should be defined directly on class, not singleton" if singleton_class?
     location ||= caller_locations(1, 1).first
 
     definition = []
     syms.each do |sym|
       raise NameError.new("invalid attribute name: #{sym}") unless /\A[_A-Za-z]\w*\z/.match?(sym)
+
       definition << "def self.#{sym}; @@#{sym}; end"
 
       if instance_reader && instance_accessor
@@ -111,6 +113,7 @@ class Module
   #
   #   Person.class_variable_get("@@hair_colors") # => [:brown, :black, :blonde, :red]
   def mattr_writer(*syms, instance_writer: true, instance_accessor: true, default: nil, location: nil)
+    raise TypeError, "module attributes should be defined directly on class, not singleton" if singleton_class?
     location ||= caller_locations(1, 1).first
 
     definition = []
