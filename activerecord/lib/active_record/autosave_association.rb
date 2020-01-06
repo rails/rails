@@ -365,9 +365,6 @@ module ActiveRecord
       # Is used as a before_save callback to check while saving a collection
       # association whether or not the parent was a new record before saving.
       def before_save_collection_association
-        # If we defined a callback that updates the object before we defined the association, then this ivar may end up being
-        # manipulated to being `false` when it should be `true`. We guard this be only defining it once.
-        # See https://github.com/rails/rails/issues/38120 for more details
         unless defined?(@new_record_before_save)
           @new_record_before_save = new_record?
         end
