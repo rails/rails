@@ -50,7 +50,7 @@ module ActiveStorage
 
     def delete(key)
       instrument :delete, key: key do
-        File.delete path_for(key)
+        FileUtils.remove_dir folder_path_for(key), true
       rescue Errno::ENOENT
         # Ignore files already deleted
       end
@@ -147,6 +147,10 @@ module ActiveStorage
 
       def folder_for(key)
         [ key[0..1], key[2..3] ].join("/")
+      end
+
+      def folder_path_for(key)
+        File.join root, folder_for(key)
       end
 
       def make_path_for(key)
