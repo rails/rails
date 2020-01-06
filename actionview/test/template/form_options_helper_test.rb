@@ -57,8 +57,8 @@ class FormOptionsHelperTest < ActionView::TestCase
     end
 
     def self.prepended(base)
+      base.mattr_accessor(:fake_zones)
       class << base
-        mattr_accessor(:fake_zones)
         prepend ClassMethods
       end
     end
