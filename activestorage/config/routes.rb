@@ -14,7 +14,7 @@ Rails.application.routes.draw do
   direct :rails_representation do |representation, options|
     signed_blob_id = representation.blob.signed_id
     variation_key  = representation.variation.key
-    filename       = representation.blob.filename
+    filename       = representation.filename
 
     route_for(:rails_blob_representation, signed_blob_id, variation_key, filename, options)
   end

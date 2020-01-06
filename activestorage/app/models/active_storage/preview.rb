@@ -31,6 +31,7 @@ class ActiveStorage::Preview
   class UnprocessedError < StandardError; end
 
   attr_reader :blob, :variation
+  delegate :filename, to: :blob
 
   def initialize(blob, variation_or_variation_key)
     @blob, @variation = blob, ActiveStorage::Variation.wrap(variation_or_variation_key)

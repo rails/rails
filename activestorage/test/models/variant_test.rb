@@ -217,4 +217,10 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
       blob.variant(resize: "100x100").processed
     end
   end
+
+  test "convert to other formats" do
+    blob = create_file_blob(filename: "racecar.jpg")
+    variant = blob.variant(convert: :webp).processed
+    assert_match(/racecar\.webp/, variant.url)
+  end
 end

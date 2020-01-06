@@ -56,4 +56,15 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
 
     assert_equal "local_public", variant.image.blob.service_name
   end
+
+  test "generating a variation of a different format blob" do
+    blob = create_file_blob(filename: "racecar.jpg")
+    variant = blob.variant(convert: :webp)
+
+    assert_difference -> { blob.variant_records.count }, +1 do
+      variant.process
+    end
+
+    assert_match(/racecar\.webp/, variant.url)
+  end
 end

@@ -35,14 +35,18 @@ class ActiveStorage::VariantWithRecord
 
   private
     def transform_blob
+      convert_format = variation.transformations[:convert]
+
       blob.open do |input|
-        if blob.content_type.in?(WEB_IMAGE_CONTENT_TYPES)
+        if !convert_format && blob.content_type.in?(WEB_IMAGE_CONTENT_TYPES)
           variation.transform(input) do |output|
             yield io: output, filename: blob.filename, content_type: blob.content_type, service_name: blob.service.name
           end
         else
-          variation.transform(input, format: "png") do |output|
-            yield io: output, filename: "#{blob.filename.base}.png", content_type: "image/png", service_name: blob.service.name
+          convert_format ||= "png"
+
+          variation.transform(input, format: convert_format) do |output|
+            yield io: output, filename: "#{blob.filename.base}.#{convert_format}", content_type: "image/#{convert_format}", service_name: blob.service.name
           end
         end
       end
