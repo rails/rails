@@ -113,6 +113,13 @@ module ActiveRecord
       assert_no_queries { developers.cache_key }
     end
 
+    test "it doesn't trigger any query if collection_cache_versioning is enabled" do
+      with_collection_cache_versioning do
+        developers = Developer.where(name: "David")
+        assert_no_queries { developers.cache_key }
+      end
+    end
+
     test "relation cache_key changes when the sql query changes" do
       developers = Developer.where(name: "David")
       other_relation = Developer.where(name: "David").where("1 = 1")
