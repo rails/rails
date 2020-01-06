@@ -117,6 +117,8 @@ Here is a list with all the available Active Record callbacks, listed in the sam
 
 WARNING. `after_save` runs both on create and update, but always _after_ the more specific callbacks `after_create` and `after_update`, no matter the order in which the macro calls were executed.
 
+WARNING. Care should be taken in callbacks to avoid updating attributes. For example, avoid running `update(attribute: "value")` and similar code during callbacks. This can alter the state of the model and may result in unexpected side effects during commit. Instead, you should try to assign values in the `before_create` or earlier callbacks.
+
 NOTE: `before_destroy` callbacks should be placed before `dependent: :destroy`
 associations (or use the `prepend: true` option), to ensure they execute before
 the records are deleted by `dependent: :destroy`.
