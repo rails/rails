@@ -65,6 +65,6 @@ class ActionController::TestSessionTest < ActiveSupport::TestCase
 
   def test_session_id
     session = ActionController::TestSession.new
-    assert_instance_of Rack::Session::SessionId, session.id
+    assert_instance_of String, session.id.public_id
   end
 end
