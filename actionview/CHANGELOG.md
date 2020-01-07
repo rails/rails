@@ -1,3 +1,7 @@
+*   `OptimizedFileSystemResolver` should consider the format required to render the view.
+
+    *Iago Pimenta*
+
 *   Added `class_names` helper to create a CSS class value with conditional classes.
 
     *Joel Hawksley*, *Aaron Patterson*
