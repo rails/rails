@@ -156,16 +156,15 @@ module ActiveRecord
           previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
           previous_url, ENV["DATABASE_URL"] = ENV["DATABASE_URL"], "postgres://localhost/foo"
 
-          ActiveRecord::Base.connected_to(database: { writing: "postgres://localhost/bar" }) do
-            assert_equal :writing, ActiveRecord::Base.current_role
-            assert ActiveRecord::Base.connected_to?(role: :writing)
+          ActiveRecord::Base.connects_to(database: { writing: "postgres://localhost/bar" })
+          assert_equal :writing, ActiveRecord::Base.current_role
+          assert ActiveRecord::Base.connected_to?(role: :writing)
 
-            handler = ActiveRecord::Base.connection_handler
-            assert_equal handler, ActiveRecord::Base.connection_handlers[:writing]
+          handler = ActiveRecord::Base.connection_handler
+          assert_equal handler, ActiveRecord::Base.connection_handlers[:writing]
 
-            assert_not_nil pool = handler.retrieve_connection_pool("primary")
-            assert_equal({ adapter: "postgresql", database: "bar", host: "localhost" }, pool.db_config.configuration_hash)
-          end
+          assert_not_nil pool = handler.retrieve_connection_pool("primary")
+          assert_equal({ adapter: "postgresql", database: "bar", host: "localhost" }, pool.db_config.configuration_hash)
         ensure
           ActiveRecord::Base.establish_connection(:arunit)
           ENV["RAILS_ENV"] = previous_env
@@ -176,16 +175,15 @@ module ActiveRecord
           previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
           config = { adapter: "sqlite3", database: "db/readonly.sqlite3" }
 
-          ActiveRecord::Base.connected_to(database: { writing: config }) do
-            assert_equal :writing, ActiveRecord::Base.current_role
-            assert ActiveRecord::Base.connected_to?(role: :writing)
+          ActiveRecord::Base.connects_to(database: { writing: config })
+          assert_equal :writing, ActiveRecord::Base.current_role
+          assert ActiveRecord::Base.connected_to?(role: :writing)
 
-            handler = ActiveRecord::Base.connection_handler
-            assert_equal handler, ActiveRecord::Base.connection_handlers[:writing]
+          handler = ActiveRecord::Base.connection_handler
+          assert_equal handler, ActiveRecord::Base.connection_handlers[:writing]
 
-            assert_not_nil pool = handler.retrieve_connection_pool("primary")
-            assert_equal(config, pool.db_config.configuration_hash)
-          end
+          assert_not_nil pool = handler.retrieve_connection_pool("primary")
+          assert_equal(config, pool.db_config.configuration_hash)
         ensure
           ActiveRecord::Base.establish_connection(:arunit)
           ENV["RAILS_ENV"] = previous_env
@@ -193,7 +191,9 @@ module ActiveRecord
 
         def test_switching_connections_with_database_and_role_raises
           error = assert_raises(ArgumentError) do
-            ActiveRecord::Base.connected_to(database: :readonly, role: :writing) { }
+            assert_deprecated do
+              ActiveRecord::Base.connected_to(database: :readonly, role: :writing) { }
+            end
           end
           assert_equal "connected_to can only accept a `database` or a `role` argument, but not both arguments.", error.message
         end
@@ -216,16 +216,15 @@ module ActiveRecord
           }
           @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
 
-          ActiveRecord::Base.connected_to(database: :animals) do
-            assert_equal :writing, ActiveRecord::Base.current_role
-            assert ActiveRecord::Base.connected_to?(role: :writing)
+          ActiveRecord::Base.connects_to(database: { writing: :animals })
+          assert_equal :writing, ActiveRecord::Base.current_role
+          assert ActiveRecord::Base.connected_to?(role: :writing)
 
-            handler = ActiveRecord::Base.connection_handler
-            assert_equal handler, ActiveRecord::Base.connection_handlers[:writing]
+          handler = ActiveRecord::Base.connection_handler
+          assert_equal handler, ActiveRecord::Base.connection_handlers[:writing]
 
-            assert_not_nil pool = handler.retrieve_connection_pool("primary")
-            assert_equal(config["default_env"]["animals"], pool.db_config.configuration_hash)
-          end
+          assert_not_nil pool = handler.retrieve_connection_pool("primary")
+          assert_equal(config["default_env"]["animals"], pool.db_config.configuration_hash)
         ensure
           ActiveRecord::Base.configurations = @prev_configs
           ActiveRecord::Base.establish_connection(:arunit)
@@ -243,16 +242,15 @@ module ActiveRecord
           }
           @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
 
-          ActiveRecord::Base.connected_to(database: { writing: :primary }) do
-            assert_equal :writing, ActiveRecord::Base.current_role
-            assert ActiveRecord::Base.connected_to?(role: :writing)
+          ActiveRecord::Base.connects_to(database: { writing: :primary })
+          assert_equal :writing, ActiveRecord::Base.current_role
+          assert ActiveRecord::Base.connected_to?(role: :writing)
 
-            handler = ActiveRecord::Base.connection_handler
-            assert_equal handler, ActiveRecord::Base.connection_handlers[:writing]
+          handler = ActiveRecord::Base.connection_handler
+          assert_equal handler, ActiveRecord::Base.connection_handlers[:writing]
 
-            assert_not_nil pool = handler.retrieve_connection_pool("primary")
-            assert_equal(config["default_env"]["primary"], pool.db_config.configuration_hash)
-          end
+          assert_not_nil pool = handler.retrieve_connection_pool("primary")
+          assert_equal(config["default_env"]["primary"], pool.db_config.configuration_hash)
         ensure
           ActiveRecord::Base.configurations = @prev_configs
           ActiveRecord::Base.establish_connection(:arunit)

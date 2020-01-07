@@ -31,10 +31,9 @@ module ActiveRecord
         old_config = ActiveRecord::Base.configurations
         config = { "readonly" => { "adapter" => "sqlite3", "pool" => "5" } }
         ActiveRecord::Base.configurations = config
-        resolver = ConnectionAdapters::Resolver.new(ActiveRecord::Base.configurations)
-        config_hash = resolver.resolve(config["readonly"], "readonly").configuration_hash
-        config_hash[:name] = "readonly"
-        @handler.establish_connection(config_hash)
+        db_config = ActiveRecord::Base.configurations.resolve(config["readonly"], "readonly")
+        db_config.owner_name = "readonly"
+        @handler.establish_connection(db_config)
 
         assert_not_nil @handler.retrieve_connection_pool("readonly")
       ensure
@@ -386,11 +385,11 @@ module ActiveRecord
           wr.binmode
 
           pid = fork do
-            ActiveRecord::Base.configurations["arunit"]["database"] = file.path
-            ActiveRecord::Base.establish_connection(:arunit)
+            config_hash = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary").configuration_hash.merge(database: file.path)
+            ActiveRecord::Base.establish_connection(config_hash)
 
             pid2 = fork do
-              wr.write ActiveRecord::Base.connection_config[:database]
+              wr.write ActiveRecord::Base.connection_db_config.database
               wr.close
             end
 

@@ -17,8 +17,10 @@ module ActiveStorage
       @bucket = @client.bucket(bucket)
 
       @multipart_upload_threshold = upload.fetch(:multipart_threshold, 100.megabytes)
-      @upload_options = upload
       @public = public
+
+      @upload_options = upload
+      @upload_options[:acl] = "public-read" if public?
     end
 
     def upload(key, io, checksum: nil, filename: nil, content_type: nil, disposition: nil, **)

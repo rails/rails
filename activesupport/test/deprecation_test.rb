@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 require "active_support/testing/stream"
 
 class Deprecatee
@@ -288,6 +288,34 @@ class DeprecationTest < ActiveSupport::TestCase
     ActiveSupport::Deprecation.silenced = true
     assert_not_deprecated { @dtc.partially }
     ActiveSupport::Deprecation.silenced = false
+  end
+
+  def test_silence_threaded
+    barrier = Concurrent::CyclicBarrier.new(2)
+
+    th = Thread.new do
+      ActiveSupport::Deprecation.silence do
+        barrier.wait
+        barrier.wait
+        assert_not_deprecated { ActiveSupport::Deprecation.warn "abc" }
+      end
+      assert_deprecated("abc") { ActiveSupport::Deprecation.warn "abc" }
+    end
+
+    barrier.wait
+
+    assert_deprecated("abc") { ActiveSupport::Deprecation.warn "abc" }
+
+    ActiveSupport::Deprecation.silence do
+      assert_not_deprecated { ActiveSupport::Deprecation.warn "abc" }
+    end
+
+    assert_deprecated("abc") { ActiveSupport::Deprecation.warn "abc" }
+
+    barrier.wait
+    th.join
+  ensure
+    th.kill
   end
 
   def test_deprecation_without_explanation

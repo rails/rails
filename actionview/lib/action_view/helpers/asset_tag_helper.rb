@@ -29,7 +29,7 @@ module ActionView
       # to <tt>assets/javascripts</tt>, full paths are assumed to be relative to the document
       # root. Relative paths are idiomatic, use absolute paths only when needed.
       #
-      # When passing paths, the ".js" extension is optional.  If you do not want ".js"
+      # When passing paths, the ".js" extension is optional. If you do not want ".js"
       # appended to the path <tt>extname: false</tt> can be set on the options.
       #
       # You can modify the HTML attributes of the script tag by passing a hash as the

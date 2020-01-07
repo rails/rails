@@ -2,7 +2,7 @@
 
 require "rake/testtask"
 
-test_files = Dir.glob("test/**/*_test.rb")
+test_files = FileList["test/**/*_test.rb"]
 
 desc "Default Task"
 task default: :test

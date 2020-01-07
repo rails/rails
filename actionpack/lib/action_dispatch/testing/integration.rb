@@ -133,7 +133,7 @@ module ActionDispatch
 
       def url_options
         @url_options ||= default_url_options.dup.tap do |url_options|
-          url_options.reverse_merge!(controller.url_options) if controller
+          url_options.reverse_merge!(controller.url_options) if controller.respond_to?(:url_options)
 
           if @app.respond_to?(:routes)
             url_options.reverse_merge!(@app.routes.default_url_options)
@@ -320,6 +320,7 @@ module ActionDispatch
       APP_SESSIONS = {}
 
       attr_reader :app
+      attr_accessor :root_session # :nodoc:
 
       def initialize(*args, &blk)
         super(*args, &blk)
@@ -387,8 +388,17 @@ module ActionDispatch
       def open_session
         dup.tap do |session|
           session.reset!
+          session.root_session = self.root_session || self
           yield session if block_given?
         end
+      end
+
+      def assertions # :nodoc:
+        root_session ? root_session.assertions : super
+      end
+
+      def assertions=(assertions) # :nodoc:
+        root_session ? root_session.assertions = assertions : super
       end
 
       # Copy the instance variables from the current session instance into the

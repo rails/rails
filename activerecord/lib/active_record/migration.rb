@@ -138,9 +138,9 @@ module ActiveRecord
 
     def initialize(message = nil)
       if !message && defined?(Rails.env)
-        super("Migrations are pending. To resolve this issue, run:\n\n        rails db:migrate RAILS_ENV=#{::Rails.env}")
+        super("Migrations are pending. To resolve this issue, run:\n\n        bin/rails db:migrate RAILS_ENV=#{::Rails.env}")
       elsif !message
-        super("Migrations are pending. To resolve this issue, run:\n\n        rails db:migrate")
+        super("Migrations are pending. To resolve this issue, run:\n\n        bin/rails db:migrate")
       else
         super
       end
@@ -158,7 +158,7 @@ module ActiveRecord
 
   class NoEnvironmentInSchemaError < MigrationError #:nodoc:
     def initialize
-      msg = "Environment data not found in the schema. To resolve this issue, run: \n\n        rails db:environment:set"
+      msg = "Environment data not found in the schema. To resolve this issue, run: \n\n        bin/rails db:environment:set"
       if defined?(Rails.env)
         super("#{msg} RAILS_ENV=#{::Rails.env}")
       else
@@ -181,7 +181,7 @@ module ActiveRecord
       msg = +"You are attempting to modify a database that was last run in `#{ stored }` environment.\n"
       msg << "You are running in `#{ current }` environment. "
       msg << "If you are sure you want to continue, first set the environment using:\n\n"
-      msg << "        rails db:environment:set"
+      msg << "        bin/rails db:environment:set"
       if defined?(Rails.env)
         super("#{msg} RAILS_ENV=#{::Rails.env}\n\n")
       else
@@ -338,7 +338,7 @@ module ActiveRecord
   # The Rails package has several tools to help create and apply migrations.
   #
   # To generate a new migration, you can use
-  #   rails generate migration MyNewMigration
+  #   bin/rails generate migration MyNewMigration
   #
   # where MyNewMigration is the name of your migration. The generator will
   # create an empty migration file <tt>timestamp_my_new_migration.rb</tt>
@@ -347,7 +347,7 @@ module ActiveRecord
   #
   # There is a special syntactic shortcut to generate migrations that add fields to a table.
   #
-  #   rails generate migration add_fieldname_to_tablename fieldname:string
+  #   bin/rails generate migration add_fieldname_to_tablename fieldname:string
   #
   # This will generate the file <tt>timestamp_add_fieldname_to_tablename.rb</tt>, which will look like this:
   #   class AddFieldnameToTablename < ActiveRecord::Migration[5.0]
@@ -357,16 +357,16 @@ module ActiveRecord
   #   end
   #
   # To run migrations against the currently configured database, use
-  # <tt>rails db:migrate</tt>. This will update the database by running all of the
+  # <tt>bin/rails db:migrate</tt>. This will update the database by running all of the
   # pending migrations, creating the <tt>schema_migrations</tt> table
   # (see "About the schema_migrations table" section below) if missing. It will also
   # invoke the db:schema:dump command, which will update your db/schema.rb file
   # to match the structure of your database.
   #
   # To roll the database back to a previous migration version, use
-  # <tt>rails db:rollback VERSION=X</tt> where <tt>X</tt> is the version to which
+  # <tt>bin/rails db:rollback VERSION=X</tt> where <tt>X</tt> is the version to which
   # you wish to downgrade. Alternatively, you can also use the STEP option if you
-  # wish to rollback last few migrations. <tt>rails db:rollback STEP=2</tt> will rollback
+  # wish to rollback last few migrations. <tt>bin/rails db:rollback STEP=2</tt> will rollback
   # the latest two migrations.
   #
   # If any of the migrations throw an <tt>ActiveRecord::IrreversibleMigration</tt> exception,
@@ -604,7 +604,7 @@ module ActiveRecord
       end
 
       def load_schema_if_pending!
-        current_config = Base.connection_config
+        current_db_config = Base.connection_db_config
         all_configs = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env)
 
         needs_update = !all_configs.all? do |db_config|
@@ -621,7 +621,7 @@ module ActiveRecord
         end
 
         # Establish a new connection, the old database may be gone (db:test:prepare uses purge)
-        Base.establish_connection(current_config)
+        Base.establish_connection(current_db_config)
 
         check_pending!
       end
@@ -903,7 +903,12 @@ module ActiveRecord
           end
         end
         return super unless connection.respond_to?(method)
-        connection.send(method, *arguments, &block)
+        options = arguments.extract_options!
+        if options.empty?
+          connection.send(method, *arguments, &block)
+        else
+          connection.send(method, *arguments, **options, &block)
+        end
       end
     end
 

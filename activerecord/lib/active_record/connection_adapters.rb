@@ -9,8 +9,8 @@ module ActiveRecord
     end
 
     autoload :Column
-    autoload :Role
-    autoload :Resolver
+    autoload :PoolConfig
+    autoload :PoolManager
 
     autoload_at "active_record/connection_adapters/abstract/schema_definitions" do
       autoload :IndexDefinition

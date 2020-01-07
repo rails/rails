@@ -370,21 +370,21 @@ module ActiveRecord
       include ConnectionAdapters::AbstractPool
 
       attr_accessor :automatic_reconnect, :checkout_timeout
-      attr_reader :db_config, :size, :reaper, :role
+      attr_reader :db_config, :size, :reaper, :pool_config
 
-      delegate :schema_cache, :schema_cache=, to: :role
+      delegate :schema_cache, :schema_cache=, to: :pool_config
 
-      # Creates a new ConnectionPool object. +role+ is a Role
+      # Creates a new ConnectionPool object. +pool_config+ is a PoolConfig
       # object which describes database connection information (e.g. adapter,
       # host name, username, password, etc), as well as the maximum size for
       # this ConnectionPool.
       #
       # The default ConnectionPool maximum size is 5.
-      def initialize(role)
+      def initialize(pool_config)
         super()
 
-        @role = role
-        @db_config = role.db_config
+        @pool_config = pool_config
+        @db_config = pool_config.db_config
 
         @checkout_timeout = db_config.checkout_timeout
         @idle_timeout = db_config.idle_timeout
@@ -1003,8 +1003,8 @@ module ActiveRecord
       private_constant :FINALIZER
 
       def initialize
-        # These caches are keyed by role.connection_specification_name (Role#connection_specification_name).
-        @owner_to_role = Concurrent::Map.new(initial_capacity: 2)
+        # These caches are keyed by pool_config.connection_specification_name (PoolConfig#connection_specification_name).
+        @owner_to_pool_manager = Concurrent::Map.new(initial_capacity: 2)
 
         # Backup finalizer: if the forked child skipped Kernel#fork the early discard has not occurred
         ObjectSpace.define_finalizer self, FINALIZER
@@ -1031,34 +1031,33 @@ module ActiveRecord
       end
 
       def connection_pool_names # :nodoc:
-        owner_to_role.keys
+        owner_to_pool_manager.keys
       end
 
       def connection_pool_list
-        owner_to_role.values.compact.map(&:pool)
+        owner_to_pool_manager.values.compact.flat_map { |m| m.pool_configs.map(&:pool) }
       end
       alias :connection_pools :connection_pool_list
 
-      def establish_connection(config)
-        resolver = Resolver.new(Base.configurations)
-        role = resolver.resolve_role(config)
-        db_config = role.db_config
+      def establish_connection(config, pool_key = :default)
+        pool_config = resolve_pool_config(config)
+        db_config = pool_config.db_config
 
-        remove_connection(role.connection_specification_name)
+        remove_connection(pool_config.connection_specification_name, pool_key)
 
         message_bus = ActiveSupport::Notifications.instrumenter
-        payload = {
-          connection_id: object_id
-        }
-        if role
-          payload[:spec_name] = role.connection_specification_name
+        payload = {}
+        if pool_config
+          payload[:spec_name] = pool_config.connection_specification_name
           payload[:config] = db_config.configuration_hash
         end
 
-        owner_to_role[role.connection_specification_name] = role
+        owner_to_pool_manager[pool_config.connection_specification_name] ||= PoolManager.new
+        pool_manager = owner_to_pool_manager[pool_config.connection_specification_name]
+        pool_manager.set_pool_config(pool_key, pool_config)
 
         message_bus.instrument("!connection.active_record", payload) do
-          role.pool
+          pool_config.pool
         end
       end
 
@@ -1114,8 +1113,8 @@ module ActiveRecord
 
       # Returns true if a connection that's accessible to this class has
       # already been opened.
-      def connected?(spec_name)
-        pool = retrieve_connection_pool(spec_name)
+      def connected?(spec_name, pool_key = :default)
+        pool = retrieve_connection_pool(spec_name, pool_key)
         pool && pool.connected?
       end
 
@@ -1123,22 +1122,74 @@ module ActiveRecord
       # connection and the defined connection (if they exist). The result
       # can be used as an argument for #establish_connection, for easily
       # re-establishing the connection.
-      def remove_connection(spec_name)
-        if role = owner_to_role.delete(spec_name)
-          role.disconnect!
-          role.db_config.configuration_hash
+      def remove_connection(spec_name, pool_key = :default)
+        if pool_manager = owner_to_pool_manager[spec_name]
+          pool_config = pool_manager.remove_pool_config(pool_key)
+
+          if pool_config
+            pool_config.disconnect!
+            pool_config.db_config.configuration_hash
+          end
         end
       end
 
-      # Retrieving the connection pool happens a lot, so we cache it in @owner_to_role.
+      # Retrieving the connection pool happens a lot, so we cache it in @owner_to_pool_manager.
       # This makes retrieving the connection pool O(1) once the process is warm.
       # When a connection is established or removed, we invalidate the cache.
-      def retrieve_connection_pool(spec_name)
-        owner_to_role[spec_name]&.pool
+      def retrieve_connection_pool(spec_name, pool_key = :default)
+        pool_config = owner_to_pool_manager[spec_name]&.get_pool_config(pool_key)
+        pool_config&.pool
       end
 
       private
-        attr_reader :owner_to_role
+        attr_reader :owner_to_pool_manager
+
+        # Returns an instance of PoolConfig for a given adapter.
+        # Accepts a hash one layer deep that contains all connection information.
+        #
+        # == Example
+        #
+        #   config = { "production" => { "host" => "localhost", "database" => "foo", "adapter" => "sqlite3" } }
+        #   pool_config = Base.configurations.resolve_pool_config(:production)
+        #   pool_config.db_config.configuration_hash
+        #   # => { host: "localhost", database: "foo", adapter: "sqlite3" }
+        #
+        def resolve_pool_config(config)
+          pool_name = config if config.is_a?(Symbol)
+
+          db_config = Base.configurations.resolve(config, pool_name)
+
+          raise(AdapterNotSpecified, "database configuration does not specify adapter") unless db_config.adapter
+
+          # Require the adapter itself and give useful feedback about
+          #   1. Missing adapter gems and
+          #   2. Adapter gems' missing dependencies.
+          path_to_adapter = "active_record/connection_adapters/#{db_config.adapter}_adapter"
+          begin
+            require path_to_adapter
+          rescue LoadError => e
+            # We couldn't require the adapter itself. Raise an exception that
+            # points out config typos and missing gems.
+            if e.path == path_to_adapter
+              # We can assume that a non-builtin adapter was specified, so it's
+              # either misspelled or missing from Gemfile.
+              raise LoadError, "Could not load the '#{db_config.adapter}' Active Record adapter. Ensure that the adapter is spelled correctly in config/database.yml and that you've added the necessary adapter gem to your Gemfile.", e.backtrace
+
+              # Bubbled up from the adapter require. Prefix the exception message
+              # with some guidance about how to address it and reraise.
+            else
+              raise LoadError, "Error loading the '#{db_config.adapter}' Active Record adapter. Missing a gem it depends on? #{e.message}", e.backtrace
+            end
+          end
+
+          unless ActiveRecord::Base.respond_to?(db_config.adapter_method)
+            raise AdapterNotFound, "database configuration specifies nonexistent #{db_config.adapter} adapter"
+          end
+
+          pool_name = db_config.owner_name || "primary"
+          db_config.owner_name = nil
+          ConnectionAdapters::PoolConfig.new(pool_name, db_config)
+        end
     end
   end
 end

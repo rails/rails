@@ -5,7 +5,7 @@ module ActiveRecord
     module SQLite3
       module DatabaseStatements
         READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp(
-          :begin, :commit, :explain, :select, :pragma, :release, :savepoint, :rollback, :with
+          :pragma
         ) # :nodoc:
         private_constant :READ_QUERY
 
@@ -74,20 +74,40 @@ module ActiveRecord
         end
         alias :exec_update :exec_delete
 
+        def begin_isolated_db_transaction(isolation) #:nodoc
+          raise TransactionIsolationError, "SQLite3 only supports the `read_uncommitted` transaction isolation level" if isolation != :read_uncommitted
+          raise StandardError, "You need to enable the shared-cache mode in SQLite mode before attempting to change the transaction isolation level" unless shared_cache?
+
+          Thread.current.thread_variable_set("read_uncommitted", @connection.get_first_value("PRAGMA read_uncommitted"))
+          @connection.read_uncommitted = true
+          begin_db_transaction
+        end
+
         def begin_db_transaction #:nodoc:
           log("begin transaction", "TRANSACTION") { @connection.transaction }
         end
 
         def commit_db_transaction #:nodoc:
           log("commit transaction", "TRANSACTION") { @connection.commit }
+          reset_read_uncommitted
         end
 
         def exec_rollback_db_transaction #:nodoc:
           log("rollback transaction", "TRANSACTION") { @connection.rollback }
+          reset_read_uncommitted
         end
 
         private
-          def execute_batch(sql, name = nil)
+          def reset_read_uncommitted
+            read_uncommitted = Thread.current.thread_variable_get("read_uncommitted")
+            return unless read_uncommitted
+
+            @connection.read_uncommitted = read_uncommitted
+          end
+
+          def execute_batch(statements, name = nil)
+            sql = combine_multi_statements(statements)
+
             if preventing_writes? && write_query?(sql)
               raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
             end
@@ -112,11 +132,8 @@ module ActiveRecord
             end.compact
           end
 
-          def build_truncate_statements(*table_names)
-            truncate_tables = table_names.map do |table_name|
-              "DELETE FROM #{quote_table_name(table_name)}"
-            end
-            combine_multi_statements(truncate_tables)
+          def build_truncate_statement(table_name)
+            "DELETE FROM #{quote_table_name(table_name)}"
           end
       end
     end

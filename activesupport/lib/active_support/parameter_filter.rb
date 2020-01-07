@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/object/duplicable"
-require "active_support/core_ext/array/extract"
 
 module ActiveSupport
   # +ParameterFilter+ allows you to specify keys for sensitive data from

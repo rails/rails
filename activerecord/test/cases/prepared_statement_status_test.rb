@@ -16,12 +16,7 @@ module ActiveRecord
 
       assert_not_same course_conn, entrant_conn
 
-      if current_adapter?(:Mysql2Adapter)
-        # The mysql adapter does not use prepared
-        # statements by default.
-        assert_not course_conn.prepared_statements
-        assert_not entrant_conn.prepared_statements
-      else
+      if ActiveRecord::Base.connection.prepared_statements
         t1 = Thread.new do
           course_conn.unprepared_statement do
             inside.set
@@ -44,6 +39,9 @@ module ActiveRecord
 
         t1.join
         t2.join
+      else
+        assert_not course_conn.prepared_statements
+        assert_not entrant_conn.prepared_statements
       end
     end
   end

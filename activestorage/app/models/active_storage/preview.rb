@@ -38,7 +38,7 @@ class ActiveStorage::Preview
 
   # Processes the preview if it has not been processed yet. Returns the receiving Preview instance for convenience:
   #
-  #   blob.preview(resize_to_limit: [100, 100]).processed.service_url
+  #   blob.preview(resize_to_limit: [100, 100]).processed.url
   #
   # Processing a preview generates an image from its blob and attaches the preview image to the blob. Because the preview
   # image is stored with the blob, it is only generated once.
@@ -56,14 +56,17 @@ class ActiveStorage::Preview
   # preview has not been processed yet.
   #
   # This method synchronously processes a variant of the preview image, so do not call it in views. Instead, generate
-  # a stable URL that redirects to the short-lived URL returned by this method.
-  def service_url(**options)
+  # a stable URL that redirects to the URL returned by this method.
+  def url(**options)
     if processed?
-      variant.service_url(**options)
+      variant.url(**options)
     else
       raise UnprocessedError
     end
   end
+
+  alias_method :service_url, :url
+  deprecate service_url: :url
 
   private
     def processed?
@@ -71,11 +74,15 @@ class ActiveStorage::Preview
     end
 
     def process
-      previewer.preview { |attachable| image.attach(attachable) }
+      previewer.preview(service_name: blob.service_name) do |attachable|
+        ActiveRecord::Base.connected_to(role: ActiveRecord::Base.writing_role) do
+          image.attach(attachable)
+        end
+      end
     end
 
     def variant
-      ActiveStorage::Variant.new(image, variation).processed
+      image.variant(variation).processed
     end
 
 

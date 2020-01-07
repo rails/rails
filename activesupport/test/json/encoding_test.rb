@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
 require "securerandom"
-require "abstract_unit"
+require_relative "../abstract_unit"
 require "active_support/core_ext/string/inflections"
 require "active_support/json"
 require "active_support/time"
-require "time_zone_test_helpers"
-require "json/encoding_test_cases"
+require_relative "../time_zone_test_helpers"
+require_relative "../json/encoding_test_cases"
 
 class TestJSONEncoding < ActiveSupport::TestCase
   include TimeZoneTestHelpers

@@ -15,9 +15,11 @@
 # update a blob's metadata on a subsequent pass, but you should not update the key or change the uploaded file.
 # If you need to create a derivative or otherwise change the blob, simply create a new blob and purge the old one.
 class ActiveStorage::Blob < ActiveRecord::Base
-  require_dependency "active_storage/blob/analyzable"
-  require_dependency "active_storage/blob/identifiable"
-  require_dependency "active_storage/blob/representable"
+  unless Rails.autoloaders.zeitwerk_enabled?
+    require_dependency "active_storage/blob/analyzable"
+    require_dependency "active_storage/blob/identifiable"
+    require_dependency "active_storage/blob/representable"
+  end
 
   include Analyzable
   include Identifiable
@@ -30,7 +32,8 @@ class ActiveStorage::Blob < ActiveRecord::Base
   has_secure_token :key, length: MINIMUM_TOKEN_LENGTH
   store :metadata, accessors: [ :analyzed, :identified ], coder: ActiveRecord::Coders::JSON
 
-  class_attribute :service
+  class_attribute :services, default: {}
+  class_attribute :service, instance_accessor: false
 
   has_many :attachments
 
@@ -47,8 +50,8 @@ class ActiveStorage::Blob < ActiveRecord::Base
   validates :service_name, presence: true
 
   validate do
-    if service_name_changed? && service_name
-      ActiveStorage::ServiceRegistry.fetch(service_name) do
+    if service_name_changed? && service_name.present?
+      services.fetch(service_name) do
         errors.add(:service_name, :invalid)
       end
     end
@@ -158,9 +161,9 @@ class ActiveStorage::Blob < ActiveRecord::Base
   end
 
   # Returns the URL of the blob on the service. This returns a permanent URL for public files, and returns a
-  # short-lived URL for private files. Private files are for security and not used directly with users, instead,
+  # short-lived URL for private files. Private files are signed, and not for public use. Instead,
   # the URL should only be exposed as a redirect from a stable, possibly authenticated URL. Hiding the
-  # URL behind a redirect also gives you the power to change services without updating all URLs.
+  # URL behind a redirect also allows you to change services without updating all URLs.
   def url(expires_in: ActiveStorage.service_urls_expire_in, disposition: :inline, filename: nil, **options)
     filename = ActiveStorage::Filename.wrap(filename || self.filename)
 
@@ -247,7 +250,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
     service.delete_prefixed("variants/#{key}/") if image?
   end
 
-  # Deletes the file on the service and then destroys the blob record. This is the recommended way to dispose of unwanted
+  # Destroys the blob record and then deletes the file on the service. This is the recommended way to dispose of unwanted
   # blobs. Note, though, that deleting the file off the service will initiate an HTTP connection to the service, which may
   # be slow or prevented, so you should not use this method inside a transaction or in callbacks. Use #purge_later instead.
   def purge
@@ -264,7 +267,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
 
   # Returns an instance of service, which can be configured globally or per attachment
   def service
-    ActiveStorage::ServiceRegistry.fetch(service_name)
+    services.fetch(service_name)
   end
 
   private

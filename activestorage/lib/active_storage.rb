@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #--
-# Copyright (c) 2017-2019 David Heinemeier Hansson, Basecamp
+# Copyright (c) 2017-2020 David Heinemeier Hansson, Basecamp
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -38,7 +38,6 @@ module ActiveStorage
 
   autoload :Attached
   autoload :Service
-  autoload :ServiceRegistry
   autoload :Previewer
   autoload :Analyzer
 
@@ -64,6 +63,7 @@ module ActiveStorage
   mattr_accessor :draw_routes, default: true
 
   mattr_accessor :replace_on_assign_to_many, default: false
+  mattr_accessor :track_variants, default: false
 
   module Transformers
     extend ActiveSupport::Autoload

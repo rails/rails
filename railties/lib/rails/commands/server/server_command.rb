@@ -288,7 +288,7 @@ module Rails
 
                 gem "#{server}"
 
-              Run `rails server --help` for more options.
+              Run `bin/rails server --help` for more options.
             MSG
           else
             suggestion = Rails::Command::Spellchecker.suggest(server, from: RACK_SERVERS)
@@ -296,7 +296,7 @@ module Rails
 
             <<~MSG
               Could not find server "#{server}". #{suggestion_msg}
-              Run `rails server --help` for more options.
+              Run `bin/rails server --help` for more options.
             MSG
           end
         end
@@ -305,7 +305,7 @@ module Rails
           say <<~MSG
             => Booting #{ActiveSupport::Inflector.demodulize(server)}
             => Rails #{Rails.version} application starting in #{Rails.env} #{url}
-            => Run `rails server --help` for more startup options
+            => Run `bin/rails server --help` for more startup options
           MSG
         end
     end

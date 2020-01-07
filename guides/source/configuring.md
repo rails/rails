@@ -137,6 +137,8 @@ defaults to `:debug` for all environments. The available log levels are: `:debug
 
 * `config.middleware` allows you to configure the application's middleware. This is covered in depth in the [Configuring Middleware](#configuring-middleware) section below.
 
+* `config.rake_eager_load` when `true`, eager load the application when running Rake tasks. Defaults to `false`.
+
 * `config.reload_classes_only_on_change` enables or disables reloading of classes only when tracked files change. By default tracks everything on autoload paths and is set to `true`. If `config.cache_classes` is `true`, this option is ignored.
 
 * `config.credentials.content_path` configures lookup path for encrypted credentials.
@@ -216,10 +218,10 @@ The full set of methods that can be used in this block are as follows:
 * `integration_tool` defines which integration tool to use to generate integration tests. Defaults to `:test_unit`.
 * `system_tests` defines which integration tool to use to generate system tests. Defaults to `:test_unit`.
 * `orm` defines which orm to use. Defaults to `false` and will use Active Record by default.
-* `resource_controller` defines which generator to use for generating a controller when using `rails generate resource`. Defaults to `:controller`.
+* `resource_controller` defines which generator to use for generating a controller when using `bin/rails generate resource`. Defaults to `:controller`.
 * `resource_route` defines whether a resource route definition should be generated
   or not. Defaults to `true`.
-* `scaffold_controller` different from `resource_controller`, defines which generator to use for generating a _scaffolded_ controller when using `rails generate scaffold`. Defaults to `:scaffold_controller`.
+* `scaffold_controller` different from `resource_controller`, defines which generator to use for generating a _scaffolded_ controller when using `bin/rails generate scaffold`. Defaults to `:scaffold_controller`.
 * `stylesheets` turns on the hook for stylesheets in generators. Used in Rails for when the `scaffold` generator is run, but this hook can be used in other generates as well. Defaults to `true`.
 * `stylesheet_engine` configures the stylesheet engine (for e.g. sass) to be used when generating assets. Defaults to `:css`.
 * `scaffold_stylesheet` creates `scaffold.css` when generating a scaffolded resource. Defaults to `true`.
@@ -229,6 +231,44 @@ The full set of methods that can be used in this block are as follows:
 ### Configuring Middleware
 
 Every Rails application comes with a standard set of middleware which it uses in this order in the development environment:
+
+* `ActionDispatch::HostAuthorization` prevents against DNS rebinding and other `Host` header attacks.
+   It is included in the development environment by default with the following configuration:
+
+   ```ruby
+   Rails.application.config.hosts = [
+     IPAddr.new("0.0.0.0/0"), # All IPv4 addresses.
+     IPAddr.new("::/0"),      # All IPv6 addresses.
+     "localhost"              # The localhost reserved domain.
+   ]
+   ```
+
+   In other environments `Rails.application.config.hosts` is empty and no
+   `Host` header checks will be done. If you want to guard against header
+   attacks on production, you have to manually permit the allowed hosts
+   with:
+
+   ```ruby
+   Rails.application.config.hosts << "product.com"
+   ```
+
+   The host of a request is checked against the `hosts` entries with the case
+   operator (`#===`), which lets `hosts` support entries of type `Regexp`,
+   `Proc` and `IPAddr` to name a few. Here is an example with a regexp.
+
+   ```ruby
+   # Allow requests from subdomains like `www.product.com` and
+   # `beta1.product.com`.
+   Rails.application.config.hosts << /.*\.product\.com/
+   ```
+
+   A special case is supported that allows you to permit all sub-domains:
+
+   ```ruby
+   # Allow requests from subdomains like `www.product.com` and
+   # `beta1.product.com`.
+   Rails.application.config.hosts << ".product.com"
+   ```
 
 * `ActionDispatch::SSL` forces every request to be served using HTTPS. Enabled if `config.force_ssl` is set to `true`. Options passed to this can be configured by setting `config.ssl_options`.
 * `ActionDispatch::Static` is used to serve static assets. Disabled if `config.public_file_server.enabled` is `false`. Set `config.public_file_server.index_name` if you need to serve a static directory index file that is not named `index`. For example, to serve `main.html` instead of `index.html` for directory requests, set `config.public_file_server.index_name` to `"main"`.
@@ -440,7 +480,7 @@ The schema dumper adds two additional configuration options:
 
 * `config.action_controller.per_form_csrf_tokens` configures whether CSRF tokens are only valid for the method/action they were generated for.
 
-* `config.action_controller.default_protect_from_forgery` determines whether forgery protection is added on `ActionController:Base`. This is false by default.
+* `config.action_controller.default_protect_from_forgery` determines whether forgery protection is added on `ActionController::Base`. This is false by default.
 
 * `config.action_controller.relative_url_root` can be used to tell Rails that you are [deploying to a subdirectory](configuring.html#deploy-to-a-subdirectory-relative-url-root). The default is `ENV['RAILS_RELATIVE_URL_ROOT']`.
 
@@ -459,7 +499,7 @@ The schema dumper adds two additional configuration options:
     Rendered recordings/threads/_thread.html.erb in 1.5 ms [cache miss]
     ```
 
-  By default it is set to `false` which results in following output:
+    By default it is set to `false` which results in following output:
 
     ```
     Rendered messages/_message.html.erb in 1.2 ms [cache hit]
@@ -805,6 +845,10 @@ There are a few configuration options available in Active Support:
 
 * `config.active_job.return_false_on_aborted_enqueue` change the return value of `#enqueue` to false instead of the job instance when the enqueuing is aborted. Defaults to `false`.
 
+* `config.active_job.log_arguments` controls if the arguments of a job are logged. Defaults to `true`.
+
+* `config.active_job.retry_jitter` controls the amount of "jitter" (random variation) applied to the delay time calculated when retrying failed jobs. Defaults to `0.15`.
+
 ### Configuring Action Cable
 
 * `config.action_cable.url` accepts a string for the URL for where
@@ -871,9 +915,9 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
   ```
 
 * `config.active_storage.service_urls_expire_in` determines the default expiry of URLs generated by:
-  * `ActiveStorage::Blob#service_url`
+  * `ActiveStorage::Blob#url`
   * `ActiveStorage::Blob#service_url_for_direct_upload`
-  * `ActiveStorage::Variant#service_url`
+  * `ActiveStorage::Variant#url`
 
   The default is 5 minutes.
 
@@ -887,33 +931,20 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
 * `config.active_storage.replace_on_assign_to_many` determines whether assigning to a collection of attachments declared with `has_many_attached` replaces any existing attachments or appends to them. The default is `true`.
 
+* `config.active_storage.track_variants` determines whether variants are recorded in the database. The default is `true`.
+
 * `config.active_storage.draw_routes` can be used to toggle Active Storage route generation. The default is `true`.
 
-### Results of `load_defaults`
+### Results of `config.load_defaults`
 
-#### With '5.0':
+`config.load_defaults` sets new defaults up to and including the version passed. Such that passing, say, '6.0' also gets the new defaults from every version before it.
 
-- `config.action_controller.per_form_csrf_tokens`: `true`
-- `config.action_controller.forgery_protection_origin_check`: `true`
-- `ActiveSupport.to_time_preserves_timezone`: `true`
-- `config.active_record.belongs_to_required_by_default`: `true`
-- `config.ssl_options`: `{ hsts: { subdomains: true } }`
+#### For '6.1', new defaults from previous versions below and:
 
-#### With '5.1':
+- `config.active_record.has_many_inversing`: `true`
+- `config.active_storage.track_variants`: `true`
 
-- `config.assets.unknown_asset_fallback`: `false`
-- `config.action_view.form_with_generates_remote_forms`: `true`
-
-#### With '5.2':
-
-- `config.active_record.cache_versioning`: `true`
-- `config.action_dispatch.use_authenticated_cookie_encryption`: `true`
-- `config.active_support.use_authenticated_message_encryption`: `true`
-- `config.active_support.use_sha1_digests`: `true`
-- `config.action_controller.default_protect_from_forgery`: `true`
-- `config.action_view.form_with_generates_ids`: `true`
-
-#### With '6.0':
+#### For '6.0', new defaults from previous versions below and:
 
 - `config.autoloader`: `:zeitwerk`
 - `config.action_view.default_enforce_utf8`: `false`
@@ -925,6 +956,28 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 - `config.active_storage.queues.purge`: `:active_storage_purge`
 - `config.active_storage.replace_on_assign_to_many`: `true`
 - `config.active_record.collection_cache_versioning`: `true`
+
+#### For '5.2', new defaults from previous versions below and:
+
+- `config.active_record.cache_versioning`: `true`
+- `config.action_dispatch.use_authenticated_cookie_encryption`: `true`
+- `config.active_support.use_authenticated_message_encryption`: `true`
+- `config.active_support.use_sha1_digests`: `true`
+- `config.action_controller.default_protect_from_forgery`: `true`
+- `config.action_view.form_with_generates_ids`: `true`
+
+#### For '5.1', new defaults from previous versions below and:
+
+- `config.assets.unknown_asset_fallback`: `false`
+- `config.action_view.form_with_generates_remote_forms`: `true`
+
+#### For '5.0':
+
+- `config.action_controller.per_form_csrf_tokens`: `true`
+- `config.action_controller.forgery_protection_origin_check`: `true`
+- `ActiveSupport.to_time_preserves_timezone`: `true`
+- `config.active_record.belongs_to_required_by_default`: `true`
+- `config.ssl_options`: `{ hsts: { subdomains: true } }`
 
 ### Configuring a Database
 
@@ -954,7 +1007,7 @@ The `config/database.yml` file contains sections for three different environment
 
 If you wish, you can manually specify a URL inside of your `config/database.yml`
 
-```
+```yaml
 development:
   url: postgresql://localhost/blog_development?pool=5
 ```
@@ -971,7 +1024,7 @@ Since there are two ways to configure your connection (using `config/database.ym
 
 If you have an empty `config/database.yml` file but your `ENV['DATABASE_URL']` is present, then Rails will connect to the database via your environment variable:
 
-```
+```bash
 $ cat config/database.yml
 
 $ echo $DATABASE_URL
@@ -980,7 +1033,7 @@ postgresql://localhost/my_database
 
 If you have a `config/database.yml` but no `ENV['DATABASE_URL']` then this file will be used to connect to your database:
 
-```
+```bash
 $ cat config/database.yml
 development:
   adapter: postgresql
@@ -994,7 +1047,7 @@ If you have both `config/database.yml` and `ENV['DATABASE_URL']` set then Rails 
 
 When duplicate connection information is provided the environment variable will take precedence:
 
-```
+```bash
 $ cat config/database.yml
 development:
   adapter: sqlite3
@@ -1004,10 +1057,10 @@ development:
 $ echo $DATABASE_URL
 postgresql://localhost/my_database
 
-$ rails runner 'puts ActiveRecord::Base.configurations'
+$ bin/rails runner 'puts ActiveRecord::Base.configurations'
 #<ActiveRecord::DatabaseConfigurations:0x00007fd50e209a28>
 
-$ rails runner 'puts ActiveRecord::Base.configurations.inspect'
+$ bin/rails runner 'puts ActiveRecord::Base.configurations.inspect'
 #<ActiveRecord::DatabaseConfigurations:0x00007fc8eab02880 @configurations=[
   #<ActiveRecord::DatabaseConfigurations::UrlConfig:0x00007fc8eab020b0
     @env_name="development", @spec_name="primary",
@@ -1020,7 +1073,7 @@ Here the adapter, host, and database match the information in `ENV['DATABASE_URL
 
 If non-duplicate information is provided you will get all unique values, environment variable still takes precedence in cases of any conflicts.
 
-```
+```bash
 $ cat config/database.yml
 development:
   adapter: sqlite3
@@ -1029,10 +1082,10 @@ development:
 $ echo $DATABASE_URL
 postgresql://localhost/my_database
 
-$ rails runner 'puts ActiveRecord::Base.configurations'
+$ bin/rails runner 'puts ActiveRecord::Base.configurations'
 #<ActiveRecord::DatabaseConfigurations:0x00007fd50e209a28>
 
-$ rails runner 'puts ActiveRecord::Base.configurations.inspect'
+$ bin/rails runner 'puts ActiveRecord::Base.configurations.inspect'
 #<ActiveRecord::DatabaseConfigurations:0x00007fc8eab02880 @configurations=[
   #<ActiveRecord::DatabaseConfigurations::UrlConfig:0x00007fc8eab020b0
     @env_name="development", @spec_name="primary",
@@ -1045,7 +1098,7 @@ Since pool is not in the `ENV['DATABASE_URL']` provided connection information i
 
 The only way to explicitly not use the connection information in `ENV['DATABASE_URL']` is to specify an explicit URL connection using the `"url"` sub key:
 
-```
+```bash
 $ cat config/database.yml
 development:
   url: sqlite3:NOT_my_database
@@ -1053,10 +1106,10 @@ development:
 $ echo $DATABASE_URL
 postgresql://localhost/my_database
 
-$ rails runner 'puts ActiveRecord::Base.configurations'
+$ bin/rails runner 'puts ActiveRecord::Base.configurations'
 #<ActiveRecord::DatabaseConfigurations:0x00007fd50e209a28>
 
-$ rails runner 'puts ActiveRecord::Base.configurations.inspect'
+$ bin/rails runner 'puts ActiveRecord::Base.configurations.inspect'
 #<ActiveRecord::DatabaseConfigurations:0x00007fc8eab02880 @configurations=[
   #<ActiveRecord::DatabaseConfigurations::UrlConfig:0x00007fc8eab020b0
     @env_name="development", @spec_name="primary",
@@ -1069,7 +1122,7 @@ Here the connection information in `ENV['DATABASE_URL']` is ignored, note the di
 
 Since it is possible to embed ERB in your `config/database.yml` it is best practice to explicitly show you are using the `ENV['DATABASE_URL']` to connect to your database. This is especially useful in production since you should not commit secrets like your database password into your source control (such as Git).
 
-```
+```bash
 $ cat config/database.yml
 production:
   url: <%= ENV['DATABASE_URL'] %>
@@ -1143,7 +1196,7 @@ production:
 
 If enabled, Active Record will create up to `1000` prepared statements per database connection by default. To modify this behavior you can set `statement_limit` to a different value:
 
-```
+```yaml
 production:
   adapter: postgresql
   statement_limit: 200
@@ -1197,7 +1250,7 @@ Imagine you have a server which mirrors the production environment but is only u
 That environment is no different than the default ones, start a server with `rails server -e staging`, a console with `rails console -e staging`, `Rails.env.staging?` works, etc.
 
 
-### Deploy to a subdirectory (relative URL root)
+### Deploy to a Subdirectory (relative URL root)
 
 By default Rails expects that your application is running at the root
 (e.g. `/`). This section explains how to run your application inside a directory.
@@ -1559,7 +1612,7 @@ evented file system monitor to detect changes when `config.cache_classes` is
 
 ```ruby
 group :development do
-  gem 'listen', '>= 3.0.5', '< 3.2'
+  gem 'listen', '~> 3.2'
 end
 ```
 

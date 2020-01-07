@@ -560,6 +560,12 @@ module Rails
       end
     end
 
+    initializer :load_environment_config, before: :load_environment_hook, group: :all do
+      paths["config/environments"].existent.each do |environment|
+        require environment
+      end
+    end
+
     initializer :set_load_path, before: :bootstrap_hook do |app|
       _all_load_paths(app.config.add_autoload_paths_to_load_path).reverse_each do |path|
         $LOAD_PATH.unshift(path) if File.directory?(path)
@@ -587,10 +593,13 @@ module Rails
 
     initializer :add_routing_paths do |app|
       routing_paths = paths["config/routes.rb"].existent
+      external_paths = self.paths["config/routes"].paths
+      routes.draw_paths.concat(external_paths)
 
       if routes? || routing_paths.any?
         app.routes_reloader.paths.unshift(*routing_paths)
         app.routes_reloader.route_sets << routes
+        app.routes_reloader.external_routes.unshift(*external_paths)
       end
     end
 
@@ -605,12 +614,6 @@ module Rails
       unless views.empty?
         ActiveSupport.on_load(:action_controller) { prepend_view_path(views) if respond_to?(:prepend_view_path) }
         ActiveSupport.on_load(:action_mailer) { prepend_view_path(views) }
-      end
-    end
-
-    initializer :load_environment_config, before: :load_environment_hook, group: :all do
-      paths["config/environments"].existent.each do |environment|
-        require environment
       end
     end
 

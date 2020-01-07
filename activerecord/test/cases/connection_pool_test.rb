@@ -13,8 +13,8 @@ module ActiveRecord
 
         # Keep a duplicate pool so we do not bother others
         @db_config = ActiveRecord::Base.connection_pool.db_config
-        @role = ActiveRecord::ConnectionAdapters::Role.new("primary", @db_config)
-        @pool = ConnectionPool.new(@role)
+        @pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new("primary", @db_config)
+        @pool = ConnectionPool.new(@pool_config)
 
         if in_memory_db?
           # Separate connections to an in-memory database create an entirely new database,
@@ -200,9 +200,12 @@ module ActiveRecord
 
       def test_idle_timeout_configuration
         @pool.disconnect!
-        @db_config.configuration_hash.merge!(idle_timeout: "0.02")
-        role = ActiveRecord::ConnectionAdapters::Role.new("primary", @db_config)
-        @pool = ConnectionPool.new(role)
+
+        config = @db_config.configuration_hash.merge(idle_timeout: "0.02")
+        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(@db_config.env_name, @db_config.spec_name, config)
+
+        pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new("primary", db_config)
+        @pool = ConnectionPool.new(pool_config)
         idle_conn = @pool.checkout
         @pool.checkin(idle_conn)
 
@@ -225,9 +228,11 @@ module ActiveRecord
 
       def test_disable_flush
         @pool.disconnect!
-        @db_config.configuration_hash.merge!(idle_timeout: -5)
-        role = ActiveRecord::ConnectionAdapters::Role.new("primary", @db_config)
-        @pool = ConnectionPool.new(role)
+
+        config = @db_config.configuration_hash.merge(idle_timeout: -5)
+        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(@db_config.env_name, @db_config.spec_name, config)
+        pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new("primary", db_config)
+        @pool = ConnectionPool.new(pool_config)
         idle_conn = @pool.checkout
         @pool.checkin(idle_conn)
 
@@ -317,7 +322,7 @@ module ActiveRecord
       end
 
       def test_checkout_behaviour
-        pool = ConnectionPool.new(@role)
+        pool = ConnectionPool.new(@pool_config)
         main_connection = pool.connection
         assert_not_nil main_connection
         threads = []
@@ -450,7 +455,7 @@ module ActiveRecord
       end
 
       def test_automatic_reconnect_restores_after_disconnect
-        pool = ConnectionPool.new(@role)
+        pool = ConnectionPool.new(@pool_config)
         assert pool.automatic_reconnect
         assert pool.connection
 
@@ -459,7 +464,7 @@ module ActiveRecord
       end
 
       def test_automatic_reconnect_can_be_disabled
-        pool = ConnectionPool.new(@role)
+        pool = ConnectionPool.new(@pool_config)
         pool.disconnect!
         pool.automatic_reconnect = false
 
@@ -496,7 +501,7 @@ module ActiveRecord
         end
         ConnectionTestModel.establish_connection :arunit
 
-        assert_equal [:config, :connection_id, :spec_name], payloads[0].keys.sort
+        assert_equal [:config, :spec_name], payloads[0].keys.sort
         assert_equal "ActiveRecord::ConnectionAdapters::ConnectionPoolTest::ConnectionTestModel", payloads[0][:spec_name]
       ensure
         ActiveSupport::Notifications.unsubscribe(subscription) if subscription
@@ -720,13 +725,11 @@ module ActiveRecord
 
       private
         def with_single_connection_pool
-          old_config = @db_config.configuration_hash
-          db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("arunit", "primary", old_config.dup)
+          config = @db_config.configuration_hash.merge(pool: 1)
+          db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("arunit", "primary", config)
+          pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new("primary", db_config)
 
-          db_config.configuration_hash[:pool] = 1 # this is safe to do, because .dupped Role also auto-dups its config
-
-          role = ActiveRecord::ConnectionAdapters::Role.new("primary", db_config)
-          yield(pool = ConnectionPool.new(role))
+          yield(pool = ConnectionPool.new(pool_config))
         ensure
           pool.disconnect! if pool
         end

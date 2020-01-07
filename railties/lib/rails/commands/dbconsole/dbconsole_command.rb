@@ -16,6 +16,7 @@ module Rails
 
     def start
       ENV["RAILS_ENV"] ||= @options[:environment] || environment
+      config = db_config.configuration_hash
 
       case db_config.adapter
       when /^(jdbc)?mysql/
@@ -92,9 +93,10 @@ module Rails
     def config
       db_config.configuration_hash
     end
+    deprecate config: "please use db_config.configuration_hash"
 
     def db_config
-      return @db_config if @db_config
+      return @db_config if defined?(@db_config)
 
       # We need to check whether the user passed the database the
       # first time around to show a consistent error message to people

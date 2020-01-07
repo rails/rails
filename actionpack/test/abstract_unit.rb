@@ -13,11 +13,7 @@ silence_warnings do
   Encoding.default_external = Encoding::UTF_8
 end
 
-if ENV["TRAVIS"]
-  PROCESS_COUNT = 0
-else
-  PROCESS_COUNT = (ENV["N"] || 4).to_i
-end
+PROCESS_COUNT = (ENV["MT_CPU"] || 4).to_i
 
 require "active_support/testing/autorun"
 require "abstract_controller"
@@ -28,8 +24,6 @@ require "action_view/testing/resolvers"
 require "action_dispatch"
 require "active_support/dependencies"
 require "active_model"
-
-require "pp" # require 'pp' early to prevent hidden_methods from not picking up the pretty-print methods until too late
 
 module Rails
   class << self

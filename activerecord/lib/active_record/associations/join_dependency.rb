@@ -105,7 +105,9 @@ module ActiveRecord
 
         model_cache = Hash.new { |h, klass| h[klass] = {} }
         parents = model_cache[join_root]
+
         column_aliases = aliases.column_aliases join_root
+        column_aliases += explicit_selections(column_aliases, result_set)
 
         message_bus = ActiveSupport::Notifications.instrumenter
 
@@ -134,6 +136,13 @@ module ActiveRecord
 
       private
         attr_reader :alias_tracker
+
+        def explicit_selections(root_column_aliases, result_set)
+          root_names = root_column_aliases.map(&:name).to_set
+          result_set.columns
+            .reject { |n| root_names.include?(n) || n =~ /\At\d+_r\d+\z/ }
+            .map { |n| Aliases::Column.new(n, n) }
+        end
 
         def aliases
           @aliases ||= Aliases.new join_root.each_with_index.map { |join_part, i|

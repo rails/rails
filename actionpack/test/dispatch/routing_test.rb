@@ -1382,7 +1382,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "projects#index", @response.body
   end
 
-  def test_optionally_scoped_root_unscoped_access
+  def test_optional_scoped_root_hierarchy
     draw do
       scope "(:locale)" do
         scope "(:platform)" do
@@ -1394,7 +1394,68 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
 
     assert_equal "/", root_path
+    assert_equal "/en", root_path(locale: "en")
+    assert_equal "/en/osx", root_path(locale: "en", platform: "osx")
+    assert_equal "/en/osx/chrome",
+      root_path(locale: "en", platform: "osx", browser: "chrome")
+
     get "/"
+    assert_equal "projects#index", @response.body
+
+    get "/en"
+    assert_equal "projects#index", @response.body
+
+    get "/en/osx"
+    assert_equal "projects#index", @response.body
+
+    get "/en/osx/chrome"
+    assert_equal "projects#index", @response.body
+  end
+
+  def test_optional_scoped_root_multiple_choice
+    draw do
+      scope "(:locale)" do
+        scope "(p/:platform)" do
+          scope "(b/:browser)" do
+            root to: "projects#index"
+          end
+        end
+      end
+    end
+
+    # Note, in this particular case where we rely on pattern matching instead
+    # of hierarchy to match parameters in a root path, root_path returns ""
+    # when given no path parameters.
+
+    assert_equal "/en", root_path(locale: "en")
+    assert_equal "/p/osx", root_path(platform: "osx")
+    assert_equal "/en/p/osx", root_path(locale: "en", platform: "osx")
+    assert_equal "/b/chrome", root_path(browser: "chrome")
+    assert_equal "/en/b/chrome", root_path(locale: "en", browser: "chrome")
+    assert_equal "/p/osx/b/chrome",
+      root_path(platform: "osx", browser: "chrome")
+    assert_equal "/en/p/osx/b/chrome",
+      root_path(locale: "en", platform: "osx", browser: "chrome")
+
+    get "/en"
+    assert_equal "projects#index", @response.body
+
+    get "/p/osx"
+    assert_equal "projects#index", @response.body
+
+    get "/en/p/osx"
+    assert_equal "projects#index", @response.body
+
+    get "/b/chrome"
+    assert_equal "projects#index", @response.body
+
+    get "/en/b/chrome"
+    assert_equal "projects#index", @response.body
+
+    get "/p/osx/b/chrome"
+    assert_equal "projects#index", @response.body
+
+    get "/en/p/osx/b/chrome"
     assert_equal "projects#index", @response.body
   end
 
@@ -4962,7 +5023,7 @@ class TestOptionalScopesWithOrWithoutParams < ActionDispatch::IntegrationTest
     app.draw do
       scope module: "test_optional_scopes_with_or_without_params" do
         scope "(:locale)", locale: /en|es/ do
-          get "home", to: "home#index"
+          get "home", controller: :home, action: :index
           get "with_param/:foo", to: "home#with_param", as: "with_param"
           get "without_param", to: "home#without_param"
         end

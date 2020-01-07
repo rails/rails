@@ -165,10 +165,10 @@ module ActiveStorage
 
       private
         def validate_service_configuration(association_name, service)
-          return unless service
-
-          ServiceRegistry.fetch(service) do
-            raise ArgumentError, "Cannot configure service :#{service} for #{name}##{association_name}"
+          if service.present?
+            ActiveStorage::Blob.services.fetch(service) do
+              raise ArgumentError, "Cannot configure service :#{service} for #{name}##{association_name}"
+            end
           end
         end
     end

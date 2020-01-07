@@ -5,16 +5,40 @@ require "active_support/log_subscriber"
 module ActiveJob
   class LogSubscriber < ActiveSupport::LogSubscriber #:nodoc:
     def enqueue(event)
-      info do
-        job = event.payload[:job]
-        "Enqueued #{job.class.name} (Job ID: #{job.job_id}) to #{queue_name(event)}" + args_info(job)
+      job = event.payload[:job]
+      ex = event.payload[:exception_object]
+
+      if ex
+        error do
+          "Failed enqueuing #{job.class.name} to #{queue_name(event)}: #{ex.class} (#{ex.message})"
+        end
+      elsif event.payload[:aborted]
+        info do
+          "Failed enqueuing #{job.class.name} to #{queue_name(event)}, a before_enqueue callback halted the enqueuing execution."
+        end
+      else
+        info do
+          "Enqueued #{job.class.name} (Job ID: #{job.job_id}) to #{queue_name(event)}" + args_info(job)
+        end
       end
     end
 
     def enqueue_at(event)
-      info do
-        job = event.payload[:job]
-        "Enqueued #{job.class.name} (Job ID: #{job.job_id}) to #{queue_name(event)} at #{scheduled_at(event)}" + args_info(job)
+      job = event.payload[:job]
+      ex = event.payload[:exception_object]
+
+      if ex
+        error do
+          "Failed enqueuing #{job.class.name} to #{queue_name(event)}: #{ex.class} (#{ex.message})"
+        end
+      elsif event.payload[:aborted]
+        info do
+          "Failed enqueuing #{job.class.name} to #{queue_name(event)}, a before_enqueue callback halted the enqueuing execution."
+        end
+      else
+        info do
+          "Enqueued #{job.class.name} (Job ID: #{job.job_id}) to #{queue_name(event)} at #{scheduled_at(event)}" + args_info(job)
+        end
       end
     end
 
@@ -31,6 +55,10 @@ module ActiveJob
       if ex
         error do
           "Error performing #{job.class.name} (Job ID: #{job.job_id}) from #{queue_name(event)} in #{event.duration.round(2)}ms: #{ex.class} (#{ex.message}):\n" + Array(ex.backtrace).join("\n")
+        end
+      elsif event.payload[:aborted]
+        error do
+          "Error performing #{job.class.name} (Job ID: #{job.job_id}) from #{queue_name(event)} in #{event.duration.round(2)}ms: a before_perform callback halted the job execution"
         end
       else
         info do
@@ -77,7 +105,7 @@ module ActiveJob
       end
 
       def args_info(job)
-        if job.arguments.any?
+        if job.class.log_arguments? && job.arguments.any?
           " with arguments: " +
             job.arguments.map { |arg| format(arg).inspect }.join(", ")
         else

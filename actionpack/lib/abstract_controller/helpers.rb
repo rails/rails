@@ -57,21 +57,23 @@ module AbstractController
       # ==== Parameters
       # * <tt>method[, method]</tt> - A name or names of a method on the controller
       #   to be made available on the view.
-      def helper_method(*meths)
-        meths.flatten!
-        self._helper_methods += meths
+      def helper_method(*methods)
+        methods.flatten!
+        self._helper_methods += methods
 
         location = caller_locations(1, 1).first
         file, line = location.path, location.lineno
 
-        meths.each do |meth|
-          method_def = [
-            "def #{meth}(*args, &blk)",
-            "  controller.send(%(#{meth}), *args, &blk)",
-            "end"
-          ].join(";")
-
-          _helpers.class_eval method_def, file, line
+        methods.each do |method|
+          _helpers.class_eval <<-ruby_eval, file, line
+            def #{method}(*args, **kwargs, &blk)                     # def current_user(*args, **kwargs, &blk)
+              if kwargs.empty?                                       #   if kwargs.empty?
+                controller.send(%(#{method}), *args, &blk)           #     controller.send(:current_user, *args, &blk)
+              else                                                   #   else
+                controller.send(%(#{method}), *args, **kwargs, &blk) #     controller.send(:current_user, *args, **kwargs, &blk)
+              end                                                    #   end
+            end                                                      # end
+          ruby_eval
         end
       end
 

@@ -1817,7 +1817,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     core = companies(:rails_core)
     assert_equal accounts(:rails_core_account), core.account
-    assert_equal companies(:leetsoft, :jadedpixel), core.companies
+    assert_equal companies(:leetsoft, :jadedpixel).sort_by(&:id), core.companies.sort_by(&:id)
     core.destroy
     assert_nil accounts(:rails_core_account).reload.firm_id
     assert_nil companies(:leetsoft).reload.client_of
@@ -2439,6 +2439,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     post.images << image
 
     assert_equal [image], post.images
+    assert_equal post, image.imageable
   end
 
   def test_build_with_polymorphic_has_many_does_not_allow_to_override_type_and_id
@@ -2830,7 +2831,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   test "prevent double insertion of new object when the parent association loaded in the after save callback" do
-    reset_callbacks(:save, Bulb) do
+    reset_callbacks(Bulb, :save) do
       Bulb.after_save { |record| record.car.bulbs.load }
 
       car = Car.create!
@@ -2841,7 +2842,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   test "prevent double firing the before save callback of new object when the parent association saved in the callback" do
-    reset_callbacks(:save, Bulb) do
+    reset_callbacks(Bulb, :save) do
       count = 0
       Bulb.before_save { |record| record.car.save && count += 1 }
 
@@ -2960,7 +2961,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_loading_association_in_validate_callback_doesnt_affect_persistence
-    reset_callbacks(:validation, Bulb) do
+    reset_callbacks(Bulb, :validation) do
       Bulb.after_validation { |record| record.car.bulbs.load }
 
       car = Car.create!(name: "Car")
@@ -2988,25 +2989,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_has_many_preloading_with_duplicate_records
     posts = Post.joins(:comments).preload(:comments).order(:id).to_a
-    assert_equal [1, 2], posts.first.comments.map(&:id)
+    assert_equal [1, 2], posts.first.comments.map(&:id).sort
   end
 
   private
     def force_signal37_to_load_all_clients_of_firm
       companies(:first_firm).clients_of_firm.load_target
-    end
-
-    def reset_callbacks(kind, klass)
-      old_callbacks = {}
-      old_callbacks[klass] = klass.send("_#{kind}_callbacks").dup
-      klass.subclasses.each do |subclass|
-        old_callbacks[subclass] = subclass.send("_#{kind}_callbacks").dup
-      end
-      yield
-    ensure
-      klass.send("_#{kind}_callbacks=", old_callbacks[klass])
-      klass.subclasses.each do |subclass|
-        subclass.send("_#{kind}_callbacks=", old_callbacks[subclass])
-      end
     end
 end

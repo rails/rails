@@ -26,6 +26,10 @@ module Rails
       add_runtime_options!
       strict_args_position!
 
+      def self.exit_on_failure? # :nodoc:
+        false
+      end
+
       # Returns the source root for this generator using default_source_root as default.
       def self.source_root(path = nil)
         @_source_root = path if path
@@ -233,7 +237,7 @@ module Rails
         # Invoke source_root so the default_source_root is set.
         base.source_root
 
-        if base.name && !base.name.match?(/Base$/)
+        if base.name && !base.name.end_with?("Base")
           Rails::Generators.subclasses << base
 
           Rails::Generators.templates_path.each do |path|
@@ -252,6 +256,7 @@ module Rails
         def class_collisions(*class_names)
           return unless behavior == :invoke
           return if options.skip_collision_check?
+          return if options.force?
 
           class_names.flatten.each do |class_name|
             class_name = class_name.to_s
@@ -265,7 +270,7 @@ module Rails
             if last && last.const_defined?(last_name.camelize, false)
               raise Error, "The name '#{class_name}' is either already used in your application " \
                            "or reserved by Ruby on Rails. Please choose an alternative or use --skip-collision-check "  \
-                           "to skip this check and run this generator again."
+                           "or --force to skip this check and run this generator again."
             end
           end
         end

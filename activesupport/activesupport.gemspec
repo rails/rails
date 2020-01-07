@@ -33,9 +33,9 @@ Gem::Specification.new do |s|
   # NOTE: Please read our dependency guidelines before updating versions:
   # https://edgeguides.rubyonrails.org/security.html#dependency-management-and-cves
 
-  s.add_dependency "i18n",            ">= 0.7", "< 2"
+  s.add_dependency "i18n",            ">= 1.6", "< 2"
   s.add_dependency "tzinfo",          "~> 1.1"
   s.add_dependency "minitest",        "~> 5.1"
   s.add_dependency "concurrent-ruby", "~> 1.0", ">= 1.0.2"
-  s.add_dependency "zeitwerk",        "~> 2.2"
+  s.add_dependency "zeitwerk",        "~> 2.2", ">= 2.2.2"
 end

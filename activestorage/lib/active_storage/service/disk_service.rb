@@ -79,7 +79,8 @@ module ActiveStorage
             key: key,
             content_type: content_type,
             content_length: content_length,
-            checksum: checksum
+            checksum: checksum,
+            service_name: name
           },
           expires_in: expires_in,
           purpose: :blob_token
@@ -103,12 +104,21 @@ module ActiveStorage
 
     private
       def private_url(key, expires_in:, filename:, content_type:, disposition:, **)
+        generate_url(key, expires_in: expires_in, filename: filename, content_type: content_type, disposition: disposition)
+      end
+
+      def public_url(key, filename:, content_type: nil, disposition: :attachment, **)
+        generate_url(key, expires_in: nil, filename: filename, content_type: content_type, disposition: disposition)
+      end
+
+      def generate_url(key, expires_in:, filename:, content_type:, disposition:)
         content_disposition = content_disposition_with(type: disposition, filename: filename)
         verified_key_with_expiration = ActiveStorage.verifier.generate(
           {
             key: key,
             disposition: content_disposition,
-            content_type: content_type
+            content_type: content_type,
+            service_name: name
           },
           expires_in: expires_in,
           purpose: :blob_key
@@ -117,19 +127,6 @@ module ActiveStorage
         current_uri = URI.parse(current_host)
 
         url_helpers.rails_disk_service_url(verified_key_with_expiration,
-          protocol: current_uri.scheme,
-          host: current_uri.host,
-          port: current_uri.port,
-          disposition: content_disposition,
-          content_type: content_type,
-          filename: filename
-        )
-      end
-
-      def public_url(key, filename:, content_type: nil, disposition: :attachment, **)
-        current_uri = URI.parse(current_host)
-
-        url_helpers.rails_disk_service_public_url(key,
           protocol: current_uri.scheme,
           host: current_uri.host,
           port: current_uri.port,

@@ -157,6 +157,13 @@ class RespondToController < ActionController::Base
     end
   end
 
+  def handle_any_doesnt_set_request_content_type
+    respond_to do |type|
+      type.html { render body: "HTML" }
+      type.any { render json: { foo: "bar" } }
+    end
+  end
+
   def handle_any_any
     respond_to do |type|
       type.html { render body: "HTML" }
@@ -547,6 +554,12 @@ class RespondToControllerTest < ActionController::TestCase
     @request.accept = "text/xml"
     get :handle_any
     assert_equal "Either JS or XML", @response.body
+  end
+
+  def test_handle_any_doesnt_set_request_content_type
+    @request.accept = "text/csv"
+    get :handle_any_doesnt_set_request_content_type
+    assert_equal "application/json", @response.media_type
   end
 
   def test_handle_any_any

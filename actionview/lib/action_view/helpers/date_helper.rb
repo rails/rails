@@ -830,7 +830,7 @@ module ActionView
       end
 
       def select_year
-        if !@datetime || @datetime == 0
+        if !year || @datetime == 0
           val = "1"
           middle_year = Date.today.year
         else

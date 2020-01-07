@@ -39,10 +39,6 @@ class DirtyTest < ActiveModel::TestCase
     def save
       changes_applied
     end
-
-    def reload
-      clear_changes_information
-    end
   end
 
   setup do
@@ -184,7 +180,7 @@ class DirtyTest < ActiveModel::TestCase
     assert_predicate @model, :size_changed?
   end
 
-  test "reload should reset all changes" do
+  test "clear_changes_information should reset all changes" do
     @model.name = "Dmitry"
     @model.name_changed?
     @model.save
@@ -193,7 +189,7 @@ class DirtyTest < ActiveModel::TestCase
     assert_equal [nil, "Dmitry"], @model.previous_changes["name"]
     assert_equal "Dmitry", @model.changed_attributes["name"]
 
-    @model.reload
+    @model.clear_changes_information
 
     assert_equal ActiveSupport::HashWithIndifferentAccess.new, @model.previous_changes
     assert_equal ActiveSupport::HashWithIndifferentAccess.new, @model.changed_attributes

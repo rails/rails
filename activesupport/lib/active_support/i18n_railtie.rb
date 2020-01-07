@@ -12,6 +12,8 @@ module I18n
     config.i18n.load_path = []
     config.i18n.fallbacks = ActiveSupport::OrderedOptions.new
 
+    config.eager_load_namespaces << I18n
+
     # Set the i18n configuration after initialization since a lot of
     # configuration is still usually done in application initializers.
     config.after_initialize do |app|

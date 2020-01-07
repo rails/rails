@@ -7,10 +7,10 @@ module ActionDispatch
         @name = name
         @browser = Browser.new(options[:using])
         @screen_size = options[:screen_size]
-        @options = options[:options]
+        @options = options[:options] || {}
         @capabilities = capabilities
 
-        @browser.preload
+        @browser.preload unless name == :rack_test
       end
 
       def use
@@ -25,7 +25,7 @@ module ActionDispatch
         end
 
         def register
-          define_browser_capabilities(@browser.capabilities)
+          @browser.configure(&@capabilities)
 
           Capybara.register_driver @name do |app|
             case @name
@@ -34,10 +34,6 @@ module ActionDispatch
             when :webkit then register_webkit(app)
             end
           end
-        end
-
-        def define_browser_capabilities(capabilities)
-          @capabilities.call(capabilities) if @capabilities
         end
 
         def browser_options

@@ -29,7 +29,7 @@ For each controller there is an associated directory in the `app/views` director
 Let's take a look at what Rails does by default when creating a new resource using the scaffold generator:
 
 ```bash
-$ rails generate scaffold article
+$ bin/rails generate scaffold article
       [...]
       invoke  scaffold_controller
       create    app/controllers/articles_controller.rb
@@ -793,13 +793,13 @@ Form helpers are designed to make working with models much easier compared to us
 
 There are two types of form helpers: those that specifically work with model attributes and those that don't. This helper deals with those that work with model attributes; to see an example of form helpers that don't work with model attributes, check the `ActionView::Helpers::FormTagHelper` documentation.
 
-The core method of this helper, `form_for`, gives you the ability to create a form for a model instance; for example, let's say that you have a model Person and want to create a new instance of it:
+The core method of this helper, `form_with`, gives you the ability to create a form for a model instance; for example, let's say that you have a model Person and want to create a new instance of it:
 
 ```html+erb
-# Note: a @person variable will have been created in the controller (e.g. @person = Person.new)
-<%= form_for @person, url: { action: "create" } do |f| %>
-  <%= f.text_field :first_name %>
-  <%= f.text_field :last_name %>
+<!-- Note: a @person variable will have been created in the controller (e.g. @person = Person.new) -->
+<%= form_with model: @person do |form| %>
+  <%= form.text_field :first_name %>
+  <%= form.text_field :last_name %>
   <%= submit_tag 'Create' %>
 <% end %>
 ```
@@ -837,10 +837,10 @@ check_box("article", "validated")
 
 #### fields_for
 
-Creates a scope around a specific model object like `form_for`, but doesn't create the form tags themselves. This makes `fields_for` suitable for specifying additional model objects in the same form:
+Creates a scope around a specific model object. This makes `fields_for` suitable for specifying additional model objects in the same form:
 
 ```html+erb
-<%= form_for @person, url: { action: "update" } do |person_form| %>
+<%= form_with model: @person do |person_form| %>
   First name: <%= person_form.text_field :first_name %>
   Last name : <%= person_form.text_field :last_name %>
 
@@ -859,16 +859,16 @@ file_field(:user, :avatar)
 # => <input type="file" id="user_avatar" name="user[avatar]" />
 ```
 
-#### form_for
+#### form_with
 
-Creates a form and a scope around a specific model object that is used as a base for questioning about values for the fields.
+Creates a form builder to work with. If a `model` argument is specified, form fields will be scoped to that model, and form field values will be prepopulated with corresponding model attributes.
 
 ```html+erb
-<%= form_for @article do |f| %>
-  <%= f.label :title, 'Title' %>:
-  <%= f.text_field :title %><br>
-  <%= f.label :body, 'Body' %>:
-  <%= f.text_area :body %><br>
+<%= form_with model: @article do |form| %>
+  <%= form.label :title, 'Title' %>:
+  <%= form.text_field :title %><br>
+  <%= form.label :body, 'Body' %>:
+  <%= form.text_area :body %><br>
 <% end %>
 ```
 
@@ -1203,7 +1203,7 @@ date_field("user", "dob")
 
 ### FormTagHelper
 
-Provides a number of methods for creating form tags that don't rely on an Active Record object assigned to the template like FormHelper does. Instead, you provide the names and values manually.
+Provides a number of methods for creating form tags that are not scoped to model objects. Instead, you provide the names and values manually.
 
 #### check_box_tag
 
@@ -1230,8 +1230,8 @@ Creates a field set for grouping HTML form elements.
 Creates a file upload field.
 
 ```html+erb
-<%= form_tag({ action: "post" }, multipart: true) do %>
-  <label for="file">File to Upload</label> <%= file_field_tag "file" %>
+<%= form_with url: new_account_avatar_path(@account), multipart: true do %>
+  <label for="file">Avatar:</label> <%= file_field_tag 'avatar' %>
   <%= submit_tag %>
 <% end %>
 ```
@@ -1241,17 +1241,6 @@ Example output:
 ```ruby
 file_field_tag 'attachment'
 # => <input id="attachment" name="attachment" type="file" />
-```
-
-#### form_tag
-
-Starts a form tag that points the action to a URL configured with `url_for_options` just like `ActionController::Base#url_for`.
-
-```html+erb
-<%= form_tag '/articles' do %>
-  <div><%= submit_tag 'Save' %></div>
-<% end %>
-# => <form action="/articles" method="post"><div><input type="submit" name="submit" value="Save" /></div></form>
 ```
 
 #### hidden_field_tag
@@ -1567,7 +1556,7 @@ with the value of the `name`.
 
 would roughly output something like:
 
-```
+```html
 <form method="post" action="/sessions" class="button_to">
   <input type="submit" value="Sign in" />
 </form>

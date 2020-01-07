@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "active_support/core_ext/array/access"
 
 module BareMetalTest
   class BareController < ActionController::Metal

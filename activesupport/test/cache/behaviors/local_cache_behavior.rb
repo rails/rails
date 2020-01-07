@@ -150,6 +150,25 @@ module LocalCacheBehavior
     end
   end
 
+  def test_initial_object_mutation_after_write
+    @cache.with_local_cache do
+      initial = +"bar"
+      @cache.write("foo", initial)
+      initial << "baz"
+      assert_equal "bar", @cache.read("foo")
+    end
+  end
+
+  def test_initial_object_mutation_after_fetch
+    @cache.with_local_cache do
+      initial = +"bar"
+      @cache.fetch("foo") { initial }
+      initial << "baz"
+      assert_equal "bar", @cache.read("foo")
+      assert_equal "bar", @cache.fetch("foo")
+    end
+  end
+
   def test_middleware
     app = lambda { |env|
       result = @cache.write("foo", "bar")

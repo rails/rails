@@ -115,8 +115,8 @@ module ActiveRecord
     #
     # Sets the column to sort records by when no explicit order clause is used
     # during an ordered finder call. Useful when the primary key is not an
-    # auto-incrementing integer, for example when it's a UUID. Note that using
-    # a non-unique column can result in non-deterministic results.
+    # auto-incrementing integer, for example when it's a UUID. Records are subsorted
+    # by the primary key if it exists to ensure deterministic results.
     included do
       mattr_accessor :primary_key_prefix_type, instance_writer: false
 
@@ -415,8 +415,7 @@ module ActiveRecord
         @content_columns ||= columns.reject do |c|
           c.name == primary_key ||
           c.name == inheritance_column ||
-          c.name.end_with?("_id") ||
-          c.name.end_with?("_count")
+          c.name.end_with?("_id", "_count")
         end
       end
 

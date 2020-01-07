@@ -67,8 +67,8 @@ class ActiveSupport::TestCase
       ActiveStorage::Blob.create_and_upload! key: key, io: StringIO.new(data), filename: filename, content_type: content_type, identify: identify, service_name: service_name, record: record
     end
 
-    def create_file_blob(key: nil, filename: "racecar.jpg", content_type: "image/jpeg", metadata: nil, record: nil)
-      ActiveStorage::Blob.create_and_upload! io: file_fixture(filename).open, filename: filename, content_type: content_type, metadata: metadata, record: record
+    def create_file_blob(key: nil, filename: "racecar.jpg", content_type: "image/jpeg", metadata: nil, service_name: nil, record: nil)
+      ActiveStorage::Blob.create_and_upload! io: file_fixture(filename).open, filename: filename, content_type: content_type, metadata: metadata, service_name: service_name, record: record
     end
 
     def create_blob_before_direct_upload(key: nil, filename: "hello.txt", byte_size:, checksum:, content_type: "text/plain", record: nil)
@@ -103,9 +103,8 @@ class ActiveSupport::TestCase
     end
 
     def with_service(service_name)
-      service = ActiveStorage::ServiceRegistry.fetch(service_name)
       previous_service = ActiveStorage::Blob.service
-      ActiveStorage::Blob.service =  service
+      ActiveStorage::Blob.service = ActiveStorage::Blob.services.fetch(service_name)
 
       yield
     ensure

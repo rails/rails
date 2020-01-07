@@ -107,8 +107,8 @@ module ApplicationTests
           ar_tables = lambda { rails("runner", "p ActiveRecord::Base.connection.tables").strip }
           animals_tables = lambda { rails("runner", "p AnimalsBase.connection.tables").strip }
 
-          assert_match '["schema_migrations", "ar_internal_metadata", "books"]', ar_tables[]
-          assert_match '["schema_migrations", "ar_internal_metadata", "dogs"]', animals_tables[]
+          assert_equal '["schema_migrations", "ar_internal_metadata", "books"]', ar_tables[]
+          assert_equal '["schema_migrations", "ar_internal_metadata", "dogs"]', animals_tables[]
         end
       end
 
@@ -228,6 +228,23 @@ module ApplicationTests
         require "#{app_path}/config/environment"
         ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
           db_create_and_drop_namespace db_config.spec_name, db_config.database
+        end
+      end
+
+      test "db:migrate set back connection to its original state" do
+        Dir.chdir(app_path) do
+          dummy_task = <<~RUBY
+            task foo: :environment do
+              Book.first
+            end
+          RUBY
+          app_file("Rakefile", dummy_task, "a+")
+
+          generate_models_for_animals
+
+          assert_nothing_raised do
+            rails("db:migrate", "foo")
+          end
         end
       end
 
@@ -363,7 +380,7 @@ module ApplicationTests
         RUBY
 
         output = rails("db:seed")
-        assert_includes output, "db/development.sqlite3"
+        assert_equal output, "db/development.sqlite3"
       ensure
         ENV["RAILS_ENV"] = @old_rails_env
         ENV["RACK_ENV"] = @old_rack_env

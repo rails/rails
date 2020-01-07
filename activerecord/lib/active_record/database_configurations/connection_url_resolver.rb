@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/enumerable"
+
 module ActiveRecord
   class DatabaseConfigurations
     # Expands a connection string into a hash.
@@ -55,7 +57,7 @@ module ActiveRecord
         #   "localhost"
         #   # => {}
         def query_hash
-          Hash[(@query || "").split("&").map { |pair| pair.split("=") }].symbolize_keys
+          Hash[(@query || "").split("&").map { |pair| pair.split("=", 2) }].symbolize_keys
         end
 
         def raw_config

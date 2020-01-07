@@ -226,12 +226,6 @@ class EachTest < ActiveRecord::TestCase
     assert_equal default_scope.pluck(:id).sort, posts.map(&:id).sort
   end
 
-  def test_find_in_batches_should_not_modify_passed_options
-    assert_nothing_raised do
-      Post.find_in_batches({ batch_size: 42, start: 1 }.freeze) { }
-    end
-  end
-
   def test_find_in_batches_should_use_any_column_as_primary_key
     nick_order_subscribers = Subscriber.order("nick asc")
     start_nick = nick_order_subscribers.second.nick
@@ -442,12 +436,6 @@ class EachTest < ActiveRecord::TestCase
       posts.concat(relation)
     end
     assert_equal default_scope.pluck(:id).sort, posts.map(&:id).sort
-  end
-
-  def test_in_batches_should_not_modify_passed_options
-    assert_nothing_raised do
-      Post.in_batches({ of: 42, start: 1 }.freeze) { }
-    end
   end
 
   def test_in_batches_should_use_any_column_as_primary_key
