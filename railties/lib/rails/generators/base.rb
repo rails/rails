@@ -253,6 +253,7 @@ module Rails
         # application or Ruby on Rails.
         def class_collisions(*class_names)
           return unless behavior == :invoke
+          return if options.force?
 
           class_names.flatten.each do |class_name|
             class_name = class_name.to_s
@@ -265,8 +266,8 @@ module Rails
 
             if last && last.const_defined?(last_name.camelize, false)
               raise Error, "The name '#{class_name}' is either already used in your application " \
-                           "or reserved by Ruby on Rails. Please choose an alternative and run "  \
-                           "this generator again."
+                           "or reserved by Ruby on Rails. Please choose an alternative or use "   \
+                           "--force to skip this check and run this generator again."
             end
           end
         end

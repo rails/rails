@@ -1,3 +1,7 @@
+* Generators that inherit from NamedBase respect `--force` option
+
+  *Josh Brody*
+
 *   Regression fix: The Rake task `zeitwerk:check` supports eager loaded
     namespaces which do not have eager load paths, like the recently added
     `i18n`. These namespaces are only required to respond to `eager_load!`.
