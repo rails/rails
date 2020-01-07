@@ -1,6 +1,6 @@
-* Generators that inherit from NamedBase respect `--force` option
+*   Generators that inherit from NamedBase respect `--force` option
 
-  *Josh Brody*
+    *Josh Brody*
 
 *   Regression fix: The Rake task `zeitwerk:check` supports eager loaded
     namespaces which do not have eager load paths, like the recently added
