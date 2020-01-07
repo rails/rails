@@ -161,7 +161,7 @@ module AbstractController
             mod_name = file_name.camelize
             begin
               mod_name.constantize
-            rescue LoadError
+            rescue NameError
               # dependencies.rb gives a similar error message but its wording is
               # not as clear because it mentions autoloading. To the user all it
               # matters is that a helper module couldn't be loaded, autoloading
