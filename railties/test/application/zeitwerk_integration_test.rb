@@ -202,8 +202,8 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     boot
 
     # Preconditions.
-    assert !$zeitwerk_integration_test_user
-    assert !$zeitwerk_integration_test_post
+    assert_not $zeitwerk_integration_test_user
+    assert_not $zeitwerk_integration_test_post
 
     Rails.application.eager_load!
 
