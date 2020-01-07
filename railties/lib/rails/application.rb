@@ -88,6 +88,9 @@ module Rails
     autoload :Railties,               "rails/engine/railties"
     autoload :RoutesReloader,         "rails/application/routes_reloader"
 
+    EAGER_LOAD_MUTEX = Mutex.new
+    private_constant :EAGER_LOAD_MUTEX
+
     class << self
       def inherited(base)
         super
@@ -128,6 +131,7 @@ module Rails
     def initialize(initial_variable_values = {}, &block)
       super()
       @initialized       = false
+      @eager_loaded      = false
       @reloaders         = []
       @routes_reloader   = nil
       @app_env_config    = nil
@@ -577,6 +581,26 @@ module Rails
         raise ArgumentError, "`secret_key_base` for #{Rails.env} environment must be a type of String`"
       else
         raise ArgumentError, "Missing `secret_key_base` for '#{Rails.env}' environment, set this string with `rails credentials:edit`"
+      end
+    end
+
+    def eager_load!
+      EAGER_LOAD_MUTEX.synchronize do
+        return if @eager_loaded
+
+        ActiveSupport.run_load_hooks(:before_eager_load, self)
+
+        # Checks defined?(Zeitwerk) instead of zeitwerk_enabled? because we want
+        # to eager load any dependency managed by Zeitwerk regardless of the
+        # autoloading mode of the application.
+        Zeitwerk::Loader.eager_load_all if defined?(Zeitwerk)
+
+        super unless Rails.autoloaders.zeitwerk_enabled?
+        config.eager_load_namespaces.each do |namespace|
+          namespace.eager_load! unless namespace == self
+        end
+
+        @eager_loaded = true
       end
     end
 

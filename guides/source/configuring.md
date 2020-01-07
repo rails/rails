@@ -90,7 +90,7 @@ application. Accepts a valid week day symbol (e.g. `:monday`).
 
 * `config.disable_sandbox` controls whether or not someone can start a console in sandbox mode. This is helpful to avoid a long running session of sandbox console, that could lead a database server to run out of memory. Defaults to false.
 
-* `config.eager_load` when `true`, eager loads all registered `config.eager_load_namespaces`. This includes your application, engines, Rails frameworks, and any other registered namespace.
+* `config.eager_load` when `true`, eager loads everything in `config.eager_load_namespaces`. This includes your application, engines, Rails frameworks, and any other registered namespace. Please, note that 3rd party code can eager load regardless of this config setting.
 
 * `config.eager_load_namespaces` registers namespaces that are eager loaded when `config.eager_load` is `true`. All namespaces in the list must respond to the `eager_load!` method.
 
@@ -1325,7 +1325,7 @@ Rails has 5 initialization events which can be hooked into (listed in the order 
 
 * `to_prepare`: Run after the initializers are run for all Railties (including the application itself), but before eager loading and the middleware stack is built. More importantly, will run upon every request in `development`, but only once (during boot-up) in `production` and `test`.
 
-* `before_eager_load`: This is run directly before eager loading occurs, which is the default behavior for the `production` environment and not for the `development` environment.
+* `before_eager_load`: This is run directly before eager loading occurs, which is the default behavior for the `production` environment and not for the `development` environment. Since this is an initialization event,the hook is not invoked if the application is eager loaded manually by calling `eager_load!` directly.
 
 * `after_initialize`: Run directly after the initialization of the application, after the application initializers in `config/initializers` are run.
 
