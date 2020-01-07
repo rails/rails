@@ -347,7 +347,7 @@ module ActiveRecord
         @association_depth ||= {}
         @association_depth.fetch(model.name) do |key|
           stack << model
-          depths = model.reflect_on_all_associations(:belongs_to).lazy
+          depths = model.reflect_on_all_associations(:belongs_to)
             .select { |belonging| belonging.options[:touch] }
             .map { |belonging|
               if belonging.polymorphic?
