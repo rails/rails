@@ -372,7 +372,7 @@ module ActiveRecord
       end
 
       def <=>(other)
-        by_depth(other) || by_table(other) || by_id(other) || 0
+        by_depth(other) || by_table(other) || by_id(other)
       end
 
       private
@@ -385,7 +385,7 @@ module ActiveRecord
         end
 
         def by_id(other)
-          (object.id <=> other.object.id)&.nonzero?
+          (object.id <=> other.object.id) || 0
         end
     end
   end
