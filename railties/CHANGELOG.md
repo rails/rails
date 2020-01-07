@@ -1,3 +1,15 @@
+*   `Rails::Application#eager_load!` is available again to load application code
+    manually as it was possible in previous versions.
+
+    Please, note this is not integrated with the whole eager loading logic that
+    runs when Rails boots with eager loading enabled, you can think of this
+    method as a vanilla recursive code loader.
+
+    This ability has been restored because there are some use cases for it, such
+    as indexers that need to have all application classes and modules in memory.
+
+    *Xavier Noria*
+
 *   Generators that inherit from NamedBase respect `--force` option
 
     *Josh Brody*
