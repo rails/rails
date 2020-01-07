@@ -1,10 +1,10 @@
-* Generators that inherit from NamedBase respect `--force` option
+*   Generators that inherit from NamedBase respect `--force` option
 
-  *Josh Brody*
+    *Josh Brody*
 
 *   Allow configuration of eager_load behaviour for rake environment:
 
-        `config.rake_eager_load`
+        config.rake_eager_load
 
     Defaults to `false` as per previous behaviour.
 
@@ -13,7 +13,8 @@
 *   Ensure Rails migration generator respects system-wide primary key config
 
     When rails is configured to use a specific primary key type:
-    ```
+
+    ```ruby
     config.generators do |g|
       g.orm :active_record, primary_key_type: :uuid
     end
@@ -21,20 +22,22 @@
 
     Previously:
 
+    ```
     $ bin/rails g migration add_location_to_users location:references
+    ```
 
     The references line in the migration would not have `type: :uuid`.
     This change causes the type to be applied appropriately.
 
     *Louis-Michel Couture* *Dermot Haughey*
 
-*  Deprecate `Rails::DBConsole#config`
+*   Deprecate `Rails::DBConsole#config`
 
-  `Rails::DBConsole#config` is deprecated without replacement. Use `Rails::DBConsole.db_config.configuration_hash` instead.
+    `Rails::DBConsole#config` is deprecated without replacement. Use `Rails::DBConsole.db_config.configuration_hash` instead.
 
     *Eileen M. Uchitelle*, *John Crepezzi*
 
-* `Rails.application.config_for` merges shared configuration deeply.
+*   `Rails.application.config_for` merges shared configuration deeply.
 
     ```yaml
     # config/example.yml
