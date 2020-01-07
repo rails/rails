@@ -497,6 +497,15 @@ module Rails
       ordered_railties.flatten - [self]
     end
 
+    # Eager loads the application code.
+    def eager_load!
+      if Rails.autoloaders.zeitwerk_enabled?
+        Rails.autoloaders.each(&:eager_load)
+      else
+        super
+      end
+    end
+
   protected
     alias :build_middleware_stack :app
 
