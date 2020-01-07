@@ -1,3 +1,7 @@
+* Generators that inherit from NamedBase respect `--force` option
+
+  *Josh Brody*
+
 *   Allow configuration of eager_load behaviour for rake environment:
 
         `config.rake_eager_load`
