@@ -30,6 +30,15 @@ module Rails
     #
     #     config.middleware.swap ActionDispatch::Flash, Magical::Unicorns
     #
+    # Middlewares can be moved from one place to another:
+    #
+    #     config.middleware.move_before ActionDispatch::Flash, Magical::Unicorns
+    #
+    # This will move the <tt>Magical::Unicorns</tt> middleware before the
+    # <tt>ActionDispatch::Flash</tt>. You can also move it after:
+    #
+    #     config.middleware.move_after ActionDispatch::Flash, Magical::Unicorns
+    #
     # And finally they can also be removed from the stack completely:
     #
     #     config.middleware.delete ActionDispatch::Flash
@@ -63,6 +72,16 @@ module Rails
       ruby2_keywords(:use) if respond_to?(:ruby2_keywords, true)
 
       def delete(*args, &block)
+        @delete_operations << -> middleware { middleware.send(__method__, *args, &block) }
+      end
+
+      def move_before(*args, &block)
+        @delete_operations << -> middleware { middleware.send(__method__, *args, &block) }
+      end
+
+      alias :move :move_before
+
+      def move_after(*args, &block)
         @delete_operations << -> middleware { middleware.send(__method__, *args, &block) }
       end
 
