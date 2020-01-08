@@ -66,5 +66,6 @@ class ActionController::TestSessionTest < ActiveSupport::TestCase
   def test_session_id
     session = ActionController::TestSession.new
     assert_instance_of String, session.id.public_id
+    assert_equal(session.id.public_id, session["session_id"])
   end
 end
