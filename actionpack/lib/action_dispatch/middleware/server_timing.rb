@@ -21,17 +21,11 @@ module ActionDispatch
 
       header_info = []
       events.group_by(&:name).each do |event_name, events_collection|
-        header_info << "#{event_name};dur=#{duration_sum(events_collection)}"
+        header_info << "#{event_name};dur=#{events_collection.sum(&:duration)}"
       end
       headers[SERVER_TIMING_HEADER] = header_info.join(", ")
 
       [ status, headers, body ]
     end
-
-    private
-
-      def duration_sum(events)
-        events.reduce(0) { |sum, event| sum + event.duration }
-      end
   end
 end
