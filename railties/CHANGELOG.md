@@ -1,3 +1,21 @@
+*   Introduce middleware move operations
+
+    With this change, you no longer need to delete and reinsert a middleware to
+    move it from one place to another in the stack:
+
+    ```ruby
+    config.middleware.move_before ActionDispatch::Flash, Magical::Unicorns
+    ```
+
+    This will move the `Magical::Unicorns` middleware before
+    `ActionDispatch::Flash`. You can also move it after with:
+
+    ```ruby
+    config.middleware.move_after ActionDispatch::Flash, Magical::Unicorns
+    ```
+
+    *Genadi Samokovarov*
+
 *   Generators that inherit from NamedBase respect `--force` option
 
     *Josh Brody*

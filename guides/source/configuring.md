@@ -317,6 +317,19 @@ Middlewares can also be completely swapped out and replaced with others:
 config.middleware.swap ActionController::Failsafe, Lifo::Failsafe
 ```
 
+Middlewares can be moved from one place to another:
+
+```ruby
+config.middleware.move_before ActionDispatch::Flash, Magical::Unicorns
+```
+
+This will move the `Magical::Unicorns` middleware before
+`ActionDispatch::Flash`. You can also move it after:
+
+```ruby
+config.middleware.move_after ActionDispatch::Flash, Magical::Unicorns
+```
+
 They can also be removed from the stack completely:
 
 ```ruby
