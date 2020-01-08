@@ -39,7 +39,6 @@ class ServerTimingTest < ActionDispatch::IntegrationTest
   end
 
   private
-
     def with_test_route_set
       with_routing do |set|
         set.draw do
