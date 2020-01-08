@@ -43,6 +43,12 @@ class ActionController::TestSessionTest < ActiveSupport::TestCase
     assert_equal %w(1 2), session.values
   end
 
+  def test_dig
+    session = ActionController::TestSession.new(one: { two: { three: "3" } })
+    assert_equal("3", session.dig(:one, :two, :three))
+    assert_nil(session.dig(:ruby, :on, :rails))
+  end
+
   def test_fetch_returns_default
     session = ActionController::TestSession.new(one: "1")
     assert_equal("2", session.fetch(:two, "2"))
