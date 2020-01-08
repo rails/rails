@@ -302,6 +302,12 @@ module ActiveSupport
           end
         end
       end
+    rescue LoadError => error
+      if error.message =~ /\AUnable to autoload constant .*, expected .* to define it\z/ &&
+          !error.message.include?(camel_cased_word.underscore)
+        error = NameError.new("uninitialized constant #{camel_cased_word}", camel_cased_word.to_sym)
+      end
+      raise error
     end
 
     # Tries to find a constant with the name specified in the argument string.

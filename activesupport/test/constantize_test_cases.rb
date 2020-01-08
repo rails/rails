@@ -80,6 +80,15 @@ module ConstantizeTestCases
       yield("Prepend::SubClassConflict")
       assert_equal "constant", defined?(Prepend::SubClassConflict)
     end
+
+    with_loading("autoloading_fixtures", "autoloading_fixtures/html") do
+      # file autoloading_fixtures/html/some_class.rb exsits
+      # file autoloading_fixtures/class_folder.rb exsits
+      # Not any file in autoload pathes will match class_folder/some_class
+      e = assert_raise(NameError) { "ClassFolder::SomeClass".constantize }
+      assert_equal "uninitialized constant ClassFolder::SomeClass", e.message
+      assert_equal :"ClassFolder::SomeClass", e.name
+    end
   end
 
   def run_safe_constantize_tests_on

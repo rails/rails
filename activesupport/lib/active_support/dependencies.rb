@@ -547,7 +547,7 @@ module ActiveSupport #:nodoc:
             log("constant #{qualified_name} autoloaded from #{expanded}.rb")
             return from_mod.const_get(const_name)
           else
-            raise NameError, "Unable to autoload constant #{qualified_name}, expected #{file_path} to define it"
+            raise LoadError, "Unable to autoload constant #{qualified_name}, expected #{file_path} to define it"
           end
         end
       elsif mod = autoload_module!(from_mod, const_name, qualified_name, path_suffix)
