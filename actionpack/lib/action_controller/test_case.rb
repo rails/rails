@@ -202,6 +202,11 @@ module ActionController
       clear
     end
 
+    def dig(*keys)
+      keys = keys.map.with_index { |key, i| i.zero? ? key.to_s : key }
+      @data.dig(*keys)
+    end
+
     def fetch(key, *args, &block)
       @data.fetch(key.to_s, *args, &block)
     end
