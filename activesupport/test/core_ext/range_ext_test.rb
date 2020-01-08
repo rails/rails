@@ -191,9 +191,21 @@ class RangeTest < ActiveSupport::TestCase
     end
   end
 
+  def test_cover_on_time_with_zone
+    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Eastern Time (US & Canada)"], Time.utc(2006, 11, 28, 10, 30))
+    assert ((twz - 1.hour)..twz).cover?(twz)
+  end
+
   def test_include_on_time_with_zone
     twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Eastern Time (US & Canada)"], Time.utc(2006, 11, 28, 10, 30))
     assert ((twz - 1.hour)..twz).include?(twz)
+  end
+
+  def test_include_on_time_with_zone_deprecation
+    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Eastern Time (US & Canada)"], Time.utc(2006, 11, 28, 10, 30))
+    assert_deprecated do
+      ((twz - 1.hour)..twz).include?(twz)
+    end
   end
 
   def test_case_equals_on_time_with_zone

@@ -1,3 +1,10 @@
+*   Deprecate using `Range#include?` method to check the inclusion of a value
+    in a date time range. It is recommended to use `Range#cover?` method
+    instead of `Range#include?` to check the inclusion of a value
+    in a date time range.
+
+    *Vishal Telangre*
+
 *   Support added for a `round_mode` parameter, in all number helpers. (See: `BigDecimal::mode`.)
 
     ```ruby
