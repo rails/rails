@@ -346,7 +346,6 @@ module ActiveRecord
       def self.association_depth(model, stack: [])
         @association_depth ||= {}
         @association_depth.fetch(model.name) do |key|
-          stack << model
           depths = model.reflect_on_all_associations(:belongs_to)
             .select { |belonging| belonging.options[:touch] }
             .map { |belonging|
@@ -355,7 +354,7 @@ module ActiveRecord
               elsif stack.include?(belonging.klass) || belonging.table_name == model.table_name
                 0
               else
-                association_depth(belonging.klass, stack: stack) + 1
+                association_depth(belonging.klass, stack: [model].concat(stack)) + 1
               end
             }
 
