@@ -303,8 +303,8 @@ module ActiveSupport
         end
       end
     rescue LoadError => error
-      if error.message =~ /\AUnable to autoload constant .*, expected .* to define it\z/ &&
-          !error.message.include?(camel_cased_word.underscore)
+      if error.message =~ /\AUnable to autoload constant .*, expected (.*) to define it\z/ &&
+          !$1.include?(camel_cased_word.underscore)
         error = NameError.new("uninitialized constant #{camel_cased_word}", camel_cased_word.to_sym)
       end
       raise error
