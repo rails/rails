@@ -206,6 +206,7 @@ module ActiveRecord
     # (unless the INSERT -> DELETE -> SELECT race condition is triggered), but if creation was attempted
     # and failed due to validation errors it won't be persisted, you get what #create returns in
     # such situation.
+    # This means an uniquness validation over the unique constraint on the table cannot be set.
     def create_or_find_by(attributes, &block)
       transaction(requires_new: true) { create(attributes, &block) }
     rescue ActiveRecord::RecordNotUnique
