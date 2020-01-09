@@ -518,6 +518,8 @@ module ActiveRecord
 
       # Add a new +type+ column named +column_name+ to +table_name+.
       #
+      # See {ActiveRecord::ConnectionAdapters::TableDefinition.column}[rdoc-ref:ActiveRecord::ConnectionAdapters::TableDefinition#column].
+      #
       # The +type+ parameter is normally one of the migrations native types,
       # which is one of the following:
       # <tt>:primary_key</tt>, <tt>:string</tt>, <tt>:text</tt>,
@@ -530,12 +532,17 @@ module ActiveRecord
       # agnostic and should usually be avoided.
       #
       # Available options are (none of these exists by default):
+      # * <tt>:comment</tt> -
+      #   Specifies the comment for the column. This option is ignored by some backends.
+      # * <tt>:collation</tt> -
+      #   Specifies the collation for a <tt>:string</tt> or <tt>:text</tt> column.
+      #   If not specified, the column will have the same collation as the table.
+      # * <tt>:default</tt> -
+      #   The column's default value. Use +nil+ for +NULL+.
       # * <tt>:limit</tt> -
       #   Requests a maximum column length. This is the number of characters for a <tt>:string</tt> column
       #   and number of bytes for <tt>:text</tt>, <tt>:binary</tt>, <tt>:blob</tt>, and <tt>:integer</tt> columns.
       #   This option is ignored by some backends.
-      # * <tt>:default</tt> -
-      #   The column's default value. Use +nil+ for +NULL+.
       # * <tt>:null</tt> -
       #   Allows or disallows +NULL+ values in the column.
       # * <tt>:precision</tt> -

@@ -251,7 +251,9 @@ class AddUserRefToProducts < ActiveRecord::Migration[6.0]
 end
 ```
 
-This migration will create a `user_id` column and appropriate index.
+This migration will create a `user_id` column, [references](#references) are a
+shorthand for creating columns, indexes, foreign keys or even polymorphic
+association columns.
 
 There is also a generator which will produce join tables if `JoinTable` is part of the name:
 
@@ -347,8 +349,7 @@ create_table :products do |t|
 end
 ```
 
-which creates a `products` table with a column called `name` (and as discussed
-below, an implicit `id` column).
+which creates a `products` table with a column called `name`.
 
 By default, `create_table` will create a primary key called `id`. You can change
 the name of the primary key with the `:primary_key` option (don't forget to
@@ -363,6 +364,16 @@ end
 ```
 
 will append `ENGINE=BLACKHOLE` to the SQL statement used to create the table.
+
+An index can be created on the columns created within the `create_table` block
+by passing true or an options hash to the `:index` option:
+
+```ruby
+create_table :users do |t|
+  t.string :name, index: true
+  t.string :email, index: { unique: true, name: 'unique_emails' }
+end
+```
 
 Also you can pass the `:comment` option with any description for the table
 that will be stored in database itself and can be viewed with database administration
@@ -469,22 +480,64 @@ example, this would make your migration irreversible.
 
 Column modifiers can be applied when creating or changing a column:
 
-* `limit`        Sets the maximum size of the `string/text/binary/integer` fields.
-* `precision`    Defines the precision for the `decimal` fields, representing the
-total number of digits in the number.
-* `scale`        Defines the scale for the `decimal` fields, representing the
-number of digits after the decimal point.
-* `polymorphic`  Adds a `type` column for `belongs_to` associations.
-* `null`         Allows or disallows `NULL` values in the column.
+* `comment`      Adds a comment for the column.
+* `collation`    Specifies the collation for a `string` or `text` column.
 * `default`      Allows to set a default value on the column. Note that if you
 are using a dynamic value (such as a date), the default will only be calculated
-the first time (i.e. on the date the migration is applied).
-* `comment`      Adds a comment for the column.
+the first time (i.e. on the date the migration is applied). Use `nil` for `NULL`.
+* `limit`        Sets the maximum number of characters for a `string` column
+and the maximum number of bytes for `text/binary/integer` columns.
+* `null`         Allows or disallows `NULL` values in the column.
+* `precision`    Specifies the precision for `decimal/numeric/datetime/time` columns.
+* `scale`        Specifies the scale for the `decimal` and `numeric` columns,
+representing the number of digits after the decimal point.
+
+NOTE: For `add_column` or `change_column` there is no option for adding indexes.
+They need to be added separately using `add_index`.
 
 Some adapters may support additional options; see the adapter specific API docs
 for further information.
 
 NOTE: `null` and `default` cannot be specified via command line.
+
+### References
+
+The `add_reference` method allows the creation of an appropriately named column.
+
+```ruby
+add_reference :users, :role
+```
+
+This migration will create a `role_id` column in the users table. It creates an
+index for this column as well, unless explicitly told not with the
+`index: false` option:
+
+```ruby
+add_reference :users, :role, index: false
+```
+
+The method `add_belongs_to` is an alias of `add_reference`.
+
+```ruby
+add_belongs_to :taggings, :taggable, polymorphic: true
+```
+
+The polymorphic option will create two columns on the taggings table which can
+be used for polymorphic assocations: `taggable_type` and `taggable_id`.
+
+A foreign key can be created with the the `foreign_key` option.
+
+```ruby
+add_reference :users, :role, foreign_key: true
+```
+
+For more `add_reference` options, visit the [API documentation](https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_reference).
+
+References can also be removed:
+
+```ruby
+remove_reference :products, :user, foreign_key: true, index: false
+```
 
 ### Foreign Keys
 
