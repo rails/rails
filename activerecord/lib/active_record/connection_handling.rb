@@ -115,12 +115,10 @@ module ActiveRecord
 
         with_handler(role, &blk)
       elsif role
-        if role == writing_role
-          with_handler(role.to_sym) do
-            connection_handler.while_preventing_writes(prevent_writes, &blk)
-          end
-        else
-          with_handler(role.to_sym, &blk)
+        prevent_writes = true if role == reading_role
+
+        with_handler(role.to_sym) do
+          connection_handler.while_preventing_writes(prevent_writes, &blk)
         end
       else
         raise ArgumentError, "must provide a `database` or a `role`."
