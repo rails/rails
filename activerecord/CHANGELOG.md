@@ -1,3 +1,9 @@
+*   Deprecate "primary" as the connection_specification_name for ActiveRecord::Base
+
+    `"primary"` has been deprecated as the `connection_specification_name` for `ActiveRecord::Base` in favor of using `"ActiveRecord::Base"`. This change affects calls to `ActiveRecord::Base.connection_handler.retrieve_connection` and `ActiveRecord::Base.connection_handler.remove_connection`. If you're calling these methods with `"primary"`, please switch to `"ActiveRecord::Base"`.
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
 *   Add `ActiveRecord::Validations::NumericalityValidator` with
     support for casting floats using a database columns' precision value.
 

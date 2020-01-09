@@ -181,7 +181,7 @@ module ActiveRecord
     # Return the specification name from the current class or its parent.
     def connection_specification_name
       if !defined?(@connection_specification_name) || @connection_specification_name.nil?
-        return self == Base ? "primary" : superclass.connection_specification_name
+        return self == Base ? Base.name : superclass.connection_specification_name
       end
       @connection_specification_name
     end
@@ -249,7 +249,7 @@ module ActiveRecord
         raise "Anonymous class is not allowed." unless name
 
         config_or_env ||= DEFAULT_ENV.call.to_sym
-        pool_name = primary_class? ? "primary" : name
+        pool_name = primary_class? ? Base.name : name
         self.connection_specification_name = pool_name
 
         db_config = Base.configurations.resolve(config_or_env, pool_name)
