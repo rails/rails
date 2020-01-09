@@ -384,16 +384,28 @@ class ActionsTest < Rails::Generators::TestCase
     assert_file "app/models/my_model.rb", /MyModel/
   end
 
-  test "generate with concatenated arguments" do
+  test "generate should raise on failure" do
     run_generator
-    action :generate, "model MyModel name:string"
+    message = capture(:stderr) do
+      assert_raises SystemExit do
+        action :generate, "model", "1234567890"
+      end
+    end
+    assert_match(/1234567890/, message)
+  end
+
+  test "generate with inline option" do
+    run_generator
+    assert_not_called(generator, :run) do
+      action :generate, "model", "MyModel", inline: true
+    end
     assert_file "app/models/my_model.rb", /MyModel/
   end
 
-  test "generate should raise on failure" do
+  test "generate with inline option should raise on failure" do
     run_generator
     error = assert_raises do
-      action :generate, "model", "1234567890"
+      action :generate, "model", "1234567890", inline: true
     end
     assert_match(/1234567890/, error.message)
   end
@@ -501,6 +513,22 @@ class ActionsTest < Rails::Generators::TestCase
         action :rails_command, "invalid", abort_on_failure: true
       end
     end
+  end
+
+  test "rails_command with inline option" do
+    run_generator
+    assert_not_called(generator, :run) do
+      action :rails_command, "generate model MyModel", inline: true
+    end
+    assert_file "app/models/my_model.rb", /MyModel/
+  end
+
+  test "rails_command with inline option should raise on failure" do
+    run_generator
+    error = assert_raises do
+      action :rails_command, "generate model 1234567890", inline: true
+    end
+    assert_match(/1234567890/, error.message)
   end
 
   test "route should add route" do

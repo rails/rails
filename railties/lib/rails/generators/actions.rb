@@ -222,17 +222,13 @@ module Rails
       # the generator or an Array that is joined.
       #
       #   generate(:authenticated, "user session")
-      def generate(*args)
+      def generate(what, *args)
+        log :generate, what
+
         options = args.extract_options!
-        args = Shellwords.split(args.join(" "))
+        options[:abort_on_failure] = !options[:inline]
 
-        log :generate, args.first
-
-        in_root do
-          silence_warnings do
-            ::Rails::Command.invoke("generate", args, options)
-          end
-        end
+        rails_command "generate #{what} #{args.join(" ")}", options
       end
 
       # Runs the supplied rake task (invoked with 'rake ...')
@@ -252,7 +248,17 @@ module Rails
       #   rails_command("gems:install", sudo: true)
       #   rails_command("gems:install", capture: true)
       def rails_command(command, options = {})
-        execute_command :rails, command, options
+        if options[:inline]
+          log :rails, command
+          command, *args = Shellwords.split(command)
+          in_root do
+            silence_warnings do
+              ::Rails::Command.invoke(command, args, options)
+            end
+          end
+        else
+          execute_command :rails, command, options
+        end
       end
 
       # Make an entry in Rails routing file <tt>config/routes.rb</tt>
