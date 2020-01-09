@@ -120,7 +120,9 @@ class Class
 
       if instance_predicate
         class_methods << "silence_redefinition_of_method def #{name}?; !!self.#{name}; end"
-        methods       << "silence_redefinition_of_method def #{name}?; !!self.#{name}; end"
+        if instance_reader
+          methods << "silence_redefinition_of_method def #{name}?; !!self.#{name}; end"
+        end
       end
     end
 
