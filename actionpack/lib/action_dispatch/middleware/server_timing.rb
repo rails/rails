@@ -19,9 +19,8 @@ module ActionDispatch
       status, headers, body = @app.call(env)
       ActiveSupport::Notifications.unsubscribe(subscriber)
 
-      header_info = []
-      events.group_by(&:name).each do |event_name, events_collection|
-        header_info << "#{event_name};dur=#{events_collection.sum(&:duration)}"
+      header_info = events.group_by(&:name).map do |event_name, events_collection|
+        "#{event_name};dur=#{events_collection.sum(&:duration)}"
       end
       headers[SERVER_TIMING_HEADER] = header_info.join(", ")
 
