@@ -1,3 +1,8 @@
+*   Deprecate `Rails.application.config.assets.precompile`
+    in favor of `app/assets/config/manifest.js`
+
+    *Younes Serraj*
+
 *   Introduce middleware move operations
 
     With this change, you no longer need to delete and reinsert a middleware to
