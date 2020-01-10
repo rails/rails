@@ -154,23 +154,31 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_no_directory "test"
   end
 
-  def test_database_entry_is_generated_for_sqlite3_by_default_in_full_mode
-    run_generator([destination_root, "--full"])
-    assert_file "test/dummy/config/database.yml", /sqlite/
-    assert_file "bukkits.gemspec", /sqlite3/
-  end
-
-  def test_config_another_database
-    run_generator([destination_root, "-d", "mysql", "--full"])
-    assert_file "test/dummy/config/database.yml", /mysql/
-    assert_file "bukkits.gemspec", /mysql/
-  end
-
-  def test_dont_generate_development_dependency
-    run_generator [destination_root, "--skip-active-record"]
-
+  def test_no_development_dependencies_in_gemspec
+    run_generator
     assert_file "bukkits.gemspec" do |contents|
-      assert_no_match(/s\.add_development_dependency "sqlite3"/, contents)
+      assert_no_match(/add_development_dependency/, contents)
+    end
+  end
+
+  def test_default_database_dependency_is_sqlite
+    run_generator
+    assert_file "test/dummy/config/database.yml", /sqlite/
+    assert_file "Gemfile" do |contents|
+      assert_match_sqlite3(contents)
+    end
+  end
+
+  def test_custom_database_dependency
+    run_generator [destination_root, "-d", "mysql"]
+    assert_file "test/dummy/config/database.yml", /mysql/
+    assert_file "Gemfile", /mysql/
+  end
+
+  def test_skip_database_dependency
+    run_generator [destination_root, "--skip-active-record"]
+    assert_file "Gemfile" do |contents|
+      assert_no_match(/sqlite/, contents)
     end
   end
 
@@ -495,7 +503,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile" do |contents|
       assert_no_match("gemspec", contents)
       assert_match(/gem 'rails'/, contents)
-      assert_match_sqlite3(contents)
     end
   end
 
@@ -505,7 +512,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile" do |contents|
       assert_no_match("gemspec", contents)
       assert_match(/gem 'rails'/, contents)
-      assert_match_sqlite3(contents)
     end
   end
 
