@@ -62,4 +62,10 @@ class ActionController::TestSessionTest < ActiveSupport::TestCase
     session = ActionController::TestSession.new(one: "1")
     assert_equal(2, session.fetch("2") { |key| key.to_i })
   end
+
+  def test_session_id
+    session = ActionController::TestSession.new
+    assert_instance_of String, session.id.public_id
+    assert_equal(session.id.public_id, session["session_id"])
+  end
 end
