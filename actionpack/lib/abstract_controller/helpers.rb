@@ -155,10 +155,15 @@ module AbstractController
             mod_name = file_name.camelize
             begin
               mod_name.constantize
-            rescue NameError, LoadError => error
-              if error.message.match?(/Unable to autoload constant .*, expected .* to define it/i)
+            rescue *[(Zeitwerk::NameError if defined?(Zeitwerk::NameError))].compact
+              raise NameError, "Couldn't find #{mod_name}, expected it to be defined in helpers/#{file_name}.rb"
+            rescue LoadError => error
+              if error.path
+                raise AbstractController::Helpers::MissingHelperError.new(error, file_name)
+              else # This is a "classic" autoloader error
                 raise NameError, "Couldn't find #{mod_name}, expected it to be defined in helpers/#{file_name}.rb"
               end
+            rescue NameError => error
               raise AbstractController::Helpers::MissingHelperError.new(error, file_name)
             end
           when Module
