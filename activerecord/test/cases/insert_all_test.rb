@@ -155,9 +155,10 @@ class InsertAllTest < ActiveRecord::TestCase
   def test_insert_all_and_upsert_all_with_index_finding_options
     skip unless supports_insert_conflict_target?
 
-    assert_difference "Book.count", +4 do
+    assert_difference "Book.count", +5 do
       Book.insert_all [{ name: "Rework", author_id: 1 }], unique_by: :isbn
       Book.insert_all [{ name: "Remote", author_id: 1 }], unique_by: %i( author_id name )
+      Book.insert_all [{ name: "Resort", author_id: 1 }], unique_by: %i( name author_id )
       Book.insert_all [{ name: "Renote", author_id: 1 }], unique_by: :index_books_on_isbn
       Book.insert_all [{ name: "Recoat", author_id: 1 }], unique_by: :id
     end
