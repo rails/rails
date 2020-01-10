@@ -1,3 +1,7 @@
+*   Add scale support to `ActiveRecord::Validations::NumericalityValidator`.
+
+    *Gannon McGibbon*
+
 *   Find orphans by looking for missing relations through chaining `where.missing`:
 
     Before:
