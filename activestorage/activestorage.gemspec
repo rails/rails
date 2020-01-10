@@ -37,4 +37,5 @@ Gem::Specification.new do |s|
   s.add_dependency "activerecord",  version
 
   s.add_dependency "marcel", "~> 0.3.1"
+  s.add_dependency "rack", "~> 2.0", ">= 2.1.0"
 end

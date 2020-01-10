@@ -17,7 +17,7 @@ module ActionDispatch
   class FileHandler
     def initialize(root, index: "index", headers: {})
       @root          = root.chomp("/").b
-      @file_server   = ::Rack::File.new(@root, headers)
+      @file_server   = ::Rack::Files.new(@root, headers)
       @index         = index
     end
 
