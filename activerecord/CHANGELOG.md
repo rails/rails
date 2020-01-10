@@ -1,3 +1,9 @@
+*   Ensure `:reading` connections always raise if a write is attempted.
+
+    Now Rails will raise an `ActiveRecord::ReadOnlyError` if any connection on the reading handler attempts to make a write. If your reading role needs to write you should name the role something other than `:reading`.
+
+    *Eileen M. Uchitelle*
+
 *   Enforce fresh ETag header after a collection's contents change by adding
     ActiveRecord::Relation#cache_key_with_version. This method will be used by
     ActionController::ConditionalGet to ensure that when collection cache versioning

@@ -30,12 +30,14 @@ module ActiveRecord
         tf_writing = Tempfile.open "test_writing"
         tf_reading = Tempfile.open "test_reading"
 
-        MultiConnectionTestModel.connects_to database: { writing: { database: tf_writing.path, adapter: "sqlite3" }, reading: { database: tf_reading.path, adapter: "sqlite3" } }
+        # We need to use a role for reading not named reading, otherwise we'll prevent writes
+        # and won't be able to write to the second connection.
+        MultiConnectionTestModel.connects_to database: { writing: { database: tf_writing.path, adapter: "sqlite3" }, secondary: { database: tf_reading.path, adapter: "sqlite3" } }
 
         MultiConnectionTestModel.connection.execute("CREATE TABLE `test_1` (connection_role VARCHAR (255))")
         MultiConnectionTestModel.connection.execute("INSERT INTO test_1 VALUES ('writing')")
 
-        ActiveRecord::Base.connected_to(role: :reading) do
+        ActiveRecord::Base.connected_to(role: :secondary) do
           MultiConnectionTestModel.connection.execute("CREATE TABLE `test_1` (connection_role VARCHAR (255))")
           MultiConnectionTestModel.connection.execute("INSERT INTO test_1 VALUES ('reading')")
         end
@@ -53,7 +55,7 @@ module ActiveRecord
           read_latch.count_down
         end
 
-        ActiveRecord::Base.connected_to(role: :reading) do
+        ActiveRecord::Base.connected_to(role: :secondary) do
           write_latch.count_down
           assert_equal "reading", MultiConnectionTestModel.connection.select_value("SELECT connection_role from test_1")
           read_latch.wait
@@ -111,6 +113,7 @@ module ActiveRecord
             assert_equal :reading, ActiveRecord::Base.current_role
             assert ActiveRecord::Base.connected_to?(role: :reading)
             assert_not ActiveRecord::Base.connected_to?(role: :writing)
+            assert_predicate ActiveRecord::Base.connection, :preventing_writes?
           end
 
           ActiveRecord::Base.connected_to(role: :writing) do
@@ -119,6 +122,7 @@ module ActiveRecord
             assert_equal :writing, ActiveRecord::Base.current_role
             assert ActiveRecord::Base.connected_to?(role: :writing)
             assert_not ActiveRecord::Base.connected_to?(role: :reading)
+            assert_not_predicate ActiveRecord::Base.connection, :preventing_writes?
           end
         ensure
           ActiveRecord::Base.configurations = @prev_configs
