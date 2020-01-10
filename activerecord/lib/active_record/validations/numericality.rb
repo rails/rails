@@ -4,7 +4,7 @@ module ActiveRecord
   module Validations
     class NumericalityValidator < ActiveModel::Validations::NumericalityValidator # :nodoc:
       def validate_each(record, attribute, value, precision: nil)
-        precision = column_precision_for(attribute, record) || Float::DIG
+        precision = [column_precision_for(attribute, record) || BigDecimal.double_fig, BigDecimal.double_fig].min
         super
       end
 
