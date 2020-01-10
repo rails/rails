@@ -877,6 +877,19 @@ class PerFormTokensControllerTest < ActionController::TestCase
     end
   end
 
+  def test_rejects_global_csrf_token
+    get :index
+
+    token = @controller.send(:form_authenticity_token)
+
+    # This is required because PATH_INFO isn't reset between requests.
+    @request.env["PATH_INFO"] = "/per_form_tokens/post_one"
+    assert_raises(ActionController::InvalidAuthenticityToken) do
+      post :post_one, params: { custom_authenticity_token: token }
+    end
+    assert_response :success
+  end
+
   test "Accepts proper token for implicit post method on button_to tag" do
     get :button_to
 
@@ -905,19 +918,6 @@ class PerFormTokensControllerTest < ActionController::TestCase
         send verb, :post_one, params: { custom_authenticity_token: form_token }
       end
     end
-  end
-
-  def test_accepts_global_csrf_token
-    get :index
-
-    token = @controller.send(:form_authenticity_token)
-
-    # This is required because PATH_INFO isn't reset between requests.
-    @request.env["PATH_INFO"] = "/per_form_tokens/post_one"
-    assert_nothing_raised do
-      post :post_one, params: { custom_authenticity_token: token }
-    end
-    assert_response :success
   end
 
   def test_ignores_params

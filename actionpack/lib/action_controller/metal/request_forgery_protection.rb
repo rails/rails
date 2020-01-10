@@ -358,8 +358,11 @@ module ActionController #:nodoc:
         elsif masked_token.length == AUTHENTICITY_TOKEN_LENGTH * 2
           csrf_token = unmask_token(masked_token)
 
-          compare_with_real_token(csrf_token, session) ||
+          if per_form_csrf_tokens
             valid_per_form_csrf_token?(csrf_token, session)
+          else
+            compare_with_real_token(csrf_token, session)
+          end
         else
           false # Token is malformed.
         end
