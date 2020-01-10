@@ -40,4 +40,24 @@ class NumericalityValidationTest < ActiveRecord::TestCase
 
     assert_predicate subject, :valid?
   end
+
+  def test_on_abstract_class
+    abstract_class = Class.new(ActiveRecord::Base) do
+      self.abstract_class = true
+      validates(:bank_balance, numericality: { equal_to: 10_000_000.12 })
+    end
+
+    klass = Class.new(abstract_class) do
+      def self.table_name
+        "numeric_data"
+      end
+
+      def self.name
+        "MyClass"
+      end
+    end
+    subject = klass.new(bank_balance: 10_000_000.12)
+
+    assert_predicate(subject, :valid?)
+  end
 end

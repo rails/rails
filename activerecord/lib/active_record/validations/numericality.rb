@@ -3,21 +3,14 @@
 module ActiveRecord
   module Validations
     class NumericalityValidator < ActiveModel::Validations::NumericalityValidator # :nodoc:
-      def initialize(options)
-        super
-        @klass = options[:class]
-      end
-
       def validate_each(record, attribute, value, precision: nil)
-        precision = column_precision_for(attribute) || Float::DIG
+        precision = column_precision_for(attribute, record) || Float::DIG
         super
       end
 
       private
-        def column_precision_for(attribute)
-          if @klass < ActiveRecord::Base
-            @klass.type_for_attribute(attribute.to_s)&.precision
-          end
+        def column_precision_for(attribute, record)
+          record.class.type_for_attribute(attribute.to_s)&.precision
         end
     end
 
