@@ -22,7 +22,7 @@ module ActiveSupport
 
     class NoContentChangesError < RuntimeError
       def initialize
-        super "No changes were made to the file."
+        super "File not saved: No changes were made to the file."
       end
     end
 

@@ -26,10 +26,8 @@ module Rails
             yield
           rescue Interrupt
             say "Aborted changing file: nothing saved."
-          rescue ActiveSupport::EncryptedFile::MissingKeyError => error
+          rescue ActiveSupport::EncryptedFile::MissingKeyError, ActiveSupport::EncryptedFile::NoContentChangesError => error
             say error.message
-          rescue ActiveSupport::EncryptedFile::MissingKeyError => error
-            say "File not saved: #{error.message}"
           end
       end
     end
