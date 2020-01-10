@@ -14,6 +14,12 @@ class ServerTimingTest < ActionDispatch::IntegrationTest
       end
       head :ok
     end
+
+    def create
+      ActiveSupport::Notifications.instrument("custom.event") do
+        raise
+      end
+    end
   end
 
   test "server timing header is included in the response" do
@@ -38,12 +44,20 @@ class ServerTimingTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "ensures it doesn't leak subscriptions when the app crashes" do
+    with_test_route_set do
+      post "/"
+      assert_not ActiveSupport::Notifications.notifier.listening?("custom.event")
+    end
+  end
+
   private
     def with_test_route_set
       with_routing do |set|
         set.draw do
           get "/", to: ::ServerTimingTest::TestController.action(:index)
           get "/id", to: ::ServerTimingTest::TestController.action(:show)
+          post "/", to: ::ServerTimingTest::TestController.action(:create)
         end
 
         @app = self.class.build_app(set) do |middleware|

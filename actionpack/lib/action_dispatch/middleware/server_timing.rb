@@ -16,8 +16,11 @@ module ActionDispatch
         events << ActiveSupport::Notifications::Event.new(*args)
       end
 
-      status, headers, body = @app.call(env)
-      ActiveSupport::Notifications.unsubscribe(subscriber)
+      status, headers, body = begin
+        @app.call(env)
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscriber)
+      end
 
       header_info = events.group_by(&:name).map do |event_name, events_collection|
         "#{event_name};dur=#{events_collection.sum(&:duration)}"
