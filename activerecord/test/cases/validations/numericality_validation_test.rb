@@ -20,12 +20,22 @@ class NumericalityValidationTest < ActiveRecord::TestCase
     assert_predicate subject, :valid?
   end
 
-  def test_no_column_precision
+  def test_column_with_precision_higher_than_double_fig
     model_class.validates_numericality_of(
-      :decimal_number, equal_to: 1_000_000_000.12345
+      :decimal_number_big_precision, equal_to: 10_000_000.3
     )
 
-    subject = model_class.new(decimal_number: 1_000_000_000.123454)
+    subject = model_class.new(decimal_number_big_precision: 10_000_000.3)
+
+    assert_predicate subject, :valid?
+  end
+
+  def test_no_column_precision
+    model_class.validates_numericality_of(
+      :decimal_number, equal_to: 1_000_000_000.123454
+    )
+
+    subject = model_class.new(decimal_number: 1_000_000_000.1234545)
 
     assert_predicate subject, :valid?
   end
@@ -33,10 +43,10 @@ class NumericalityValidationTest < ActiveRecord::TestCase
   def test_virtual_attribute
     model_class.attribute(:virtual_decimal_number, :decimal)
     model_class.validates_numericality_of(
-      :virtual_decimal_number, equal_to: 1_000_000_000.12345
+      :virtual_decimal_number, equal_to: 1_000_000_000.123454
     )
 
-    subject = model_class.new(virtual_decimal_number: 1_000_000_000.123454)
+    subject = model_class.new(virtual_decimal_number: 1_000_000_000.1234545)
 
     assert_predicate subject, :valid?
   end
