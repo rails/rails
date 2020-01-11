@@ -352,7 +352,7 @@ GEM
       thor
     raabro (1.1.6)
     racc (1.4.15)
-    rack (2.0.8)
+    rack (2.1.1)
     rack-cache (1.10.0)
       rack (>= 0.4)
     rack-protection (2.0.7)
@@ -485,6 +485,8 @@ GEM
     wdm (0.1.1)
     websocket (1.2.8)
     websocket-driver (0.7.1)
+      websocket-extensions (>= 0.1.0)
+    websocket-driver (0.7.1-java)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.4)
     xpath (3.2.0)
