@@ -1,3 +1,19 @@
+*   Find orphans by looking for missing relations through chaining `where.missing`:
+
+    Before:
+
+    ```ruby
+    Post.left_joins(:author).where(authors: { id: nil })
+    ```
+
+    After:
+
+    ```ruby
+    Post.where.missing(:author)
+    ```
+
+    *Tom Rossi*
+
 *   Ensure `:reading` connections always raise if a write is attempted.
 
     Now Rails will raise an `ActiveRecord::ReadOnlyError` if any connection on the reading handler attempts to make a write. If your reading role needs to write you should name the role something other than `:reading`.

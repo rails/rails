@@ -70,6 +70,35 @@ module ActiveRecord
         @scope
       end
 
+      # Returns a new relation with left outer joins and where clause to idenitfy
+      # missing relations.
+      #
+      # For example, posts that are missing a related author:
+      #
+      #    Post.where.missing(:author)
+      #    SELECT "posts".* FROM "posts"
+      #        LEFT OUTER JOIN "authors" ON "authors"."id" = "posts"."author_id"
+      #        WHERE "authors"."id" IS NULL
+      #
+      #  Additionally, multiple relations can be combined. This will retrun posts
+      #  that are missing both an author and any comments:
+      #
+      #    Post.where.missing(:author, :comments)
+      #    SELECT "posts".* FROM "posts"
+      #        LEFT OUTER JOIN "authors" ON "authors"."id" = "posts"."author_id"
+      #        LEFT OUTER JOIN "comments" ON "comments"."post_id" = "posts"."id"
+      #        WHERE "authors"."id" IS NULL AND "comments"."id" IS NULL
+      def missing(*args)
+        args.each do |arg|
+          reflection = @scope.klass._reflect_on_association(arg)
+          opts = { reflection.table_name => { reflection.association_primary_key => nil } }
+          @scope.left_outer_joins!(arg)
+          @scope.where!(opts)
+        end
+
+        @scope
+      end
+
       private
         def not_behaves_as_nor?(opts)
           return false unless opts.is_a?(Hash)
