@@ -93,7 +93,11 @@ module ActiveSupport
             when Numeric, NilClass, TrueClass, FalseClass
               value.as_json
             when Hash
-              Hash[value.map { |k, v| [jsonify(k), jsonify(v)] }]
+              result = {}
+              value.each do |k, v|
+                result[jsonify(k)] = jsonify(v)
+              end
+              result
             when Array
               value.map { |v| jsonify(v) }
             else
