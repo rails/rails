@@ -95,7 +95,7 @@ module ActiveSupport
                 queue.record(reporter, result)
               rescue DRb::DRbConnError
                 result.failures.each do |failure|
-                  failure.exception = DRb::DRbRemoteError.new(failure.exception)
+                  failure.send(:initialize, DRb::DRbRemoteError.new(failure.exception))
                 end
                 queue.record(reporter, result)
               end
