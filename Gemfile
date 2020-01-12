@@ -12,9 +12,6 @@ gem "rake", ">= 11.1"
 gem "capybara", ">= 3.26"
 gem "selenium-webdriver", ">= 3.141.592"
 
-# TODO: Remove the line once next version has released.
-gem "rack", github: "rack/rack", ref: "1b82d84"
-
 gem "rack-cache", "~> 1.2"
 gem "sass-rails"
 gem "turbolinks", "~> 5"
