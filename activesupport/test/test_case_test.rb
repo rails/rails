@@ -293,7 +293,8 @@ class AssertionsTest < ActiveSupport::TestCase
       end
     end
 
-    assert_equal "@object.num should not change.\n\"@object.num\" did change to 1", error.message
+    assert_equal "@object.num should not change.\n\"@object.num\" changed.\nExpected: 0\n  Actual: 1", error.message
+    error.message
   end
 end
 

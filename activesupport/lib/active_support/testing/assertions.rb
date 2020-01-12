@@ -219,7 +219,10 @@ module ActiveSupport
         retval = assert_nothing_raised(&block)
         after = exp.call
 
-        assert_equal before, after, message
+        error = "#{expression.inspect} changed"
+        error = "#{message}.\n#{error}" if message
+
+        assert_equal before, after, error
 
         retval
       end
