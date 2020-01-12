@@ -219,8 +219,7 @@ module ActiveSupport
         retval = assert_nothing_raised(&block)
         after = exp.call
 
-        error = message ? "#{message}.\n#{error}" : nil
-        assert_equal before, after, error
+        assert_equal before, after, message
 
         retval
       end
