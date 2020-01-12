@@ -14,13 +14,6 @@ GIT
       event_emitter
       websocket
 
-GIT
-  remote: https://github.com/rack/rack.git
-  revision: 1b82d84d80c7d02a04122517da4a3874e5b78ba7
-  ref: 1b82d84
-  specs:
-    rack (2.2.0)
-
 PATH
   remote: .
   specs:
@@ -370,6 +363,7 @@ GEM
       thor
     raabro (1.1.6)
     racc (1.4.16)
+    rack (2.1.1)
     rack-cache (1.10.0)
       rack (>= 0.4)
     rack-protection (2.0.7)
@@ -578,7 +572,6 @@ DEPENDENCIES
   queue_classic!
   qunit-selenium
   racc (>= 1.4.6)
-  rack!
   rack-cache (~> 1.2)
   rails!
   rake (>= 11.1)
