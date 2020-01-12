@@ -288,7 +288,7 @@ GEM
     httpclient (2.8.3)
     i18n (1.7.0)
       concurrent-ruby (~> 1.0)
-    image_processing (1.10.1)
+    image_processing (1.10.2)
       mini_magick (>= 4.9.5, < 5)
       ruby-vips (>= 2.0.17, < 3)
     jaro_winkler (1.5.4)
