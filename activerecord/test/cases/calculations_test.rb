@@ -834,7 +834,7 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_pluck_with_multiple_columns_and_selection_clause
     assert_equal [[1, 50], [2, 50], [3, 50], [4, 60], [5, 55], [6, 53]],
-      Account.pluck("id, credit_limit")
+      Account.order(:id).pluck("id, credit_limit")
   end
 
   def test_pluck_with_multiple_columns_and_includes
