@@ -3,14 +3,19 @@
 module ActiveRecord
   module Validations
     class NumericalityValidator < ActiveModel::Validations::NumericalityValidator # :nodoc:
-      def validate_each(record, attribute, value, precision: nil)
-        precision = [column_precision_for(attribute, record) || BigDecimal.double_fig, BigDecimal.double_fig].min
-        super
+      def validate_each(record, attribute, value, precision: nil, scale: nil)
+        precision = [column_precision_for(record, attribute) || BigDecimal.double_fig, BigDecimal.double_fig].min
+        scale     = column_scale_for(record, attribute)
+        super(record, attribute, value, precision: precision, scale: scale)
       end
 
       private
-        def column_precision_for(attribute, record)
+        def column_precision_for(record, attribute)
           record.class.type_for_attribute(attribute.to_s)&.precision
+        end
+
+        def column_scale_for(record, attribute)
+          record.class.type_for_attribute(attribute.to_s)&.scale
         end
     end
 
