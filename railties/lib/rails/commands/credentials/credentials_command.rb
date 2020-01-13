@@ -81,7 +81,7 @@ module Rails
           if options[:environment]
             encrypted_file_generator.add_encrypted_file_silently(content_path, key_path)
           else
-            credentials_generator.add_credentials_file_silently
+            credentials_generator.add_credentials_file_silently(content_path, key_path)
           end
         end
 
@@ -100,25 +100,19 @@ module Rails
         end
 
         def content_path
-          @content_path ||= get_environment_content_path || get_custom_credentials_content_path || "config/credentials.yml.enc"
+          @content_path ||= get_custom_credentials_content_path || get_environment_content_path || "config/credentials.yml.enc"
         end
 
         def key_path
-          get_environment_key_path || get_custom_credentials_key_path || "config/master.key"
+          @key_path ||= get_custom_credentials_key_path || get_environment_key_path || "config/master.key"
         end
 
         def get_custom_credentials_content_path
-          content_path = Rails.application.credentials.content_path
-          extract_relative_project_file_path_string(content_path) if content_path
+          Rails.application.credentials.content_path
         end
 
         def get_custom_credentials_key_path
-          key_path = Rails.application.credentials.key_path
-          extract_relative_project_file_path_string(key_path) if key_path
-        end
-
-        def extract_relative_project_file_path_string(path)
-          path.to_s.remove(Dir.pwd)[1..-1]
+          Rails.application.credentials.key_path
         end
 
         def get_environment_content_path

@@ -179,7 +179,10 @@ module Rails
       return if options[:pretend] || options[:dummy_app]
 
       require "rails/generators/rails/credentials/credentials_generator"
-      Rails::Generators::CredentialsGenerator.new([], quiet: options[:quiet]).add_credentials_file_silently
+      Rails::Generators::CredentialsGenerator.new([], quiet: options[:quiet]).add_credentials_file_silently(
+        Rails.application.credentials.content_path,
+        Rails.application.credentials.key_path
+      )
     end
 
     def database_yml
