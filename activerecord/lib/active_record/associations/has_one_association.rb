@@ -81,7 +81,9 @@ module ActiveRecord
             target.delete
           when :destroy
             target.destroyed_by_association = reflection
-            target.destroy
+            touch_owner_if(target.persisted?) do
+              target.destroy
+            end
           else
             nullify_owner_attributes(target)
             remove_inverse_instance(target)
@@ -89,7 +91,7 @@ module ActiveRecord
             if target.persisted? && owner.persisted? && !target.save
               set_owner_attributes(target)
               raise RecordNotSaved, "Failed to remove the existing associated #{reflection.name}. " \
-                                    "The record failed to save after its foreign key was set to nil."
+                                      "The record failed to save after its foreign key was set to nil."
             end
           end
         end
@@ -103,6 +105,14 @@ module ActiveRecord
             reflection.klass.transaction { yield }
           else
             yield
+          end
+        end
+
+        def touch_owner_if(value)
+          if value
+            yield
+          else
+            owner.class.no_touching { yield }
           end
         end
 

@@ -1,3 +1,9 @@
+*   Prevent `build_association` from `touching` a parent record if the record isn't persisted for `has_one` associations.
+    
+    Fixes #38219
+
+    *Josh Brody*
+    
 *   Add scale support to `ActiveRecord::Validations::NumericalityValidator`.
 
     *Gannon McGibbon*
