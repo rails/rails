@@ -162,9 +162,10 @@ end
 class IntegrationTestUsesCorrectClass < ActionDispatch::IntegrationTest
   def test_integration_methods_called
     reset!
+    headers = { "Origin" => "*" }
 
-    %w( get post head patch put delete ).each do |verb|
-      assert_nothing_raised { __send__(verb, "/") }
+    %w( get post head patch put delete options ).each do |verb|
+      assert_nothing_raised { __send__(verb, "/", headers: headers) }
     end
   end
 end
