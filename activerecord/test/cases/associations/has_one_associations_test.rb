@@ -756,6 +756,24 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_no_queries { new_club.save }
   end
 
+  class SpecialCar < ActiveRecord::Base
+    self.table_name = "cars"
+    has_one :special_bulb, inverse_of: :car, dependent: :destroy, class_name: "SpecialBulb", foreign_key: "car_id"
+  end
+
+  class SpecialBulb < ActiveRecord::Base
+    self.table_name = "bulbs"
+    belongs_to :car, inverse_of: :special_bulb, touch: true, class_name: "SpecialCar"
+  end
+
+  def test_has_one_with_touch_option_on_nonpersisted_built_associations_doesnt_update_parent
+    car = SpecialCar.create(name: "honda")
+    assert_queries(1) do
+      car.build_special_bulb
+      car.build_special_bulb
+    end
+  end
+
   class SpecialBook < ActiveRecord::Base
     self.table_name = "books"
     belongs_to :author, class_name: "SpecialAuthor"
