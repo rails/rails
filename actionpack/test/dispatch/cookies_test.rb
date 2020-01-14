@@ -1320,7 +1320,7 @@ class CookiesTest < ActionController::TestCase
   def test_vanilla_cookie_with_expires_set_relatively
     travel_to Time.utc(2017, 8, 15) do
       get :cookie_expires_in_two_hours
-      assert_cookie_header "user_name=assain; path=/; expires=Tue, 15 Aug 2017 02:00:00 -0000"
+      assert_cookie_header "user_name=assain; path=/; expires=Tue, 15 Aug 2017 02:00:00 GMT"
     end
   end
 
