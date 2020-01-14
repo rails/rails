@@ -73,7 +73,7 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal "7 days",                          7.days.inspect
     assert_equal "1 week",                          1.week.inspect
     assert_equal "2 weeks",                         1.fortnight.inspect
-    assert_match %r/\A0(\.0) seconds/,              (10 % 5.seconds).inspect
+    assert_match %r/\A0(\.0)? seconds/,             (10 % 5.seconds).inspect
     assert_equal "10 minutes",                      (10.minutes + 0.seconds).inspect
   end
 
