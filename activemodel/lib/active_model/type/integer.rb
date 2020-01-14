@@ -28,15 +28,24 @@ module ActiveModel
         ensure_in_range(super)
       end
 
+      def serializable?(value)
+        cast_value = cast(value)
+        in_range?(cast_value) && super
+      end
+
       private
         attr_reader :range
+
+        def in_range?(value)
+          !value || range.cover?(value)
+        end
 
         def cast_value(value)
           value.to_i rescue nil
         end
 
         def ensure_in_range(value)
-          if value && !range.cover?(value)
+          unless in_range?(value)
             raise ActiveModel::RangeError, "#{value} is out of range for #{self.class} with limit #{_limit} bytes"
           end
           value

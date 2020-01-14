@@ -16,6 +16,10 @@ module ActiveRecord
       register_handler(Set, ArrayHandler.new(self))
     end
 
+    def connection
+      @table.connection
+    end
+
     def build_from_hash(attributes)
       attributes = convert_dot_notation_to_hash(attributes)
       expand_from_hash(attributes)

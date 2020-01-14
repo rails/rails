@@ -7,6 +7,8 @@ module Arel # :nodoc: all
       alias :operand1 :left
       alias :operand2 :right
 
+      def equality?; true; end
+
       def invert
         Arel::Nodes::NotEqual.new(left, right)
       end

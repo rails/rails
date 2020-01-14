@@ -8,14 +8,21 @@ module ActiveModel
           cast(value)
         end
 
+        def serialize2(value)
+          cast(value)
+        end
+
         def cast(value)
-          value = \
+          value = if value <=> 0
+            value
+          else
             case value
             when true then 1
             when false then 0
-            when ::String then value.presence
-            else value
+            else value.presence
             end
+          end
+
           super(value)
         end
 

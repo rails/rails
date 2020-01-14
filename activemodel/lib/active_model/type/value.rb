@@ -11,6 +11,10 @@ module ActiveModel
         @limit = limit
       end
 
+      def serializable?(_)
+        true
+      end
+
       def type # :nodoc:
       end
 
@@ -43,6 +47,10 @@ module ActiveModel
       # +String+, +Numeric+, +Date+, +Time+, +Symbol+, +true+, +false+, or
       # +nil+.
       def serialize(value)
+        value
+      end
+
+      def serialize2(value)
         value
       end
 

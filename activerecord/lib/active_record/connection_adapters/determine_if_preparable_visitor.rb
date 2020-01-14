@@ -24,6 +24,11 @@ module ActiveRecord
         @preparable = false
         super
       end
+
+      def visit_Arel_Nodes_HomogeneousIn(o, collector)
+        @preparable = false
+        super
+      end
     end
   end
 end

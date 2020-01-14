@@ -130,7 +130,7 @@ module ActiveRecord
         end
 
         def equality_node?(node)
-          node.respond_to?(:operator) && node.operator == :==
+          !node.is_a?(String) && node.equality?
         end
 
         def invert_predicate(node)

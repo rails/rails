@@ -4,6 +4,8 @@ module ActiveRecord
   class TableMetadata # :nodoc:
     delegate :foreign_type, :foreign_key, :join_primary_key, :join_foreign_key, to: :association, prefix: true
 
+    attr_reader :klass
+
     def initialize(klass, arel_table, association = nil, types = klass)
       @klass = klass
       @types = types
@@ -39,6 +41,10 @@ module ActiveRecord
 
     def associated_with?(association_name)
       klass && klass._reflect_on_association(association_name)
+    end
+
+    def connection
+      klass ? klass.connection : @types.connection
     end
 
     def associated_table(table_name)
@@ -85,6 +91,6 @@ module ActiveRecord
       end
 
     private
-      attr_reader :klass, :types, :arel_table, :association
+      attr_reader :types, :arel_table, :association
   end
 end

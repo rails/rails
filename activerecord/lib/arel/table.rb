@@ -100,6 +100,10 @@ module Arel # :nodoc: all
       type_caster.type_cast_for_database(attribute_name, value)
     end
 
+    def type_for_attribute(name)
+      type_caster.type_for_attribute(name)
+    end
+
     def able_to_type_cast?
       !type_caster.nil?
     end

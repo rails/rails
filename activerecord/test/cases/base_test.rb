@@ -538,6 +538,10 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal Topic.find("1-meowmeow"), Topic.find(1)
   end
 
+  def test_out_of_range_slugs
+    assert_equal [Topic.find(1)], Topic.where(id: ["1-meowmeow", "9223372036854775808-hello"])
+  end
+
   def test_find_by_slug_with_array
     assert_equal Topic.find([1, 2]), Topic.find(["1-meowmeow", "2-hello"])
     assert_equal "The Second Topic of the day", Topic.find(["2-hello", "1-meowmeow"]).first.title

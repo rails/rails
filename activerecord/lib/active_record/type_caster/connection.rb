@@ -25,7 +25,7 @@ module ActiveRecord
         type || Type.default_value
       end
 
-      delegate :connection, to: :@klass, private: true
+      delegate :connection, to: :@klass
 
       private
         attr_reader :table_name
