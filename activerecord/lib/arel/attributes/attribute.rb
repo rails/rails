@@ -9,6 +9,10 @@ module Arel # :nodoc: all
       include Arel::OrderPredications
       include Arel::Math
 
+      def type_caster
+        relation.type_for_attribute(name)
+      end
+
       ###
       # Create a node for lowering this attribute
       def lower

@@ -321,6 +321,30 @@ module Arel # :nodoc: all
           end
         end
 
+        def visit_Arel_Nodes_HomogeneousIn(o, collector)
+          collector << "("
+
+          collector << quote_table_name(o.table_name) << "." << quote_column_name(o.column_name)
+
+          if o.type == :in
+            collector << "IN ("
+          else
+            collector << "NOT IN ("
+          end
+
+          values = o.values.map { |v| @connection.quote v }
+
+          expr = if values.empty?
+            @connection.quote(nil)
+          else
+            values.join(",")
+          end
+
+          collector << expr
+          collector << "))"
+          collector
+        end
+
         def visit_Arel_SelectManager(o, collector)
           collector << "("
           visit(o.ast, collector) << ")"

@@ -19,6 +19,10 @@ module Arel # :nodoc: all
         relation.type_cast_for_database(*args)
       end
 
+      def type_for_attribute(name)
+        relation.type_for_attribute(name)
+      end
+
       def able_to_type_cast?
         relation.respond_to?(:able_to_type_cast?) && relation.able_to_type_cast?
       end
