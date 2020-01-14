@@ -81,7 +81,7 @@ module ActiveRecord
       #    # WHERE "authors"."id" IS NULL
       #
       # Additionally, multiple relations can be combined. This will return posts
-      # that are missing both an author and any` comments:
+      # that are missing both an author and any comments:
       #
       #    Post.where.missing(:author, :comments)
       #    # SELECT "posts".* FROM "posts"
