@@ -76,18 +76,18 @@ module ActiveRecord
       # For example, posts that are missing a related author:
       #
       #    Post.where.missing(:author)
-      #    SELECT "posts".* FROM "posts"
-      #        LEFT OUTER JOIN "authors" ON "authors"."id" = "posts"."author_id"
-      #        WHERE "authors"."id" IS NULL
+      #    # SELECT "posts".* FROM "posts"
+      #    # LEFT OUTER JOIN "authors" ON "authors"."id" = "posts"."author_id"
+      #    # WHERE "authors"."id" IS NULL
       #
-      #  Additionally, multiple relations can be combined. This will retrun posts
-      #  that are missing both an author and any comments:
+      # Additionally, multiple relations can be combined. This will return posts
+      # that are missing both an author and any` comments:
       #
       #    Post.where.missing(:author, :comments)
-      #    SELECT "posts".* FROM "posts"
-      #        LEFT OUTER JOIN "authors" ON "authors"."id" = "posts"."author_id"
-      #        LEFT OUTER JOIN "comments" ON "comments"."post_id" = "posts"."id"
-      #        WHERE "authors"."id" IS NULL AND "comments"."id" IS NULL
+      #    # SELECT "posts".* FROM "posts"
+      #    # LEFT OUTER JOIN "authors" ON "authors"."id" = "posts"."author_id"
+      #    # LEFT OUTER JOIN "comments" ON "comments"."post_id" = "posts"."id"
+      #    # WHERE "authors"."id" IS NULL AND "comments"."id" IS NULL
       def missing(*args)
         args.each do |arg|
           reflection = @scope.klass._reflect_on_association(arg)
