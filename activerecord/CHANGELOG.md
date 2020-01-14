@@ -1,3 +1,11 @@
+*   Store advisory locks on their own named connection.
+
+    Previously advisory locks were taken out against a connection when a migration started. This works fine in single database applications but doesn't work well when migrations need to open new connections which results in the lock getting dropped.
+
+    In order to fix this we are storing the advisory lock on a new connection with the connection specification name `AdisoryLockBase`. The caveat is that we need to maintain at least 2 connections to a database while migrations are running in order to do this.
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
 *   Allow schema cache path to be defined in the database configuration file.
 
     For example:
@@ -21,8 +29,7 @@
 *   Deprecate `#default_hash` and it's alias `#[]` on database configurations
 
     Applications should use `configs_for`. `#default_hash` and `#[]` will be removed in 6.2.
-
-    *Eileen M. Uchitelle*, *John Crepezzi*
+=======
 
 *   Add scale support to `ActiveRecord::Validations::NumericalityValidator`.
 
