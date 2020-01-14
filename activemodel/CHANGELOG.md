@@ -33,6 +33,20 @@
     `errors.messages` and `errors.details` hashes directly. Moving forward, 
     please convert those direct manipulations to use provided API methods instead.
 
+    The list of deprecated methods and their planned future behavioral changes at the next major release are:
+
+    * `errors#slice!` will be removed.
+    * `errors#first` will return Error object instead.
+    * `errors#last` will return Error object instead.
+    * `errors#each` with the `key, value` two-arguments block will stop working, while the `error` single-argument block would return `Error` object.
+    * `errors#values` will be removed.
+    * `errors#keys` will be removed.
+    * `errors#to_xml` will be removed.
+    * `errors#to_h` will be removed, and can be replaced with `errors#to_hash`.
+    * Manipulating `errors` itself as a hash will have no effect (e.g. `errors[:foo] = 'bar'`).
+    * Manipulating the hash returned by `errors#messages` (e.g. `errors.messages[:foo] = 'bar'`) will have no effect.
+    * Manipulating the hash returned by `errors#details` (e.g. `errors.details[:foo].clear`) will have no effect.
+
     *lulalala*
 
 Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/activemodel/CHANGELOG.md) for previous changes.
