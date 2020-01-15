@@ -83,7 +83,7 @@ class SQLite3TransactionTest < ActiveRecord::SQLite3TestCase
     end
   end
 
-  test "set the read_uncommited PRAGMA to its previous value" do
+  test "set the read_uncommitted PRAGMA to its previous value" do
     with_connection(flags: shared_cache_flags) do |conn|
       conn.transaction(joinable: false, isolation: :read_uncommitted) do
         conn.instance_variable_get(:@connection).read_uncommitted = true
