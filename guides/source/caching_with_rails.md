@@ -48,6 +48,8 @@ only have an effect on the caching provided by the Action Controller component.
 For instance, it will not impact low-level caching, that we address
 [below](#low-level-caching).
 
+In Rails 5 and above, instead of editing the config/environment/development.rb file, you can toggle caching by running rails dev:cache command; running this command enables caching if not enabled, and  disables caching if it is enabled.
+
 ### Page Caching
 
 Page caching is a Rails mechanism which allows the request for a generated page
