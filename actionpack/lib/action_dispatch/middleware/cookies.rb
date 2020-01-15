@@ -437,7 +437,14 @@ module ActionDispatch
           end
 
           options[:path]      ||= "/"
-          options[:same_site] ||= request.cookies_same_site_protection
+
+          same_site_protection = if request.cookies_same_site_protection.is_a?(Proc)
+            request.cookies_same_site_protection.call(request)
+          else
+            request.cookies_same_site_protection
+          end
+
+          options[:same_site] ||= same_site_protection
           options[:same_site] = false if options[:same_site] == :none # TODO: Remove when rack 2.1.0 is out.
 
           if options[:domain] == :all || options[:domain] == "all"

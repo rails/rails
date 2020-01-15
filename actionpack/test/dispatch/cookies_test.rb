@@ -370,6 +370,27 @@ class CookiesTest < ActionController::TestCase
     assert_equal({ "user_name" => "david" }, @response.cookies)
   end
 
+  def test_setting_cookie_with_protection_proc_normal_user_agent
+    @request.env["action_dispatch.cookies_same_site_protection"] = Proc.new do |request|
+      :strict unless request.user_agent == "spooky browser"
+    end
+
+    get :authenticate
+    assert_cookie_header "user_name=david; path=/; SameSite=Strict"
+    assert_equal({ "user_name" => "david" }, @response.cookies)
+  end
+
+  def test_setting_cookie_with_protection_proc_special_user_agent
+    @request.env["action_dispatch.cookies_same_site_protection"] = Proc.new do |request|
+      :strict unless request.user_agent == "spooky browser"
+    end
+
+    request.user_agent = "spooky browser"
+    get :authenticate
+    assert_cookie_header "user_name=david; path=/" # TODO: append "; SameSite=None" when rack 2.1.0 is out and bump rack dependency version.
+    assert_equal({ "user_name" => "david" }, @response.cookies)
+  end
+
   def test_setting_cookie_with_misspelled_protection_raises
     @request.env["action_dispatch.cookies_same_site_protection"] = :funky
 
