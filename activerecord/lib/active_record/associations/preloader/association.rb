@@ -48,18 +48,18 @@ module ActiveRecord
             raw_records = owner_keys.empty? ? [] : records_for(owner_keys)
 
             @preloaded_records = raw_records.select do |record|
-              assignments = []
+              assignments = false
 
               owners_by_key[convert_key(record[association_key_name])].each do |owner|
                 entries = (@records_by_owner[owner] ||= [])
 
                 if reflection.collection? || entries.empty?
                   entries << record
-                  assignments << record
+                  assignments = true
                 end
               end
 
-              !assignments.empty?
+              assignments
             end
           end
 
