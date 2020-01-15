@@ -70,7 +70,7 @@ module ActionDispatch
     end
 
     def cookies_same_site_protection
-      get_header Cookies::COOKIES_SAME_SITE_PROTECTION
+      get_header(Cookies::COOKIES_SAME_SITE_PROTECTION) || Proc.new { }
     end
 
     def cookies_digest
@@ -444,7 +444,9 @@ module ActionDispatch
           end
 
           options[:path]      ||= "/"
-          options[:same_site] ||= request.cookies_same_site_protection
+
+          cookies_same_site_protection = request.cookies_same_site_protection
+          options[:same_site] ||= cookies_same_site_protection.call(request)
 
           if options[:domain] == :all || options[:domain] == "all"
             # If there is a provided tld length then we use it otherwise default domain regexp.
