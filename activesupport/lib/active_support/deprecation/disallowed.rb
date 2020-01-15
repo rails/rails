@@ -32,7 +32,7 @@ module ActiveSupport
             when String, Symbol
               message.include?(rule.to_s)
             when Regexp
-              rule.match(message)
+              rule.match?(message)
             end
           end
         end
@@ -47,7 +47,7 @@ module ActiveSupport
             when String, Symbol
               message.include?(rule.to_s)
             when Regexp
-              rule.match(message)
+              rule.match?(message)
             end
           end
         end
