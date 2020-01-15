@@ -77,11 +77,14 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
       @conn.add_foreign_key :engines, :old_cars
     end
 
-    assert_includes error.message, <<~MSG.squish
-      Column `old_car_id` on table `engines` does not match column `id` on `old_cars`,
-      which has type `int(11)`. To resolve this issue, change the type of the `old_car_id`
-      column on `engines` to be :integer. (For example `t.integer :old_car_id`).
-    MSG
+    assert_match(
+      %r/Column `old_car_id` on table `engines` does not match column `id` on `old_cars`, which has type `int(\(11\))?`\./,
+      error.message
+    )
+    assert_match(
+      %r/To resolve this issue, change the type of the `old_car_id` column on `engines` to be :integer\. \(For example `t.integer :old_car_id`\)\./,
+      error.message
+    )
     assert_not_nil error.cause
   ensure
     @conn.execute("ALTER TABLE engines DROP COLUMN old_car_id") rescue nil
@@ -101,11 +104,14 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
       SQL
     end
 
-    assert_includes error.message, <<~MSG.squish
-      Column `old_car_id` on table `foos` does not match column `id` on `old_cars`,
-      which has type `int(11)`. To resolve this issue, change the type of the `old_car_id`
-      column on `foos` to be :integer. (For example `t.integer :old_car_id`).
-    MSG
+    assert_match(
+      %r/Column `old_car_id` on table `foos` does not match column `id` on `old_cars`, which has type `int(\(11\))?`\./,
+      error.message
+    )
+    assert_match(
+      %r/To resolve this issue, change the type of the `old_car_id` column on `foos` to be :integer\. \(For example `t.integer :old_car_id`\)\./,
+      error.message
+    )
     assert_not_nil error.cause
   ensure
     @conn.drop_table :foos, if_exists: true
@@ -125,11 +131,14 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
       SQL
     end
 
-    assert_includes error.message, <<~MSG.squish
-      Column `car_id` on table `foos` does not match column `id` on `cars`,
-      which has type `bigint(20)`. To resolve this issue, change the type of the `car_id`
-      column on `foos` to be :bigint. (For example `t.bigint :car_id`).
-    MSG
+    assert_match(
+      %r/Column `car_id` on table `foos` does not match column `id` on `cars`, which has type `bigint(\(20\))?`\./,
+      error.message
+    )
+    assert_match(
+      %r/To resolve this issue, change the type of the `car_id` column on `foos` to be :bigint\. \(For example `t.bigint :car_id`\)\./,
+      error.message
+    )
     assert_not_nil error.cause
   ensure
     @conn.drop_table :foos, if_exists: true
