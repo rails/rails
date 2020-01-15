@@ -255,8 +255,6 @@ module ActiveRecord
       #   end
       #
       # only post with title "first" is created.
-      # This works on MySQL and PostgreSQL. SQLite3 version >= '3.6.8' also
-      # supports it.
       #
       # See ActiveRecord::Transactions to learn more.
       #
