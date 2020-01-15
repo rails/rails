@@ -21,7 +21,7 @@
         before_enqueue { throw(:abort) }
       end
 
-      MyJob.perform_later # Will no longer log "Enqueud MyJob" since job wasn't even enqueued through adapter.
+      MyJob.perform_later # Will no longer log "Enqueued MyJob" since job wasn't even enqueued through adapter.
     ```
 
     A new message will be logged in case a job couldn't be enqueued, either because the callback chain was halted or
