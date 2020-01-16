@@ -507,7 +507,7 @@ attribute to the tag:
 ### Page Change Events
 
 You'll often want to do some sort of processing upon
-page load. With vanilla JavaScript, you'd write something like this:
+page load. Using the DOM, you'd write something like this:
 
 ```
 window.addEventListener('load', (event) => {
