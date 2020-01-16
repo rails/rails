@@ -46,7 +46,7 @@ As an example, here's some JavaScript code that makes an Ajax request:
 ```
     fetch("/test")
       .then(data => data.text())
-      .then(data => {
+      .then(html => {
         document.querySelector('#results').insertAdjacentHTML('beforeend', data);
       })
 ```
