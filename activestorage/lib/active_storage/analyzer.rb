@@ -12,7 +12,7 @@ module ActiveStorage
       false
     end
 
-    # Implement this method in concrete subclasses. It will determine if blob anlysis
+    # Implement this method in concrete subclasses. It will determine if blob analysis
     # should be done in a job or performed inine. By default, analysis is enqueued in a job.
     def self.analyze_later?
       true
