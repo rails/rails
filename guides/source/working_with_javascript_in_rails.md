@@ -506,7 +506,7 @@ attribute to the tag:
 
 ### Page Change Events
 
-When writing CoffeeScript, you'll often want to do some sort of processing upon
+You'll often want to do some sort of processing upon
 page load. With vanilla JavaScript, you'd write something like this:
 
 ```
