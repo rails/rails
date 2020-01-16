@@ -117,7 +117,8 @@ module SharedGeneratorTests
     assert_file ".gitignore" do |content|
       assert_no_match(/\.keep/, content)
     end
-
+    assert_directory("app/assets/images")
+    assert_directory("app/models/concerns")
     assert_no_file("app/models/concerns/.keep")
   end
 
