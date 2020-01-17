@@ -21,15 +21,16 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_database_exists_returns_false_if_database_does_not_exist
-    config = ActiveRecord::Base.configurations["arunit"].merge(database: "inexistent_activerecord_unittest")
+    db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+    config = db_config.configuration_hash.merge(database: "inexistent_activerecord_unittest")
     assert_not ActiveRecord::ConnectionAdapters::Mysql2Adapter.database_exists?(config),
       "expected database to not exist"
   end
 
   def test_database_exists_returns_true_when_the_database_exists
-    config = ActiveRecord::Base.configurations["arunit"]
-    assert ActiveRecord::ConnectionAdapters::Mysql2Adapter.database_exists?(config),
-     "expected database #{config[:database]} to exist"
+    db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+    assert ActiveRecord::ConnectionAdapters::Mysql2Adapter.database_exists?(db_config.configuration_hash),
+      "expected database #{db_config.database} to exist"
   end
 
   def test_columns_for_distinct_zero_orders
@@ -247,8 +248,10 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_read_timeout_exception
+    db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+
     ActiveRecord::Base.establish_connection(
-      ActiveRecord::Base.configurations[:arunit].merge("read_timeout" => 1)
+      db_config.configuration_hash.merge("read_timeout" => 1)
     )
 
     error = assert_raises(ActiveRecord::AdapterTimeout) do
@@ -278,7 +281,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
 
   def test_doesnt_error_when_a_use_query_is_called_while_preventing_writes
     @connection_handler.while_preventing_writes do
-      db_name = ActiveRecord::Base.configurations["arunit"][:database]
+      db_name = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary").database
       assert_nil @conn.execute("USE #{db_name}")
     end
   end

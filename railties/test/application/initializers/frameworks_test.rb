@@ -236,7 +236,9 @@ module ApplicationTests
       orig_rails_env, Rails.env = Rails.env, "development"
       ActiveRecord::Base.establish_connection
       assert ActiveRecord::Base.connection
-      assert_match(/#{ActiveRecord::Base.configurations[Rails.env]['database']}/, ActiveRecord::Base.connection_db_config.database)
+      assert_match(/#{ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, spec_name: "primary").database}/, ActiveRecord::Base.connection_db_config.database)
+      db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, spec_name: "primary")
+      assert_match(/#{db_config.database}/, ActiveRecord::Base.connection_db_config.database)
     ensure
       ActiveRecord::Base.remove_connection
       ENV["DATABASE_URL"] = orig_database_url if orig_database_url

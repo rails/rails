@@ -15,8 +15,9 @@ module ActiveRecord
         @rw_handler = @handlers[:writing]
         @ro_handler = @handlers[:reading]
         @owner_name = "ActiveRecord::Base"
-        @rw_pool = @handlers[:writing].establish_connection(ActiveRecord::Base.configurations["arunit"])
-        @ro_pool = @handlers[:reading].establish_connection(ActiveRecord::Base.configurations["arunit"])
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+        @rw_pool = @handlers[:writing].establish_connection(db_config)
+        @ro_pool = @handlers[:reading].establish_connection(db_config)
       end
 
       def teardown

@@ -47,7 +47,9 @@ class DatabaseConfigurationsTest < ActiveRecord::TestCase
     original_rails_env = ENV["RAILS_ENV"]
     ENV["RAILS_ENV"] = "arunit"
 
-    assert_equal ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary").configuration_hash, ActiveRecord::Base.configurations.default_hash
+    assert_deprecated do
+      assert_equal ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary").configuration_hash, ActiveRecord::Base.configurations.default_hash
+    end
   ensure
     ENV["RAILS_ENV"] = original_rails_env
   end

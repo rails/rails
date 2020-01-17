@@ -145,7 +145,8 @@ module ActiveRecord
 
       def test_not_specifying_database_name_for_cross_database_selects
         assert_nothing_raised do
-          ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations["arunit"].except(:database))
+          db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+          ActiveRecord::Base.establish_connection(db_config.configuration_hash.except(:database))
 
           config = ARTest.test_configuration_hashes
           ActiveRecord::Base.connection.execute(

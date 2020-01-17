@@ -67,6 +67,7 @@ module ActiveRecord
       default.configuration_hash if default
     end
     alias :[] :default_hash
+    deprecate "[]": "Use configs_for", default_hash: "Use configs_for"
 
     # Returns a single DatabaseConfig object based on the requested environment.
     #
