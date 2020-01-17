@@ -805,7 +805,7 @@ class FixtureWithSetModelClassTest < ActiveRecord::TestCase
   fixtures :other_posts, :other_comments
 
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
-  # and thus takes into account the +set_model_class+.
+  # and thus takes into account the `model_class` set in the fixture.
   self.use_transactional_tests = false
 
   def test_uses_fixture_class_defined_in_yaml
@@ -825,7 +825,7 @@ class SetFixtureClassPrevailsTest < ActiveRecord::TestCase
   fixtures :bad_posts
 
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
-  # and thus takes into account the +set_model_class+.
+  # and thus takes into account our `set_fixture_class`.
   self.use_transactional_tests = false
 
   def test_uses_set_fixture_class
@@ -837,7 +837,7 @@ class CheckSetTableNameFixturesTest < ActiveRecord::TestCase
   set_fixture_class funny_jokes: Joke
   fixtures :funny_jokes
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
-  # and thus takes into account our set_fixture_class
+  # and thus takes into account our `set_fixture_class`.
   self.use_transactional_tests = false
 
   def test_table_method
@@ -849,7 +849,7 @@ class FixtureNameIsNotTableNameFixturesTest < ActiveRecord::TestCase
   set_fixture_class items: Book
   fixtures :items
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
-  # and thus takes into account our set_fixture_class
+  # and thus takes into account our `set_fixture_class`.
   self.use_transactional_tests = false
 
   def test_named_accessor
@@ -861,7 +861,7 @@ class FixtureNameIsNotTableNameMultipleFixturesTest < ActiveRecord::TestCase
   set_fixture_class items: Book, funny_jokes: Joke
   fixtures :items, :funny_jokes
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
-  # and thus takes into account our set_fixture_class
+  # and thus takes into account our `set_fixture_class`.
   self.use_transactional_tests = false
 
   def test_named_accessor_of_differently_named_fixture
@@ -954,7 +954,6 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
         payload = {
           spec_name: "book",
           config: nil,
-          connection_id: connection.object_id
         }
 
         message_bus.instrument("!connection.active_record", payload) { }
@@ -979,7 +978,7 @@ class CheckEscapedYamlFixturesTest < ActiveRecord::TestCase
   set_fixture_class funny_jokes: Joke
   fixtures :funny_jokes
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
-  # and thus takes into account our set_fixture_class
+  # and thus takes into account our `set_fixture_class`.
   self.use_transactional_tests = false
 
   def test_proper_escaped_fixture
@@ -1282,6 +1281,10 @@ end
 class IgnoreFixturesTest < ActiveRecord::TestCase
   fixtures :other_books, :parrots
 
+  # Set to false to blow away fixtures cache and ensure our fixtures are loaded
+  # without interfering with other tests that use the same `model_class`.
+  self.use_transactional_tests = false
+
   test "ignores books fixtures" do
     assert_raise(StandardError) { other_books(:published) }
     assert_raise(StandardError) { other_books(:published_paperback) }
@@ -1386,15 +1389,11 @@ end
 
 class MultipleDatabaseFixturesTest < ActiveRecord::TestCase
   test "enlist_fixture_connections ensures multiple databases share a connection pool" do
+    old_handlers = ActiveRecord::Base.connection_handlers
+    ActiveRecord::Base.connection_handlers = {}
+
     with_temporary_connection_pool do
       ActiveRecord::Base.connects_to database: { writing: :arunit, reading: :arunit2 }
-
-      rw_conn = ActiveRecord::Base.connection
-      ro_conn = ActiveRecord::Base.connection_handlers[:reading].connection_pool_list.first.connection
-
-      assert_not_equal rw_conn, ro_conn
-
-      enlist_fixture_connections
 
       rw_conn = ActiveRecord::Base.connection
       ro_conn = ActiveRecord::Base.connection_handlers[:reading].connection_pool_list.first.connection
@@ -1402,17 +1401,16 @@ class MultipleDatabaseFixturesTest < ActiveRecord::TestCase
       assert_equal rw_conn, ro_conn
     end
   ensure
-    ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.connection_handler }
+    ActiveRecord::Base.connection_handlers = old_handlers
   end
 
   private
     def with_temporary_connection_pool
-      old_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(ActiveRecord::Base.connection_specification_name)
-      new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new ActiveRecord::Base.connection_pool.spec
-      ActiveRecord::Base.connection_handler.send(:owner_to_pool)["primary"] = new_pool
+      pool_config = ActiveRecord::Base.connection_handler.send(:owner_to_pool_manager).fetch("ActiveRecord::Base").get_pool_config(:default)
+      new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(pool_config)
 
-      yield
-    ensure
-      ActiveRecord::Base.connection_handler.send(:owner_to_pool)["primary"] = old_pool
+      pool_config.stub(:pool, new_pool) do
+        yield
+      end
     end
 end

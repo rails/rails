@@ -10,7 +10,9 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     @user = User.create!(name: "Josh")
   end
 
-  teardown { ActiveStorage::Blob.all.each(&:delete) }
+  teardown do
+    ActiveStorage::Blob.all.each(&:delete)
+  end
 
   test "attaching existing blobs to an existing record" do
     @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
@@ -576,6 +578,36 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     ensure
       User.remove_method :highlights
     end
+  end
+
+  test "attaching a new blob from a Hash with a custom service" do
+    with_service("mirror") do
+      @user.highlights.attach io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg"
+      @user.vlogs.attach io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg"
+
+      assert_instance_of ActiveStorage::Service::MirrorService, @user.highlights.first.service
+      assert_instance_of ActiveStorage::Service::DiskService, @user.vlogs.first.service
+    end
+  end
+
+  test "attaching a new blob from an uploaded file with a custom service" do
+    with_service("mirror") do
+      @user.highlights.attach fixture_file_upload("racecar.jpg")
+      @user.vlogs.attach fixture_file_upload("racecar.jpg")
+
+      assert_instance_of ActiveStorage::Service::MirrorService, @user.highlights.first.service
+      assert_instance_of ActiveStorage::Service::DiskService, @user.vlogs.first.service
+    end
+  end
+
+  test "raises error when misconfigured service is passed" do
+    error = assert_raises ArgumentError do
+      User.class_eval do
+        has_many_attached :featured_photos, service: :unknown
+      end
+    end
+
+    assert_match(/Cannot configure service :unknown for User#featured_photos/, error.message)
   end
 
   private

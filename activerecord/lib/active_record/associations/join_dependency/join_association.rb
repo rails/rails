@@ -37,7 +37,7 @@ module ActiveRecord
             nodes = arel.constraints.first
 
             others = nodes.children.extract! do |node|
-              Arel.fetch_attribute(node) { |attr| attr.relation.name != table.name }
+              !Arel.fetch_attribute(node) { |attr| attr.relation.name == table.name }
             end
 
             joins << table.create_join(table, table.create_on(nodes), join_type)

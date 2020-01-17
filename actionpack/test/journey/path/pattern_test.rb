@@ -289,6 +289,37 @@ module ActionDispatch
           named_captures = { "action" => "list", "format" => "rss" }
           assert_equal named_captures, match.named_captures
         end
+
+        def test_requirements_for_missing_keys_check
+          name_regex = /test/
+
+          path = Pattern.build(
+            "/page/:name",
+            { name: name_regex },
+            SEPARATORS,
+            true
+          )
+
+          transformed_regex = path.requirements_for_missing_keys_check[:name]
+          assert_not_nil transformed_regex
+          assert_equal(transformed_regex, /\A#{name_regex}\Z/)
+        end
+
+        def test_requirements_for_missing_keys_check_memoization
+          name_regex = /test/
+
+          path = Pattern.build(
+            "/page/:name",
+            { name: name_regex },
+            SEPARATORS,
+            true
+          )
+
+          first_call = path.requirements_for_missing_keys_check[:name]
+          second_call = path.requirements_for_missing_keys_check[:name]
+
+          assert_equal(first_call.object_id, second_call.object_id)
+        end
       end
     end
   end

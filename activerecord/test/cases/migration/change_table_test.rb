@@ -19,28 +19,44 @@ module ActiveRecord
 
       def test_references_column_type_adds_id
         with_change_table do |t|
-          @connection.expect :add_reference, nil, [:delete_me, :customer, {}]
+          if RUBY_VERSION < "2.7"
+            @connection.expect :add_reference, nil, [:delete_me, :customer, {}]
+          else
+            @connection.expect :add_reference, nil, [:delete_me, :customer]
+          end
           t.references :customer
         end
       end
 
       def test_remove_references_column_type_removes_id
         with_change_table do |t|
-          @connection.expect :remove_reference, nil, [:delete_me, :customer, {}]
+          if RUBY_VERSION < "2.7"
+            @connection.expect :remove_reference, nil, [:delete_me, :customer, {}]
+          else
+            @connection.expect :remove_reference, nil, [:delete_me, :customer]
+          end
           t.remove_references :customer
         end
       end
 
       def test_add_belongs_to_works_like_add_references
         with_change_table do |t|
-          @connection.expect :add_reference, nil, [:delete_me, :customer, {}]
+          if RUBY_VERSION < "2.7"
+            @connection.expect :add_reference, nil, [:delete_me, :customer, {}]
+          else
+            @connection.expect :add_reference, nil, [:delete_me, :customer]
+          end
           t.belongs_to :customer
         end
       end
 
       def test_remove_belongs_to_works_like_remove_references
         with_change_table do |t|
-          @connection.expect :remove_reference, nil, [:delete_me, :customer, {}]
+          if RUBY_VERSION < "2.7"
+            @connection.expect :remove_reference, nil, [:delete_me, :customer, {}]
+          else
+            @connection.expect :remove_reference, nil, [:delete_me, :customer]
+          end
           t.remove_belongs_to :customer
         end
       end
@@ -276,6 +292,13 @@ module ActiveRecord
         with_change_table do |t|
           @connection.expect :remove_columns, nil, [:delete_me, :bar, :baz]
           t.remove :bar, :baz
+        end
+      end
+
+      def test_remove_drops_multiple_columns_when_column_options_are_given
+        with_change_table do |t|
+          @connection.expect :remove_columns, nil, [:delete_me, :bar, :baz, type: :string, null: false]
+          t.remove :bar, :baz, type: :string, null: false
         end
       end
 

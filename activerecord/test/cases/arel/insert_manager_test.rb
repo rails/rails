@@ -23,7 +23,7 @@ module Arel
         manager = Arel::InsertManager.new
         manager.into Table.new(:users)
         manager.values = manager.create_values([Arel.sql("*")])
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           INSERT INTO \"users\" VALUES (*)
         }
       end
@@ -42,7 +42,7 @@ module Arel
           ["3", Arel.sql("DEFAULT")],
         ])
 
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           INSERT INTO \"users\" (\"id\", \"name\") VALUES ('1', 'david'), ('2', 'kir'), ('3', DEFAULT)
         }
       end
@@ -59,7 +59,7 @@ module Arel
           [Arel.sql("DEFAULT")],
         ])
 
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           INSERT INTO \"users\" (\"name\") VALUES (*), (DEFAULT)
         }
       end
@@ -77,7 +77,7 @@ module Arel
           [Arel.sql("DEFAULT")],
         ])
 
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           INSERT INTO \"users\" (\"name\") VALUES ('david'), ('kir'), (DEFAULT)
         }
       end
@@ -87,7 +87,7 @@ module Arel
         manager = Arel::InsertManager.new
 
         manager.insert [[table[:bool], false]]
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           INSERT INTO "users" ("bool") VALUES ('f')
         }
       end
@@ -96,7 +96,7 @@ module Arel
         table = Table.new(:users)
         manager = Arel::InsertManager.new
         manager.insert [[table[:id], nil]]
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           INSERT INTO "users" ("id") VALUES (NULL)
         }
       end
@@ -109,7 +109,7 @@ module Arel
         attribute = table[:created_at]
 
         manager.insert [[attribute, time]]
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           INSERT INTO "users" ("created_at") VALUES (#{Table.engine.connection.quote time})
         }
       end
@@ -119,7 +119,7 @@ module Arel
         manager = Arel::InsertManager.new
         manager.into table
         manager.insert [[table[:id], 1], [table[:name], "aaron"]]
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           INSERT INTO "users" ("id", "name") VALUES (1, 'aaron')
         }
       end
@@ -128,7 +128,7 @@ module Arel
         table = Table.new(:users)
         manager = Arel::InsertManager.new
         manager.insert [[table[:id], 1], [table[:name], "aaron"]]
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           INSERT INTO "users" ("id", "name") VALUES (1, 'aaron')
         }
       end
@@ -138,7 +138,7 @@ module Arel
         manager = Arel::InsertManager.new
         manager.insert [[table[:id], 1]]
         manager.insert []
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           INSERT INTO "users" ("id") VALUES (1)
         }
       end
@@ -154,14 +154,14 @@ module Arel
     describe "into" do
       it "takes a Table and chains" do
         manager = Arel::InsertManager.new
-        manager.into(Table.new(:users)).must_equal manager
+        _(manager.into(Table.new(:users))).must_equal manager
       end
 
       it "converts to sql" do
         table   = Table.new :users
         manager = Arel::InsertManager.new
         manager.into table
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           INSERT INTO "users"
         }
       end
@@ -173,7 +173,7 @@ module Arel
         manager = Arel::InsertManager.new
         manager.into table
         manager.columns << table[:id]
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           INSERT INTO "users" ("id")
         }
       end
@@ -186,7 +186,7 @@ module Arel
         manager.into table
 
         manager.values = Nodes::ValuesList.new([[1], [2]])
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           INSERT INTO "users" VALUES (1), (2)
         }
       end
@@ -197,7 +197,7 @@ module Arel
         manager.into table
 
         manager.values = Arel.sql("DEFAULT VALUES")
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           INSERT INTO "users" DEFAULT VALUES
         }
       end
@@ -212,7 +212,7 @@ module Arel
         manager.values = Nodes::ValuesList.new([[1, "aaron"], [2, "david"]])
         manager.columns << table[:id]
         manager.columns << table[:name]
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           INSERT INTO "users" ("id", "name") VALUES (1, 'aaron'), (2, 'david')
         }
       end
@@ -232,7 +232,7 @@ module Arel
         manager.select select
         manager.columns << table[:id]
         manager.columns << table[:name]
-        manager.to_sql.must_be_like %{
+        _(manager.to_sql).must_be_like %{
           INSERT INTO "users" ("id", "name") (SELECT 1, "aaron")
         }
       end

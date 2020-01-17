@@ -10,6 +10,7 @@ module ActiveModel
 
       def register(type_name, klass = nil, **options, &block)
         block ||= proc { |_, *args| klass.new(*args) }
+        block.ruby2_keywords if block.respond_to?(:ruby2_keywords)
         registrations << registration_klass.new(type_name, block, **options)
       end
 

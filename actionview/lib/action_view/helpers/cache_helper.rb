@@ -24,7 +24,7 @@ module ActionView
       # This approach will assume that when a new topic is added, you'll touch
       # the project. The cache key generated from this call will be something like:
       #
-      #   views/template/action.html.erb:7a1156131a6928cb0026877f8b749ac9/projects/123
+      #   views/template/action:7a1156131a6928cb0026877f8b749ac9/projects/123
       #         ^template path           ^template tree digest            ^class   ^id
       #
       # This cache key is stable, but it's combined with a cache version derived from the project

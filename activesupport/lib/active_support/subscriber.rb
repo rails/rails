@@ -85,7 +85,7 @@ module ActiveSupport
 
           pattern = prepare_pattern(event)
 
-          # Don't add multiple subscribers (eg. if methods are redefined).
+          # Don't add multiple subscribers (e.g. if methods are redefined).
           return if pattern_subscribed?(pattern)
 
           subscriber.patterns[pattern] = notifier.subscribe(pattern, subscriber)

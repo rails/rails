@@ -93,7 +93,7 @@ module ActionView
             end
           rescue ActionView::MissingTemplate
             all_details = @details.merge(formats: @lookup_context.default_formats)
-            raise unless template_exists?(layout, nil, false, [], all_details)
+            raise unless template_exists?(layout, nil, false, [], **all_details)
           end
         when Proc
           resolve_layout(layout.call(@lookup_context, formats), keys, formats)

@@ -244,7 +244,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_finding_with_subquery_with_eager_loading_in_from
-    relation = Comment.includes(:post).where("posts.type": "Post")
+    relation = Comment.includes(:post).where("posts.type": "Post").order(:id)
     assert_equal relation.to_a, Comment.select("*").from(relation).to_a
     assert_equal relation.to_a, Comment.select("subquery.*").from(relation).to_a
     assert_equal relation.to_a, Comment.select("a.*").from(relation, :a).to_a
@@ -298,13 +298,13 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_reverse_order_with_function
-    topics = Topic.order("length(title)").reverse_order
-    assert_equal topics(:second).title, topics.first.title
+    topics = Topic.order("lower(title)").reverse_order
+    assert_equal topics(:third).title, topics.first.title
   end
 
   def test_reverse_arel_assoc_order_with_function
-    topics = Topic.order(Arel.sql("length(title)") => :asc).reverse_order
-    assert_equal topics(:second).title, topics.first.title
+    topics = Topic.order(Arel.sql("lower(title)") => :asc).reverse_order
+    assert_equal topics(:third).title, topics.first.title
   end
 
   def test_reverse_order_with_function_other_predicates
@@ -2050,6 +2050,15 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 1, posts.unscope(where: :body).count
   end
 
+  def test_unscope_grouped_where
+    posts = Post.where(
+      title: ["Welcome to the weblog", "So I was thinking", nil]
+    )
+
+    assert_equal 2, posts.count
+    assert_equal Post.count, posts.unscope(where: :title).count
+  end
+
   def test_locked_should_not_build_arel
     posts = Post.locked
     assert_predicate posts, :locked?
@@ -2057,7 +2066,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_relation_join_method
-    assert_equal "Thank you for the welcome,Thank you again for the welcome", Post.first.comments.join(",")
+    assert_equal "Thank you for the welcome,Thank you again for the welcome", Post.first.comments.order(:id).join(",")
   end
 
   def test_relation_with_private_kernel_method

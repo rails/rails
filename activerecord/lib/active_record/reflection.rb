@@ -619,7 +619,7 @@ module ActiveRecord
             end
 
             if valid_inverse_reflection?(reflection)
-              return inverse_name
+              inverse_name
             end
           end
         end
@@ -766,7 +766,8 @@ module ActiveRecord
       def klass
         @klass ||= delegate_reflection.compute_class(class_name).tap do |klass|
           if !parent_reflection.is_a?(HasAndBelongsToManyReflection) &&
-             !klass.reflections.include?(options[:through].to_s) &&
+             !(klass.reflections.key?(options[:through].to_s) ||
+               klass.reflections.key?(options[:through].to_s.pluralize)) &&
              active_record.type_for_attribute(active_record.primary_key).type != :integer
             raise NotImplementedError, <<~MSG.squish
               In order to correctly type cast #{active_record}.#{active_record.primary_key},

@@ -41,9 +41,10 @@ end
 
 # Active Support
 gem "dalli"
-gem "listen", ">= 3.0.5", "< 3.2", require: false
+gem "listen", "~> 3.2", require: false
 gem "libxml-ruby", platforms: :ruby
 gem "connection_pool", require: false
+gem "rexml", require: false
 
 # for railties app_generator_test
 gem "bootsnap", ">= 1.4.4", require: false
@@ -125,7 +126,7 @@ platforms :ruby, :mswin, :mswin64, :mingw, :x64_mingw do
 
   group :db do
     gem "pg", ">= 0.18.0"
-    gem "mysql2", ">= 0.4.10"
+    gem "mysql2", "~> 0.5"
   end
 end
 

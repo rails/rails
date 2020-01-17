@@ -182,20 +182,19 @@ module ActionDispatch
         end
 
         def merge_and_normalize_cache_control!(cache_control)
-          control = {}
-          cc_headers = cache_control_headers
-          if extras = cc_headers.delete(:extras)
+          control = cache_control_headers
+
+          return if control.empty? && cache_control.empty?  # Let middleware handle default behavior
+
+          if extras = control.delete(:extras)
             cache_control[:extras] ||= []
             cache_control[:extras] += extras
             cache_control[:extras].uniq!
           end
 
-          control.merge! cc_headers
           control.merge! cache_control
 
-          if control.empty?
-            # Let middleware handle default behavior
-          elsif control[:no_cache]
+          if control[:no_cache]
             options = []
             options << PUBLIC if control[:public]
             options << NO_CACHE

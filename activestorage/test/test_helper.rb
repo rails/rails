@@ -34,13 +34,25 @@ rescue Errno::ENOENT
 end
 
 require "tmpdir"
-ActiveStorage::Blob.service = ActiveStorage::Service::DiskService.new(root: Dir.mktmpdir("active_storage_tests"))
+
+Rails.configuration.active_storage.service_configurations = SERVICE_CONFIGURATIONS.merge(
+  "local" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests") },
+  "local_public" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests"), "public" => true },
+  "disk_mirror_1" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests_1") },
+  "disk_mirror_2" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests_2") },
+  "disk_mirror_3" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests_3") },
+  "mirror" => { "service" => "Mirror", "primary" => "local", "mirrors" => ["disk_mirror_1", "disk_mirror_2", "disk_mirror_3"] }
+).deep_stringify_keys
+
+Rails.configuration.active_storage.service = "local"
 
 ActiveStorage.logger = ActiveSupport::Logger.new(nil)
 ActiveStorage.verifier = ActiveSupport::MessageVerifier.new("Testing")
 
 class ActiveSupport::TestCase
   self.file_fixture_path = File.expand_path("fixtures/files", __dir__)
+
+  include ActiveRecord::TestFixtures
 
   setup do
     ActiveStorage::Current.host = "https://example.com"
@@ -51,16 +63,20 @@ class ActiveSupport::TestCase
   end
 
   private
-    def create_blob(data: "Hello world!", filename: "hello.txt", content_type: "text/plain", identify: true, record: nil)
-      ActiveStorage::Blob.create_after_upload! io: StringIO.new(data), filename: filename, content_type: content_type, identify: identify, record: record
+    def create_blob(key: nil, data: "Hello world!", filename: "hello.txt", content_type: "text/plain", identify: true, service_name: nil, record: nil)
+      ActiveStorage::Blob.create_and_upload! key: key, io: StringIO.new(data), filename: filename, content_type: content_type, identify: identify, service_name: service_name, record: record
     end
 
-    def create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg", metadata: nil, record: nil)
-      ActiveStorage::Blob.create_after_upload! io: file_fixture(filename).open, filename: filename, content_type: content_type, metadata: metadata, record: record
+    def create_file_blob(key: nil, filename: "racecar.jpg", content_type: "image/jpeg", metadata: nil, service_name: nil, record: nil)
+      ActiveStorage::Blob.create_and_upload! io: file_fixture(filename).open, filename: filename, content_type: content_type, metadata: metadata, service_name: service_name, record: record
     end
 
-    def create_blob_before_direct_upload(filename: "hello.txt", byte_size:, checksum:, content_type: "text/plain", record: nil)
-      ActiveStorage::Blob.create_before_direct_upload! filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type, record: record
+    def create_blob_before_direct_upload(key: nil, filename: "hello.txt", byte_size:, checksum:, content_type: "text/plain", record: nil)
+      ActiveStorage::Blob.create_before_direct_upload! key: key, filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type, record: record
+    end
+
+    def build_blob_after_unfurling(key: nil, data: "Hello world!", filename: "hello.txt", content_type: "text/plain", identify: true, record: nil)
+      ActiveStorage::Blob.build_after_unfurling key: key, io: StringIO.new(data), filename: filename, content_type: content_type, identify: identify, record: record
     end
 
     def directly_upload_file_blob(filename: "racecar.jpg", content_type: "image/jpeg", record: nil)
@@ -85,6 +101,15 @@ class ActiveSupport::TestCase
     def fixture_file_upload(filename)
       Rack::Test::UploadedFile.new file_fixture(filename).to_s
     end
+
+    def with_service(service_name)
+      previous_service = ActiveStorage::Blob.service
+      ActiveStorage::Blob.service = ActiveStorage::Blob.services.fetch(service_name)
+
+      yield
+    ensure
+      ActiveStorage::Blob.service = previous_service
+    end
 end
 
 require "global_id"
@@ -95,10 +120,10 @@ class User < ActiveRecord::Base
   validates :name, presence: true
 
   has_one_attached :avatar
-  has_one_attached :cover_photo, dependent: false
+  has_one_attached :cover_photo, dependent: false, service: :local
 
   has_many_attached :highlights
-  has_many_attached :vlogs, dependent: false
+  has_many_attached :vlogs, dependent: false, service: :local
 end
 
 class Group < ActiveRecord::Base

@@ -58,15 +58,29 @@ module ActiveSupport
         method_names.each do |method_name|
           if target_module.method_defined?(method_name) || target_module.private_method_defined?(method_name)
             method = target_module.instance_method(method_name)
-            target_module.redefine_method(method_name) do |*args, &block|
-              deprecator.deprecation_warning(method_name, options[method_name])
-              method.bind(self).call(*args, &block)
+            if RUBY_VERSION < "2.7"
+              target_module.redefine_method(method_name) do |*args, &block|
+                deprecator.deprecation_warning(method_name, options[method_name])
+                method.bind(self).call(*args, &block)
+              end
+            else
+              target_module.redefine_method(method_name) do |*args, **kwargs, &block|
+                deprecator.deprecation_warning(method_name, options[method_name])
+                method.bind(self).call(*args, **kwargs, &block)
+              end
             end
           else
             mod ||= Module.new
-            mod.define_method(method_name) do |*args, &block|
-              deprecator.deprecation_warning(method_name, options[method_name])
-              super(*args, &block)
+            if RUBY_VERSION < "2.7"
+              mod.define_method(method_name) do |*args, &block|
+                deprecator.deprecation_warning(method_name, options[method_name])
+                super(*args, &block)
+              end
+            else
+              mod.define_method(method_name) do |*args, **kwargs, &block|
+                deprecator.deprecation_warning(method_name, options[method_name])
+                super(*args, **kwargs, &block)
+              end
             end
           end
         end

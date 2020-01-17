@@ -14,6 +14,8 @@ require "active_storage/previewer/video_previewer"
 require "active_storage/analyzer/image_analyzer"
 require "active_storage/analyzer/video_analyzer"
 
+require "active_storage/service/registry"
+
 require "active_storage/reflection"
 
 module ActiveStorage
@@ -82,6 +84,7 @@ module ActiveStorage
         ActiveStorage.binary_content_type = app.config.active_storage.binary_content_type || "application/octet-stream"
 
         ActiveStorage.replace_on_assign_to_many = app.config.active_storage.replace_on_assign_to_many || false
+        ActiveStorage.track_variants = app.config.active_storage.track_variants || false
       end
     end
 
@@ -101,8 +104,8 @@ module ActiveStorage
 
     initializer "active_storage.services" do
       ActiveSupport.on_load(:active_storage_blob) do
-        if config_choice = Rails.configuration.active_storage.service
-          configs = Rails.configuration.active_storage.service_configurations ||= begin
+        configs = Rails.configuration.active_storage.service_configurations ||=
+          begin
             config_file = Pathname.new(Rails.root.join("config/storage.yml"))
             raise("Couldn't find Active Storage configuration in #{config_file}") unless config_file.exist?
 
@@ -116,12 +119,10 @@ module ActiveStorage
                   "Error: #{e.message}"
           end
 
-          ActiveStorage::Blob.service =
-            begin
-              ActiveStorage::Service.configure config_choice, configs
-            rescue => e
-              raise e, "Cannot load `Rails.config.active_storage.service`:\n#{e.message}", e.backtrace
-            end
+        ActiveStorage::Blob.services = ActiveStorage::Service::Registry.new(configs)
+
+        if config_choice = Rails.configuration.active_storage.service
+          ActiveStorage::Blob.service = ActiveStorage::Blob.services.fetch(config_choice)
         end
       end
     end

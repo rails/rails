@@ -218,18 +218,12 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_find_in_batches_should_not_ignore_the_default_scope_if_it_is_other_then_order
-    special_posts_ids = SpecialPostWithDefaultScope.all.map(&:id).sort
+    default_scope = SpecialPostWithDefaultScope.all
     posts = []
     SpecialPostWithDefaultScope.find_in_batches do |batch|
       posts.concat(batch)
     end
-    assert_equal special_posts_ids, posts.map(&:id)
-  end
-
-  def test_find_in_batches_should_not_modify_passed_options
-    assert_nothing_raised do
-      Post.find_in_batches({ batch_size: 42, start: 1 }.freeze) { }
-    end
+    assert_equal default_scope.pluck(:id).sort, posts.map(&:id).sort
   end
 
   def test_find_in_batches_should_use_any_column_as_primary_key
@@ -436,18 +430,12 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_should_not_ignore_default_scope_without_order_statements
-    special_posts_ids = SpecialPostWithDefaultScope.all.map(&:id).sort
+    default_scope = SpecialPostWithDefaultScope.all
     posts = []
     SpecialPostWithDefaultScope.in_batches do |relation|
       posts.concat(relation)
     end
-    assert_equal special_posts_ids, posts.map(&:id)
-  end
-
-  def test_in_batches_should_not_modify_passed_options
-    assert_nothing_raised do
-      Post.in_batches({ of: 42, start: 1 }.freeze) { }
-    end
+    assert_equal default_scope.pluck(:id).sort, posts.map(&:id).sort
   end
 
   def test_in_batches_should_use_any_column_as_primary_key

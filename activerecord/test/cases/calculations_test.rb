@@ -771,7 +771,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_pluck_with_join
-    assert_equal [[2, 2], [4, 4]], Reply.includes(:topic).pluck(:id, :"topics.id")
+    assert_equal [[2, 2], [4, 4]], Reply.includes(:topic).order(:id).pluck(:id, :"topics.id")
   end
 
   def test_group_by_with_order_by_virtual_count_attribute
@@ -827,7 +827,7 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_pluck_with_multiple_columns_and_selection_clause
     assert_equal [[1, 50], [2, 50], [3, 50], [4, 60], [5, 55], [6, 53]],
-      Account.pluck("id, credit_limit")
+      Account.order(:id).pluck("id, credit_limit")
   end
 
   def test_pluck_with_multiple_columns_and_includes

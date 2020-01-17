@@ -170,7 +170,7 @@ module ActiveRecord
     # writing, the only database that we're aware of that supports true nested
     # transactions, is MS-SQL. Because of this, Active Record emulates nested
     # transactions by using savepoints. See
-    # https://dev.mysql.com/doc/refman/5.7/en/savepoint.html
+    # https://dev.mysql.com/doc/refman/en/savepoint.html
     # for more information about savepoints.
     #
     # === \Callbacks
@@ -332,14 +332,14 @@ module ActiveRecord
     # Ensure that it is not called if the object was never persisted (failed create),
     # but call it after the commit of a destroyed object.
     def committed!(should_run_callbacks: true) #:nodoc:
+      force_clear_transaction_record_state
       if should_run_callbacks
         @_committed_already_called = true
         _run_commit_without_transaction_enrollment_callbacks
         _run_commit_callbacks
       end
     ensure
-      @_committed_already_called = false
-      force_clear_transaction_record_state
+      @_committed_already_called = @_trigger_update_callback = @_trigger_destroy_callback = false
     end
 
     # Call the #after_rollback callbacks. The +force_restore_state+ argument indicates if the record
@@ -352,6 +352,7 @@ module ActiveRecord
     ensure
       restore_transaction_record_state(force_restore_state)
       clear_transaction_record_state
+      @_trigger_update_callback = @_trigger_destroy_callback = false if force_restore_state
     end
 
     # Executes +method+ within a transaction and captures its return value as a

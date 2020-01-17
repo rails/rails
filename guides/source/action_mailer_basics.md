@@ -16,8 +16,8 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-Introduction
-------------
+What is Action Mailer?
+----------------------
 
 Action Mailer allows you to send emails from your application using mailer classes
 and views.
@@ -44,7 +44,7 @@ views.
 #### Create the Mailer
 
 ```bash
-$ rails generate mailer UserMailer
+$ bin/rails generate mailer UserMailer
 create  app/mailers/user_mailer.rb
 create  app/mailers/application_mailer.rb
 invoke  erb
@@ -173,8 +173,8 @@ Setting this up is simple.
 First, let's create a simple `User` scaffold:
 
 ```bash
-$ rails generate scaffold user name email login
-$ rails db:migrate
+$ bin/rails generate scaffold user name email login
+$ bin/rails db:migrate
 ```
 
 Now that we have a user model to play with, we will just edit the
@@ -443,7 +443,7 @@ You can also consider using the [append_view_path](https://guides.rubyonrails.or
 
 You can perform fragment caching in mailer views like in application views using the `cache` method.
 
-```
+```html+erb
 <% cache do %>
   <%= @company.name %>
 <% end %>
@@ -451,8 +451,8 @@ You can perform fragment caching in mailer views like in application views using
 
 And in order to use this feature, you need to configure your application with this:
 
-```
-  config.action_mailer.perform_caching = true
+```ruby
+config.action_mailer.perform_caching = true
 ```
 
 Fragment caching is also supported in multipart emails.
@@ -542,13 +542,13 @@ Because of this behavior you cannot use any of the `*_path` helpers inside of
 an email. Instead you will need to use the associated `*_url` helper. For example
 instead of using
 
-```
+```html+erb
 <%= link_to 'welcome', welcome_path %>
 ```
 
 You will need to use:
 
-```
+```html+erb
 <%= link_to 'welcome', welcome_url %>
 ```
 
@@ -733,8 +733,17 @@ end
 Using Action Mailer Helpers
 ---------------------------
 
-Action Mailer now just inherits from `AbstractController`, so you have access to
-the same generic helpers as you do in Action Controller.
+Action Mailer inherits from `AbstractController`, so you have access to most
+of the same helpers as you do in Action Controller.
+
+There are also some Action Mailer-specific helper methods available in
+`ActionMailer::MailHelper`. For example, these allow accessing the mailer
+instance from your view with `mailer`, and accessing the message as `message`:
+
+```erb
+<%= stylesheet_link_tag mailer.name.underscore %>
+<h1><%= message.subject %></h1>
+```
 
 Action Mailer Configuration
 ---------------------------

@@ -13,10 +13,7 @@ class TestUnconnectedAdapter < ActiveRecord::TestCase
     @specification = ActiveRecord::Base.remove_connection
 
     # Clear out connection info from other pids (like a fork parent) too
-    pool_map = ActiveRecord::Base.connection_handler.instance_variable_get(:@owner_to_pool)
-    (pool_map.keys - [Process.pid]).each do |other_pid|
-      pool_map.delete(other_pid)
-    end
+    ActiveRecord::ConnectionAdapters::PoolConfig.discard_pools!
   end
 
   teardown do
@@ -40,7 +37,7 @@ class TestUnconnectedAdapter < ActiveRecord::TestCase
       TestRecord.find(1)
     end
 
-    assert_equal "No connection pool with 'primary' found.", error.message
+    assert_equal "No connection pool for 'ActiveRecord::Base' found.", error.message
   end
 
   def test_underlying_adapter_no_longer_active

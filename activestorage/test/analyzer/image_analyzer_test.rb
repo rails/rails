@@ -35,6 +35,6 @@ class ActiveStorage::Analyzer::ImageAnalyzerTest < ActiveSupport::TestCase
     metadata = extract_metadata_from(blob)
 
     assert_nil metadata[:width]
-    assert_nil metadata[:heigh]
+    assert_nil metadata[:height]
   end
 end

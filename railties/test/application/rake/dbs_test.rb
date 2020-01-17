@@ -33,7 +33,7 @@ module ApplicationTests
           assert_match(/Created database/, output)
           assert File.exist?(expected_database)
           yield if block_given?
-          assert_equal expected_database, ActiveRecord::Base.connection_config[:database] if environment_loaded
+          assert_equal expected_database, ActiveRecord::Base.connection_db_config.database if environment_loaded
           output = rails("db:drop")
           assert_match(/Dropped database/, output)
           assert_not File.exist?(expected_database)
@@ -51,13 +51,35 @@ module ApplicationTests
 
       test "db:create and db:drop without database URL" do
         require "#{app_path}/config/environment"
-        db_create_and_drop ActiveRecord::Base.configurations[Rails.env]["database"]
+        db_create_and_drop ActiveRecord::Base.configurations[Rails.env][:database]
       end
 
       test "db:create and db:drop with database URL" do
         require "#{app_path}/config/environment"
         set_database_url
         db_create_and_drop database_url_db_name
+      end
+
+      test "db:create and db:drop with database URL don't use YAML DBs" do
+        require "#{app_path}/config/environment"
+        set_database_url
+
+        File.write("#{app_path}/config/database.yml", <<~YAML)
+          test:
+            adapter: sqlite3
+            database: db/test.sqlite3
+
+          development:
+            adapter: sqlite3
+            database: db/development.sqlite3
+        YAML
+
+        with_rails_env "development" do
+          db_create_and_drop database_url_db_name do
+            assert_not File.exist?("#{app_path}/db/test.sqlite3")
+            assert_not File.exist?("#{app_path}/db/development.sqlite3")
+          end
+        end
       end
 
       test "db:create and db:drop respect environment setting" do
@@ -310,7 +332,7 @@ module ApplicationTests
 
       test "db:migrate and db:migrate:status without database_url" do
         require "#{app_path}/config/environment"
-        db_migrate_and_status ActiveRecord::Base.configurations[Rails.env]["database"]
+        db_migrate_and_status ActiveRecord::Base.configurations[Rails.env][:database]
       end
 
       test "db:migrate and db:migrate:status with database_url" do
@@ -343,14 +365,14 @@ module ApplicationTests
           reload
           rails "db:migrate", "db:fixtures:load"
 
-          assert_match expected_database, ActiveRecord::Base.connection_config[:database]
+          assert_match expected_database, ActiveRecord::Base.connection_db_config.database
           assert_equal 2, Book.count
         end
       end
 
       test "db:fixtures:load without database_url" do
         require "#{app_path}/config/environment"
-        db_fixtures_load ActiveRecord::Base.configurations[Rails.env]["database"]
+        db_fixtures_load ActiveRecord::Base.configurations[Rails.env][:database]
       end
 
       test "db:fixtures:load with database_url" do
@@ -376,7 +398,7 @@ module ApplicationTests
           structure_dump = File.read("db/structure.sql")
           assert_match(/CREATE TABLE (?:IF NOT EXISTS )?\"books\"/, structure_dump)
           rails "environment", "db:drop", "db:structure:load"
-          assert_match expected_database, ActiveRecord::Base.connection_config[:database]
+          assert_match expected_database, ActiveRecord::Base.connection_db_config.database
           require "#{app_path}/app/models/book"
           # if structure is not loaded correctly, exception would be raised
           assert_equal 0, Book.count
@@ -385,7 +407,7 @@ module ApplicationTests
 
       test "db:structure:dump and db:structure:load without database_url" do
         require "#{app_path}/config/environment"
-        db_structure_dump_and_load ActiveRecord::Base.configurations[Rails.env]["database"]
+        db_structure_dump_and_load ActiveRecord::Base.configurations[Rails.env][:database]
       end
 
       test "db:structure:dump and db:structure:load with database_url" do
@@ -396,7 +418,7 @@ module ApplicationTests
 
       test "db:structure:dump and db:structure:load set ar_internal_metadata" do
         require "#{app_path}/config/environment"
-        db_structure_dump_and_load ActiveRecord::Base.configurations[Rails.env]["database"]
+        db_structure_dump_and_load ActiveRecord::Base.configurations[Rails.env][:database]
 
         assert_equal "test", rails("runner", "-e", "test", "puts ActiveRecord::InternalMetadata[:environment]").strip
         assert_equal "development", rails("runner", "puts ActiveRecord::InternalMetadata[:environment]").strip
@@ -463,7 +485,7 @@ module ApplicationTests
 
       test "db:schema:load fails if schema.rb doesn't exist yet" do
         stderr_output = capture(:stderr) { rails("db:schema:load", stderr: true, allow_failure: true) }
-        assert_match(/Run `rails db:migrate` to create it/, stderr_output)
+        assert_match(/Run `bin\/rails db:migrate` to create it/, stderr_output)
       end
 
       def db_test_load_structure
@@ -475,8 +497,8 @@ module ApplicationTests
           require "#{app_path}/app/models/book"
           # if structure is not loaded correctly, exception would be raised
           assert_equal 0, Book.count
-          assert_match ActiveRecord::Base.configurations["test"]["database"],
-            ActiveRecord::Base.connection_config[:database]
+          assert_match ActiveRecord::Base.configurations["test"][:database],
+            ActiveRecord::Base.connection_db_config.database
         end
       end
 
@@ -497,10 +519,10 @@ module ApplicationTests
                 t.string :name
               end
             end
-          RUBY
+        RUBY
 
         app_file "db/seeds.rb", <<-RUBY
-          puts ActiveRecord::Base.connection_config[:database]
+          puts ActiveRecord::Base.connection_db_config.database
         RUBY
 
         database_path = rails("db:setup")

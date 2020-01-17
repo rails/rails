@@ -22,6 +22,7 @@ require "models/dog"
 require "models/car"
 require "models/tyre"
 require "models/subscriber"
+require "models/non_primary_key"
 require "support/stubs/strong_parameters"
 
 class FinderTest < ActiveRecord::TestCase
@@ -389,7 +390,7 @@ class FinderTest < ActiveRecord::TestCase
     #   limit of 3 and offset of 9, then you should find that there
     #   will be only 2 results, regardless of the limit.
     devs = Developer.all
-    last_devs = Developer.limit(3).offset(9).find devs.map(&:id)
+    last_devs = Developer.limit(3).offset(9).find(devs.map(&:id).sort)
     assert_equal 2, last_devs.size
     assert_equal "fixture_10", last_devs[0].name
     assert_equal "Jamis", last_devs[1].name
@@ -797,8 +798,37 @@ class FinderTest < ActiveRecord::TestCase
 
     assert_equal topics(:fifth), Topic.first
     assert_equal topics(:third), Topic.last
+
+    c = Topic.connection
+    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.title"))} DESC, #{Regexp.escape(c.quote_table_name("topics.id"))} DESC LIMIT/i) {
+      Topic.last
+    }
   ensure
     Topic.implicit_order_column = old_implicit_order_column
+  end
+
+  def test_implicit_order_set_to_primary_key
+    old_implicit_order_column = Topic.implicit_order_column
+    Topic.implicit_order_column = "id"
+
+    c = Topic.connection
+    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.id"))} DESC LIMIT/i) {
+      Topic.last
+    }
+  ensure
+    Topic.implicit_order_column = old_implicit_order_column
+  end
+
+  def test_implicit_order_for_model_without_primary_key
+    old_implicit_order_column = NonPrimaryKey.implicit_order_column
+    NonPrimaryKey.implicit_order_column = "created_at"
+
+    c = NonPrimaryKey.connection
+    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("non_primary_keys.created_at"))} DESC LIMIT/i) {
+      NonPrimaryKey.last
+    }
+  ensure
+    NonPrimaryKey.implicit_order_column = old_implicit_order_column
   end
 
   def test_take_and_first_and_last_with_integer_should_return_an_array
@@ -1334,6 +1364,18 @@ class FinderTest < ActiveRecord::TestCase
     ).to_a
     assert_equal 3, posts.size
     assert_equal [0, 1, 1], posts.map(&:author_id).sort
+  end
+
+  def test_eager_load_for_no_has_many_with_limit_and_joins_for_has_many
+    relation = Post.eager_load(:author).joins(comments: :post)
+    assert_equal 5, relation.to_a.size
+    assert_equal 5, relation.limit(5).to_a.size
+  end
+
+  def test_eager_load_for_no_has_many_with_limit_and_left_joins_for_has_many
+    relation = Post.eager_load(:author).left_joins(comments: :post)
+    assert_equal 11, relation.to_a.size
+    assert_equal 11, relation.limit(11).to_a.size
   end
 
   def test_find_one_message_on_primary_key

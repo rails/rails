@@ -411,8 +411,8 @@ Autoloading Availability
 Rails is always able to autoload provided its environment is in place. For
 example the `runner` command autoloads:
 
-```
-$ rails runner 'p User.column_names'
+```bash
+$ bin/rails runner 'p User.column_names'
 ["id", "email", "created_at", "updated_at"]
 ```
 
@@ -482,13 +482,11 @@ What is described above are the defaults with a newly generated Rails app. There
 
 See also [Autoloading in the Test Environment](#autoloading-in-the-test-environment).
 
-`config.autoload_paths` is not changeable from environment-specific configuration files.
-
 The value of `autoload_paths` can be inspected. In a just-generated application
 it is (edited):
 
-```
-$ rails r 'puts ActiveSupport::Dependencies.autoload_paths'
+```bash
+$ bin/rails runner 'puts ActiveSupport::Dependencies.autoload_paths'
 .../app/assets
 .../app/channels
 .../app/controllers
@@ -894,6 +892,46 @@ module Admin
 end
 ```
 
+### Defining vs Reopening Namespaces
+
+Let's consider:
+
+```ruby
+# app/models/blog.rb
+module Blog
+  def self.table_name_prefix
+    "blog_"
+  end
+end
+
+# app/models/blog/post.rb
+module Blog
+  class Post < ApplicationRecord
+  end
+end
+```
+
+The table name for `Blog::Post` should be `blog_posts` due to the existence of
+the method `Blog.table_name_prefix`. However, if `app/models/blog/post.rb` is
+executed before `app/models/blog.rb` is, Active Record is not aware of the
+existence of such method, and assumes the table is `posts`.
+
+To resolve a situation like this, it helps thinking clearly about which file
+_defines_ the `Blog` module (`app/models/blog.rb`), and which one _reopens_ it
+(`app/models/blog/post.rb`). Then, you ensure that the definition is executed
+first using `require_dependency`:
+
+```ruby
+# app/models/blog/post.rb
+
+require_dependency "blog"
+
+module Blog
+  class Post < ApplicationRecord
+  end
+end
+```
+
 ### Autoloading and STI
 
 Single Table Inheritance (STI) is a feature of Active Record that enables
@@ -1187,8 +1225,8 @@ up the constant in `Hotel` and its ancestors. If `app/models/image.rb` has
 been loaded but `app/models/hotel/image.rb` hasn't, Ruby does not find `Image`
 in `Hotel`, but it does in `Object`:
 
-```
-$ rails r 'Image; p Hotel::Image' 2>/dev/null
+```bash
+$ bin/rails runner 'Image; p Hotel::Image' 2>/dev/null
 Image # NOT Hotel::Image!
 ```
 

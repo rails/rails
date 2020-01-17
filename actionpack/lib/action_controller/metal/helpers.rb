@@ -73,6 +73,11 @@ module ActionController
       end
 
       # Provides a proxy to access helper methods from outside the view.
+      #
+      # Note that the proxy is rendered under a different view context.
+      # This may cause incorrect behaviour with capture methods. Consider
+      # using {helper}[rdoc-ref:AbstractController::Helpers::ClassMethods#helper]
+      # instead when using +capture+.
       def helpers
         @helper_proxy ||= begin
           proxy = ActionView::Base.empty

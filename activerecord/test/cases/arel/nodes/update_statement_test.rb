@@ -10,11 +10,11 @@ describe Arel::Nodes::UpdateStatement do
       statement.values = %w[x y z]
 
       dolly = statement.clone
-      dolly.wheres.must_equal statement.wheres
-      dolly.wheres.wont_be_same_as statement.wheres
+      _(dolly.wheres).must_equal statement.wheres
+      _(dolly.wheres).wont_be_same_as statement.wheres
 
-      dolly.values.must_equal statement.values
-      dolly.values.wont_be_same_as statement.values
+      _(dolly.values).must_equal statement.values
+      _(dolly.values).wont_be_same_as statement.values
     end
   end
 

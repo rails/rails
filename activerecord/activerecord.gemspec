@@ -24,8 +24,11 @@ Gem::Specification.new do |s|
   s.rdoc_options.concat ["--main",  "README.rdoc"]
 
   s.metadata = {
-    "source_code_uri" => "https://github.com/rails/rails/tree/v#{version}/activerecord",
-    "changelog_uri"   => "https://github.com/rails/rails/blob/v#{version}/activerecord/CHANGELOG.md"
+    "bug_tracker_uri"   => "https://github.com/rails/rails/issues",
+    "changelog_uri"     => "https://github.com/rails/rails/blob/v#{version}/activerecord/CHANGELOG.md",
+    "documentation_uri" => "https://api.rubyonrails.org/v#{version}/",
+    "mailing_list_uri"  => "https://groups.google.com/forum/#!forum/rubyonrails-talk",
+    "source_code_uri"   => "https://github.com/rails/rails/tree/v#{version}/activerecord",
   }
 
   # NOTE: Please read our dependency guidelines before updating versions:

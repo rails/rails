@@ -17,10 +17,13 @@ module ActiveStorage
       :url_for_direct_upload, :headers_for_direct_upload, :path_for, to: :primary
 
     # Stitch together from named services.
-    def self.build(primary:, mirrors:, configurator:, **options) #:nodoc:
-      new \
+    def self.build(primary:, mirrors:, name:, configurator:, **options) #:nodoc:
+      new(
         primary: configurator.build(primary),
-        mirrors: mirrors.collect { |name| configurator.build name }
+        mirrors: mirrors.collect { |mirror_name| configurator.build mirror_name }
+      ).tap do |service_instance|
+        service_instance.name = name
+      end
     end
 
     def initialize(primary:, mirrors:)

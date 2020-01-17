@@ -227,4 +227,14 @@ class MimeTypeTest < ActiveSupport::TestCase
       Mime::Type.new(nil)
     end
   end
+
+  test "holds a reference to mime symbols" do
+    old_symbols = Mime::SET.symbols
+    Mime::Type.register_alias "application/xhtml+xml", :foobar
+    new_symbols = Mime::SET.symbols
+
+    assert_same(old_symbols, new_symbols)
+  ensure
+    Mime::Type.unregister(:foobar)
+  end
 end

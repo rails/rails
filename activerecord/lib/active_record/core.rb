@@ -43,9 +43,9 @@ module ActiveRecord
       #
       #   #<ActiveRecord::DatabaseConfigurations:0x00007fd1acbdf800 @configurations=[
       #     #<ActiveRecord::DatabaseConfigurations::HashConfig:0x00007fd1acbded10 @env_name="development",
-      #       @spec_name="primary", @config={"adapter"=>"sqlite3", "database"=>"db/development.sqlite3"}>,
+      #       @spec_name="primary", @config={adapter: "sqlite3", database: "db/development.sqlite3"}>,
       #     #<ActiveRecord::DatabaseConfigurations::HashConfig:0x00007fd1acbdea90 @env_name="production",
-      #       @spec_name="primary", @config={"adapter"=>"sqlite3", "database"=>"db/production.sqlite3"}>
+      #       @spec_name="primary", @config={adapter: "sqlite3", database: "db/production.sqlite3"}>
       #   ]>
       def self.configurations=(config)
         @@configurations = ActiveRecord::DatabaseConfigurations.new(config)
@@ -120,13 +120,15 @@ module ActiveRecord
 
       mattr_accessor :maintain_test_schema, instance_accessor: false
 
-      mattr_accessor :belongs_to_required_by_default, instance_accessor: false
+      class_attribute :belongs_to_required_by_default, instance_accessor: false
 
       mattr_accessor :connection_handlers, instance_accessor: false, default: {}
 
       mattr_accessor :writing_role, instance_accessor: false, default: :writing
 
       mattr_accessor :reading_role, instance_accessor: false, default: :reading
+
+      mattr_accessor :has_many_inversing, instance_accessor: false, default: false
 
       class_attribute :default_connection_handler, instance_writer: false
 

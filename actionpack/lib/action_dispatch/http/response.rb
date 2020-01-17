@@ -540,4 +540,6 @@ module ActionDispatch # :nodoc:
       end
     end
   end
+
+  ActiveSupport.run_load_hooks(:action_dispatch_response, Response)
 end

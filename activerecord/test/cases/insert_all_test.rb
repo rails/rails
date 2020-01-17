@@ -17,17 +17,17 @@ class InsertAllTest < ActiveRecord::TestCase
     id = 1_000_000
 
     assert_difference "Book.count", +1 do
-      Book.insert(id: id, name: "Rework", author_id: 1)
+      Book.insert({ id: id, name: "Rework", author_id: 1 })
     end
 
-    Book.upsert(id: id, name: "Remote", author_id: 1)
+    Book.upsert({ id: id, name: "Remote", author_id: 1 })
 
     assert_equal "Remote", Book.find(id).name
   end
 
   def test_insert!
     assert_difference "Book.count", +1 do
-      Book.insert! name: "Rework", author_id: 1
+      Book.insert!({ name: "Rework", author_id: 1 })
     end
   end
 
@@ -137,7 +137,7 @@ class InsertAllTest < ActiveRecord::TestCase
     book = Book.create!(author_id: 8, name: "Refactoring", format: "EXPECTED")
 
     assert_no_difference "Book.count" do
-      Book.insert(author_id: 8, name: "Refactoring", format: "UNEXPECTED")
+      Book.insert({ author_id: 8, name: "Refactoring", format: "UNEXPECTED" })
     end
 
     assert_equal "EXPECTED", book.reload.format
@@ -155,10 +155,11 @@ class InsertAllTest < ActiveRecord::TestCase
   def test_insert_all_and_upsert_all_with_index_finding_options
     skip unless supports_insert_conflict_target?
 
-    assert_difference "Book.count", +3 do
+    assert_difference "Book.count", +4 do
       Book.insert_all [{ name: "Rework", author_id: 1 }], unique_by: :isbn
       Book.insert_all [{ name: "Remote", author_id: 1 }], unique_by: %i( author_id name )
       Book.insert_all [{ name: "Renote", author_id: 1 }], unique_by: :index_books_on_isbn
+      Book.insert_all [{ name: "Recoat", author_id: 1 }], unique_by: :id
     end
 
     assert_raise ActiveRecord::RecordNotUnique do
@@ -186,7 +187,7 @@ class InsertAllTest < ActiveRecord::TestCase
     skip unless supports_insert_conflict_target?
 
     capture_log_output do |output|
-      Book.insert(name: "Rework", author_id: 1)
+      Book.insert({ name: "Rework", author_id: 1 })
       assert_match "Book Insert", output.string
     end
   end
@@ -204,7 +205,7 @@ class InsertAllTest < ActiveRecord::TestCase
     skip unless supports_insert_on_duplicate_update?
 
     capture_log_output do |output|
-      Book.upsert(name: "Remote", author_id: 1)
+      Book.upsert({ name: "Remote", author_id: 1 })
       assert_match "Book Upsert", output.string
     end
   end
@@ -227,7 +228,7 @@ class InsertAllTest < ActiveRecord::TestCase
   end
 
   def test_upsert_all_updates_existing_record_by_primary_key
-    skip unless supports_insert_on_duplicate_update?
+    skip unless supports_insert_conflict_target?
 
     Book.upsert_all [{ id: 1, name: "New edition" }], unique_by: :id
 

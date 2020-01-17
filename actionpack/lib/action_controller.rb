@@ -2,7 +2,6 @@
 
 require "abstract_controller"
 require "action_dispatch"
-require "action_controller/metal/live"
 require "action_controller/metal/strong_parameters"
 
 module ActionController
@@ -20,6 +19,10 @@ module ActionController
   end
 
   autoload_under "metal" do
+    eager_autoload do
+      autoload :Live
+    end
+
     autoload :ConditionalGet
     autoload :ContentSecurityPolicy
     autoload :Cookies
@@ -36,6 +39,7 @@ module ActionController
     autoload :BasicImplicitRender
     autoload :ImplicitRender
     autoload :Instrumentation
+    autoload :Logging
     autoload :MimeResponds
     autoload :ParamsWrapper
     autoload :Redirecting

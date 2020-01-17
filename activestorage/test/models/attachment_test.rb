@@ -25,29 +25,28 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
     assert_equal 2736, blob.metadata[:height]
   end
 
-  test "mirroring a directly-uploaded blob after attaching it" do
-    previous_service, ActiveStorage::Blob.service = ActiveStorage::Blob.service, build_mirror_service
+  test "attaching a un-analyzable blob" do
+    blob = create_blob(filename: "blank.txt")
 
-    blob = directly_upload_file_blob
-    assert_not ActiveStorage::Blob.service.mirrors.second.exist?(blob.key)
+    assert_not_predicate blob, :analyzed?
 
-    perform_enqueued_jobs do
+    assert_no_enqueued_jobs do
       @user.highlights.attach(blob)
     end
 
-    assert ActiveStorage::Blob.service.mirrors.second.exist?(blob.key)
-  ensure
-    ActiveStorage::Blob.service = previous_service
+    assert_predicate blob.reload, :analyzed?
   end
 
-  private
-    def build_mirror_service
-      ActiveStorage::Service::MirrorService.new \
-        primary: build_disk_service("primary"),
-        mirrors: 3.times.collect { |i| build_disk_service("mirror_#{i + 1}") }
-    end
+  test "mirroring a directly-uploaded blob after attaching it" do
+    with_service("mirror") do
+      blob = directly_upload_file_blob
+      assert_not ActiveStorage::Blob.service.mirrors.second.exist?(blob.key)
 
-    def build_disk_service(purpose)
-      ActiveStorage::Service::DiskService.new(root: Dir.mktmpdir("active_storage_tests_#{purpose}"))
+      perform_enqueued_jobs do
+        @user.highlights.attach(blob)
+      end
+
+      assert ActiveStorage::Blob.service.mirrors.second.exist?(blob.key)
     end
+  end
 end

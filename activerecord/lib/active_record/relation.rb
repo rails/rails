@@ -317,7 +317,7 @@ module ActiveRecord
       query_signature = ActiveSupport::Digest.hexdigest(to_sql)
       key = "#{klass.model_name.cache_key}/query-#{query_signature}"
 
-      if cache_version(timestamp_column)
+      if collection_cache_versioning
         key
       else
         "#{key}-#{compute_cache_version(timestamp_column)}"
@@ -384,6 +384,15 @@ module ActiveRecord
       end
     end
     private :compute_cache_version
+
+    # Returns a cache key along with the version.
+    def cache_key_with_version
+      if version = cache_version
+        "#{cache_key}-#{version}"
+      else
+        cache_key
+      end
+    end
 
     # Scope all queries to the current scope.
     #
@@ -491,7 +500,9 @@ module ActiveRecord
 
       if touch
         names = touch if touch != true
-        touch_updates = klass.touch_attributes_with_time(*names)
+        names = Array(names)
+        options = names.extract_options!
+        touch_updates = klass.touch_attributes_with_time(*names, **options)
         updates.merge!(touch_updates) unless touch_updates.empty?
       end
 
@@ -624,7 +635,10 @@ module ActiveRecord
     #
     #   Post.where(published: true).load # => #<ActiveRecord::Relation>
     def load(&block)
-      exec_queries(&block) unless loaded?
+      unless loaded?
+        @records = exec_queries(&block)
+        @loaded = true
+      end
 
       self
     end
@@ -807,8 +821,10 @@ module ActiveRecord
 
       def exec_queries(&block)
         skip_query_cache_if_necessary do
-          @records =
-            if eager_loading?
+          records =
+            if where_clause.contradiction?
+              []
+            elsif eager_loading?
               apply_join_dependency do |relation, join_dependency|
                 if relation.null_relation?
                   []
@@ -822,12 +838,11 @@ module ActiveRecord
               klass.find_by_sql(arel, &block).freeze
             end
 
-          preload_associations(@records) unless skip_preloading_value
+          preload_associations(records) unless skip_preloading_value
 
-          @records.each(&:readonly!) if readonly_value
+          records.each(&:readonly!) if readonly_value
 
-          @loaded = true
-          @records
+          records
         end
       end
 

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../../abstract_unit"
 require "active_support/cache"
 require "active_support/cache/redis_cache_store"
 require_relative "../behaviors"
@@ -233,13 +233,34 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     end
   end
 
-  class FailureSafetyTest < StoreTest
+  class MaxClientsReachedRedisClient < Redis::Client
+    def ensure_connected
+      raise Redis::CommandError
+    end
+  end
+
+  class FailureSafetyFromUnavailableClientTest < StoreTest
     include FailureSafetyBehavior
 
     private
       def emulating_unavailability
         old_client = Redis.send(:remove_const, :Client)
         Redis.const_set(:Client, UnavailableRedisClient)
+
+        yield ActiveSupport::Cache::RedisCacheStore.new
+      ensure
+        Redis.send(:remove_const, :Client)
+        Redis.const_set(:Client, old_client)
+      end
+  end
+
+  class FailureSafetyFromMaxClientsReachedErrorTest < StoreTest
+    include FailureSafetyBehavior
+
+    private
+      def emulating_unavailability
+        old_client = Redis.send(:remove_const, :Client)
+        Redis.const_set(:Client, MaxClientsReachedRedisClient)
 
         yield ActiveSupport::Cache::RedisCacheStore.new
       ensure
@@ -279,6 +300,17 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       @cache.clear
       assert_not @cache.exist?("foo")
       assert @cache.redis.exists("fu")
+    end
+
+    test "clear all cache key with Redis::Distributed" do
+      cache = ActiveSupport::Cache::RedisCacheStore.new(
+        url: %w[redis://localhost:6379/0, redis://localhost:6379/1],
+        timeout: 0.1, namespace: @namespace, expires_in: 60, driver: DRIVER)
+      cache.write("foo", "bar")
+      cache.write("fu", "baz")
+      cache.clear
+      assert_not cache.exist?("foo")
+      assert_not cache.exist?("fu")
     end
   end
 end

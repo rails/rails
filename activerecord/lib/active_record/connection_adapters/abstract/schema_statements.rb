@@ -379,9 +379,9 @@ module ActiveRecord
 
         t1_ref, t2_ref = [table_1, table_2].map { |t| t.to_s.singularize }
 
-        create_table(join_table_name, options.merge!(id: false)) do |td|
-          td.references t1_ref, column_options
-          td.references t2_ref, column_options
+        create_table(join_table_name, **options.merge!(id: false)) do |td|
+          td.references t1_ref, **column_options
+          td.references t2_ref, **column_options
           yield td if block_given?
         end
       end
@@ -589,7 +589,7 @@ module ActiveRecord
       #  # ALTER TABLE "shapes" ADD "triangle" polygon
       def add_column(table_name, column_name, type, **options)
         at = create_alter_table table_name
-        at.add_column(column_name, type, options)
+        at.add_column(column_name, type, **options)
         execute schema_creation.accept at
       end
 
@@ -597,10 +597,15 @@ module ActiveRecord
       #
       #   remove_columns(:suppliers, :qualification, :experience)
       #
+      # +type+ and other column options can be passed to make migration reversible.
+      #
+      #    remove_columns(:suppliers, :qualification, :experience, type: :string, null: false)
       def remove_columns(table_name, *column_names)
         raise ArgumentError.new("You must specify at least one column name. Example: remove_columns(:people, :first_name)") if column_names.empty?
+        column_options = column_names.extract_options!
+        type = column_options.delete(:type)
         column_names.each do |column_name|
-          remove_column(table_name, column_name)
+          remove_column(table_name, column_name, type, column_options)
         end
       end
 
@@ -936,7 +941,7 @@ module ActiveRecord
             foreign_key_options = { to_table: reference_name }
           end
           foreign_key_options[:column] ||= "#{ref_name}_id"
-          remove_foreign_key(table_name, foreign_key_options)
+          remove_foreign_key(table_name, **foreign_key_options)
         end
 
         remove_column(table_name, "#{ref_name}_id")
@@ -994,7 +999,7 @@ module ActiveRecord
       #   Action that happens <tt>ON UPDATE</tt>. Valid values are +:nullify+, +:cascade+ and +:restrict+
       # [<tt>:validate</tt>]
       #   (PostgreSQL only) Specify whether or not the constraint should be validated. Defaults to +true+.
-      def add_foreign_key(from_table, to_table, options = {})
+      def add_foreign_key(from_table, to_table, **options)
         return unless supports_foreign_keys?
 
         options = foreign_key_options(from_table, to_table, options)
@@ -1158,8 +1163,8 @@ module ActiveRecord
           options[:precision] = 6
         end
 
-        add_column table_name, :created_at, :datetime, options
-        add_column table_name, :updated_at, :datetime, options
+        add_column table_name, :created_at, :datetime, **options
+        add_column table_name, :updated_at, :datetime, **options
       end
 
       # Removes the timestamp columns (+created_at+ and +updated_at+) from the table definition.
@@ -1326,8 +1331,8 @@ module ActiveRecord
           SchemaCreation.new(self)
         end
 
-        def create_table_definition(*args)
-          TableDefinition.new(self, *args)
+        def create_table_definition(*args, **options)
+          TableDefinition.new(self, *args, **options)
         end
 
         def create_alter_table(name)

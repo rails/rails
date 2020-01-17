@@ -21,23 +21,22 @@ if current_adapter?(:PostgreSQLAdapter)
       end
 
       def test_establishes_connection_to_postgresql_database
+        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration)
+
         ActiveRecord::Base.stub(:connection, @connection) do
           assert_called_with(
             ActiveRecord::Base,
             :establish_connection,
             [
               [
-                "adapter"            => "postgresql",
-                "database"           => "postgres",
-                "schema_search_path" => "public"
+                adapter: "postgresql",
+                database: "postgres",
+                schema_search_path: "public"
               ],
-              [
-                "adapter"            => "postgresql",
-                "database"           => "my-app-db"
-              ]
+              [db_config]
             ]
           ) do
-            ActiveRecord::Tasks::DatabaseTasks.create @configuration
+            ActiveRecord::Tasks::DatabaseTasks.create(db_config)
           end
         end
       end
@@ -47,7 +46,7 @@ if current_adapter?(:PostgreSQLAdapter)
           assert_called_with(
             @connection,
             :create_database,
-            ["my-app-db", @configuration.merge("encoding" => "utf8")]
+            ["my-app-db", @configuration.symbolize_keys.merge(encoding: "utf8")]
           ) do
             ActiveRecord::Tasks::DatabaseTasks.create @configuration
           end
@@ -59,7 +58,7 @@ if current_adapter?(:PostgreSQLAdapter)
           assert_called_with(
             @connection,
             :create_database,
-            ["my-app-db", @configuration.merge("encoding" => "latin")]
+            ["my-app-db", @configuration.symbolize_keys.merge(encoding: "latin")]
           ) do
             ActiveRecord::Tasks::DatabaseTasks.create @configuration.
               merge("encoding" => "latin")
@@ -74,10 +73,10 @@ if current_adapter?(:PostgreSQLAdapter)
             :create_database,
             [
               "my-app-db",
-              @configuration.merge(
-                "encoding" => "utf8",
-                "collation" => "ja_JP.UTF8",
-                "ctype" => "ja_JP.UTF8"
+              @configuration.symbolize_keys.merge(
+                encoding: "utf8",
+                collation: "ja_JP.UTF8",
+                ctype: "ja_JP.UTF8"
               )
             ]
           ) do
@@ -88,22 +87,22 @@ if current_adapter?(:PostgreSQLAdapter)
       end
 
       def test_establishes_connection_to_new_database
+        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration)
+
         ActiveRecord::Base.stub(:connection, @connection) do
           assert_called_with(
             ActiveRecord::Base,
             :establish_connection,
             [
               [
-                "adapter"            => "postgresql",
-                "database"           => "postgres",
-                "schema_search_path" => "public"
+                adapter: "postgresql",
+                database: "postgres",
+                schema_search_path: "public"
               ],
-              [
-                @configuration
-              ]
+              [db_config]
             ]
           ) do
-            ActiveRecord::Tasks::DatabaseTasks.create @configuration
+            ActiveRecord::Tasks::DatabaseTasks.create(db_config)
           end
         end
       end
@@ -169,9 +168,9 @@ if current_adapter?(:PostgreSQLAdapter)
             ActiveRecord::Base,
             :establish_connection,
             [
-              "adapter"            => "postgresql",
-              "database"           => "postgres",
-              "schema_search_path" => "public"
+              adapter: "postgresql",
+              database: "postgres",
+              schema_search_path: "public"
             ]
           ) do
             ActiveRecord::Tasks::DatabaseTasks.drop @configuration
@@ -232,23 +231,22 @@ if current_adapter?(:PostgreSQLAdapter)
       end
 
       def test_establishes_connection_to_postgresql_database
+        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration)
+
         with_stubbed_connection do
           assert_called_with(
             ActiveRecord::Base,
             :establish_connection,
             [
               [
-                "adapter"            => "postgresql",
-                "database"           => "postgres",
-                "schema_search_path" => "public"
+                adapter: "postgresql",
+                database: "postgres",
+                schema_search_path: "public"
               ],
-              [
-                "adapter"            => "postgresql",
-                "database"           => "my-app-db"
-              ]
+              [db_config]
             ]
           ) do
-            ActiveRecord::Tasks::DatabaseTasks.purge @configuration
+            ActiveRecord::Tasks::DatabaseTasks.purge(db_config)
           end
         end
       end
@@ -269,7 +267,7 @@ if current_adapter?(:PostgreSQLAdapter)
             assert_called_with(
               @connection,
               :create_database,
-              ["my-app-db", @configuration.merge("encoding" => "utf8")]
+              ["my-app-db", @configuration.symbolize_keys.merge(encoding: "utf8")]
             ) do
               ActiveRecord::Tasks::DatabaseTasks.purge @configuration
             end
@@ -278,22 +276,22 @@ if current_adapter?(:PostgreSQLAdapter)
       end
 
       def test_establishes_connection
+        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration)
+
         with_stubbed_connection do
           assert_called_with(
             ActiveRecord::Base,
             :establish_connection,
             [
               [
-                "adapter"            => "postgresql",
-                "database"           => "postgres",
-                "schema_search_path" => "public"
+                adapter: "postgresql",
+                database: "postgres",
+                schema_search_path: "public"
               ],
-              [
-                @configuration
-              ]
+              [db_config]
             ]
           ) do
-            ActiveRecord::Tasks::DatabaseTasks.purge @configuration
+            ActiveRecord::Tasks::DatabaseTasks.purge(db_config)
           end
         end
       end
@@ -363,7 +361,7 @@ if current_adapter?(:PostgreSQLAdapter)
         assert_called_with(
           Kernel,
           :system,
-          ["pg_dump", "-s", "-x", "-O", "-f", @filename, "my-app-db"],
+          ["pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--file", @filename, "my-app-db"],
           returns: true
         ) do
           ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
@@ -380,7 +378,7 @@ if current_adapter?(:PostgreSQLAdapter)
       end
 
       def test_structure_dump_with_extra_flags
-        expected_command = ["pg_dump", "-s", "-x", "-O", "-f", @filename, "--noop", "my-app-db"]
+        expected_command = ["pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--file", @filename, "--noop", "my-app-db"]
 
         assert_called_with(Kernel, :system, expected_command, returns: true) do
           with_structure_dump_flags(["--noop"]) do
@@ -398,7 +396,7 @@ if current_adapter?(:PostgreSQLAdapter)
           assert_called_with(
             Kernel,
             :system,
-            ["pg_dump", "-s", "-x", "-O", "-f", @filename, "-T", "foo", "-T", "bar", "my-app-db"],
+            ["pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--file", @filename, "-T", "foo", "-T", "bar", "my-app-db"],
             returns: true
           ) do
             ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
@@ -412,7 +410,7 @@ if current_adapter?(:PostgreSQLAdapter)
         assert_called_with(
           Kernel,
           :system,
-          ["pg_dump", "-s", "-x", "-O", "-f", @filename, "--schema=foo", "--schema=bar", "my-app-db"],
+          ["pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--file", @filename, "--schema=foo", "--schema=bar", "my-app-db"],
           returns: true
         ) do
           ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
@@ -425,7 +423,7 @@ if current_adapter?(:PostgreSQLAdapter)
         assert_called_with(
           Kernel,
           :system,
-          ["pg_dump", "-s", "-x", "-O", "-f", @filename,  "my-app-db"],
+          ["pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--file", @filename,  "my-app-db"],
           returns: true
         ) do
           with_dump_schemas(:all) do
@@ -438,7 +436,7 @@ if current_adapter?(:PostgreSQLAdapter)
         assert_called_with(
           Kernel,
           :system,
-          ["pg_dump", "-s", "-x", "-O", "-f", @filename, "--schema=foo", "--schema=bar", "my-app-db"],
+          ["pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--file", @filename, "--schema=foo", "--schema=bar", "my-app-db"],
           returns: true
         ) do
           with_dump_schemas("foo,bar") do
@@ -452,7 +450,7 @@ if current_adapter?(:PostgreSQLAdapter)
         assert_called_with(
           Kernel,
           :system,
-          ["pg_dump", "-s", "-x", "-O", "-f", filename, "my-app-db"],
+          ["pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--file", filename, "my-app-db"],
           returns: nil
         ) do
           e = assert_raise(RuntimeError) do
@@ -493,7 +491,7 @@ if current_adapter?(:PostgreSQLAdapter)
         assert_called_with(
           Kernel,
           :system,
-          ["psql", "-v", "ON_ERROR_STOP=1", "-q", "-X", "-f", filename, @configuration["database"]],
+          ["psql", "--set", "ON_ERROR_STOP=1", "--quiet", "--no-psqlrc", "--file", filename, @configuration["database"]],
           returns: true
         ) do
           ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
@@ -502,7 +500,7 @@ if current_adapter?(:PostgreSQLAdapter)
 
       def test_structure_load_with_extra_flags
         filename = "awesome-file.sql"
-        expected_command = ["psql", "-v", "ON_ERROR_STOP=1", "-q", "-X", "-f", filename, "--noop", @configuration["database"]]
+        expected_command = ["psql", "--set", "ON_ERROR_STOP=1", "--quiet", "--no-psqlrc", "--file", filename, "--noop", @configuration["database"]]
 
         assert_called_with(Kernel, :system, expected_command, returns: true) do
           with_structure_load_flags(["--noop"]) do
@@ -516,7 +514,7 @@ if current_adapter?(:PostgreSQLAdapter)
         assert_called_with(
           Kernel,
           :system,
-          ["psql", "-v", "ON_ERROR_STOP=1", "-q", "-X", "-f", filename, @configuration["database"]],
+          ["psql", "--set", "ON_ERROR_STOP=1", "--quiet", "--no-psqlrc", "--file", filename, @configuration["database"]],
           returns: true
         ) do
           ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)

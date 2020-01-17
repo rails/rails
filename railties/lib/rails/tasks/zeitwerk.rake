@@ -46,15 +46,18 @@ namespace :zeitwerk do
     begin
       eager_load[]
     rescue NameError => e
-      if e.message =~ /expected file .*? to define constant \S+/
-        abort $&.sub(/#{Regexp.escape(Rails.root.to_s)}./, "")
+      if e.message =~ /expected file .*? to define constant [\w:]+/
+        abort $&.sub(/expected file #{Regexp.escape(Rails.root.to_s)}./, "expected file ")
       else
         raise
       end
     end
 
+    require "active_support/core_ext/object/try"
     eager_load_paths = Rails.configuration.eager_load_namespaces.map do |eln|
-      eln.config.eager_load_paths if eln.respond_to?(:config)
+      # Quick regression fix for 6.0.3 to support namespaces that do not have
+      # eager load paths, like the recently added i18n. I'll rewrite this task.
+      eln.try(:config).try(:eager_load_paths)
     end.compact.flatten
 
     not_checked = ActiveSupport::Dependencies.autoload_paths - eager_load_paths

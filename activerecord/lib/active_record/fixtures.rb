@@ -10,7 +10,6 @@ require "active_record/fixture_set/file"
 require "active_record/fixture_set/render_context"
 require "active_record/fixture_set/table_rows"
 require "active_record/test_fixtures"
-require "active_record/errors"
 
 module ActiveRecord
   class FixtureClassNotFound < ActiveRecord::ActiveRecordError #:nodoc:
@@ -182,7 +181,7 @@ module ActiveRecord
   #     end
   #   end
   #
-  # If you preload your test database with all fixture data (probably by running `rails db:fixtures:load`)
+  # If you preload your test database with all fixture data (probably by running `bin/rails db:fixtures:load`)
   # and use transactional tests, then you may omit all fixtures declarations in your test cases since
   # all the data's already there and every case rolls back its changes.
   #

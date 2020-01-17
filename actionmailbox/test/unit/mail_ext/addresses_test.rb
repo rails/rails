@@ -3,13 +3,18 @@
 require_relative "../../test_helper"
 
 module MailExt
-  class RecipientsTest < ActiveSupport::TestCase
+  class AddressesTest < ActiveSupport::TestCase
     setup do
       @mail = Mail.new \
+        from: "sally@example.com",
         to: "david@basecamp.com",
         cc: "jason@basecamp.com",
         bcc: "andrea@basecamp.com",
         x_original_to: "ryan@basecamp.com"
+    end
+
+    test "from address uses address object" do
+      assert_equal "example.com", @mail.from_address.domain
     end
 
     test "recipients include everyone from to, cc, bcc, and x-original-to" do
@@ -30,6 +35,10 @@ module MailExt
 
     test "bcc addresses use address objects" do
       assert_equal "basecamp.com", @mail.bcc_addresses.first.domain
+    end
+
+    test "x_original_to addresses use address objects" do
+      assert_equal "basecamp.com", @mail.x_original_to_addresses.first.domain
     end
   end
 end

@@ -18,7 +18,12 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
+What is the Active Record Query Interface?
+------------------------------------------
+
 If you're used to using raw SQL to find database records, then you will generally find that there are better ways to carry out the same operations in Rails. Active Record insulates you from the need to use SQL in most cases.
+
+Active Record will perform queries on the database for you and is compatible with most database systems, including MySQL, MariaDB, PostgreSQL, and SQLite. Regardless of which database system you're using, the Active Record method format will always be the same.
 
 Code examples throughout this guide will refer to one or more of the following models:
 
@@ -49,8 +54,6 @@ class Role < ApplicationRecord
   has_and_belongs_to_many :clients
 end
 ```
-
-Active Record will perform queries on the database for you and is compatible with most database systems, including MySQL, MariaDB, PostgreSQL, and SQLite. Regardless of which database system you're using, the Active Record method format will always be the same.
 
 Retrieving Objects from the Database
 ------------------------------------
@@ -1219,7 +1222,7 @@ clients.each do |client|
 end
 ```
 
-This code looks fine at the first sight. But the problem lies within the total number of queries executed. The above code executes 1 (to find 10 clients) + 10 (one per each client to load the address) = **11** queries in total.
+This code looks fine at first sight. But the problem lies within the total number of queries executed. The above code executes 1 (to find 10 clients) + 10 (one per each client to load the address) = **11** queries in total.
 
 **Solution to N + 1 queries problem**
 
@@ -1358,7 +1361,7 @@ class Article < ApplicationRecord
 end
 ```
 
-Using a class method is the preferred way to accept arguments for scopes. These methods will still be accessible on the association objects:
+These methods will still be accessible on the association objects:
 
 ```ruby
 category.articles.created_before(time)
@@ -1453,7 +1456,7 @@ User.active.inactive
 # SELECT "users".* FROM "users" WHERE "users"."state" = 'active' AND "users"."state" = 'inactive'
 ```
 
-We can mix and match `scope` and `where` conditions and the final sql
+We can mix and match `scope` and `where` conditions and the final SQL
 will have all conditions joined with `AND`.
 
 ```ruby
@@ -1750,7 +1753,7 @@ Client.connection.select_all("SELECT first_name, created_at FROM clients WHERE i
 
 ### `pluck`
 
-`pluck` can be used to query single or multiple columns from the underlying table of a model. It accepts a list of column names as argument and returns an array of values of the specified columns with the corresponding data type.
+`pluck` can be used to query single or multiple columns from the underlying table of a model. It accepts a list of column names as an argument and returns an array of values of the specified columns with the corresponding data type.
 
 ```ruby
 Client.where(active: true).pluck(:id)
@@ -1805,7 +1808,7 @@ Client.pluck(:name)
 
 You are not limited to querying fields from a single table, you can query multiple tables as well.
 
-```
+```ruby
 Client.joins(:comments, :categories).pluck("clients.email, comments.title, categories.name")
 ```
 
@@ -2001,7 +2004,7 @@ User.where(id: 1).joins(:articles).explain
 
 may yield
 
-```
+```sql
 EXPLAIN for: SELECT `users`.* FROM `users` INNER JOIN `articles` ON `articles`.`user_id` = `users`.`id` WHERE `users`.`id` = 1
 +----+-------------+----------+-------+---------------+
 | id | select_type | table    | type  | possible_keys |
@@ -2025,7 +2028,7 @@ Active Record performs a pretty printing that emulates that of the
 corresponding database shell. So, the same query running with the
 PostgreSQL adapter would yield instead
 
-```
+```sql
 EXPLAIN for: SELECT "users".* FROM "users" INNER JOIN "articles" ON "articles"."user_id" = "users"."id" WHERE "users"."id" = 1
                                   QUERY PLAN
 ------------------------------------------------------------------------------
@@ -2048,7 +2051,7 @@ User.where(id: 1).includes(:articles).explain
 
 yields
 
-```
+```sql
 EXPLAIN for: SELECT `users`.* FROM `users`  WHERE `users`.`id` = 1
 +----+-------------+-------+-------+---------------+
 | id | select_type | table | type  | possible_keys |
@@ -2088,7 +2091,7 @@ following pointers may be helpful:
 
 * SQLite3: [EXPLAIN QUERY PLAN](https://www.sqlite.org/eqp.html)
 
-* MySQL: [EXPLAIN Output Format](https://dev.mysql.com/doc/refman/5.7/en/explain-output.html)
+* MySQL: [EXPLAIN Output Format](https://dev.mysql.com/doc/refman/en/explain-output.html)
 
 * MariaDB: [EXPLAIN](https://mariadb.com/kb/en/mariadb/explain/)
 

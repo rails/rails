@@ -51,22 +51,22 @@ module ActiveRecord
           end
 
           indexes.map do |index|
-            options = index.last
+            options = index.pop
 
             if expressions = options.delete(:expressions)
               orders = options.delete(:orders)
               lengths = options.delete(:lengths)
 
-              columns = index[-2].map { |name|
+              columns = index[-1].map { |name|
                 [ name.to_sym, expressions[name] || +quote_column_name(name) ]
               }.to_h
 
-              index[-2] = add_options_for_index_columns(
+              index[-1] = add_options_for_index_columns(
                 columns, order: orders, length: lengths
               ).values.join(", ")
             end
 
-            IndexDefinition.new(*index)
+            IndexDefinition.new(*index, **options)
           end
         end
 
@@ -122,7 +122,7 @@ module ActiveRecord
         end
 
         def table_alias_length
-          256 # https://dev.mysql.com/doc/refman/8.0/en/identifiers.html
+          256 # https://dev.mysql.com/doc/refman/en/identifiers.html
         end
 
         private

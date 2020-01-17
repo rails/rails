@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../../abstract_unit"
 require "json"
-require "json/encoding_test_cases"
+require_relative "../../json/encoding_test_cases"
 
 # These test cases were added to test that we do not interfere with json gem's
 # output when the AS encoder is loaded, primarily for problems reported in

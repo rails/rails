@@ -27,7 +27,7 @@ module ActionDispatch
             @verb = verb
           end
 
-          def call(request); @verb === request.request_method; end
+          def call(request); @verb == request.request_method; end
         end
 
         class All
@@ -87,7 +87,7 @@ module ActionDispatch
         end
       end
 
-      # Needed for `rails routes`. Picks up succinctly defined requirements
+      # Needed for `bin/rails routes`. Picks up succinctly defined requirements
       # for a route, for example route
       #
       #   get 'photo/:id', :controller => 'photos', :action => 'show',

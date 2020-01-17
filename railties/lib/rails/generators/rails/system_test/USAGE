@@ -6,5 +6,5 @@ Description:
     TestUnit.
 
 Example:
-    `rails generate system_test GeneralStories` creates a GeneralStories
+    `bin/rails generate system_test GeneralStories` creates a GeneralStories
     system test in test/system/general_stories_test.rb

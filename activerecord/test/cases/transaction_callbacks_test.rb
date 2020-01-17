@@ -36,6 +36,11 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
     has_many :replies, class_name: "ReplyWithCallbacks", foreign_key: "parent_id"
 
+    attr_accessor :abort_before_update, :abort_before_destroy
+
+    before_update { throw :abort if abort_before_update }
+    before_destroy { throw :abort if abort_before_destroy }
+
     before_destroy { self.class.find(id).touch if persisted? }
 
     before_commit { |record| record.do_before_commit(nil) }
@@ -137,6 +142,26 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
       assert_not @first.save
     end
     assert_equal [], @first.history
+  end
+
+  def test_dont_call_after_commit_on_update_based_on_previous_transaction
+    @first.save!
+    add_transaction_execution_blocks(@first)
+
+    @first.abort_before_update = true
+    @first.transaction { @first.save }
+
+    assert_empty @first.history
+  end
+
+  def test_dont_call_after_commit_on_destroy_based_on_previous_transaction
+    @first.destroy!
+    add_transaction_execution_blocks(@first)
+
+    @first.abort_before_destroy = true
+    @first.transaction { @first.destroy }
+
+    assert_empty @first.history
   end
 
   def test_only_call_after_commit_on_save_after_transaction_commits_for_saving_record
@@ -389,6 +414,23 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
       end
     end
   end
+
+  def test_after_commit_callback_should_not_rollback_state_that_already_been_succeeded
+    klass = Class.new(TopicWithCallbacks) do
+      self.inheritance_column = nil
+      validates :title, presence: true
+    end
+
+    first = klass.new(title: "foo")
+    first.after_commit_block { |r| r.update(title: nil) if r.persisted? }
+    first.save!
+
+    assert_predicate first, :persisted?
+    assert_not_nil first.id
+  ensure
+    first.destroy!
+  end
+  uses_transaction :test_after_commit_callback_should_not_rollback_state_that_already_been_succeeded
 
   def test_after_rollback_callback_when_raise_should_restore_state
     error_class = Class.new(StandardError)

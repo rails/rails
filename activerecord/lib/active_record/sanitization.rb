@@ -67,7 +67,7 @@ module ActiveRecord
           )
 
           # Ensure we aren't dealing with a subclass of String that might
-          # override methods we use (eg. Arel::Nodes::SqlLiteral).
+          # override methods we use (e.g. Arel::Nodes::SqlLiteral).
           if condition.first.kind_of?(String) && !condition.first.instance_of?(String)
             condition = [String.new(condition.first), *condition[1..-1]]
           end

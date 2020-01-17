@@ -104,9 +104,17 @@ module ActiveRecord
         mariadb? || database_version >= "5.7.5"
       end
 
-      # See https://dev.mysql.com/doc/refman/8.0/en/optimizer-hints.html for more details.
+      # See https://dev.mysql.com/doc/refman/en/optimizer-hints.html for more details.
       def supports_optimizer_hints?
         !mariadb? && database_version >= "5.7.7"
+      end
+
+      def supports_common_table_expressions?
+        if mariadb?
+          database_version >= "10.2.1"
+        else
+          database_version >= "8.0.1"
+        end
       end
 
       def supports_advisory_locks?
@@ -404,12 +412,13 @@ module ActiveRecord
         create_table_info = create_table_info(table_name)
 
         # strip create_definitions and partition_options
-        raw_table_options = create_table_info.sub(/\A.*\n\) /m, "").sub(/\n\/\*!.*\*\/\n\z/m, "").strip
+        # Be aware that `create_table_info` might not include any table options due to `NO_TABLE_OPTIONS` sql mode.
+        raw_table_options = create_table_info.sub(/\A.*\n\) ?/m, "").sub(/\n\/\*!.*\*\/\n\z/m, "").strip
 
         # strip AUTO_INCREMENT
         raw_table_options.sub!(/(ENGINE=\w+)(?: AUTO_INCREMENT=\d+)/, '\1')
 
-        table_options[:options] = raw_table_options
+        table_options[:options] = raw_table_options unless raw_table_options.blank?
 
         # strip COMMENT
         if raw_table_options.sub!(/ COMMENT='.+'/, "")
@@ -433,11 +442,11 @@ module ActiveRecord
 
         query_values(<<~SQL, "SCHEMA")
           SELECT column_name
-          FROM information_schema.key_column_usage
-          WHERE constraint_name = 'PRIMARY'
+          FROM information_schema.statistics
+          WHERE index_name = 'PRIMARY'
             AND table_schema = #{scope[:schema]}
             AND table_name = #{scope[:name]}
-          ORDER BY ordinal_position
+          ORDER BY seq_in_index
         SQL
       end
 
@@ -474,7 +483,7 @@ module ActiveRecord
       # In MySQL 5.7.5 and up, ONLY_FULL_GROUP_BY affects handling of queries that use
       # DISTINCT and ORDER BY. It requires the ORDER BY columns in the select list for
       # distinct queries, and requires that the ORDER BY include the distinct column.
-      # See https://dev.mysql.com/doc/refman/5.7/en/group-by-handling.html
+      # See https://dev.mysql.com/doc/refman/en/group-by-handling.html
       def columns_for_distinct(columns, orders) # :nodoc:
         order_columns = orders.compact_blank.map { |s|
           # Convert Arel node to string
@@ -572,7 +581,7 @@ module ActiveRecord
           end
         end
 
-        # See https://dev.mysql.com/doc/refman/5.7/en/server-error-reference.html
+        # See https://dev.mysql.com/doc/refman/en/server-error-reference.html
         ER_DB_CREATE_EXISTS     = 1007
         ER_FILSORT_ABORT        = 1028
         ER_DUP_ENTRY            = 1062
@@ -705,7 +714,7 @@ module ActiveRecord
           defaults = [":default", :default].to_set
 
           # Make MySQL reject illegal values rather than truncating or blanking them, see
-          # https://dev.mysql.com/doc/refman/5.7/en/sql-mode.html#sqlmode_strict_all_tables
+          # https://dev.mysql.com/doc/refman/en/sql-mode.html#sqlmode_strict_all_tables
           # If the user has provided another value for sql_mode, don't replace it.
           if sql_mode = variables.delete("sql_mode")
             sql_mode = quote(sql_mode)
@@ -722,7 +731,7 @@ module ActiveRecord
           sql_mode_assignment = "@@SESSION.sql_mode = #{sql_mode}, " if sql_mode
 
           # NAMES does not have an equals sign, see
-          # https://dev.mysql.com/doc/refman/5.7/en/set-names.html
+          # https://dev.mysql.com/doc/refman/en/set-names.html
           # (trailing comma because variable_assignments will always have content)
           if @config[:encoding]
             encoding = +"NAMES #{@config[:encoding]}"
