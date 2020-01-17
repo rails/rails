@@ -7,9 +7,10 @@ class EncryptedFileTest < ActiveSupport::TestCase
   setup do
     @content = "One little fox jumped over the hedge"
 
-    @content_path = File.join(Dir.tmpdir, "content.txt.enc")
+    @tmpdir = Dir.mktmpdir("encrypted-file-test-")
+    @content_path = File.join(@tmpdir, "content.txt.enc")
 
-    @key_path = File.join(Dir.tmpdir, "content.txt.key")
+    @key_path = File.join(@tmpdir, "content.txt.key")
     File.write(@key_path, ActiveSupport::EncryptedFile.generate_key)
 
     @encrypted_file = encrypted_file(@content_path)
@@ -18,6 +19,7 @@ class EncryptedFileTest < ActiveSupport::TestCase
   teardown do
     FileUtils.rm_rf @content_path
     FileUtils.rm_rf @key_path
+    FileUtils.rm_rf @tmpdir
   end
 
   test "reading content by env key" do
@@ -56,7 +58,7 @@ class EncryptedFileTest < ActiveSupport::TestCase
   test "respects existing content_path symlink" do
     @encrypted_file.write(@content)
 
-    symlink_path = File.join(Dir.tmpdir, "content_symlink.txt.enc")
+    symlink_path = File.join(@tmpdir, "content_symlink.txt.enc")
     File.symlink(@encrypted_file.content_path, symlink_path)
 
     encrypted_file(symlink_path).write(@content)
@@ -68,7 +70,7 @@ class EncryptedFileTest < ActiveSupport::TestCase
   end
 
   test "creates new content_path symlink if it's dead" do
-    symlink_path = File.join(Dir.tmpdir, "content_symlink.txt.enc")
+    symlink_path = File.join(@tmpdir, "content_symlink.txt.enc")
     File.symlink(@content_path, symlink_path)
 
     encrypted_file(symlink_path).write(@content)
