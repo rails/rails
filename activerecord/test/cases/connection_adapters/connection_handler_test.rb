@@ -39,7 +39,7 @@ module ActiveRecord
         assert_not_nil @handler.retrieve_connection_pool("readonly")
       ensure
         ActiveRecord::Base.configurations = old_config
-        @handler.remove_connection("readonly")
+        @handler.remove_connection_pool("readonly")
       end
 
       def test_establish_connection_using_3_levels_config
@@ -85,7 +85,7 @@ module ActiveRecord
 
           assert_not_deprecated do
             @handler.retrieve_connection("primary")
-            @handler.remove_connection("primary")
+            @handler.remove_connection_pool("primary")
           end
         ensure
           ActiveRecord::Base.configurations = old_config
@@ -99,7 +99,7 @@ module ActiveRecord
           ActiveRecord::Base.establish_connection(:primary)
 
           assert_deprecated { @handler.retrieve_connection("primary") }
-          assert_deprecated { @handler.remove_connection("primary") }
+          assert_deprecated { @handler.remove_connection_pool("primary") }
         ensure
           ActiveRecord::Base.configurations = old_config
           ActiveRecord::Base.establish_connection(:arunit)
@@ -151,6 +151,18 @@ module ActiveRecord
           ENV["RAILS_ENV"] = previous_env
           ActiveRecord::Base.establish_connection(:arunit)
           FileUtils.rm_rf "db"
+        end
+
+        def test_remove_connection_is_deprecated
+          expected = @handler.retrieve_connection_pool(@owner_name).db_config.configuration_hash
+
+          config_hash = assert_deprecated do
+            @handler.remove_connection(@owner_name)
+          end
+
+          assert_equal expected, config_hash
+        ensure
+          ActiveRecord::Base.establish_connection(:arunit)
         end
       end
 

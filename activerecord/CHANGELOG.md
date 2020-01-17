@@ -1,3 +1,9 @@
+*   Deprecate `#remove_connection` in favor of `#remove_connection_pool` when called on the handler.
+
+    `#remove_connection` is deprecated in order to support returning a `DatabaseConfig` object instead of a `Hash`. Use `#remove_connection_pool`, `#remove_connection` will be removed in 6.2.
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
 *   Deprecate `#default_hash` and it's alias `#[]` on database configurations
 
     Applications should use `configs_for`. `#default_hash` and `#[]` will be removed in 6.2.
