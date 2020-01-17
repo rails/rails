@@ -1,3 +1,7 @@
+*   Add `ActionCable::Channel#stop_stream_from` and `#stop_stream_for` to unsubscribe from a specific stream.
+
+    *Zhang Kang*
+
 *   Add PostgreSQL subscription connection identificator.
 
     Now you can distinguish Action Cable PostgreSQL subscription connections among others.
