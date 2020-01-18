@@ -66,7 +66,7 @@ Then refer to this field in the form for the model:
 <%# app/views/messages/_form.html.erb %>
 <%= form_with(model: message) do |form| %>
   <div class="field">
-    <%= form.label :content %>
+    <%= form.label :title %>
     <%= form.rich_text_area :content %>
   </div>
 <% end %>
