@@ -45,13 +45,7 @@ module ActiveJob
       successfully_performed = false
 
       job = run_callbacks :perform do
-        args = arguments
-        options = args.extract_options!
-        if options.empty?
-          perform(*args)
-        else
-          perform(*args, **options)
-        end.tap { successfully_performed = true }
+        perform(*arguments).tap { successfully_performed = true }
       end
 
       warn_against_after_callbacks_execution_deprecation(_perform_callbacks) unless successfully_performed

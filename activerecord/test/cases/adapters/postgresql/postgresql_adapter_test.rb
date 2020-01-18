@@ -18,7 +18,8 @@ module ActiveRecord
 
       def test_bad_connection
         assert_raise ActiveRecord::NoDatabaseError do
-          configuration = ActiveRecord::Base.configurations["arunit"].merge(database: "should_not_exist-cinco-dog-db")
+          db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+          configuration = db_config.configuration_hash.merge(database: "should_not_exist-cinco-dog-db")
           connection = ActiveRecord::Base.postgresql_connection(configuration)
           connection.exec_query("SELECT 1")
         end
@@ -31,9 +32,9 @@ module ActiveRecord
       end
 
       def test_database_exists_returns_true_when_the_database_exists
-        config = ActiveRecord::Base.configurations["arunit"]
-        assert ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.database_exists?(config),
-          "expected database #{config[:database]} to exist"
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+        assert ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.database_exists?(db_config.configuration_hash),
+          "expected database #{db_config.database} to exist"
       end
 
       def test_primary_key
@@ -476,7 +477,8 @@ module ActiveRecord
         end
 
         def connection_without_insert_returning
-          ActiveRecord::Base.postgresql_connection(ActiveRecord::Base.configurations["arunit"].merge(insert_returning: false))
+          db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+          ActiveRecord::Base.postgresql_connection(db_config.configuration_hash.merge(insert_returning: false))
         end
     end
   end

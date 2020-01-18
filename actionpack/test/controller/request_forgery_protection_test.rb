@@ -835,6 +835,20 @@ class PerFormTokensControllerTest < ActionController::TestCase
     assert_response :success
   end
 
+  def test_rejects_garbage_path
+    get :index
+
+    form_token = assert_presence_and_fetch_form_csrf_token
+
+    assert_matches_session_token_on_server form_token
+
+    # Set invalid URI in PATH_INFO
+    @request.env["PATH_INFO"] = "/foo/bar<"
+    assert_raise ActionController::InvalidAuthenticityToken do
+      post :post_one, params: { custom_authenticity_token: form_token }
+    end
+  end
+
   def test_rejects_token_for_incorrect_path
     get :index
 
@@ -920,7 +934,7 @@ class PerFormTokensControllerTest < ActionController::TestCase
     assert_response :success
   end
 
-  def test_ignores_params
+  def test_chomps_slashes
     get :index, params: { form_path: "/per_form_tokens/post_one?foo=bar" }
 
     form_token = assert_presence_and_fetch_form_csrf_token
@@ -928,7 +942,7 @@ class PerFormTokensControllerTest < ActionController::TestCase
     assert_matches_session_token_on_server form_token
 
     # This is required because PATH_INFO isn't reset between requests.
-    @request.env["PATH_INFO"] = "/per_form_tokens/post_one?foo=baz"
+    @request.env["PATH_INFO"] = "/per_form_tokens/post_one/"
     assert_nothing_raised do
       post :post_one, params: { custom_authenticity_token: form_token, baz: "foo" }
     end

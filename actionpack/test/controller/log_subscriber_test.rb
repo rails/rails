@@ -226,6 +226,7 @@ class ACLogSubscriberTest < ActionController::TestCase
 
     assert_equal 3, logs.size
     assert_equal "Redirected to http://foo.bar/", logs[1]
+    assert_match(/Completed 302/, logs.last)
   end
 
   def test_filter_redirect_url_by_string

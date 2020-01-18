@@ -81,7 +81,8 @@ class QueryCacheTest < ActiveRecord::TestCase
     }
 
     ActiveRecord::Base.connected_to(role: :reading) do
-      ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations["arunit"])
+      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+      ActiveRecord::Base.establish_connection(db_config)
     end
 
     mw = middleware { |env|
@@ -104,7 +105,8 @@ class QueryCacheTest < ActiveRecord::TestCase
       }
 
       ActiveRecord::Base.connected_to(role: :reading) do
-        ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations["arunit"])
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+        ActiveRecord::Base.establish_connection(db_config)
       end
 
       rd, wr = IO.pipe
@@ -588,7 +590,8 @@ class QueryCacheTest < ActiveRecord::TestCase
       }
 
       ActiveRecord::Base.connected_to(role: :reading) do
-        ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations["arunit"])
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+        ActiveRecord::Base.establish_connection(db_config)
       end
 
       mw = middleware { |env|
@@ -636,7 +639,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   private
     def with_temporary_connection_pool
-      pool_config = ActiveRecord::Base.connection_handler.send(:owner_to_pool_manager).fetch("primary").get_pool_config(:default)
+      pool_config = ActiveRecord::Base.connection_handler.send(:owner_to_pool_manager).fetch("ActiveRecord::Base").get_pool_config(:default)
       new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(pool_config)
 
       pool_config.stub(:pool, new_pool) do

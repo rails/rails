@@ -30,6 +30,10 @@ module ActiveRecord
         raise NotImplementedError
       end
 
+      def _database=(database)
+        raise NotImplementedError
+      end
+
       def adapter
         raise NotImplementedError
       end

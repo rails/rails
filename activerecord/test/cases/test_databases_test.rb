@@ -25,6 +25,7 @@ class TestDatabasesTest < ActiveRecord::TestCase
       ActiveRecord::Base.configurations = prev_configs
       ActiveRecord::Base.establish_connection(:arunit)
       ENV["RAILS_ENV"] = previous_env
+      FileUtils.rm_rf("db")
     end
 
     def test_create_databases_after_fork
@@ -45,12 +46,37 @@ class TestDatabasesTest < ActiveRecord::TestCase
         ActiveSupport::Testing::Parallelization.after_fork_hooks.each { |cb| cb.call(idx) }
       end
 
-      # Updates the databse configuration
+      # Updates the database configuration
       assert_equal expected_database, ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary").database
     ensure
       ActiveRecord::Base.configurations = prev_configs
       ActiveRecord::Base.establish_connection(:arunit)
       ENV["RAILS_ENV"] = previous_env
+      FileUtils.rm_rf("db")
+    end
+
+    def test_order_of_configurations_isnt_changed_by_test_databases
+      previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "arunit"
+      prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, {
+        "arunit" => {
+          "primary" => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" },
+          "replica" => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" }
+        }
+      }
+
+      idx = 42
+      base_configs_order = ActiveRecord::Base.configurations.configs_for(env_name: "arunit").map(&:spec_name)
+
+      ActiveRecord::Tasks::DatabaseTasks.stub(:reconstruct_from_schema, ->(db_config, _, _) {
+        assert_equal base_configs_order, ActiveRecord::Base.configurations.configs_for(env_name: "arunit").map(&:spec_name)
+      }) do
+        ActiveSupport::Testing::Parallelization.after_fork_hooks.each { |cb| cb.call(idx) }
+      end
+    ensure
+      ActiveRecord::Base.configurations = prev_configs
+      ActiveRecord::Base.establish_connection(:arunit)
+      ENV["RAILS_ENV"] = previous_env
+      FileUtils.rm_rf("db")
     end
   end
 end

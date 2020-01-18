@@ -1,6 +1,28 @@
+*   Introduce middleware move operations
+
+    With this change, you no longer need to delete and reinsert a middleware to
+    move it from one place to another in the stack:
+
+    ```ruby
+    config.middleware.move_before ActionDispatch::Flash, Magical::Unicorns
+    ```
+
+    This will move the `Magical::Unicorns` middleware before
+    `ActionDispatch::Flash`. You can also move it after with:
+
+    ```ruby
+    config.middleware.move_after ActionDispatch::Flash, Magical::Unicorns
+    ```
+
+    *Genadi Samokovarov*
+
+*   Generators that inherit from NamedBase respect `--force` option
+
+    *Josh Brody*
+
 *   Allow configuration of eager_load behaviour for rake environment:
 
-        `config.rake_eager_load`
+        config.rake_eager_load
 
     Defaults to `false` as per previous behaviour.
 
@@ -9,7 +31,8 @@
 *   Ensure Rails migration generator respects system-wide primary key config
 
     When rails is configured to use a specific primary key type:
-    ```
+
+    ```ruby
     config.generators do |g|
       g.orm :active_record, primary_key_type: :uuid
     end
@@ -17,20 +40,22 @@
 
     Previously:
 
+    ```
     $ bin/rails g migration add_location_to_users location:references
+    ```
 
     The references line in the migration would not have `type: :uuid`.
     This change causes the type to be applied appropriately.
 
     *Louis-Michel Couture* *Dermot Haughey*
 
-*  Deprecate `Rails::DBConsole#config`
+*   Deprecate `Rails::DBConsole#config`
 
-  `Rails::DBConsole#config` is deprecated without replacement. Use `Rails::DBConsole.db_config.configuration_hash` instead.
+    `Rails::DBConsole#config` is deprecated without replacement. Use `Rails::DBConsole.db_config.configuration_hash` instead.
 
     *Eileen M. Uchitelle*, *John Crepezzi*
 
-* `Rails.application.config_for` merges shared configuration deeply.
+*   `Rails.application.config_for` merges shared configuration deeply.
 
     ```yaml
     # config/example.yml
@@ -75,7 +100,7 @@
     now able to modify `autoload_paths`, `autoload_once_paths`, and
     `eager_load_paths`.
 
-    As a consequence, applications cannot autoload within those files. Before, they technnically could, but changes in autoloaded classes or modules had no effect anyway in the configuration because reloading does not reboot.
+    As a consequence, applications cannot autoload within those files. Before, they technically could, but changes in autoloaded classes or modules had no effect anyway in the configuration because reloading does not reboot.
 
     Ways to use application code in these files:
 

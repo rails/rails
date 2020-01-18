@@ -133,7 +133,7 @@ module ActionDispatch
 
       def url_options
         @url_options ||= default_url_options.dup.tap do |url_options|
-          url_options.reverse_merge!(controller.url_options) if controller
+          url_options.reverse_merge!(controller.url_options) if controller.respond_to?(:url_options)
 
           if @app.respond_to?(:routes)
             url_options.reverse_merge!(@app.routes.default_url_options)
@@ -432,6 +432,7 @@ module ActionDispatch
           super
         end
       end
+      ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
     end
   end
 

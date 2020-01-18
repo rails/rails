@@ -1,3 +1,46 @@
+*   Deprecate `#default_hash` and it's alias `#[]` on database configurations
+
+    Applications should use `configs_for`. `#default_hash` and `#[]` will be removed in 6.2.
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
+*   Add scale support to `ActiveRecord::Validations::NumericalityValidator`.
+
+    *Gannon McGibbon*
+
+*   Find orphans by looking for missing relations through chaining `where.missing`:
+
+    Before:
+
+    ```ruby
+    Post.left_joins(:author).where(authors: { id: nil })
+    ```
+
+    After:
+
+    ```ruby
+    Post.where.missing(:author)
+    ```
+
+    *Tom Rossi*
+
+*   Ensure `:reading` connections always raise if a write is attempted.
+
+    Now Rails will raise an `ActiveRecord::ReadOnlyError` if any connection on the reading handler attempts to make a write. If your reading role needs to write you should name the role something other than `:reading`.
+
+    *Eileen M. Uchitelle*
+
+*   Deprecate "primary" as the connection_specification_name for ActiveRecord::Base
+
+    `"primary"` has been deprecated as the `connection_specification_name` for `ActiveRecord::Base` in favor of using `"ActiveRecord::Base"`. This change affects calls to `ActiveRecord::Base.connection_handler.retrieve_connection` and `ActiveRecord::Base.connection_handler.remove_connection`. If you're calling these methods with `"primary"`, please switch to `"ActiveRecord::Base"`.
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
+*   Add `ActiveRecord::Validations::NumericalityValidator` with
+    support for casting floats using a database columns' precision value.
+
+    *Gannon McGibbon*
+
 *   Enforce fresh ETag header after a collection's contents change by adding
     ActiveRecord::Relation#cache_key_with_version. This method will be used by
     ActionController::ConditionalGet to ensure that when collection cache versioning

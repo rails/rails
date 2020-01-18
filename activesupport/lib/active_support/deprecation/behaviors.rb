@@ -67,6 +67,11 @@ module ActiveSupport
         @behavior ||= [DEFAULT_BEHAVIORS[:stderr]]
       end
 
+      # Returns the current behavior for disallowed deprecations or if one isn't set, defaults to +:raise+.
+      def disallowed_behavior
+        @disallowed_behavior ||= [DEFAULT_BEHAVIORS[:raise]]
+      end
+
       # Sets the behavior to the specified value. Can be a single value, array,
       # or an object that responds to +call+.
       #
@@ -90,6 +95,14 @@ module ActiveSupport
       #   }
       def behavior=(behavior)
         @behavior = Array(behavior).map { |b| DEFAULT_BEHAVIORS[b] || arity_coerce(b) }
+      end
+
+      # Sets the behavior for disallowed deprecations (those configured by
+      # ActiveSupport::Deprecation.disallowed_warnings=) to the specified
+      # value. As with +behavior=+, this can be a single value, array, or an
+      # object that responds to +call+.
+      def disallowed_behavior=(behavior)
+        @disallowed_behavior = Array(behavior).map { |b| DEFAULT_BEHAVIORS[b] || arity_coerce(b) }
       end
 
       private

@@ -12,23 +12,12 @@ module ActiveRecord
       old, ENV["VERBOSE"] = ENV["VERBOSE"], "false"
 
       ActiveRecord::Base.configurations.configs_for(env_name: env_name).each do |db_config|
-        database = "#{db_config.database}-#{i}"
+        db_config._database = "#{db_config.database}-#{i}"
 
-        db_config_copy = ActiveRecord::DatabaseConfigurations::HashConfig.new(
-          env_name,
-          db_config.spec_name,
-          db_config.configuration_hash.merge(database: database)
-        )
-
-        # Reconstruct with the new configuration
-        ActiveRecord::Tasks::DatabaseTasks.reconstruct_from_schema(db_config_copy, ActiveRecord::Base.schema_format, nil)
-
-        # Replace the original configuration with our replacement
-        ActiveRecord::Base.configurations.configurations.delete(db_config)
-        ActiveRecord::Base.configurations.configurations.push(db_config_copy)
+        ActiveRecord::Tasks::DatabaseTasks.reconstruct_from_schema(db_config, ActiveRecord::Base.schema_format, nil)
       end
     ensure
-      ActiveRecord::Base.establish_connection(ActiveRecord::ConnectionHandling::DEFAULT_ENV.call.to_sym)
+      ActiveRecord::Base.establish_connection
       ENV["VERBOSE"] = old
     end
   end

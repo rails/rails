@@ -61,6 +61,10 @@ module ActiveRecord
         configuration_hash[:database]
       end
 
+      def _database=(database) # :nodoc:
+        @config = configuration_hash.dup.merge(database: database).freeze
+      end
+
       def pool
         (configuration_hash[:pool] || 5).to_i
       end

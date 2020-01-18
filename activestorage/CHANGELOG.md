@@ -1,3 +1,7 @@
+*   Only enqueue analysis jobs for blobs with non-null analyzer classes.
+
+    *Gannon McGibbon*
+
 *   Previews are created on the same service as the original blob.
 
     *Peter Zhu*
