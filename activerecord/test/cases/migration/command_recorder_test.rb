@@ -33,9 +33,13 @@ module ActiveRecord
       end
 
       def test_unknown_commands_delegate
-        recorder = Struct.new(:foo)
-        recorder = CommandRecorder.new(recorder.new("bar"))
-        assert_equal "bar", recorder.foo
+        recorder = Class.new do
+          def foo(kw:)
+            kw
+          end
+        end
+        recorder = CommandRecorder.new(recorder.new)
+        assert_equal "bar", recorder.foo(kw: "bar")
       end
 
       def test_inverse_of_raise_exception_on_unknown_commands
@@ -94,17 +98,10 @@ module ActiveRecord
             t.rename :kind, :cultivar
           end
         end
-        if RUBY_VERSION < "2.7"
-          assert_equal [
-            [:rename_column, [:fruits, :cultivar, :kind]],
-            [:remove_column, [:fruits, :name, :string, {}], nil],
-          ], @recorder.commands
-        else
-          assert_equal [
-            [:rename_column, [:fruits, :cultivar, :kind]],
-            [:remove_column, [:fruits, :name, :string], nil],
-          ], @recorder.commands
-        end
+        assert_equal [
+          [:rename_column, [:fruits, :cultivar, :kind]],
+          [:remove_column, [:fruits, :name, :string, {}], nil],
+        ], @recorder.commands
 
         assert_raises(ActiveRecord::IrreversibleMigration) do
           @recorder.revert do

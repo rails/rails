@@ -309,7 +309,7 @@ module ActiveRecord
         yield td if block_given?
 
         if options[:force]
-          drop_table(table_name, options.merge(if_exists: true))
+          drop_table(table_name, **options, if_exists: true)
         end
 
         result = execute schema_creation.accept td
@@ -391,7 +391,7 @@ module ActiveRecord
       # Although this command ignores the block if one is given, it can be helpful
       # to provide one in a migration's +change+ method so it can be reverted.
       # In that case, the block will be used by #create_join_table.
-      def drop_join_table(table_1, table_2, options = {})
+      def drop_join_table(table_1, table_2, **options)
         join_table_name = find_join_table_name(table_1, table_2, options)
         drop_table(join_table_name)
       end
@@ -468,7 +468,7 @@ module ActiveRecord
       #  end
       #
       # See also Table for details on all of the various column transformations.
-      def change_table(table_name, options = {})
+      def change_table(table_name, **options)
         if supports_bulk_alter? && options[:bulk]
           recorder = ActiveRecord::Migration::CommandRecorder.new(self)
           yield update_table_definition(table_name, recorder)
@@ -498,7 +498,7 @@ module ActiveRecord
       # Although this command ignores most +options+ and the block if one is given,
       # it can be helpful to provide these in a migration's +change+ method so it can be reverted.
       # In that case, +options+ and the block will be used by #create_table.
-      def drop_table(table_name, options = {})
+      def drop_table(table_name, **options)
         execute "DROP TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}"
       end
 
@@ -610,7 +610,7 @@ module ActiveRecord
       # to provide these in a migration's +change+ method so it can be reverted.
       # In that case, +type+ and +options+ will be used by #add_column.
       # Indexes on the column are automatically removed.
-      def remove_column(table_name, column_name, type = nil, options = {})
+      def remove_column(table_name, column_name, type = nil, **options)
         execute "ALTER TABLE #{quote_table_name(table_name)} #{remove_column_for_alter(table_name, column_name, type, options)}"
       end
 
@@ -1145,7 +1145,7 @@ module ActiveRecord
       #
       #   add_timestamps(:suppliers, null: true)
       #
-      def add_timestamps(table_name, options = {})
+      def add_timestamps(table_name, **options)
         options[:null] = false if options[:null].nil?
 
         if !options.key?(:precision) && supports_datetime_with_precision?
@@ -1160,7 +1160,7 @@ module ActiveRecord
       #
       #  remove_timestamps(:suppliers)
       #
-      def remove_timestamps(table_name, options = {})
+      def remove_timestamps(table_name, **options)
         remove_column table_name, :updated_at
         remove_column table_name, :created_at
       end
