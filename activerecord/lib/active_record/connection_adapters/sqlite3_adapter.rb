@@ -252,7 +252,7 @@ module ActiveRecord
         end
       end
 
-      def remove_column(table_name, column_name, type = nil, options = {}) #:nodoc:
+      def remove_column(table_name, column_name, type = nil, **options) #:nodoc:
         alter_table(table_name) do |definition|
           definition.remove_column column_name
           definition.foreign_keys.delete_if do |_, fk_options|

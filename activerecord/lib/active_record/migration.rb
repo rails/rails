@@ -635,6 +635,7 @@ module ActiveRecord
       def method_missing(name, *args, &block) #:nodoc:
         nearest_delegate.send(name, *args, &block)
       end
+      ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
 
       def migrate(direction)
         new.migrate direction
@@ -903,14 +904,10 @@ module ActiveRecord
           end
         end
         return super unless connection.respond_to?(method)
-        options = arguments.extract_options!
-        if options.empty?
-          connection.send(method, *arguments, &block)
-        else
-          connection.send(method, *arguments, **options, &block)
-        end
+        connection.send(method, *arguments, &block)
       end
     end
+    ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
 
     def copy(destination, sources, options = {})
       copied = []
