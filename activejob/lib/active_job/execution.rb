@@ -17,6 +17,7 @@ module ActiveJob
       def perform_now(*args)
         job_or_instantiate(*args).perform_now
       end
+      ruby2_keywords(:perform_now) if respond_to?(:ruby2_keywords, true)
 
       def execute(job_data) #:nodoc:
         ActiveJob::Callbacks.run_callbacks(:execute) do
