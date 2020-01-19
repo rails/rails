@@ -342,7 +342,7 @@ module ActiveRecord
 
       def test_invert_add_foreign_key
         enable = @recorder.inverse_of :add_foreign_key, [:dogs, :people]
-        assert_equal [:remove_foreign_key, [:dogs, :people]], enable
+        assert_equal [:remove_foreign_key, [:dogs, :people], nil], enable
       end
 
       def test_invert_remove_foreign_key
@@ -352,7 +352,7 @@ module ActiveRecord
 
       def test_invert_add_foreign_key_with_column
         enable = @recorder.inverse_of :add_foreign_key, [:dogs, :people, column: "owner_id"]
-        assert_equal [:remove_foreign_key, [:dogs, column: "owner_id"]], enable
+        assert_equal [:remove_foreign_key, [:dogs, :people, column: "owner_id"], nil], enable
       end
 
       def test_invert_remove_foreign_key_with_column
@@ -362,7 +362,7 @@ module ActiveRecord
 
       def test_invert_add_foreign_key_with_column_and_name
         enable = @recorder.inverse_of :add_foreign_key, [:dogs, :people, column: "owner_id", name: "fk"]
-        assert_equal [:remove_foreign_key, [:dogs, name: "fk"]], enable
+        assert_equal [:remove_foreign_key, [:dogs, :people, column: "owner_id", name: "fk"], nil], enable
       end
 
       def test_invert_remove_foreign_key_with_column_and_name
