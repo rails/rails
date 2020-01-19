@@ -127,6 +127,7 @@ module ActiveRecord
               add_column:        :remove_column,
               add_timestamps:    :remove_timestamps,
               add_reference:     :remove_reference,
+              add_foreign_key:   :remove_foreign_key,
               enable_extension:  :disable_extension
             }.each do |cmd, inv|
               [[inv, cmd], [cmd, inv]].uniq.each do |method, inverse|
@@ -215,21 +216,6 @@ module ActiveRecord
         def invert_change_column_null(args)
           args[2] = !args[2]
           [:change_column_null, args]
-        end
-
-        def invert_add_foreign_key(args)
-          from_table, to_table, add_options = args
-          add_options ||= {}
-
-          if add_options[:name]
-            options = { name: add_options[:name] }
-          elsif add_options[:column]
-            options = { column: add_options[:column] }
-          else
-            options = to_table
-          end
-
-          [:remove_foreign_key, [from_table, options]]
         end
 
         def invert_remove_foreign_key(args)
