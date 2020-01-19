@@ -32,7 +32,8 @@ module ActiveRecord
     # * rename_index
     # * rename_table
     class CommandRecorder
-      ReversibleAndIrreversibleMethods = [:create_table, :create_join_table, :rename_table, :add_column, :remove_column,
+      ReversibleAndIrreversibleMethods = [
+        :create_table, :create_join_table, :rename_table, :add_column, :remove_column,
         :rename_index, :rename_column, :add_index, :remove_index, :add_timestamps, :remove_timestamps,
         :change_column_default, :add_reference, :remove_reference, :transaction,
         :drop_join_table, :drop_table, :execute_block, :enable_extension, :disable_extension,
@@ -113,11 +114,12 @@ module ActiveRecord
             record(:"#{method}", args, &block)  #   record(:create_table, args, &block)
           end                                   # end
         EOV
+        ruby2_keywords(method) if respond_to?(:ruby2_keywords, true)
       end
       alias :add_belongs_to :add_reference
       alias :remove_belongs_to :remove_reference
 
-      def change_table(table_name, options = {}) # :nodoc:
+      def change_table(table_name, **options) # :nodoc:
         yield delegate.update_table_definition(table_name, self)
       end
 
@@ -137,6 +139,7 @@ module ActiveRecord
               add_column:        :remove_column,
               add_timestamps:    :remove_timestamps,
               add_reference:     :remove_reference,
+              add_foreign_key:   :remove_foreign_key,
               enable_extension:  :disable_extension
             }.each do |cmd, inv|
               [[inv, cmd], [cmd, inv]].uniq.each do |method, inverse|
@@ -242,21 +245,6 @@ module ActiveRecord
           [:change_column_null, args]
         end
 
-        def invert_add_foreign_key(args)
-          from_table, to_table, add_options = args
-          add_options ||= {}
-
-          if add_options[:name]
-            options = { name: add_options[:name] }
-          elsif add_options[:column]
-            options = { column: add_options[:column] }
-          else
-            options = to_table
-          end
-
-          [:remove_foreign_key, [from_table, options]]
-        end
-
         def invert_remove_foreign_key(args)
           options = args.extract_options!
           from_table, to_table = args
@@ -303,6 +291,7 @@ module ActiveRecord
             super
           end
         end
+        ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
     end
   end
 end

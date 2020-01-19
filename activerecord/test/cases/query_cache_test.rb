@@ -81,7 +81,8 @@ class QueryCacheTest < ActiveRecord::TestCase
     }
 
     ActiveRecord::Base.connected_to(role: :reading) do
-      ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations["arunit"])
+      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+      ActiveRecord::Base.establish_connection(db_config)
     end
 
     mw = middleware { |env|
@@ -104,7 +105,8 @@ class QueryCacheTest < ActiveRecord::TestCase
       }
 
       ActiveRecord::Base.connected_to(role: :reading) do
-        ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations["arunit"])
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+        ActiveRecord::Base.establish_connection(db_config)
       end
 
       rd, wr = IO.pipe
@@ -588,7 +590,8 @@ class QueryCacheTest < ActiveRecord::TestCase
       }
 
       ActiveRecord::Base.connected_to(role: :reading) do
-        ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations["arunit"])
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+        ActiveRecord::Base.establish_connection(db_config)
       end
 
       mw = middleware { |env|

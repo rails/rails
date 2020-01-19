@@ -13,7 +13,8 @@ module ActiveRecord
       def setup
         @handler = ConnectionHandler.new
         @owner_name = "ActiveRecord::Base"
-        @pool = @handler.establish_connection(ActiveRecord::Base.configurations["arunit"])
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+        @pool = @handler.establish_connection(db_config)
       end
 
       def test_default_env_fall_back_to_default_env_when_rails_env_or_rack_env_is_empty_string
