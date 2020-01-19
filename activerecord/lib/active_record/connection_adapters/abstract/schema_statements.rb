@@ -611,7 +611,7 @@ module ActiveRecord
       # In that case, +type+ and +options+ will be used by #add_column.
       # Indexes on the column are automatically removed.
       def remove_column(table_name, column_name, type = nil, **options)
-        execute "ALTER TABLE #{quote_table_name(table_name)} #{remove_column_for_alter(table_name, column_name, type, options)}"
+        execute "ALTER TABLE #{quote_table_name(table_name)} #{remove_column_for_alter(table_name, column_name, type, **options)}"
       end
 
       # Changes the column's definition according to the new options.
@@ -1436,18 +1436,35 @@ module ActiveRecord
           non_combinable_operations.each(&:call)
         end
 
-        def add_column_for_alter(table_name, column_name, type, options = {})
+        def add_column_for_alter(table_name, column_name, type, **options)
           td = create_table_definition(table_name)
           cd = td.new_column_definition(column_name, type, **options)
           schema_creation.accept(AddColumnDefinition.new(cd))
         end
 
-        def remove_column_for_alter(table_name, column_name, type = nil, options = {})
+        def remove_column_for_alter(table_name, column_name, type = nil, **options)
           "DROP COLUMN #{quote_column_name(column_name)}"
         end
 
-        def remove_columns_for_alter(table_name, *column_names)
+        def remove_columns_for_alter(table_name, *column_names, **options)
           column_names.map { |column_name| remove_column_for_alter(table_name, column_name) }
+        end
+
+        def add_timestamps_for_alter(table_name, **options)
+          options[:null] = false if options[:null].nil?
+
+          if !options.key?(:precision) && supports_datetime_with_precision?
+            options[:precision] = 6
+          end
+
+          [
+            add_column_for_alter(table_name, :created_at, :datetime, **options),
+            add_column_for_alter(table_name, :updated_at, :datetime, **options)
+          ]
+        end
+
+        def remove_timestamps_for_alter(table_name, **options)
+          remove_columns_for_alter(table_name, :updated_at, :created_at)
         end
 
         def insert_versions_sql(versions)

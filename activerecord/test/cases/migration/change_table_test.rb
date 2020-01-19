@@ -283,14 +283,22 @@ module ActiveRecord
 
       def test_remove_drops_single_column
         with_change_table do |t|
-          @connection.expect :remove_columns, nil, [:delete_me, :bar]
+          if RUBY_VERSION < "2.7"
+            @connection.expect :remove_columns, nil, [:delete_me, :bar, {}]
+          else
+            @connection.expect :remove_columns, nil, [:delete_me, :bar]
+          end
           t.remove :bar
         end
       end
 
       def test_remove_drops_multiple_columns
         with_change_table do |t|
-          @connection.expect :remove_columns, nil, [:delete_me, :bar, :baz]
+          if RUBY_VERSION < "2.7"
+            @connection.expect :remove_columns, nil, [:delete_me, :bar, :baz, {}]
+          else
+            @connection.expect :remove_columns, nil, [:delete_me, :bar, :baz]
+          end
           t.remove :bar, :baz
         end
       end
