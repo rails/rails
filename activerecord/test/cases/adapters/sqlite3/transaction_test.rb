@@ -57,7 +57,7 @@ class SQLite3TransactionTest < ActiveRecord::SQLite3TestCase
     end
   end
 
-  test "reset the read_uncommitted PRAGMA when transactions is rolled back" do
+  test "reset the read_uncommitted PRAGMA when a transaction is rolled back" do
     with_connection(flags: shared_cache_flags) do |conn|
       conn.transaction(joinable: false, isolation: :read_uncommitted) do
         assert_not(read_uncommitted?(conn))
@@ -71,7 +71,7 @@ class SQLite3TransactionTest < ActiveRecord::SQLite3TestCase
     end
   end
 
-  test "reset the read_uncommitted PRAGMA when transactions is commited" do
+  test "reset the read_uncommitted PRAGMA when a transaction is committed" do
     with_connection(flags: shared_cache_flags) do |conn|
       conn.transaction(joinable: false, isolation: :read_uncommitted) do
         assert_not(read_uncommitted?(conn))
