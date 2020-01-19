@@ -86,7 +86,7 @@ In the remainder of this guide, you'll learn how to declare and use the various 
 
 ### The `belongs_to` Association
 
-A `belongs_to` association sets up a one-to-one connection with another model, such that each instance of the declaring model "belongs to" one instance of the other model. For example, if your application includes authors and books, and each book can be assigned to exactly one author, you'd declare the book model this way:
+A `belongs_to` association sets up a connection with another model, such that each instance of the declaring model "belongs to" one instance of the other model. For example, if your application includes authors and books, and each book can be assigned to exactly one author, you'd declare the book model this way:
 
 ```ruby
 class Book < ApplicationRecord
@@ -783,7 +783,7 @@ The following sections give the details of each type of association, including t
 
 ### `belongs_to` Association Reference
 
-The `belongs_to` association creates a one-to-one match with another model. In database terms, this association says that this class contains the foreign key. If the other class contains the foreign key, then you should use `has_one` instead.
+The `belongs_to` association indicates either a one-to-one or one-to-many association with another model. For example, a football player may `belong_to` only one team, but a team may have many football players. Similarly, a football player may `belong_to` only one jersey, and the jersey may have only one football player. In database terms, this association says that this class contains the foreign key. If the other class contains the foreign key, then you should use `has_one` instead.
 
 #### Methods Added by `belongs_to`
 
