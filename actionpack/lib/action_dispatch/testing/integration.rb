@@ -239,13 +239,14 @@ module ActionDispatch
           end
         end
 
-        hostname, port = host.split(":")
+        hostname_port = host.match(/(.*?)(?::(\d+))?$/)
+        _, hostname, port = hostname_port && hostname_port.to_a
 
         request_env = {
           :method => method,
           :params => request_encoder.encode_params(params),
 
-          "SERVER_NAME"     => hostname,
+          "SERVER_NAME"     => hostname.to_s,
           "SERVER_PORT"     => port || (https? ? "443" : "80"),
           "HTTPS"           => https? ? "on" : "off",
           "rack.url_scheme" => https? ? "https" : "http",

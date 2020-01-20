@@ -288,6 +288,25 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     verify_redirect "http://mobile.example.com/mobile"
   end
 
+  def test_redirect_hash_ip_host_with_subdomain
+    draw do
+      get "*path", to: redirect(subdomain: "www")
+    end
+
+    previous_host = host
+
+    self.host = "192.168.1.1:3000"
+    get "/product/1"
+    verify_redirect "http://192.168.1.1:3000/product/1"
+
+    self.host = "[::1]:3000"
+    get "/product/1"
+    verify_redirect "http://[::1]:3000/product/1"
+
+  ensure
+    self.host = previous_host
+  end
+
   def test_redirect_hash_with_domain_and_path
     draw do
       get "documentation", to: redirect(domain: "example-documentation.com", path: "")

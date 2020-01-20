@@ -165,6 +165,18 @@ module AbstractController
         )
       end
 
+      def test_subdomain_ignored_for_ipv4_host
+        assert_equal("http://127.0.0.1/c/a",
+            W.new.url_for(host: "127.0.0.1", subdomain: "www", controller: "c", action: "a")
+        )
+      end
+
+      def test_subdomain_ignored_for_ipv6_host
+        assert_equal("http://[::1]/c/a",
+            W.new.url_for(host: "[::1]", subdomain: "www", controller: "c", action: "a")
+        )
+      end
+
       def test_port
         add_host!
         assert_equal("http://www.basecamphq.com:3000/c/a/i",
