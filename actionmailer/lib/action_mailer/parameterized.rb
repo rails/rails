@@ -132,6 +132,7 @@ module ActionMailer
         super(mailer_class, action, *args)
         @params = params
       end
+      ruby2_keywords(:initialize) if respond_to?(:ruby2_keywords, true)
 
       private
         def processed_mailer
@@ -161,7 +162,8 @@ module ActionMailer
 
         def arguments_for(delivery_job, delivery_method)
           if delivery_job <= MailDeliveryJob
-            [@mailer_class.name, @action.to_s, delivery_method.to_s, params: @params, args: @args]
+            ruby2_keywords_arguments \
+              @mailer_class.name, @action.to_s, delivery_method.to_s, params: @params, args: @args
           else
             [@mailer_class.name, @action.to_s, delivery_method.to_s, @params, *@args]
           end
