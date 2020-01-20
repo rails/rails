@@ -364,14 +364,13 @@ module ActiveModel
         # using the given `extra` args. This falls back on `define_method`
         # and `send` if the given names cannot be compiled.
         def define_proxy_call(include_private, mod, name, target, *extra)
-          kw = RUBY_VERSION >= "2.7" ? ", **options" : nil
           defn = if NAME_COMPILABLE_REGEXP.match?(name)
-            "def #{name}(*args#{kw})"
+            "def #{name}(*args)"
           else
-            "define_method(:'#{name}') do |*args#{kw}|"
+            "define_method(:'#{name}') do |*args|"
           end
 
-          extra = (extra.map!(&:inspect) << "*args#{kw}").join(", ")
+          extra = (extra.map!(&:inspect) << "*args").join(", ")
 
           body = if CALL_COMPILABLE_REGEXP.match?(target)
             "#{"self." unless include_private}#{target}(#{extra})"
@@ -383,6 +382,7 @@ module ActiveModel
             #{defn}
               #{body}
             end
+            ruby2_keywords(:'#{name}') if respond_to?(:ruby2_keywords, true)
           RUBY
         end
 
