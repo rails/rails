@@ -527,6 +527,7 @@ module ActiveRecord
           @columns_hash.each do |name, column|
             type = connection.lookup_cast_type_from_column(column)
             type = _convert_type_from_options(type)
+            warn_if_deprecated_type(column)
             define_attribute(
               name,
               type,
@@ -584,6 +585,32 @@ module ActiveRecord
             type.to_immutable_string
           else
             type
+          end
+        end
+
+        def warn_if_deprecated_type(column)
+          return if attributes_to_define_after_schema_loads.key?(column.name)
+          return unless column.respond_to?(:oid)
+
+          if column.array?
+            array_arguments = ", array: true"
+          else
+            array_arguments = ""
+          end
+
+          if column.sql_type.start_with?("interval")
+            precision_arguments = column.precision.presence && ", precision: #{column.precision}"
+            ActiveSupport::Deprecation.warn(<<~WARNING)
+              The behavior of the `:interval` type will be changing in Rails 6.2
+              to return an `ActiveSupport::Duration` object. If you'd like to keep
+              the old behavior, you can add this line to #{self.name} model:
+
+                attribute :#{column.name}, :string#{precision_arguments}#{array_arguments}
+
+              If you'd like the new behavior today, you can add this line:
+
+                attribute :#{column.name}, :interval#{precision_arguments}#{array_arguments}
+            WARNING
           end
         end
     end

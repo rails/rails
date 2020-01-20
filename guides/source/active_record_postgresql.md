@@ -404,6 +404,29 @@ macbook.address
 All geometric types, with the exception of `points` are mapped to normal text.
 A point is casted to an array containing `x` and `y` coordinates.
 
+### Interval
+
+* [type definition](http://www.postgresql.org/docs/current/static/datatype-datetime.html#DATATYPE-INTERVAL-INPUT)
+* [functions and operators](http://www.postgresql.org/docs/current/static/functions-datetime.html)
+
+This type is mapped to [`ActiveSupport::Duration`](http://api.rubyonrails.org/classes/ActiveSupport/Duration.html) objects.
+
+```ruby
+# db/migrate/20200120000000_create_events.rb
+create_table :events do |t|
+  t.interval 'duration'
+end
+
+# app/models/event.rb
+class Event < ApplicationRecord
+end
+
+# Usage
+Event.create(duration: 2.days)
+
+event = Event.first
+event.duration # => 2 days
+```
 
 UUID Primary Keys
 -----------------

@@ -566,6 +566,12 @@ module ActiveRecord
               when 5..8; "bigint"
               else raise ArgumentError, "No integer type has byte size #{limit}. Use a numeric with scale 0 instead."
               end
+            when "interval"
+              case precision
+              when nil;  "interval"
+              when 0..6; "interval(#{precision})"
+              else raise(ActiveRecordError, "No interval type has precision of #{precision}. The allowed range of precision is from 0 to 6")
+              end
             else
               super
             end
