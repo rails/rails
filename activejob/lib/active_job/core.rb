@@ -86,6 +86,7 @@ module ActiveJob
       @executions = 0
       @exception_executions = {}
     end
+    ruby2_keywords(:initialize) if respond_to?(:ruby2_keywords, true)
 
     # Returns a hash with the job data that can safely be passed to the
     # queuing adapter.
