@@ -42,9 +42,8 @@ database. For example, it may be important to your application to ensure that
 every user provides a valid email address and mailing address. Model-level
 validations are the best way to ensure that only valid data is saved into your
 database. They are database agnostic, cannot be bypassed by end users, and are
-convenient to test and maintain. Rails makes them easy to use, provides
-built-in helpers for common needs, and allows you to create your own validation
-methods as well.
+convenient to test and maintain. Rails provides built-in helpers for common
+needs, and allows you to create your own validation methods as well.
 
 There are several other ways to validate data before it is saved into your
 database, including native database constraints, client-side validations and
@@ -77,17 +76,17 @@ example using the `new` method, that object does not belong to the database
 yet. Once you call `save` upon that object it will be saved into the
 appropriate database table. Active Record uses the `new_record?` instance
 method to determine whether an object is already in the database or not.
-Consider the following simple Active Record class:
+Consider the following Active Record class:
 
 ```ruby
 class Person < ApplicationRecord
 end
 ```
 
-We can see how it works by looking at some `rails console` output:
+We can see how it works by looking at some `bin/rails console` output:
 
 ```ruby
-$ rails console
+$ bin/rails console
 >> p = Person.new(name: "John Doe")
 => #<Person id: nil, name: "John Doe", created_at: nil, updated_at: nil>
 >> p.new_record?
@@ -123,7 +122,7 @@ database only if the object is valid:
 
 The bang versions (e.g. `save!`) raise an exception if the record is invalid.
 The non-bang versions don't: `save` and `update` return `false`, and
-`create` just returns the object.
+`create` returns the object.
 
 ### Skipping Validations
 
@@ -204,7 +203,7 @@ end
 # => ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
 ```
 
-`invalid?` is simply the inverse of `valid?`. It triggers your validations,
+`invalid?` is the inverse of `valid?`. It triggers your validations,
 returning true if any errors were found in the object, and false otherwise.
 
 ### `errors[]`
@@ -307,7 +306,7 @@ end
 
 This validation is very specific to web applications and this
 'acceptance' does not need to be recorded anywhere in your database. If you
-don't have a field for it, the helper will just create a virtual attribute. If
+don't have a field for it, the helper will create a virtual attribute. If
 the field does exist in your database, the `accept` option must be set to
 or include `true` or else the validation will not run.
 
@@ -488,7 +487,7 @@ If you set `:only_integer` to `true`, then it will use the
 ```
 
 regular expression to validate the attribute's value. Otherwise, it will try to
-convert the value to a number using `Float`.
+convert the value to a number using `Float`. `Float`s are casted to `BigDecimal` using the column's precision value or 15.
 
 ```ruby
 class Player < ApplicationRecord
@@ -1198,7 +1197,7 @@ validator type.
 
 ### `errors[:base]`
 
-You can add error messages that are related to the object's state as a whole, instead of being related to a specific attribute. You can use this method when you want to say that the object is invalid, no matter the values of its attributes. Since `errors[:base]` is an array, you can simply add a string to it and it will be used as an error message.
+You can add error messages that are related to the object's state as a whole, instead of being related to a specific attribute. You can use this method when you want to say that the object is invalid, no matter the values of its attributes. Since `errors[:base]` is an array, you can add a string to it and it will be used as an error message.
 
 ```ruby
 class Person < ApplicationRecord
@@ -1259,7 +1258,7 @@ validations fail.
 Because every application handles this kind of thing differently, Rails does
 not include any view helpers to help you generate these messages directly.
 However, due to the rich number of methods Rails gives you to interact with
-validations in general, it's fairly easy to build your own. In addition, when
+validations in general, you can build your own. In addition, when
 generating a scaffold, Rails will put some ERB into the `_form.html.erb` that
 it generates that displays the full list of errors on that model.
 
@@ -1284,7 +1283,7 @@ Furthermore, if you use the Rails form helpers to generate your forms, when
 a validation error occurs on a field, it will generate an extra `<div>` around
 the entry.
 
-```
+```html
 <div class="field_with_errors">
  <input id="article_title" name="article[title]" size="30" type="text" value="">
 </div>
@@ -1293,7 +1292,7 @@ the entry.
 You can then style this div however you'd like. The default scaffold that
 Rails generates, for example, adds this CSS rule:
 
-```
+```css
 .field_with_errors {
   padding: 2px;
   background-color: red;

@@ -86,7 +86,15 @@ module ActionDispatch
       if name
         controller_param = name.underscore
         const_name = controller_param.camelize << "Controller"
-        ActiveSupport::Dependencies.constantize(const_name)
+        begin
+          ActiveSupport::Dependencies.constantize(const_name)
+        rescue NameError => error
+          if error.missing_name == const_name || const_name.start_with?("#{error.missing_name}::")
+            raise MissingController.new(error.message, error.name)
+          else
+            raise
+          end
+        end
       else
         PASS_NOT_FOUND
       end
@@ -265,8 +273,7 @@ module ActionDispatch
     # (case-insensitive), which may need to be manually added depending on the
     # choice of JavaScript libraries and frameworks.
     def xml_http_request?
-      header = get_header("HTTP_X_REQUESTED_WITH")
-      header && /XMLHttpRequest/i.match?(header)
+      /XMLHttpRequest/i.match?(get_header("HTTP_X_REQUESTED_WITH"))
     end
     alias :xhr? :xml_http_request?
 

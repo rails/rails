@@ -96,7 +96,7 @@ module ApplicationTests
       assert_match "Hello world", output
     end
 
-    def test_should_not_eager_load_model_for_rake
+    def test_should_not_eager_load_model_for_rake_when_rake_eager_load_is_false
       add_to_config <<-RUBY
         rake_tasks do
           task do_nothing: :environment do
@@ -115,6 +115,29 @@ module ApplicationTests
 
       output = rails("do_nothing", "RAILS_ENV=production")
       assert_match "There is nothing", output
+    end
+
+    def test_should_eager_load_model_for_rake_when_rake_eager_load_is_true
+      add_to_config <<-RUBY
+        rake_tasks do
+          task do_something: :environment do
+            puts "Answer: " + Hello::TEST.to_s
+          end
+        end
+      RUBY
+
+      add_to_env_config "production", <<-RUBY
+        config.rake_eager_load = true
+      RUBY
+
+      app_file "app/models/hello.rb", <<-RUBY
+        class Hello
+          TEST = 42
+        end
+      RUBY
+
+      output = Dir.chdir(app_path) { `bin/rails do_something RAILS_ENV=production` }
+      assert_equal "Answer: 42\n", output
     end
 
     def test_code_statistics_sanity

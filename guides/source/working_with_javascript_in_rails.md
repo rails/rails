@@ -142,7 +142,7 @@ follow this pattern.
 Built-in Helpers
 ----------------
 
-### Remote elements
+### Remote Elements
 
 Rails provides a bunch of view helper methods written in Ruby to assist you
 in generating HTML. Sometimes, you want to add a little Ajax to those elements,
@@ -253,7 +253,7 @@ this generates
 
 Since it's just a `<form>`, all of the information on `form_with` also applies.
 
-### Customize remote elements
+### Customize Remote Elements
 
 It is possible to customize the behavior of elements with a `data-remote`
 attribute without writing a line of JavaScript. You can specify extra `data-`

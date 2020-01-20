@@ -2,15 +2,28 @@
 
 require "cases/helper"
 require "models/post"
+require "models/author"
 require "models/comment"
+require "models/categorization"
+
 
 module ActiveRecord
   class WhereChainTest < ActiveRecord::TestCase
-    fixtures :posts
+    fixtures :posts, :authors
 
     def setup
       super
       @name = "title"
+    end
+
+    def test_missing_with_association
+      assert posts(:authorless).author.blank?
+      assert_equal [posts(:authorless)], Post.where.missing(:author).to_a
+    end
+
+    def test_missing_with_multiple_association
+      assert posts(:authorless).comments.empty?
+      assert_equal [posts(:authorless)], Post.where.missing(:author, :comments).to_a
     end
 
     def test_not_inverts_where_clause

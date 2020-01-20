@@ -36,7 +36,7 @@ module ActiveRecord
       end
 
       def configuration_hash
-        @config
+        @config.freeze
       end
 
       # Determines whether a database configuration is for a replica / readonly
@@ -53,8 +53,16 @@ module ActiveRecord
         configuration_hash[:migrations_paths]
       end
 
+      def host
+        configuration_hash[:host]
+      end
+
       def database
         configuration_hash[:database]
+      end
+
+      def _database=(database) # :nodoc:
+        @config = configuration_hash.dup.merge(database: database).freeze
       end
 
       def pool

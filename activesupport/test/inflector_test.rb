@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 require "active_support/inflector"
 
-require "inflector_test_cases"
-require "constantize_test_cases"
+require_relative "inflector_test_cases"
+require_relative "constantize_test_cases"
 
 class InflectorTest < ActiveSupport::TestCase
   include InflectorTestCases

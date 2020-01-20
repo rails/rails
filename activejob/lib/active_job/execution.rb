@@ -17,6 +17,7 @@ module ActiveJob
       def perform_now(*args)
         job_or_instantiate(*args).perform_now
       end
+      ruby2_keywords(:perform_now) if respond_to?(:ruby2_keywords, true)
 
       def execute(job_data) #:nodoc:
         ActiveJob::Callbacks.run_callbacks(:execute) do
@@ -28,16 +29,28 @@ module ActiveJob
 
     # Performs the job immediately. The job is not sent to the queuing adapter
     # but directly executed by blocking the execution of others until it's finished.
+    # `perform_now` returns the value of your job's `perform` method.
     #
-    #   MyJob.new(*args).perform_now
+    #   class MyJob < ActiveJob::Base
+    #     def perform
+    #       "Hello World!"
+    #     end
+    #   end
+    #
+    #   puts MyJob.new(*args).perform_now # => "Hello World!"
     def perform_now
       # Guard against jobs that were persisted before we started counting executions by zeroing out nil counters
       self.executions = (executions || 0) + 1
 
       deserialize_arguments_if_needed
-      run_callbacks :perform do
-        perform(*arguments)
+      successfully_performed = false
+
+      job = run_callbacks :perform do
+        perform(*arguments).tap { successfully_performed = true }
       end
+
+      warn_against_after_callbacks_execution_deprecation(_perform_callbacks) unless successfully_performed
+      job
     rescue => exception
       rescue_with_handler(exception) || raise
     end

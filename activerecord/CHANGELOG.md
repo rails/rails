@@ -1,3 +1,120 @@
+*   Deprecate `#default_hash` and it's alias `#[]` on database configurations
+
+    Applications should use `configs_for`. `#default_hash` and `#[]` will be removed in 6.2.
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
+*   Add scale support to `ActiveRecord::Validations::NumericalityValidator`.
+
+    *Gannon McGibbon*
+
+*   Find orphans by looking for missing relations through chaining `where.missing`:
+
+    Before:
+
+    ```ruby
+    Post.left_joins(:author).where(authors: { id: nil })
+    ```
+
+    After:
+
+    ```ruby
+    Post.where.missing(:author)
+    ```
+
+    *Tom Rossi*
+
+*   Ensure `:reading` connections always raise if a write is attempted.
+
+    Now Rails will raise an `ActiveRecord::ReadOnlyError` if any connection on the reading handler attempts to make a write. If your reading role needs to write you should name the role something other than `:reading`.
+
+    *Eileen M. Uchitelle*
+
+*   Deprecate "primary" as the connection_specification_name for ActiveRecord::Base
+
+    `"primary"` has been deprecated as the `connection_specification_name` for `ActiveRecord::Base` in favor of using `"ActiveRecord::Base"`. This change affects calls to `ActiveRecord::Base.connection_handler.retrieve_connection` and `ActiveRecord::Base.connection_handler.remove_connection`. If you're calling these methods with `"primary"`, please switch to `"ActiveRecord::Base"`.
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
+*   Add `ActiveRecord::Validations::NumericalityValidator` with
+    support for casting floats using a database columns' precision value.
+
+    *Gannon McGibbon*
+
+*   Enforce fresh ETag header after a collection's contents change by adding
+    ActiveRecord::Relation#cache_key_with_version. This method will be used by
+    ActionController::ConditionalGet to ensure that when collection cache versioning
+    is enabled, requests using ConditionalGet don't return the same ETag header
+    after a collection is modified. Fixes #38078.
+
+    *Aaron Lipman*
+
+*   Skip test database when running `db:create` or `db:drop` in development
+    with `DATABASE_URL` set.
+
+    *Brian Buchalter*
+
+*   Don't allow mutations on the database configurations hash.
+
+    Freeze the configurations hash to disallow directly changing it. If applications need to change the hash, for example to create databases for parallelization, they should use the `DatabaseConfig` object directly.
+
+    Before:
+
+    ```ruby
+    @db_config = ActiveRecord::Base.configurations.configs_for(env_name: "test", spec_name: "primary")
+    @db_config.configuration_hash.merge!(idle_timeout: "0.02")
+    ```
+
+    After:
+
+    ```ruby
+    @db_config = ActiveRecord::Base.configurations.configs_for(env_name: "test", spec_name: "primary")
+    config = @db_config.configuration_hash.merge(idle_timeout: "0.02")
+    db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(@db_config.env_name, @db_config.spec_name, config)
+    ```
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
+*   Remove `:connection_id` from the `sql.active_record` notification.
+
+    *Aaron Patterson*, *Rafael Mendonça França*
+
+*   The `:name` key will no longer be returned as part of `DatabaseConfig#configuration_hash`. Please use `DatabaseConfig#owner_name` instead.
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
+*   ActiveRecord's `belongs_to_required_by_default` flag can now be set per model.
+
+    You can now opt-out/opt-in specific models from having their associations required
+    by default.
+
+    This change is meant to ease the process of migrating all your models to have
+    their association required.
+
+    *Edouard Chin*
+
+*   The `connection_config` method has been deprecated, please use `connection_db_config` instead which will return a `DatabaseConfigurations::DatabaseConfig` instead of a `Hash`.
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
+*   Retain explicit selections on the base model after applying `includes` and `joins`.
+
+    Resolves #34889.
+
+    *Patrick Rebsch*
+
+*   The `database` kwarg is deprecated without replacement because it can't be used for sharding and creates an issue if it's used during a request. Applications that need to create new connections should use `connects_to` instead.
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
+*   Allow attributes to be fetched from Arel node groupings.
+
+    *Jeff Emminger*, *Gannon McGibbon*
+
+*   A database URL can now contain a querystring value that contains an equal sign. This is needed to support passing PostgreSQL `options`.
+
+    *Joshua Flanagan*
+
 *   Calling methods like `establish_connection` with a `Hash` which is invalid (eg: no `adapter`) will now raise an error the same way as connections defined in `config/database.yml`.
 
     *John Crepezzi*
@@ -122,7 +239,7 @@
 
     *Edu Depetris*
 
-*   Make currency symbols optional for money column type in PostgreSQL
+*   Make currency symbols optional for money column type in PostgreSQL.
 
     *Joel Schneider*
 

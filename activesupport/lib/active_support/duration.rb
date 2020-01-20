@@ -39,7 +39,7 @@ module ActiveSupport
 
       def +(other)
         if Duration === other
-          seconds   = value + other.parts[:seconds]
+          seconds   = value + other.parts.fetch(:seconds, 0)
           new_parts = other.parts.merge(seconds: seconds)
           new_value = value + other.value
 
@@ -51,8 +51,8 @@ module ActiveSupport
 
       def -(other)
         if Duration === other
-          seconds   = value - other.parts[:seconds]
-          new_parts = other.parts.map { |part, other_value| [part, -other_value] }.to_h
+          seconds   = value - other.parts.fetch(:seconds, 0)
+          new_parts = other.parts.transform_values(&:-@)
           new_parts = new_parts.merge(seconds: seconds)
           new_value = value - other.value
 
@@ -64,7 +64,7 @@ module ActiveSupport
 
       def *(other)
         if Duration === other
-          new_parts = other.parts.map { |part, other_value| [part, value * other_value] }.to_h
+          new_parts = other.parts.transform_values { |other_value| value * other_value }
           new_value = value * other.value
 
           Duration.new(new_value, new_parts)
@@ -147,31 +147,31 @@ module ActiveSupport
       end
 
       def seconds(value) #:nodoc:
-        new(value, [[:seconds, value]])
+        new(value, seconds: value)
       end
 
       def minutes(value) #:nodoc:
-        new(value * SECONDS_PER_MINUTE, [[:minutes, value]])
+        new(value * SECONDS_PER_MINUTE, minutes: value)
       end
 
       def hours(value) #:nodoc:
-        new(value * SECONDS_PER_HOUR, [[:hours, value]])
+        new(value * SECONDS_PER_HOUR, hours: value)
       end
 
       def days(value) #:nodoc:
-        new(value * SECONDS_PER_DAY, [[:days, value]])
+        new(value * SECONDS_PER_DAY, days: value)
       end
 
       def weeks(value) #:nodoc:
-        new(value * SECONDS_PER_WEEK, [[:weeks, value]])
+        new(value * SECONDS_PER_WEEK, weeks: value)
       end
 
       def months(value) #:nodoc:
-        new(value * SECONDS_PER_MONTH, [[:months, value]])
+        new(value * SECONDS_PER_MONTH, months: value)
       end
 
       def years(value) #:nodoc:
-        new(value * SECONDS_PER_YEAR, [[:years, value]])
+        new(value * SECONDS_PER_YEAR, years: value)
       end
 
       # Creates a new Duration from a seconds value that is converted
@@ -186,15 +186,15 @@ module ActiveSupport
         end
 
         parts = {}
-        remainder = value.to_f
+        remainder = value.round(9)
 
         PARTS.each do |part|
           unless part == :seconds
             part_in_seconds = PARTS_IN_SECONDS[part]
             parts[part] = remainder.div(part_in_seconds)
-            remainder = (remainder % part_in_seconds).round(9)
+            remainder %= part_in_seconds
           end
-        end
+        end unless value == 0
 
         parts[:seconds] = remainder
 
@@ -210,9 +210,8 @@ module ActiveSupport
     end
 
     def initialize(value, parts) #:nodoc:
-      @value, @parts = value, parts.to_h
-      @parts.default = 0
-      @parts.reject! { |k, v| v.zero? }
+      @value, @parts = value, parts
+      @parts.reject! { |k, v| v.zero? } unless value == 0
     end
 
     def coerce(other) #:nodoc:
@@ -240,13 +239,12 @@ module ActiveSupport
     # are treated as seconds.
     def +(other)
       if Duration === other
-        parts = @parts.dup
-        other.parts.each do |(key, value)|
-          parts[key] += value
+        parts = @parts.merge(other.parts) do |_key, value, other_value|
+          value + other_value
         end
         Duration.new(value + other.value, parts)
       else
-        seconds = @parts[:seconds] + other
+        seconds = @parts.fetch(:seconds, 0) + other
         Duration.new(value + other, @parts.merge(seconds: seconds))
       end
     end
@@ -260,9 +258,9 @@ module ActiveSupport
     # Multiplies this Duration by a Numeric and returns a new Duration.
     def *(other)
       if Scalar === other || Duration === other
-        Duration.new(value * other.value, parts.map { |type, number| [type, number * other.value] })
+        Duration.new(value * other.value, parts.transform_values { |number| number * other.value })
       elsif Numeric === other
-        Duration.new(value * other, parts.map { |type, number| [type, number * other] })
+        Duration.new(value * other, parts.transform_values { |number| number * other })
       else
         raise_type_error(other)
       end
@@ -271,11 +269,11 @@ module ActiveSupport
     # Divides this Duration by a Numeric and returns a new Duration.
     def /(other)
       if Scalar === other
-        Duration.new(value / other.value, parts.map { |type, number| [type, number / other.value] })
+        Duration.new(value / other.value, parts.transform_values { |number| number / other.value })
       elsif Duration === other
         value / other.value
       elsif Numeric === other
-        Duration.new(value / other, parts.map { |type, number| [type, number / other] })
+        Duration.new(value / other, parts.transform_values { |number| number / other })
       else
         raise_type_error(other)
       end
@@ -294,7 +292,7 @@ module ActiveSupport
     end
 
     def -@ #:nodoc:
-      Duration.new(-value, parts.map { |type, number| [type, -number] })
+      Duration.new(-value, parts.transform_values(&:-@))
     end
 
     def is_a?(klass) #:nodoc:
@@ -375,7 +373,7 @@ module ActiveSupport
     alias :before :ago
 
     def inspect #:nodoc:
-      return "0 seconds" if parts.empty?
+      return "#{value} seconds" if parts.empty?
 
       parts.
         sort_by { |unit,  _ | PARTS.index(unit) }.
@@ -403,8 +401,14 @@ module ActiveSupport
 
     private
       def sum(sign, time = ::Time.current)
-        parts.inject(time) do |t, (type, number)|
-          if t.acts_like?(:time) || t.acts_like?(:date)
+        unless time.acts_like?(:time) || time.acts_like?(:date)
+          raise ::ArgumentError, "expected a time or date, got #{time.inspect}"
+        end
+
+        if parts.empty?
+          time.since(sign * value)
+        else
+          parts.inject(time) do |t, (type, number)|
             if type == :seconds
               t.since(sign * number)
             elsif type == :minutes
@@ -414,8 +418,6 @@ module ActiveSupport
             else
               t.advance(type => sign * number)
             end
-          else
-            raise ::ArgumentError, "expected a time or date, got #{time.inspect}"
           end
         end
       end

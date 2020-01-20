@@ -60,15 +60,17 @@ module ActiveRecord
           return if method_defined?(method)
 
           if /\A[a-zA-Z_]\w*[!?]?\z/.match?(method)
+            definition = RUBY_VERSION >= "2.7" ? "..." : "*args, &block"
             module_eval <<-RUBY, __FILE__, __LINE__ + 1
-              def #{method}(*args, &block)
-                scoping { klass.#{method}(*args, &block) }
+              def #{method}(#{definition})
+                scoping { klass.#{method}(#{definition}) }
               end
             RUBY
           else
             define_method(method) do |*args, &block|
               scoping { klass.public_send(method, *args, &block) }
             end
+            ruby2_keywords(method) if respond_to?(:ruby2_keywords, true)
           end
         end
       end
@@ -107,6 +109,7 @@ module ActiveRecord
             super
           end
         end
+        ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
     end
 
     module ClassMethods # :nodoc:

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../abstract_unit"
 require "active_support/time"
 require "active_support/core_ext/numeric"
 require "active_support/core_ext/range"
@@ -191,14 +191,27 @@ class RangeTest < ActiveSupport::TestCase
     end
   end
 
+  def test_cover_on_time_with_zone
+    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Eastern Time (US & Canada)"], Time.utc(2006, 11, 28, 10, 30))
+    assert ((twz - 1.hour)..twz).cover?(twz)
+  end
+
   def test_include_on_time_with_zone
     twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Eastern Time (US & Canada)"], Time.utc(2006, 11, 28, 10, 30))
-    assert ((twz - 1.hour)..twz).include?(twz)
+    assert_deprecated do
+      ((twz - 1.hour)..twz).include?(twz)
+    end
   end
 
   def test_case_equals_on_time_with_zone
     twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Eastern Time (US & Canada)"], Time.utc(2006, 11, 28, 10, 30))
-    assert ((twz - 1.hour)..twz) === twz
+    if RUBY_VERSION >= "2.6" # https://bugs.ruby-lang.org/issues/14575
+      assert ((twz - 1.hour)..twz) === twz
+    else
+      assert_deprecated do
+        assert ((twz - 1.hour)..twz) === twz
+      end
+    end
   end
 
   def test_date_time_with_each

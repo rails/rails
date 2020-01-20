@@ -1,3 +1,33 @@
+*   Only enqueue analysis jobs for blobs with non-null analyzer classes.
+
+    *Gannon McGibbon*
+
+*   Previews are created on the same service as the original blob.
+
+    *Peter Zhu*
+
+*   Remove unused `disposition` and `content_type` query parameters for `DiskService`.
+
+    *Peter Zhu*
+
+*   Use `DiskController` for both public and private files.
+
+    `DiskController` is able to handle multiple services by adding a
+    `service_name` field in the generated URL in `DiskService`.
+
+    *Peter Zhu*
+
+*   Variants are tracked in the database to avoid existence checks in the storage service.
+
+    *George Claghorn*
+
+*   Deprecate `service_url` methods in favour of `url`.
+
+    Deprecate `Variant#service_url` and `Preview#service_url` to instead use
+    `#url` method to be consistent with `Blob`.
+
+    *Peter Zhu*
+
 *   Permanent URLs for public storage blobs.
 
     Services can be configured in `config/storage.yml` with a new key
@@ -16,7 +46,7 @@
 
     *Kyle Ribordy*
 
-*   Allow storage services to be configured per attachment
+*   Allow storage services to be configured per attachment.
 
     ```ruby
     class User < ActiveRecord::Base

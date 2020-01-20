@@ -12,8 +12,9 @@ module ActiveRecord
 
       def setup
         @handler = ConnectionHandler.new
-        @spec_name = "primary"
-        @pool = @handler.establish_connection(ActiveRecord::Base.configurations["arunit"])
+        @owner_name = "ActiveRecord::Base"
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+        @pool = @handler.establish_connection(db_config)
       end
 
       def test_default_env_fall_back_to_default_env_when_rails_env_or_rack_env_is_empty_string
@@ -31,9 +32,9 @@ module ActiveRecord
         old_config = ActiveRecord::Base.configurations
         config = { "readonly" => { "adapter" => "sqlite3", "pool" => "5" } }
         ActiveRecord::Base.configurations = config
-        config_hash = ActiveRecord::Base.configurations.resolve(config["readonly"], "readonly").configuration_hash
-        config_hash[:name] = "readonly"
-        @handler.establish_connection(config_hash)
+        db_config = ActiveRecord::Base.configurations.resolve(config["readonly"], "readonly")
+        db_config.owner_name = "readonly"
+        @handler.establish_connection(db_config)
 
         assert_not_nil @handler.retrieve_connection_pool("readonly")
       ensure
@@ -75,6 +76,35 @@ module ActiveRecord
       end
 
       unless in_memory_db?
+        def test_establish_connection_with_primary_works_without_deprecation
+          old_config = ActiveRecord::Base.configurations
+          config = { "primary" => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" } }
+          ActiveRecord::Base.configurations = config
+
+          @handler.establish_connection(:primary)
+
+          assert_not_deprecated do
+            @handler.retrieve_connection("primary")
+            @handler.remove_connection("primary")
+          end
+        ensure
+          ActiveRecord::Base.configurations = old_config
+        end
+
+        def test_retrieve_connection_shows_primary_deprecation_warning_when_established_on_active_record_base
+          old_config = ActiveRecord::Base.configurations
+          config = { "primary" => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" } }
+          ActiveRecord::Base.configurations = config
+
+          ActiveRecord::Base.establish_connection(:primary)
+
+          assert_deprecated { @handler.retrieve_connection("primary") }
+          assert_deprecated { @handler.remove_connection("primary") }
+        ensure
+          ActiveRecord::Base.configurations = old_config
+          ActiveRecord::Base.establish_connection(:arunit)
+        end
+
         def test_establish_connection_using_3_level_config_defaults_to_default_env_primary_db
           previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
 
@@ -182,19 +212,19 @@ module ActiveRecord
       end
 
       def test_retrieve_connection
-        assert @handler.retrieve_connection(@spec_name)
+        assert @handler.retrieve_connection(@owner_name)
       end
 
       def test_active_connections?
         assert_not_predicate @handler, :active_connections?
-        assert @handler.retrieve_connection(@spec_name)
+        assert @handler.retrieve_connection(@owner_name)
         assert_predicate @handler, :active_connections?
         @handler.clear_active_connections!
         assert_not_predicate @handler, :active_connections?
       end
 
       def test_retrieve_connection_pool
-        assert_not_nil @handler.retrieve_connection_pool(@spec_name)
+        assert_not_nil @handler.retrieve_connection_pool(@owner_name)
       end
 
       def test_retrieve_connection_pool_with_invalid_id
@@ -236,8 +266,8 @@ module ActiveRecord
         assert_equal klassB.connection_specification_name, klassA.connection_specification_name
         assert_equal klassC.connection_specification_name, klassA.connection_specification_name
 
-        assert_equal "primary", klassA.connection_specification_name
-        assert_equal "primary", klassC.connection_specification_name
+        assert_equal "ActiveRecord::Base", klassA.connection_specification_name
+        assert_equal "ActiveRecord::Base", klassC.connection_specification_name
 
         klassA.connection_specification_name = "readonly"
         assert_equal "readonly", klassB.connection_specification_name
@@ -246,7 +276,7 @@ module ActiveRecord
         assert_equal "readonly", klassC.connection_specification_name
       ensure
         Object.send :remove_const, :ApplicationRecord
-        ActiveRecord::Base.connection_specification_name = "primary"
+        ActiveRecord::Base.connection_specification_name = "ActiveRecord::Base"
       end
 
       def test_remove_connection_should_not_remove_parent
@@ -362,7 +392,7 @@ module ActiveRecord
 
           pid = fork {
             rd.close
-            pool = @handler.retrieve_connection_pool(@spec_name)
+            pool = @handler.retrieve_connection_pool(@owner_name)
             wr.write Marshal.dump pool.schema_cache.size
             wr.close
             exit!
@@ -385,11 +415,11 @@ module ActiveRecord
           wr.binmode
 
           pid = fork do
-            ActiveRecord::Base.configurations["arunit"]["database"] = file.path
-            ActiveRecord::Base.establish_connection(:arunit)
+            config_hash = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary").configuration_hash.merge(database: file.path)
+            ActiveRecord::Base.establish_connection(config_hash)
 
             pid2 = fork do
-              wr.write ActiveRecord::Base.connection_config[:database]
+              wr.write ActiveRecord::Base.connection_db_config.database
               wr.close
             end
 

@@ -50,7 +50,7 @@ module ActiveRecord
     # Ensure, we can set connection params using the example of Generic
     # Query Optimizer (geqo). It is 'on' per default.
     def test_connection_options
-      params = ActiveRecord::Base.connection_config.dup
+      params = ActiveRecord::Base.connection_db_config.configuration_hash.dup
       params[:options] = "-c geqo=off"
       NonExistentTable.establish_connection(params)
 

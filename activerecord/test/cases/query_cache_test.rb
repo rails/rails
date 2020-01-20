@@ -40,6 +40,25 @@ class QueryCacheTest < ActiveRecord::TestCase
     super
   end
 
+  def test_writes_should_always_clear_cache
+    assert_cache :off
+
+    mw = middleware { |env|
+      Post.first
+      query_cache = ActiveRecord::Base.connection.query_cache
+      assert_equal 1, query_cache.length, query_cache.keys
+      Post.connection.uncached do
+        # should clear the cache
+        Post.create!(title: "a new post", body: "and a body")
+      end
+      query_cache = ActiveRecord::Base.connection.query_cache
+      assert_equal 0, query_cache.length, query_cache.keys
+    }
+    mw.call({})
+
+    assert_cache :off
+  end
+
   def test_exceptional_middleware_clears_and_disables_cache_on_error
     assert_cache :off
 
@@ -62,7 +81,8 @@ class QueryCacheTest < ActiveRecord::TestCase
     }
 
     ActiveRecord::Base.connected_to(role: :reading) do
-      ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations["arunit"])
+      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+      ActiveRecord::Base.establish_connection(db_config)
     end
 
     mw = middleware { |env|
@@ -74,6 +94,71 @@ class QueryCacheTest < ActiveRecord::TestCase
     mw.call({})
   ensure
     ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+  end
+
+
+  if Process.respond_to?(:fork) && !in_memory_db?
+    def test_query_cache_with_multiple_handlers_and_forked_processes
+      ActiveRecord::Base.connection_handlers = {
+        writing: ActiveRecord::Base.default_connection_handler,
+        reading: ActiveRecord::ConnectionAdapters::ConnectionHandler.new
+      }
+
+      ActiveRecord::Base.connected_to(role: :reading) do
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+        ActiveRecord::Base.establish_connection(db_config)
+      end
+
+      rd, wr = IO.pipe
+      rd.binmode
+      wr.binmode
+
+      pid = fork {
+        rd.close
+        status = 0
+
+        middleware { |env|
+          begin
+            assert_cache :clean
+
+            # first request dirties cache
+            ActiveRecord::Base.connected_to(role: :reading) do
+              Post.first
+              assert_cache :dirty
+            end
+
+            # should clear the cache
+            Post.create!(title: "a new post", body: "and a body")
+
+            # fails because cache is still dirty
+            ActiveRecord::Base.connected_to(role: :reading) do
+              assert_cache :clean
+              Post.first
+            end
+
+          rescue Minitest::Assertion => e
+            wr.write Marshal.dump e
+            status = 1
+          end
+        }.call({})
+
+        wr.close
+        exit!(status)
+      }
+
+      wr.close
+
+      Process.waitpid pid
+      if !$?.success?
+        raise Marshal.load(rd.read)
+      else
+        assert_predicate $?, :success?
+      end
+
+      rd.close
+    ensure
+      ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+    end
   end
 
   def test_query_cache_across_threads
@@ -361,17 +446,15 @@ class QueryCacheTest < ActiveRecord::TestCase
   def test_cache_is_available_when_using_a_not_connected_connection
     skip "In-Memory DB can't test for using a not connected connection" if in_memory_db?
     with_temporary_connection_pool do
-      spec_name = Task.connection_specification_name
-      conf = ActiveRecord::Base.configurations["arunit"].merge("name" => "test2")
-      ActiveRecord::Base.connection_handler.establish_connection(conf)
-      Task.connection_specification_name = "test2"
+      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary").dup
+      db_config.owner_name = "test2"
+      ActiveRecord::Base.connection_handler.establish_connection(db_config)
       assert_not_predicate Task, :connected?
 
       Task.cache do
         assert_queries(1) { Task.find(1); Task.find(1) }
       ensure
-        ActiveRecord::Base.connection_handler.remove_connection(Task.connection_specification_name)
-        Task.connection_specification_name = spec_name
+        ActiveRecord::Base.connection_handler.remove_connection(db_config.owner_name)
       end
     end
   end
@@ -507,7 +590,8 @@ class QueryCacheTest < ActiveRecord::TestCase
       }
 
       ActiveRecord::Base.connected_to(role: :reading) do
-        ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations["arunit"])
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+        ActiveRecord::Base.establish_connection(db_config)
       end
 
       mw = middleware { |env|
@@ -555,7 +639,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   private
     def with_temporary_connection_pool
-      pool_config = ActiveRecord::Base.connection_handler.send(:owner_to_pool_manager).fetch("primary").get_pool_config(:default)
+      pool_config = ActiveRecord::Base.connection_handler.send(:owner_to_pool_manager).fetch("ActiveRecord::Base").get_pool_config(:default)
       new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(pool_config)
 
       pool_config.stub(:pool, new_pool) do

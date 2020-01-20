@@ -5,11 +5,13 @@ require "active_support/core_ext/string/starts_ends_with"
 
 module Mime
   class Mimes
+    attr_reader :symbols
+
     include Enumerable
 
     def initialize
       @mimes = []
-      @symbols = nil
+      @symbols = []
     end
 
     def each
@@ -18,15 +20,16 @@ module Mime
 
     def <<(type)
       @mimes << type
-      @symbols = nil
+      @symbols << type.to_sym
     end
 
     def delete_if
-      @mimes.delete_if { |x| yield x }.tap { @symbols = nil }
-    end
-
-    def symbols
-      @symbols ||= map(&:to_sym)
+      @mimes.delete_if do |x|
+        if yield x
+          @symbols.delete(x.to_sym)
+          true
+        end
+      end
     end
   end
 
@@ -231,7 +234,7 @@ module Mime
     class InvalidMimeType < StandardError; end
 
     def initialize(string, symbol = nil, synonyms = [])
-      if string.nil? || ! MIME_REGEXP.match?(string)
+      unless MIME_REGEXP.match?(string)
         raise InvalidMimeType, "#{string.inspect} is not a valid MIME type"
       end
       @symbol, @synonyms = symbol, synonyms
@@ -336,6 +339,10 @@ module Mime
 
     def nil?
       true
+    end
+
+    def to_s
+      ""
     end
 
     def ref; end

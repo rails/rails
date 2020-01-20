@@ -5,8 +5,7 @@ Active Record Migrations
 
 Migrations are a feature of Active Record that allows you to evolve your
 database schema over time. Rather than write schema modifications in pure SQL,
-migrations allow you to use an easy Ruby DSL to describe changes to your
-tables.
+migrations allow you to use a Ruby DSL to describe changes to your tables.
 
 After reading this guide, you will know:
 
@@ -22,7 +21,7 @@ Migration Overview
 
 Migrations are a convenient way to
 [alter your database schema over time](https://en.wikipedia.org/wiki/Schema_migration)
-in a consistent and easy way. They use a Ruby DSL so that you don't have to
+in a consistent way. They use a Ruby DSL so that you don't have to
 write SQL by hand, allowing your schema and changes to be database independent.
 
 You can think of each migration as being a new 'version' of the database. A
@@ -123,7 +122,7 @@ Of course, calculating timestamps is no fun, so Active Record provides a
 generator to handle making it for you:
 
 ```bash
-$ rails generate migration AddPartNumberToProducts
+$ bin/rails generate migration AddPartNumberToProducts
 ```
 
 This will create an appropriately named empty migration:
@@ -145,7 +144,7 @@ types then a migration containing the appropriate `add_column` and
 `remove_column` statements will be created.
 
 ```bash
-$ rails generate migration AddPartNumberToProducts part_number:string
+$ bin/rails generate migration AddPartNumberToProducts part_number:string
 ```
 
 will generate
@@ -161,7 +160,7 @@ end
 If you'd like to add an index on the new column, you can do that as well:
 
 ```bash
-$ rails generate migration AddPartNumberToProducts part_number:string:index
+$ bin/rails generate migration AddPartNumberToProducts part_number:string:index
 ```
 
 will generate
@@ -179,7 +178,7 @@ end
 Similarly, you can generate a migration to remove a column from the command line:
 
 ```bash
-$ rails generate migration RemovePartNumberFromProducts part_number:string
+$ bin/rails generate migration RemovePartNumberFromProducts part_number:string
 ```
 
 generates
@@ -195,7 +194,7 @@ end
 You are not limited to one magically generated column. For example:
 
 ```bash
-$ rails generate migration AddDetailsToProducts part_number:string price:decimal
+$ bin/rails generate migration AddDetailsToProducts part_number:string price:decimal
 ```
 
 generates
@@ -214,7 +213,7 @@ followed by a list of column names and types then a migration creating the table
 XXX with the columns listed will be generated. For example:
 
 ```bash
-$ rails generate migration CreateProducts name:string part_number:string
+$ bin/rails generate migration CreateProducts name:string part_number:string
 ```
 
 generates
@@ -240,7 +239,7 @@ Also, the generator accepts column type as `references` (also available as
 `belongs_to`). For instance:
 
 ```bash
-$ rails generate migration AddUserRefToProducts user:references
+$ bin/rails generate migration AddUserRefToProducts user:references
 ```
 
 generates
@@ -259,7 +258,7 @@ For more `add_reference` options, visit the [API documentation](https://api.ruby
 There is also a generator which will produce join tables if `JoinTable` is part of the name:
 
 ```bash
-$ rails g migration CreateJoinTableCustomerProduct customer product
+$ bin/rails generate migration CreateJoinTableCustomerProduct customer product
 ```
 
 will produce the following migration:
@@ -283,7 +282,7 @@ relevant table. If you tell Rails what columns you want, then statements for
 adding these columns will also be created. For example, running:
 
 ```bash
-$ rails generate model Product name:string description:text
+$ bin/rails generate model Product name:string description:text
 ```
 
 will create a migration that looks like this
@@ -311,7 +310,7 @@ the command line. They are enclosed by curly braces and follow the field type:
 For instance, running:
 
 ```bash
-$ rails generate migration AddDetailsToProducts 'price:decimal{5,2}' supplier:references{polymorphic}
+$ bin/rails generate migration AddDetailsToProducts 'price:decimal{5,2}' supplier:references{polymorphic}
 ```
 
 will produce a migration that looks like this
@@ -497,7 +496,7 @@ NOTE: Active Record only supports single column foreign keys. `execute` and
 `structure.sql` are required to use composite foreign keys. See
 [Schema Dumping and You](#schema-dumping-and-you).
 
-Removing a foreign key is easy as well:
+Foreign keys can also be removed:
 
 ```ruby
 # let Active Record figure out the column name
@@ -736,7 +735,7 @@ Running Migrations
 Rails provides a set of rails commands to run certain sets of migrations.
 
 The very first migration related rails command you will use will probably be
-`rails db:migrate`. In its most basic form it just runs the `change` or `up`
+`bin/rails db:migrate`. In its most basic form it just runs the `change` or `up`
 method for all the migrations that have not yet been run. If there are
 no such migrations, it exits. It will run these migrations in order based
 on the date of the migration.
@@ -750,7 +749,7 @@ is the numerical prefix on the migration's filename. For example, to migrate
 to version 20080906120000 run:
 
 ```bash
-$ rails db:migrate VERSION=20080906120000
+$ bin/rails db:migrate VERSION=20080906120000
 ```
 
 If version 20080906120000 is greater than the current version (i.e., it is
@@ -767,7 +766,7 @@ mistake in it and wish to correct it. Rather than tracking down the version
 number associated with the previous migration you can run:
 
 ```bash
-$ rails db:rollback
+$ bin/rails db:rollback
 ```
 
 This will rollback the latest migration, either by reverting the `change`
@@ -775,7 +774,7 @@ method or by running the `down` method. If you need to undo
 several migrations you can provide a `STEP` parameter:
 
 ```bash
-$ rails db:rollback STEP=3
+$ bin/rails db:rollback STEP=3
 ```
 
 will revert the last 3 migrations.
@@ -785,26 +784,26 @@ back up again. As with the `db:rollback` command, you can use the `STEP` paramet
 if you need to go more than one version back, for example:
 
 ```bash
-$ rails db:migrate:redo STEP=3
+$ bin/rails db:migrate:redo STEP=3
 ```
 
 Neither of these rails commands do anything you could not do with `db:migrate`. They
-are simply more convenient, since you do not need to explicitly specify the
+are there for convenience, since you do not need to explicitly specify the
 version to migrate to.
 
 ### Setup the Database
 
-The `rails db:setup` command will create the database, load the schema, and initialize
+The `bin/rails db:setup` command will create the database, load the schema, and initialize
 it with the seed data.
 
 ### Resetting the Database
 
-The `rails db:reset` command will drop the database and set it up again. This is
-functionally equivalent to `rails db:drop db:setup`.
+The `bin/rails db:reset` command will drop the database and set it up again. This is
+functionally equivalent to `bin/rails db:drop db:setup`.
 
 NOTE: This is not the same as running all the migrations. It will only use the
 contents of the current `db/schema.rb` or `db/structure.sql` file. If a migration can't be rolled back,
-`rails db:reset` may not help you. To find out more about dumping the schema see
+`bin/rails db:reset` may not help you. To find out more about dumping the schema see
 [Schema Dumping and You](#schema-dumping-and-you) section.
 
 ### Running Specific Migrations
@@ -815,7 +814,7 @@ the corresponding migration will have its `change`, `up` or `down` method
 invoked, for example:
 
 ```bash
-$ rails db:migrate:up VERSION=20080906120000
+$ bin/rails db:migrate:up VERSION=20080906120000
 ```
 
 will run the 20080906120000 migration by running the `change` method (or the
@@ -825,13 +824,13 @@ Active Record believes that it has already been run.
 
 ### Running Migrations in Different Environments
 
-By default running `rails db:migrate` will run in the `development` environment.
+By default running `bin/rails db:migrate` will run in the `development` environment.
 To run migrations against another environment you can specify it using the
 `RAILS_ENV` environment variable while running the command. For example to run
 migrations against the `test` environment you could run:
 
 ```bash
-$ rails db:migrate RAILS_ENV=test
+$ bin/rails db:migrate RAILS_ENV=test
 ```
 
 ### Changing the Output of Running Migrations
@@ -892,7 +891,7 @@ generates the following output
 ==  CreateProducts: migrated (10.0054s) =======================================
 ```
 
-If you want Active Record to not output anything, then running `rails db:migrate
+If you want Active Record to not output anything, then running `bin/rails db:migrate
 VERBOSE=false` will suppress all output.
 
 Changing Existing Migrations
@@ -901,9 +900,9 @@ Changing Existing Migrations
 Occasionally you will make a mistake when writing a migration. If you have
 already run the migration, then you cannot just edit the migration and run the
 migration again: Rails thinks it has already run the migration and so will do
-nothing when you run `rails db:migrate`. You must rollback the migration (for
-example with `rails db:rollback`), edit your migration, and then run
-`rails db:migrate` to run the corrected version.
+nothing when you run `bin/rails db:migrate`. You must rollback the migration (for
+example with `bin/rails db:rollback`), edit your migration, and then run
+`bin/rails db:migrate` to run the corrected version.
 
 In general, editing existing migrations is not a good idea. You will be
 creating extra work for yourself and your co-workers and cause major headaches
@@ -928,7 +927,7 @@ Rails generates `db/schema.rb` which attempts to capture the current state of
 your database schema.
 
 It tends to be faster and less error prone to create a new instance of your
-application's database by loading the schema file via `rails db:schema:load`
+application's database by loading the schema file via `bin/rails db:schema:load`
 than it is to replay the entire migration history.
 [Old migrations](#old-migrations) may fail to apply correctly if those
 migrations use changing external dependencies or rely on application code which
@@ -983,7 +982,7 @@ using a tool specific to the database into `db/structure.sql`. For example, for
 PostgreSQL, the `pg_dump` utility is used. For MySQL and MariaDB, this file will
 contain the output of `SHOW CREATE TABLE` for the various tables.
 
-To load the schema from `db/structure.sql`, run `rails db:structure:load`.
+To load the schema from `db/structure.sql`, run `bin/rails db:structure:load`.
 Loading this file is done by executing the SQL statements it contains. By
 definition, this will create a perfect copy of the database's structure.
 
@@ -993,7 +992,7 @@ Because schema files are commonly used to create new databases, it is strongly
 recommended that you check your schema file into source control.
 
 Merge conflicts can occur in your schema file when two branches modify schema.
-To resolve these conflicts run `rails db:migrate` to regenerate the schema file.
+To resolve these conflicts run `bin/rails db:migrate` to regenerate the schema file.
 
 Active Record and Referential Integrity
 ---------------------------------------
@@ -1036,10 +1035,10 @@ end
 ```
 
 To add initial data after a database is created, Rails has a built-in
-'seeds' feature that makes the process quick and easy. This is especially
+'seeds' feature that speeds up the process. This is especially
 useful when reloading the database frequently in development and test environments.
-It's easy to get started with this feature: just fill up `db/seeds.rb` with some
-Ruby code, and run `rails db:seed`:
+To get started with this feature, fill up `db/seeds.rb` with some
+Ruby code, and run `bin/rails db:seed`:
 
 ```ruby
 5.times do |i|
@@ -1058,12 +1057,12 @@ database and is the authoritative source for rebuilding that database. This
 makes it possible to delete old migration files.
 
 When you delete migration files in the `db/migrate/` directory, any environment
-where `rails db:migrate` was run when those files still existed will hold a reference
+where `bin/rails db:migrate` was run when those files still existed will hold a reference
 to the migration timestamp specific to them inside an internal Rails database
 table named `schema_migrations`. This table is used to keep track of whether
 migrations have been executed in a specific environment.
 
-If you run the `rails db:migrate:status` command, which displays the status
+If you run the `bin/rails db:migrate:status` command, which displays the status
 (up or down) of each migration, you should see `********** NO FILE **********`
 displayed next to any deleted migration file which was once executed on a
 specific environment but can no longer be found in the `db/migrate/` directory.

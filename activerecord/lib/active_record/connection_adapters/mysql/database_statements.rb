@@ -20,7 +20,7 @@ module ActiveRecord
         end
 
         READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp(
-          :begin, :commit, :explain, :select, :set, :show, :release, :savepoint, :rollback, :describe, :desc, :with
+          :desc, :describe, :set, :show, :use
         ) # :nodoc:
         private_constant :READ_QUERY
 
@@ -82,8 +82,10 @@ module ActiveRecord
         alias :exec_update :exec_delete
 
         private
-          def execute_batch(sql, name = nil)
-            super
+          def execute_batch(statements, name = nil)
+            combine_multi_statements(statements).each do |statement|
+              execute(statement, name)
+            end
             @connection.abandon_results!
           end
 
@@ -97,14 +99,6 @@ module ActiveRecord
 
           def supports_set_server_option?
             @connection.respond_to?(:set_server_option)
-          end
-
-          def build_truncate_statements(*table_names)
-            if table_names.size == 1
-              super.first
-            else
-              super
-            end
           end
 
           def multi_statements_enabled?(flags)
