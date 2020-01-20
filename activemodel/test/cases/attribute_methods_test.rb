@@ -26,7 +26,7 @@ class ModelWithAttributes2
 
   attr_accessor :attributes
 
-  attribute_method_suffix "_test"
+  attribute_method_suffix "_test", "_kw"
 
 private
   def attribute(name)
@@ -35,6 +35,10 @@ private
 
   def attribute_test(name, attrs = {})
     attrs[name] = attribute(name)
+  end
+
+  def attribute_kw(name, kw: 1)
+    attribute(name)
   end
 
   def private_method
@@ -217,6 +221,7 @@ class AttributeMethodsTest < ActiveModel::TestCase
     attrs = {}
 
     assert_equal "bar", m.foo
+    assert_equal "bar", m.foo_kw(kw: 2)
     assert_equal "bar", m.foo_test(attrs)
     assert_equal "bar", attrs["foo"]
   end
@@ -229,6 +234,7 @@ class AttributeMethodsTest < ActiveModel::TestCase
     attrs = {}
 
     assert_equal "bar", m.foo
+    assert_equal "bar", m.foo_kw(kw: 2)
     assert_equal "bar", m.foo_test(attrs)
     assert_equal "bar", attrs["foo"]
   ensure

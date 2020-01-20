@@ -424,6 +424,7 @@ module ActiveModel
         match ? attribute_missing(match, *args, &block) : super
       end
     end
+    ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
 
     # +attribute_missing+ is like +method_missing+, but for attributes. When
     # +method_missing+ is called we check to see if there is a matching
