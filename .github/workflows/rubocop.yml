@@ -15,7 +15,7 @@ jobs:
     - name: Install required package
       run: |
         sudo apt-get update
-        sudo apt-get install libmysqlclient-dev libpq-dev libsqlite3-dev libncurses5-dev
+        sudo apt-get -y install libmysqlclient-dev libpq-dev libsqlite3-dev libncurses5-dev
     - name: Install bundler
       run: |
         gem install bundler:2.1.2
