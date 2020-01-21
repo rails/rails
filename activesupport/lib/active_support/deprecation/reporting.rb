@@ -42,7 +42,7 @@ module ActiveSupport
       end
 
       # Allow previously disallowed deprecation warnings within the block.
-      # <tt>allowed_warnings<tt> can be an array containing strings, symbols, or regular
+      # <tt>allowed_warnings</tt> can be an array containing strings, symbols, or regular
       # expressions. (Symbols are treated as strings). These are compared against
       # the text of deprecation warning messages generated within the block.
       # Matching warnings will be exempt from the rules set by
