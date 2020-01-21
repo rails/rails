@@ -1,3 +1,16 @@
+*   Cache compiled view templates when running tests by default
+
+    When generating a new app without `--skip-spring`, caching classes is
+    disabled in `environments/test.rb`. This implicitly disables caching
+    view templates too. This change will enable view template caching by
+    adding this to the generated `environments/test.rb`:
+
+    ````ruby
+    config.action_view.cache_template_loading = true
+    ````
+
+    *Jorge Manrubia*
+
 *   `Rails::Application#eager_load!` is available again to load application code
     manually as it was possible in previous versions.
 
