@@ -5,9 +5,9 @@
     view templates too. This change will enable view template caching by 
     adding this to the generated `environments/test.rb`: 
 
-    ````ruby
+    ```ruby
     config.action_view.cache_template_loading = true
-    ````
+    ```
     
     *Jorge Manrubia*
 
