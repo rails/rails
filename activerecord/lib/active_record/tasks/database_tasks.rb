@@ -409,14 +409,14 @@ module ActiveRecord
         ENV["SCHEMA"] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
       end
 
-      def cache_dump_filename(namespace)
+      def cache_dump_filename(namespace, schema_cache_path: nil)
         filename = if namespace == "primary"
           "schema_cache.yml"
         else
           "#{namespace}_schema_cache.yml"
         end
 
-        ENV["SCHEMA_CACHE"] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
+        schema_cache_path || ENV["SCHEMA_CACHE"] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
       end
 
       def load_schema_current(format = ActiveRecord::Base.schema_format, file = nil, environment = env)
@@ -452,6 +452,10 @@ module ActiveRecord
         conn.schema_cache.clear!
         conn.data_sources.each { |table| conn.schema_cache.add(table) }
         open(filename, "wb") { |f| f.write(YAML.dump(conn.schema_cache)) }
+      end
+
+      def clear_schema_cache(filename)
+        FileUtils.rm_f filename, verbose: false
       end
 
       private
