@@ -247,7 +247,9 @@ By default, view templates are written in a language called eRuby (Embedded
 Ruby) which is processed by the request cycle in Rails before being sent to the
 user.
 
-When we make a request to our Rails application, we do so by making a request to a particular _route_. To start off, let's create a route in `config/routes.rb`:
+When we make a request to our Rails application, we do so by making a request
+to a particular _route_. To start off, let's create a route in
+`config/routes.rb`:
 
 ```ruby
 Rails.application.routes.draw do
@@ -261,9 +263,14 @@ This is your application's _routing file_ which holds entries in a special
 [DSL (domain-specific language)](https://en.wikipedia.org/wiki/Domain-specific_language) that tells Rails how to connect incoming requests to
 controllers and actions.
 
-The line that we have just added says that we are going to match a `GET /articles` request to `articles#index`. This string passed as the `to` option represents the _controller_ and _action_ that will be responsible for handling this request.
+The line that we have just added says that we are going to match a `GET
+/articles` request to `articles#index`. This string passed as the `to` option
+represents the _controller_ and _action_ that will be responsible for handling
+this request.
 
-Controllers are classes that group together common methods for handling a particular _resource_. The methods inside controllers are given the name "actions", as they _act upon_ requests as they come in.
+Controllers are classes that group together common methods for handling a
+particular _resource_. The methods inside controllers are given the name
+"actions", as they _act upon_ requests as they come in.
 
 To create a new controller, you will need to run the "controller" generator and
 tell it you want a controller called "articles" with an action called "index",
@@ -303,9 +310,15 @@ class ArticlesController < ApplicationController
 end
 ```
 
-This controller defines a single action, or "method" in common Ruby terms, called `index`. This action is where we would define any logic that we would want to happen when a request comes in to this action. Right at this moment, we don't want this action to do anything, and so we'll keep it blank for now.
+This controller defines a single action, or "method" in common Ruby terms,
+called `index`. This action is where we would define any logic that we would
+want to happen when a request comes in to this action. Right at this moment, we
+don't want this action to do anything, and so we'll keep it blank for now.
 
-When an action is left blank like this, Rails will default to rendering a view that matches the name of the controller and the name of the action. Views in a Rails application live in `app/views`, and so the default view for this action is going to be `app/views/articles/index.html.erb`.
+When an action is left blank like this, Rails will default to rendering a view
+that matches the name of the controller and the name of the action. Views in a
+Rails application live in `app/views`, and so the default view for this action
+is going to be `app/views/articles/index.html.erb`.
 
 Open the `app/views/articles/index.html.erb` file in your text editor. Delete all
 of the existing code in the file, and replace it with the following single line
@@ -315,7 +328,8 @@ of code:
 <h1>Hello, Rails!</h1>
 ```
 
-If we go back to our browser and make a request to <http://localhost:3000/articles>, we'll see our text appear on the page.
+If we go back to our browser and make a request to
+<http://localhost:3000/articles>, we'll see our text appear on the page.
 
 ### Setting the Application Home Page
 
