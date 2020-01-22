@@ -232,7 +232,7 @@ module ActiveRecord
         self.connection_specification_name = nil
       end
 
-      connection_handler.remove_connection(name)
+      connection_handler.remove_connection_pool(name)
     end
 
     def clear_cache! # :nodoc:

@@ -1046,7 +1046,7 @@ module ActiveRecord
         # Protects the connection named `ActiveRecord::Base` from being removed
         # if the user calls `establish_connection :primary`.
         if owner_to_pool_manager.key?(pool_config.connection_specification_name)
-          remove_connection(pool_config.connection_specification_name, pool_key)
+          remove_connection_pool(pool_config.connection_specification_name, pool_key)
         end
 
         message_bus = ActiveSupport::Notifications.instrumenter
@@ -1100,7 +1100,7 @@ module ActiveRecord
       # active or defined connection: if it is the latter, it will be
       # opened and set as the active connection for the class it was defined
       # for (not necessarily the current class).
-      def retrieve_connection(spec_name) #:nodoc:
+      def retrieve_connection(spec_name) # :nodoc:
         pool = retrieve_connection_pool(spec_name)
 
         unless pool
@@ -1127,12 +1127,17 @@ module ActiveRecord
       # can be used as an argument for #establish_connection, for easily
       # re-establishing the connection.
       def remove_connection(owner, pool_key = :default)
+        remove_connection_pool(owner, pool_key)&.configuration_hash
+      end
+      deprecate remove_connection: "Use #remove_connection_pool, which now returns a DatabaseConfig object instead of a Hash"
+
+      def remove_connection_pool(owner, pool_key = :default)
         if pool_manager = get_pool_manager(owner)
           pool_config = pool_manager.remove_pool_config(pool_key)
 
           if pool_config
             pool_config.disconnect!
-            pool_config.db_config.configuration_hash
+            pool_config.db_config
           end
         end
       end

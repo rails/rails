@@ -454,7 +454,7 @@ class QueryCacheTest < ActiveRecord::TestCase
       Task.cache do
         assert_queries(1) { Task.find(1); Task.find(1) }
       ensure
-        ActiveRecord::Base.connection_handler.remove_connection(db_config.owner_name)
+        ActiveRecord::Base.connection_handler.remove_connection_pool(db_config.owner_name)
       end
     end
   end
