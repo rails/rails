@@ -281,6 +281,12 @@ just like this:
 $ bin/rails generate controller articles index
 ```
 
+There's a shorter way of writing this. We can use the letter "g" for the "generate" command:
+
+```bash
+$ bin/rails g controller articles index
+```
+
 Rails will create several files and a route for you.
 
 ```bash
@@ -334,216 +340,650 @@ If we go back to our browser and make a request to
 
 ### Setting the Application Home Page
 
-Now that we have made the controller and view, we need to tell Rails when we
-want "Hello, Rails!" to show up. In our case, we want it to show up when we
-navigate to the root URL of our site, <http://localhost:3000>. At the moment,
-"Yay! You're on Rails!" is occupying that spot.
+Now that we have made the route, controller, action and view, let's make a
+small change to our routes. In this application, we're going to change it so
+that our message appears at <http://localhost:3000/> and not just
+<http://localhost:3000/articles>. At the moment, at <http://localhost:3000> it
+still says "Yay! You're on Rails!".
 
-Next, you have to tell Rails where your actual home page is located.
+To change this, we need to tell our routes file where the _root path_ of our
+application is. If we do not do this, Rails will continue to display the "Yay!
+You're on Rails!" page.
 
 Open the file `config/routes.rb` in your editor.
 
 ```ruby
 Rails.application.routes.draw do
-  get 'welcome/index'
-
+  get "/articles", to: "articles#index"
   # For details on the DSL available within this file, see https://guides.rubyonrails.org/routing.html
 end
 ```
 
-This is your application's _routing file_ which holds entries in a special
-[DSL (domain-specific language)](https://en.wikipedia.org/wiki/Domain-specific_language)
-that tells Rails how to connect incoming requests to
-controllers and actions.
-Edit this file by adding the line of code `root 'welcome#index'`.
-It should look something like the following:
+Underneath the line that is there already, add this line:
 
 ```ruby
 Rails.application.routes.draw do
-  get 'welcome/index'
+  get "/articles", to: "articles#index"
 
-  root 'welcome#index'
+  root to: "articles#index"
 end
 ```
 
-`root 'welcome#index'` tells Rails to map requests to the root of the
-application to the welcome controller's index action and `get 'welcome/index'`
-tells Rails to map requests to <http://localhost:3000/welcome/index> to the
-welcome controller's index action. This was created earlier when you ran the
-controller generator (`bin/rails generate controller Welcome index`).
+A slightly shorter way of writing the same thing is:
+
+```ruby
+Rails.application.routes.draw do
+  get "/articles", to: "articles#index"
+  root "articles#index"
+end
+```
+
+This `root` method defines a _root path_ for our application. The `root` method
+tells Rails to map requests to the root of the application to the
+`ArticlesController` `index` action.
 
 Launch the web server again if you stopped it to generate the controller (`rails
 server`) and navigate to <http://localhost:3000> in your browser. You'll see the
-"Hello, Rails!" message you put into `app/views/welcome/index.html.erb`,
-indicating that this new route is indeed going to `WelcomeController`'s `index`
+"Hello, Rails!" message you put into `app/views/articles/index.html.erb`,
+indicating that this new route is indeed going to `ArticleController`'s `index`
 action and is rendering the view correctly.
+
+If we go back into our terminal, we can see this whole flow laid out for us:
+
+```
+Started GET "/" for ::1 at [timestamp]
+   (0.1ms)  SELECT sqlite_version(*)
+Processing by ArticlesController#index as HTML
+  Rendering articles/index.html.erb within layouts/application
+  Rendered articles/index.html.erb within layouts/application (Duration: 0.5ms | Allocations: 84)
+[Webpacker] Everything's up-to-date. Nothing to do
+Completed 200 OK in 10ms (Views: 7.9ms | ActiveRecord: 0.0ms | Allocations: 4989)
+```
+
+The first line shows us the request that is coming into our application. It's a
+`GET /` request. This means that the `root` route will match this request.
+
+The next line is a database query -- `SELECT sqlite_version(*)` -- that we can ignore for now.
+
+The third line shows us that Rails is going to process this request by using
+the `ArticlesController`, and its `index` action. The _format_ for this request
+is HTML. This means that the browser is expecting Rails to return HTML as a
+response to this request.
+
+The fourth + fifth lines show that the `articles/index.html.erb` view is being
+used in this request. The `layouts/application` mentioned here is located at
+`app/views/layouts/application.html.erb`. This file contains the following
+content:
+
+```erb
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Blog</title>
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= stylesheet_link_tag 'application', media: 'all', 'data-turbolinks-track': 'reload' %>
+    <%= javascript_pack_tag 'application', 'data-turbolinks-track': 'reload' %>
+  </head>
+
+  <body>
+    <%= yield %>
+  </body>
+</html>
+```
+
+This file is the common bits of HTML that will be wrapped around whatever our
+views return. The view's output goes right inside that `<body>` tag, where `<%=
+yield %>` is.
+
+The next line is:
+
+```
+[Webpacker] Everything's up-to-date. Nothing to do
+```
+
+Webpacker is a gem that comes with Rails that manages our assets. Right now, we
+don't have any assets and so we can ignore this line, and Webpacker in general.
+
+The final line is this:
+
+```
+Completed 200 OK in 10ms (Views: 7.9ms | ActiveRecord: 0.0ms | Allocations: 4989)
+```
+
+It tells us that the request completed successfully. We know it's successful
+because we saw it ourselves, but also because this line contains `200 OK`,
+which is the HTTP status code for successful responses. The rest of the
+information on this line is performance metrics.
+
+We have now finished rendering our first view. We created two routes that go to
+the same action -- `GET /` and `GET /articles`. That action is the `index`
+action in the `ArticlesController`. When we make a request to either of these
+paths, the `app/views/articles/index.html.erb` view is rendered, wrapped in the
+`app/views/layouts/application.html.erb` layout.
 
 TIP: For more information about routing, refer to [Rails Routing from the Outside In](routing.html).
 
-Getting Up and Running
-----------------------
+## Adding Articles
 
-Now that you've seen how to create a controller, an action, and a view, let's
-create something with a bit more substance.
+So far, we have seen routes, controllers, actions and views within our Rails
+application. All of these are conventional parts of Rails applications and it
+is done this way to follow the MVC pattern. The MVC pattern is an application
+design pattern which makes it easy to separate the different responsibilities
+of applications into easy to reason about pieces.
 
-In the Blog application, you will now create a new _resource_. A resource is the
-term used for a collection of similar objects, such as articles, people, or
-animals.
-You can create, read, update, and destroy items for a resource and these
-operations are referred to as _CRUD_ operations.
+So with "MVC", you might guess that the "V" stands for "View" and the "C"
+stands for controller, but you might have trouble guessing what the "M" stands
+for. This next section is all about that "M" part, the _model_.
 
-Rails provides a `resources` method which can be used to declare a standard REST
-resource. You need to add the _article resource_ to the
-`config/routes.rb` so the file will look as follows:
+### Generating an Article Model
 
-```ruby
-Rails.application.routes.draw do
-  get 'welcome/index'
-
-  resources :articles
-
-  root 'welcome#index'
-end
-```
-
-If you run `bin/rails routes`, you'll see that it has defined routes for all the
-standard RESTful actions.  The meaning of the prefix column (and other columns)
-will be seen later, but for now notice that Rails has inferred the
-singular form `article` and makes meaningful use of the distinction.
-
-```bash
-$ bin/rails routes
-       Prefix Verb   URI Pattern                  Controller#Action
-welcome_index GET    /welcome/index(.:format)     welcome#index
-     articles GET    /articles(.:format)          articles#index
-              POST   /articles(.:format)          articles#create
-  new_article GET    /articles/new(.:format)      articles#new
- edit_article GET    /articles/:id/edit(.:format) articles#edit
-      article GET    /articles/:id(.:format)      articles#show
-              PATCH  /articles/:id(.:format)      articles#update
-              PUT    /articles/:id(.:format)      articles#update
-              DELETE /articles/:id(.:format)      articles#destroy
-         root GET    /                            welcome#index
-```
-
-In the next section, you will add the ability to create new articles in your
-application and be able to view them. This is the "C" and the "R" from CRUD:
-create and read. The form for doing this will look like this:
-
-![The new article form](images/getting_started/new_article.png)
-
-It will look a little basic for now, but that's ok. We'll look at improving the
-styling for it afterwards.
-
-### Laying down the Groundwork
-
-Firstly, you need a place within the application to create a new article. A
-great place for that would be at `/articles/new`. With the route already
-defined, requests can now be made to `/articles/new` in the application.
-Navigate to <http://localhost:3000/articles/new> and you'll see a routing
-error:
-
-![Another routing error, uninitialized constant ArticlesController](images/getting_started/routing_error_no_controller.png)
-
-This error occurs because the route needs to have a controller defined in order
-to serve the request. The solution to this particular problem is simple: create
-a controller called `ArticlesController`. You can do this by running this
-command:
-
-```bash
-$ bin/rails generate controller Articles
-```
-
-If you open up the newly generated `app/controllers/articles_controller.rb`
-you'll see a fairly empty controller:
+A model is a class that is used to represent data in our application. In a
+plain-Ruby application, you might have a class defined like this:
 
 ```ruby
-class ArticlesController < ApplicationController
-end
-```
+class Article
+  attr_reader :title, :body
 
-A controller is simply a class that is defined to inherit from
-`ApplicationController`.
-It's inside this class that you'll define methods that will become the actions
-for this controller. These actions will perform CRUD operations on the articles
-within our system.
-
-NOTE: There are `public`, `private` and `protected` methods in Ruby,
-but only `public` methods can be actions for controllers.
-For more details check out [Programming Ruby](https://ruby-doc.org/docs/ProgrammingRuby/).
-
-If you refresh <http://localhost:3000/articles/new> now, you'll get a new error:
-
-![Unknown action new for ArticlesController!](images/getting_started/unknown_action_new_for_articles.png)
-
-This error indicates that Rails cannot find the `new` action inside the
-`ArticlesController` that you just generated. This is because when controllers
-are generated in Rails they are empty by default, unless you tell it
-your desired actions during the generation process.
-
-To manually define an action inside a controller, all you need to do is to
-define a new method inside the controller. Open
-`app/controllers/articles_controller.rb` and inside the `ArticlesController`
-class, define the `new` method so that your controller now looks like this:
-
-```ruby
-class ArticlesController < ApplicationController
-  def new
+  def initialize(title:, body:)
+    @title = title
+    @body = body
   end
 end
 ```
 
-With the `new` method defined in `ArticlesController`, if you refresh
-<http://localhost:3000/articles/new> you'll see another error:
+In a Rails application, models are used for more than just representing data.
+Models are also used to interact with the application's database. Models use a
+part of Rails called Active Record to interact with the database of the
+application.
 
-![Template is missing for articles/new]
-(images/getting_started/template_is_missing_articles_new.png)
+In this section, we're going to use a model to put data into our database and
+to pull that data back out, using methods that are provided to us from Active
+Record.
 
-You're getting this error now because Rails expects plain actions like this one
-to have views associated with them to display their information. With no view
-available, Rails will raise an exception.
+To start with, we're going to need to generate a model. We can do that with the
+following command:
 
-Let's look at the full error message again:
-
->ArticlesController#new is missing a template for request formats: text/html
-
->NOTE!
->Unless told otherwise, Rails expects an action to render a template with the same name, contained in a folder named after its controller. If this controller is an API responding with 204 (No Content), which does not require a template, then this error will occur when trying to access it via browser, since we expect an HTML template to be rendered for such requests. If that's the case, carry on.
-
-The message identifies which template is missing. In this case, it's the
-`articles/new` template. Rails will first look for this template. If not found,
-then it will attempt to load a template called `application/new`, because the
-`ArticlesController` inherits from `ApplicationController`.
-
-Next the message contains `request.formats` which specifies the format of
-template to be served in response. It is set to `text/html` as we requested
-this page via browser, so Rails is looking for an HTML template.
-
-The simplest template that would work in this case would be one located at
-`app/views/articles/new.html.erb`. The extension of this file name is important:
-the first extension is the _format_ of the template, and the second extension
-is the _handler_ that will be used to render the template. Rails is attempting
-to find a template called `articles/new` within `app/views` for the
-application. The format for this template can only be `html` and the default
-handler for HTML is `erb`. Rails uses other handlers for other formats.
-`builder` handler is used to build XML templates and `coffee` handler uses
-CoffeeScript to build JavaScript templates. Since you want to create a new
-HTML form, you will be using the `ERB` language which is designed to embed Ruby
-in HTML.
-
-Therefore the file should be called `articles/new.html.erb` and needs to be
-located inside the `app/views` directory of the application.
-
-Go ahead now and create a new file at `app/views/articles/new.html.erb` and
-write this content in it:
-
-```html
-<h1>New Article</h1>
+```bash
+$ bin/rails g model article title:string body:text
 ```
 
-When you refresh <http://localhost:3000/articles/new> you'll now see that the
-page has a title. The route, controller, action, and view are now working
-harmoniously! It's time to create the form for a new article.
+NOTE: The model name here is _singular_, because model classes are classes that
+are used to represent single instances. To help remember this rule, in a Ruby
+application to start building a new object, you would define the class as
+`Article`, and then do `Article.new`, not `Articles` and `Articles.new`. In
+plain English: we want to "build a _new article_", not a "_new articles_".
+
+When this command runs, it will generate the following files:
+
+```bash
+invoke  active_record
+create    db/migrate/[timestamp]_create_articles.rb
+create    app/models/article.rb
+invoke    test_unit
+create      test/models/article_test.rb
+create      test/fixtures/articles.yml
+```
+
+The two files we'll focus on here are the _migration_ (the file at
+`db/migrate`) and the _model_.
+
+A migration is used to alter the structure of our database, and it is written
+in Ruby. Let's look at this file now,
+`db/migrate/[timestamp]_create_articles.rb`.
+
+```ruby
+class CreateArticles < ActiveRecord::Migration[6.0]
+  def change
+    create_table :articles do |t|
+      t.string :title
+      t.text :body
+
+      t.timestamps
+    end
+  end
+end
+```
+
+This file contains Ruby code to create a table within our application's
+database. Migrations are written in Ruby so that they can be database-agnostic
+-- regardless of what database you use with Rails, you'll always write
+migrations in Ruby.
+
+Inside this migration file, there's a `create_table` method that defines how
+the `articles` table should be constructed. This method will create a table in
+our database that contains an `id` auto-incrementing primary key. That means
+that the first record in our table will have an `id` of 1, and the next `id` of
+2, and so on.  Rails assumes by default this is the behaviour we want, and so
+it does this for us.
+
+Inside the block for `create_table`, we have two fields, `title` and `body`.
+These were added to the migration automatically because we put them at the end
+of the `rails g model` call:
+
+```bash
+$ bin/rails g model article title:string body:text
+```
+
+On the last line of the block is `t.timestamps`. This method defines two
+additional fields in our table, called `created_at` and `updated_at`. When we
+create or update model objects, these fields will be set respectively.
+
+The structure of our table will look like this:
+
+| id | title  | body | created_at | updated_at |
+|----|------- |------|------------|------------|
+|    | &nbsp; |      |            |            |
+
+
+To create this table in our application's database, we can run this command:
+
+```bash
+$ bin/rails db:migrate
+```
+
+This command will show us output indicating that the table was created:
+
+```plaintext
+== [timestamp] CreateArticles: migrating ===================================
+-- create_table(:articles)
+   -> 0.0018s
+== [timestamp] CreateArticles: migrated (0.0018s) ==========================
+```
+
+Now that we have a table in our application's database, we can use the model to interact with this table.
+
+To use the model, we'll use a feature of Rails called the _console_. The
+console allows us write code like we might in `irb`, but the code of our
+application is available there too. Let's launch the console with this command:
+
+```bash
+$ bin/rails console
+```
+
+We can use a shorter version for this too:
+
+```bash
+$ bin/rails c
+```
+
+Just like we used "g" for "generate", we can use "c" for "console".
+
+When we launch this, we should see an irb prompt:
+
+```plaintext
+Loading development environment (Rails 6.0.2.1)
+irb(main):001:0>
+```
+
+In this prompt, we can use our model to initialize a new `Article` object:
+
+```ruby
+irb(main):001:0> article = Article.new(title: "Hello Rails", body: "I am on Rails!")
+```
+
+It's important to note that we have just _initialized_ this object. This object
+is not saved to the database at all, it's just available in the console so far.
+To save the object to the database, we need to call `save`:
+
+```ruby
+irb(main):002:0> article.save
+```
+
+This command will show us the following output:
+
+```plaintext
+(0.1ms)  begin transaction
+Article Create (0.4ms)  INSERT INTO "articles" ("title", "body", "created_at", "updated_at") VALUES (?, ?, ?, ?)  [["title", "Hello Rails"], ["body", "I am on Rails!"], ["created_at", "2020-01-18 23:47:30.734416"], ["updated_at", "2020-01-18 23:47:30.734416"]]
+(0.9ms)  commit transaction
+=> true
+```
+
+This output shows an `INSERT INTO "articles"...` database query. This means
+that our article has been successfully inserted into our table.
+
+If we take a look at our `article` object again, an interesting thing has happened:
+
+```ruby
+irb(main):003:0> article
+=> #<Article id: 1, title: "Hello Rails", body: "I am on Rails!", created_at: "2020-01-18 23:47:30", updated_at: "2020-01-18 23:47:30">
+```
+
+Our object now has the `id`, `created_at` and `updated_at` fields set. All of
+this happened automatically for us when we saved this article.
+
+If we wanted to retrieve this article back from the database later on, we can
+do that with `find`, and pass that `id` as an argument:
+
+```ruby
+irb(main):004:0> article = Article.find(1)
+=> #<Article id: 1, title: "Hello Rails", body: "I am on Rails!", created_at: "2020-01-18 23:47:30", updated_at: "2020-01-18 23:47:30">
+```
+
+A shorter way to add articles into our database is to use `Article.create`, like this:
+
+```ruby
+irb(main):005:0> Article.create(title: "Post #2", body: "Still riding the Rails!")
+```
+
+This way, we don't need to call `new` and then `save`.
+
+Lastly, models provide a method to find all of their data:
+
+```ruby
+irb(main):006:0> articles = Article.all
+ #<ActiveRecord::Relation [
+   #<Article id: 1, title: "Hello Rails", body: "I am on Rails!", created_at: "2020-01-18 23:47:30", updated_at: "2020-01-18 23:47:30">,
+   #<Article id: 2, title: "Post #2", body: "Still riding the Rails!", created_at: "2020-01-18 23:53:45", updated_at: "2020-01-18 23:53:45">]>
+```
+
+This method returns an `ActiveRecord::Relation` object, which you can think of
+as a super-powered array. This array contains both of the topics that we have
+created so far.
+
+TIP: For more about models, read the [Active Record
+Basics](https://guides.rubyonrails.org/active_record_basics.html) and [Active
+Record Query
+Interface](https://guides.rubyonrails.org/active_record_querying.html) guides.
+
+As you can see, models are very helpful classes for interacting with databases
+within Rails applications. Models are the final piece of the "MVC" puzzle.
+Let's look at how we can go about connecting all these pieces together into a
+cohesive whole.
+
+### Viewing a List of Articles
+
+Now that you've seen how to create a route, a controller, an action, a view and
+a model, let's connect these pieces together.
+
+Let's go back to `app/controllers/articles_controller.rb` now. We're going to
+change the `index` action here to use our model.
+
+```ruby
+class ArticlesController < ApplicationController
+  def index
+    @articles = Article.all
+  end
+end
+```
+
+Controller actions are where we assemble all the data that will later be
+displayed in the _view_. In this `index` action, we're calling `Article.all`
+which will make a query to our database and retrieve all of the articles,
+storing them in an instance variable: `@articles`.
+
+We're using an instance variable here for a very good reason: instance
+variables are automatically shared from controllers into views. So to use this
+`@articles` variable in our view to show all the articles, we can write this
+code in `app/views/articles/index.html.erb`:
+
+```erb
+<h1>Articles</h1>
+
+<ul>
+  <% @articles.each do |article| %>
+    <li><%= article.title %></li>
+  <% end %>
+</ul>
+```
+
+We've now changed this file from using just HTML to using HTML and _ERB_. ERB
+is a language that we can use to run Ruby code.
+
+There's two types of ERB tag beginnings that we're using here: `<%` and `<%=`.
+The `<%` tag means to evalulate some Ruby code, while the `<%=` means to
+evalulate that code, and then to output the return value from that code.
+
+In this view, we do not want the output of `articles.each` to show, and so we
+use a `<%`. But we do want each of the articles' titles to appear, and so we
+use `<%=`.
+
+When we start an ERB tag with either `<%` or `<%=`, it can help to think "I am
+now writing Ruby, not HTML". Anything you could write in a regular Ruby
+program, can go inside these ERB tags; but usually we would keep the content of
+the ERB tags short, for readability.
+
+When the view is used by Rails, the embedded Ruby will be evalulated, and the
+page will show our list of articles. Let's go to <http://localhost:3000> now
+and see the list of articles:
+
+![List of articles](images/getting_started/article_list.png)
+
+If we look at the source of the page in our browser
+<view-source:http://localhost:3000/>, we'll see this part:
+
+```html
+<h1>Articles</h1>
+
+<ul>
+    <li>Hello Rails</li>
+    <li>Post #2</li>
+</ul>
+```
+
+This is the HTML that has been output from our view in our Rails application.
+
+Here's what's happened to get to this point:
+
+1. Our browser makes a request: `GET http://localhost:3000`
+2. The Rails application receives this request
+3. The router sees that the `root` route is configured to route to the `ArticlesController`'s `index` action
+4. The `index` action uses the `Article` model to find all the articles
+5. Rails automatically renders the `app/views/articles/index.html.erb` view
+6. The view contains ERB (Embedded Ruby). This code is evalulated, and plain HTML is returned.
+7. The server sends a response containing that plain HTML back to the browser.
+
+Here's a flowchart of the above steps:
+
+![Application flowchart](images/getting_started/application_flowchart.png)
+
+We've now successfully connected all the different parts of our Rails
+application together: the router, the controller, the action, the model and the
+view. With this connection, we have finished the first action of our
+application.
+
+Let's move on to the second action!
+
+### Viewing a single Article
+
+For our second action, we want our application to show us the details about an
+article, specifically the article's title and body:
+
+![Single Article View](images/getting_started/single_article_view.png)
+
+We'll start in the same place we started with the `index` action, which was in
+`config/routes.rb`. We'll add a new route for this page. Let's change our
+routes file now to this:
+
+```ruby
+Rails.application.routes.draw do
+  root "articles#index"
+  get "/articles", to: "articles#index"
+  get "/articles/:id", to: "articles#show"
+end
+```
+
+This route is another `get` route, but it has something different in it: `:id`.
+This syntax in Rails routing is called a _parameter_, and it will be available
+in the `show` action of `ArticlesController` when a request is made. A request
+to this action will use a route such as <http://localhost:3000/articles/1> or
+<http://localhost:3000/articles/2>.
+
+This time, we're still routing to the `ArticlesController`, but we're going to
+the `show` action of that controller instead of the `index` action.
+
+Let's look at how to add that `show` action to the `ArticlesController`. We'll
+open `app/controllers/articles_controller.rb` and add it in, under the `index`
+action:
+
+```ruby
+class ArticlesController < ApplicationController
+  def index
+    @articles = Article.all
+  end
+
+  def show
+    @article = Article.find(params[:id])
+  end
+end
+```
+
+When a request is made to this `show` action, it will be made to a URL such as
+<http://localhost:3000/articles/1>. Rails sees that the last part of that route
+is a dynamic parameter, and makes that parameter available for us in our
+controller through the method `params`. We use `params[:id]` to access that
+parameter, because back in the routes file we called the parameter `:id`. If we
+used a name like `:article_id` in the routes file, then we would need to use
+`params[:article_id]` here too.
+
+The `show` action finds a particular article with that ID by using the
+`Article` model's method `find`, and passing `find` that `params[:id]`
+parameter. Once the action has found our article, it needs to then display that
+article's information, which will do by attempting to use a view at
+`app/views/articles/show.html.erb`. Let's create that file now and add this
+content:
+
+```erb
+<h1><%= @article.title %></h1>
+
+<%= @article.body %>
+```
+
+Now when we go to <http://localhost:3000/articles/1> we will see the article:
+
+![Single Article View](images/getting_started/single_article_view.png)
+
+Excellent! We now have our second action working in our controller. But in
+order to navigate to it, we have to manually type in
+<http://localhost:3000/articles/1>. That seems a bit silly. Let's change our
+application a little, so that we can navigate to an article by clicking a link
+from the list of articles.
+
+To add the link to an article, we need to change
+`app/views/articles/index.html.erb`, which currently looks like this:
+
+```erb
+<h1>Articles</h1>
+
+<ul>
+  <% @articles.each do |article| %>
+    <li><%= article.title %></li>
+  <% end %>
+</ul>
+```
+
+This code will render an `li` element for each of the articles, and that
+element contains the title of the article. But we can't click on the title to
+go to an article yet! To make that happen, we need to use an `a` tag:
+
+```erb
+<h1>Articles</h1>
+
+<ul>
+  <% @articles.each do |article| %>
+    <li>
+      <a href='/articles/<%= article.id %>'>
+        <%= article.title %>
+      </a>
+    </li>
+  <% end %>
+</ul>
+```
+
+This `a` tag will provide us with a link to the specific article. If we go back
+to <http://localhost:3000/>, we'll see that we can now click on the articles:
+
+![Articles list with links](images/getting_started/articles_list_with_links.png)
+
+Clicking either of these links will take us to the relevant article:
+
+![Single Article View](images/getting_started/single_article_view.png)
+
+Now we have been able to link together the `index` and `show` pages in our
+application using a simple `a` tag. What could be simpler than that?
+
+Well, Rails has a method called `link_to` that can make that linking a little
+simpler. Let's use this in `app/views/articles/index.html.erb`:
+
+```erb
+<h1>Articles</h1>
+
+<ul>
+  <% @articles.each do |article| %>
+    <li>
+      <%= link_to article.title, "/articles/#{article.id}" %>
+    </li>
+  <% end %>
+</ul>
+```
+
+There we go, that is now a little bit cleaner. Rails has given us a way to
+shorten this code a little. But what you don't know yet is that this line can
+be made even simpler.
+
+Rails has a feature called _routing helpers_. These are methods that can be
+used to generate route paths like `"/articles/#{article.id}"` programatically.
+We'll use one of these to generate the route for our article. To set this up,
+let's go back to `config/routes.rb` and change this line:
+
+```ruby
+get "/articles/:id", to: "articles#show"
+```
+
+To this:
+
+```ruby
+get "/articles/:id", to: "articles#show", as: :article
+```
+
+The `:as` option here tells Rails that we want routing helpers for this article
+route to be available in our application. Rails will then let us use this
+helper to build that route.
+
+Let's look at how we can use that in `app/views/articles/index.html.erb` now,
+by changing the end of the `link_to` call to this:
+
+```erb
+<h1>Articles</h1>
+
+<ul>
+  <% @articles.each do |article| %>
+    <li>
+      <%= link_to article.title, article_path(article) %>
+    </li>
+  <% end %>
+</ul>
+```
+
+The `link_to` now assembles its path using the `article_path` helper. This will
+still generate the same `/articles/:id` route we used earlier, but now it
+happens programatically instead. Now there is not so much switching happening
+between HTML and Ruby in this code. We enter Ruby, generate a link, and exit
+Ruby. The code still does the same thing: it links an article's title to the
+`show` page for that article.
+
+TIP: To learn more about routing, read the [Rails Routing from the Outside In Guide](https://guides.rubyonrails.org/routing.html).
+
+We now have an `index` action that lists the articles, and a `show` action that
+shows the title and body for a specific article. Before we move on, we'll make
+one more little change: we'll add a "Back" link in
+`app/views/articles/show.html.erb`:
+
+```erb
+<h1><%= @article.title %></h1>
+
+<%= @article.body %>
+
+<div>
+  <%= link_to "Back", "/" %>
+</div>
+```
+
+This will allow us to navigate back to the list of articles easily.
+
+With that small change done, let's now look at how we can create new articles
+within this application.
 
 ### The first form
 
