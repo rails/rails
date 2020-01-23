@@ -1,0 +1,123 @@
+version: "3.6"
+
+services:
+  base:
+    build:
+      context: ../
+      dockerfile: .buildkite/Dockerfile
+      args:
+        - RUBY_IMAGE
+        - BUNDLER
+        - RUBYGEMS
+
+  default: &default
+    image: "${IMAGE_NAME-buildkite_base}"
+    environment:
+      CI:
+      BUILDKITE:
+      BUILDKITE_BUILD_ID:
+      BUILDKITE_JOB_ID:
+      BUILDKITE_PARALLEL_JOB:
+      BUILDKITE_PARALLEL_JOB_COUNT:
+      encrypted_0fb9444d0374_key:
+      encrypted_0fb9444d0374_iv:
+
+      # Sauce Labs username and access key. Obfuscated, purposefully not encrypted.
+      ENCODED: "U0FVQ0VfQUNDRVNTX0tFWT1hMDM1MzQzZi1lOTIyLTQwYjMtYWEzYy0wNmIzZWE2MzVjNDggU0FVQ0VfVVNFUk5BTUU9cnVieW9ucmFpbHM="
+
+      BEANSTALK_URL: "beanstalk://beanstalkd"
+      MEMCACHE_SERVERS: "memcached:11211"
+      MYSQL_HOST: mysql
+      PGHOST: postgres
+      PGUSER: postgres
+      QC_DATABASE_URL: "postgres://postgres@postgres/active_jobs_qc_int_test"
+      QUE_DATABASE_URL: "postgres://postgres@postgres/active_jobs_que_int_test"
+      RABBITMQ_URL: "amqp://guest:guest@rabbitmq:5672"
+      REDIS_URL: "redis://redis:6379/1"
+      SELENIUM_DRIVER_URL: "http://chrome:4444/wd/hub"
+
+      AWAIT_redis: tcp://redis:6379
+      AWAIT_memcached: tcp://memcached:11211
+      AWAIT_mysql: tcp://mysql:3306
+      AWAIT_postgres: postgres://postgres@postgres:5432/postgres
+      AWAIT_rabbitmq: tcp://rabbitmq:5672
+      AWAIT_beanstalkd: tcp://beanstalkd:11300
+      AWAIT_chrome: tcp://chrome:4444
+
+    entrypoint: await-all
+
+    volumes:
+      - ../test-reports:/rails/test-reports
+
+    depends_on:
+      - redis
+      - memcached
+
+    tmpfs:
+      - /rails/tmp:size=1G,exec
+
+  postgresdb:
+    <<: *default
+    depends_on:
+      - redis
+      - memcached
+      - postgres
+
+  mysqldb:
+    <<: *default
+    depends_on:
+      - redis
+      - memcached
+      - mysql
+
+  railties:
+    <<: *default
+    depends_on:
+      - redis
+      - memcached
+      - mysql
+      - postgres
+
+  activejob:
+    <<: *default
+    depends_on:
+      - redis
+      - memcached
+      - postgres
+      - rabbitmq
+      - beanstalkd
+
+  actionview:
+    <<: *default
+    depends_on:
+      - redis
+      - memcached
+      - chrome
+
+  memcached:
+    image: memcached:alpine
+
+  redis:
+    image: redis:alpine
+
+  mysql:
+    image: "${MYSQL_IMAGE-mysql:latest}"
+    command: "--default-authentication-plugin=mysql_native_password"
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+    volumes:
+      - "./mysql-initdb.d:/docker-entrypoint-initdb.d"
+
+  postgres:
+    image: "${POSTGRES_IMAGE-postgres:alpine}"
+
+  rabbitmq:
+    image: rabbitmq:alpine
+
+  beanstalkd:
+    build:
+      context: ./
+      dockerfile: Dockerfile.beanstalkd
+
+  chrome:
+    image: selenium/standalone-chrome:latest

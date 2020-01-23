@@ -1,0 +1,7 @@
+.git
+activerecord/debug.log
+activerecord/test/config.yml
+doc
+node_modules
+pkg
+tmp

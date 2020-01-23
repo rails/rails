@@ -1,0 +1,324 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "json"
+require "net/http"
+require "pathname"
+require "yaml"
+
+QUEUE = ENV["BUILDKITE_AGENT_META_DATA_QUEUE"] || "default"
+IMAGE_BASE = ENV["DOCKER_IMAGE"] || "973266071021.dkr.ecr.us-east-1.amazonaws.com/#{"#{QUEUE}-" unless QUEUE == 'default'}builds"
+
+BASE_BRANCH = ([ENV["BUILDKITE_PULL_REQUEST_BASE_BRANCH"], ENV["BUILDKITE_BRANCH"], "master"] - [""]).first
+LOCAL_BRANCH = ([ENV["BUILDKITE_BRANCH"], "master"] - [""]).first
+PULL_REQUEST = ([ENV["BUILDKITE_PULL_REQUEST"]] - ["false"]).first
+
+BUILD_ID = ENV["BUILDKITE_BUILD_ID"]
+REBUILD_ID = ([ENV["BUILDKITE_REBUILT_FROM_BUILD_ID"]] - [""]).first
+
+MAINLINE = LOCAL_BRANCH == "master" || LOCAL_BRANCH =~ /\A[0-9-]+(?:-stable)?\z/
+
+DOCKER_COMPOSE_PLUGIN = "matthewd/docker-compose#master"
+ARTIFACTS_PLUGIN = "artifacts#v1.2.0"
+
+REPO_ROOT = Pathname.new(ARGV.shift || File.expand_path("../..", __FILE__))
+
+REPO_ROOT.join("rails.gemspec").read =~ /required_ruby_version[^0-9]+([0-9]+\.[0-9]+)/
+MIN_RUBY = Gem::Version.new($1 || "2.0")
+
+RAILS_VERSION = Gem::Version.new(File.read(REPO_ROOT.join("RAILS_VERSION")))
+BUNDLER =
+  case RAILS_VERSION
+  when Gem::Requirement.new("< 5.0")
+    "< 2"
+  end
+RUBYGEMS =
+  case RAILS_VERSION
+  when Gem::Requirement.new("< 5.0")
+    "2.6.13"
+  end
+
+MAX_RUBY =
+  case RAILS_VERSION
+  when Gem::Requirement.new("< 5.1")
+    Gem::Version.new("2.4")
+  when Gem::Requirement.new("< 5.2")
+    Gem::Version.new("2.5")
+  end
+
+def available_tags_for_image(image)
+  uri = URI("https://registry.hub.docker.com/v1/repositories/#{image}/tags")
+  json = Net::HTTP.get(uri)
+  JSON.parse(json).map { |x| x["name"] }
+end
+
+RUBIES = []
+SOFT_FAIL = []
+
+available_tags_for_image("ruby").
+  grep(/\A[0-9]+\.[0-9]+\z/).
+  map { |s| Gem::Version.new(s) }.
+  select { |v| v >= MIN_RUBY }.
+  sort.
+  each do |v|
+
+  image = "ruby:#{v}"
+
+  RUBIES << image
+  SOFT_FAIL << image if MAX_RUBY && v > MAX_RUBY && !(MAX_RUBY.approximate_recommendation === v)
+end
+
+ONE_RUBY = (RUBIES - SOFT_FAIL).last || RUBIES.last
+
+MASTER_RUBY = "rubylang/ruby:master-nightly-bionic"
+RUBIES << MASTER_RUBY
+SOFT_FAIL << MASTER_RUBY
+
+
+STEPS = []
+
+def image_name_for(ruby, suffix = BUILD_ID, short: false)
+  tag = "#{mangle_name(ruby)}-#{suffix}"
+
+  if short
+    tag
+  else
+    "#{IMAGE_BASE}:#{tag}"
+  end
+end
+
+def mangle_name(name)
+  name.tr("^A-Za-z0-9", "-")
+end
+
+def step_for(subdirectory, rake_task, ruby: nil, service: "default")
+  return unless REPO_ROOT.join(subdirectory).exist?
+
+  label = +"#{subdirectory} #{rake_task.sub(/[:_]test|test:/, "")}"
+  label.sub!(/ test/, "")
+  if ruby
+    short_ruby = ruby == MASTER_RUBY ? "master" : ruby.sub(/^ruby:|:latest$/, "")
+    label << " (#{short_ruby})"
+  end
+
+  if rake_task.start_with?("mysql2:") || rake_task.start_with?("mysql:")
+    rake_task = "db:mysql:rebuild #{rake_task}"
+  elsif rake_task.start_with?("postgresql:")
+    rake_task = "db:postgresql:rebuild #{rake_task}"
+  end
+
+  command = "rake #{rake_task}"
+
+  timeout = 30
+
+  group =
+    if rake_task.include?("isolated")
+      "isolated"
+    else
+      ruby || ONE_RUBY
+    end
+
+  env = {
+    "IMAGE_NAME" => image_name_for(ruby || ONE_RUBY),
+  }
+
+  if RAILS_VERSION < Gem::Version.new("5.x")
+    env["MYSQL_IMAGE"] = "mysql:5.6"
+  elsif RAILS_VERSION < Gem::Version.new("6.x")
+    env["MYSQL_IMAGE"] = "mysql:5.7"
+  end
+
+  if RAILS_VERSION < Gem::Version.new("5.2.x")
+    env["POSTGRES_IMAGE"] = "postgres:9.6-alpine"
+  end
+
+  hash = {
+    "label" => label,
+    "command" => command,
+    "group" => group,
+    "plugins" => [
+      {
+        ARTIFACTS_PLUGIN => {
+          "download" => [".buildkite/*", ".buildkite/**/*"],
+        },
+      },
+      {
+        DOCKER_COMPOSE_PLUGIN => {
+          "run" => service,
+          "pull" => service,
+          "config" => ".buildkite/docker-compose.yml",
+          "shell" => ["runner", subdirectory],
+        },
+      },
+    ],
+    "env" => env,
+    "timeout_in_minutes" => timeout,
+    "soft_fail" => SOFT_FAIL.include?(ruby),
+    "agents" => { "queue" => QUEUE },
+    "artifact_paths" => ["test-reports/*/*.xml"],
+    "retry" => { "automatic" => { "exit_status" => -1, "limit" => 2 } },
+  }
+
+  yield hash if block_given?
+
+  STEPS << hash
+end
+
+def steps_for(subdirectory, rake_task, service: "default", &block)
+  RUBIES.each do |ruby|
+    if rake_task == "mysql:test"
+      next unless ruby =~ /^ruby:(.*)/ && Gem::Version.new($1) < Gem::Version.new("2.4.x")
+    end
+
+    step_for(subdirectory, rake_task, ruby: ruby, service: service, &block)
+  end
+end
+
+# GROUP 1: Runs additional isolated tests for non-PR builds
+%w(
+  actionpack      test                default
+  actionmailer    test                default
+  activemodel     test                default
+  activesupport   test                default
+  actionview      test                default
+  activejob       test                default
+  activerecord    mysql:test          mysqldb
+  activerecord    mysql2:test         mysqldb
+  activerecord    postgresql:test     postgresdb
+  activerecord    sqlite3:test        default
+).each_slice(3) do |dir, task, service|
+  next if task == "mysql:test" && RAILS_VERSION >= Gem::Version.new("5.x")
+
+  steps_for(dir, task, service: service)
+
+  next unless MAINLINE
+  next if task == "mysql:test"
+
+  if dir == "activerecord"
+    step_for(dir, task.sub(":test", ":isolated_test"), service: service) do |x|
+      x["parallelism"] = 5 if REPO_ROOT.join("activerecord/Rakefile").read.include?("BUILDKITE_PARALLEL")
+    end
+  else
+    step_for(dir, "#{task}:isolated", service: service)
+  end
+end
+
+# GROUP 2: No isolated tests, runs for each supported ruby
+%w(
+  actioncable     test                postgresdb
+  activestorage   test                default
+  actionmailbox   test                default
+  actiontext      test                default
+  guides          test                default
+).each_slice(3) do |dir, task, service|
+  steps_for(dir, task, service: service)
+end
+
+# GROUP 3: Special cases
+
+if RAILS_VERSION >= Gem::Version.new("5.1.x")
+  step_for("activerecord", "sqlite3_mem:test", service: "default")
+end
+if RAILS_VERSION >= Gem::Version.new("5.x")
+  step_for("activerecord", "mysql2:test", service: "mysqldb") do |x|
+    x["label"] += " [mariadb]"
+    x["env"]["MYSQL_IMAGE"] =
+      if RAILS_VERSION < Gem::Version.new("6.x")
+        "mariadb:10.2"
+      else
+        "mariadb:latest"
+      end
+  end
+end
+steps_for("actioncable", "test:integration", service: "default") do |x|
+  if RAILS_VERSION < Gem::Version.new("6.x")
+    x["soft_fail"] = true
+  else
+    x["retry"] = { "automatic" => { "limit" => 3 } }
+  end
+end
+if REPO_ROOT.join("actionview/Rakefile").read.include?("task :ujs")
+  step_for("actionview", "test:ujs", service: "actionview")
+end
+steps_for("activejob", "test:integration", service: "activejob") do |x|
+  # Enable soft_fail until the problem in queue_classic is solved.
+  # https://github.com/rails/rails/pull/37517#issuecomment-545370408
+  x["soft_fail"] = true # if RAILS_VERSION < Gem::Version.new("5.x")
+end
+steps_for("railties", "test", service: "railties") do |x|
+  x["parallelism"] = 12 if REPO_ROOT.join("railties/Rakefile").read.include?("BUILDKITE_PARALLEL")
+end
+
+# Ugly hacks to just get the build passing for now
+STEPS.find { |s| s["label"] == "activestorage (2.2)" }&.tap do |s|
+  s["soft_fail"] = true
+end
+STEPS.delete_if { |s| s["label"] =~ /^guides/ } if RAILS_VERSION < Gem::Version.new("5.x")
+
+###
+
+STEPS.sort_by! do |step|
+  [
+    -step["timeout_in_minutes"],
+    step["group"] == "isolated" ? 2 : 1,
+    step["command"].include?("test:") ? 2 : 1,
+    step["label"],
+  ]
+end
+
+groups = STEPS.group_by { |s| s.delete("group") }.map do |group, steps|
+  { "group" => group, "steps" => steps }
+end
+
+puts YAML.dump("steps" => [
+  "wait",
+  {
+    "group" => "build",
+    "steps" => [
+      *RUBIES.map do |ruby|
+        {
+          "label" => ":docker: #{ruby}",
+          "plugins" => [
+            {
+              ARTIFACTS_PLUGIN => {
+                "download" => [".dockerignore", ".buildkite/*", ".buildkite/**/*"],
+              },
+            },
+            {
+              DOCKER_COMPOSE_PLUGIN => {
+                "build" => "base",
+                "config" => ".buildkite/docker-compose.yml",
+                "image-name" => image_name_for(ruby, short: true),
+                "cache-from" => [
+                  REBUILD_ID && "base:" + image_name_for(ruby, REBUILD_ID),
+                  PULL_REQUEST && "base:" + image_name_for(ruby, "pr-#{PULL_REQUEST}"),
+                  LOCAL_BRANCH && LOCAL_BRANCH !~ /:/ && "base:" + image_name_for(ruby, "br-#{LOCAL_BRANCH}"),
+                  BASE_BRANCH && "base:" + image_name_for(ruby, "br-#{BASE_BRANCH}"),
+                  "base:" + image_name_for(ruby, "br-master"),
+                ].grep(String).uniq,
+                "push" => [
+                  LOCAL_BRANCH =~ /:/ ?
+                  "base:" + image_name_for(ruby, "pr-#{PULL_REQUEST}") :
+                  "base:" + image_name_for(ruby, "br-#{LOCAL_BRANCH}"),
+                ],
+                "image-repository" => IMAGE_BASE,
+              },
+            },
+          ],
+          "env" => {
+            "BUNDLER" => BUNDLER,
+            "RUBYGEMS" => RUBYGEMS,
+            "RUBY_IMAGE" => ruby,
+            "encrypted_0fb9444d0374_key" => nil,
+            "encrypted_0fb9444d0374_iv" => nil,
+          },
+          "timeout_in_minutes" => 15,
+          "soft_fail" => SOFT_FAIL.include?(ruby),
+          "agents" => { "queue" => ENV["BUILD_QUEUE"] || QUEUE },
+        }
+      end,
+    ],
+  },
+  "wait",
+  *groups,
+])
