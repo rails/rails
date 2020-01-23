@@ -1373,7 +1373,8 @@ module ActiveRecord
 
       def with_advisory_lock
         lock_id = generate_migrator_advisory_lock_id
-        connection = Base.connection
+        AdvisoryLockBase.establish_connection(ActiveRecord::Base.connection_db_config) unless AdvisoryLockBase.connected?
+        connection = AdvisoryLockBase.connection
         got_lock = connection.get_advisory_lock(lock_id)
         raise ConcurrentMigrationError unless got_lock
         load_migrated # reload schema_migrations to be sure it wasn't changed by another process before we got the lock
