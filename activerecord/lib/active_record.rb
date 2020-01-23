@@ -35,6 +35,7 @@ require "active_model/attribute_set"
 module ActiveRecord
   extend ActiveSupport::Autoload
 
+  autoload :AdvisoryLockBase
   autoload :Base
   autoload :Callbacks
   autoload :Core

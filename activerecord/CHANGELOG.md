@@ -1,3 +1,11 @@
+*   Store advisory locks on their own named connection.
+
+    Previously advisory locks were taken out against a connection when a migration started. This works fine in single database applications but doesn't work well when migrations need to open new connections which results in the lock getting dropped.
+
+    In order to fix this we are storing the advisory lock on a new connection with the connection specification name `AdisoryLockBase`. The caveat is that we need to maintain at least 2 connections to a database while migrations are running in order to do this.
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
 *   Ensure `:reading` connections always raise if a write is attempted.
 
     Now Rails will raise an `ActiveRecord::ReadOnlyError` if any connection on the reading handler attempts to make a write. If your reading role needs to write you should name the role something other than `:reading`.
@@ -22,8 +30,13 @@
 
     *Patrick Rebsch*
 
+<<<<<<< HEAD
 
 ## Rails 6.0.2.1 (December 18, 2019) ##
+=======
+    Applications should use `configs_for`. `#default_hash` and `#[]` will be removed in 6.2.
+=======
+>>>>>>> 59d54b350d... Merge pull request #38235 from eileencodes/fix-advisory-lock
 
 *   No changes.
 

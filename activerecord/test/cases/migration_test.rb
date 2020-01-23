@@ -705,6 +705,17 @@ class MigrationTest < ActiveRecord::TestCase
         "without an advisory lock, the Migrator should not make any changes, but it did."
     end
 
+    def test_with_advisory_lock_doesnt_release_closed_connections
+      migration = Class.new(ActiveRecord::Migration::Current).new
+      migrator = ActiveRecord::Migrator.new(:up, [migration], @schema_migration, 100)
+
+      silence_stream($stderr) do
+        migrator.send(:with_advisory_lock) do
+          ActiveRecord::Base.establish_connection :arunit
+        end
+      end
+    end
+
     def test_with_advisory_lock_raises_the_right_error_when_it_fails_to_release_lock
       migration = Class.new(ActiveRecord::Migration::Current).new
       migrator = ActiveRecord::Migrator.new(:up, [migration], @schema_migration, 100)
@@ -713,7 +724,7 @@ class MigrationTest < ActiveRecord::TestCase
       e = assert_raises(ActiveRecord::ConcurrentMigrationError) do
         silence_stream($stderr) do
           migrator.send(:with_advisory_lock) do
-            ActiveRecord::Base.connection.release_advisory_lock(lock_id)
+            ActiveRecord::AdvisoryLockBase.connection.release_advisory_lock(lock_id)
           end
         end
       end
