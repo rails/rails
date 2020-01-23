@@ -835,6 +835,18 @@ class PerFormTokensControllerTest < ActionController::TestCase
     assert_response :success
   end
 
+  def test_accepts_token_with_path_with_query_params
+    get :index
+    form_token = assert_presence_and_fetch_form_csrf_token
+    assert_matches_session_token_on_server form_token
+
+    @request.env["PATH_INFO"] = "/per_form_tokens/post_one"
+    @request.env["QUERY_STRING"] = "key=value"
+    assert_nothing_raised do
+      post :post_one, params: { custom_authenticity_token: form_token }
+    end
+  end
+
   def test_rejects_garbage_path
     get :index
 
