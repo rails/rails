@@ -245,6 +245,12 @@ module Rails
     # will be used by middlewares and engines to configure themselves.
     def env_config
       @app_env_config ||= begin
+        same_site_protection = config.action_dispatch.cookies_same_site_protection
+
+        unless same_site_protection.respond_to?(:call)
+          same_site_protection = -> (_) { same_site_protection }
+        end
+
         super.merge(
           "action_dispatch.parameter_filter" => config.filter_parameters,
           "action_dispatch.redirect_filter" => config.filter_redirect,
@@ -265,7 +271,7 @@ module Rails
           "action_dispatch.cookies_serializer" => config.action_dispatch.cookies_serializer,
           "action_dispatch.cookies_digest" => config.action_dispatch.cookies_digest,
           "action_dispatch.cookies_rotations" => config.action_dispatch.cookies_rotations,
-          "action_dispatch.cookies_same_site_protection" => config.action_dispatch.cookies_same_site_protection,
+          "action_dispatch.cookies_same_site_protection" => same_site_protection,
           "action_dispatch.use_cookies_with_metadata" => config.action_dispatch.use_cookies_with_metadata,
           "action_dispatch.content_security_policy" => config.content_security_policy,
           "action_dispatch.content_security_policy_report_only" => config.content_security_policy_report_only,
