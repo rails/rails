@@ -19,7 +19,7 @@ module ActiveRecord
 
       def test_references_column_type_adds_id
         with_change_table do |t|
-          if RUBY_VERSION < "2.7"
+          if RUBY_VERSION != "2.7.0"
             @connection.expect :add_reference, nil, [:delete_me, :customer, {}]
           else
             @connection.expect :add_reference, nil, [:delete_me, :customer]
@@ -30,7 +30,7 @@ module ActiveRecord
 
       def test_remove_references_column_type_removes_id
         with_change_table do |t|
-          if RUBY_VERSION < "2.7"
+          if RUBY_VERSION != "2.7.0"
             @connection.expect :remove_reference, nil, [:delete_me, :customer, {}]
           else
             @connection.expect :remove_reference, nil, [:delete_me, :customer]
@@ -41,7 +41,7 @@ module ActiveRecord
 
       def test_add_belongs_to_works_like_add_references
         with_change_table do |t|
-          if RUBY_VERSION < "2.7"
+          if RUBY_VERSION != "2.7.0"
             @connection.expect :add_reference, nil, [:delete_me, :customer, {}]
           else
             @connection.expect :add_reference, nil, [:delete_me, :customer]
@@ -52,7 +52,7 @@ module ActiveRecord
 
       def test_remove_belongs_to_works_like_remove_references
         with_change_table do |t|
-          if RUBY_VERSION < "2.7"
+          if RUBY_VERSION != "2.7.0"
             @connection.expect :remove_reference, nil, [:delete_me, :customer, {}]
           else
             @connection.expect :remove_reference, nil, [:delete_me, :customer]
@@ -126,7 +126,7 @@ module ActiveRecord
 
       def test_integer_creates_integer_column
         with_change_table do |t|
-          if RUBY_VERSION < "2.7"
+          if RUBY_VERSION != "2.7.0"
             @connection.expect :add_column, nil, [:delete_me, :foo, :integer, {}]
             @connection.expect :add_column, nil, [:delete_me, :bar, :integer, {}]
           else
@@ -139,7 +139,7 @@ module ActiveRecord
 
       def test_bigint_creates_bigint_column
         with_change_table do |t|
-          if RUBY_VERSION < "2.7"
+          if RUBY_VERSION != "2.7.0"
             @connection.expect :add_column, nil, [:delete_me, :foo, :bigint, {}]
             @connection.expect :add_column, nil, [:delete_me, :bar, :bigint, {}]
           else
@@ -152,7 +152,7 @@ module ActiveRecord
 
       def test_string_creates_string_column
         with_change_table do |t|
-          if RUBY_VERSION < "2.7"
+          if RUBY_VERSION != "2.7.0"
             @connection.expect :add_column, nil, [:delete_me, :foo, :string, {}]
             @connection.expect :add_column, nil, [:delete_me, :bar, :string, {}]
           else
@@ -166,7 +166,7 @@ module ActiveRecord
       if current_adapter?(:PostgreSQLAdapter)
         def test_json_creates_json_column
           with_change_table do |t|
-            if RUBY_VERSION < "2.7"
+            if RUBY_VERSION != "2.7.0"
               @connection.expect :add_column, nil, [:delete_me, :foo, :json, {}]
               @connection.expect :add_column, nil, [:delete_me, :bar, :json, {}]
             else
@@ -179,7 +179,7 @@ module ActiveRecord
 
         def test_xml_creates_xml_column
           with_change_table do |t|
-            if RUBY_VERSION < "2.7"
+            if RUBY_VERSION != "2.7.0"
               @connection.expect :add_column, nil, [:delete_me, :foo, :xml, {}]
               @connection.expect :add_column, nil, [:delete_me, :bar, :xml, {}]
             else
@@ -193,7 +193,7 @@ module ActiveRecord
 
       def test_column_creates_column
         with_change_table do |t|
-          if RUBY_VERSION < "2.7"
+          if RUBY_VERSION != "2.7.0"
             @connection.expect :add_column, nil, [:delete_me, :bar, :integer, {}]
           else
             @connection.expect :add_column, nil, [:delete_me, :bar, :integer]
@@ -204,7 +204,7 @@ module ActiveRecord
 
       def test_column_creates_column_with_options
         with_change_table do |t|
-          if RUBY_VERSION < "2.7"
+          if RUBY_VERSION != "2.7.0"
             @connection.expect :add_column, nil, [:delete_me, :bar, :integer, { null: false }]
           else
             @connection.expect :add_column, nil, [:delete_me, :bar, :integer, { null: false }]
@@ -215,7 +215,7 @@ module ActiveRecord
 
       def test_column_creates_column_with_index
         with_change_table do |t|
-          if RUBY_VERSION < "2.7"
+          if RUBY_VERSION != "2.7.0"
             @connection.expect :add_column, nil, [:delete_me, :bar, :integer, {}]
           else
             @connection.expect :add_column, nil, [:delete_me, :bar, :integer]
@@ -283,7 +283,7 @@ module ActiveRecord
 
       def test_remove_drops_single_column
         with_change_table do |t|
-          if RUBY_VERSION < "2.7"
+          if RUBY_VERSION != "2.7.0"
             @connection.expect :remove_columns, nil, [:delete_me, :bar, {}]
           else
             @connection.expect :remove_columns, nil, [:delete_me, :bar]
@@ -294,7 +294,7 @@ module ActiveRecord
 
       def test_remove_drops_multiple_columns
         with_change_table do |t|
-          if RUBY_VERSION < "2.7"
+          if RUBY_VERSION != "2.7.0"
             @connection.expect :remove_columns, nil, [:delete_me, :bar, :baz, {}]
           else
             @connection.expect :remove_columns, nil, [:delete_me, :bar, :baz]
