@@ -59,11 +59,14 @@ module ActiveRecord
           context = context_klass.call(request)
           resolver = resolver_klass.call(context, options)
 
-          if reading_request?(request)
+          response = if reading_request?(request)
             resolver.read(&blk)
           else
             resolver.write(&blk)
           end
+
+          resolver.update_context(response)
+          response
         end
 
         def reading_request?(request)
