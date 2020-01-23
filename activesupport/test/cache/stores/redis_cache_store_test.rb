@@ -131,6 +131,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     include CacheIncrementDecrementBehavior
     include CacheInstrumentationBehavior
     include AutoloadingCacheBehavior
+    include EncodedKeyCacheBehavior
 
     def test_fetch_multi_uses_redis_mget
       assert_called(@cache.redis, :mget, returns: []) do
@@ -211,17 +212,6 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       def store_options
         { url: [ENV["REDIS_URL"] || "redis://localhost:6379/0"] * 2 }
       end
-  end
-
-  # Separate test class so we can omit the namespace which causes expected,
-  # appropriate complaints about incompatible string encodings.
-  class KeyEncodingSafetyTest < StoreTest
-    include EncodedKeyCacheBehavior
-
-    setup do
-      @cache = ActiveSupport::Cache::RedisCacheStore.new(timeout: 0.1, driver: DRIVER)
-      @cache.logger = nil
-    end
   end
 
   class StoreAPITest < StoreTest
