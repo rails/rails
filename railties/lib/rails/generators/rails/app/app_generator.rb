@@ -79,7 +79,7 @@ module Rails
     def app
       directory "app"
 
-      keep_file "app/assets/images"
+      empty_directory_with_keep_file "app/assets/images"
 
       keep_file  "app/controllers/concerns"
       keep_file  "app/models/concerns"
