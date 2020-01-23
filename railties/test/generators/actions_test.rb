@@ -573,7 +573,7 @@ class ActionsTest < Rails::Generators::TestCase
   end
 
   private
-    if RUBY_VERSION < "2.7"
+    if RUBY_VERSION != "2.7.0"
       def action(*args, &block)
         capture(:stdout) { generator.send(*args, &block) }
       end
