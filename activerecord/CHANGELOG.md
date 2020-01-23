@@ -1,3 +1,17 @@
+*   Allow schema cache path to be defined in the database configuration file.
+
+    For example:
+
+    ```
+    development:
+      adapter: postgresql
+      database: blog_development
+      pool: 5
+      schema_cache_path: tmp/schema/main.yml
+    ```
+
+    *Katrina Owen*
+
 *   Deprecate `#remove_connection` in favor of `#remove_connection_pool` when called on the handler.
 
     `#remove_connection` is deprecated in order to support returning a `DatabaseConfig` object instead of a `Hash`. Use `#remove_connection_pool`, `#remove_connection` will be removed in 6.2.

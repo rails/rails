@@ -65,6 +65,10 @@ module ActiveRecord
       def for_current_env?
         env_name == ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
       end
+
+      def schema_cache_path
+        raise NotImplementedError
+      end
     end
   end
 end
