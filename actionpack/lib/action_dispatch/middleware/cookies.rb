@@ -70,7 +70,7 @@ module ActionDispatch
     end
 
     def cookies_same_site_protection
-      get_header Cookies::COOKIES_SAME_SITE_PROTECTION
+      get_header Cookies::COOKIES_SAME_SITE_PROTECTION || Proc.new {}
     end
 
     def cookies_digest
@@ -438,7 +438,7 @@ module ActionDispatch
 
           options[:path]      ||= "/"
 
-          options[:same_site] ||= request.cookies_same_site_protection.call(request)
+          options[:same_site] ||= request.cookies_same_site_protection&.call(request)
           options[:same_site] = false if options[:same_site] == :none # TODO: Remove when rack 2.1.0 is out.
 
           if options[:domain] == :all || options[:domain] == "all"
