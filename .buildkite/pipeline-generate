@@ -70,7 +70,7 @@ end
 
 ONE_RUBY = (RUBIES - SOFT_FAIL).last || RUBIES.last
 
-MASTER_RUBY = "rubylang/ruby:master-nightly-bionic"
+MASTER_RUBY = "eregon/ruby:ruby2_keywords-by-default-2.7-bionic"
 RUBIES << MASTER_RUBY
 SOFT_FAIL << MASTER_RUBY
 
