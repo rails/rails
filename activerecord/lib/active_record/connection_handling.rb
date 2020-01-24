@@ -48,7 +48,7 @@ module ActiveRecord
     # may be returned on an error.
     def establish_connection(config_or_env = nil)
       db_config = resolve_config_for_connection(config_or_env)
-      connection_handler.establish_connection(db_config)
+      connection_handler.establish_connection(db_config, current_pool_key)
     end
 
     # Connects a model to the databases specified. The +database+ keyword
@@ -64,8 +64,24 @@ module ActiveRecord
     #     connects_to database: { writing: :primary, reading: :primary_replica }
     #   end
     #
-    # Returns an array of established connections.
-    def connects_to(database: {})
+    # +connects_to+ also supports horizontal sharding. The horizontal sharding API
+    # also supports read replicas. Connect a model to a list of shards like this:
+    #
+    #   class AnimalsModel < ApplicationRecord
+    #     self.abstract_class = true
+    #
+    #     connects_to shards: {
+    #       default: { writing: :primary, reading: :primary_replica },
+    #       shard_two: { writing: :primary_shard_two, reading: :primary_shard_replica_two }
+    #     }
+    #   end
+    #
+    # Returns an array of database connections.
+    def connects_to(database: {}, shards: {})
+      if database.present? && shards.present?
+        raise ArgumentError, "connects_to can only accept a `database` or `shards` argument, but not both arguments."
+      end
+
       connections = []
 
       database.each do |role, database_key|
@@ -75,14 +91,25 @@ module ActiveRecord
         connections << handler.establish_connection(db_config)
       end
 
+      shards.each do |pool_key, database_keys|
+        database_keys.each do |role, database_key|
+          db_config = resolve_config_for_connection(database_key)
+          handler = lookup_connection_handler(role.to_sym)
+
+          connections << handler.establish_connection(db_config, pool_key.to_sym)
+        end
+      end
+
       connections
     end
 
-    # Connects to a database or role (ex writing, reading, or another
-    # custom role) for the duration of the block.
+    # Connects to a role (ex writing, reading or a custom role) and/or
+    # shard for the duration of the block. At the end of the block the
+    # connection will be returned to the original role / shard.
     #
-    # If a role is passed, Active Record will look up the connection
-    # based on the requested role:
+    # If only a role is passed, Active Record will look up the connection
+    # based on the requested role. If a non-established role is requested
+    # an `ActiveRecord::ConnectionNotEstablished` error will be raised:
     #
     #   ActiveRecord::Base.connected_to(role: :writing) do
     #     Dog.create! # creates dog using dog writing connection
@@ -92,16 +119,29 @@ module ActiveRecord
     #     Dog.create! # throws exception because we're on a replica
     #   end
     #
-    #   ActiveRecord::Base.connected_to(role: :unknown_role) do
-    #     # raises exception due to non-existent role
+    # If only a shard is passed, Active Record will look up the shard on the
+    # current role. If a non-existent shard is passed, an
+    # `ActiveRecord::ConnectionNotEstablished` error will be raised.
+    #
+    #   ActiveRecord::Base.connected_to(shard: :default) do
+    #     # Dog.create! # creates dog in shard with the default key
     #   end
-    def connected_to(database: nil, role: nil, prevent_writes: false, &blk)
+    #
+    # If a shard and role is passed, Active Record will first lookup the role,
+    # and then look up the connection by shard key.
+    #
+    #   ActiveRecord::Base.connected_to(role: :reading, shard: :shard_one_replica) do
+    #     # Dog.create! # would raise as we're on a readonly connection
+    #   end
+    #
+    # The database kwarg is deprecated and will be removed in 6.2.0 without replacement.
+    def connected_to(database: nil, role: nil, shard: nil, prevent_writes: false, &blk)
       if database
         ActiveSupport::Deprecation.warn("The database key in `connected_to` is deprecated. It will be removed in Rails 6.2.0 without replacement.")
       end
 
-      if database && role
-        raise ArgumentError, "connected_to can only accept a `database` or a `role` argument, but not both arguments."
+      if database && (role || shard)
+        raise ArgumentError, "`connected_to` cannot accept a `database` argument with any other arguments."
       elsif database
         if database.is_a?(Hash)
           role, database = database.first
@@ -114,14 +154,12 @@ module ActiveRecord
         handler.establish_connection(db_config)
 
         with_handler(role, &blk)
+      elsif shard
+        with_shard(connection_specification_name, shard, role || current_role, prevent_writes, &blk)
       elsif role
-        prevent_writes = true if role == reading_role
-
-        with_handler(role.to_sym) do
-          connection_handler.while_preventing_writes(prevent_writes, &blk)
-        end
+        with_role(role, prevent_writes, &blk)
       else
-        raise ArgumentError, "must provide a `database` or a `role`."
+        raise ArgumentError, "must provide a `shard` and/or `role`."
       end
     end
 
@@ -131,8 +169,8 @@ module ActiveRecord
     #     ActiveRecord::Base.connected_to?(role: :writing) #=> true
     #     ActiveRecord::Base.connected_to?(role: :reading) #=> false
     #   end
-    def connected_to?(role:)
-      current_role == role.to_sym
+    def connected_to?(role:, shard: ActiveRecord::Base.default_pool_key)
+      current_role == role.to_sym && current_pool_key == shard.to_sym
     end
 
     # Returns the symbol representing the current connected role.
@@ -151,11 +189,6 @@ module ActiveRecord
     def lookup_connection_handler(handler_key) # :nodoc:
       handler_key ||= ActiveRecord::Base.writing_role
       connection_handlers[handler_key] ||= ActiveRecord::ConnectionAdapters::ConnectionHandler.new
-    end
-
-    def with_handler(handler_key, &blk) # :nodoc:
-      handler = lookup_connection_handler(handler_key)
-      swap_connection_handler(handler, &blk)
     end
 
     # Clears the query cache for all connections associated with the current thread.
@@ -211,16 +244,16 @@ module ActiveRecord
     end
 
     def connection_pool
-      connection_handler.retrieve_connection_pool(connection_specification_name) || raise(ConnectionNotEstablished)
+      connection_handler.retrieve_connection_pool(connection_specification_name, current_pool_key) || raise(ConnectionNotEstablished)
     end
 
     def retrieve_connection
-      connection_handler.retrieve_connection(connection_specification_name)
+      connection_handler.retrieve_connection(connection_specification_name, current_pool_key)
     end
 
     # Returns +true+ if Active Record is connected.
     def connected?
-      connection_handler.connected?(connection_specification_name)
+      connection_handler.connected?(connection_specification_name, current_pool_key)
     end
 
     def remove_connection(name = nil)
@@ -228,11 +261,11 @@ module ActiveRecord
       # if removing a connection that has a pool, we reset the
       # connection_specification_name so it will use the parent
       # pool.
-      if connection_handler.retrieve_connection_pool(name)
+      if connection_handler.retrieve_connection_pool(name, current_pool_key)
         self.connection_specification_name = nil
       end
 
-      connection_handler.remove_connection_pool(name)
+      connection_handler.remove_connection_pool(name, current_pool_key)
     end
 
     def clear_cache! # :nodoc:
@@ -253,6 +286,30 @@ module ActiveRecord
         db_config = Base.configurations.resolve(config_or_env, pool_name)
         db_config.owner_name = pool_name
         db_config
+      end
+
+      def with_handler(handler_key, &blk)
+        handler = lookup_connection_handler(handler_key)
+        swap_connection_handler(handler, &blk)
+      end
+
+      def with_role(role, prevent_writes, &blk)
+        prevent_writes = true if role == reading_role
+
+        with_handler(role.to_sym) do
+          connection_handler.while_preventing_writes(prevent_writes, &blk)
+        end
+      end
+
+      def with_shard(connection_specification_name, pool_key, role, prevent_writes)
+        old_pool_key = current_pool_key
+
+        with_role(role, prevent_writes) do
+          self.current_pool_key = pool_key
+          yield
+        end
+      ensure
+        self.current_pool_key = old_pool_key
       end
 
       def swap_connection_handler(handler, &blk) # :nodoc:

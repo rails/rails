@@ -1,3 +1,43 @@
+*   Add support for horizontal sharding to `connects_to` and `connected_to`.
+
+    Applications can now connect to multiple shards and switch between their shards in an application. Note that the shard swapping is still a manual process as this change does not include an API for automatic shard swapping.
+
+    Usage:
+
+    Given the following configuration:
+
+    ```yaml
+    # config/database.yml
+    production:
+      primary:
+        database: my_database
+      primary_shard_one:
+        database: my_database_shard_one
+    ```
+
+    Connect to multiple shards:
+
+    ```ruby
+    class ApplicationRecord < ActiveRecord::Base
+      self.abstract_class = true
+
+      connects_to shards: {
+        default: { writing: :primary },
+        shard_one: { writing: :primary_shard_one }
+      }
+    ```
+
+    Swap between shards in your controller / model code:
+
+    ```ruby
+    ActiveRecord::Base.connected_to(shard: :shard_one) do
+      # Read from shard one
+    end
+    ```
+
+    The horizontal sharding API also supports read replicas. See guides for more details.
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
 *   Deprecate `spec_name` in favor of `name` on database configurations
 
     The accessors for `spec_name` on `configs_for` and `DatabaseConfig` are deprecated. Please use `name` instead.

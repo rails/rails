@@ -1039,7 +1039,7 @@ module ActiveRecord
       end
       alias :connection_pools :connection_pool_list
 
-      def establish_connection(config, pool_key = :default)
+      def establish_connection(config, pool_key = ActiveRecord::Base.default_pool_key)
         pool_config = resolve_pool_config(config)
         db_config = pool_config.db_config
 
@@ -1100,16 +1100,19 @@ module ActiveRecord
       # active or defined connection: if it is the latter, it will be
       # opened and set as the active connection for the class it was defined
       # for (not necessarily the current class).
-      def retrieve_connection(spec_name) # :nodoc:
-        pool = retrieve_connection_pool(spec_name)
+      def retrieve_connection(spec_name, pool_key = ActiveRecord::Base.default_pool_key) # :nodoc:
+        pool = retrieve_connection_pool(spec_name, pool_key)
 
         unless pool
-          # multiple database application
-          if ActiveRecord::Base.connection_handler != ActiveRecord::Base.default_connection_handler
-            raise ConnectionNotEstablished, "No connection pool for '#{spec_name}' found for the '#{ActiveRecord::Base.current_role}' role."
+          if pool_key != ActiveRecord::Base.default_pool_key
+            message = "No connection pool for '#{spec_name}' found for the '#{pool_key}' shard."
+          elsif ActiveRecord::Base.connection_handler != ActiveRecord::Base.default_connection_handler
+            message = "No connection pool for '#{spec_name}' found for the '#{ActiveRecord::Base.current_role}' role."
           else
-            raise ConnectionNotEstablished, "No connection pool for '#{spec_name}' found."
+            message = "No connection pool for '#{spec_name}' found."
           end
+
+          raise ConnectionNotEstablished, message
         end
 
         pool.connection
@@ -1117,7 +1120,7 @@ module ActiveRecord
 
       # Returns true if a connection that's accessible to this class has
       # already been opened.
-      def connected?(spec_name, pool_key = :default)
+      def connected?(spec_name, pool_key = ActiveRecord::Base.default_pool_key)
         pool = retrieve_connection_pool(spec_name, pool_key)
         pool && pool.connected?
       end
@@ -1126,12 +1129,12 @@ module ActiveRecord
       # connection and the defined connection (if they exist). The result
       # can be used as an argument for #establish_connection, for easily
       # re-establishing the connection.
-      def remove_connection(owner, pool_key = :default)
+      def remove_connection(owner, pool_key = ActiveRecord::Base.default_pool_key)
         remove_connection_pool(owner, pool_key)&.configuration_hash
       end
       deprecate remove_connection: "Use #remove_connection_pool, which now returns a DatabaseConfig object instead of a Hash"
 
-      def remove_connection_pool(owner, pool_key = :default)
+      def remove_connection_pool(owner, pool_key = ActiveRecord::Base.default_pool_key)
         if pool_manager = get_pool_manager(owner)
           pool_config = pool_manager.remove_pool_config(pool_key)
 
@@ -1145,7 +1148,7 @@ module ActiveRecord
       # Retrieving the connection pool happens a lot, so we cache it in @owner_to_pool_manager.
       # This makes retrieving the connection pool O(1) once the process is warm.
       # When a connection is established or removed, we invalidate the cache.
-      def retrieve_connection_pool(owner, pool_key = :default)
+      def retrieve_connection_pool(owner, pool_key = ActiveRecord::Base.default_pool_key)
         pool_config = get_pool_manager(owner)&.get_pool_config(pool_key)
         pool_config&.pool
       end
