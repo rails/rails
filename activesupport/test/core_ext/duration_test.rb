@@ -693,6 +693,10 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal "can't build an ActiveSupport::Duration from a NilClass", error.message
   end
 
+  def test_addition_of_durations
+    assert_equal '90', (1.hour + 30.minutes).minutes.to_s
+  end
+
   private
     def eastern_time_zone
       if Gem.win_platform?
