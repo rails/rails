@@ -366,7 +366,7 @@ database that Active Record supports using `rake`. Here's a migration that
 creates a table:
 
 ```ruby
-class CreatePublications < ActiveRecord::Migration[5.0]
+class CreatePublications < ActiveRecord::Migration[6.0]
   def change
     create_table :publications do |t|
       t.string :title
