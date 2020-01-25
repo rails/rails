@@ -304,6 +304,42 @@ module ActiveSupport
       Duration == klass || value.instance_of?(klass)
     end
 
+    def minutes #:nodoc:
+      self.class.new(value, minutes: value / SECONDS_PER_MINUTE)
+    end
+
+    alias :minute :minutes
+
+    def hours #:nodoc:
+      self.class.new(value, hours: value / SECONDS_PER_HOUR)
+    end
+
+    alias :hour :hours
+
+    def days #:nodoc:
+      self.class.new(value, days: value / SECONDS_PER_DAY)
+    end
+
+    alias :day :days
+
+    def weeks #:nodoc:
+      self.class.new(value, weeks: value / SECONDS_PER_WEEK)
+    end
+
+    alias :week :weeks
+
+    def months #:nodoc:
+      self.class.new(value, months: value / SECONDS_PER_MONTH)
+    end
+
+    alias :month :months
+
+    def years #:nodoc:
+      self.class.new(value, years: value / SECONDS_PER_YEAR)
+    end
+
+    alias :year :years
+
     # Returns +true+ if +other+ is also a Duration instance with the
     # same +value+, or if <tt>other == value</tt>.
     def ==(other)
