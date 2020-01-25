@@ -694,7 +694,7 @@ class DurationTest < ActiveSupport::TestCase
   end
 
   def test_addition_of_durations
-    assert_equal '90', (1.hour + 30.minutes).minutes.to_s
+    assert_equal "90", (1.hour + 30.minutes).minutes.to_s
   end
 
   private
