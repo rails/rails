@@ -1,3 +1,10 @@
+*   Prevent a route be written more than once
+
+    If you have a second route that is commented
+    the generator will not write to it
+
+    *thiaguerd*
+
 *   Cache compiled view templates when running tests by default
 
     When generating a new app without `--skip-spring`, caching classes is 
