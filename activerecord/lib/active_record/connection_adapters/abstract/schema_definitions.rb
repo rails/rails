@@ -393,7 +393,7 @@ module ActiveRecord
         indexes << [column_name, options]
       end
 
-      def foreign_key(table_name, options = {}) # :nodoc:
+      def foreign_key(table_name, **options) # :nodoc:
         foreign_keys << [table_name, options]
       end
 
@@ -476,7 +476,7 @@ module ActiveRecord
         @foreign_key_drops << name
       end
 
-      def add_column(name, type, options)
+      def add_column(name, type, **options)
         name = name.to_s
         type = type.to_sym
         @adds << AddColumnDefinition.new(@td.new_column_definition(name, type, **options))
@@ -630,6 +630,7 @@ module ActiveRecord
       #   t.remove_index(:branch_id)
       #   t.remove_index(column: [:branch_id, :party_id])
       #   t.remove_index(name: :by_branch_party)
+      #   t.remove_index(:branch_id, name: :by_branch_party)
       #
       # See {connection.remove_index}[rdoc-ref:SchemaStatements#remove_index]
       def remove_index(options = {})
@@ -705,8 +706,8 @@ module ActiveRecord
       #  t.foreign_key(:authors) unless t.foreign_key_exists?(:authors)
       #
       # See {connection.foreign_key_exists?}[rdoc-ref:SchemaStatements#foreign_key_exists?]
-      def foreign_key_exists?(*args, **options)
-        @base.foreign_key_exists?(name, *args, **options)
+      def foreign_key_exists?(*args)
+        @base.foreign_key_exists?(name, *args)
       end
     end
   end
