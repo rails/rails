@@ -70,6 +70,35 @@ module ActiveRecord
         @scope
       end
 
+      # Returns a new relation with left outer joins and where clause to idenitfy
+      # missing relations.
+      #
+      # For example, posts that are missing a related author:
+      #
+      #    Post.where.missing(:author)
+      #    # SELECT "posts".* FROM "posts"
+      #    # LEFT OUTER JOIN "authors" ON "authors"."id" = "posts"."author_id"
+      #    # WHERE "authors"."id" IS NULL
+      #
+      # Additionally, multiple relations can be combined. This will return posts
+      # that are missing both an author and any comments:
+      #
+      #    Post.where.missing(:author, :comments)
+      #    # SELECT "posts".* FROM "posts"
+      #    # LEFT OUTER JOIN "authors" ON "authors"."id" = "posts"."author_id"
+      #    # LEFT OUTER JOIN "comments" ON "comments"."post_id" = "posts"."id"
+      #    # WHERE "authors"."id" IS NULL AND "comments"."id" IS NULL
+      def missing(*args)
+        args.each do |arg|
+          reflection = @scope.klass._reflect_on_association(arg)
+          opts = { reflection.table_name => { reflection.association_primary_key => nil } }
+          @scope.left_outer_joins!(arg)
+          @scope.where!(opts)
+        end
+
+        @scope
+      end
+
       private
         def not_behaves_as_nor?(opts)
           return false unless opts.is_a?(Hash)
@@ -171,7 +200,7 @@ module ActiveRecord
     end
 
     def eager_load!(*args) # :nodoc:
-      self.eager_load_values += args
+      self.eager_load_values |= args
       self
     end
 
@@ -185,7 +214,7 @@ module ActiveRecord
     end
 
     def preload!(*args) # :nodoc:
-      self.preload_values += args
+      self.preload_values |= args
       self
     end
 
@@ -334,7 +363,7 @@ module ActiveRecord
     def group!(*args) # :nodoc:
       args.flatten!
 
-      self.group_values += args
+      self.group_values |= args
       self
     end
 
@@ -502,7 +531,7 @@ module ActiveRecord
     def joins!(*args) # :nodoc:
       args.compact!
       args.flatten!
-      self.joins_values += args
+      self.joins_values |= args
       self
     end
 
@@ -520,7 +549,7 @@ module ActiveRecord
     def left_outer_joins!(*args) # :nodoc:
       args.compact!
       args.flatten!
-      self.left_outer_joins_values += args
+      self.left_outer_joins_values |= args
       self
     end
 

@@ -61,6 +61,10 @@ module ActiveRecord
         configuration_hash[:database]
       end
 
+      def _database=(database) # :nodoc:
+        @config = configuration_hash.dup.merge(database: database).freeze
+      end
+
       def pool
         (configuration_hash[:pool] || 5).to_i
       end
@@ -82,6 +86,13 @@ module ActiveRecord
 
       def adapter
         configuration_hash[:adapter]
+      end
+
+      # The path to the schema cache dump file for a database.
+      # If omitted, the filename will be read from ENV or a
+      # default will be derived.
+      def schema_cache_path
+        configuration_hash[:schema_cache_path]
       end
     end
   end

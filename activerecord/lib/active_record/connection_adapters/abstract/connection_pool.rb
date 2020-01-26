@@ -1043,7 +1043,11 @@ module ActiveRecord
         pool_config = resolve_pool_config(config)
         db_config = pool_config.db_config
 
-        remove_connection(pool_config.connection_specification_name, pool_key)
+        # Protects the connection named `ActiveRecord::Base` from being removed
+        # if the user calls `establish_connection :primary`.
+        if owner_to_pool_manager.key?(pool_config.connection_specification_name)
+          remove_connection_pool(pool_config.connection_specification_name, pool_key)
+        end
 
         message_bus = ActiveSupport::Notifications.instrumenter
         payload = {}
@@ -1053,7 +1057,7 @@ module ActiveRecord
         end
 
         owner_to_pool_manager[pool_config.connection_specification_name] ||= PoolManager.new
-        pool_manager = owner_to_pool_manager[pool_config.connection_specification_name]
+        pool_manager = get_pool_manager(pool_config.connection_specification_name)
         pool_manager.set_pool_config(pool_key, pool_config)
 
         message_bus.instrument("!connection.active_record", payload) do
@@ -1096,15 +1100,15 @@ module ActiveRecord
       # active or defined connection: if it is the latter, it will be
       # opened and set as the active connection for the class it was defined
       # for (not necessarily the current class).
-      def retrieve_connection(spec_name) #:nodoc:
+      def retrieve_connection(spec_name) # :nodoc:
         pool = retrieve_connection_pool(spec_name)
 
         unless pool
           # multiple database application
           if ActiveRecord::Base.connection_handler != ActiveRecord::Base.default_connection_handler
-            raise ConnectionNotEstablished, "No connection pool with '#{spec_name}' found for the '#{ActiveRecord::Base.current_role}' role."
+            raise ConnectionNotEstablished, "No connection pool for '#{spec_name}' found for the '#{ActiveRecord::Base.current_role}' role."
           else
-            raise ConnectionNotEstablished, "No connection pool with '#{spec_name}' found."
+            raise ConnectionNotEstablished, "No connection pool for '#{spec_name}' found."
           end
         end
 
@@ -1122,13 +1126,18 @@ module ActiveRecord
       # connection and the defined connection (if they exist). The result
       # can be used as an argument for #establish_connection, for easily
       # re-establishing the connection.
-      def remove_connection(spec_name, pool_key = :default)
-        if pool_manager = owner_to_pool_manager[spec_name]
+      def remove_connection(owner, pool_key = :default)
+        remove_connection_pool(owner, pool_key)&.configuration_hash
+      end
+      deprecate remove_connection: "Use #remove_connection_pool, which now returns a DatabaseConfig object instead of a Hash"
+
+      def remove_connection_pool(owner, pool_key = :default)
+        if pool_manager = get_pool_manager(owner)
           pool_config = pool_manager.remove_pool_config(pool_key)
 
           if pool_config
             pool_config.disconnect!
-            pool_config.db_config.configuration_hash
+            pool_config.db_config
           end
         end
       end
@@ -1136,13 +1145,29 @@ module ActiveRecord
       # Retrieving the connection pool happens a lot, so we cache it in @owner_to_pool_manager.
       # This makes retrieving the connection pool O(1) once the process is warm.
       # When a connection is established or removed, we invalidate the cache.
-      def retrieve_connection_pool(spec_name, pool_key = :default)
-        pool_config = owner_to_pool_manager[spec_name]&.get_pool_config(pool_key)
+      def retrieve_connection_pool(owner, pool_key = :default)
+        pool_config = get_pool_manager(owner)&.get_pool_config(pool_key)
         pool_config&.pool
       end
 
       private
         attr_reader :owner_to_pool_manager
+
+        # Returns the pool manager for an owner.
+        #
+        # Using `"primary"` to look up the pool manager for `ActiveRecord::Base` is
+        # deprecated in favor of looking it up by `"ActiveRecord::Base"`.
+        #
+        # During the deprecation period, if `"primary"` is passed, the pool manager
+        # for `ActiveRecord::Base` will still be returned.
+        def get_pool_manager(owner)
+          return owner_to_pool_manager[owner] if owner_to_pool_manager.key?(owner)
+
+          if owner == "primary"
+            ActiveSupport::Deprecation.warn("Using `\"primary\"` as a `connection_specification_name` is deprecated and will be removed in Rails 6.2.0. Please use `ActiveRecord::Base`.")
+            owner_to_pool_manager[Base.name]
+          end
+        end
 
         # Returns an instance of PoolConfig for a given adapter.
         # Accepts a hash one layer deep that contains all connection information.
@@ -1186,7 +1211,7 @@ module ActiveRecord
             raise AdapterNotFound, "database configuration specifies nonexistent #{db_config.adapter} adapter"
           end
 
-          pool_name = db_config.owner_name || "primary"
+          pool_name = db_config.owner_name || Base.name
           db_config.owner_name = nil
           ConnectionAdapters::PoolConfig.new(pool_name, db_config)
         end

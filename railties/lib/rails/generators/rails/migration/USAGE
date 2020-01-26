@@ -8,12 +8,12 @@ Description:
     column lines from supplied attributes: AddColumnsToTable or RemoveColumnsFromTable
 
 Example:
-    `rails generate migration AddSslFlag`
+    `bin/rails generate migration AddSslFlag`
 
     If the current date is May 14, 2008 and the current time 09:09:12, this creates the AddSslFlag migration
     db/migrate/20080514090912_add_ssl_flag.rb
 
-    `rails generate migration AddTitleBodyToPost title:string body:text published:boolean`
+    `bin/rails generate migration AddTitleBodyToPost title:string body:text published:boolean`
 
     This will create the AddTitleBodyToPost in db/migrate/20080514090912_add_title_body_to_post.rb with this in the Change migration:
 
@@ -25,7 +25,7 @@ Migration names containing JoinTable will generate join tables for use with
 has_and_belongs_to_many associations.
 
 Example:
-    `rails g migration CreateMediaJoinTable artists musics:uniq`
+    `bin/rails g migration CreateMediaJoinTable artists musics:uniq`
 
     will create the migration
 

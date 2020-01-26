@@ -252,7 +252,7 @@ module ActiveRecord
         end
       end
 
-      def remove_column(table_name, column_name, type = nil, options = {}) #:nodoc:
+      def remove_column(table_name, column_name, type = nil, **options) #:nodoc:
         alter_table(table_name) do |definition|
           definition.remove_column column_name
           definition.foreign_keys.delete_if do |_, fk_options|
@@ -365,7 +365,8 @@ module ActiveRecord
         # See: https://www.sqlite.org/lang_altertable.html
         # SQLite has an additional restriction on the ALTER TABLE statement
         def invalid_alter_table_type?(type, options)
-          type.to_sym == :primary_key || options[:primary_key]
+          type.to_sym == :primary_key || options[:primary_key] ||
+            options[:null] == false && options[:default].nil?
         end
 
         def alter_table(table_name, foreign_keys = foreign_keys(table_name), **options)

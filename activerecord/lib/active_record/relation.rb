@@ -317,7 +317,7 @@ module ActiveRecord
       query_signature = ActiveSupport::Digest.hexdigest(to_sql)
       key = "#{klass.model_name.cache_key}/query-#{query_signature}"
 
-      if cache_version(timestamp_column)
+      if collection_cache_versioning
         key
       else
         "#{key}-#{compute_cache_version(timestamp_column)}"
@@ -385,6 +385,15 @@ module ActiveRecord
     end
     private :compute_cache_version
 
+    # Returns a cache key along with the version.
+    def cache_key_with_version
+      if version = cache_version
+        "#{cache_key}-#{version}"
+      else
+        cache_key
+      end
+    end
+
     # Scope all queries to the current scope.
     #
     #   Comment.where(post_id: 1).scoping do
@@ -408,7 +417,7 @@ module ActiveRecord
     # Updates all records in the current relation with details given. This method constructs a single SQL UPDATE
     # statement and sends it straight to the database. It does not instantiate the involved models and it does not
     # trigger Active Record callbacks or validations. However, values passed to #update_all will still go through
-    # Active Record's normal type casting and serialization.
+    # Active Record's normal type casting and serialization. Returns the number of rows affected.
     #
     # Note: As Active Record callbacks are not triggered, this method will not automatically update +updated_at+/+updated_on+ columns.
     #

@@ -37,15 +37,15 @@ module Arel # :nodoc: all
     def between(other)
       if unboundable?(other.begin) == 1 || unboundable?(other.end) == -1
         self.in([])
-      elsif other.begin.nil? || open_ended?(other.begin)
-        if other.end.nil? || open_ended?(other.end)
+      elsif open_ended?(other.begin)
+        if open_ended?(other.end)
           not_in([])
         elsif other.exclude_end?
           lt(other.end)
         else
           lteq(other.end)
         end
-      elsif other.end.nil? || open_ended?(other.end)
+      elsif open_ended?(other.end)
         gteq(other.begin)
       elsif other.exclude_end?
         gteq(other.begin).and(lt(other.end))
@@ -85,15 +85,15 @@ Passing a range to `#in` is deprecated. Call `#between`, instead.
     def not_between(other)
       if unboundable?(other.begin) == 1 || unboundable?(other.end) == -1
         not_in([])
-      elsif other.begin.nil? || open_ended?(other.begin)
-        if other.end.nil? || open_ended?(other.end)
+      elsif open_ended?(other.begin)
+        if open_ended?(other.end)
           self.in([])
         elsif other.exclude_end?
           gteq(other.end)
         else
           gt(other.end)
         end
-      elsif other.end.nil? || open_ended?(other.end)
+      elsif open_ended?(other.end)
         lt(other.begin)
       else
         left = lt(other.begin)
@@ -250,7 +250,7 @@ Passing a range to `#not_in` is deprecated. Call `#not_between`, instead.
       end
 
       def open_ended?(value)
-        infinity?(value) || unboundable?(value)
+        value.nil? || infinity?(value) || unboundable?(value)
       end
   end
 end

@@ -30,6 +30,10 @@ module ActiveRecord
         raise NotImplementedError
       end
 
+      def _database=(database)
+        raise NotImplementedError
+      end
+
       def adapter
         raise NotImplementedError
       end
@@ -60,6 +64,10 @@ module ActiveRecord
 
       def for_current_env?
         env_name == ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+      end
+
+      def schema_cache_path
+        raise NotImplementedError
       end
     end
   end

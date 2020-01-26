@@ -57,7 +57,7 @@ class SQLite3TransactionTest < ActiveRecord::SQLite3TestCase
     end
   end
 
-  test "reset the read_uncommitted PRAGMA when transactions is rolled back" do
+  test "reset the read_uncommitted PRAGMA when a transaction is rolled back" do
     with_connection(flags: shared_cache_flags) do |conn|
       conn.transaction(joinable: false, isolation: :read_uncommitted) do
         assert_not(read_uncommitted?(conn))
@@ -71,7 +71,7 @@ class SQLite3TransactionTest < ActiveRecord::SQLite3TestCase
     end
   end
 
-  test "reset the read_uncommitted PRAGMA when transactions is commited" do
+  test "reset the read_uncommitted PRAGMA when a transaction is committed" do
     with_connection(flags: shared_cache_flags) do |conn|
       conn.transaction(joinable: false, isolation: :read_uncommitted) do
         assert_not(read_uncommitted?(conn))
@@ -83,7 +83,7 @@ class SQLite3TransactionTest < ActiveRecord::SQLite3TestCase
     end
   end
 
-  test "set the read_uncommited PRAGMA to its previous value" do
+  test "set the read_uncommitted PRAGMA to its previous value" do
     with_connection(flags: shared_cache_flags) do |conn|
       conn.transaction(joinable: false, isolation: :read_uncommitted) do
         conn.instance_variable_get(:@connection).read_uncommitted = true
@@ -106,8 +106,9 @@ class SQLite3TransactionTest < ActiveRecord::SQLite3TestCase
     end
 
     def with_connection(options = {})
+      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
       conn_options = options.reverse_merge(
-        database: in_memory_db? ? "file::memory:" : ActiveRecord::Base.configurations["arunit"][:database]
+        database: in_memory_db? ? "file::memory:" : db_config.database
       )
       conn = ActiveRecord::Base.sqlite3_connection(conn_options)
 

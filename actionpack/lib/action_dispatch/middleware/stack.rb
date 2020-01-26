@@ -8,11 +8,10 @@ module ActionDispatch
     class Middleware
       attr_reader :args, :block, :klass
 
-      def initialize(klass, args, block, &build_block)
+      def initialize(klass, args, block)
         @klass = klass
         @args  = args
         @block = block
-        @build_block = build_block
       end
 
       def name; klass.name; end
@@ -35,7 +34,7 @@ module ActionDispatch
       end
 
       def build(app)
-        @build_block&.call(app) || klass.new(app, *args, &block)
+        klass.new(app, *args, &block)
       end
 
       def build_instrumented(app)
@@ -90,7 +89,7 @@ module ActionDispatch
     end
 
     def unshift(klass, *args, &block)
-      middlewares.unshift(build_middleware(klass, *args, &block))
+      middlewares.unshift(build_middleware(klass, args, block))
     end
     ruby2_keywords(:unshift) if respond_to?(:ruby2_keywords, true)
 
@@ -100,7 +99,7 @@ module ActionDispatch
 
     def insert(index, klass, *args, &block)
       index = assert_index(index, :before)
-      middlewares.insert(index, build_middleware(klass, *args, &block))
+      middlewares.insert(index, build_middleware(klass, args, block))
     end
     ruby2_keywords(:insert) if respond_to?(:ruby2_keywords, true)
 
@@ -123,8 +122,26 @@ module ActionDispatch
       middlewares.delete_if { |m| m.klass == target }
     end
 
+    def move(target, source)
+      source_index = assert_index(source, :before)
+      source_middleware = middlewares.delete_at(source_index)
+
+      target_index = assert_index(target, :before)
+      middlewares.insert(target_index, source_middleware)
+    end
+
+    alias_method :move_before, :move
+
+    def move_after(target, source)
+      source_index = assert_index(source, :after)
+      source_middleware = middlewares.delete_at(source_index)
+
+      target_index = assert_index(target, :after)
+      middlewares.insert(target_index + 1, source_middleware)
+    end
+
     def use(klass, *args, &block)
-      middlewares.push(build_middleware(klass, *args, &block))
+      middlewares.push(build_middleware(klass, args, block))
     end
     ruby2_keywords(:use) if respond_to?(:ruby2_keywords, true)
 
@@ -146,10 +163,8 @@ module ActionDispatch
         i
       end
 
-      def build_middleware(klass, *args, &block)
-        Middleware.new(klass, args, block) do |app|
-          klass.new(app, *args, &block)
-        end
+      def build_middleware(klass, args, block)
+        Middleware.new(klass, args, block)
       end
   end
 end

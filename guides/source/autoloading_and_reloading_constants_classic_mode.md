@@ -412,7 +412,7 @@ Rails is always able to autoload provided its environment is in place. For
 example the `runner` command autoloads:
 
 ```bash
-$ rails runner 'p User.column_names'
+$ bin/rails runner 'p User.column_names'
 ["id", "email", "created_at", "updated_at"]
 ```
 
@@ -486,7 +486,7 @@ The value of `autoload_paths` can be inspected. In a just-generated application
 it is (edited):
 
 ```bash
-$ rails runner 'puts ActiveSupport::Dependencies.autoload_paths'
+$ bin/rails runner 'puts ActiveSupport::Dependencies.autoload_paths'
 .../app/assets
 .../app/channels
 .../app/controllers
@@ -1226,7 +1226,7 @@ been loaded but `app/models/hotel/image.rb` hasn't, Ruby does not find `Image`
 in `Hotel`, but it does in `Object`:
 
 ```bash
-$ rails runner 'Image; p Hotel::Image' 2>/dev/null
+$ bin/rails runner 'Image; p Hotel::Image' 2>/dev/null
 Image # NOT Hotel::Image!
 ```
 

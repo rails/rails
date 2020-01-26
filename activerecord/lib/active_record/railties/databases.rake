@@ -266,7 +266,7 @@ db_namespace = namespace :db do
       pending_migrations.each do |pending_migration|
         puts "  %4d %s" % [pending_migration.version, pending_migration.name]
       end
-      abort %{Run `rails db:migrate` to update your database then try again.}
+      abort %{Run `bin/rails db:migrate` to update your database then try again.}
     end
   ensure
     ActiveRecord::Base.establish_connection(ActiveRecord::Tasks::DatabaseTasks.env.to_sym)
@@ -407,7 +407,10 @@ db_namespace = namespace :db do
       task dump: :load_config do
         ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
           ActiveRecord::Base.establish_connection(db_config)
-          filename = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(db_config.spec_name)
+          filename = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(
+            db_config.spec_name,
+            schema_cache_path: db_config.schema_cache_path,
+          )
           ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(
             ActiveRecord::Base.connection,
             filename,
@@ -418,8 +421,13 @@ db_namespace = namespace :db do
       desc "Clears a db/schema_cache.yml file."
       task clear: :load_config do
         ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
-          filename = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(db_config.spec_name)
-          rm_f filename, verbose: false
+          filename = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(
+            db_config.spec_name,
+            schema_cache_path: db_config.schema_cache_path,
+          )
+          ActiveRecord::Tasks::DatabaseTasks.clear_schema_cache(
+            filename,
+          )
         end
       end
     end
@@ -467,7 +475,7 @@ db_namespace = namespace :db do
       end
     ensure
       if should_reconnect
-        ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations.default_hash(ActiveRecord::Tasks::DatabaseTasks.env))
+        ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env, spec_name: "primary"))
       end
     end
 

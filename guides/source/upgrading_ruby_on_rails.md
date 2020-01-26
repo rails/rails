@@ -51,7 +51,7 @@ This will help you with the creation of new files and changes of old files in an
 interactive session.
 
 ```bash
-$ rails app:update
+$ bin/rails app:update
    identical  config/boot.rb
        exist  config
     conflict  config/routes.rb

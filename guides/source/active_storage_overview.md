@@ -38,8 +38,8 @@ files.
 Active Storage uses two tables in your application’s database named
 `active_storage_blobs` and `active_storage_attachments`. After creating a new
 application (or upgrading your application to Rails 5.2), run
-`rails active_storage:install` to generate a migration that creates these
-tables. Use `rails db:migrate` to run the migration.
+`bin/rails active_storage:install` to generate a migration that creates these
+tables. Use `bin/rails db:migrate` to run the migration.
 
 WARNING: `active_storage_attachments` is a polymorphic join table that stores your model's class name. If your model's class name changes, you will need to run a migration on this table to update the underlying `record_type` to your model's new class name.
 

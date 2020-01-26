@@ -1,11 +1,90 @@
+*   Store advisory locks on their own named connection.
+
+    Previously advisory locks were taken out against a connection when a migration started. This works fine in single database applications but doesn't work well when migrations need to open new connections which results in the lock getting dropped.
+
+    In order to fix this we are storing the advisory lock on a new connection with the connection specification name `AdvisoryLockBase`. The caveat is that we need to maintain at least 2 connections to a database while migrations are running in order to do this.
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
+*   Allow schema cache path to be defined in the database configuration file.
+
+    For example:
+
+    ```
+    development:
+      adapter: postgresql
+      database: blog_development
+      pool: 5
+      schema_cache_path: tmp/schema/main.yml
+    ```
+
+    *Katrina Owen*
+
+*   Deprecate `#remove_connection` in favor of `#remove_connection_pool` when called on the handler.
+
+    `#remove_connection` is deprecated in order to support returning a `DatabaseConfig` object instead of a `Hash`. Use `#remove_connection_pool`, `#remove_connection` will be removed in 6.2.
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
+*   Deprecate `#default_hash` and it's alias `#[]` on database configurations
+
+    Applications should use `configs_for`. `#default_hash` and `#[]` will be removed in 6.2.
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
+*   Add scale support to `ActiveRecord::Validations::NumericalityValidator`.
+
+    *Gannon McGibbon*
+
+*   Find orphans by looking for missing relations through chaining `where.missing`:
+
+    Before:
+
+    ```ruby
+    Post.left_joins(:author).where(authors: { id: nil })
+    ```
+
+    After:
+
+    ```ruby
+    Post.where.missing(:author)
+    ```
+
+    *Tom Rossi*
+
+*   Ensure `:reading` connections always raise if a write is attempted.
+
+    Now Rails will raise an `ActiveRecord::ReadOnlyError` if any connection on the reading handler attempts to make a write. If your reading role needs to write you should name the role something other than `:reading`.
+
+    *Eileen M. Uchitelle*
+
+*   Deprecate "primary" as the connection_specification_name for ActiveRecord::Base
+
+    `"primary"` has been deprecated as the `connection_specification_name` for `ActiveRecord::Base` in favor of using `"ActiveRecord::Base"`. This change affects calls to `ActiveRecord::Base.connection_handler.retrieve_connection` and `ActiveRecord::Base.connection_handler.remove_connection`. If you're calling these methods with `"primary"`, please switch to `"ActiveRecord::Base"`.
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
+*   Add `ActiveRecord::Validations::NumericalityValidator` with
+    support for casting floats using a database columns' precision value.
+
+    *Gannon McGibbon*
+
+*   Enforce fresh ETag header after a collection's contents change by adding
+    ActiveRecord::Relation#cache_key_with_version. This method will be used by
+    ActionController::ConditionalGet to ensure that when collection cache versioning
+    is enabled, requests using ConditionalGet don't return the same ETag header
+    after a collection is modified. Fixes #38078.
+
+    *Aaron Lipman*
+
 *   Skip test database when running `db:create` or `db:drop` in development
     with `DATABASE_URL` set.
 
     *Brian Buchalter*
 
-*   Don't allow mutations on the datbase configurations hash.
+*   Don't allow mutations on the database configurations hash.
 
-    Freeze the configurations hash to disallow directly changing the configurations hash. If applications need to change the hash, for example to create adatabases for parallelization, they should use the `DatabaseConfig` object directly.
+    Freeze the configurations hash to disallow directly changing it. If applications need to change the hash, for example to create databases for parallelization, they should use the `DatabaseConfig` object directly.
 
     Before:
 

@@ -365,7 +365,9 @@ module ActiveRecord
       # Is used as a before_save callback to check while saving a collection
       # association whether or not the parent was a new record before saving.
       def before_save_collection_association
-        @new_record_before_save = new_record?
+        unless defined?(@new_record_before_save)
+          @new_record_before_save = new_record?
+        end
       end
 
       def after_save_collection_association

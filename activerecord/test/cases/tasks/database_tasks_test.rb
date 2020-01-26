@@ -208,12 +208,78 @@ module ActiveRecord
 
   class DatabaseTasksDumpSchemaCacheTest < ActiveRecord::TestCase
     def test_dump_schema_cache
-      path = "/tmp/my_schema_cache.yml"
-      ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(ActiveRecord::Base.connection, path)
-      assert File.file?(path)
+      Dir.mktmpdir do |dir|
+        ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, dir) do
+          path = File.join(dir, "schema_cache.yml")
+          assert_not File.file?(path)
+          ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(ActiveRecord::Base.connection, path)
+          assert File.file?(path)
+        end
+      end
     ensure
       ActiveRecord::Base.clear_cache!
-      FileUtils.rm_rf(path)
+    end
+
+    def test_clear_schema_cache
+      Dir.mktmpdir do |dir|
+        ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, dir) do
+          path = File.join(dir, "schema_cache.yml")
+          File.open(path, "wb") do |f|
+            f.puts "This is a cache."
+          end
+          assert File.file?(path)
+          ActiveRecord::Tasks::DatabaseTasks.clear_schema_cache(path)
+          assert_not File.file?(path)
+        end
+      end
+    end
+
+    def test_cache_dump_default_filename
+      old_path = ENV["SCHEMA_CACHE"]
+      ENV.delete("SCHEMA_CACHE")
+
+      ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "db") do
+        path = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename("primary")
+        assert_equal "db/schema_cache.yml", path
+      end
+    ensure
+      ENV["SCHEMA_CACHE"] = old_path
+    end
+
+    def test_cache_dump_alternate_filename
+      old_path = ENV["SCHEMA_CACHE"]
+      ENV.delete("SCHEMA_CACHE")
+
+      ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "db") do
+        path = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename("alternate")
+        assert_equal "db/alternate_schema_cache.yml", path
+      end
+    ensure
+      ENV["SCHEMA_CACHE"] = old_path
+    end
+
+    def test_cache_dump_filename_with_env_override
+      old_path = ENV["SCHEMA_CACHE"]
+      ENV["SCHEMA_CACHE"] = "tmp/something.yml"
+
+      ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "db") do
+        path = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename("primary")
+        assert_equal "tmp/something.yml", path
+      end
+    ensure
+      ENV["SCHEMA_CACHE"] = old_path
+    end
+
+    def test_cache_dump_filename_with_path_from_db_config
+      old_path = ENV["SCHEMA_CACHE"]
+      ENV.delete("SCHEMA_CACHE")
+
+      ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "db") do
+        path = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename("primary", schema_cache_path: "tmp/something.yml")
+        assert_equal "tmp/something.yml", path
+      end
+    ensure
+      ENV["SCHEMA_CACHE"] = old_path
     end
   end
 
@@ -1056,7 +1122,8 @@ module ActiveRecord
         assert_operator AuthorAddress.count, :>, 0
 
         old_configurations = ActiveRecord::Base.configurations
-        configurations = { development: ActiveRecord::Base.configurations["arunit"] }
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+        configurations = { development: db_config.configuration_hash }
         ActiveRecord::Base.configurations = configurations
 
         ActiveRecord::Tasks::DatabaseTasks.stub(:root, nil) do

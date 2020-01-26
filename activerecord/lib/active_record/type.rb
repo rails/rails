@@ -46,9 +46,14 @@ module ActiveRecord
         @default_value ||= Value.new
       end
 
+      def adapter_name_from(model) # :nodoc:
+        # TODO: this shouldn't depend on a connection to the database
+        model.connection.adapter_name.downcase.to_sym
+      end
+
       private
         def current_adapter_name
-          ActiveRecord::Base.connection.adapter_name.downcase.to_sym
+          adapter_name_from(ActiveRecord::Base)
         end
     end
 

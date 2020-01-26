@@ -23,6 +23,7 @@ module ActionMailer
       @processed_mailer = nil
       @mail_message = nil
     end
+    ruby2_keywords(:initialize) if respond_to?(:ruby2_keywords, true)
 
     # Method calls are delegated to the Mail::Message that's ready to deliver.
     def __getobj__ #:nodoc:
@@ -136,16 +137,14 @@ module ActionMailer
             "method*, or 3. use a custom Active Job instead of #deliver_later."
         else
           job = @mailer_class.delivery_job
-          args = arguments_for(job, delivery_method)
-          job.set(options).perform_later(*args)
-        end
-      end
 
-      def arguments_for(delivery_job, delivery_method)
-        if delivery_job <= MailDeliveryJob
-          [@mailer_class.name, @action.to_s, delivery_method.to_s, args: @args]
-        else
-          [@mailer_class.name, @action.to_s, delivery_method.to_s, *@args]
+          if job <= MailDeliveryJob
+            job.set(options).perform_later(
+              @mailer_class.name, @action.to_s, delivery_method.to_s, args: @args)
+          else
+            job.set(options).perform_later(
+              @mailer_class.name, @action.to_s, delivery_method.to_s, *@args)
+          end
         end
       end
   end
