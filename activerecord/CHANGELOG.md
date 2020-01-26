@@ -30,13 +30,8 @@
 
     *Patrick Rebsch*
 
-<<<<<<< HEAD
 
 ## Rails 6.0.2.1 (December 18, 2019) ##
-=======
-    Applications should use `configs_for`. `#default_hash` and `#[]` will be removed in 6.2.
-=======
->>>>>>> 59d54b350d... Merge pull request #38235 from eileencodes/fix-advisory-lock
 
 *   No changes.
 
