@@ -110,7 +110,7 @@ module AbstractController
       #
       def helper(*args, &block)
         modules_for_helpers(args).each do |mod|
-          add_template_helper(mod)
+          _helpers.include(mod)
         end
 
         _helpers.module_eval(&block) if block_given?
@@ -183,16 +183,6 @@ module AbstractController
           klass.const_set(:HelperMethods, mod)
           mod.include(helpers) if helpers
           mod
-        end
-
-        # Makes all the (instance) methods in the helper module available to templates
-        # rendered through this controller.
-        #
-        # ==== Parameters
-        # * <tt>module</tt> - The module to include into the current helper module
-        #   for the class
-        def add_template_helper(mod)
-          _helpers.module_eval { include mod }
         end
 
         def default_helper_module!
