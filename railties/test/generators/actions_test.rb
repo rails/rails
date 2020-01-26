@@ -539,6 +539,20 @@ class ActionsTest < Rails::Generators::TestCase
     ROUTING_CODE
   end
 
+  def test_does_not_write_multiple_times_same_route
+    run_generator
+    route_path = File.expand_path("config/routes.rb", destination_root)
+    content = File.read(route_path)
+    comments = content.gsub(/^/, "#") + content.gsub(/^/, "# ")
+    File.write(route_path, comments, mode: "a")
+    route_command = "root 'welcome#index'"
+    action :route, route_command
+    assert_file("config/routes.rb") do |routes|
+      assert_routes route_command
+      assert_equal 1, routes.scan(/root\ 'welcome\#index'/).size
+    end
+  end
+
   def test_readme
     run_generator
     assert_called(Rails::Generators::AppGenerator, :source_root, times: 2, returns: destination_root) do

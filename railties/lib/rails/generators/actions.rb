@@ -260,7 +260,7 @@ module Rails
         end
 
         log :route, routing_code
-        sentinel = /^\s*\w.*\.routes\.draw do\s*\n/m
+        sentinel = /^\s*[A-Z]\S*\.routes.draw\s*do\s*\n/m
 
         in_root do
           inject_into_file "config/routes.rb", optimize_indentation(routing_code, 2), after: sentinel, verbose: false, force: false

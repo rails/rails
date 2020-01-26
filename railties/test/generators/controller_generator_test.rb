@@ -82,16 +82,6 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_does_not_write_multiple_times_same_route
-    route_path = File.expand_path("config/routes.rb", destination_root)
-    content = File.read(route_path)
-    File.write(route_path, content.gsub(/^/, "#"), mode: "a")
-    run_generator ["account", "foo"]
-    assert_file("config/routes.rb") do |routes|
-      assert_equal 1, routes.scan(/get 'account\/foo'/).size
-    end
-  end
-
   def test_invokes_default_template_engine_even_with_no_action
     run_generator ["account"]
     assert_file "app/views/account"
