@@ -630,7 +630,6 @@ module ActiveRecord
       #   t.remove_index(:branch_id)
       #   t.remove_index(column: [:branch_id, :party_id])
       #   t.remove_index(name: :by_branch_party)
-      #   t.remove_index(:branch_id, name: :by_branch_party)
       #
       # See {connection.remove_index}[rdoc-ref:SchemaStatements#remove_index]
       def remove_index(options = {})
