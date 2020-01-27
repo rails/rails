@@ -95,6 +95,20 @@ class RelationScopingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_scoped_unscoped
+    DeveloperOrderedBySalary.where("salary = 9000").scoping do
+      assert_equal 11, DeveloperOrderedBySalary.first.id
+      assert_equal 1, DeveloperOrderedBySalary.unscoped.first.id
+    end
+  end
+
+  def test_scoped_default_scoped
+    DeveloperOrderedBySalary.where("salary = 9000").scoping do
+      assert_equal 11, DeveloperOrderedBySalary.first.id
+      assert_equal 2, DeveloperOrderedBySalary.default_scoped.first.id
+    end
+  end
+
   def test_scoped_find_all
     Developer.where("name = 'David'").scoping do
       assert_equal [developers(:david)], Developer.all
