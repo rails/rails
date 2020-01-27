@@ -595,14 +595,10 @@ module ActiveRecord
       #
       #   remove_columns(:suppliers, :qualification, :experience)
       #
-      # +type+ and other column options can be passed to make migration reversible.
-      #
-      #    remove_columns(:suppliers, :qualification, :experience, type: :string, null: false)
-      def remove_columns(table_name, *column_names, **options)
+      def remove_columns(table_name, *column_names)
         raise ArgumentError.new("You must specify at least one column name. Example: remove_columns(:people, :first_name)") if column_names.empty?
-        type = options.delete(:type)
         column_names.each do |column_name|
-          remove_column(table_name, column_name, type, **options)
+          remove_column(table_name, column_name)
         end
       end
 

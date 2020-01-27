@@ -621,8 +621,8 @@ module ActiveRecord
       #  t.remove(:qualification, :experience)
       #
       # See {connection.remove_columns}[rdoc-ref:SchemaStatements#remove_columns]
-      def remove(*column_names, **options)
-        @base.remove_columns(name, *column_names, **options)
+      def remove(*column_names)
+        @base.remove_columns(name, *column_names)
       end
 
       # Removes the given index from the table.
