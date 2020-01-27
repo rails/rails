@@ -1170,7 +1170,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_current_scope_is_reset
     Object.const_set :UnloadablePost, Class.new(ActiveRecord::Base)
-    UnloadablePost.send(:current_scope=, UnloadablePost.all)
+    UnloadablePost.current_scope = UnloadablePost.all
 
     UnloadablePost.unloadable
     klass = UnloadablePost

@@ -100,32 +100,6 @@ module ActiveSupport
         env = Filters::Environment.new(self, false, nil)
         next_sequence = callbacks.compile
 
-        invoke_sequence = Proc.new do
-          skipped = nil
-          while true
-            current = next_sequence
-            current.invoke_before(env)
-            if current.final?
-              env.value = !env.halted && (!block_given? || yield)
-            elsif current.skip?(env)
-              (skipped ||= []) << current
-              next_sequence = next_sequence.nested
-              next
-            else
-              next_sequence = next_sequence.nested
-              begin
-                target, block, method, *arguments = current.expand_call_template(env, invoke_sequence)
-                target.send(method, *arguments, &block)
-              ensure
-                next_sequence = current
-              end
-            end
-            current.invoke_after(env)
-            skipped.pop.invoke_after(env) while skipped && skipped.first
-            break env.value
-          end
-        end
-
         # Common case: no 'around' callbacks defined
         if next_sequence.final?
           next_sequence.invoke_before(env)
@@ -133,6 +107,33 @@ module ActiveSupport
           next_sequence.invoke_after(env)
           env.value
         else
+          invoke_sequence = Proc.new do
+            skipped = nil
+
+            while true
+              current = next_sequence
+              current.invoke_before(env)
+              if current.final?
+                env.value = !env.halted && (!block_given? || yield)
+              elsif current.skip?(env)
+                (skipped ||= []) << current
+                next_sequence = next_sequence.nested
+                next
+              else
+                next_sequence = next_sequence.nested
+                begin
+                  target, block, method, *arguments = current.expand_call_template(env, invoke_sequence)
+                  target.send(method, *arguments, &block)
+                ensure
+                  next_sequence = current
+                end
+              end
+              current.invoke_after(env)
+              skipped.pop.invoke_after(env) while skipped&.first
+              break env.value
+            end
+          end
+
           invoke_sequence.call
         end
       end
@@ -400,21 +401,17 @@ module ActiveSupport
         # The actual invocation is left up to the caller to minimize
         # call stack pollution.
         def expand(target, value, block)
-          result = @arguments.map { |arg|
+          expanded = [@override_target || target, @override_block || block, @method_name]
+
+          @arguments.each do |arg|
             case arg
-            when :value; value
-            when :target; target
-            when :block; block || raise(ArgumentError)
+            when :value then expanded << value
+            when :target then expanded << target
+            when :block then expanded << (block || raise(ArgumentError))
             end
-          }
+          end
 
-          result.unshift @method_name
-          result.unshift @override_block || block
-          result.unshift @override_target || target
-
-          # target, block, method, *arguments = result
-          # target.send(method, *arguments, &block)
-          result
+          expanded
         end
 
         # Return a lambda that will make this call when given the input
