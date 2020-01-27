@@ -678,6 +678,13 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [1, 2, 3, 4, 5], Topic.order(:id).pluck(:id)
   end
 
+  def test_pluck_with_empty_in
+    Topic.send(:load_schema)
+    assert_no_queries do
+      assert_equal [], Topic.where(id: []).pluck(:id)
+    end
+  end
+
   def test_pluck_without_column_names
     if current_adapter?(:OracleAdapter)
       assert_equal [[1, "Firm", 1, nil, "37signals", nil, 1, nil, nil]], Company.order(:id).limit(1).pluck
