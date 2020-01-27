@@ -180,6 +180,25 @@ Add the [`azure-storage-blob`](https://github.com/Azure/azure-storage-ruby) gem 
 gem "azure-storage-blob", require: false
 ```
 
+To leverage [Azure Active Directory authentication for Azure Storage](https://docs.microsoft.com/en-us/azure/storage/common/storage-auth-aad)
+instead of access key authentication, add the [`adal`](https://github.com/AzureAD/azure-activedirectory-library-for-ruby) gem to your `Gemfile`:
+
+```ruby
+gem "adal", require: false
+```
+
+Now declare the Azure Storage service in `config/storage.yml`:
+
+```yaml
+azure:
+  service: AzureStorage
+  storage_account_name: ""
+  tenant_id: ""
+  client_id: ""
+  client_secret: ""
+  container: ""
+```
+
 ### Google Cloud Storage Service
 
 Declare a Google Cloud Storage service in `config/storage.yml`:

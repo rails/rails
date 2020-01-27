@@ -1,3 +1,28 @@
+*   The Azure service now permits authenticating through Azure Active Directory.
+
+    To enable Azure Active Directory authentication, configure the tenant ID,
+    client ID and client secret of the Azure Active Directory principal that
+    should be used for authentication:
+
+    ```yaml
+    azure:
+      service: AzureStorage
+      storage_account_name: mystorageaccount
+      container: mycontainer
+      tenant_id: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
+      client_id: bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
+      client_secret: <%= Rails.application.credentials.dig(:azure, :client_secret) %>
+    ```
+
+    Note that the Azure Active Directory principal used for authentication must
+    be granted at least the roles "Storage Blob Delegator" on the storage
+    account as well as "Storage Blob Data Contributor" on the container.
+    The former role is required for generating shared access signatures for
+    direct uploads and asset URLs and the latter role is required for
+    read/write/delete/list permissions on the contents of the container.
+
+    *Clemens Wolff*
+
 *   Files can now be served by proxying them from the underlying storage service
     instead of redirecting to a signed service URL. Use the
     `rails_storage_proxy_path` and `_url` helpers to proxy an attached file:

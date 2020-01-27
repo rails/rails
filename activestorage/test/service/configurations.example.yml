@@ -27,3 +27,11 @@
 #   storage_account_name: ""
 #   storage_access_key: ""
 #   container: ""
+#
+# azure_aad:
+#   service: AzureStorage
+#   storage_account_name: ""
+#   container: ""
+#   tenant_id: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
+#   client_id: bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
+#   client_secret: cccccccc-cccc-cccc-cccc-cccccccccccc

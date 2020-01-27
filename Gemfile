@@ -87,7 +87,8 @@ end
 group :storage do
   gem "aws-sdk-s3", require: false
   gem "google-cloud-storage", "~> 1.11", require: false
-  gem "azure-storage-blob", require: false
+  gem "adal", require: false
+  gem "azure-storage-blob", "~> 2.0", require: false
 
   gem "image_processing", "~> 1.2"
 end
