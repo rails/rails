@@ -1484,20 +1484,57 @@ And there we have it! We now have the ability to create new articles within our 
 
 ### Updating Articles
 
-We've covered the "CR" part of CRUD. Now let's focus on the "U" part, updating
-articles.
+Now what should happen if we make a mistake when creating an article? Well, we should have a way to edit an article and correct that mistake.
 
-The first step we'll take is adding an `edit` action to the
-`ArticlesController`, generally between the `new` and `create`
-actions, as shown:
+Our edit form will look just like our new form, just with a few differences:
+
+![Edit form](images/getting_started/edit_form.png)
+
+Firstly, the title will say "Edit Article", not "New Article". Secondly, the fields will be filled out with the article's current values. And lastly, the submit button says "Update Article", not "Save Article".
+
+To add this feature to our application, we're going to need to add a new route, a route just for editing articles. Let's do this now in `config/routes.rb`:
+
+```ruby
+get "/articles/:id/edit", to: "articles#edit", as: :edit_article
+```
+
+This new route is another `get` route. This time, we're routing to `/articles/:id/edit`, so that we can see that edit form for a particular article. Which article we're editing depends on that `:id` parameter in the route.
+
+The route will be handled by the `edit` action within `ArticlesController`. We'll add that action soon.
+
+The `as` option will provide us with a routing helper that we can use across our application to take us to this edit form for a specific article.
+
+As a first step, let's add an "Edit" link for each article on `app/views/articles/index.html.erb`:
+
+```erb
+<h1>Articles</h1>
+
+<%= link_to "New Article", new_article_path %>
+
+<ul>
+  <% @articles.each do |article| %>
+    <li>
+      <%= link_to article.title, article_path(article) %>
+      <%= link_to "Edit", edit_article_path(article) %>
+    </li>
+  <% end %>
+</ul>
+```
+
+This "Edit" link will now appear next to all of the articles at <http://localhost:3000/articles>.
+
+![Articles with edit links](images/getting_started/articles_with_edit.png)
+
+If we click on any one of those "Edit" links, we'll see that we haven't yet defined the `edit` action.
+
+![No edit action](images/getting_started/no_edit_action.png)
+
+So the next step here is to add that action to our controller. Let's open `app/controllers/articles_controller.rb` and add that action:
+
 
 ```ruby
 def new
   @article = Article.new
-end
-
-def edit
-  @article = Article.find(params[:id])
 end
 
 def create
@@ -1509,17 +1546,18 @@ def create
     render 'new'
   end
 end
+
+def edit
+  @article = Article.find(params[:id])
+end
 ```
 
-NOTE:  We're using `edit` to render a view. For the actual
-saving of the changes to the Article, we'll add an `update` action later.
+NOTE:  We're using `edit` to render just a form to display the current values of the article. For the actual updating of the article, we'll use a different action for this shortly called `update`.
 
 
-The view will contain a form similar to the one we used when creating
-new articles. Create a file called `app/views/articles/edit.html.erb` and make
-it look as follows:
+The view will contain a form similar to the one we used when creating new articles. Create a file called `app/views/articles/edit.html.erb` and put this content inside:
 
-```html+erb
+```erb
 <h1>Edit Article</h1>
 
 <%= form_with model: @article, local: true do |form| %>
@@ -1544,8 +1582,8 @@ it look as follows:
   </p>
 
   <p>
-    <%= form.label :text %><br>
-    <%= form.text_area :text %>
+    <%= form.label :body %><br>
+    <%= form.text_area :body %>
   </p>
 
   <p>
@@ -1557,38 +1595,44 @@ it look as follows:
 <%= link_to 'Back', articles_path %>
 ```
 
-This time we point the form to the `update` action, which is not defined yet
-but will be very soon.
+The only things different in this view are the `<h1>` at the top of the view, and the `form_with`. The `form_with` is not using `scope` or `url`, but is instead using a different key called `model`.
 
-Passing the article object to the `form_with` method will automatically set the URL for
-submitting the edited article form. This option tells Rails that we want this
-form to be submitted via the `PATCH` HTTP method, which is the HTTP method you're
-expected to use to **update** resources according to the REST protocol.
+The `model` key for `form_with` takes an instance of a model's class and builds a form for that particular object. By using `form_with` in this way, Rails will pre-populate the title and body fields in this form for us.
 
-Also, passing a model object to `form_with`, like `model: @article` in the edit
-view above, will cause form helpers to fill in form fields with the corresponding
-values of the object.  Passing in a symbol scope such as `scope: :article`, as
-was done in the new view, only creates empty form fields.
-More details can be found in [form_with documentation]
-(https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_with).
+There's one extra feature that Rails does for us that is not immediately obvious from looking at the form itself. This feature requires us to look at the HTML source of this form. Inside this source at the top of the `<form>` element, here's what we'll see:
 
-Next, we need to create the `update` action in
-`app/controllers/articles_controller.rb`.
-Add it between the `create` action and the `private` method:
+```html
+<form action="/articles/1" accept-charset="UTF-8" method="post">
+<input type="hidden" name="_method" value="patch" />
+```
+
+Firstly, the `action` attribute for this form goes to a route called `/articles/1`. This path was automatically generated by Rails; in short: it uses the `article_path` helper to generate this route. The second thing to notice is that hidden field. This hidden field is a special field that will make the form do a `PATCH` request when this form is submitted, instead of the default `POST` (as is configured in the `form` element's `method` attribute).
+
+This means that our form will make a `PATCH /articles/1` request when it is submitted. If we hit submit on the form, we'll see that this is correct, and that this route is currently missing:
+
+![No route matches [PATCH] "/articles/1"](images/getting_started/no_route_for_patch_articles.png)
+
+This route is supposed to handle the submission of our form, but the route does not exist yet. To make this form work, we'll need to define this route. Let's go back to `config/routes.rb` and define this route:
+
+```ruby
+Rails.application.routes.draw do
+  root "articles#index"
+  get "/articles", to: "articles#index"
+  get "/articles/new", to: "articles#new", as: :new_article
+  get "/articles/:id", to: "articles#show", as: :article
+  post "/articles", to: "articles#create"
+  get "/articles/:id/edit", to: "articles#edit", as: :edit_article
+  patch "/articles/:id", to: "articles#update"
+end
+```
+
+This `patch` method will generate us a route for `PATCH /articles/:id` requests. We use the `PATCH` HTTP routing method for when we want to modify an existing resource.
+
+These requests to `PATCH /articles/:id` will be routed to the `update` action in our `ArticlesController`. Let's add that action now underneath the `edit` action:
 
 ```ruby
 def edit
   @article = Article.find(params[:id])
-end
-
-def create
-  @article = Article.new(article_params)
-
-  if @article.save
-    redirect_to @article
-  else
-    render 'new'
-  end
 end
 
 def update
@@ -1607,80 +1651,44 @@ private
   end
 ```
 
-The new method, `update`, is used when you want to update a record
-that already exists, and it accepts a hash containing the attributes
-that you want to update. As before, if there was an error updating the
-article we want to show the form back to the user.
+The new method, `update`, is used when you want to update a record that already exists, and it accepts a hash containing the attributes that you want to update. As before, if there was an error updating the article we want to show the form back to the user.
 
-We reuse the `article_params` method that we defined earlier for the create
-action.
+We reuse the `article_params` method that we defined earlier for the create action. We want to accept the same parameters here, and so it makes sense to use the same `article_params` method.
 
-TIP: It is not necessary to pass all the attributes to `update`. For example,
-if `@article.update(title: 'A new title')` was called, Rails would only update
-the `title` attribute, leaving all other attributes untouched.
+TIP: It is not necessary to pass all the attributes to `update`. For example, if `@article.update(title: 'A new title')` was called, Rails would only update the `title` attribute, leaving all other attributes untouched.
 
-Finally, we want to show a link to the `edit` action in the list of all the
-articles, so let's add that now to `app/views/articles/index.html.erb` to make
-it appear next to the "Show" link:
+Let's try this again. We'll go to <http://localhost:3000>, click the "Edit" link next to one of the articles and change its title. I'm going to change the "Hello Rails" article's title to "Hello Rails, how are you today?". When this happens and we submit the form, we will see the new title for that article:
 
-```html+erb
-<table>
-  <tr>
-    <th>Title</th>
-    <th>Text</th>
-    <th colspan="2"></th>
-  </tr>
+![How are you, Rails?](images/getting_started/how_are_you_rails.png)
 
-  <% @articles.each do |article| %>
-    <tr>
-      <td><%= article.title %></td>
-      <td><%= article.text %></td>
-      <td><%= link_to 'Show', article_path(article) %></td>
-      <td><%= link_to 'Edit', edit_article_path(article) %></td>
-    </tr>
-  <% end %>
-</table>
-```
+On this page, we're currently missing a way to edit an article. This route that we're currently on is <http://localhost:3000/articles/1>, and we know that the route matches to `app/views/articles/show.html.erb`.
 
-And we'll also add one to the `app/views/articles/show.html.erb` template as
-well, so that there's also an "Edit" link on an article's page. Add this at the
-bottom of the template:
-
-```html+erb
-...
-
-<%= link_to 'Edit', edit_article_path(@article) %> |
-<%= link_to 'Back', articles_path %>
-```
-
-And here's how our app looks so far:
-
-![Index action with edit link](images/getting_started/index_action_with_edit_link.png)
+This now finishes our adventures in adding the ability to edit an article in this application.
 
 ### Using partials to clean up duplication in views
 
-Our `edit` page looks very similar to the `new` page; in fact, they
-both share the same code for displaying the form. Let's remove this
-duplication by using a view partial. By convention, partial files are
+Our `edit` page looks very similar to the `new` page; in fact, they both share almost same code for displaying the form. Rails has yet another great feature that we can use to reduce this duplication and this feature is called _partials_.
+
+Partials allow us to extract out comon pieces of views into a file that is then shared across many different views, or in this case, just two views. Let's remove this
+duplication by using a partial. By convention, partial files are
 prefixed with an underscore.
 
 TIP: You can read more about partials in the
 [Layouts and Rendering in Rails](layouts_and_rendering.html) guide.
 
-Create a new file `app/views/articles/_form.html.erb` with the following
-content:
+Create a new file `app/views/articles/_form.html.erb`. We're going to copy _most_ of `app/views/articles/edit.html.erb` into this new partial file:
 
-```html+erb
-<%= form_with model: @article, local: true do |form| %>
+```erb
+<%= form_with model: article, local: true do |form| %>
 
-  <% if @article.errors.any? %>
+  <% if article.errors.any? %>
     <div id="error_explanation">
       <h2>
-        <%= pluralize(@article.errors.count, "error") %> prohibited
+        <%= pluralize(article.errors.count, "error") %> prohibited
         this article from being saved:
       </h2>
       <ul>
-        <% @article.errors.full_messages.each do |msg| %>
+        <% article.errors.full_messages.each do |msg| %>
           <li><%= msg %></li>
         <% end %>
       </ul>
@@ -1704,58 +1712,146 @@ content:
 <% end %>
 ```
 
-Everything except for the `form_with` declaration remained the same.
-The reason we can use this shorter, simpler `form_with` declaration
-to stand in for either of the other forms is that `@article` is a *resource*
-corresponding to a full set of RESTful routes, and Rails is able to infer
-which URI and method to use.
-For more information about this use of `form_with`, see [Resource-oriented style]
-(https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_with-label-Resource-oriented+style).
+This partial can now be used in both the `new` and `edit` views. Let's update the new view:
 
-Now, let's update the `app/views/articles/new.html.erb` view to use this new
-partial, rewriting it completely:
-
-```html+erb
+```erb
 <h1>New Article</h1>
 
-<%= render 'form' %>
-
-<%= link_to 'Back', articles_path %>
+<%= render 'form', article: @article %>
 ```
 
 Then do the same for the `app/views/articles/edit.html.erb` view:
 
-```html+erb
+```erb
 <h1>Edit Article</h1>
 
-<%= render 'form' %>
+<%= render 'form', article: @article %>
 
 <%= link_to 'Back', articles_path %>
 ```
 
-### Deleting Articles
+This `render` call in a view works differently to the `render` call in a controller. Back in the `create` action for `ArticlesController`, we have this:
 
-We're now ready to cover the "D" part of CRUD, deleting articles from the
-database. Following the REST convention, the route for
-deleting articles as per output of `bin/rails routes` is:
+```
+def create
+  @article = Article.new(article_params)
+
+  if @article.save
+    redirect_to @article
+  else
+    render 'new'
+  end
+end
+```
+
+This `render` method call will render a _view_, not a partial. In this case, it will render the `app/views/articles/new.html.erb` view.
+
+But when we call `render` inside a view, it will render a _partial_. When we call `render 'form', article: @article` inside our `new.html.erb` and `edit.html.erb` views, this will render the `app/views/articles/_form.html.erb` partial. How does Rails know that we want _this_ particular form partial? It assumes we want the one in the same directory as the current view by default. This is another one of Rails' conventions at work!
+
+The `article: @article` syntax at the end of this line tells Rails that we want to pass the instance variable `@article` to the partial as a _local variable_ called `article`.
+
+Inside that partial, we can access whatever the current article is by using the `article` local variable.
+
+Now, an interesting thing happens here. When this partial is rendered for the `new` action, the form will submit to the `create` action. But when it's rendered for the `edit` action, it will submit to the `update` action. Go ahead and try it.
+
+How can one piece of code do two things? The way this works lies in the magic of `form_with` and what it outputs, depending on its `model` option.
+
+When this partial is rendered by the `new` action, the `@article` variable is set like this:
 
 ```ruby
-DELETE /articles/:id(.:format)      articles#destroy
+def new
+  @article = Article.new
+end
 ```
 
-The `delete` routing method should be used for routes that destroy
-resources. If this was left as a typical `get` route, it could be possible for
-people to craft malicious URLs like this:
+The `form_with` helper from Rails detects that this object hasn't yet been saved to the database, and therefore assumes we want to display a form for _creating_ a new article. If you look at the HTML source from <http://localhost:3000/articles/new>, you'll see the form is configured like this:
+
 
 ```html
-<a href='http://example.com/articles/1/destroy'>look at this cat!</a>
+<form action="/articles" accept-charset="UTF-8" method="post">
 ```
 
-We use the `delete` method for destroying resources, and this route is mapped
-to the `destroy` action inside `app/controllers/articles_controller.rb`, which
-doesn't exist yet. The `destroy` method is generally the last CRUD action in
-the controller, and like the other public CRUD actions, it must be placed
-before any `private` or `protected` methods. Let's add it:
+When the form is submitted, it will make a `POST /articles` request. This will go to the `create` action in `ArticlesController`, because that's how our routes are configured:
+
+```ruby
+post "/articles", to: "articles#create"
+```
+
+Over in the `edit` action, we instead set `@article` like this:
+
+```ruby
+def edit
+  @article = Article.find(params[:id])
+end
+```
+
+This `@article` represents an article that has already been saved to the database, and so `form_with` behaves different. Let's look at the HTML source from <http://localhost:3000/articles/1/edit> and see:
+
+```html
+<form action="/articles/1" accept-charset="UTF-8" method="post"><input type="hidden" name="_method" value="patch" />
+```
+
+This is the same `form_with` method call that is running, but it is acting differently. This time, the form is generated with an `action` of `/articles/1`. The hidden field called `_method` will make Rails do a `PATCH /articles/1` request. If we look in our routes file, we'll see that such a request goes to the `update` action:
+
+```ruby
+patch "/articles/:id", to: "articles#update"
+```
+
+This is no coincidence. We have chosen these routes very specifically so that we can follow Rails conventions. The `form_with` helper acts differently depending on if the `@article` has been saved or not, and so we can use this one partial to represent a form in either `new.html.erb` or `edit.html.erb`.
+
+Partials are a very handy feature of Rails that we can use to remove duplication between separate views. And combining them with `form_with` allows us to merge together two forms into one, without sacrificing any of our sanity.
+
+### Deleting Articles
+
+We're now able to see, create, and update articles within our application. The final part that we'll cover for articles in this guide is how to delete them.
+
+In order to edit articles, we provided a link right next to the article's title in `app/views/articles/index.html.erb`. To delete articles, let's do the same thing:
+
+```erb
+<h1>Articles</h1>
+
+<%= link_to "New Article", new_article_path %>
+
+<ul>
+  <% @articles.each do |article| %>
+    <li>
+      <%= link_to article.title, article_path(article) %>
+      <%= link_to "Edit", edit_article_path(article) %>
+      <%= link_to "Delete", article_path(article) %>
+    </li>
+  <% end %>
+</ul>
+```
+
+This `link_to` won't delete the article. It will instead take us to the `show` action in `ArticlesController` and show us the article itself. We need to add one extra thing to this link, which is a `method` option:
+
+```erb
+<%= link_to "Delete", article_path(article), method: :delete
+%>
+```
+
+This will make the link make a `DELETE /articles/:id` request. The `DELETE` HTTP method is one that we use when we want to delete things.
+
+We can now refresh this page and click one of these "Delete" links. This request currently won't work, because we don't have a `DELETE /articles/:id` route set up:
+
+![No delete route](images/getting_started/no_delete_route.png)
+
+Let's add this route to `config/routes.rb`:
+
+```ruby
+Rails.application.routes.draw do
+  root "articles#index"
+  get "/articles", to: "articles#index"
+  get "/articles/new", to: "articles#new", as: :new_article
+  get "/articles/:id", to: "articles#show", as: :article
+  post "/articles", to: "articles#create"
+  get "/articles/:id/edit", to: "articles#edit", as: :edit_article
+  patch "/articles/:id", to: "articles#update"
+  delete "/articles/:id", to: "articles#destroy"
+end
+```
+
+This route will now match `DELETE /articles/:id` requests and send them to the `destroy` action in `ArticlesController`. Let's add this action now in the `ArticlesController`:
 
 ```ruby
 def destroy
@@ -1783,10 +1879,6 @@ class ArticlesController < ApplicationController
     @article = Article.new
   end
 
-  def edit
-    @article = Article.find(params[:id])
-  end
-
   def create
     @article = Article.new(article_params)
 
@@ -1795,6 +1887,10 @@ class ArticlesController < ApplicationController
     else
       render 'new'
     end
+  end
+
+  def edit
+    @article = Article.find(params[:id])
   end
 
   def update
@@ -1811,68 +1907,125 @@ class ArticlesController < ApplicationController
     @article = Article.find(params[:id])
     @article.destroy
 
-    redirect_to articles_path
+    redirect_to '/'
   end
 
   private
     def article_params
-      params.require(:article).permit(:title, :text)
+      params.require(:article).permit(:title, :body)
     end
 end
 ```
 
-You can call `destroy` on Active Record objects when you want to delete
-them from the database. Note that we don't need to add a view for this
-action since we're redirecting to the `index` action.
+You can call `destroy` on model instances when you want to delete them from the database. Note that we don't need to add a view for this action since we're redirecting back to '/' -- the root of our application.
 
-Finally, add a 'Destroy' link to your `index` action template
-(`app/views/articles/index.html.erb`) to wrap everything together.
+If we click "Delete" again on our list of articles, we'll each article disappear in turn.
 
-```html+erb
-<h1>Listing Articles</h1>
-<%= link_to 'New article', new_article_path %>
-<table>
-  <tr>
-    <th>Title</th>
-    <th>Text</th>
-    <th colspan="3"></th>
-  </tr>
+We might want to be a little mindful here and ask users if they're _really_ sure that they want to delete an article. Having a link so close to "Edit" like this is a recipe for disaster!
 
-  <% @articles.each do |article| %>
-    <tr>
-      <td><%= article.title %></td>
-      <td><%= article.text %></td>
-      <td><%= link_to 'Show', article_path(article) %></td>
-      <td><%= link_to 'Edit', edit_article_path(article) %></td>
-      <td><%= link_to 'Destroy', article_path(article),
-              method: :delete,
-              data: { confirm: 'Are you sure?' } %></td>
-    </tr>
-  <% end %>
-</table>
+To prompt the user, we're going to change the "Delete" link in `app/views/articles/index.html.erb` to this:
+
+```erb
+<%= link_to "Delete",
+  article_path(article),
+  method: :delete,
+  data: {
+    confirm: "Are you sure you want to delete this article?"
+  }
+%>
 ```
 
-Here we're using `link_to` in a different way. We pass the named route as the
-second argument, and then the options as another argument. The `method: :delete`
-and `data: { confirm: 'Are you sure?' }` options are used as HTML5 attributes so
-that when the link is clicked, Rails will first show a confirm dialog to the
-user, and then submit the link with method `delete`.  This is done via the
-JavaScript file `rails-ujs` which is automatically included in your
-application's layout (`app/views/layouts/application.html.erb`) when you
-generated the application. Without this file, the confirmation dialog box won't
-appear.
-
-![Confirm Dialog](images/getting_started/confirm_dialog.png)
+This `data` option uses a feature of Rails called _Unobtrusive JavaScript_. By default, Rails applications come with a little bit of JavaScript for features like this.
 
 TIP: Learn more about Unobtrusive JavaScript on
 [Working With JavaScript in Rails](working_with_javascript_in_rails.html) guide.
 
-Congratulations, you can now create, show, list, update, and destroy
-articles.
+When we refresh this page and click "Delete" once again, we'll see a new dialog box appear:
 
-TIP: In general, Rails encourages using resources objects instead of
-declaring routes manually. For more information about routing, see
-[Rails Routing from the Outside In](routing.html).
+![Confirm Dialog](images/getting_started/confirm_dialog.png)
+
+If you press "Cancel" on this box, nothing will happen. The article will _not_ be deleted. But if you press "OK", then the article will be deleted. Rails provides this option on links just for links like this "Delete" link. We want people to be _really sure_ that they mean to delete articles before they actually do it!
+
+That is the last of our actions in the `ArticlesController`. We now have ways to create, read, update and delete articles. This pattern is so common in Rails applications that it even has its own acronym: CRUD: Create, Read, Update and Delete. What we have built here is a CRUD interface for articles.
+
+
+### Routing for resources
+
+So far, we have not had to write much code to make our application functional. But there's one extra thing that will massively reduce the lines of code you will write in the future, and that thing is called _resource routing_.
+
+Rails has a convention that it follows when it comes to routing. When we list a collection of a resource, such as articles, that list is going to appear under the `index` action. When we want to see a single resource, such as a single article, that appears at the `show` action, and so on.
+
+So far, we have been following this convention in Rails without drawing attention too much attention to it. In this section, we're going to draw a lot of attention to it. By following this routing convention, we can simplify the code within `config/routes.rb` drastically. That file currently contains this code:
+
+```ruby
+Rails.application.routes.draw do
+  root "articles#index"
+  get "/articles", to: "articles#index"
+  get "/articles/new", to: "articles#new", as: :new_article
+  get "/articles/:id", to: "articles#show", as: :article
+  post "/articles", to: "articles#create"
+  get "/articles/:id/edit", to: "articles#edit", as: :edit_article
+  patch "/articles/:id", to: "articles#update"
+  delete "/articles/:id", to: "articles#destroy"
+end
+```
+
+We've been able to define our routes using the `root`, `get`, `post`, `patch` and `delete` helpers. But Rails comes with one helper that we haven't seen yet, and that helper is called `resources`.
+
+We can delete most of the code in this routes file and replace it with this method call:
+
+```ruby
+Rails.application.routes.draw do
+  root "articles#index"
+
+  resources :articles
+end
+```
+
+This one line replaces all 7 of the routes that we had defined previously. This is one of the parts of Rails that people claim as the most "magical", and hopefully by defining all 7 routes manually first you will gain an appreciation for the elegance of `resources` here.
+
+To see what this has done, we can run this command in the terminal:
+
+```bash
+rails routes --controller articles
+```
+
+Or:
+
+```bash
+rails routes -c articles
+```
+
+This command will show us all the routes for the `ArticlesController`:
+
+```plaintext
+      Prefix Verb   URI Pattern                  Controller#Action
+        root GET    /                            articles#index
+    articles GET    /articles(.:format)          articles#index
+ new_article GET    /articles/new(.:format)      articles#new
+     article GET    /articles/:id(.:format)      articles#show
+             POST   /articles(.:format)          articles#create
+edit_article GET    /articles/:id/edit(.:format) articles#edit
+             PATCH  /articles/:id(.:format)      articles#update
+             DELETE /articles/:id(.:format)      articles#destroy
+```
+
+This command shows us four things:
+
+* Prefix: The routing helper _prefix_ that can be used to generate this route. For example "article" means `article_path` can be used.
+* Verb: The HTTP Verb / method that is used to make this request.
+* URI pattern: the _path_ of the route that is used to make this request.
+* Controller & Action: The controller & action that will serve this request.
+
+From this output, we'll be able to tell that a `GET` request to `/articles/new` will go to the `ArticlesController`'s `new` action.
+
+These are all the same routes that we had previously, it's just that we're using one line to generate them now instead of 7.
+
+TIP: In general, Rails encourages using resources objects instead of declaring routes manually. For more information about routing, see [Rails Routing from the Outside In](routing.html).
+
+We have now completely finished building the first part of our application. If you've gotten this far, give yourself a pat on the back! And maybe a little break before you continue on this guide.
+
+We're about two-thirds of the way through, and have just a few more features of Rails to show off.
 
 Adding a Second Model
 ---------------------
