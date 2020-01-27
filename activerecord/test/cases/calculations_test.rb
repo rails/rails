@@ -905,14 +905,18 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_pick_one
     assert_equal "The First Topic", Topic.order(:id).pick(:heading)
-    assert_nil Topic.none.pick(:heading)
-    assert_nil Topic.where(id: 9999999999999999999).pick(:heading)
+    assert_no_queries do
+      assert_nil Topic.none.pick(:heading)
+      assert_nil Topic.where(id: 9999999999999999999).pick(:heading)
+    end
   end
 
   def test_pick_two
     assert_equal ["David", "david@loudthinking.com"], Topic.order(:id).pick(:author_name, :author_email_address)
-    assert_nil Topic.none.pick(:author_name, :author_email_address)
-    assert_nil Topic.where(id: 9999999999999999999).pick(:author_name, :author_email_address)
+    assert_no_queries do
+      assert_nil Topic.none.pick(:author_name, :author_email_address)
+      assert_nil Topic.where(id: 9999999999999999999).pick(:author_name, :author_email_address)
+    end
   end
 
   def test_pick_delegate_to_all
