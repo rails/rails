@@ -2027,32 +2027,34 @@ We have now completely finished building the first part of our application. If y
 
 We're about two-thirds of the way through, and have just a few more features of Rails to show off.
 
-Adding a Second Model
+Adding Comments
 ---------------------
 
-It's time to add a second model to the application. The second model will handle
-comments on articles.
+Let's expand this application a little further by adding the ability for users to leave comments on articles.
 
 ### Generating a Model
 
-We're going to see the same generator that we used before when creating
-the `Article` model. This time we'll create a `Comment` model to hold a
-reference to an article. Run this command in your terminal:
+To start with, we're going to generate a model for comments.
+
+We're going to see the same generator that we used before when creating the `Article` model. This time we'll create a `Comment` model to hold a reference to an article. Run this command in your terminal:
 
 ```bash
-$ bin/rails generate model Comment commenter:string body:text article:references
+$ bin/rails g model Comment commenter:string body:text article:references
 ```
 
 This command will generate four files:
 
-| File                                         | Purpose                                                                                                |
-| -------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| db/migrate/20140120201010_create_comments.rb | Migration to create the comments table in your database (your name will include a different timestamp) |
-| app/models/comment.rb                        | The Comment model                                                                                      |
-| test/models/comment_test.rb                  | Testing harness for the comment model                                                                 |
-| test/fixtures/comments.yml                   | Sample comments for use in testing                                                                     |
+```
+invoke  active_record
+create    db/migrate/[timestamp]_create_comments.rb
+create    app/models/comment.rb
+invoke    test_unit
+create      test/models/comment_test.rb
+create      test/fixtures/comments.yml
+```
 
-First, take a look at `app/models/comment.rb`:
+
+First, let's take a look at `app/models/comment.rb`:
 
 ```ruby
 class Comment < ApplicationRecord
@@ -2060,17 +2062,11 @@ class Comment < ApplicationRecord
 end
 ```
 
-This is very similar to the `Article` model that you saw earlier. The difference
-is the line `belongs_to :article`, which sets up an Active Record _association_.
-You'll learn a little about associations in the next section of this guide.
+This is very similar to the `Article` model that you saw earlier. The difference is the line `belongs_to :article`, which sets up an Active Record _association_. You'll learn a little about associations in the next section of this guide. This `belongs_to` was added to our model because we specific `article:references` when we generated this model.
 
-The (`:references`) keyword used in the bash command is a special data type for models.
-It creates a new column on your database table with the provided model name appended with an `_id`
-that can hold integer values. To get a better understanding, analyze the
-`db/schema.rb` file after running the migration.
+The `references` type is a special type that define an association between the model that we're generating and another model. In this case, we're saying that every comment _belongs to_ an article.
 
-In addition to the model, Rails has also made a migration to create the
-corresponding database table:
+Let's look at the migration next:
 
 ```ruby
 class CreateComments < ActiveRecord::Migration[6.0]
@@ -2086,9 +2082,14 @@ class CreateComments < ActiveRecord::Migration[6.0]
 end
 ```
 
-The `t.references` line creates an integer column called `article_id`, an index
-for it, and a foreign key constraint that points to the `id` column of the `articles`
-table. Go ahead and run the migration:
+The `t.references` line creates does a few things:
+
+1. It adds a field called `article_id` to the comments table
+2. A [database index](https://www.essentialsql.com/what-is-a-database-index/) is added for that column. This will speed up retrieving comments for particular articles.
+3. The `null: false` option says that in no circumstance can this column be set to a `NULL` value.
+4. The `foreign_key: true` option says that this column is linked to the `articles` table, and that the column's values must be represented in the `articles` table, in the `id` column. There can be no comments without a related article to match.
+
+Go ahead and run the migration:
 
 ```bash
 $ bin/rails db:migrate
@@ -2103,6 +2104,13 @@ run against the current database, so in this case you will just see:
    -> 0.0115s
 ==  CreateComments: migrated (0.0119s) ========================================
 ```
+
+This migration will create our comments table. It will look like this in our database:
+
+| id | commenter  | body | article_id | created_at | updated_at |
+|----|------------|------|------------|------------|------------|
+|    | &nbsp;     |      |            |            |            |
+
 
 ### Associating Models
 
@@ -2134,74 +2142,115 @@ class Article < ApplicationRecord
 end
 ```
 
-These two declarations enable a good bit of automatic behavior. For example, if
-you have an instance variable `@article` containing an article, you can retrieve
-all the comments belonging to that article as an array using
-`@article.comments`.
+These two declarations enable a good bit of automatic behavior. Let's explore some of this behaviour by starting up a new console:
 
-TIP: For more information on Active Record associations, see the [Active Record
-Associations](association_basics.html) guide.
-
-### Adding a Route for Comments
-
-As with the `welcome` controller, we will need to add a route so that Rails
-knows where we would like to navigate to see `comments`. Open up the
-`config/routes.rb` file again, and edit it as follows:
-
-```ruby
-resources :articles do
-  resources :comments
-end
+```
+rails c
 ```
 
-This creates `comments` as a _nested resource_ within `articles`. This is
-another part of capturing the hierarchical relationship that exists between
-articles and comments.
+First, let's find an article:
 
-TIP: For more information on routing, see the [Rails Routing](routing.html)
-guide.
+```
+irb(main):001:0> article = Article.first
 
-### Generating a Controller
+Article Load (0.1ms)  SELECT "articles".* FROM "articles" ORDER BY "articles"."id" ASC LIMIT ?  [["LIMIT", 1]]
 
-With the model in hand, you can turn your attention to creating a matching
-controller. Again, we'll use the same generator we used before:
-
-```bash
-$ bin/rails generate controller Comments
+=> #<Article id: 1, title: "Hello Rails", body: "I'm on Rails", created_at: "2020-01-20 05:22:45", updated_at: "2020-01-20 05:22:45">
 ```
 
-This creates four files and one empty directory:
+Next up, let's create a new comment for this article by using the `comments` association method:
 
-| File/Directory                               | Purpose                                  |
-| -------------------------------------------- | ---------------------------------------- |
-| app/controllers/comments_controller.rb       | The Comments controller                  |
-| app/views/comments/                          | Views of the controller are stored here  |
-| test/controllers/comments_controller_test.rb | The test for the controller              |
-| app/helpers/comments_helper.rb               | A view helper file                       |
-| app/assets/stylesheets/comments.scss         | Cascading style sheet for the controller |
+```
+irb(main):002:0> article.comments.create(commenter: "DHH", body: "Welcome to Rails!")
 
-Like with any blog, our readers will create their comments directly after
-reading the article, and once they have added their comment, will be sent back
-to the article show page to see their comment now listed. Due to this, our
-`CommentsController` is there to provide a method to create comments and delete
-spam comments when they arrive.
+Comment Create (0.4ms)  INSERT INTO "comments" ("commenter", "body", "article_id", "created_at", "updated_at") VALUES (?, ?, ?, ?, ?)  [["commenter", "DHH"], ["body", "Welcome to Rails!"], ["article_id", 9], ["created_at", "2020-01-20 06:19:33.572961"], ["updated_at", "2020-01-20 06:19:33.572961"]]
 
-So first, we'll wire up the Article show template
-(`app/views/articles/show.html.erb`) to let us make a new comment:
+=> #<Comment id: 1, commenter: "DHH", body: "Welcome to Rails!", article_id: 1, created_at: "2020-01-20 06:19:33", updated_at: "2020-01-20 06:19:33">
+```
 
-```html+erb
-<p>
-  <strong>Title:</strong>
-  <%= @article.title %>
-</p>
+If you look at the list of attributes here, you'll see that both `commenter` and `body` are set the values that we passed in. We have come to expect this behaviour from Active Record: we give it attributes, it sets them on the object.
 
-<p>
-  <strong>Text:</strong>
-  <%= @article.text %>
-</p>
+What we haven't seen before is what has happened to `article_id` here. That attribute has been automatically set to the ID of the `article` object. This is what links that `Comment` object back to the article.
+
+To find an article's comments, we can do this:
+
+```
+irb(main):003:0> article.comments
+
+Comment Load (0.9ms)  SELECT "comments".* FROM "comments" WHERE "comments"."article_id" = ? LIMIT ?  [["article_id", 9], ["LIMIT", 11]]
+
+=> #<ActiveRecord::Associations::CollectionProxy [#<Comment id: 1, commenter: "DHH", body: "Welcome to Rails!", article_id: 9, created_at: "2020-01-20 06:19:33", updated_at: "2020-01-20 06:19:33">]>
+```
+
+This `comments` method on `Article` objects allows us to work with the comments for any given article.
+
+Similarly, there is an `article` method on comments. Let's see that in action too:
+
+```
+irb(main):004:0> comment = Comment.first
+
+Comment Load (0.2ms)  SELECT "comments".* FROM "comments" ORDER BY "comments"."id" ASC LIMIT ?  [["LIMIT", 1]]
+
+=> #<Comment id: 1, commenter: "DHH", body: "Welcome to Rails!", article_id: 9, created_at: "2020-01-20 06:19:33", updated_at: "2020-01-20 06:19:33">
+
+
+irb(main):005:0> comment.article
+
+Article Load (0.2ms)  SELECT "articles".* FROM "articles" WHERE "articles"."id" = ? LIMIT ?  [["id", 9], ["LIMIT", 1]]
+
+=> #<Article id: 9, title: "dsfsadfasdf", body: "asdfasdfasdf", created_at: "2020-01-20 05:22:45", updated_at: "2020-01-20 05:22:45">
+```
+
+This `article` method is granted to us by the `belongs_to` method call in the `Comment` model.
+
+TIP: For more information on Active Record associations, see the [Active Record Associations](association_basics.html) guide.
+
+### Displaying comments on articles
+
+Now that we can create comments on articles, it would be really useful to display them somewhere. The most appropriate place to do that would be within the `app/views/articles/show.html.erb` view. Let's change this view now to display all of the comments:
+
+```erb
+<h1><%= @article.title %></h1>
+
+<%= @article.body %>
+
+<h2>Comments</h2>
+
+<% @article.comments.each do |comment| %>
+  <p>
+    <strong>Commenter:</strong>
+    <%= comment.commenter %>
+  </p>
+
+  <p>
+    <strong>Comment:</strong>
+    <%= comment.body %>
+  </p>
+<% end %>
+
+<div>
+  <%= link_to "Back", "/" %>
+</div>
+```
+
+The new code that we've just added to this view will go through all of the article's comments and display the commenter and the comment that was made. When we go to <http://localhost:3000/articles/1> now, we should see this comment appear:
+
+![Article with comments](/images/getting_started/article_with_comments.png)
+
+Well, that was pretty straight forward! Rails has given us an easy way to list all of the article comments, by way of the `has_many` method in the `Article` model.
+
+### Adding a comment
+
+Now that we have a way to see all of the current comments, let's add a form that lets us create additional comments. To start with, we're going to put this form in `app/views/articles/show.html.erb`, just below the comments we just added:
+
+```erb
+
+<% @article.comments.each do |comment| %>
+  ...
+<% end %>
 
 <h2>Add a comment:</h2>
-<%= form_with model: [ @article, @article.comments.build ], local: true do |form| %>
+<%= form_with model: [@article, @article.comments.build], local: true do |form| %>
   <p>
     <%= form.label :commenter %><br>
     <%= form.text_field :commenter %>
@@ -2214,14 +2263,107 @@ So first, we'll wire up the Article show template
     <%= form.submit %>
   </p>
 <% end %>
-
-<%= link_to 'Edit', edit_article_path(@article) %> |
-<%= link_to 'Back', articles_path %>
 ```
 
-This adds a form on the `Article` show page that creates a new comment by
-calling the `CommentsController` `create` action. The `form_with` call here uses
-an array, which will build a nested route, such as `/articles/1/comments`.
+This form looks almost like the one in `app/views/articles/_form.html.erb`, but it has one key difference: the `model` key has been passed an array, instead of a single model instance. What will happen here is that the form will build what's called a _nested route_ for the comment.
+
+The second element in that array is `@article.comments.build`. This is a helper method that comes from `has_many`, that is essentially equivalent to this code:
+
+```
+Comment.new(article_id: @article.id)
+```
+
+We're going to be building a new comment for the purposes of saving it to the database, eventually.
+
+If we refresh <http://localhost:3000/articles/1>, we'll see an error message which hints a little bit at this nested route:
+
+![NoMethodError: article_comments_path](/images/getting_started/no_method_error_article_comments_path.png)
+
+The `form_with` helper here is attempting to use a routing helper called `article_comments_path` to generate the route for the form. This routing helper doesn't exist yet, and we'll create it in a moment. But first, let's talk about how Rails came to be wanting `article_comments_path` in the first place.
+
+When we use `form_with`'s `:model` option, it combines the _class names_ of the resources we pass it into a routing helper. Back when we were doing `form_with model: @article`, it would see that the class name of `@article` was `Article`. Then, `form_with` would see if this object had been saved to the database before or not. If the object had not been saved, the form would use `articles_path` -- the _plural_ version of the routing helper. If the object had been saved, it would use `article_path` -- the _singular_ version of routing helper.
+
+The same rule applies here. `form_with`'s underlying code checks to see what `@article` is first. It's an `Article` that has been saved to the database, so the first part of the routing helper is `article`. Then it checks what `@article.comments.build` is. This object is a `Comment` that has _not_ been saved to the database, so the helper's next component is `comments`. Then we're out of array elements, so `form_with` puts `_path` on the end. This is how we arrive at `article_comments_path`.
+
+This is another one of those excellent Rails conventions you've heard about throughout this guide. And it's one of the more "magical" (or "confusing") aspects of Rails. So don't worry too much if you don't get it first pass.
+
+In order to solve the issue here, we need to add the route that has that routing helper. This time, however, instead of writing seven routes one-at-a-time for comments, just like we did for articles, we're going to use `resources` again.
+
+Open up the `config/routes.rb` file again, and edit it as follows:
+
+```ruby
+Rails.application.routes.draw do
+  root "articles#index"
+
+  resources :articles do
+    resources :comments
+  end
+end
+```
+
+This creates `comments` as a _nested resource_ within `articles`. This is another part of capturing the hierarchical relationship that exists between articles and comments. By nesting comments inside of articles like this, this will give us the `article_comments_path` helper that our form is expecting.
+
+We can verify this by going into a terminal and running:
+
+```
+rails routes -c comments
+```
+
+And we'll see these routes:
+
+```
+              Prefix Verb   URI Pattern                                       Controller#Action
+    article_comments GET    /articles/:article_id/comments(.:format)          comments#index
+                     POST   /articles/:article_id/comments(.:format)          comments#create
+ new_article_comment GET    /articles/:article_id/comments/new(.:format)      comments#new
+edit_article_comment GET    /articles/:article_id/comments/:id/edit(.:format) comments#edit
+     article_comment GET    /articles/:article_id/comments/:id(.:format)      comments#show
+                     PATCH  /articles/:article_id/comments/:id(.:format)      comments#update
+                     PUT    /articles/:article_id/comments/:id(.:format)      comments#update
+                     DELETE /articles/:article_id/comments/:id(.:format)      comments#destroy
+```
+
+The `article_comments` routing helper is the first line. We can see from this routing helper that it will generate the following path:
+
+```
+/articles/:article_id/comments
+```
+
+We can see this in action if we go back to <http://localhost:3000/articles/1> and inspect the page's HTML source again. We'll see the form has that route as its `action` attribute:
+
+```html
+<form action="/articles/9/comments" accept-charset="UTF-8" method="post">
+```
+
+TIP: For more information on routing, see the [Rails Routing](routing.html)
+guide.
+
+When we fill out the comment form and click "Create Comment", we'll now see that the `CommentsController` is missing:
+
+![Comments Controller missing](/images/getting_started/comments_controller_missing.png)
+
+### Generating a Controller
+
+To fix this issue, we will need to generate the `CommentsController`. Let's do that now:
+
+
+```bash
+$ bin/rails g controller comments
+```
+
+This creates four files and one empty directory:
+
+| File/Directory                               | Purpose                                  |
+| -------------------------------------------- | ---------------------------------------- |
+| app/controllers/comments_controller.rb       | The Comments controller                  |
+| app/views/comments/                          | Views of the controller are stored here  |
+| test/controllers/comments_controller_test.rb | The test for the controller              |
+| app/helpers/comments_helper.rb               | A view helper file                       |
+| app/assets/stylesheets/comments.scss         | Cascading style sheet for the controller |
+
+If we attempt to submit the form again, we'll see that the `create` action is missing in this new controller:
+
+![Create action missing in CommentsController](/images/getting_started/create_action_comments_controller.png)
 
 Let's wire up the `create` in `app/controllers/comments_controller.rb`:
 
@@ -2240,85 +2382,44 @@ class CommentsController < ApplicationController
 end
 ```
 
-You'll see a bit more complexity here than you did in the controller for
-articles. That's a side-effect of the nesting that you've set up. Each request
-for a comment has to keep track of the article to which the comment is attached,
-thus the initial call to the `find` method of the `Article` model to get the
-article in question.
+You'll see a bit more complexity here than you did in the controller for articles. That's a side-effect of the nesting that you've set up. Each request for a comment has to keep track of the article to which the comment is attached, thus the initial call to the `find` method of the `Article` model to get the article in question.
 
-In addition, the code takes advantage of some of the methods available for an
-association. We use the `create` method on `@article.comments` to create and
-save the comment. This will automatically link the comment so that it belongs to
-that particular article.
+But where did we get the idea for `article_id` from? Well, if we look at our route again with:
 
-Once we have made the new comment, we send the user back to the original article
-using the `article_path(@article)` helper. As we have already seen, this calls
-the `show` action of the `ArticlesController` which in turn renders the
-`show.html.erb` template. This is where we want the comment to show, so let's
-add that to the `app/views/articles/show.html.erb`.
-
-```html+erb
-<p>
-  <strong>Title:</strong>
-  <%= @article.title %>
-</p>
-
-<p>
-  <strong>Text:</strong>
-  <%= @article.text %>
-</p>
-
-<h2>Comments</h2>
-<% @article.comments.each do |comment| %>
-  <p>
-    <strong>Commenter:</strong>
-    <%= comment.commenter %>
-  </p>
-
-  <p>
-    <strong>Comment:</strong>
-    <%= comment.body %>
-  </p>
-<% end %>
-
-<h2>Add a comment:</h2>
-<%= form_with model: [ @article, @article.comments.build ], local: true do |form| %>
-  <p>
-    <%= form.label :commenter %><br>
-    <%= form.text_field :commenter %>
-  </p>
-  <p>
-    <%= form.label :body %><br>
-    <%= form.text_area :body %>
-  </p>
-  <p>
-    <%= form.submit %>
-  </p>
-<% end %>
-
-<%= link_to 'Edit', edit_article_path(@article) %> |
-<%= link_to 'Back', articles_path %>
+```
+rails routes -c comments
 ```
 
-Now you can add articles and comments to your blog and have them show up in the
-right places.
+Then we'll see:
 
-![Article with Comments](images/getting_started/article_with_comments.png)
+```
+              Prefix Verb   URI Pattern                                       Controller#Action
+    article_comments GET    /articles/:article_id/comments
+```
+
+The colon before `:article_id` indicates that this part of the URL will be available as `params[:article_id]` in our controller. This is why we're using `:article_id` here, and not `:id`.
+
+In addition, the code takes advantage of some of the methods available for an association. We use the `create` method on `@article.comments` to create and save the comment. This will automatically link the comment so that it belongs to
+that particular article, just as we saw earlier when we created a comment in the Rails console.
+
+Once we have made the new comment, we send the user back to the original article using the `article_path(@article)` helper. As we have already seen, this calls the `show` action of the `ArticlesController` which in turn renders the `show.html.erb` template.
+
+If we fill out the comment form again, we will see our comment appear.
+
+Now you can add articles and comments to your blog and have them show up in the right places.
+
+![Article with Two Comments](/images/getting_started/article_with_two_comments.png)
 
 Refactoring
 -----------
 
-Now that we have articles and comments working, take a look at the
-`app/views/articles/show.html.erb` template. It is getting long and awkward. We
-can use partials to clean it up.
+Now that we have articles and comments working, take a look at the `app/views/articles/show.html.erb` template. It is getting long and awkward. We can use partials to clean this view up.
 
 ### Rendering Partial Collections
 
-First, we will make a comment partial to extract showing all the comments for
-the article. Create the file `app/views/comments/_comment.html.erb` and put the
-following into it:
+First, we will make a comment partial to extract showing all the comments for the article. Create the file `app/views/comments/_comment.html.erb` and put the following into it:
 
-```html+erb
+```erb
 <p>
   <strong>Commenter:</strong>
   <%= comment.commenter %>
@@ -2333,7 +2434,7 @@ following into it:
 Then you can change `app/views/articles/show.html.erb` to look like the
 following:
 
-```html+erb
+```erb
 <p>
   <strong>Title:</strong>
   <%= @article.title %>
@@ -2347,38 +2448,27 @@ following:
 <h2>Comments</h2>
 <%= render @article.comments %>
 
-<h2>Add a comment:</h2>
-<%= form_with model: [ @article, @article.comments.build ], local: true do |form| %>
-  <p>
-    <%= form.label :commenter %><br>
-    <%= form.text_field :commenter %>
-  </p>
-  <p>
-    <%= form.label :body %><br>
-    <%= form.text_area :body %>
-  </p>
-  <p>
-    <%= form.submit %>
-  </p>
-<% end %>
-
-<%= link_to 'Edit', edit_article_path(@article) %> |
-<%= link_to 'Back', articles_path %>
+...
 ```
 
-This will now render the partial in `app/views/comments/_comment.html.erb` once
-for each comment that is in the `@article.comments` collection. As the `render`
-method iterates over the `@article.comments` collection, it assigns each
-comment to a local variable named the same as the partial, in this case
-`comment`, which is then available in the partial for us to show.
+This is the third style of `render` that we've seen throughout this guide.
+
+The first was `render` in an action. That one will render a view by using code like `render "new"`.
+
+The second was `render` in a view, we saw it in `app/views/articles/new.html.erb` and `app/views/articles/edit.html.erb`. It was written as `<%= render "form", article: @article %>`, and that meant to render the partial at `app/views/articles/_form.html.erb`.
+
+This third one is `render` with a collection of objects. Rails will inspect these objects and see what class they are, and then it will render a partial that matches the name of the class: `comments/_comment.html.erb` for this one. If we were to do the same sort of thing for articles, it would render `articles/_article.html.erb`.
+
+Inside the `comments/_comment.html.erb` partial, we're able to refer to the local variable `comment` to refer to each comment, just like we did earlier with the `each` version of this code.
 
 ### Rendering a Partial Form
 
-Let us also move that new comment section out to its own partial. Again, you
-create a file `app/views/comments/_form.html.erb` containing:
+Let's keep tidying up this `app/views/articles/show.html.erb` view. We can definitely move that comment form out too.
 
-```html+erb
-<%= form_with model: [ @article, @article.comments.build ], local: true do |form| %>
+Let us also move that new comment section out to its own partial. To do this, we create a file `app/views/comments/_form.html.erb` containing:
+
+```erb
+<%= form_with model: [article, article.comments.build], local: true do |form| %>
   <p>
     <%= form.label :commenter %><br>
     <%= form.text_field :commenter %>
@@ -2395,46 +2485,30 @@ create a file `app/views/comments/_form.html.erb` containing:
 
 Then you make the `app/views/articles/show.html.erb` look like the following:
 
-```html+erb
-<p>
-  <strong>Title:</strong>
-  <%= @article.title %>
-</p>
-
-<p>
-  <strong>Text:</strong>
-  <%= @article.text %>
-</p>
+```erb
+...
 
 <h2>Comments</h2>
 <%= render @article.comments %>
 
 <h2>Add a comment:</h2>
-<%= render 'comments/form' %>
+<%= render "comments/form", article: @article %>
 
-<%= link_to 'Edit', edit_article_path(@article) %> |
-<%= link_to 'Back', articles_path %>
+...
 ```
 
-The second render just defines the partial template we want to render,
-`comments/form`. Rails is smart enough to spot the forward slash in that
-string and realize that you want to render the `_form.html.erb` file in
-the `app/views/comments` directory.
-
-The `@article` object is available to any partials rendered in the view because
-we defined it as an instance variable.
+This is the second version of the `render` method: it will render that partial at `app/views/comments/_form.html.erb` and pass through the instance variable of `@article` as a local variable called `article` to that partial.
 
 Deleting Comments
 -----------------
 
-Another important feature of a blog is being able to delete spam comments. To do
-this, we need to implement a link of some sort in the view and a `destroy`
+Another important feature of a blog is being able to delete spam comments. To do this, we need to implement a link of some sort in the view and a `destroy`
 action in the `CommentsController`.
 
 So first, let's add the delete link in the
 `app/views/comments/_comment.html.erb` partial:
 
-```html+erb
+```erb
 <p>
   <strong>Commenter:</strong>
   <%= comment.commenter %>
@@ -2452,9 +2526,25 @@ So first, let's add the delete link in the
 </p>
 ```
 
-Clicking this new "Destroy Comment" link will fire off a `DELETE
-/articles/:article_id/comments/:id` to our `CommentsController`, which can then
-use this to find the comment we want to delete, so let's add a `destroy` action
+The second argument to `link_to` is new to us. Well, sort of. We've seen it just before in the form for comments, but that was with `form_with`, and this is with `link_to`. This syntax for `link_to` works exactly the same as it did back in `form_with`; it works to build a routing helper. The `link_to` helper checks to see what kind of object `comment.article` is. It's an `Article` object and that object exists in the database, so the first part of that helper is `article`. Then the second object is a `Comment` object, and so the second part is `comment`. This means that the routing helper used will be `article_comment_path`.
+
+We could write this code out in a longer fashion if we wished:
+
+```erb
+<p>
+  <%= link_to 'Destroy Comment', article_comment_path(comment.article, comment),
+               method: :delete,
+               data: { confirm: 'Are you sure?' } %>
+</p>
+```
+
+But Rails' routing conventions save us some time and keystrokes by allowing us to write `[comment.article, comment]` instead.
+
+Clicking this new "Destroy Comment" link will fire off a `DELETE /articles/:article_id/comments/:id` to our `CommentsController`, which can then use this to find the comment we want to delete. Right now, the `destroy` action that matches that route is missing, and so we will see this if we attempt to delete a comment:
+
+![Destroy not found](/images/getting_started/comments_destroy_not_found.png)
+
+So let's add a `destroy` action
 to our controller (`app/controllers/comments_controller.rb`):
 
 ```ruby
@@ -2479,17 +2569,25 @@ class CommentsController < ApplicationController
 end
 ```
 
-The `destroy` action will find the article we are looking at, locate the comment
-within the `@article.comments` collection, and then remove it from the
-database and send us back to the show action for the article.
+The `destroy` action will find the article we are looking at, locate the comment within the `@article.comments` collection, and then remove it from the database and send us back to the show action for the article.
 
+If we attempt to delete a comment again, this time it will disppaear.
 
 ### Deleting Associated Objects
 
-If you delete an article, its associated comments will also need to be
-deleted, otherwise they would simply occupy space in the database. Rails allows
-you to use the `dependent` option of an association to achieve this. Modify the
-Article model, `app/models/article.rb`, as follows:
+If you delete an article, its associated comments will also need to be deleted, otherwise we would see an `ActiveRecord::InvalidForeignKey` error happen:
+
+![Foreign key constraint](/images/getting_started/foreign_key_constraint.png)
+
+This error happens because the database will not allow `comments` to be without an associated article, due to this line in the `db/migrate/[timestamp]_create_comments.rb` migration:
+
+```
+t.references :article, null: false, foreign_key: true
+```
+
+The `foreign_key` option on this line, when set to `true`, says  that the `article_id` column within the `comments` table must have a matching `id` value in the `articles` table. If a situation arises where this _might_ happen, the database raises a _foreign key constraint_ error, which is what we're seeing here.
+
+To avoid this issue, we need to give our `Article`'s `comments` association one extra option, called `dependent`. Let's change `app/models/article.rb` to this:
 
 ```ruby
 class Article < ApplicationRecord
@@ -2499,25 +2597,20 @@ class Article < ApplicationRecord
 end
 ```
 
+Now when an article is deleted, all of its comments will be deleted too, and we will avoid having a foreign key constraint error happen.
+
 Security
 --------
 
 ### Basic Authentication
 
-If you were to publish your blog online, anyone would be able to add, edit and
-delete articles or delete comments.
+If you were to publish your blog online, anyone would be able to add, edit and delete articles or delete comments.
 
-Rails provides a very simple HTTP authentication system that will work nicely in
-this situation.
+Rails provides a very simple HTTP authentication system that will work nicely in this situation.
 
-In the `ArticlesController` we need to have a way to block access to the
-various actions if the person is not authenticated. Here we can use the Rails
-`http_basic_authenticate_with` method, which allows access to the requested
-action if that method allows it.
+In the `ArticlesController` we need to have a way to block access to the various actions if the person is not authenticated. Here we can use the Rails `http_basic_authenticate_with` method, which allows access to the requested action if that method allows it.
 
-To use the authentication system, we specify it at the top of our
-`ArticlesController` in `app/controllers/articles_controller.rb`. In our case,
-we want the user to be authenticated on every action except `index` and `show`,
+To use the authentication system, we specify it at the top of our `ArticlesController` in `app/controllers/articles_controller.rb`. In our case, we want the user to be authenticated on every action except `index` and `show`,
 so we write that:
 
 ```ruby
@@ -2532,8 +2625,7 @@ class ArticlesController < ApplicationController
   # snippet for brevity
 ```
 
-We also want to allow only authenticated users to delete comments, so in the
-`CommentsController` (`app/controllers/comments_controller.rb`) we write:
+We also want to allow only authenticated users to delete comments, so in the `CommentsController` (`app/controllers/comments_controller.rb`) we write:
 
 ```ruby
 class CommentsController < ApplicationController
@@ -2548,8 +2640,7 @@ class CommentsController < ApplicationController
   # snippet for brevity
 ```
 
-Now if you try to create a new article, you will be greeted with a basic HTTP
-Authentication challenge:
+Now if you try to create a new article, you will be greeted with a basic HTTP Authentication challenge:
 
 ![Basic HTTP Authentication Challenge](images/getting_started/challenge.png)
 
