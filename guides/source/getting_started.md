@@ -984,390 +984,33 @@ This will allow us to navigate back to the list of articles easily.
 With that small change done, let's now look at how we can create new articles
 within this application.
 
-### The first form
+### Creating new articles
 
-To create a form within this template, you will use a *form
-builder*. The primary form builder for Rails is provided by a helper
-method called `form_with`. To use this method, add this code into
-`app/views/articles/new.html.erb`:
+To have a place to create new articles in our application, we're going to need create a new route, action and view. On that view, we're going to have this form:
 
-```html+erb
-<%= form_with scope: :article, local: true do |form| %>
-  <p>
-    <%= form.label :title %><br>
-    <%= form.text_field :title %>
-  </p>
+![New article form](images/getting_started/new_article.png)
 
-  <p>
-    <%= form.label :text %><br>
-    <%= form.text_area :text %>
-  </p>
-
-  <p>
-    <%= form.submit %>
-  </p>
-<% end %>
-```
-
-If you refresh the page now, you'll see the exact same form from our example above.
-Building forms in Rails is really just that easy!
-
-When you call `form_with`, you pass it an identifying scope for this
-form. In this case, it's the symbol `:article`. This tells the `form_with`
-helper what this form is for. Inside the block for this method, the
-`FormBuilder` object - represented by `form` - is used to build two labels and two
-text fields, one each for the title and text of an article. Finally, a call to
-`submit` on the `form` object will create a submit button for the form.
-
-There's one problem with this form though. If you inspect the HTML that is
-generated, by viewing the source of the page, you will see that the `action`
-attribute for the form is pointing at `/articles/new`. This is a problem because
-this route goes to the very page that you're on right at the moment, and that
-route should only be used to display the form for a new article.
-
-The form needs to use a different URL in order to go somewhere else.
-This can be done quite simply with the `:url` option of `form_with`.
-Typically in Rails, the action that is used for new form submissions
-like this is called "create", and so the form should be pointed to that action.
-
-Edit the `form_with` line inside `app/views/articles/new.html.erb` to look like
-this:
-
-```html+erb
-<%= form_with scope: :article, url: articles_path, local: true do |form| %>
-```
-
-In this example, the `articles_path` helper is passed to the `:url` option.
-To see what Rails will do with this, we look back at the output of
-`bin/rails routes`:
-
-```bash
-$ bin/rails routes
-      Prefix Verb   URI Pattern                  Controller#Action
-welcome_index GET    /welcome/index(.:format)     welcome#index
-     articles GET    /articles(.:format)          articles#index
-              POST   /articles(.:format)          articles#create
-  new_article GET    /articles/new(.:format)      articles#new
- edit_article GET    /articles/:id/edit(.:format) articles#edit
-      article GET    /articles/:id(.:format)      articles#show
-              PATCH  /articles/:id(.:format)      articles#update
-              PUT    /articles/:id(.:format)      articles#update
-              DELETE /articles/:id(.:format)      articles#destroy
-         root GET    /                            welcome#index
-```
-
-The `articles_path` helper tells Rails to point the form to the URI Pattern
-associated with the `articles` prefix; and the form will (by default) send a
-`POST` request to that route. This is associated with the `create` action of
-the current controller, the `ArticlesController`.
-
-With the form and its associated route defined, you will be able to fill in the
-form and then click the submit button to begin the process of creating a new
-article, so go ahead and do that. When you submit the form, you should see a
-familiar error:
-
-![Unknown action create for ArticlesController]
-(images/getting_started/unknown_action_create_for_articles.png)
-
-You now need to create the `create` action within the `ArticlesController` for
-this to work.
-
-NOTE: By default `form_with` submits forms using Ajax thereby skipping full page
-redirects. To make this guide easier to get into we've disabled that with
-`local: true` for now.
-
-### Creating Articles
-
-To make the "Unknown action" go away, you can define a `create` action within
-the `ArticlesController` class in `app/controllers/articles_controller.rb`,
-underneath the `new` action, as shown:
+Let's start with the route:
 
 ```ruby
-class ArticlesController < ApplicationController
-  def new
-  end
-
-  def create
-  end
+Rails.application.routes.draw do
+  root "articles#index"
+  get "/articles", to: "articles#index"
+  get "/articles/new", to: "articles#new", as: :new_article
+  get "/articles/:id", to: "articles#show", as: :article
 end
 ```
 
-If you re-submit the form now, you may not see any change on the page. Don't worry!
-This is because Rails by default returns `204 No Content` response for an action if
-we don't specify what the response should be. We just added the `create` action
-but didn't specify anything about how the response should be. In this case, the
-`create` action should save our new article to the database.
+This place to create new articles will be `/articles/new`, and the route for this has _very_ intentionally been placed above the route for the `show` action. The reason for this is because routes in a Rails application are matched top-to-bottom. If we had `/articles/:id` first, that route would match `/articles/new`, and so if we went to `/articles/new`, the `show` action would serve that request, not the `new` action. And so for this reason, we put the `new` route _above_ the `show` action.
 
-When a form is submitted, the fields of the form are sent to Rails as
-_parameters_. These parameters can then be referenced inside the controller
-actions, typically to perform a particular task. To see what these parameters
-look like, change the `create` action to this:
+This `/articles/new` route will send the request to the `new` action within the `ArticlesController`, which we'll see in a minute. We've added the `:as` option here, as we will be using the `new_article_path` helper in a little while to provide a way to navigate to this form.
 
-```ruby
-def create
-  render plain: params[:article].inspect
-end
-```
+If we were to attempt to go to this route now, would see an error for the first time:
 
-The `render` method here is taking a very simple hash with a key of `:plain` and
-value of `params[:article].inspect`. The `params` method is the object which
-represents the parameters (or fields) coming in from the form. The `params`
-method returns an `ActionController::Parameters` object, which
-allows you to access the keys of the hash using either strings or symbols. In
-this situation, the only parameters that matter are the ones from the form.
+![Unknown action new for ArticlesController!](images/getting_started/unknown_action_new_for_articles.png)
 
-TIP: Ensure you have a firm grasp of the `params` method, as you'll use it fairly regularly. Let's consider an example URL: **http://www.example.com/?username=dhh&email=dhh@email.com**. In this URL, `params[:username]` would equal "dhh" and `params[:email]` would equal "dhh@email.com".
-
-If you re-submit the form one more time, you'll see something that looks like the following:
-
-```ruby
-<ActionController::Parameters {"title"=>"First Article!", "text"=>"This is my first article."} permitted: false>
-```
-
-This action is now displaying the parameters for the article that are coming in
-from the form. However, this isn't really all that helpful. Yes, you can see the
-parameters but nothing in particular is being done with them.
-
-### Creating the Article Model
-
-Models in Rails use a singular name, and their corresponding database tables
-use a plural name. Rails provides a generator for creating models, which most
-Rails developers tend to use when creating new models. To create the new model,
-run this command in your terminal:
-
-```bash
-$ bin/rails generate model Article title:string text:text
-```
-
-With that command we told Rails that we want an `Article` model, together
-with a _title_ attribute of type string, and a _text_ attribute
-of type text. Those attributes are automatically added to the `articles`
-table in the database and mapped to the `Article` model.
-
-Rails responded by creating a bunch of files. For now, we're only interested
-in `app/models/article.rb` and `db/migrate/20140120191729_create_articles.rb`
-(your name could be a bit different). The latter is responsible for creating
-the database structure, which is what we'll look at next.
-
-TIP: Active Record is smart enough to automatically map column names to model
-attributes, which means you don't have to declare attributes inside Rails
-models, as that will be done automatically by Active Record.
-
-### Running a Migration
-
-As we've just seen, `bin/rails generate model` created a _database migration_ file
-inside the `db/migrate` directory. Migrations are Ruby classes that are
-designed to make it simple to create and modify database tables. Rails uses
-rake commands to run migrations, and it's possible to undo a migration after
-it's been applied to your database. Migration filenames include a timestamp to
-ensure that they're processed in the order that they were created.
-
-If you look in the `db/migrate/YYYYMMDDHHMMSS_create_articles.rb` file
-(remember, yours will have a slightly different name), here's what you'll find:
-
-```ruby
-class CreateArticles < ActiveRecord::Migration[6.0]
-  def change
-    create_table :articles do |t|
-      t.string :title
-      t.text :text
-
-      t.timestamps
-    end
-  end
-end
-```
-
-The above migration creates a method named `change` which will be called when
-you run this migration. The action defined in this method is also reversible,
-which means Rails knows how to reverse the change made by this migration,
-in case you want to reverse it later. When you run this migration it will create
-an `articles` table with one string column and a text column. It also creates
-two timestamp fields to allow Rails to track article creation and update times.
-
-TIP: For more information about migrations, refer to [Active Record Migrations]
-(active_record_migrations.html).
-
-At this point, you can use a rails command to run the migration:
-
-```bash
-$ bin/rails db:migrate
-```
-
-Rails will execute this migration command and tell you it created the Articles
-table.
-
-```bash
-==  CreateArticles: migrating ==================================================
--- create_table(:articles)
-   -> 0.0019s
-==  CreateArticles: migrated (0.0020s) =========================================
-```
-
-NOTE. Because you're working in the development environment by default, this
-command will apply to the database defined in the `development` section of your
-`config/database.yml` file. If you would like to execute migrations in another
-environment, for instance in production, you must explicitly pass it when
-invoking the command: `bin/rails db:migrate RAILS_ENV=production`.
-
-### Saving Data in the Controller
-
-Back in `ArticlesController`, we need to change the `create` action
-to use the new `Article` model to save the data in the database.
-Open `app/controllers/articles_controller.rb` and change the `create` action to
-look like this:
-
-```ruby
-def create
-  @article = Article.new(params[:article])
-
-  @article.save
-  redirect_to @article
-end
-```
-
-Here's what's going on: every Rails model can be initialized with its
-respective attributes, which are automatically mapped to the respective
-database columns. In the first line we do just that (remember that
-`params[:article]` contains the attributes we're interested in). Then,
-`@article.save` is responsible for saving the model in the database. Finally,
-we redirect the user to the `show` action, which we'll define later.
-
-TIP: You might be wondering why the `A` in `Article.new` is capitalized above, whereas most other references to articles in this guide have used lowercase. In this context, we are referring to the class named `Article` that is defined in `app/models/article.rb`. Class names in Ruby must begin with a capital letter.
-
-TIP: As we'll see later, `@article.save` returns a boolean indicating whether
-the article was saved or not.
-
-If you now go to <http://localhost:3000/articles/new> you'll *almost* be able
-to create an article. Try it! You should get an error that looks like this:
-
-![Forbidden attributes for new article]
-(images/getting_started/forbidden_attributes_for_new_article.png)
-
-Rails has several security features that help you write secure applications,
-and you're running into one of them now. This one is called [strong parameters](action_controller_overview.html#strong-parameters),
-which requires us to tell Rails exactly which parameters are allowed into our
-controller actions.
-
-Why do you have to bother? The ability to grab and automatically assign all
-controller parameters to your model in one shot makes the programmer's job
-easier, but this convenience also allows malicious use. What if a request to
-the server was crafted to look like a new article form submit but also included
-extra fields with values that violated your application's integrity? They would
-be 'mass assigned' into your model and then into the database along with the
-good stuff - potentially breaking your application or worse.
-
-We have to define our permitted controller parameters to prevent wrongful mass
-assignment. In this case, we want to both allow and require the `title` and
-`text` parameters for valid use of `create`. The syntax for this introduces
-`require` and `permit`. The change will involve one line in the `create`
-action:
-
-```ruby
-  @article = Article.new(params.require(:article).permit(:title, :text))
-```
-
-This is often factored out into its own method so it can be reused by multiple
-actions in the same controller, for example `create` and `update`. Above and
-beyond mass assignment issues, the method is often made `private` to make sure
-it can't be called outside its intended context. Here is the result:
-
-```ruby
-def create
-  @article = Article.new(article_params)
-
-  @article.save
-  redirect_to @article
-end
-
-private
-  def article_params
-    params.require(:article).permit(:title, :text)
-  end
-```
-
-TIP: For more information, refer to the reference above and
-[this blog article about Strong Parameters]
-(https://weblog.rubyonrails.org/2012/3/21/strong-parameters/).
-
-### Showing Articles
-
-If you submit the form again now, Rails will complain about not finding the
-`show` action. That's not very useful though, so let's add the `show` action
-before proceeding.
-
-As we have seen in the output of `bin/rails routes`, the route for `show` action is
-as follows:
-
-```
-article GET    /articles/:id(.:format)      articles#show
-```
-
-The special syntax `:id` tells rails that this route expects an `:id`
-parameter, which in our case will be the id of the article.
-
-As we did before, we need to add the `show` action in
-`app/controllers/articles_controller.rb` and its respective view.
-
-NOTE: A frequent practice is to place the standard CRUD actions in each
-controller in the following order: `index`, `show`, `new`, `edit`, `create`, `update`
-and `destroy`. You may use any order you choose, but keep in mind that these
-are public methods; as mentioned earlier in this guide, they must be placed
-before declaring `private` visibility in the controller.
-
-Given that, let's add the `show` action, as follows:
-
-```ruby
-class ArticlesController < ApplicationController
-  def show
-    @article = Article.find(params[:id])
-  end
-
-  def new
-  end
-
-  # snippet for brevity
-```
-
-A couple of things to note. We use `Article.find` to find the article we're
-interested in, passing in `params[:id]` to get the `:id` parameter from the
-request. We also use an instance variable (prefixed with `@`) to hold a
-reference to the article object. We do this because Rails will pass all instance
-variables to the view.
-
-Now, create a new file `app/views/articles/show.html.erb` with the following
-content:
-
-```html+erb
-<p>
-  <strong>Title:</strong>
-  <%= @article.title %>
-</p>
-
-<p>
-  <strong>Text:</strong>
-  <%= @article.text %>
-</p>
-```
-
-With this change, you should finally be able to create new articles.
-Visit <http://localhost:3000/articles/new> and give it a try!
-
-![Show action for articles](images/getting_started/show_action_for_articles.png)
-
-### Listing all Articles
-
-We still need a way to list all our articles, so let's do that.
-The route for this as per output of `bin/rails routes` is:
-
-```
-articles GET    /articles(.:format)          articles#index
-```
-
-Add the corresponding `index` action for that route inside the
-`ArticlesController` in the `app/controllers/articles_controller.rb` file.
-When we write an `index` action, the usual practice is to place it as the
-first method in the controller. Let's do it:
+This error indicates that Rails cannot find the `new` action inside the
+`ArticlesController`. No worries, we will need to define this action.
 
 ```ruby
 class ArticlesController < ApplicationController
@@ -1381,100 +1024,281 @@ class ArticlesController < ApplicationController
 
   def new
   end
-
-  # snippet for brevity
+end
 ```
 
-And then finally, add the view for this action, located at
-`app/views/articles/index.html.erb`:
+We can put the `new` action under `show` in the controller, because the order of methods in classes doesn't matter in Ruby.
 
-```html+erb
-<h1>Listing Articles</h1>
+With the `new` method defined in `ArticlesController`, if you refresh
+<http://localhost:3000/articles/new> you'll see another error:
 
-<table>
-  <tr>
-    <th>Title</th>
-    <th>Text</th>
-    <th></th>
-  </tr>
+![Template is missing for articles/new](images/getting_started/template_is_missing_articles_new.png)
 
-  <% @articles.each do |article| %>
-    <tr>
-      <td><%= article.title %></td>
-      <td><%= article.text %></td>
-      <td><%= link_to 'Show', article_path(article) %></td>
-    </tr>
-  <% end %>
-</table>
+You're getting this error now because Rails expects empty actions like this one to have views associated with them to display their information. With no view available, Rails will raise an exception.
+
+Let's look at the full error message again:
+
+>ArticlesController#new is missing a template for request formats: text/html
+
+>NOTE!
+>Unless told otherwise, Rails expects an action to render a template with the same name, contained in a folder named after its controller. If this controller is an API responding with 204 (No Content), which does not require a template, then this error will occur when trying to access it via browser, since we expect an HTML template to be rendered for such requests. If that's the case, carry on.
+
+The message identifies which template is missing. In this case, it's the
+`articles/new` template. Next the message contains `request.formats` which specifies the format of template to be served in response. It is set to `text/html` as we requested this page via browser, so Rails is looking for an HTML template.
+
+The simplest template that would work in this case would be one located at `app/views/articles/new.html.erb`. The extension of this file name is important: the first extension is the _format_ of the template, and the second extension is the _handler_ that will be used to render the template.  Think of it reading right-to-left: "I'm going to _execute ERB_ to _generate HTML_ for the _`new` action_".
+
+So let's now go ahead now and create a new file at `app/views/articles/new.html.erb` and write this content in it:
+
+```html
+<h1>New Article</h1>
 ```
 
-Now if you go to <http://localhost:3000/articles> you will see a list of all the
-articles that you have created.
+To create a form within this template, you will use a *form
+builder*. The primary form builder for Rails is provided by a helper
+method called `form_with`. To use this method, add this code into
+`app/views/articles/new.html.erb`:
 
-### Adding Links
+```html
+<h1>New Article</h1>
 
-You can now create, show, and list articles. Now let's add some links to
-navigate through pages.
+<form action="/articles" method="post">
+  <p>
+    <label for="title">Title</label><br>
+    <input type="text" id="title" name="title" />
+  </p>
 
-Open `app/views/welcome/index.html.erb` and modify it as follows:
+  <p>
+    <label for="text">Text</label><br>
+    <textarea name="text" id="text"></textarea>
+  </p>
 
-```html+erb
-<h1>Hello, Rails!</h1>
-<%= link_to 'My Blog', controller: 'articles' %>
+  <p>
+    <input type="submit" value="Save Article" />
+  </p>
+</form>
 ```
 
-The `link_to` method is one of Rails' built-in view helpers. It creates a
-hyperlink based on text to display and where to go - in this case, to the path
-for articles.
-
-Let's add links to the other views as well, starting with adding this
-"New Article" link to `app/views/articles/index.html.erb`, placing it above the
-`<table>` tag:
+This is an awful lot of typing for building a form. Fortunately, Rails provides helpers for us to simplify matters:
 
 ```erb
-<%= link_to 'New article', new_article_path %>
-```
+<h1>New Article</h1>
 
-This link will allow you to bring up the form that lets you create a new article.
+<%= form_with scope: :article, local: true do |form| %>
+  <p>
+    <%= form.label :title %><br>
+    <%= form.text_field :title %>
+  </p>
 
-Now, add another link in `app/views/articles/new.html.erb`, underneath the
-form, to go back to the `index` action:
+  <p>
+    <%= form.label :body %><br>
+    <%= form.text_area :body %>
+  </p>
 
-```erb
-<%= form_with scope: :article, url: articles_path, local: true do |form| %>
-  ...
+  <p>
+    <%= form.submit %>
+  </p>
 <% end %>
-
-<%= link_to 'Back', articles_path %>
 ```
 
-Finally, add a link to the `app/views/articles/show.html.erb` template to
-go back to the `index` action as well, so that people who are viewing a single
-article can go back and view the whole list again:
 
-```html+erb
-<p>
-  <strong>Title:</strong>
-  <%= @article.title %>
-</p>
+The `form_with` helper method allows us to build a form. The first line of this provides us a block argument called `form`, and then throughout the form we use that to build labels and text inputs for our field.
 
-<p>
-  <strong>Text:</strong>
-  <%= @article.text %>
-</p>
+NOTE: By default `form_with` submits forms using Ajax thereby skipping full page redirects. To make this guide easier to get into we've disabled that with `local: true` for now.
 
-<%= link_to 'Back', articles_path %>
+This ERB code that uses `form_with` will output a HTML form that looks very similar to the one we hand-rolled, but there are some key differences. Here's what the `form_with` outputs:
+
+```html
+<form action="/articles/new" accept-charset="UTF-8" method="post"><input type="hidden" name="authenticity_token" value="DIwa34..." />
+  <p>
+    <label for="article_title">Title</label><br>
+    <input type="text" name="article[title]" id="article_title" />
+  </p>
+
+  <p>
+    <label for="article_text">Text</label><br>
+    <textarea name="article[text]" id="article_text">
+</textarea>
+  </p>
+
+  <p>
+    <input type="submit" name="commit" value="Save Article" data-disable-with="Save Article" />
+  </p>
+</form>
 ```
 
-TIP: If you want to link to an action in the same controller, you don't need to
-specify the `:controller` option, as Rails will use the current controller by
-default.
+The first key difference is that there is a hidden field called `authenticity_token` at the top. This is a security feature of Rails and it prevents outside people from submitting your forms maliciously using a technique called Cross Site Request Forgery. [This Stack Overflow answer explains further](https://stackoverflow.com/a/1571900/15245).
 
-TIP: In development mode (which is what you're working in by default), Rails
-reloads your application with every browser request, so there's no need to stop
-and restart the web server when a change is made.
+The labels and fields are mostly the way they were, with a key difference: the `name` fields have an `article[]` wrapping around their values. This wrapping comes from the `scope` argument that we have passed to `form_with`. This wrapping groups all the fields of the form into one hash once they're submitted, and that will make it easy to process once they reach our application.
+
+Speaking of, let's try and fill out this form now with a title and a body for our 3rd article:
+
+![The third article](images/getting_started/article_the_third.png)
+
+There's one problem with this form though. If you inspect the HTML that is generated, by viewing the source of the page, you will see that the `action` attribute for the form is pointing at `/articles/new`. This is a problem because this route goes to the very page that you're on right at the moment, and that route should only be used to display the form for a new article.
+
+The form needs to use a different URL in order to go somewhere else.
+This can be done quite simply with the `:url` option of `form_with`.
+Typically in Rails, the action that is used for new form submissions
+like this is called "create", and so the form should be pointed to that action.
+
+Edit the `form_with` line inside `app/views/articles/new.html.erb` to look like this:
+
+```erb
+<%= form_with scope: :article, url: "/articles", local: true do |form| %>
+```
+
+Once the form is submitted, it will send a `POST` request to `/articles`. If we hit submit on that form now, we'll be shown a Routing Error:
+
+![Routing Error](images/getting_started/routing_error_post_articles.png)
+
+This error means that we haven't set up a route to handle `POST` requests to `/articles`. If we look in our `config/routes.rb` file, we'll see that is correct:
+
+```ruby
+Rails.application.routes.draw do
+  root "articles#index"
+  get "/articles", to: "articles#index"
+  get "/articles/new", to: "articles#new", as: :new_article_path
+  get "/articles/:id", to: "articles#show", as: :article
+end
+```
+
+Let's add this new route now:
+
+```ruby
+Rails.application.routes.draw do
+  root "articles#index"
+  get "/articles", to: "articles#index"
+  get "/articles/new", to: "articles#new", as: :new_article_path
+  get "/articles/:id", to: "articles#show", as: :article
+  post "/articles", to: "articles#create"
+end
+```
+
+TIP: The `get` and `post` methods that we use in `config/routes.rb` match HTTP request methods. These methods are conventions used across all HTTP applications -- not just Rails! -- to clearly indicate what sort of action we want to do. A `GET` request is one that retrieves information. A `POST` request is one that _adds_ information. For more detials on these, see this MDN article: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods.
+
+When Rails receives a `POST /articles` request, it will now route that request to the `create` action of the `ArticlesController`. However, if we re-submit that form, we'll see that the action cannot be found:
+
+![Unknown action create for ArticlesController](images/getting_started/unknown_action_create_for_articles.png)
+
+You now need to create the `create` action within the `ArticlesController` for this to work.
+
+To make the "Unknown action" go away, we can define a `create` action within the `ArticlesController` class in `app/controllers/articles_controller.rb`, underneath the `new` action, as shown:
+
+```ruby
+class ArticlesController < ApplicationController
+  def new
+  end
+
+  def create
+  end
+end
+```
+
+If you re-submit the form now, you may not see any change on the page. Don't worry!
+
+This is because Rails by default returns `204 No Content` response for an action if we don't specify what the response should be. We just added the `create` action but didn't specify anything about how the response should be. In this case, the `create` action should save our new article to the database.
+
+When a form is submitted, the fields of the form are sent to Rails as
+_parameters_. Yes, there are the same parameters as we saw earlier when we used `params[:id]`. These parameters can then be referenced inside the controller actions, typically to perform a particular task. To see what these parameters look like, change the `create` action to this:
+
+```ruby
+def create
+  render plain: params[:article].inspect
+end
+```
+
+The `render` method here is taking a very simple hash with a key of `:plain` and value of `params[:article].inspect`. The `params` method is the object which represents the parameters (or fields) coming in from the form. The `params` method returns an `ActionController::Parameters` object, which allows you to access the keys of the hash using either strings or symbols. In this situation, the only parameters that matter are the ones from the form. Thanks to the use of the `scope` option on the form, all of our form's parameters are grouped under `params[:article]`.
+
+TIP: Ensure you have a firm grasp of the `params` method, as you'll use it fairly regularly. Let's consider an example URL: **http://www.example.com/?username=dhh&email=dhh@email.com**. In this URL, `params[:username]` would equal "dhh" and `params[:email]` would equal "dhh@email.com".
+
+If you re-submit the form one more time, you'll see something that looks like the following:
+
+```ruby
+<ActionController::Parameters {"title"=>"Article the Third", "text"=>"The Trilogy Ends"} permitted: false>
+```
+
+This action is now displaying the parameters for the article that are coming in from the form. However, this isn't really all that helpful. Yes, you can see the parameters but nothing in particular is being done with them.
+
+Let's change the  `create` action to use the `Article` model to save the data in the database. Let's change the `create` action to look like this:
+
+```ruby
+def create
+  article = Article.new(params[:article])
+  article.save
+
+  redirect_to article_path(article)
+end
+```
+
+NOTE: We're _not_ using an instance variable in this action. This is because this action redirects at the end, and since there is a redirection there is no view. So there is no need to make these variables instance variables.
+
+Here we use some familar code to create a new article -- we saw this previously right after we generated the `Article` model. The call to `new` and then to `save` will create a new article record in the database.
+
+The final line, a `redirect_to`, uses `article_path` to redirect back to the `show` action.
+
+If you now go to <http://localhost:3000/articles/new> you'll *almost* be able to create an article. Try it! You should get an error that looks like this:
+
+![Forbidden attributes for new article](images/getting_started/forbidden_attributes_for_new_article.png)
+
+Rails has several security features that help you write secure applications, and you're running into one of them now. This one is called [strong parameters](action_controller_overview.html#strong-parameters),
+which requires us to tell Rails exactly which parameters are allowed into our controller actions.
+
+Why do you have to bother? The ability to grab and automatically assign all controller parameters to your model in one shot makes the programmer's job easier, but this convenience also allows malicious use. What if this form was a bank account and we allowed just anyone to add in a new field that set their balance to whatever they wished? This would end up bad for us!
+
+We have to define our permitted controller parameters to prevent wrongful mass assignment. In this case, we want to both allow and require the `title` and `body` parameters for valid use of `create`. The syntax for this introduces `require` and `permit`. The change will involve one line in the `create` action:
+
+```ruby
+@article = Article.new(params.require(:article).permit(:title, :body))
+```
+
+This code is quite long and is often pulled out into its own method so it can be reused by multiple actions in the same controller. Above and beyond mass assignment issues, the method is often made `private` to make sure it can't be called outside its intended context. Here is the result:
+
+```ruby
+def create
+  @article = Article.new(article_params)
+
+  @article.save
+  redirect_to @article
+end
+
+private
+  def article_params
+    params.require(:article).permit(:title, :body)
+  end
+```
+
+TIP: For more information, refer to the reference above and
+[this blog article about Strong Parameters]
+(https://weblog.rubyonrails.org/2012/3/21/strong-parameters/).
+
+If we attempt to submit our form once more, this time it will succeed and we'll see the article's title and body. The URL should be <http://localhost:3000/articles/3>, indicating that we're now on the `show` action.
+
+Before we wrap up this section, let's add a link to `app/views/articles/index.html.erb` so that we can go to the "New Article" page from there:
+
+```erb
+<h1>Articles</h1>
+
+<%= link_to "New Article", new_article_path %>
+
+<ul>
+  <% @articles.each do |article| %>
+    <li>
+      <%= link_to article.title, article_path(article) %>
+    </li>
+  <% end %>
+</ul>
+```
+
+Now we'll have an easy link to go back to that page:
+
+![Three articles](images/getting_started/three_articles.png)
+
+Great! That's another two actions finished in our controller: `new` and `create`.
 
 ### Adding Some Validation
+
+Sometimes, in web applications, we want to make sure certain fields are filled in.
 
 The model file, `app/models/article.rb` is about as simple as it can get:
 
@@ -1484,14 +1308,11 @@ end
 ```
 
 There isn't much to this file - but note that the `Article` class inherits from
-`ApplicationRecord`. `ApplicationRecord` inherits from `ActiveRecord::Base`
-which supplies a great deal of functionality to your Rails models for free,
-including basic database CRUD (Create, Read, Update, Destroy) operations, data
-validation, as well as sophisticated search support and the ability to relate
-multiple models to one another.
+`ApplicationRecord`. `ApplicationRecord` inherits from `ActiveRecord::Base` which supplies a great deal of functionality to your Rails models for free. We've used some of this already: `Article.new`, `Article.all`, `Article.find` and so on.
 
-Rails includes methods to help you validate the data that you send to models.
-Open the `app/models/article.rb` file and edit it:
+One of these pieces of functionality is that Active Record includes methods to help you validate the data that you send to models and it's easy to use.
+
+Open the `app/models/article.rb` file and edit it to this:
 
 ```ruby
 class Article < ApplicationRecord
@@ -1500,19 +1321,66 @@ class Article < ApplicationRecord
 end
 ```
 
-These changes will ensure that all articles have a title that is at least five
-characters long. Rails can validate a variety of conditions in a model,
-including the presence or uniqueness of columns, their format, and the
-existence of associated objects. Validations are covered in detail in [Active
-Record Validations](active_record_validations.html).
+These changes will ensure that all articles have a title that is at least five characters long. Rails can validate a variety of conditions in a model, including the presence or uniqueness of columns, their format, and the existence of associated objects. Validations are covered in detail in [Active Record Validations](active_record_validations.html).
 
-With the validation now in place, when you call `@article.save` on an invalid
-article, it will return `false`. If you open
-`app/controllers/articles_controller.rb` again, you'll notice that we don't
-check the result of calling `@article.save` inside the `create` action.
-If `@article.save` fails in this situation, we need to show the form back to the
-user. To do this, change the `new` and `create` actions inside
-`app/controllers/articles_controller.rb` to these:
+This validation will now only let us save articles that have titles longer than 5 characters. Let's open up the console now and try:
+
+```bash
+rails console
+```
+
+```ruby
+irb(main):001:0> invalid_article = Article.new
+=> #<Article id: nil, title: nil, body: nil, created_at: nil, updated_at: nil>
+irb(main):002:0> invalid_article.save
+=> false
+```
+
+When `save` returns `false`, it means that the object is invalid and won't be saved to the database. To find out why, we can use this code:
+
+```ruby
+irb(main):003:0> invalid_article.errors.full_messages
+=> ["Title can't be blank", "Title is too short (minimum is 5 characters)"]
+```
+
+The `errors.full_messages` method chain shows two validation failure messages for our model:
+
+* The title can't be blank
+* The title is too short (minimum of 5 characters)
+
+That's because we've left the title blank. Now let's see what happens when we save an article with a valid title:
+
+```plaintext
+irb(main):006:0> article = Article.new title: "Getting Started"
+=> #<Article id: nil, title: "Getting Started", body: nil, created_at: nil, updated_at: nil>
+
+irb(main):007:0> article.save
+   (0.1ms)  begin transaction
+  Article Create (0.4ms)  INSERT INTO "articles" ("title", "created_at", "updated_at") VALUES (?, ?, ?)  [["title", "Getting Started"], ["created_at", "2020-01-19 09:56:25.693465"], ["updated_at", "2020-01-19 09:56:25.693465"]]
+   (0.6ms)  commit transaction
+=> true
+```
+
+The `save` call here has returned `true`, indicating that the article has passed validations. Also in the console, we can see an `Article Create` message, that contains an `INSERT INTO` database query, and so we can be confident that this article has now been inserted into our database.
+
+Now that we've seen how to handle invalid and valid articles in the console, let's try using this same technique in our controller.
+
+ If you open
+`app/controllers/articles_controller.rb` again, you'll notice that we don't check the result of calling `@article.save` inside the `create` action.
+
+```ruby
+def create
+  @article = Article.new(article_params)
+
+  @article.save
+  redirect_to @article
+end
+```
+
+
+If `@article.save` fails in this situation, we need to do something different: we need to show the form again to the user so that they can correct their mistake.
+
+To do this, let's change the `create` action to either redirect to the article if the save was successful (the method returns `true`) or to show the new form again if the save failed:
 
 ```ruby
 def new
@@ -1523,36 +1391,24 @@ def create
   @article = Article.new(article_params)
 
   if @article.save
-    redirect_to @article
+    redirect_to article_path(article)
   else
     render 'new'
   end
 end
-
-private
-  def article_params
-    params.require(:article).permit(:title, :text)
-  end
 ```
 
-The `new` action is now creating a new instance variable called `@article`, and
-you'll see why that is in just a few moments.
+The first thing to note here is that we've now switched from using a local variable `article` to using an instance variable, `@article`. The reason for this is the `else` statement. Inside that `else` we tell Rails to `render 'new'`. This tells Rails that we want the `app/views/articles/new.html.erb` view to be rendered in the case where our save fails.
 
-Notice that inside the `create` action we use `render` instead of `redirect_to`
-when `save` returns `false`. The `render` method is used so that the `@article`
-object is passed back to the `new` template when it is rendered. This rendering
-is done within the same request as the form submission, whereas the
-`redirect_to` will tell the browser to issue another request.
 
-If you reload
-<http://localhost:3000/articles/new> and
+If you reload <http://localhost:3000/articles/new> and
 try to save an article without a title, Rails will send you back to the
-form, but that's not very useful. You need to tell the user that
-something went wrong. To do that, you'll modify
-`app/views/articles/new.html.erb` to check for error messages:
+form, but that's not very useful. It doesn't tell us why something went wrong. To do that, we'll need to modify `app/views/articles/new.html.erb` to check for error messages:
 
-```html+erb
-<%= form_with scope: :article, url: articles_path, local: true do |form| %>
+```erb
+<h1>New Article</h1>
+
+<%= form_with scope: :article, url: "/articles", local: true do |form| %>
 
   <% if @article.errors.any? %>
     <div id="error_explanation">
@@ -1574,8 +1430,8 @@ something went wrong. To do that, you'll modify
   </p>
 
   <p>
-    <%= form.label :text %><br>
-    <%= form.text_area :text %>
+    <%= form.label :body %><br>
+    <%= form.text_area :body %>
   </p>
 
   <p>
@@ -1583,31 +1439,48 @@ something went wrong. To do that, you'll modify
   </p>
 
 <% end %>
-
-<%= link_to 'Back', articles_path %>
 ```
 
-A few things are going on. We check if there are any errors with
-`@article.errors.any?`, and in that case we show a list of all
-errors with `@article.errors.full_messages`.
+At the top of this view, we're now using `@article.errors` to check for any errors. The `@article` variable here will come from the `create` action, when the `app/views/articles/new.html.erb` view is rendered due to an invalid article.
 
-`pluralize` is a rails helper that takes a number and a string as its
-arguments. If the number is greater than one, the string will be automatically
+Inside the check for any errors, we call `pluralize`. `pluralize` is a rails helper that takes a number and a string as its arguments. If the number is greater than one, the string will be automatically
 pluralized.
 
-The reason why we added `@article = Article.new` in the `ArticlesController` is
-that otherwise `@article` would be `nil` in our view, and calling
-`@article.errors.any?` would throw an error.
+If we attempt to go to <http://localhost:3000/articles/new> at this point, we'll see it fail:
 
-TIP: Rails automatically wraps fields that contain an error with a div
-with class `field_with_errors`. You can define a CSS rule to make them
-standout.
+![NoMethodError](images/getting_started/no_method_in_form.png)
+
+This is happening because we're referring to a variable called `@article` within `app/views/articles/new.html.erb`, but the `new` action does not provide this variable at all.
+
+The path to this error is:
+
+1. Browser goes to http://localhost:3000/articles/new
+2. Rails sees `/articles/new` is the route, routes the request to the `ArticlesController`'s `new` action
+3. The `new` action is blank, and so Rails defaults to rendering `app/views/articles/new.html.erb`.
+4. The template attempts to reference `@article`, but it is not defined.
+
+So to make this error go away, we need to define this `@article` variable. We can do it like this in the `new` action inside `app/controllers/articles_controller.rb`:
+
+
+```ruby
+def new
+  @article = Article.new
+end
+```
+
+This `@article` is a brand-new `Article` object, and will be perfect for our form. It doesn't have any errors on it -- because we haven't tried saving it yet! -- and so the form will not display any errors.
+
+If we refresh this <http://localhost:3000/articles/new> page, we should see our form renders once again.
+
+![The form works again](images/getting_started/new_article.png)
 
 Now you'll get a nice error message when saving an article without a title when
 you attempt to do just that on the new article form
 <http://localhost:3000/articles/new>:
 
 ![Form With Errors](images/getting_started/form_with_errors.png)
+
+And there we have it! We now have the ability to create new articles within our application.
 
 ### Updating Articles
 
