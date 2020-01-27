@@ -37,18 +37,14 @@ powers, a JavaScript writer can make a web page that can update just parts of
 itself, without needing to get the full page data from the server. This is a
 powerful technique that we call Ajax.
 
-Rails ships with CoffeeScript by default, and so the rest of the examples
-in this guide will be in CoffeeScript. All of these lessons, of course, apply
-to vanilla JavaScript as well.
-
 As an example, here's some JavaScript code that makes an Ajax request:
 
-```
-    fetch("/test")
-      .then(data => data.text())
-      .then(html => {
-        document.querySelector('#results').insertAdjacentHTML('beforeend', data);
-      })
+```js
+fetch("/test")
+  .then((data) => data.text())
+  .then((html) => {
+    document.querySelector('#results').insertAdjacentHTML('beforeend', data);
+  })
 ```
 
 This code fetches data from "/test", and then appends the result to the `div`
@@ -71,57 +67,64 @@ Here's the simplest way to write JavaScript. You may see it referred to as
 'inline JavaScript':
 
 ```html
-<a href="#" onclick="this.style.backgroundColor='#990000'">Paint it red</a>
+<a href="#" onclick="event.preventDefault();this.style.backgroundColor='#990000'">Paint it red</a>
 ```
 When clicked, the link background will become red. Here's the problem: what
 happens when we have lots of JavaScript we want to execute on a click?
 
 ```html
-<a href="#" onclick="this.style.backgroundColor='#009900';this.style.color='#FFFFFF';">Paint it green</a>
+<a href="#" onclick="event.preventDefault();this.style.backgroundColor='#009900';this.style.color='#FFFFFF';">Paint it green</a>
 ```
 
 Awkward, right? We could pull the function definition out of the click handler,
 and turn it into CoffeeScript:
 
-```coffeescript
-@paintIt = (element, backgroundColor, textColor) ->
-  element.style.backgroundColor = backgroundColor
-  if textColor?
-    element.style.color = textColor
+```js
+window.paintIt = function(element, backgroundColor, textColor) {
+  element.style.backgroundColor = backgroundColor;
+  if (textColor) {
+    element.style.color = textColor;
+  }
+}
 ```
 
 And then on our page:
 
 ```html
-<a href="#" onclick="paintIt(this, '#990000')">Paint it red</a>
+<a href="#" onclick="event.preventDefault();paintIt(this, '#990000')">Paint it red</a>
 ```
 
 That's a little bit better, but what about multiple links that have the same
 effect?
 
 ```html
-<a href="#" onclick="paintIt(this, '#990000')">Paint it red</a>
-<a href="#" onclick="paintIt(this, '#009900', '#FFFFFF')">Paint it green</a>
-<a href="#" onclick="paintIt(this, '#000099', '#FFFFFF')">Paint it blue</a>
+<a href="#" onclick="event.preventDefault();paintIt(this, '#990000')">Paint it red</a>
+<a href="#" onclick="event.preventDefault();paintIt(this, '#009900', '#FFFFFF')">Paint it green</a>
+<a href="#" onclick="event.preventDefault();paintIt(this, '#000099', '#FFFFFF')">Paint it blue</a>
 ```
 
 Not very DRY, eh? We can fix this by using events instead. We'll add a `data-*`
 attribute to our link, and then bind a handler to the click event of every link
 that has that attribute:
 
-```coffeescript
-@paintIt = (element, backgroundColor, textColor) ->
-  element.style.backgroundColor = backgroundColor
-  if textColor?
-    element.style.color = textColor
+```js
+function paintIt(element, backgroundColor, textColor) {
+  element.style.backgroundColor = backgroundColor;
+  if (textColor) {
+    element.style.color = textColor;
+  }
+}
 
-$ ->
-  $("a[data-background-color]").click (e) ->
-    e.preventDefault()
+window.addEventListener("load", (_event) => {
+  document.querySelectorAll("a[data-background-color]").forEach((element) => {
+    element.addEventListener("click", (event) => {
+      event.preventDefault();
 
-    backgroundColor = $(this).data("background-color")
-    textColor = $(this).data("text-color")
-    paintIt(this, backgroundColor, textColor)
+      const {backgroundColor, textColor} = element.dataset;
+      paintIt(element, backgroundColor, textColor);
+    });
+  });
+});
 ```
 ```html
 <a href="#" data-background-color="#990000">Paint it red</a>
@@ -169,7 +172,7 @@ your form will be using Ajax. You can opt out of this behavior by
 passing the `:local` option `form_with`.
 
 ```erb
-<%= form_with(model: @article) do |f| %>
+<%= form_with(model: @article, id: "new-article") do |f| %>
   ...
 <% end %>
 ```
@@ -177,7 +180,7 @@ passing the `:local` option `form_with`.
 This will generate the following HTML:
 
 ```html
-<form action="/articles" accept-charset="UTF-8" method="post" data-remote="true">
+<form id="new-article" action="/articles" accept-charset="UTF-8" method="post" data-remote="true">
   ...
 </form>
 ```
@@ -189,13 +192,17 @@ You probably don't want to just sit there with a filled out `<form>`, though.
 You probably want to do something upon a successful submission. To do that,
 bind to the `ajax:success` event. On failure, use `ajax:error`. Check it out:
 
-```coffeescript
-$(document).ready ->
-  $("#new_article").on("ajax:success", (event) ->
-    [data, status, xhr] = event.detail
-    $("#new_article").append xhr.responseText
-  ).on "ajax:error", (event) ->
-    $("#new_article").append "<p>ERROR</p>"
+```js
+window.addEventListener("load", (_event) => {
+  let element = document.querySelector("#new-article");
+  element.addEventListener("ajax:success", (event) => {
+    const [_data, _status, xhr] = event.detail;
+    element.insertAdjacentHTML("beforeend", xhr.responseText);
+  });
+  element.addEventListener("ajax:error", (_event) => {
+    element.insertAdjacentHTML("beforeend", "<p>ERROR</p>");
+  });
+});
 ```
 
 Obviously, you'll want to be a bit more sophisticated than that, but it's a
@@ -231,10 +238,14 @@ click. We would generate some HTML like this:
 
 and write some CoffeeScript like this:
 
-```coffeescript
-$ ->
-  $("a[data-remote]").on "ajax:success", (event) ->
-    alert "The article was deleted."
+```js
+window.addEventListener("load", (_event) => {
+  document.querySelectorAll("a[data-remote]").forEach((element) => {
+    element.addEventListener("ajax:success", (event) => {
+      alert("The article was deleted.");
+    });
+  });
+});
 ```
 
 #### button_to
@@ -536,8 +547,8 @@ When using another library to make Ajax calls, it is necessary to add
 the security token as a default header for Ajax calls in your library. To get
 the token:
 
-```javascript
-var token = document.getElementsByName('csrf-token')[0].content
+```js
+let token = document.getElementsByName('csrf-token')[0].content
 ```
 
 You can then submit this token as a `X-CSRF-Token` header for your
