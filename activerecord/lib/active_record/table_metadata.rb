@@ -57,6 +57,10 @@ module ActiveRecord
       end
     end
 
+    def associated_predicate_builder(table_name)
+      associated_table(table_name).predicate_builder
+    end
+
     def polymorphic_association?
       association && association.polymorphic?
     end
@@ -68,6 +72,17 @@ module ActiveRecord
     def reflect_on_aggregation(aggregation_name)
       klass.reflect_on_aggregation(aggregation_name)
     end
+
+    protected
+      def predicate_builder
+        if klass
+          predicate_builder = klass.predicate_builder.dup
+          predicate_builder.instance_variable_set(:@table, self)
+          predicate_builder
+        else
+          PredicateBuilder.new(self)
+        end
+      end
 
     private
       attr_reader :klass, :types, :arel_table, :association
