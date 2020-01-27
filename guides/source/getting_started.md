@@ -91,7 +91,7 @@ ruby 2.5.0
 ```
 
 Rails requires Ruby version 2.5.0 or later. If the version number returned is
-less than that number, you'll need to install a fresh copy of Ruby.
+less than that number (such as 2.3.7, or 1.8.7), you'll need to install a fresh copy of Ruby.
 
 TIP: To quickly install Ruby and Ruby on Rails on your system in Windows, you can use
 [Rails Installer](http://railsinstaller.org). For more installation methods for most
@@ -232,8 +232,7 @@ enough to serve a page.
 
 ### Say "Hello", Rails
 
-To get Rails saying "Hello", you need to create at minimum a _controller_ and a
-_view_.
+To get Rails saying "Hello", you need to create at minimum a _route_, a _controller_ and a _view_.
 
 A controller's purpose is to receive specific requests for the application.
 _Routing_ decides which controller receives which requests. Often, there is more
@@ -242,49 +241,96 @@ different _actions_. Each action's purpose is to collect information to provide
 it to a view.
 
 A view's purpose is to display this information in a human readable format. An
-important distinction to make is that it is the _controller_, not the view,
-where information is collected. The view should just display that information.
+important distinction to make is that the _controller_, not the view,
+is where information is collected. The view should just display that information.
 By default, view templates are written in a language called eRuby (Embedded
 Ruby) which is processed by the request cycle in Rails before being sent to the
 user.
 
+When we make a request to our Rails application, we do so by making a request
+to a particular _route_. To start off, let's create a route in
+`config/routes.rb`:
+
+```ruby
+Rails.application.routes.draw do
+  get "/articles", to: "articles#index"
+
+  # For details on the DSL available within this file, see https://guides.rubyonrails.org/routing.html
+end
+```
+
+This is your application's _routing file_ which holds entries in a special [DSL
+(domain-specific
+language)](https://en.wikipedia.org/wiki/Domain-specific_language) that tells
+Rails how to connect incoming requests to controllers and actions.
+
+The line that we have just added says that we are going to match a `GET
+/articles` request to `articles#index`. This string passed as the `to` option
+represents the _controller_ and _action_ that will be responsible for handling
+this request.
+
+Controllers are classes that group together common methods for handling a
+particular _resource_. The methods inside controllers are given the name
+"actions", as they _act upon_ requests as they come in.
+
 To create a new controller, you will need to run the "controller" generator and
-tell it you want a controller called "Welcome" with an action called "index",
+tell it you want a controller called "articles" with an action called "index",
 just like this:
 
 ```bash
-$ bin/rails generate controller Welcome index
+$ bin/rails generate controller articles index
 ```
 
 Rails will create several files and a route for you.
 
 ```bash
-create  app/controllers/welcome_controller.rb
- route  get 'welcome/index'
+create  app/controllers/articles_controller.rb
+  route  get 'articles/index'
 invoke  erb
-create    app/views/welcome
-create    app/views/welcome/index.html.erb
+create    app/views/articles
+create    app/views/articles/index.html.erb
 invoke  test_unit
-create    test/controllers/welcome_controller_test.rb
+create    test/controllers/articles_controller_test.rb
 invoke  helper
-create    app/helpers/welcome_helper.rb
+create    app/helpers/articles_helper.rb
 invoke    test_unit
 invoke  assets
 invoke    scss
-create      app/assets/stylesheets/welcome.scss
+create      app/assets/stylesheets/articles.scss
 ```
 
-Most important of these are of course the controller, located at
-`app/controllers/welcome_controller.rb` and the view, located at
-`app/views/welcome/index.html.erb`.
+Most important of these is the controller, located at
+`app/controllers/articles_controller.rb`.
 
-Open the `app/views/welcome/index.html.erb` file in your text editor. Delete all
+Let's look at that controller now:
+
+```ruby
+class ArticlesController < ApplicationController
+  def index
+  end
+end
+```
+
+This controller defines a single action, or "method" in common Ruby terms,
+called `index`. This action is where we would define any logic that we would
+want to happen when a request comes in to this action. Right at this moment, we
+don't want this action to do anything, and so we'll keep it blank for now.
+
+When an action is left blank like this, Rails will default to rendering a view
+that matches the name of the controller and the name of the action. Views in a
+Rails application live in `app/views`, and so the default view for this action
+is going to be `app/views/articles/index.html.erb`.
+
+Open the `app/views/articles/index.html.erb` file in your text editor. Delete all
 of the existing code in the file, and replace it with the following single line
 of code:
 
 ```html
 <h1>Hello, Rails!</h1>
 ```
+
+If we go back to our browser and make a request to
+<http://localhost:3000/articles>, we'll see our text appear on the page.
 
 ### Setting the Application Home Page
 
@@ -1129,8 +1175,8 @@ you attempt to do just that on the new article form
 We've covered the "CR" part of CRUD. Now let's focus on the "U" part, updating
 articles.
 
-The first step we'll take is adding an `edit` action to the 
-`ArticlesController`, generally between the `new` and `create` 
+The first step we'll take is adding an `edit` action to the
+`ArticlesController`, generally between the `new` and `create`
 actions, as shown:
 
 ```ruby
