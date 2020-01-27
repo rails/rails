@@ -587,7 +587,7 @@ module ActiveRecord
       #  # ALTER TABLE "shapes" ADD "triangle" polygon
       def add_column(table_name, column_name, type, **options)
         at = create_alter_table table_name
-        at.add_column(column_name, type, options)
+        at.add_column(column_name, type, **options)
         execute schema_creation.accept at
       end
 
@@ -595,10 +595,14 @@ module ActiveRecord
       #
       #   remove_columns(:suppliers, :qualification, :experience)
       #
-      def remove_columns(table_name, *column_names)
+      # +type+ and other column options can be passed to make migration reversible.
+      #
+      #    remove_columns(:suppliers, :qualification, :experience, type: :string, null: false)
+      def remove_columns(table_name, *column_names, **options)
         raise ArgumentError.new("You must specify at least one column name. Example: remove_columns(:people, :first_name)") if column_names.empty?
+        type = options.delete(:type)
         column_names.each do |column_name|
-          remove_column(table_name, column_name)
+          remove_column(table_name, column_name, type, **options)
         end
       end
 
@@ -988,7 +992,7 @@ module ActiveRecord
       #   Action that happens <tt>ON UPDATE</tt>. Valid values are +:nullify+, +:cascade+ and +:restrict+
       # [<tt>:validate</tt>]
       #   (PostgreSQL only) Specify whether or not the constraint should be validated. Defaults to +true+.
-      def add_foreign_key(from_table, to_table, options = {})
+      def add_foreign_key(from_table, to_table, **options)
         return unless supports_foreign_keys?
 
         options = foreign_key_options(from_table, to_table, options)
