@@ -35,12 +35,12 @@ module ActiveRecord
         # and won't be able to write to the second connection.
         MultiConnectionTestModel.connects_to database: { writing: { database: tf_writing.path, adapter: "sqlite3" }, secondary: { database: tf_reading.path, adapter: "sqlite3" } }
 
-        MultiConnectionTestModel.connection.execute("CREATE TABLE `test_1` (connection_role VARCHAR (255))")
-        MultiConnectionTestModel.connection.execute("INSERT INTO test_1 VALUES ('writing')")
+        MultiConnectionTestModel.connection.execute("CREATE TABLE `multi_connection_test_models` (connection_role VARCHAR (255))")
+        MultiConnectionTestModel.connection.execute("INSERT INTO multi_connection_test_models VALUES ('writing')")
 
         ActiveRecord::Base.connected_to(role: :secondary) do
-          MultiConnectionTestModel.connection.execute("CREATE TABLE `test_1` (connection_role VARCHAR (255))")
-          MultiConnectionTestModel.connection.execute("INSERT INTO test_1 VALUES ('reading')")
+          MultiConnectionTestModel.connection.execute("CREATE TABLE `multi_connection_test_models` (connection_role VARCHAR (255))")
+          MultiConnectionTestModel.connection.execute("INSERT INTO multi_connection_test_models VALUES ('reading')")
         end
 
         read_latch = Concurrent::CountDownLatch.new
@@ -52,13 +52,13 @@ module ActiveRecord
           MultiConnectionTestModel.connection
 
           write_latch.wait
-          assert_equal "writing", MultiConnectionTestModel.connection.select_value("SELECT connection_role from test_1")
+          assert_equal "writing", MultiConnectionTestModel.connection.select_value("SELECT connection_role from multi_connection_test_models")
           read_latch.count_down
         end
 
         ActiveRecord::Base.connected_to(role: :secondary) do
           write_latch.count_down
-          assert_equal "reading", MultiConnectionTestModel.connection.select_value("SELECT connection_role from test_1")
+          assert_equal "reading", MultiConnectionTestModel.connection.select_value("SELECT connection_role from multi_connection_test_models")
           read_latch.wait
         end
 
@@ -68,6 +68,20 @@ module ActiveRecord
         tf_reading.unlink
         tf_writing.close
         tf_writing.unlink
+      end
+
+      def test_loading_relations_with_multi_db_connection_handlers
+        # We need to use a role for reading not named reading, otherwise we'll prevent writes
+        # and won't be able to write to the second connection.
+        MultiConnectionTestModel.connects_to database: { writing: { database: ":memory:", adapter: "sqlite3" }, secondary: { database: ":memory:", adapter: "sqlite3" } }
+
+        relation = ActiveRecord::Base.connected_to(role: :secondary) do
+          MultiConnectionTestModel.connection.execute("CREATE TABLE `multi_connection_test_models` (connection_role VARCHAR (255))")
+          MultiConnectionTestModel.create!(connection_role: "reading")
+          MultiConnectionTestModel.where(connection_role: "reading")
+        end
+
+        assert_equal "reading", relation.first.connection_role
       end
 
       unless in_memory_db?
