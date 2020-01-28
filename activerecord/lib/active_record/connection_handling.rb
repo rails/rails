@@ -263,7 +263,9 @@ module ActiveRecord
     private
       def swap_connection_handler(handler, &blk) # :nodoc:
         old_handler, ActiveRecord::Base.connection_handler = ActiveRecord::Base.connection_handler, handler
-        yield
+        return_value = yield
+        return_value.load if return_value.is_a? ActiveRecord::Relation
+        return_value
       ensure
         ActiveRecord::Base.connection_handler = old_handler
       end
