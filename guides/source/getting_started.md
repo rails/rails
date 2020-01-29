@@ -694,7 +694,7 @@ cohesive whole.
 
 ### Viewing a List of Articles
 
-Now that you've seen how to create a route, a controller, an action, a view and
+Now that you've seen how to create a route, a controller, an action, a view, and
 a model, let's connect these pieces together.
 
 Let's go back to `app/controllers/articles_controller.rb` now. We're going to
