@@ -779,7 +779,7 @@ Here's a flowchart of the above steps:
 ![Application flowchart](images/getting_started/application_flowchart.png)
 
 We've now successfully connected all the different parts of our Rails
-application together: the router, the controller, the action, the model and the
+application together: the router, the controller, the action, the model, and the
 view. With this connection, we have finished the first action of our
 application.
 
