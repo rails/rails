@@ -70,8 +70,7 @@ class Developer < ActiveRecord::Base
     developer.audit_logs.build message: "Computer created"
   end
 
-  attr_accessor :last_name
-  define_attribute_method "last_name"
+  attribute :last_name
 
   def log=(message)
     audit_logs.build message: message
@@ -94,8 +93,7 @@ class SymbolIgnoredDeveloper < ActiveRecord::Base
   self.table_name = "developers"
   self.ignored_columns = [:first_name, :last_name]
 
-  attr_accessor :last_name
-  define_attribute_method "last_name"
+  attribute :last_name
 end
 
 class AuditLog < ActiveRecord::Base
