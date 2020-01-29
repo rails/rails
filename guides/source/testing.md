@@ -1399,7 +1399,8 @@ end
 
 #### Using Separate Files
 
-If you find your helpers are cluttering `test_helper.rb`, you can extract them into separate files. One good place to store them is `lib/test`.
+If you find your helpers are cluttering `test_helper.rb`, you can extract them into separate files.
+One good place to store them is `test/lib` or `test/test_helpers`.
 
 ```ruby
 # lib/test/multiple_assertions.rb
