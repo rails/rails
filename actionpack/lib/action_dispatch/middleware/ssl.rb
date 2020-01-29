@@ -29,7 +29,7 @@ module ActionDispatch
   #
   #    * +expires+: How long, in seconds, these settings will stick. The minimum
   #      required to qualify for browser preload lists is 1 year. Defaults to
-  #      1 year (recommended).
+  #      2 years (recommended).
   #
   #    * +subdomains+: Set to +true+ to tell the browser to apply these settings
   #      to all subdomains. This protects your cookies from interception by a
@@ -49,8 +49,8 @@ module ActionDispatch
   class SSL
     # :stopdoc:
 
-    # Default to 1 year, the minimum for browser preload lists.
-    HSTS_EXPIRES_IN = 31536000
+    # Default to 2 years as recommended on hstspreload.org.
+    HSTS_EXPIRES_IN = 63072000
 
     def self.default_hsts_options
       { expires: HSTS_EXPIRES_IN, subdomains: true, preload: false }
