@@ -473,7 +473,7 @@ is done this way to follow the MVC pattern. The MVC pattern is an application
 design pattern which makes it easy to separate the different responsibilities
 of applications into easy to reason about pieces.
 
-So with "MVC", you might guess that the "V" stands for "View" and the "C"
+With "MVC", you might guess that the "V" stands for "View" and the "C"
 stands for controller, but you might have trouble guessing what the "M" stands
 for. This next section is all about that "M" part, the _model_.
 
