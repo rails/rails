@@ -624,7 +624,7 @@ irb(main):001:0> article = Article.new(title: "Hello Rails", body: "I am on Rail
 ```
 
 It's important to note that we have just _initialized_ this object. This object
-is not saved to the database at all, it's just available in the console so far.
+is not saved to the database at all, it's only available in the console so far.
 To save the object to the database, we need to call `save`:
 
 ```ruby
