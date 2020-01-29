@@ -735,7 +735,7 @@ There's two types of ERB tag beginnings that we're using here: `<%` and `<%=`.
 The `<%` tag means to evalulate some Ruby code, while the `<%=` means to
 evalulate that code, and then to output the return value from that code.
 
-In this view, we do not want the output of `articles.each` to show, and so we
+In this view, we do not want the output of `@articles.each` to show, and so we
 use a `<%`. But we do want each of the articles' titles to appear, and so we
 use `<%=`.
 
