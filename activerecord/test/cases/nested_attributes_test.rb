@@ -1148,7 +1148,7 @@ class TestNestedAttributesForManyToManyWithoutDuplication < ActiveRecord::TestCa
     @new_pirate = Pirate.new
 
     @new_alternate_params = {
-      "catchphrase": "Don' botharrr talkin' like one, savvy?"
+      "catchphrase": "Don' botharrr talkin' like one, savvy?",
       parrots_attributes: {
         "foo" => { id: @child_1.id, name: "Grace OMalley" },
         "bar" => { id: @child_2.id, name: "Privateers Greed" }
