@@ -129,6 +129,12 @@ module ActiveRecord
         @indexes.delete name
       end
 
+      def dump_to(filename)
+        clear!
+        connection.data_sources.each { |table| add(table) }
+        open(filename, "wb") { |f| f.write(YAML.dump(self)) }
+      end
+
       def marshal_dump
         # if we get current version during initialization, it happens stack over flow.
         @version = connection.migration_context.current_version

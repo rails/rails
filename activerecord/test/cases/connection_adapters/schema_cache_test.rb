@@ -16,13 +16,15 @@ module ActiveRecord
       end
 
       def test_yaml_dump_and_load
-        @cache.columns("posts")
-        @cache.columns_hash("posts")
-        @cache.data_sources("posts")
-        @cache.primary_keys("posts")
-        @cache.indexes("posts")
+        # Create an empty cache.
+        cache = SchemaCache.new @connection
 
-        new_cache = YAML.load(YAML.dump(@cache))
+        tempfile = Tempfile.new(["schema_cache-", ".yml"])
+        # Dump it. It should get populated before dumping.
+        cache.dump_to(tempfile.path)
+
+        # Reload it.
+        new_cache = YAML.load(File.read(tempfile.path))
         assert_no_queries do
           assert_equal 12, new_cache.columns("posts").size
           assert_equal 12, new_cache.columns_hash("posts").size
@@ -31,6 +33,8 @@ module ActiveRecord
           assert_equal 1, new_cache.indexes("posts").size
           assert_equal @database_version.to_s, new_cache.database_version.to_s
         end
+      ensure
+        tempfile.unlink
       end
 
       def test_yaml_loads_5_1_dump
