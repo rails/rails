@@ -23,6 +23,7 @@ module ActiveRecord
       assert cloned.persisted?, "topic persisted"
       assert_not cloned.new_record?, "topic is not new"
       assert cloned.frozen?, "topic should be frozen"
+      assert_raise(FrozenError) { cloned.author_name = "Aaron" }
     end
 
     def test_shallow
@@ -37,6 +38,7 @@ module ActiveRecord
       clone = cloned.clone
       cloned.freeze
       assert_not_predicate clone, :frozen?
+      assert_raise(FrozenError) { cloned.author_name = "Aaron" }
     end
   end
 end
