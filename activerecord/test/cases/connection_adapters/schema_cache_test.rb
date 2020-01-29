@@ -116,11 +116,7 @@ module ActiveRecord
       end
 
       def test_dump_and_load
-        @cache.columns("posts")
-        @cache.columns_hash("posts")
-        @cache.data_sources("posts")
-        @cache.primary_keys("posts")
-        @cache.indexes("posts")
+        @cache.add("posts")
 
         assert_deprecated do
           @cache = Marshal.load(Marshal.dump(@cache))
