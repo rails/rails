@@ -128,7 +128,14 @@ To keep using the current cache store, you can turn off cache versioning entirel
       if config.active_record.delete(:use_schema_cache_dump)
         config.after_initialize do |app|
           ActiveSupport.on_load(:active_record) do
-            filename = File.join(app.config.paths["db"].first, "schema_cache.yml")
+            db_config = ActiveRecord::Base.configurations.configs_for(
+              env_name: Rails.env,
+              spec_name: "primary",
+            )
+            filename = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(
+              db_config.spec_name,
+              schema_cache_path: db_config.schema_cache_path,
+            )
 
             if File.file?(filename)
               current_version = ActiveRecord::Migrator.current_version
