@@ -134,6 +134,7 @@ module ActiveRecord
         @version = connection.migration_context.current_version
         [@version, @columns, {}, @primary_keys, @data_sources, @indexes, database_version]
       end
+      deprecate :marshal_dump, "Please use :encode_with instead, e.g. by using YAML.dump."
 
       def marshal_load(array)
         @version, @columns, _columns_hash, @primary_keys, @data_sources, @indexes, @database_version = array
@@ -141,6 +142,7 @@ module ActiveRecord
 
         derive_columns_hash_and_deduplicate_values
       end
+      deprecate :marshal_load, "Please use :init_with instead, e.g. by using YAML.load."
 
       private
         def derive_columns_hash_and_deduplicate_values

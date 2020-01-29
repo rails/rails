@@ -122,7 +122,9 @@ module ActiveRecord
         @cache.primary_keys("posts")
         @cache.indexes("posts")
 
-        @cache = Marshal.load(Marshal.dump(@cache))
+        assert_deprecated do
+          @cache = Marshal.load(Marshal.dump(@cache))
+        end
 
         assert_no_queries do
           assert_equal 12, @cache.columns("posts").size
