@@ -11,6 +11,9 @@ require "models/man"
 require "models/interest"
 require "models/owner"
 require "models/pet"
+require "models/book"
+require "models/subscriber"
+require "models/subscription"
 require "active_support/hash_with_indifferent_access"
 
 class TestNestedAttributesInGeneral < ActiveRecord::TestCase
@@ -623,6 +626,12 @@ module NestedAttributesOnACollectionAssociationTests
     assert_equal ["Grace OMalley", "Privateers Greed"], [@child_1.reload.name, @child_2.reload.name]
   end
 
+  def test_should_take_a_hash_with_string_keys_and_assign_the_attributes_to_the_associated_models_for_new_record
+    @new_alternate_params[association_getter].stringify_keys!
+    @new_pirate.save @new_alternate_params
+    assert_equal ["Grace OMalley", "Privateers Greed"], [@new_pirate.parrots.first.name, @new_pirate.parrots.first.name]
+  end
+
   def test_should_take_an_array_and_assign_the_attributes_to_the_associated_models
     @pirate.send(association_setter, @alternate_params[association_getter].values)
     @pirate.save
@@ -1116,4 +1125,36 @@ class TestNestedAttributesWithExtend < ActiveRecord::TestCase
     pirate.treasures_attributes = [{ id: nil }]
     assert_equal "from extension", pirate.treasures[0].name
   end
+end
+
+class TestNestedAttributesForManyToManyWithoutDuplication < ActiveRecord::TestCase
+  def setup
+    @association_type = :has_and_belongs_to_many
+    @association_name = :parrots
+
+    @pirate = Pirate.create!(catchphrase: "Don' botharrr talkin' like one, savvy?")
+    @pirate.parrots.create!(name: "Posideons Killer")
+    @pirate.parrots.create!(name: "Killer bandita Dionne")
+
+    @child_1, @child_2 = @pirate.parrots
+
+    @alternate_params = {
+      parrots_attributes: {
+        "foo" => { id: @child_1.id, name: "Grace OMalley" },
+        "bar" => { id: @child_2.id, name: "Privateers Greed" }
+      }
+    }
+
+    @new_pirate = Pirate.new
+
+    @new_alternate_params = {
+      "catchphrase": "Don' botharrr talkin' like one, savvy?"
+      parrots_attributes: {
+        "foo" => { id: @child_1.id, name: "Grace OMalley" },
+        "bar" => { id: @child_2.id, name: "Privateers Greed" }
+      }
+    }
+  end
+
+  include NestedAttributesOnACollectionAssociationTests
 end
