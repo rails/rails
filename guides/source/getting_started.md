@@ -455,7 +455,7 @@ Completed 200 OK in 10ms (Views: 7.9ms | ActiveRecord: 0.0ms | Allocations: 4989
 It tells us that the request completed successfully. We know it's successful
 because we saw it ourselves, but also because this line contains `200 OK`,
 which is the HTTP status code for successful responses. The rest of the
-information on this line is performance metrics.
+information on this line are performance metrics.
 
 We have now finished rendering our first view. We created two routes that go to
 the same action -- `GET /` and `GET /articles`. That action is the `index`
