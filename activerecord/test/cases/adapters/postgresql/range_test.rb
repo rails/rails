@@ -375,7 +375,7 @@ class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
     assert_equal(-Float::INFINITY...Float::INFINITY, record.float_range)
   end
 
-  if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.6.0")
+  if RUBY_VERSION >= "2.6"
     def test_endless_range_values
       record = PostgresqlRange.create!(
         int4_range: eval("1.."),
