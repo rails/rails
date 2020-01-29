@@ -298,8 +298,8 @@ module ActiveSupport
           @kind    = kind
           @filter  = filter
           @key     = compute_identifier filter
-          @if      = check_conditionals(Array(options[:if]))
-          @unless  = check_conditionals(Array(options[:unless]))
+          @if      = check_conditionals(options[:if])
+          @unless  = check_conditionals(options[:unless])
         end
 
         def filter; @key; end
@@ -350,7 +350,13 @@ module ActiveSupport
         end
 
         private
+          EMPTY_ARRAY = [].freeze
+          private_constant :EMPTY_ARRAY
+
           def check_conditionals(conditionals)
+            return EMPTY_ARRAY if conditionals.blank?
+
+            conditionals = Array(conditionals)
             if conditionals.any? { |c| c.is_a?(String) }
               raise ArgumentError, <<-MSG.squish
                 Passing string to be evaluated in :if and :unless conditional
@@ -359,7 +365,7 @@ module ActiveSupport
               MSG
             end
 
-            conditionals
+            conditionals.freeze
           end
 
           def compute_identifier(filter)
