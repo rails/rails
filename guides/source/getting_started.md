@@ -729,7 +729,7 @@ code in `app/views/articles/index.html.erb`:
 ```
 
 We've now changed this file from using just HTML to using HTML and _ERB_. ERB
-is a language that we can use to run Ruby code.
+is a templating system that we can use to run Ruby code.
 
 There's two types of ERB tag beginnings that we're using here: `<%` and `<%=`.
 The `<%` tag means to evalulate some Ruby code, while the `<%=` means to
