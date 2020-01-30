@@ -681,15 +681,15 @@ module ActiveSupport
           case key
           when Array
             if key.size > 1
-              key = key.collect { |element| expanded_key(element) }
+              key.collect { |element| expanded_key(element) }
             else
-              key = expanded_key(key.first)
+              expanded_key(key.first)
             end
           when Hash
-            key = key.sort_by { |k, _| k.to_s }.collect { |k, v| "#{k}=#{v}" }
-          end
-
-          key.to_param
+            key.collect { |k, v| "#{k}=#{v}" }.sort
+          else
+            key
+          end.to_param
         end
 
         def normalize_version(key, options = nil)
