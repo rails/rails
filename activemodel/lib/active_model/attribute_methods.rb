@@ -375,6 +375,7 @@ module ActiveModel
           end
 
           mod.module_eval <<-RUBY, __FILE__, __LINE__ + 1
+            # frozen_string_literal: true
             #{defn}
               #{body}
             end
