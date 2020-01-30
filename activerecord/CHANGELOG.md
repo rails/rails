@@ -1,4 +1,4 @@
-*   Adds support for `if_not_exists` to `add_column` and `if_exists` to `remove_column.
+*   Adds support for `if_not_exists` to `add_column` and `if_exists` to `remove_column`.
 
     Applications can set their migrations to ignore exceptions raised when adding a column that already exists or when removing a column that does not exist.
 
