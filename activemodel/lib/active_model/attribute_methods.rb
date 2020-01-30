@@ -105,8 +105,8 @@ module ActiveModel
       #   person.name          # => "Bob"
       #   person.clear_name
       #   person.name          # => nil
-      def attribute_method_prefix(*prefixes)
-        self.attribute_method_matchers += prefixes.map! { |prefix| AttributeMethodMatcher.new prefix: prefix }
+      def attribute_method_prefix(*prefixes, arity: -1)
+        self.attribute_method_matchers += prefixes.map! { |prefix| AttributeMethodMatcher.new prefix: prefix, arity: arity }
         undefine_attribute_methods
       end
 
@@ -140,8 +140,8 @@ module ActiveModel
       #   person.name = 'Bob'
       #   person.name          # => "Bob"
       #   person.name_short?   # => true
-      def attribute_method_suffix(*suffixes)
-        self.attribute_method_matchers += suffixes.map! { |suffix| AttributeMethodMatcher.new suffix: suffix }
+      def attribute_method_suffix(*suffixes, arity: -1)
+        self.attribute_method_matchers += suffixes.map! { |suffix| AttributeMethodMatcher.new suffix: suffix, arity: arity }
         undefine_attribute_methods
       end
 
@@ -177,7 +177,7 @@ module ActiveModel
       #   person.reset_name_to_default!
       #   person.name                         # => 'Default Name'
       def attribute_method_affix(*affixes)
-        self.attribute_method_matchers += affixes.map! { |affix| AttributeMethodMatcher.new prefix: affix[:prefix], suffix: affix[:suffix] }
+        self.attribute_method_matchers += affixes.map! { |affix| AttributeMethodMatcher.new prefix: affix[:prefix], suffix: affix[:suffix], arity: affix.fetch(:arity, -1) }
         undefine_attribute_methods
       end
 
@@ -210,7 +210,7 @@ module ActiveModel
         attribute_method_matchers.each do |matcher|
           matcher_new = matcher.method_name(new_name).to_s
           matcher_old = matcher.method_name(old_name).to_s
-          define_proxy_call false, self, matcher_new, matcher_old
+          define_proxy_call false, self, matcher_new, matcher_old, arity: matcher.arity
         end
       end
 
@@ -291,7 +291,7 @@ module ActiveModel
             if respond_to?(generate_method, true)
               send(generate_method, attr_name.to_s)
             else
-              define_proxy_call true, generated_attribute_methods, method_name, matcher.target, attr_name.to_s
+              define_proxy_call true, generated_attribute_methods, method_name, matcher.target, attr_name.to_s, arity: matcher.arity
             end
           end
         end
@@ -359,14 +359,20 @@ module ActiveModel
         # Define a method `name` in `mod` that dispatches to `send`
         # using the given `extra` args. This falls back on `define_method`
         # and `send` if the given names cannot be compiled.
-        def define_proxy_call(include_private, mod, name, target, *extra)
-          defn = if NAME_COMPILABLE_REGEXP.match?(name)
-            "def #{name}(*args)"
+        def define_proxy_call(include_private, mod, name, target, *extra, arity:)
+          args = if arity.negative?
+            "*args"
           else
-            "define_method(:'#{name}') do |*args|"
+            arity.times.map { |i| "arg#{i}" }.join(", ")
           end
 
-          extra = (extra.map!(&:inspect) << "*args").join(", ")
+          defn = if NAME_COMPILABLE_REGEXP.match?(name)
+            "def #{name}(#{args})"
+          else
+            "define_method(:'#{name}') do |#{args}|"
+          end
+
+          extra = (extra.map!(&:inspect) << args).join(", ")
 
           body = if CALL_COMPILABLE_REGEXP.match?(target)
             "#{"self." unless include_private}#{target}(#{extra})"
@@ -374,25 +380,27 @@ module ActiveModel
             "send(:'#{target}', #{extra})"
           end
 
+          ruby2_keywords = "ruby2_keywords(:'#{name}') if respond_to?(:ruby2_keywords, true)" if arity.negative?
+
           mod.module_eval <<-RUBY, __FILE__, __LINE__ + 1
-            # frozen_string_literal: true
             #{defn}
               #{body}
             end
-            ruby2_keywords(:'#{name}') if respond_to?(:ruby2_keywords, true)
+            #{ruby2_keywords}
           RUBY
         end
 
         class AttributeMethodMatcher #:nodoc:
-          attr_reader :prefix, :suffix, :target
+          attr_reader :prefix, :suffix, :target, :arity
 
           AttributeMethodMatch = Struct.new(:target, :attr_name)
 
-          def initialize(options = {})
-            @prefix, @suffix = options.fetch(:prefix, ""), options.fetch(:suffix, "")
+          def initialize(prefix: "", suffix: "", arity: -1)
+            @prefix, @suffix = prefix, suffix
             @regex = /^(?:#{Regexp.escape(@prefix)})(.*)(?:#{Regexp.escape(@suffix)})$/
             @target = "#{@prefix}attribute#{@suffix}"
             @method_name = "#{prefix}%s#{suffix}"
+            @arity = arity
           end
 
           def match(method_name)

@@ -123,9 +123,10 @@ module ActiveModel
     include ActiveModel::AttributeMethods
 
     included do
-      attribute_method_suffix "_changed?", "_change", "_will_change!", "_was"
-      attribute_method_suffix "_previously_changed?", "_previous_change", "_previously_was"
-      attribute_method_affix prefix: "restore_", suffix: "!"
+      attribute_method_suffix "_change", "_will_change!", "_previous_change", arity: 0
+      attribute_method_suffix "_previously_was", "_was", arity: 0
+      attribute_method_suffix "_changed?", "_previously_changed?", arity: -1
+      attribute_method_affix prefix: "restore_", suffix: "!", arity: 0
     end
 
     def initialize_dup(other) # :nodoc:
