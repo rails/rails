@@ -1,3 +1,27 @@
+*   Adds support for `if_not_exists` to `add_column` and `if_exists` to `remove_column.
+
+    Applications can set their migrations to ignore exceptions raised when adding a column that already exists or when removing a column that does not exist.
+
+    Example Usage:
+
+    ```
+    class AddColumnTitle < ActiveRecord::Migration[6.1]
+      def change
+        add_column :posts, :title, :string, if_not_exists: true
+      end
+    end
+    ```
+
+    ```
+    class RemoveColumnTitle < ActiveRecord::Migration[6.1]
+      def change
+        remove_column :posts, :title, if_exists: true
+      end
+    end
+    ```
+
+    *Eileen M. Uchitelle*
+
 *   Regexp-escape table name for MS SQL
 
     Add `Regexp.escape` to one method in ActiveRecord, so that table names with regular expression characters in them work as expected. Since MS SQL Server uses "[" and "]" to quote table and column names, and those characters are regular expression characters, methods like `pluck` and `select` fail in certain cases when used with the MS SQL Server adapter.
