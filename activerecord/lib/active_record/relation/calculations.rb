@@ -219,6 +219,38 @@ module ActiveRecord
       limit(1).pluck(*column_names).first
     end
 
+    # Randomly select one record from the class by default and one or more with a supplied count of samples.
+    # It reflects the behaviour of Array#sample in that it will return a single object when no argument is supplied,
+    # but will return a collection containing one object when an explicit value of 1 is supplied.
+    #
+    # Also like #pluck, #sample will only load the actual value, not the entire record object, so it's also
+    # more efficient. The value is, again like with pluck, typecast by the column type.
+    #
+    #   Person.sample
+    #   # SELECT people.id FROM people
+    #   # SELECT * FROM people WHERE id = <randomly chosen id>
+    #   # => #<Person...>
+    #
+    #   Person.sample(1)
+    #   # SELECT people.id FROM people
+    #   # SELECT * FROM people WHERE id = (<randomly chosen id>)
+    #   # => [#<Person...>]
+    #
+    #   Person.sample(2)
+    #   # SELECT people.id FROM people
+    #   # SELECT * FROM people WHERE id = (<randomly chosen id>, <randomly chosen id>, ...)
+    #   # => [#<Person...>, #<Person...>]
+    def sample(sample_count = nil)
+      randomly_selected_ids = (
+        if sample_count.nil?
+          ids.sample # Returns a single id.
+        else
+          ids.sample(sample_count) # Returns a collection of ids.
+        end
+      )
+      klass.find(randomly_selected_ids)
+    end
+
     # Pluck all the ID's for the relation using the table's primary key
     #
     #   Person.ids # SELECT people.id FROM people

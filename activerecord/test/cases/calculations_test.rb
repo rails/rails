@@ -924,6 +924,36 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal cool_first.color, Minivan.pick(:color)
   end
 
+  def test_sample_one
+    assert_queries(2) do
+      assert_equal Reply, Reply.sample.class
+    end
+  end
+
+  def test_sample_two
+    assert_queries(2) do
+      assert_equal 1, Reply.sample(1).count
+    end
+  end
+
+  def test_sample_three
+    assert_queries(2) do
+      assert_equal Reply, Reply.sample(1).first.class
+    end
+  end
+
+  def test_sample_four
+    assert_queries(2) do
+      assert_equal 2, Reply.sample(2).count
+    end
+  end
+
+  def test_sample_five
+    assert_queries(2) do
+      assert_equal Reply, Reply.sample(2).first.class
+    end
+  end
+
   def test_grouped_calculation_with_polymorphic_relation
     part = ShipPart.create!(name: "has trinket")
     part.trinkets.create!

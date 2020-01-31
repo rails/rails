@@ -1,3 +1,9 @@
+*   ActiveRecord::Querying::QUERYING_METHODS << :sample
+
+    Allows for sampling directly on a model, so instead of Model.all.sample, one can simply do Model.sample.
+
+    *thoran*
+
 *   Adds support for `if_not_exists` to `add_column` and `if_exists` to `remove_column`.
 
     Applications can set their migrations to ignore exceptions raised when adding a column that already exists or when removing a column that does not exist.
