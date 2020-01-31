@@ -77,7 +77,7 @@ happens when we have lots of JavaScript we want to execute on a click?
 ```
 
 Awkward, right? We could pull the function definition out of the click handler,
-and turn it into CoffeeScript:
+and turn it a function:
 
 ```js
 window.paintIt = function(element, backgroundColor, textColor) {
@@ -139,10 +139,6 @@ attribute. We can run all of our JavaScript through a minimizer and
 concatenator. We can serve our entire JavaScript bundle on every page, which
 means that it'll get downloaded on the first page load and then be cached on
 every page after that. Lots of little benefits really add up.
-
-The Rails team strongly encourages you to write your CoffeeScript (and
-JavaScript) in this style, and you can expect that many libraries will also
-follow this pattern.
 
 Built-in Helpers
 ----------------
@@ -236,7 +232,7 @@ click. We would generate some HTML like this:
 <%= link_to "Delete article", @article, remote: true, method: :delete %>
 ```
 
-and write some CoffeeScript like this:
+and write some JavaScript like this:
 
 ```js
 window.addEventListener("load", () => {
