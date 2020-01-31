@@ -26,6 +26,14 @@ module RequestForgeryProtectionActions
     render inline: "<%= csrf_meta_tags %>"
   end
 
+  def form_for
+    render inline: "<%= form_for(:some_resource) {} %>"
+  end
+
+  def form_for_without_token
+    render inline: "<%= form_for(:some_resource, :authenticity_token => false) {} %>"
+  end
+
   def form_for_remote
     render inline: "<%= form_for(:some_resource, :remote => true ) {} %>"
   end
@@ -201,6 +209,14 @@ module RequestForgeryProtectionTests
     end
   end
 
+  def test_should_render_form_for_without_token_tag_if_refused
+    assert_not_blocked do
+      get :form_for_without_token
+    end
+    assert_no_match(/authenticity_token/, response.body)
+    assert_no_match(/authenticity_token/, response.body)
+  end
+
   def test_should_render_button_to_with_token_tag
     @controller.stub :form_authenticity_token, @token do
       assert_not_blocked do
@@ -210,11 +226,11 @@ module RequestForgeryProtectionTests
     end
   end
 
-  def test_should_render_form_without_token_tag_if_remote
+  def test_should_render_form_for_with_token_tag
     assert_not_blocked do
-      get :form_for_remote
+      get :form_for
     end
-    assert_no_match(/authenticity_token/, response.body)
+    assert_match(/authenticity_token/, response.body)
   end
 
   def test_should_render_form_with_token_tag_if_remote_and_embedding_token_is_on
