@@ -6,6 +6,10 @@ class TestComponent < ActionView::Base
   validates :title, presence: true
   delegate :render, to: :view_context
 
+  def self.render_in(view_context, *args)
+    new(*args).render_in(view_context)
+  end
+
   def initialize(title:)
     @title = title
   end
@@ -17,7 +21,7 @@ class TestComponent < ActionView::Base
     rendered_template
   end
 
-  def format
+  def self.format
     :html
   end
 

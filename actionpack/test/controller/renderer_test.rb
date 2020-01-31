@@ -66,12 +66,12 @@ class RendererTest < ActiveSupport::TestCase
     assert_equal "The secret is foo\n", content
   end
 
-  def test_render_component
+  def test_render_component_class
     renderer = ApplicationController.renderer
 
     assert_equal(
       %(<span title="my title">(Inline render)</span>),
-      renderer.render(TestComponent.new(title: "my title")).strip
+      renderer.render(TestComponent, locals: { title: "my title" }).strip
     )
   end
 

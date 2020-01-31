@@ -27,7 +27,7 @@ module ActionView
         render_partial_to_object(context, options)
       elsif options.key?(:object)
         object = options[:object]
-        AbstractRenderer::RenderedTemplate.new(object.render_in(context), object)
+        AbstractRenderer::RenderedTemplate.new(object.render_in(context, options[:locals]), object)
       else
         render_template_to_object(context, options)
       end
