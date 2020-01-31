@@ -115,7 +115,7 @@ function paintIt(element, backgroundColor, textColor) {
   }
 }
 
-window.addEventListener("load", (_event) => {
+window.addEventListener("load", () => {
   document.querySelectorAll("a[data-background-color]").forEach((element) => {
     element.addEventListener("click", (event) => {
       event.preventDefault();
@@ -193,13 +193,13 @@ You probably want to do something upon a successful submission. To do that,
 bind to the `ajax:success` event. On failure, use `ajax:error`. Check it out:
 
 ```js
-window.addEventListener("load", (_event) => {
+window.addEventListener("load", () => {
   let element = document.querySelector("#new-article");
   element.addEventListener("ajax:success", (event) => {
     const [_data, _status, xhr] = event.detail;
     element.insertAdjacentHTML("beforeend", xhr.responseText);
   });
-  element.addEventListener("ajax:error", (_event) => {
+  element.addEventListener("ajax:error", () => {
     element.insertAdjacentHTML("beforeend", "<p>ERROR</p>");
   });
 });
@@ -239,7 +239,7 @@ click. We would generate some HTML like this:
 and write some CoffeeScript like this:
 
 ```js
-window.addEventListener("load", (_event) => {
+window.addEventListener("load", () => {
   document.querySelectorAll("a[data-remote]").forEach((element) => {
     element.addEventListener("ajax:success", (event) => {
       alert("The article was deleted.");
