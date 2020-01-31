@@ -43,7 +43,7 @@ As an example, here's some JavaScript code that makes an Ajax request:
 fetch("/test")
   .then((data) => data.text())
   .then((html) => {
-    document.querySelector('#results').insertAdjacentHTML('beforeend', data);
+    document.querySelector("#results").insertAdjacentHTML("beforeend", data);
   })
 ```
 
@@ -165,7 +165,7 @@ remote elements inside your application.
 [`form_with`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_with)
 is a helper that assists with writing forms. By default, `form_with` assumes that
 your form will be using Ajax. You can opt out of this behavior by
-passing the `:local` option `form_with`.
+passing the `:local` option to `form_with`.
 
 ```erb
 <%= form_with(model: @article, id: "new-article") do |f| %>
@@ -190,7 +190,7 @@ bind to the `ajax:success` event. On failure, use `ajax:error`. Check it out:
 
 ```js
 window.addEventListener("load", () => {
-  let element = document.querySelector("#new-article");
+  const element = document.querySelector("#new-article");
   element.addEventListener("ajax:success", (event) => {
     const [_data, _status, xhr] = event.detail;
     element.insertAdjacentHTML("beforeend", xhr.responseText);
@@ -203,10 +203,6 @@ window.addEventListener("load", () => {
 
 Obviously, you'll want to be a bit more sophisticated than that, but it's a
 start.
-
-NOTE: As of Rails 5.1 and the new `rails-ujs`, the parameters `data, status, xhr`
-have been bundled into `event.detail`. For information about the previously used
-`jquery-ujs` in Rails 5 and earlier, read the [`jquery-ujs` wiki](https://github.com/rails/jquery-ujs/wiki/ajax).
 
 #### link_to
 
@@ -237,7 +233,7 @@ and write some JavaScript like this:
 ```js
 window.addEventListener("load", () => {
   document.querySelectorAll("a[data-remote]").forEach((element) => {
-    element.addEventListener("ajax:success", (event) => {
+    element.addEventListener("ajax:success", () => {
       alert("The article was deleted.");
     });
   });
@@ -307,7 +303,7 @@ requests for `data-remote` elements, by way of the `data-type` attribute.
 ### Confirmations
 
 You can ask for an extra confirmation of the user by adding a `data-confirm`
-attribute on links and forms. The user will be presented a JavaScript `confirm()`
+attribute on links and forms. The user will be presented with a JavaScript `confirm()`
 dialog containing the attribute's text. If the user chooses to cancel, the action
 doesn't take place.
 
@@ -332,7 +328,7 @@ you should **not** have `data-confirm` on the form itself.
 The default confirmation uses a JavaScript confirm dialog, but you can customize
 this by listening to the `confirm` event, which is fired just before the confirmation
 window appears to the user. To cancel this default confirmation, have the confirm
-handler to return `false`.
+handler return `false`.
 
 ### Automatic disabling
 
@@ -347,9 +343,9 @@ This also works for links with `data-method` attribute.
 For example:
 
 ```erb
-<%= form_with(model: @article.new) do |f| %>
+<%= form_with(model: Article.new) do |f| %>
   <%= f.submit data: { "disable-with": "Saving..." } %>
-<%= end %>
+<% end %>
 ```
 
 This generates a form with:
@@ -367,6 +363,7 @@ These introductions cause small changes to `custom events` fired during the requ
 NOTE: Signature of calls to UJS's event handlers has changed.
 Unlike the version with jQuery, all custom events return only one parameter: `event`.
 In this parameter, there is an additional attribute `detail` which contains an array of extra parameters.
+For information about the previously used `jquery-ujs` in Rails 5 and earlier, read the [`jquery-ujs` wiki](https://github.com/rails/jquery-ujs/wiki/ajax).
 
 | Event name          | Extra parameters (event.detail) | Fired                                                       |
 |---------------------|---------------------------------|-------------------------------------------------------------|
@@ -380,18 +377,14 @@ In this parameter, there is an additional attribute `detail` which contains an a
 
 Example usage:
 
-```html
-document.body.addEventListener('ajax:success', function(event) {
-  var detail = event.detail;
-  var data = detail[0], status = detail[1], xhr = detail[2];
+```js
+document.body.addEventListener("ajax:success", (event) => {
+  const [data, status, xhr] = event.detail;
 })
 ```
 
-NOTE: As of Rails 5.1 and the new `rails-ujs`, the parameters `data, status, xhr`
-have been bundled into `event.detail`. For information about the previously used
-`jquery-ujs` in Rails 5 and earlier, read the [`jquery-ujs` wiki](https://github.com/rails/jquery-ujs/wiki/ajax).
-
 ### Stoppable events
+
 You can stop execution of the Ajax request by running `event.preventDefault()`
 from the handlers methods `ajax:before` or `ajax:beforeSend`.
 The `ajax:before` event can manipulate form data before serialization and the
@@ -402,8 +395,8 @@ browser to submit the form via normal means (i.e. non-Ajax submission) will be
 canceled and the form will not be submitted at all. This is useful for
 implementing your own Ajax file upload workaround.
 
-Note, you should use `return false` to prevent event for `jquery-ujs` and
-`e.preventDefault()` for `rails-ujs`
+Note, you should use `return false` to prevent an event for `jquery-ujs` and
+`event.preventDefault()` for `rails-ujs`.
 
 Server-Side Concerns
 --------------------
@@ -484,8 +477,8 @@ respond to your Ajax request. You then have a corresponding
 `app/views/users/create.js.erb` view file that generates the actual JavaScript
 code that will be sent and executed on the client side.
 
-```erb
-document.querySelector('#users').insertAdjacentHTML('beforeend',"<%= j render @user %>");
+```js
+document.querySelector("#users").insertAdjacentHTML("beforeend","<%= j render @user %>");
 ```
 
 Turbolinks
@@ -516,9 +509,9 @@ attribute to the tag:
 You'll often want to do some sort of processing upon
 page load. Using the DOM, you'd write something like this:
 
-```
-window.addEventListener('load', (event) => {
-    alert("page has loaded!")
+```js
+window.addEventListener("load", () => {
+  alert("page has loaded!");
 });
 ```
 
@@ -526,9 +519,9 @@ However, because Turbolinks overrides the normal page loading process, the
 event that this relies upon will not be fired. If you have code that looks like
 this, you must change your code to do this instead:
 
-```
-document.addEventListener("turbolinks:load", function() {
-    alert("page has loaded!")
+```js
+document.addEventListener("turbolinks:load", () => {
+  alert("page has loaded!");
 })
 ```
 
@@ -544,22 +537,20 @@ the security token as a default header for Ajax calls in your library. To get
 the token:
 
 ```js
-let token = document.getElementsByName('csrf-token')[0].content
+const token = document.getElementsByName("csrf-token")[0].content;
 ```
 
 You can then submit this token as a `X-CSRF-Token` header for your
 Ajax request. You do not need to add a CSRF token for GET requests,
 only non-GET ones.
 
-You can read more about about Cross-Site Request Forgery in [Security](https://guides.rubyonrails.org/security.html#cross-site-request-forgery-csrf)
+You can read more about about Cross-Site Request Forgery in the [Security guide](https://guides.rubyonrails.org/security.html#cross-site-request-forgery-csrf).
 
 Other Resources
 ---------------
 
 Here are some helpful links to help you learn even more:
 
-* [jquery-ujs wiki](https://github.com/rails/jquery-ujs/wiki)
-* [jquery-ujs list of external articles](https://github.com/rails/jquery-ujs/wiki/External-articles)
-* [Rails 3 Remote Links and Forms: A Definitive Guide](http://www.alfajango.com/blog/rails-3-remote-links-and-forms/)
+* [rails-ujs wiki](https://github.com/rails/rails/tree/master/actionview/app/assets/javascripts)
 * [Railscasts: Unobtrusive JavaScript](http://railscasts.com/episodes/205-unobtrusive-javascript)
 * [Railscasts: Turbolinks](http://railscasts.com/episodes/390-turbolinks)
