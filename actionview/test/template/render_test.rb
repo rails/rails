@@ -678,13 +678,13 @@ module RenderTestCases
   def test_render_component
     assert_equal(
       %(<span title="my title">Hello, World! (Inline render)</span>),
-      @view.render(TestComponent.new(title: "my title")) { "Hello, World!" }.strip
+      @view.render(TestComponent, title: "my title") { "Hello, World!" }.strip
     )
   end
 
   def test_render_component_with_validation_error
     error = assert_raises(ActiveModel::ValidationError) do
-      @view.render(TestComponent.new(title: "my title")).strip
+      @view.render(TestComponent, title: "my title").strip
     end
 
     assert_match "Content can't be blank", error.message

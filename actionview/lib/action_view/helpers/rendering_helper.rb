@@ -36,7 +36,7 @@ module ActionView
           end
         else
           if options.respond_to?(:render_in)
-            options.render_in(self, &block)
+            options.render_in(self, locals, &block)
           else
             view_renderer.render_partial(self, partial: options, locals: locals, &block)
           end
