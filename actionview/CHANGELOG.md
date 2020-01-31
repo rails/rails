@@ -1,3 +1,7 @@
+*   `RenderingHelper` supports rendering objects that `respond_to?` `:render_in` using class instead of instance.
+
+    *Joel Hawksley*
+
 *   `OptimizedFileSystemResolver` prefers template details in order of locale,
     formats, variants, handlers.
 
