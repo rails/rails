@@ -1403,7 +1403,7 @@ If you find your helpers are cluttering `test_helper.rb`, you can extract them i
 One good place to store them is `test/lib` or `test/test_helpers`.
 
 ```ruby
-# lib/test/multiple_assertions.rb
+# test/test_helpers/multiple_assertions.rb
 module MultipleAssertions
   def assert_multiple_of_forty_two(number)
     assert (number % 42 == 0), 'expected #{number} to be a multiple of 42'
@@ -1415,7 +1415,7 @@ These helpers can then be explicitly required as needed and included as needed
 
 ```ruby
 require 'test_helper'
-require 'test/multiple_assertions'
+require 'test_helpers/multiple_assertions'
 
 class NumberTest < ActiveSupport::TestCase
   include MultipleAssertions
@@ -1430,7 +1430,7 @@ or they can continue to be included directly into the relevant parent classes
 
 ```ruby
 # test/test_helper.rb
-require 'test/sign_in_helper'
+require 'test_helpers/sign_in_helper'
 
 class ActionDispatch::IntegrationTest
   include SignInHelper
