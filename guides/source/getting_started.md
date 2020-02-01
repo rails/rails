@@ -933,7 +933,7 @@ first method in the controller. Let's do it:
 ```ruby
 class ArticlesController < ApplicationController
   def index
-    @articles = Article.all
+    @article = Article.all
   end
 
   def show
