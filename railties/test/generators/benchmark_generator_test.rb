@@ -23,7 +23,7 @@ module Rails
           assert_equal <<~RUBY, content
             # frozen_string_literal: true
 
-            require_relative "../config/environment"
+            require_relative "../../config/environment"
 
             # Any benchmarking setup goes here...
 
@@ -56,7 +56,7 @@ module Rails
           assert_equal <<~RUBY, content
             # frozen_string_literal: true
 
-            require_relative "../config/environment"
+            require_relative "../../config/environment"
 
             # Any benchmarking setup goes here...
 
