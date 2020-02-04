@@ -394,7 +394,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       super
     end
 
-    def with_test_route_set(options = {})
+    def with_test_route_set(**options)
       with_routing do |set|
         set.draw do
           ActiveSupport::Deprecation.silence do
@@ -405,7 +405,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
         options = { key: SessionKey }.merge!(options)
 
         @app = self.class.build_app(set) do |middleware|
-          middleware.use ActionDispatch::Session::CookieStore, options
+          middleware.use ActionDispatch::Session::CookieStore, **options
           middleware.delete ActionDispatch::ShowExceptions
         end
 

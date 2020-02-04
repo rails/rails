@@ -29,7 +29,7 @@ module Rails
 
           if rack_cache = load_rack_cache
             require "action_dispatch/http/rack_cache"
-            middleware.use ::Rack::Cache, rack_cache
+            middleware.use ::Rack::Cache, **rack_cache
           end
 
           if config.allow_concurrency == false
@@ -62,7 +62,7 @@ module Rails
             if config.force_ssl && config.ssl_options.fetch(:secure_cookies, true) && !config.session_options.key?(:secure)
               config.session_options[:secure] = true
             end
-            middleware.use config.session_store, config.session_options
+            middleware.use config.session_store, **config.session_options
             middleware.use ::ActionDispatch::Flash
           end
 
