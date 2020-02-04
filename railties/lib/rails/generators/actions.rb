@@ -259,7 +259,14 @@ module Rails
           "namespace :#{ns} do\n#{indent(code, 2)}\nend"
         end
 
-        log :route, routing_code
+        log_msg = routing_code
+        if log_msg.lines.size > 1
+          tmp = [log_msg.lines.first]
+          tmp << optimize_indentation(log_msg.lines.to_a[1..-1].join, 14)
+          log_msg = tmp.join
+        end
+
+        log :route, log_msg
         sentinel = /\.routes\.draw do\s*\n/m
 
         in_root do

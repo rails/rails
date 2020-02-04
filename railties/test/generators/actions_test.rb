@@ -500,6 +500,38 @@ class ActionsTest < Rails::Generators::TestCase
     assert_routes route_commands
   end
 
+  test "route should indent routing code in the log output" do
+    run_generator
+    route_commands = ["get 'foo'", "get 'bar'", "get 'baz'"]
+    action_result = action :route, route_commands.join("\n")
+    assert_log_routes = <<-ROUTING_LOG
+       route  get 'foo'
+              get 'bar'
+              get 'baz'
+    ROUTING_LOG
+    assert_equal(action_result, assert_log_routes)
+  end
+
+  test "route should indent routing code with one line in the log output" do
+    run_generator
+    route_commands = "get 'foo'"
+    action_result = action :route, route_commands
+    assert_log_routes = "       route  get 'foo'\n"
+    assert_equal(action_result, assert_log_routes)
+  end
+
+  test "route should indent routing code with namespace in the log output" do
+    run_generator
+    action_result = action :route,  "get 'foo'\nget 'bar'", namespace: :baz
+    assert_log_routes = <<-ROUTING_LOG
+       route  namespace :baz do
+                get 'foo'
+                get 'bar'
+              end
+    ROUTING_LOG
+    assert_equal(action_result, assert_log_routes)
+  end
+
   test "route should be idempotent" do
     run_generator
     route_command = "root 'welcome#index'"
