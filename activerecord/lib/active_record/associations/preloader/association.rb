@@ -19,7 +19,7 @@ module ActiveRecord
             end
           else
             # Custom preload scope is used and
-            # the association can not be marked as loaded
+            # the association cannot be marked as loaded
             # Loading into a Hash instead
             records_by_owner
           end
