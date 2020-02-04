@@ -625,11 +625,13 @@ module NestedAttributesOnACollectionAssociationTests
     @pirate.update @alternate_params
     assert_equal ["Grace OMalley", "Privateers Greed"], [@child_1.reload.name, @child_2.reload.name]
   end
-
-  def test_should_take_a_hash_with_string_keys_and_assign_the_attributes_to_the_associated_models_for_new_record
-    @new_alternate_params[association_getter].stringify_keys!
-    @new_pirate.save @new_alternate_params
-    assert_equal ["Grace OMalley", "Privateers Greed"], [@new_pirate.parrots.first.name, @new_pirate.parrots.first.name]
+  
+  if @new_alternate_params.present?
+    def test_should_take_a_hash_with_string_keys_and_assign_the_attributes_to_the_associated_models_for_new_record
+      @new_alternate_params[association_getter].stringify_keys!
+      @new_pirate.save @new_alternate_params
+      assert_equal ["Grace OMalley", "Privateers Greed"], [@new_pirate.parrots.first.name, @new_pirate.parrots.first.name]
+    end
   end
 
   def test_should_take_an_array_and_assign_the_attributes_to_the_associated_models
