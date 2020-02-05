@@ -23,8 +23,8 @@ module AbstractController
     alias :t :translate
 
     # Delegates to <tt>I18n.localize</tt>. Also aliased as <tt>l</tt>.
-    def localize(*args)
-      I18n.localize(*args)
+    def localize(object, **options)
+      I18n.localize(object, **options)
     end
     alias :l :localize
   end
