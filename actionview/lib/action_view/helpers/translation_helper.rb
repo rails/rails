@@ -123,7 +123,7 @@ module ActionView
       private
         def scope_key_by_partial(key)
           stringified_key = key.to_s
-          if stringified_key.first == "."
+          if stringified_key.start_with?(".")
             if @virtual_path
               @_scope_key_by_partial_cache ||= {}
               @_scope_key_by_partial_cache[@virtual_path] ||= @virtual_path.gsub(%r{/_?}, ".")
