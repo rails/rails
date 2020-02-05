@@ -83,13 +83,8 @@ module ActionDispatch
       include Minitest::Assertions
       include TestProcess, RequestHelpers, Assertions
 
-      %w( status status_message headers body redirect? ).each do |method|
-        delegate method, to: :response, allow_nil: true
-      end
-
-      %w( path ).each do |method|
-        delegate method, to: :request, allow_nil: true
-      end
+      delegate :status, :status_message, :headers, :body, :redirect?, to: :response, allow_nil: true
+      delegate :path, to: :request, allow_nil: true
 
       # The hostname used in the last request.
       def host
