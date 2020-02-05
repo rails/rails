@@ -57,8 +57,7 @@ module ActionView
       # that include HTML tags so that you know what kind of output to expect
       # when you call translate in a template and translators know which keys
       # they can provide HTML values for.
-      def translate(key, options = {})
-        options = options.dup
+      def translate(key, **options)
         if options.has_key?(:default)
           remaining_defaults = Array.wrap(options.delete(:default)).compact
           options[:default] = remaining_defaults unless remaining_defaults.first.kind_of?(Symbol)
@@ -93,7 +92,7 @@ module ActionView
         end
       rescue I18n::MissingTranslationData => e
         if remaining_defaults.present?
-          translate remaining_defaults.shift, options.merge(default: remaining_defaults)
+          translate remaining_defaults.shift, **options.merge(default: remaining_defaults)
         else
           raise e if raise_error
 
