@@ -128,10 +128,11 @@ To keep using the current cache store, you can turn off cache versioning entirel
       if config.active_record.delete(:use_schema_cache_dump)
         config.after_initialize do |app|
           ActiveSupport.on_load(:active_record) do
-            configs = ActiveRecord::Base.configurations.configs_for(
+            db_config = ActiveRecord::Base.configurations.configs_for(
               env_name: Rails.env,
+              spec_name: "primary",
             )
-            db_config = configs.find { |config| config.spec_name == "primary" } || configs.first
+            next if db_config.nil?
 
             filename = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(
               db_config.spec_name,
