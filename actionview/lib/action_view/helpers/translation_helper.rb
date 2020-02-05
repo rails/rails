@@ -115,8 +115,8 @@ module ActionView
       #
       # See https://www.rubydoc.info/github/svenfuchs/i18n/master/I18n/Backend/Base:localize
       # for more information.
-      def localize(*args)
-        I18n.localize(*args)
+      def localize(object, **options)
+        I18n.localize(object, **options)
       end
       alias :l :localize
 
