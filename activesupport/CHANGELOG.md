@@ -1,3 +1,8 @@
+*   Fix stack overflow error on default Object#as_json method when objects contain references to each other.
+    Back references in instance variables will now be ommitted in lieu of of getting a SystemStackError.
+
+    *Brian Durand*
+
 *   Deprecate using `Range#include?` method to check the inclusion of a value
     in a date time range. It is recommended to use `Range#cover?` method
     instead of `Range#include?` to check the inclusion of a value
