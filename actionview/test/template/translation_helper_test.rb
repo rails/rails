@@ -243,7 +243,11 @@ class TranslationHelperTest < ActiveSupport::TestCase
 
   def test_translate_does_not_change_options
     options = {}
-    translate(:'translations.missing', options)
+    if RUBY_VERSION >= "2.7"
+      translate(:'translations.missing', **options)
+    else
+      translate(:'translations.missing', options)
+    end
     assert_equal({}, options)
   end
 end
