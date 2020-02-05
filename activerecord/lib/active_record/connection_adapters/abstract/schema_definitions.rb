@@ -706,8 +706,8 @@ module ActiveRecord
       #  t.foreign_key(:authors) unless t.foreign_key_exists?(:authors)
       #
       # See {connection.foreign_key_exists?}[rdoc-ref:SchemaStatements#foreign_key_exists?]
-      def foreign_key_exists?(*args)
-        @base.foreign_key_exists?(name, *args)
+      def foreign_key_exists?(*args, **options)
+        @base.foreign_key_exists?(name, *args, **options)
       end
     end
   end
