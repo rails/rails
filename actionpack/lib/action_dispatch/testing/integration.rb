@@ -354,20 +354,22 @@ module ActionDispatch
       end
 
       %w(get post patch put head delete cookies assigns follow_redirect!).each do |method|
-        define_method(method) do |*args, **options|
-          # reset the html_document variable, except for cookies/assigns calls
-          unless method == "cookies" || method == "assigns"
-            @html_document = nil
-          end
-
-          result = if options.any?
-            integration_session.__send__(method, *args, **options)
-          else
-            integration_session.__send__(method, *args)
-          end
-          copy_session_variables!
-          result
+        # reset the html_document variable, except for cookies/assigns calls
+        unless method == "cookies" || method == "assigns"
+          reset_html_document = "@html_document = nil"
         end
+
+        definition = RUBY_VERSION >= "2.7" ? "..." : "*args"
+
+        module_eval <<~RUBY, __FILE__, __LINE__ + 1
+          def #{method}(#{definition})
+            #{reset_html_document}
+
+            result = integration_session.#{method}(#{definition})
+            copy_session_variables!
+            result
+          end
+        RUBY
       end
 
       # Open a new session instance. If a block is given, the new session is
