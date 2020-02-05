@@ -52,12 +52,11 @@ module ActiveSupport
       #
       #   ActiveSupport::Cache.lookup_store(MyOwnCacheStore.new)
       #   # => returns MyOwnCacheStore.new
-      def lookup_store(*store_args, **store_options)
-        store, *parameters = *Array.wrap(store_args).flatten
-
+      def lookup_store(store = nil, *parameters)
         case store
         when Symbol
-          retrieve_store_class(store).new(*parameters, **store_options)
+          options = parameters.extract_options!
+          retrieve_store_class(store).new(*parameters, **options)
         when nil
           ActiveSupport::Cache::MemoryStore.new
         else
