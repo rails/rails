@@ -60,7 +60,36 @@ class Object
     if respond_to?(:to_hash)
       to_hash.as_json(options)
     else
-      instance_values.as_json(options)
+      # The default as_json serializer serializes the instance variables as name value pairs.
+      # In order to prevent infinite recursion, we keep track of the object already used
+      # in the serialization and omit them if they are included recursively.
+      references = (Thread.current[:object_as_json_references] || Set.new)
+      begin
+        Thread.current[:object_as_json_references] = references if references.empty?
+        references << object_id
+        hash = {}
+
+        # Apply :only and :except filter from the options to the hash of instance variables.
+        values = instance_values
+        if options
+          if attrs = options[:only]
+            values = values.slice(*Array(attrs))
+          elsif attrs = options[:except]
+            values = values.except(*Array(attrs))
+          end
+        end
+
+        values.each do |name, value|
+          unless references.include?(value.object_id)
+            references << value
+            hash[name] = (options.nil? ? value.as_json : value.as_json(options.dup))
+          end
+        end
+        hash
+      ensure
+        references.delete(object_id)
+        Thread.current[:object_as_json_references] = nil if references.empty?
+      end
     end
   end
 end

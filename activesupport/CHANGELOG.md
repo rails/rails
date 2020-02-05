@@ -1,3 +1,8 @@
+*   Fix stack overflow error on default Object#as_json method when objects contain references to each other.
+    Back references in instance variables will now be omitted in lieu of of getting a SystemStackError.
+
+    *Brian Durand*
+
 *   Faster tests by parallelizing only when overhead is justified by the number
     of them.
 
