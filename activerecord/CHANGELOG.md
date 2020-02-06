@@ -1,3 +1,7 @@
+*   Add support for PostgreSQL 11+ partitioned indexes when using `upsert_all`.
+
+    *Sebastián Palma*
+
 *   Adds support for `if_not_exists` to `add_column` and `if_exists` to `remove_column`.
 
     Applications can set their migrations to ignore exceptions raised when adding a column that already exists or when removing a column that does not exist.
