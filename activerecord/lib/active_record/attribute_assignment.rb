@@ -10,17 +10,18 @@ module ActiveRecord
       def _assign_attributes(attributes)
         multi_parameter_attributes  = {}
         nested_parameter_attributes = {}
+        new_attributes = attributes.dup
 
-        attributes.each do |k, v|
+        new_attributes.each do |k, v|
           key = k.to_s
 
           if key.include?("(")
-            multi_parameter_attributes[key] = attributes.delete(k)
+            multi_parameter_attributes[key] = new_attributes.delete(k)
           elsif v.is_a?(Hash)
-            nested_parameter_attributes[key] = attributes.delete(k)
+            nested_parameter_attributes[key] = new_attributes.delete(k)
           end
         end
-        super(attributes)
+        super(new_attributes)
 
         assign_nested_parameter_attributes(nested_parameter_attributes) unless nested_parameter_attributes.empty?
         assign_multiparameter_attributes(multi_parameter_attributes) unless multi_parameter_attributes.empty?

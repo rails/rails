@@ -31,7 +31,7 @@ module ActiveModel
       end
       return if new_attributes.empty?
 
-      _assign_attributes(sanitize_for_mass_assignment(new_attributes.dup))
+      _assign_attributes(sanitize_for_mass_assignment(new_attributes))
     end
 
     alias attributes= assign_attributes
