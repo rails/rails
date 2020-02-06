@@ -41,7 +41,11 @@ module ActiveJob
 
       private
         def job_to_hash(job, extras = {})
-          { job: job.class, args: job.serialize.fetch("arguments"), queue: job.queue_name }.merge!(extras)
+          job.serialize.tap do |job_data|
+            job_data[:job] = job.class
+            job_data[:args] = job_data.fetch("arguments")
+            job_data[:queue] = job_data.fetch("queue_name")
+          end.merge(extras)
         end
 
         def perform_or_enqueue(perform, job, job_data)
