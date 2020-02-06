@@ -1,3 +1,7 @@
+*   Fix support for PostgreSQL 11+ partitioned indexes.
+
+    *Sebastián Palma*
+
 *   Add support for beginless ranges, introduced in Ruby 2.7.
 
     *Josh Goodall*

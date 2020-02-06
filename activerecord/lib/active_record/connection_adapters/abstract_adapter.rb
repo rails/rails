@@ -312,6 +312,10 @@ module ActiveRecord
         false
       end
 
+      def supports_partitioned_indexes?
+        false
+      end
+
       # Does this adapter support index sort order?
       def supports_index_sort_order?
         false
