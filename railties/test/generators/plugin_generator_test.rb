@@ -64,7 +64,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_generating_without_options
-    run_generator
+    output = run_generator
     assert_file "README.md", /Bukkits/
     assert_no_file "config/routes.rb"
     assert_no_file "app/assets/config/bukkits_manifest.js"
@@ -79,6 +79,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "test/bukkits_test.rb", /assert_kind_of Module, Bukkits/
     assert_file "bin/test"
     assert_no_file "bin/rails"
+    assert_match(/run  git init/, output)
   end
 
   def test_generating_in_full_mode_with_almost_of_all_skip_options
