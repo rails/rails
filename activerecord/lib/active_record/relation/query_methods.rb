@@ -51,7 +51,7 @@ module ActiveRecord
         if not_behaves_as_nor?(opts)
           ActiveSupport::Deprecation.warn(<<~MSG.squish)
             NOT conditions will no longer behave as NOR in Rails 6.1.
-            To continue using NOR conditions, NOT each conditions manually
+            To continue using NOR conditions, NOT each condition individually
             (`#{
               opts.flat_map { |key, value|
                 if value.is_a?(Hash) && value.size > 1
