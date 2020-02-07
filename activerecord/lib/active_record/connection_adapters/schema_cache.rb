@@ -3,6 +3,12 @@
 module ActiveRecord
   module ConnectionAdapters
     class SchemaCache
+      def self.load_from(filename)
+        return unless File.file?(filename)
+
+        YAML.load(File.read(filename))
+      end
+
       attr_reader :version
       attr_accessor :connection
 

@@ -23,56 +23,55 @@ module ActiveRecord
         # Dump it. It should get populated before dumping.
         cache.dump_to(tempfile.path)
 
-        # Reload it.
-        new_cache = YAML.load(File.read(tempfile.path))
+        # Load the cache.
+        cache = SchemaCache.load_from(tempfile.path)
+
+        # Give it a connection. Usually the connection
+        # would get set on the cache when it's retrieved
+        # from the pool.
+        cache.connection = @connection
+
         assert_no_queries do
-          assert_equal 12, new_cache.columns("posts").size
-          assert_equal 12, new_cache.columns_hash("posts").size
-          assert new_cache.data_sources("posts")
-          assert_equal "id", new_cache.primary_keys("posts")
-          assert_equal 1, new_cache.indexes("posts").size
-          assert_equal @database_version.to_s, new_cache.database_version.to_s
+          assert_equal 12, cache.columns("posts").size
+          assert_equal 12, cache.columns_hash("posts").size
+          assert cache.data_sources("posts")
+          assert_equal "id", cache.primary_keys("posts")
+          assert_equal 1, cache.indexes("posts").size
+          assert_equal @database_version.to_s, cache.database_version.to_s
         end
       ensure
         tempfile.unlink
       end
 
       def test_yaml_loads_5_1_dump
-        @cache = YAML.load(File.read(schema_dump_path))
+        cache = SchemaCache.load_from(schema_dump_path)
+        cache.connection = @connection
 
         assert_no_queries do
-          assert_equal 11, @cache.columns("posts").size
-          assert_equal 11, @cache.columns_hash("posts").size
-          assert @cache.data_sources("posts")
-          assert_equal "id", @cache.primary_keys("posts")
+          assert_equal 11, cache.columns("posts").size
+          assert_equal 11, cache.columns_hash("posts").size
+          assert cache.data_sources("posts")
+          assert_equal "id", cache.primary_keys("posts")
         end
       end
 
       def test_yaml_loads_5_1_dump_without_indexes_still_queries_for_indexes
-        @cache = YAML.load(File.read(schema_dump_path))
-
-        # Simulate assignment in railtie after loading the cache.
-        old_cache, @connection.schema_cache = @connection.schema_cache, @cache
+        cache = SchemaCache.load_from(schema_dump_path)
+        cache.connection = @connection
 
         assert_queries :any, ignore_none: true do
-          assert_equal 1, @cache.indexes("posts").size
+          assert_equal 1, cache.indexes("posts").size
         end
-      ensure
-        @connection.schema_cache = old_cache
       end
 
       def test_yaml_loads_5_1_dump_without_database_version_still_queries_for_database_version
-        @cache = YAML.load(File.read(schema_dump_path))
-
-        # Simulate assignment in railtie after loading the cache.
-        old_cache, @connection.schema_cache = @connection.schema_cache, @cache
+        cache = SchemaCache.load_from(schema_dump_path)
+        cache.connection = @connection
 
         # We can't verify queries get executed because the database version gets
         # cached in both MySQL and PostgreSQL outside of the schema cache.
-        assert_nil @cache.instance_variable_get(:@database_version)
-        assert_equal @database_version.to_s, @cache.database_version.to_s
-      ensure
-        @connection.schema_cache = old_cache
+        assert_nil cache.instance_variable_get(:@database_version)
+        assert_equal @database_version.to_s, cache.database_version.to_s
       end
 
       def test_primary_key_for_non_existent_table
