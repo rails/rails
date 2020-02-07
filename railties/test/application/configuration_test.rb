@@ -1562,6 +1562,27 @@ module ApplicationTests
       assert_equal session_options, app.config.session_options
     end
 
+    test "warn_if_rack_runtime initializer raises deprecation usage of Rack::Runtime in default middleware stack" do
+      application = Class.new(::Rails::Application) do
+        config.eager_load = false
+      end
+
+      assert_deprecated("Rack::Runtime will be removed from the default middleware stack in future versions of Rails.") do
+        application.initialize!
+      end
+    end
+
+    test "warn_if_rack_runtime initializer does not raise a deprecation usage of Rack::Runtime if it is not used" do
+      application = Class.new(::Rails::Application) do
+        config.middleware.delete(Rack::Runtime)
+        config.eager_load = false
+      end
+
+      assert_not_deprecated do
+        application.initialize!
+      end
+    end
+
     test "config.log_level with custom logger" do
       make_basic_app do |application|
         application.config.logger = Logger.new(STDOUT)

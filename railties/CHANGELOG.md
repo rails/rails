@@ -1,3 +1,9 @@
+*   Deprecate `Rack::Runtime`
+
+    `Rack::Runtime` is deprecated in the default middleware stack.
+
+    *Stanislav Valkanov*
+
 *   Add benchmark generator
 
     Introduce benchmark generator to benchmark Rails applications.
