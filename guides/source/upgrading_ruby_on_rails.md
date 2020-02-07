@@ -724,7 +724,7 @@ it.
 Rails 5 adds the ability to run tasks and tests through `bin/rails` instead of rake. Generally
 these changes are in parallel with rake, but some were ported over altogether. As the `rails`
 command already looks for and runs `bin/rails`, we recommend you to use the shorter `rails`
-over `bin/rails.
+over `bin/rails`.
 
 To use the new test runner simply type `rails test`.
 
