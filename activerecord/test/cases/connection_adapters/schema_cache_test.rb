@@ -118,23 +118,48 @@ module ActiveRecord
         assert_nil @cache.instance_variable_get(:@database_version)
       end
 
-      def test_dump_and_load
-        @cache.columns("posts")
-        @cache.columns_hash("posts")
-        @cache.data_sources("posts")
-        @cache.primary_keys("posts")
-        @cache.indexes("posts")
+      def test_marshal_dump_and_load
+        # Create an empty cache.
+        cache = SchemaCache.new @connection
 
-        @cache = Marshal.load(Marshal.dump(@cache))
+        # Populate it.
+        cache.add("posts")
+
+        # Create a new cache by marchal dumping / loading.
+        cache = Marshal.load(Marshal.dump(cache))
 
         assert_no_queries do
-          assert_equal 12, @cache.columns("posts").size
-          assert_equal 12, @cache.columns_hash("posts").size
-          assert @cache.data_sources("posts")
-          assert_equal "id", @cache.primary_keys("posts")
-          assert_equal 1, @cache.indexes("posts").size
-          assert_equal @database_version.to_s, @cache.database_version.to_s
+          assert_equal 12, cache.columns("posts").size
+          assert_equal 12, cache.columns_hash("posts").size
+          assert cache.data_sources("posts")
+          assert_equal "id", cache.primary_keys("posts")
+          assert_equal 1, cache.indexes("posts").size
+          assert_equal @database_version.to_s, cache.database_version.to_s
         end
+      end
+
+      def test_marshal_dump_and_load_via_disk
+        # Create an empty cache.
+        cache = SchemaCache.new @connection
+
+        tempfile = Tempfile.new(["schema_cache-", ".dump"])
+        # Dump it. It should get populated before dumping.
+        cache.dump_to(tempfile.path)
+
+        # Load a new cache.
+        cache = SchemaCache.load_from(tempfile.path)
+        cache.connection = @connection
+
+        assert_no_queries do
+          assert_equal 12, cache.columns("posts").size
+          assert_equal 12, cache.columns_hash("posts").size
+          assert cache.data_sources("posts")
+          assert_equal "id", cache.primary_keys("posts")
+          assert_equal 1, cache.indexes("posts").size
+          assert_equal @database_version.to_s, cache.database_version.to_s
+        end
+      ensure
+        tempfile.unlink
       end
 
       def test_data_source_exist

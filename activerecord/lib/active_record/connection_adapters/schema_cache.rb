@@ -6,7 +6,8 @@ module ActiveRecord
       def self.load_from(filename)
         return unless File.file?(filename)
 
-        YAML.load(File.read(filename))
+        file = File.read(filename)
+        filename.end_with?(".dump") ? Marshal.load(file) : YAML.load(file)
       end
 
       attr_reader :version
@@ -138,7 +139,13 @@ module ActiveRecord
       def dump_to(filename)
         clear!
         connection.data_sources.each { |table| add(table) }
-        open(filename, "wb") { |f| f.write(YAML.dump(self)) }
+        open(filename, "wb") { |f|
+          if filename.end_with?(".dump")
+            f.write(Marshal.dump(self))
+          else
+            f.write(YAML.dump(self))
+          end
+        }
       end
 
       def marshal_dump
