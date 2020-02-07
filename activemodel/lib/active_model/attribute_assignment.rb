@@ -26,7 +26,7 @@ module ActiveModel
     #   cat.name # => 'Gorby'
     #   cat.status # => 'sleeping'
     def assign_attributes(new_attributes)
-      unless new_attributes.respond_to?(:stringify_keys)
+      unless new_attributes.respond_to?(:each_pair)
         raise ArgumentError, "When assigning attributes, you must pass a hash as an argument, #{new_attributes.class} passed."
       end
       return if new_attributes.empty?
