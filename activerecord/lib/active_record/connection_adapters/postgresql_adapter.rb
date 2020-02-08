@@ -637,7 +637,7 @@ module ActiveRecord
           SQL
 
           if oids
-            query += "WHERE t.oid::integer IN (%s)" % oids.join(", ")
+            query += "WHERE t.oid IN (%s)" % oids.join(", ")
           else
             query += initializer.query_conditions_for_initial_load
           end
