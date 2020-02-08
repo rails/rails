@@ -608,7 +608,8 @@ module ActionDispatch
           @encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, cipher: "aes-256-cbc", serializer: SERIALIZER)
         end
 
-        request.cookies_rotations.encrypted.each do |*secrets, **options|
+        request.cookies_rotations.encrypted.each do |(*secrets)|
+          options = secrets.extract_options!
           @encryptor.rotate(*secrets, serializer: SERIALIZER, **options)
         end
 

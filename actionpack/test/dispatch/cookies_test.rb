@@ -876,7 +876,7 @@ class CookiesTest < ActionController::TestCase
     secret = "b3c631c314c0bbca50c1b2843150fe33"
 
     @request.env["action_dispatch.encrypted_cookie_cipher"] = "aes-256-gcm"
-    @request.env["action_dispatch.cookies_rotations"].rotate :encrypted, secret
+    @request.env["action_dispatch.cookies_rotations"].rotate :encrypted, secret, digest: "SHA1"
 
     key_len = ActiveSupport::MessageEncryptor.key_len("aes-256-gcm")
 
