@@ -241,7 +241,7 @@ class ForceSSLFlashTest < ActionController::TestCase
   def test_cheeseburger_redirects_to_https
     get :set_flash
     assert_response 302
-    assert_equal "http://test.host/force_ssl_flash/cheeseburger", redirect_to_url
+    assert_equal "/force_ssl_flash/cheeseburger", redirect_to_url
 
     @request.env.delete("PATH_INFO")
 

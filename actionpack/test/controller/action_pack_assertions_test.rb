@@ -26,6 +26,8 @@ class ActionPackAssertionsController < ActionController::Base
 
   def redirect_to_controller_with_symbol() redirect_to controller: :elsewhere, action: :flash_me; end
 
+  def redirect_to_full_url() redirect_to "http://test.host/some/path" end
+
   def redirect_to_path() redirect_to "/some/path" end
 
   def redirect_invalid_external_route() redirect_to "ht_tp://www.rubyonrails.org" end
@@ -125,7 +127,7 @@ module Admin
     end
 
     def redirect_to_top_level_named_route
-      redirect_to top_level_url(id: "foo")
+      redirect_to top_level_path(id: "foo")
     end
   end
 end
@@ -325,7 +327,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
 
   def test_redirection_location
     process :redirect_internal
-    assert_equal "http://test.host/nothing", @response.redirect_url
+    assert_equal "/nothing", @response.redirect_url
 
     process :redirect_external
     assert_equal "http://www.rubyonrails.org", @response.redirect_url
@@ -412,20 +414,13 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     assert_redirected_to "/some/path"
   end
 
-  def test_redirected_to_url_no_leading_slash_fails
-    process :redirect_to_path
-    assert_raise ActiveSupport::TestCase::Assertion do
-      assert_redirected_to "some/path"
-    end
-  end
-
   def test_redirect_invalid_external_route
     process :redirect_invalid_external_route
-    assert_redirected_to "http://test.hostht_tp://www.rubyonrails.org"
+    assert_redirected_to "ht_tp://www.rubyonrails.org"
   end
 
   def test_redirected_to_url_full_url
-    process :redirect_to_path
+    process :redirect_to_full_url
     assert_redirected_to "http://test.host/some/path"
   end
 

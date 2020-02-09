@@ -983,7 +983,7 @@ class UrlHelperControllerTest < ActionController::TestCase
   def test_recall_params_should_normalize_id
     get :show, params: { id: "123" }
     assert_equal 302, @response.status
-    assert_equal "http://test.host/url_helper_controller_test/url_helper/profile/123", @response.location
+    assert_equal "/url_helper_controller_test/url_helper/profile/123", @response.location
 
     get :show, params: { name: "123" }
     assert_equal "ok", @response.body

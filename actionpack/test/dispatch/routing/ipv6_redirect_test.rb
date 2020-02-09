@@ -41,6 +41,6 @@ class IPv6IntegrationTest < ActionDispatch::IntegrationTest
 
     get "/foo", env: request_env
     assert_response :redirect
-    assert_equal "http://[fd07:2fa:6cff:2112:225:90ff:fec7:22aa]:3000/", redirect_to_url
+    assert_equal "/", redirect_to_url
   end
 end
