@@ -1,3 +1,9 @@
+*   Run `git init` when generating plugins.
+
+    Opt out with `--skip-git`.
+
+    *OKURA Masafumi*
+
 *   Add benchmark generator
 
     Introduce benchmark generator to benchmark Rails applications.

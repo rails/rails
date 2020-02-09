@@ -57,6 +57,12 @@ module Rails
       template "gitignore", ".gitignore"
     end
 
+    def version_control
+      if !options[:skip_git] && !options[:pretend]
+        run "git init", capture: options[:quiet], abort_on_failure: false
+      end
+    end
+
     def lib
       template "lib/%namespaced_name%.rb"
       template "lib/tasks/%namespaced_name%_tasks.rake"
@@ -159,12 +165,6 @@ task default: :test
       if File.exist? gemfile_in_app_path
         entry = "\ngem '#{name}', path: '#{relative_path}'"
         append_file gemfile_in_app_path, entry
-      end
-    end
-
-    def version_control
-      if  !options[:skip_git] && !options[:pretend]
-        run "git init", capture: options[:quiet], abort_on_failure: false
       end
     end
   end
