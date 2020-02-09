@@ -366,7 +366,7 @@ class CookiesTest < ActionController::TestCase
     @request.env["action_dispatch.cookies_same_site_protection"] = :none
 
     get :authenticate
-    assert_cookie_header "user_name=david; path=/" # TODO: append "; SameSite=None" when rack 2.1.0 is out and bump rack dependency version.
+    assert_cookie_header "user_name=david; path=/; SameSite=None"
     assert_equal({ "user_name" => "david" }, @response.cookies)
   end
 
