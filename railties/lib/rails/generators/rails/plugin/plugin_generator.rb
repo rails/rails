@@ -161,6 +161,12 @@ task default: :test
         append_file gemfile_in_app_path, entry
       end
     end
+
+    def version_control
+      if  !options[:skip_git] && !options[:pretend]
+        run "git init", capture: options[:quiet], abort_on_failure: false
+      end
+    end
   end
 
   module Generators
@@ -203,6 +209,7 @@ task default: :test
         build(:license)
         build(:gitignore) unless options[:skip_git]
         build(:gemfile)   unless options[:skip_gemfile]
+        build(:version_control)
       end
 
       def create_app_files
