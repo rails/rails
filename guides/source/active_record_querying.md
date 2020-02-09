@@ -545,8 +545,29 @@ Client.where(orders_count: [1,3,5])
 This code will generate SQL like this:
 
 ```sql
-SELECT * FROM clients WHERE (clients.orders_count IN (1,3,5))
+SELECT * FROM clients WHERE clients.orders_count IN (1,3,5)
 ```
+
+The `IN` expression can also generate a subquery when given another relation:
+
+```ruby
+Client.where(id: Invoice.where(pending: true).select(:client_id))
+```
+
+This will find all clients where a pending invoice for the same `client_id` is also found. Note that this does not execute two separate queries, but will compose them together:
+
+```sql
+SELECT * FROM clients WHERE clients.id IN (SELECT client_id FROM invoices WHERE invoices.pending = TRUE)
+```
+
+For more advanced subqueries, a custom SQL expression can also be provided. In this case, the string must be declared as a literal SQL fragment to distinguish it from a string value.
+
+```ruby
+subquery = Arel.sql("SELECT client_id FROM invoices WHERE invoices.pending = TRUE")
+Client.where(id: subquery)
+```
+
+This produces the same query as the previous example. (The `Arel.sql` tells ActiveRecord that this is not a database value, but a literal fragment of SQL. It is sent unchanged to the database engine, and it is your responsibility to properly sanitize user input to protect from SQL injection attacks.)
 
 ### NOT Conditions
 

@@ -359,6 +359,14 @@ module ActiveRecord
       assert_equal 0, count
     end
 
+    def test_where_with_sql_literal
+      subquery = Arel.sql("select id from posts where title like 'Welcome%'")
+      count = Post.where(id: subquery).count
+      puts Post.where(id: subquery).to_sql
+
+      assert_equal 1, count
+    end
+
     def test_where_on_association_with_custom_primary_key
       author = authors(:david)
       essay = Essay.where(writer: author).first

@@ -12,6 +12,7 @@ module ActiveRecord
       register_handler(Base, BaseHandler.new(self))
       register_handler(Range, RangeHandler.new(self))
       register_handler(Relation, RelationHandler.new)
+      register_handler(Arel::Nodes::SqlLiteral, SqlLiteralHandler.new(self))
       register_handler(Array, ArrayHandler.new(self))
       register_handler(Set, ArrayHandler.new(self))
     end
@@ -141,6 +142,7 @@ require "active_record/relation/predicate_builder/base_handler"
 require "active_record/relation/predicate_builder/basic_object_handler"
 require "active_record/relation/predicate_builder/range_handler"
 require "active_record/relation/predicate_builder/relation_handler"
+require "active_record/relation/predicate_builder/sql_literal_handler"
 
 require "active_record/relation/predicate_builder/association_query_value"
 require "active_record/relation/predicate_builder/polymorphic_array_value"
