@@ -216,6 +216,7 @@ module ActiveRecord
 
         def _quote(value)
           case value
+          when Arel::Nodes::SqlLiteral then value.to_s
           when String, Symbol, ActiveSupport::Multibyte::Chars
             "'#{quote_string(value.to_s)}'"
           when true       then quoted_true

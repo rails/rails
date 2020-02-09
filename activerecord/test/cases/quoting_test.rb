@@ -142,6 +142,12 @@ module ActiveRecord
         end
       end
 
+      def test_quote_sql_literal
+        raw_sql = %{title like '"%something%"'}
+        literal = Arel.sql(raw_sql)
+        assert_equal raw_sql, @quoter.quote(literal)
+      end
+
       def test_quote_nil
         assert_equal "NULL", @quoter.quote(nil)
       end

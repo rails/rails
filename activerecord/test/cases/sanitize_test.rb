@@ -51,6 +51,19 @@ class SanitizeTest < ActiveRecord::TestCase
     assert_match(sub_query_pattern, select_author_sql, "should sanitize `Relation` as subquery for named bind variables")
   end
 
+  def test_sanitize_sql_array_handles_sql_literals
+    subquery = Arel.sql("select author_id from comments")
+
+    select_author_sql = Post.sanitize_sql_array(["author_id in (%s)", subquery])
+    assert_equal "author_id in (select author_id from comments)", select_author_sql, "should interpolate `Arel.sql` as a literal for string interpolation"
+
+    select_author_sql = Post.sanitize_sql_array(["author_id in (?)", subquery])
+    assert_equal "author_id in (select author_id from comments)", select_author_sql, "should interpolate `Arel.sql` as a literal for bind variables"
+
+    select_author_sql = Post.sanitize_sql_array(["author_id in (:comment_author_ids)", comment_author_ids: subquery])
+    assert_equal "author_id in (select author_id from comments)", select_author_sql, "should interpolate `Arel.sql` as a literal for named bind variables"
+  end
+
   def test_sanitize_sql_array_handles_empty_statement
     select_author_sql = Post.sanitize_sql_array([""])
     assert_equal("", select_author_sql)
