@@ -1,5 +1,4 @@
 require 'bundler/setup'
-
 require 'rdoc/task'
 
 RDoc::Task.new(:rdoc) do |rdoc|
