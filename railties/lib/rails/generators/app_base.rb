@@ -409,8 +409,10 @@ module Rails
 
       def run_webpack
         if webpack_install?
-          rails_command "webpacker:install"
-          rails_command "webpacker:install:#{options[:webpack]}" if options[:webpack] && options[:webpack] != "webpack"
+          rails_command "webpacker:install", inline: true
+          if options[:webpack] && options[:webpack] != "webpack"
+            rails_command "webpacker:install:#{options[:webpack]}", inline: true
+          end
         end
       end
 
