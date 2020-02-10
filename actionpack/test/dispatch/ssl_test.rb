@@ -222,7 +222,7 @@ class SecureCookiesTest < SSLTest
   end
 
   def test_keeps_original_headers_behavior
-    get headers: { "Connection" => %w[close] }
+    get headers: { "Connection" => "close" }
     assert_equal "close", response.headers["Connection"]
   end
 end
