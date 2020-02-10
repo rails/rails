@@ -8,6 +8,7 @@ require "active_support/message_verifier"
 require "active_support/encrypted_configuration"
 require "active_support/deprecation"
 require "active_support/hash_with_indifferent_access"
+require "active_support/configuration_file"
 require "rails/engine"
 require "rails/secrets"
 
@@ -224,7 +225,7 @@ module Rails
 
       if yaml.exist?
         require "erb"
-        all_configs    = YAML.load(ERB.new(yaml.read).result, symbolize_names: true) || {}
+        all_configs    = ActiveSupport::ConfigurationFile.parse(yaml, symbolize_names: true)
         config, shared = all_configs[env.to_sym], all_configs[:shared]
 
         if config.is_a?(Hash)
@@ -235,10 +236,6 @@ module Rails
       else
         raise "Could not load configuration. No such file - #{yaml}"
       end
-    rescue Psych::SyntaxError => error
-      raise "YAML syntax error occurred while parsing #{yaml}. " \
-        "Please note that YAML must be consistently indented using spaces. Tabs are not allowed. " \
-        "Error: #{error.message}"
     end
 
     # Stores some of the Rails initial environment parameters which

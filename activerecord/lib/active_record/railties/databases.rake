@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_record"
+require "active_support/configuration_file"
 
 databases = ActiveRecord::Tasks::DatabaseTasks.setup_initial_database_yaml
 
@@ -369,7 +370,7 @@ db_namespace = namespace :db do
       base_dir = ActiveRecord::Tasks::DatabaseTasks.fixtures_path
 
       Dir["#{base_dir}/**/*.yml"].each do |file|
-        if data = YAML.load(ERB.new(IO.read(file)).result)
+        if data = ActiveSupport::ConfigurationFile.parse(file)
           data.each_key do |key|
             key_id = ActiveRecord::FixtureSet.identify(key)
 
