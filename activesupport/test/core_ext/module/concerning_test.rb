@@ -72,7 +72,7 @@ class ModuleConcernTest < ActiveSupport::TestCase
       end
     end
 
-    concerning :Baz, prepend:true do
+    concerning :Baz, prepend: true do
       module ClassMethods
         def will_be_orphaned_also; end
       end
