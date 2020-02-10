@@ -274,6 +274,46 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_equal ["Out of the Silent Planet", "Perelandra"], Book.where(isbn: "1974522598").order(:name).pluck(:name)
   end
 
+  def test_upsert_all_does_not_touch_updated_at_when_values_do_not_change
+    skip unless supports_insert_on_duplicate_update?
+
+    updated_at = Time.now.utc - 5.years
+    Book.insert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 1), updated_at: updated_at }]
+    Book.upsert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 1) }]
+
+    assert_in_delta updated_at, Book.find(101).updated_at, 1
+  end
+
+  def test_upsert_all_touches_updated_at_and_updated_on_when_values_change
+    skip unless supports_insert_on_duplicate_update?
+
+    Book.insert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 1), updated_at: 5.years.ago, updated_on: 5.years.ago }]
+    Book.upsert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 8) }]
+
+    assert_equal Time.now.year, Book.find(101).updated_at.year
+    assert_equal Time.now.year, Book.find(101).updated_on.year
+  end
+
+  def test_upsert_all_uses_given_updated_at_over_implicit_updated_at
+    skip unless supports_insert_on_duplicate_update?
+
+    updated_at = Time.now.utc - 1.year
+    Book.insert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 1), updated_at: 5.years.ago }]
+    Book.upsert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 8), updated_at: updated_at }]
+
+    assert_in_delta updated_at, Book.find(101).updated_at, 1
+  end
+
+  def test_upsert_all_uses_given_updated_on_over_implicit_updated_on
+    skip unless supports_insert_on_duplicate_update?
+
+    updated_on = Time.now.utc.to_date - 30
+    Book.insert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 1), updated_on: 5.years.ago }]
+    Book.upsert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 8), updated_on: updated_on }]
+
+    assert_equal updated_on, Book.find(101).updated_on
+  end
+
   def test_insert_all_raises_on_unknown_attribute
     assert_raise ActiveRecord::UnknownAttributeError do
       Book.insert_all! [{ unknown_attribute: "Test" }]
