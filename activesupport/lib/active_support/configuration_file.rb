@@ -10,7 +10,7 @@ module ActiveSupport
     class FormatError < StandardError; end
 
     def initialize(content_path)
-      @content_path = content_path
+      @content_path = content_path.to_s
       @content = read content_path
     end
 
