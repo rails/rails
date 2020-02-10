@@ -154,16 +154,18 @@ We are happy to have people volunteer to translate the Rails guides. Just follow
 
 Note that translations are not submitted to the Rails repository. As detailed above, your work happens in a fork. This is so because in practice documentation maintenance via patches is only sustainable in English.
 
-To generate the guides in HTML format cd into the *guides* directory then run (e.g. for it-IT):
+To generate the guides in HTML format you will need to install the guides dependencies, `cd` into the *guides* directory, and then run (e.g. for it-IT):
 
 ```bash
-$ bundle install
+$ # only install gems necessary for the guides. To undo run: bundle config --delete without
+$ bundle install --without job cable storage ujs test db
+$ cd guides/
 $ bundle exec rake guides:generate:html GUIDES_LANGUAGE=it-IT
 ```
 
 This will generate the guides in an *output* directory.
 
-NOTE: The instructions are for Rails > 4. The Redcarpet Gem doesn't work with JRuby.
+NOTE: The Redcarpet Gem doesn't work with JRuby.
 
 Translation efforts we know about (various versions):
 
