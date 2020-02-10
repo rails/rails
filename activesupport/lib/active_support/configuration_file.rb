@@ -39,7 +39,7 @@ module ActiveSupport
       end
 
       def render(context)
-        erb = ERB.new(@content).tap { |erb| erb.filename = @content_path }
+        erb = ERB.new(@content).tap { |e| e.filename = @content_path }
         context ? erb.result(context) : erb.result
       end
   end
