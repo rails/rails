@@ -19,7 +19,9 @@ module ActiveSupport
     end
 
     def parse(context: nil, **options)
-      yaml = context ? ERB.new(@content).result(context) : ERB.new(@content).result
+      erb = ERB.new(@content)
+      erb.filename = @content_path.to_s
+      yaml = context ? erb.result(context) : erb.result
       YAML.load(yaml, **options) || {}
     rescue Psych::SyntaxError => error
       raise "YAML syntax error occurred while parsing #{@content_path}. " \
