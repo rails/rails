@@ -132,11 +132,10 @@ To keep using the current cache store, you can turn off cache versioning entirel
               env_name: Rails.env,
               spec_name: "primary",
             )
-            next if db_config.nil?
 
             filename = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(
-              db_config.spec_name,
-              schema_cache_path: db_config.schema_cache_path,
+              "primary",
+              schema_cache_path: db_config&.schema_cache_path,
             )
 
             if File.file?(filename)
