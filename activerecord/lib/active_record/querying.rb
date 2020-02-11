@@ -36,7 +36,7 @@ module ActiveRecord
     #
     #   # A simple SQL query spanning multiple tables
     #   Post.find_by_sql "SELECT p.title, c.author FROM posts p, comments c WHERE p.id = c.post_id"
-    #   # => [#<Post:0x36bff9c @attributes={"title"=>"Ruby Meetup", "first_name"=>"Quentin"}>, ...]
+    #   # => [#<Post:0x36bff9c @attributes={"title"=>"Ruby Meetup", "author"=>"Quentin"}>, ...]
     #
     # You can use the same string replacement techniques as you can with <tt>ActiveRecord::QueryMethods#where</tt>:
     #
