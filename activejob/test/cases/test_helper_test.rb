@@ -7,6 +7,7 @@ require "jobs/hello_job"
 require "jobs/logging_job"
 require "jobs/nested_job"
 require "jobs/rescue_job"
+require "jobs/raising_job"
 require "jobs/inherited_job"
 require "jobs/multiple_kwargs_job"
 require "models/person"
@@ -1813,6 +1814,16 @@ class PerformedJobsTest < ActiveJob::TestCase
     assert_performed_with(job: HelloJob)
 
     assert_equal 2, queue_adapter.performed_jobs.count
+  end
+
+  test "TestAdapter respect max attempts" do
+    RaisingJob.perform_later
+
+    assert_raises(RaisingJob::MyError) do
+      perform_enqueued_jobs
+    end
+
+    assert_equal 2, queue_adapter.enqueued_jobs.count
   end
 end
 
