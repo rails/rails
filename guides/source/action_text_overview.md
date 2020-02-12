@@ -111,7 +111,11 @@ class MessagesController < ApplicationController
   end
 end
 ```
+## Avoid N + 1 queries
 
+```ruby  
+  Message.all.with_rich_text_content # get contents without active storage attachments
+```
 ## Custom styling
 
 By default, the Action Text editor and content is styled by the Trix defaults.
