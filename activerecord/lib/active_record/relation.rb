@@ -638,6 +638,7 @@ module ActiveRecord
       unless loaded?
         @records = exec_queries(&block)
         @loaded = true
+        @inspect = nil
       end
 
       self
@@ -652,7 +653,7 @@ module ActiveRecord
     def reset
       @delegate_to_klass = false
       @_deprecated_scope_source = nil
-      @to_sql = @arel = @loaded = @should_eager_load = nil
+      @to_sql = @arel = @loaded = @should_eager_load = @inspect = nil
       @records = [].freeze
       @offsets = {}
       @take = nil
@@ -730,12 +731,14 @@ module ActiveRecord
     end
 
     def inspect
-      subject = loaded? ? records : self
-      entries = subject.take([limit_value, 11].compact.min).map!(&:inspect)
+      @inspect ||= begin
+        subject = loaded? ? records : self
+        entries = subject.take([limit_value, 11].compact.min).map!(&:inspect)
 
-      entries[10] = "..." if entries.size == 11
+        entries[10] = "..." if entries.size == 11
 
-      "#<#{self.class.name} [#{entries.join(', ')}]>"
+        "#<#{self.class.name} [#{entries.join(', ')}]>"
+      end
     end
 
     def empty_scope? # :nodoc:

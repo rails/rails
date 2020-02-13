@@ -1,3 +1,7 @@
+*   Cache computation of `#inspect` on ActiveRecord relations.
+
+    *Felix Bünemann*
+
 *   Add support for PostgreSQL 11+ partitioned indexes when using `upsert_all`.
 
     *Sebastián Palma*

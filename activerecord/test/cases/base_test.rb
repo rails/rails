@@ -602,6 +602,31 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal car.bulbs.includes(:car), car.bulbs, "AssociationRelation should be comparable with CollectionProxy"
   end
 
+  def test_inspect_memoization
+    car = Car.create!
+    car.bulbs.build
+    car.save
+
+    relation = Bulb.where(car_id: car.id)
+    collection_proxy = car.bulbs
+    association_relation = car.bulbs.includes(:car)
+
+    assert_match(/::Relation/, relation.inspect, "Relation should have class name in inspect")
+    assert_same relation.inspect, relation.inspect, "Relation should memoize inspect"
+    assert_not_same relation.inspect, relation.reset.inspect, "Relation reset should invalidate inspect"
+    assert_not_same relation.inspect, relation.load.inspect, "Relation load should invalidate inspect"
+
+    assert_match(/::CollectionProxy/, collection_proxy.inspect, "CollectionProxy should have class name in inspect")
+    assert_same collection_proxy.inspect, collection_proxy.inspect, "CollectionProxy should memoize inspect"
+    assert_not_same collection_proxy.inspect, collection_proxy.reset.inspect, "CollectionProxy reset should invalidate inspect"
+    assert_not_same collection_proxy.inspect, collection_proxy.load.inspect, "CollectionProxy load should invalidate inspect"
+
+    assert_match(/::AssociationRelation/, association_relation.inspect, "AssociationRelation should have class name in inspect")
+    assert_same association_relation.inspect, association_relation.inspect, "AssociationRelation should memoize inspect"
+    assert_not_same association_relation.inspect, association_relation.reset.inspect, "AssociationRelation reset should invalidate inspect"
+    assert_not_same association_relation.inspect, association_relation.load.inspect, "AssociationRelation load should invalidate inspect"
+  end
+
   def test_hashing
     assert_equal [ Topic.find(1) ], [ Topic.find(2).topic ] & [ Topic.find(1) ]
   end

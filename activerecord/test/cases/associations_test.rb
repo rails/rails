@@ -187,6 +187,28 @@ class AssociationProxyTest < ActiveRecord::TestCase
     assert_match(/message: "new developer added"/, andreas.audit_logs.inspect)
   end
 
+  def test_inspect_memoizes
+    posts = authors(:david).posts
+    assert_same posts.inspect, posts.inspect
+  end
+
+  def test_reset_invalidates_inspect_memoization
+    posts = authors(:david).posts
+    assert_not_same posts.inspect, posts.reset.inspect
+  end
+
+  def test_load_invalidates_inspect_memoization
+    posts = authors(:david).posts
+    assert_not_predicate posts, :loaded?
+    assert_not_same posts.inspect, posts.load.inspect
+  end
+
+  def test_reload_invalidates_inspect_memoization
+    posts = authors(:david).posts.load
+    assert_predicate posts, :loaded?
+    assert_not_same posts.inspect, posts.reload.inspect
+  end
+
   def test_save_on_parent_saves_children
     developer = Developer.create name: "Bryan", salary: 50_000
     assert_equal 1, developer.reload.audit_logs.size
