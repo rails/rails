@@ -449,9 +449,7 @@ module ActiveRecord
       # ==== Examples:
       #   ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(ActiveRecord::Base.connection, "tmp/schema_dump.yaml")
       def dump_schema_cache(conn, filename)
-        conn.schema_cache.clear!
-        conn.data_sources.each { |table| conn.schema_cache.add(table) }
-        open(filename, "wb") { |f| f.write(YAML.dump(conn.schema_cache)) }
+        conn.schema_cache.dump_to(filename)
       end
 
       def clear_schema_cache(filename)

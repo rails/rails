@@ -3,6 +3,13 @@
 module ActiveRecord
   module ConnectionAdapters
     class SchemaCache
+      def self.load_from(filename)
+        return unless File.file?(filename)
+
+        file = File.read(filename)
+        filename.end_with?(".dump") ? Marshal.load(file) : YAML.load(file)
+      end
+
       attr_reader :version
       attr_accessor :connection
 
@@ -127,6 +134,18 @@ module ActiveRecord
         @primary_keys.delete name
         @data_sources.delete name
         @indexes.delete name
+      end
+
+      def dump_to(filename)
+        clear!
+        connection.data_sources.each { |table| add(table) }
+        open(filename, "wb") { |f|
+          if filename.end_with?(".dump")
+            f.write(Marshal.dump(self))
+          else
+            f.write(YAML.dump(self))
+          end
+        }
       end
 
       def marshal_dump

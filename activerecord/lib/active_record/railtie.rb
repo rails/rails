@@ -133,24 +133,23 @@ To keep using the current cache store, you can turn off cache versioning entirel
               env_name: Rails.env,
               spec_name: "primary",
             )
-
             filename = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(
               "primary",
               schema_cache_path: db_config&.schema_cache_path,
             )
 
-            if File.file?(filename)
-              current_version = ActiveRecord::Migrator.current_version
+            cache = ActiveRecord::ConnectionAdapters::SchemaCache.load_from(filename)
+            next if cache.nil?
 
-              next if current_version.nil?
+            current_version = ActiveRecord::Migrator.current_version
+            next if current_version.nil?
 
-              cache = YAML.load(File.read(filename))
-              if cache.version == current_version
-                connection_pool.schema_cache = cache.dup
-              else
-                warn "Ignoring db/schema_cache.yml because it has expired. The current schema version is #{current_version}, but the one in the cache is #{cache.version}."
-              end
+            if cache.version != current_version
+              warn "Ignoring #{filename} because it has expired. The current schema version is #{current_version}, but the one in the cache is #{cache.version}."
+              next
             end
+
+            connection_pool.set_schema_cache(cache.dup)
           end
         end
       end
