@@ -3,7 +3,7 @@
 Development Dependencies Install
 ================================
 
-This guide covers how to setup an environment for Ruby on Rails core development.
+This guide covers how to set up an environment for Ruby on Rails core development.
 
 After reading this guide, you will know:
 
@@ -168,7 +168,7 @@ mysql> GRANT ALL PRIVILEGES ON inexistent_activerecord_unittest.*
        to 'rails'@'localhost';
 ```
 
-PostgreSQL's authentication works differently. To setup the development environment
+PostgreSQL's authentication works differently. To set up the development environment
 with your development account, on Linux or BSD, you just have to run:
 
 ```bash
@@ -242,4 +242,4 @@ if you don't need to run Active Record tests.
 
 ### Contribute to Rails
 
-After you've setup everything, read how you can start [contributing](contributing_to_ruby_on_rails.html#running-an-application-against-your-local-branch).
+After you've set up everything, read how you can start [contributing](contributing_to_ruby_on_rails.html#running-an-application-against-your-local-branch).

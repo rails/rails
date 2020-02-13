@@ -9,8 +9,8 @@ incorporate real-time features into your Rails application.
 After reading this guide, you will know:
 
 * What Action Cable is and its integration backend and frontend
-* How to setup Action Cable
-* How to setup channels
+* How to set up Action Cable
+* How to set up channels
 * Deployment and Architecture setup for running Action Cable
 
 --------------------------------------------------------------------------------
@@ -627,7 +627,7 @@ and unpacked for the data argument arriving as `received`.
 ### More Complete Examples
 
 See the [rails/actioncable-examples](https://github.com/rails/actioncable-examples)
-repository for a full example of how to setup Action Cable in a Rails app and adding channels.
+repository for a full example of how to set up Action Cable in a Rails app and adding channels.
 
 ## Configuration
 
