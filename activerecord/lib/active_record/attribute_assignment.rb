@@ -6,16 +6,22 @@ module ActiveRecord
   module AttributeAssignment
     include ActiveModel::AttributeAssignment
 
+    def assign_attributes(attributes)
+      super(attributes.dup)
+    end
+
     private
       def _assign_attributes(attributes)
         multi_parameter_attributes  = {}
         nested_parameter_attributes = {}
 
         attributes.each do |k, v|
-          if k.include?("(")
-            multi_parameter_attributes[k] = attributes.delete(k)
+          key = k.to_s
+
+          if key.include?("(")
+            multi_parameter_attributes[key] = attributes.delete(k)
           elsif v.is_a?(Hash)
-            nested_parameter_attributes[k] = attributes.delete(k)
+            nested_parameter_attributes[key] = attributes.delete(k)
           end
         end
         super(attributes)
