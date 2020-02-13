@@ -21,6 +21,8 @@ module ActionView
       include AssetUrlHelper
       include TagHelper
 
+      mattr_accessor :image_loading
+
       # Returns an HTML script tag for each of the +sources+ provided.
       #
       # Sources may be paths to JavaScript files. Relative paths are assumed to be relative
@@ -365,6 +367,9 @@ module ActionView
         end
 
         options[:width], options[:height] = extract_dimensions(options.delete(:size)) if options[:size]
+
+        options[:loading] ||= image_loading if image_loading
+
         tag("img", options)
       end
 

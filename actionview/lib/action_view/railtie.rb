@@ -10,6 +10,7 @@ module ActionView
     config.action_view.embed_authenticity_token_in_remote_forms = nil
     config.action_view.debug_missing_translation = true
     config.action_view.default_enforce_utf8 = nil
+    config.action_view.image_loading = nil
 
     config.eager_load_namespaces << ActionView
 
@@ -35,6 +36,10 @@ module ActionView
       unless default_enforce_utf8.nil?
         ActionView::Helpers::FormTagHelper.default_enforce_utf8 = default_enforce_utf8
       end
+    end
+
+    config.after_initialize do |app|
+      ActionView::Helpers::AssetTagHelper.image_loading = app.config.action_view.delete(:image_loading)
     end
 
     config.after_initialize do |app|

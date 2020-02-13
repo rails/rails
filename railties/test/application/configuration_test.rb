@@ -2322,6 +2322,23 @@ module ApplicationTests
       assert_equal true, ActionView::Helpers::FormTagHelper.default_enforce_utf8
     end
 
+    test "ActionView::Helpers::AssetTagHelper.image_loading is nil by default" do
+      app "development"
+      assert_nil ActionView::Helpers::AssetTagHelper.image_loading
+    end
+
+    test "ActionView::Helpers::AssetTagHelper.image_loading can be configured via config.action_view.image_loading" do
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure do
+          config.action_view.image_loading = "lazy"
+        end
+      RUBY
+
+      app "development"
+
+      assert_equal "lazy", ActionView::Helpers::AssetTagHelper.image_loading
+    end
+
     test "raises when unknown configuration option is set for ActiveJob" do
       add_to_config <<-RUBY
         config.active_job.unknown = "test"
