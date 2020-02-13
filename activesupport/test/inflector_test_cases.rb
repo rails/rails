@@ -162,7 +162,8 @@ module InflectorTestCases
 
   ClassNameToTableName = {
     "PrimarySpokesman" => "primary_spokesmen",
-    "NodeChild"        => "node_children"
+    "NodeChild"        => "node_children",
+    "Calculu"          => "calculus" # Singular names are not handled correctly
   }
 
   StringToParameterized = {
