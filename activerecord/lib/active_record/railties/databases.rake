@@ -403,6 +403,28 @@ db_namespace = namespace :db do
       db_namespace["schema:load"].invoke if ActiveRecord::Base.schema_format == :ruby
     end
 
+    namespace :dump do
+      ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |spec_name|
+        desc "Creates a db/schema.rb file that is portable against any DB supported by Active Record for #{spec_name} database"
+        task spec_name => :load_config do
+          db_config = ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env, spec_name: spec_name)
+          ActiveRecord::Base.establish_connection(db_config)
+          ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, :ruby)
+          db_namespace["schema:dump:#{spec_name}"].reenable
+        end
+      end
+    end
+
+    namespace :load do
+      ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |spec_name|
+        desc "Loads a schema.rb file into the #{spec_name} database"
+        task spec_name => :load_config do
+          db_config = ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env, spec_name: spec_name)
+          ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, :ruby, ENV["SCHEMA"])
+        end
+      end
+    end
+
     namespace :cache do
       desc "Creates a db/schema_cache.yml file."
       task dump: :load_config do
@@ -453,6 +475,28 @@ db_namespace = namespace :db do
     task load_if_sql: ["db:create", :environment] do
       db_namespace["structure:load"].invoke if ActiveRecord::Base.schema_format == :sql
     end
+
+    namespace :dump do
+      ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |spec_name|
+        desc "Dumps the #{spec_name} database structure to db/structure.sql. Specify another file with SCHEMA=db/my_structure.sql"
+        task spec_name => :load_config do
+          db_config = ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env, spec_name: spec_name)
+          ActiveRecord::Base.establish_connection(db_config)
+          ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, :sql)
+          db_namespace["structure:dump:#{spec_name}"].reenable
+        end
+      end
+    end
+
+    namespace :load do
+      ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |spec_name|
+        desc "Recreates the #{spec_name} database from the structure.sql file"
+        task spec_name => :load_config do
+          db_config = ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env, spec_name: spec_name)
+          ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, :sql, ENV["SCHEMA"])
+        end
+      end
+    end
   end
 
   namespace :test do
@@ -499,6 +543,59 @@ db_namespace = namespace :db do
     task prepare: :load_config do
       unless ActiveRecord::Base.configurations.blank?
         db_namespace["test:load"].invoke
+      end
+    end
+
+    ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |spec_name|
+      # desc "Recreate the #{spec_name} test database"
+      namespace :load do
+        task spec_name => "db:test:purge:#{spec_name}" do
+          case ActiveRecord::Base.schema_format
+          when :ruby
+            db_namespace["test:load_schema:#{spec_name}"].invoke
+          when :sql
+            db_namespace["test:load_structure:#{spec_name}"].invoke
+          end
+        end
+      end
+
+      # desc "Recreate the #{spec_name} test database from an existent schema.rb file"
+      namespace :load_schema do
+        task spec_name => "db:test:purge:#{spec_name}" do
+          should_reconnect = ActiveRecord::Base.connection_pool.active_connection?
+          ActiveRecord::Schema.verbose = false
+          filename = ActiveRecord::Tasks::DatabaseTasks.dump_filename(spec_name, :ruby)
+          db_config = ActiveRecord::Base.configurations.configs_for(env_name: "test", spec_name: spec_name)
+          ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, :ruby, filename)
+        ensure
+          if should_reconnect
+            ActiveRecord::Base.establish_connection(ActiveRecord::Tasks::DatabaseTasks.env.to_sym)
+          end
+        end
+      end
+
+      # desc "Recreate the #{spec_name} test database from an existent structure.sql file"
+      namespace :load_structure do
+        task spec_name => "db:test:purge:#{spec_name}" do
+          filename = ActiveRecord::Tasks::DatabaseTasks.dump_filename(spec_name, :sql)
+          db_config = ActiveRecord::Base.configurations.configs_for(env_name: "test", spec_name: spec_name)
+          ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, :sql, filename)
+        end
+      end
+
+      # desc "Empty the #{spec_name} test database"
+      namespace :purge do
+        task spec_name => %w(load_config check_protected_environments) do
+          db_config = ActiveRecord::Base.configurations.configs_for(env_name: "test", spec_name: spec_name)
+          ActiveRecord::Tasks::DatabaseTasks.purge(db_config)
+        end
+      end
+
+      # desc 'Load the #{spec_name} database test schema'
+      namespace :prepare do
+        task spec_name => :load_config do
+          db_namespace["test:load:#{spec_name}"].invoke
+        end
       end
     end
   end

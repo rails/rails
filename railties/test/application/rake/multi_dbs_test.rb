@@ -112,6 +112,83 @@ module ApplicationTests
         end
       end
 
+      def db_migrate_and_schema_dump_and_load_one_database(format, database)
+        Dir.chdir(app_path) do
+          generate_models_for_animals
+          rails "db:migrate:#{database}", "db:#{format}:dump:#{database}"
+
+          if format == "schema"
+            if database == "primary"
+              schema_dump = File.read("db/#{format}.rb")
+              assert_not(File.exist?("db/animals_#{format}.rb"))
+              assert_match(/create_table \"books\"/, schema_dump)
+            else
+              assert_not(File.exist?("db/#{format}.rb"))
+              schema_dump_animals = File.read("db/animals_#{format}.rb")
+              assert_match(/create_table \"dogs\"/, schema_dump_animals)
+            end
+          else
+            if database == "primary"
+              schema_dump = File.read("db/#{format}.sql")
+              assert_not(File.exist?("db/animals_#{format}.sql"))
+              assert_match(/CREATE TABLE (?:IF NOT EXISTS )?\"books\"/, schema_dump)
+            else
+              assert_not(File.exist?("db/#{format}.sql"))
+              schema_dump_animals = File.read("db/animals_#{format}.sql")
+              assert_match(/CREATE TABLE (?:IF NOT EXISTS )?\"dogs\"/, schema_dump_animals)
+            end
+          end
+
+          rails "db:#{format}:load:#{database}"
+
+          ar_tables = lambda { rails("runner", "p ActiveRecord::Base.connection.tables").strip }
+          animals_tables = lambda { rails("runner", "p AnimalsBase.connection.tables").strip }
+
+          if database == "primary"
+            assert_equal '["schema_migrations", "ar_internal_metadata", "books"]', ar_tables[]
+            assert_equal "[]", animals_tables[]
+          else
+            assert_equal "[]", ar_tables[]
+            assert_equal '["schema_migrations", "ar_internal_metadata", "dogs"]', animals_tables[]
+          end
+        end
+      end
+
+      def db_test_prepare_spec_name(spec_name, schema_format)
+        add_to_config "config.active_record.schema_format = :#{schema_format}"
+        require "#{app_path}/config/environment"
+
+        Dir.chdir(app_path) do
+          generate_models_for_animals
+
+          if schema_format == "ruby"
+            dump_command = "db:schema:dump:#{spec_name}"
+          else
+            dump_command = "db:structure:dump:#{spec_name}"
+          end
+
+          rails("db:migrate:#{spec_name}", dump_command)
+
+          output = rails("db:test:prepare:#{spec_name}", "--trace")
+          if schema_format == "ruby"
+            assert_match(/Execute db:test:load_schema:#{spec_name}/, output)
+          else
+            assert_match(/Execute db:test:load_structure:#{spec_name}/, output)
+          end
+
+          ar_tables = lambda { rails("runner", "-e", "test", "p ActiveRecord::Base.connection.tables").strip }
+          animals_tables = lambda { rails("runner",  "-e", "test", "p AnimalsBase.connection.tables").strip }
+
+          if spec_name == "primary"
+            assert_equal ["schema_migrations", "ar_internal_metadata", "books"].sort, JSON.parse(ar_tables[]).sort
+            assert_equal "[]", animals_tables[]
+          else
+            assert_equal "[]", ar_tables[]
+            assert_equal ["schema_migrations", "ar_internal_metadata", "dogs"].sort, JSON.parse(animals_tables[]).sort
+          end
+        end
+      end
+
       def db_migrate_namespaced(namespace)
         Dir.chdir(app_path) do
           generate_models_for_animals
@@ -256,6 +333,42 @@ module ApplicationTests
       test "db:migrate and db:structure:dump and db:structure:load works on all databases" do
         require "#{app_path}/config/environment"
         db_migrate_and_schema_dump_and_load "structure"
+      end
+
+      test "db:migrate:spec_name and db:schema:dump:spec_name and db:schema:load:spec_name works for the primary database" do
+        require "#{app_path}/config/environment"
+        db_migrate_and_schema_dump_and_load_one_database("schema", "primary")
+      end
+
+      test "db:migrate:spec_name and db:schema:dump:spec_name and db:schema:load:spec_name works for the animals database" do
+        require "#{app_path}/config/environment"
+        db_migrate_and_schema_dump_and_load_one_database("schema", "animals")
+      end
+
+      test "db:migrate:spec_name and db:structure:dump:spec_name and db:structure:load:spec_name works for the primary database" do
+        require "#{app_path}/config/environment"
+        db_migrate_and_schema_dump_and_load_one_database("structure", "primary")
+      end
+
+      test "db:migrate:spec_name and db:structure:dump:spec_name and db:structure:load:spec_name works for the animals database" do
+        require "#{app_path}/config/environment"
+        db_migrate_and_schema_dump_and_load_one_database("structure", "animals")
+      end
+
+      test "db:test:prepare:spec_name works for the primary database with a ruby schema" do
+        db_test_prepare_spec_name("primary", "ruby")
+      end
+
+      test "db:test:prepare:spec_name works for the animals database with a ruby schema" do
+        db_test_prepare_spec_name("animals", "ruby")
+      end
+
+      test "db:test:prepare:spec_name works for the primary database with a sql schema" do
+        db_test_prepare_spec_name("primary", "sql")
+      end
+
+      test "db:test:prepare:spec_name works for the animals database with a sql schema" do
+        db_test_prepare_spec_name("animals", "sql")
       end
 
       test "db:migrate:namespace works" do
