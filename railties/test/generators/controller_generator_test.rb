@@ -92,6 +92,22 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
     assert_file "app/views/admin/account"
   end
 
+  def test_actions_dont_repeated
+    run_generator ["account", "foo", "bar", "foo"]
+
+    assert_file "app/controllers/account_controller.rb" do |controller|
+      assert_equal controller.scan(/def foo\n  end$/).size,  1
+    end
+
+    assert_file "config/routes.rb" do |routes|
+      assert_equal routes.scan(/get 'account\/foo'$/).size,  1
+    end
+
+    assert_file "test/controllers/account_controller_test.rb" do |test_controller|
+      assert_equal test_controller.scan(/account_foo_url$/).size,  1
+    end
+  end
+
   def test_actions_are_turned_into_methods
     run_generator
 
