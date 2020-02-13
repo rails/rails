@@ -337,6 +337,46 @@ module ApplicationTests
         db_schema_dump
       end
 
+      def db_schema_cache_dump(filename = "db/schema_cache.yml")
+        Dir.chdir(app_path) do
+          rails "db:schema:cache:dump"
+
+          cache_size = lambda { rails("runner", "p ActiveRecord::Base.connection.schema_cache.size").strip }
+          cache_tables = lambda { rails("runner", "p ActiveRecord::Base.connection.schema_cache.columns('books')").strip }
+
+          assert_equal "12", cache_size[]
+          assert_includes cache_tables[], "id", "expected cache_tables to include an id entry"
+          assert_includes cache_tables[], "title", "expected cache_tables to include a title entry"
+        end
+      end
+
+      test "db:schema:cache:dump" do
+        db_schema_dump
+        db_schema_cache_dump
+      end
+
+      test "db:schema:cache:dump with custom filename" do
+        Dir.chdir(app_path) do
+          File.open("#{app_path}/config/database.yml", "w") do |f|
+            f.puts <<-YAML
+            default: &default
+              adapter: sqlite3
+              pool: 5
+              timeout: 5000
+              variables:
+                statement_timeout: 1000
+            development:
+              <<: *default
+              database: db/development.sqlite3
+              schema_cache_path: db/special_schema_cache.yml
+            YAML
+          end
+        end
+
+        db_schema_dump
+        db_schema_cache_dump("db/special_schema_cache.yml")
+      end
+
       def db_fixtures_load(expected_database)
         Dir.chdir(app_path) do
           rails "generate", "model", "book", "title:string"
