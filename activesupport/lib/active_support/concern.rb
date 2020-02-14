@@ -104,7 +104,7 @@ module ActiveSupport
   #
   # Just like `include`, concerns also support `prepend` with a corresponding
   # `prepended do` callback. `module ClassMethods` or `class_methods do` are
-  # still extended.
+  # prepended as well.
   #
   # `prepend` is also used for any dependencies.
   module Concern
@@ -145,7 +145,7 @@ module ActiveSupport
         return false if base < self
         @_dependencies.each { |dep| base.prepend(dep) }
         super
-        base.extend const_get(:ClassMethods) if const_defined?(:ClassMethods)
+        base.singleton_class.prepend const_get(:ClassMethods) if const_defined?(:ClassMethods)
         base.class_eval(&@_prepended_block) if instance_variable_defined?(:@_prepended_block)
       end
     end
