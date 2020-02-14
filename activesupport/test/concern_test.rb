@@ -194,4 +194,34 @@ class ConcernTest < ActiveSupport::TestCase
       end
     end
   end
+
+  def test_prepended_and_included_methods
+    included = Module.new.extend(ActiveSupport::Concern)
+    prepended = Module.new.extend(ActiveSupport::Concern)
+
+    @klass.class_eval { def initialize; @foo = []; end }
+    included.module_eval { def foo; @foo << :included; end }
+    @klass.class_eval { def foo; super; @foo << :class; end }
+    prepended.module_eval { def foo; super; @foo << :prepended; end }
+
+    @klass.include included
+    @klass.prepend prepended
+
+    assert_equal @klass.new.foo, [:included, :class, :prepended]
+  end
+
+  def test_prepended_and_included_class_methods
+    included = Module.new.extend(ActiveSupport::Concern)
+    prepended = Module.new.extend(ActiveSupport::Concern)
+
+    @klass.class_eval { @foo = [] }
+    included.class_methods { def foo; @foo << :included; end }
+    @klass.class_eval { def self.foo; super; @foo << :class; end }
+    prepended.class_methods { def foo; super; @foo << :prepended; end }
+
+    @klass.include included
+    @klass.prepend prepended
+
+    assert_equal @klass.foo, [:included, :class, :prepended]
+  end
 end
