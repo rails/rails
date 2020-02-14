@@ -78,7 +78,7 @@ module ActiveSupport
       #
       # The +key+ argument can also respond to +cache_key+ or +to_param+.
       def expand_cache_key(key, namespace = nil)
-        expanded_cache_key = (namespace ? "#{namespace}/" : "").dup
+        expanded_cache_key = namespace ? +"#{namespace}/" : +""
 
         if prefix = ENV["RAILS_CACHE_ID"] || ENV["RAILS_APP_VERSION"]
           expanded_cache_key << "#{prefix}/"
