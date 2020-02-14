@@ -26,6 +26,7 @@ module Rails
 
       def edit
         extract_environment_option_from_argument(default_environment: nil)
+        ENV["RAILS_ENV"] = options[:environment]
         require_application!
 
         ensure_editor_available(command: "bin/rails credentials:edit") || (return)
@@ -81,7 +82,7 @@ module Rails
           if options[:environment]
             encrypted_file_generator.add_encrypted_file_silently(content_path, key_path)
           else
-            credentials_generator.add_credentials_file_silently
+            credentials_generator.add_credentials_file_silently(config_path: content_path, key_path: key_path)
           end
         end
 
@@ -99,13 +100,25 @@ module Rails
           end
         end
 
-
         def content_path
-          @content_path ||= options[:environment] ? "config/credentials/#{options[:environment]}.yml.enc" : "config/credentials.yml.enc"
+          @content_path ||= determine_path(:content_path,
+                                           default_path: "config/credentials.yml.enc",
+                                           env_path: "config/credentials/#{options[:environment]}.yml.enc")
         end
 
         def key_path
-          options[:environment] ? "config/credentials/#{options[:environment]}.key" : "config/master.key"
+          @key_path ||= determine_path(:key_path,
+                                       default_path: "config/master.key",
+                                       env_path: "config/credentials/#{options[:environment]}.key")
+        end
+
+        def determine_path(which, default_path:, env_path:)
+          require Rails.root.join("config", "environments", "#{options[:environment]}.rb") if options[:environment]
+          config_path = Rails.application.config.credentials[which].to_s.gsub(Rails.root.to_s + '/', '')
+
+          return config_path if (options[:environment] && config_path != env_path) && config_path != default_path
+          return env_path if options[:environment]
+          return default_path
         end
 
         def extract_environment_from_path(path)

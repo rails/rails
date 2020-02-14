@@ -18,24 +18,24 @@ module Rails
           say template, :on_green
           say ""
 
-          add_credentials_file_silently(template)
+          add_credentials_file_silently(template: template)
 
           say "You can edit encrypted credentials with `rails credentials:edit`."
           say ""
         end
       end
 
-      def add_credentials_file_silently(template = nil)
-        unless credentials.content_path.exist?
-          credentials.write(credentials_template)
+      def add_credentials_file_silently(template: credentials_template, config_path: nil, key_path: nil)
+        unless credentials(config_path, key_path).content_path.exist?
+          credentials.write(template)
         end
       end
 
       private
-        def credentials
+        def credentials(config_path = nil, key_path = nil)
           ActiveSupport::EncryptedConfiguration.new(
-            config_path: "config/credentials.yml.enc",
-            key_path: "config/master.key",
+            config_path: config_path || "config/credentials.yml.enc",
+            key_path: key_path || "config/master.key",
             env_key: "RAILS_MASTER_KEY",
             raise_if_missing_key: true
           )
