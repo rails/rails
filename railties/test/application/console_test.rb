@@ -174,4 +174,11 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     write_prompt "puts Rails.env", "puts Rails.env\r\ntest"
     @primary.puts "quit"
   end
+
+  def test_logger_dont_output_on_stdout
+    spawn_console(nil)
+
+    write_prompt("Rails.logger.info('hello')", "\r\n=> 6")
+    write_prompt("ActiveRecord::Base.logger.info('hello')", "\r\nhello\r\n=> 6")
+  end
 end

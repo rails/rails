@@ -57,10 +57,12 @@ module ActiveRecord
     console do |app|
       require "active_record/railties/console_sandbox" if app.sandbox?
       require "active_record/base"
-      unless ActiveSupport::Logger.logger_outputs_to?(Rails.logger, STDERR, STDOUT)
+      unless ActiveSupport::Logger.logger_outputs_to?(ActiveRecord::Base.logger, STDERR, STDOUT)
+        logger = ActiveRecord::Base.logger
+        ActiveRecord::Base.logger = logger.dup
         console = ActiveSupport::Logger.new(STDERR)
         console.level = Rails.logger.level
-        Rails.logger.extend ActiveSupport::Logger.broadcast console
+        ActiveRecord::Base.logger.extend ActiveSupport::Logger.broadcast console
       end
       ActiveRecord::Base.verbose_query_logs = false
     end
