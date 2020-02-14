@@ -22,7 +22,7 @@ A short rundown of some of the major features:
    class Product < ActiveRecord::Base
    end
 
-  {Learn more}[link:classes/ActiveRecord/Base.html]
+  {Learn more}[https://api.rubyonrails.org/classes/ActiveRecord/Base.html]
 
 The Product class is automatically mapped to the table named "products",
 which might look like this:
@@ -45,7 +45,7 @@ This would also define the following accessors: <tt>Product#name</tt> and
      belongs_to :conglomerate
    end
 
-  {Learn more}[link:classes/ActiveRecord/Associations/ClassMethods.html]
+  {Learn more}[https://api.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html]
 
 
 * Aggregations of value objects.
@@ -57,7 +57,7 @@ This would also define the following accessors: <tt>Product#name</tt> and
                  mapping: [%w(address_street street), %w(address_city city)]
    end
 
-  {Learn more}[link:classes/ActiveRecord/Aggregations/ClassMethods.html]
+  {Learn more}[https://api.rubyonrails.org/classes/ActiveRecord/Aggregations/ClassMethods.html]
 
 
 * Validation rules that can differ for new or existing objects.
@@ -69,7 +69,7 @@ This would also define the following accessors: <tt>Product#name</tt> and
       validates :password, :email_address, confirmation: true, on: :create
     end
 
-  {Learn more}[link:classes/ActiveRecord/Validations.html]
+  {Learn more}[https://api.rubyonrails.org/classes/ActiveRecord/Validations.html]
 
 
 * Callbacks available for the entire life cycle (instantiation, saving, destroying, validating, etc.).
@@ -79,7 +79,7 @@ This would also define the following accessors: <tt>Product#name</tt> and
      # the `invalidate_payment_plan` method gets called just before Person#destroy
    end
 
-  {Learn more}[link:classes/ActiveRecord/Callbacks.html]
+  {Learn more}[https://api.rubyonrails.org/classes/ActiveRecord/Callbacks.html]
 
 
 * Inheritance hierarchies.
@@ -89,7 +89,7 @@ This would also define the following accessors: <tt>Product#name</tt> and
    class Client < Company; end
    class PriorityClient < Client; end
 
-  {Learn more}[link:classes/ActiveRecord/Base.html]
+  {Learn more}[https://api.rubyonrails.org/classes/ActiveRecord/Base.html]
 
 
 * Transactions.
@@ -100,7 +100,7 @@ This would also define the following accessors: <tt>Product#name</tt> and
       mary.deposit(100)
     end
 
-  {Learn more}[link:classes/ActiveRecord/Transactions/ClassMethods.html]
+  {Learn more}[https://api.rubyonrails.org/classes/ActiveRecord/Transactions/ClassMethods.html]
 
 
 * Reflections on columns, associations, and aggregations.
@@ -109,7 +109,7 @@ This would also define the following accessors: <tt>Product#name</tt> and
     reflection.klass # => Client (class)
     Firm.columns # Returns an array of column descriptors for the firms table
 
-  {Learn more}[link:classes/ActiveRecord/Reflection/ClassMethods.html]
+  {Learn more}[https://api.rubyonrails.org/classes/ActiveRecord/Reflection/ClassMethods.html]
 
 
 * Database abstraction through simple adapters.
@@ -126,10 +126,10 @@ This would also define the following accessors: <tt>Product#name</tt> and
       database: 'activerecord'
     )
 
-  {Learn more}[link:classes/ActiveRecord/Base.html] and read about the built-in support for
-  MySQL[link:classes/ActiveRecord/ConnectionAdapters/Mysql2Adapter.html],
-  PostgreSQL[link:classes/ActiveRecord/ConnectionAdapters/PostgreSQLAdapter.html], and
-  SQLite3[link:classes/ActiveRecord/ConnectionAdapters/SQLite3Adapter.html].
+  {Learn more}[https://api.rubyonrails.org/classes/ActiveRecord/Base.html] and read about the built-in support for
+  MySQL[https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/Mysql2Adapter.html],
+  PostgreSQL[https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/PostgreSQLAdapter.html], and
+  SQLite3[https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SQLite3Adapter.html].
 
 
 * Logging support for Log4r[https://github.com/colbygk/log4r] and Logger[https://ruby-doc.org/stdlib/libdoc/logger/rdoc/].
@@ -158,7 +158,7 @@ This would also define the following accessors: <tt>Product#name</tt> and
       end
     end
 
-  {Learn more}[link:classes/ActiveRecord/Migration.html]
+  {Learn more}[https://api.rubyonrails.org/classes/ActiveRecord/Migration.html]
 
 
 == Philosophy
