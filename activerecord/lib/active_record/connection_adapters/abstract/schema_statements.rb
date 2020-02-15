@@ -894,6 +894,8 @@ module ActiveRecord
       #   See #add_index for usage of this option.
       # [<tt>:foreign_key</tt>]
       #   Add an appropriate foreign key constraint. Defaults to false.
+      #   If the association name doesn't correspond to the joined table name,
+      #   specify Hash with <tt>to_table:</tt> key points to that table name.
       # [<tt>:polymorphic</tt>]
       #   Whether an additional +_type+ column should be added. Defaults to false.
       # [<tt>:null</tt>]
