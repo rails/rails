@@ -893,7 +893,9 @@ module ActiveRecord
       #   Add an appropriate index. Defaults to true.
       #   See #add_index for usage of this option.
       # [<tt>:foreign_key</tt>]
-      #   Add an appropriate foreign key constraint. Defaults to false.
+      #   Add an appropriate foreign key constraint. Defaults to false, pass true
+      #   to add. In case the join table can't be inferred from the association
+      #   pass <tt>:to_table</tt> with the appropriate table name.
       # [<tt>:polymorphic</tt>]
       #   Whether an additional +_type+ column should be added. Defaults to false.
       # [<tt>:null</tt>]
@@ -925,7 +927,7 @@ module ActiveRecord
       #
       # ====== Create a supplier_id column and a foreign key to the firms table
       #
-      #   add_reference(:products, :supplier, foreign_key: {to_table: :firms})
+      #   add_reference(:products, :supplier, foreign_key: { to_table: :firms })
       #
       def add_reference(table_name, ref_name, **options)
         ReferenceDefinition.new(ref_name, **options).add_to(update_table_definition(table_name, self))
