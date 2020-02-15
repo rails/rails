@@ -110,6 +110,8 @@ services:
 
   postgres:
     image: "${POSTGRES_IMAGE-postgres:alpine}"
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: "trust"
 
   rabbitmq:
     image: rabbitmq:alpine
