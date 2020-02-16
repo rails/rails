@@ -912,18 +912,15 @@ simpler. Let's use this in `app/views/articles/index.html.erb`:
 <ul>
   <% @articles.each do |article| %>
     <li>
-      <%= link_to article.title, "/articles/#{article.id}" %>
+      <%= link_to article.title, article_path(article) %>
     </li>
   <% end %>
 </ul>
 ```
 
 There we go, that is now a little bit cleaner. Rails has given us a way to
-shorten this code a little. But what you don't know yet is that this line can
-be made even simpler.
-
-Rails has a feature called _routing helpers_. These are methods that can be
-used to generate route paths like `"/articles/#{article.id}"` programatically.
+shorten this code quite a lot. The `article_path` method that we're calling at the end of this line is using a feature of Rails called a _routing helper_. These are methods that can be
+used to generate route paths like `/articles/1` or `/articles/2` programatically.
 We'll use one of these to generate the route for our article. To set this up,
 let's go back to `config/routes.rb` and change this line:
 
@@ -940,6 +937,22 @@ get "/articles/:id", to: "articles#show", as: :article
 The `:as` option here tells Rails that we want routing helpers for this article
 route to be available in our application. Rails will then let us use this
 helper to build that route.
+
+
+At this point, we now have two lines in our `config/routes.rb` file that define routes for `ArticlesController`:
+
+```ruby
+get "/articles", to: "articles#index"
+get "/articles/:id", to: "articles#show", as: :article
+```
+
+NOTE: You might be able to guess here that, as this guide continues, we're going
+to add even more routes for this controller. You would be correct! We're going
+to add five more routes. Rails _does_ provide us a way for us to write all these
+routes using one simple line in `config/routes.rb`: `resources :articles`. This
+line will generate _seven_ routes for our `ArticlesController`, and all the
+routing helpers too. We're _intentionally not using it_ in this guide to clearly
+explain how routing works within a Rails application.
 
 Let's look at how we can use that in `app/views/articles/index.html.erb` now,
 by changing the end of the `link_to` call to this:
