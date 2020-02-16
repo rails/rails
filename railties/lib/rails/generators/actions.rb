@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "shellwords"
+require "active_support/core_ext/kernel/reporting"
 require "active_support/core_ext/string/strip"
 
 module Rails
