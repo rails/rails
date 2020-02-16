@@ -10,6 +10,8 @@ module ActiveRecord
       super(attributes.dup)
     end
 
+    alias attributes= assign_attributes
+
     private
       def _assign_attributes(attributes)
         multi_parameter_attributes  = {}
