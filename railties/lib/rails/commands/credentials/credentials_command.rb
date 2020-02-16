@@ -113,7 +113,8 @@ module Rails
         end
 
         def determine_path(which, default_path:, env_path:)
-          require Rails.root.join("config", "environments", "#{options[:environment]}.rb") if options[:environment]
+          environment_config_path = Rails.root.join("config", "environments", "#{options[:environment]}.rb")
+          require(environment_config_path) if options[:environment] && File.exists?(environment_config_path)
           config_path = Rails.application.config.credentials[which].to_s.gsub(Rails.root.to_s + '/', '')
 
           return config_path if (options[:environment] && config_path != env_path) && config_path != default_path
