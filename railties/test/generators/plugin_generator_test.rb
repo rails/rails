@@ -482,6 +482,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   def test_unnecessary_files_are_not_generated_in_dummy_application
     run_generator
     assert_no_file "test/dummy/.gitignore"
+    assert_no_file "test/dummy/.ruby-version"
     assert_no_file "test/dummy/db/seeds.rb"
     assert_no_file "test/dummy/Gemfile"
     assert_no_file "test/dummy/public/robots.txt"

@@ -127,6 +127,7 @@ task default: :test
 
     def test_dummy_clean
       inside dummy_path do
+        remove_file ".ruby-version"
         remove_file "db/seeds.rb"
         remove_file "Gemfile"
         remove_file "lib/tasks"
