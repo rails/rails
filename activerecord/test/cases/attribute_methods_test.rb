@@ -279,14 +279,16 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   test "hashes are not mangled" do
-    new_topic = { title: "New Topic" }
-    new_topic_values = { title: "AnotherTopic" }
+    new_topic = { title: "New Topic", content: { key: "First value" } }
+    new_topic_values = { title: "AnotherTopic", content: { key: "Second value" } }
 
     topic = Topic.new(new_topic)
     assert_equal new_topic[:title], topic.title
+    assert_equal new_topic[:content], topic.content
 
     topic.attributes = new_topic_values
     assert_equal new_topic_values[:title], topic.title
+    assert_equal new_topic_values[:content], topic.content
   end
 
   test "create through factory" do
