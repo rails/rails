@@ -32,7 +32,7 @@ module ActiveSupport
         require "erb"
 
         File.read(content_path).tap do |content|
-          if content.match?(/\U+A0/)
+          if content.include?("\u00A0")
             warn "File contains invisible non-breaking spaces, you may want to remove those"
           end
         end
