@@ -457,6 +457,8 @@ module ActiveSupport
               new(nil, :instance_exec, [:target, :block], filter)
             elsif filter.arity > 0
               new(nil, :instance_exec, [:target], filter)
+            elsif filter.arity == -1 && filter.to_s.match?(%r{(&:[a-zA-Z]\w+)})
+              new(nil, :instance_exec, [:target], filter)
             else
               new(nil, :instance_exec, [], filter)
             end

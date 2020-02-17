@@ -1193,4 +1193,19 @@ module CallbacksTest
       end
     end
   end
+
+  class ToProcConditionalTest < ActiveSupport::TestCase
+    class ToProcConditional < Record
+      before_save :skipped, if: Proc.new(&:skip?)
+
+      def skipped; end
+      def skip?; true; end
+    end
+
+    def test_to_proc_conditional
+      assert_nothing_raised do
+        ToProcConditional.new.run_callbacks(:save) { }
+      end
+    end
+  end
 end
