@@ -172,6 +172,65 @@ module ResolverSharedTests
     assert_equal :json, templates[1].format
   end
 
+  def test_templates_with_variant
+    with_file "test/hello_world.html+mobile.erb", "Hello HTML!"
+
+    templates = resolver.find_all("hello_world", "test", false, locale: [], formats: [:html, :json], variants: :any, handlers: [:erb, :builder])
+
+    assert_equal 1, templates.size
+    assert_equal "Hello HTML!", templates[0].source
+    assert_kind_of ActionView::Template::Handlers::ERB, templates[0].handler
+    assert_equal :html, templates[0].format
+    assert_equal "mobile", templates[0].variant
+  end
+
+  def test_finds_variants_in_order
+    with_file "test/hello_world.html+tricorder.erb", "Hello Spock!"
+    with_file "test/hello_world.html+lcars.erb", "Hello Geordi!"
+
+    tricorder = context.find("hello_world", "test", false, [], { variants: [:tricorder] })
+    lcars = context.find("hello_world", "test", false, [], { variants: [:lcars] })
+
+    assert_equal "Hello Spock!", tricorder.source
+    assert_equal "tricorder", tricorder.variant
+    assert_equal "Hello Geordi!", lcars.source
+    assert_equal "lcars", lcars.variant
+
+    templates = context.find_all("hello_world", "test", false, [], { variants: [:tricorder, :lcars] })
+    assert_equal [tricorder, lcars], templates
+
+    templates = context.find_all("hello_world", "test", false, [], { variants: [:lcars, :tricorder] })
+    assert_equal [lcars, tricorder], templates
+  end
+
+  def test_templates_no_format_with_variant
+    return skip
+
+    with_file "test/hello_world+mobile.erb", "Hello HTML!"
+
+    templates = resolver.find_all("hello_world", "test", false, locale: [], formats: [:html, :json], variants: :any, handlers: [:erb, :builder])
+
+    assert_equal 1, templates.size
+    assert_equal "Hello HTML!", templates[0].source
+    assert_kind_of ActionView::Template::Handlers::ERB, templates[0].handler
+    assert_nil templates[0].format
+    assert_equal "mobile", templates[0].variant
+  end
+
+  def test_templates_no_format_or_handler_with_variant
+    return skip
+
+    with_file "test/hello_world+mobile", "Hello HTML!"
+
+    templates = resolver.find_all("hello_world", "test", false, locale: [], formats: [:html, :json], variants: :any, handlers: [:erb, :builder])
+
+    assert_equal 1, templates.size
+    assert_equal "Hello HTML!", templates[0].source
+    assert_kind_of ActionView::Template::Handlers::Raw, templates[0].handler
+    assert_nil templates[0].format
+    assert_equal "mobile", templates[0].variant
+  end
+
   def test_virtual_path_is_preserved_with_dot
     with_file "test/hello_world.html.erb", "Hello html!"
 
