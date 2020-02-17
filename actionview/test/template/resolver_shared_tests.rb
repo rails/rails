@@ -148,22 +148,28 @@ module ResolverSharedTests
 
   def test_templates_sort_by_formats_json_first
     with_file "test/hello_world.html.erb", "Hello HTML!"
-    with_file "test/hello_world.json.jbuilder", "Hello JSON!"
+    with_file "test/hello_world.json.builder", "Hello JSON!"
 
-    templates = resolver.find_all("hello_world", "test", false, locale: [], formats: [:json, :html], variants: :any, handlers: [:erb, :jbuilder])
+    templates = resolver.find_all("hello_world", "test", false, locale: [], formats: [:json, :html], variants: :any, handlers: [:erb, :builder])
 
     assert_equal 2, templates.size
     assert_equal "Hello JSON!", templates[0].source
+    assert_equal :json, templates[0].format
+    assert_equal "Hello HTML!", templates[1].source
+    assert_equal :html, templates[1].format
   end
 
   def test_templates_sort_by_formats_html_first
     with_file "test/hello_world.html.erb", "Hello HTML!"
-    with_file "test/hello_world.json.jbuilder", "Hello JSON!"
+    with_file "test/hello_world.json.builder", "Hello JSON!"
 
-    templates = resolver.find_all("hello_world", "test", false, locale: [], formats: [:html, :json], variants: :any, handlers: [:erb, :jbuilder])
+    templates = resolver.find_all("hello_world", "test", false, locale: [], formats: [:html, :json], variants: :any, handlers: [:erb, :builder])
 
     assert_equal 2, templates.size
     assert_equal "Hello HTML!", templates[0].source
+    assert_equal :html, templates[0].format
+    assert_equal "Hello JSON!", templates[1].source
+    assert_equal :json, templates[1].format
   end
 
   def test_virtual_path_is_preserved_with_dot
