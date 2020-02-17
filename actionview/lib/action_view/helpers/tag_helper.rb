@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/object/as_tags"
 require "active_support/core_ext/string/output_safety"
 require "set"
 
@@ -94,7 +95,7 @@ module ActionView
         def tag_option(key, value, escape)
           case value
           when Array, Hash
-            value = TagHelper.build_tag_values(value) if key.to_s == "class"
+            value = value.as_tags if key.to_s == "class"
             value = escape ? safe_join(value, " ") : value.join(" ")
           else
             value = escape ? ERB::Util.unwrapped_html_escape(value) : value.to_s
@@ -300,7 +301,7 @@ module ActionView
       #   class_names(nil, false, 123, "", "foo", { bar: true })
       #    # => "123 foo bar"
       def class_names(*args)
-        safe_join(build_tag_values(*args), " ")
+        safe_join(args.as_tags, " ")
       end
 
       # Returns a CDATA section with the given +content+. CDATA sections
@@ -333,26 +334,6 @@ module ActionView
       end
 
       private
-        def build_tag_values(*args)
-          tag_values = []
-
-          args.each do |tag_value|
-            case tag_value
-            when Hash
-              tag_value.each do |key, val|
-                tag_values << key.to_s if val && key.present?
-              end
-            when Array
-              tag_values.concat build_tag_values(*tag_value)
-            else
-              tag_values << tag_value.to_s if tag_value.present?
-            end
-          end
-
-          tag_values
-        end
-        module_function :build_tag_values
-
         def tag_builder
           @tag_builder ||= TagBuilder.new(self)
         end

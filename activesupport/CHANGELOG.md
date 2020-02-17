@@ -1,3 +1,21 @@
+*   Introduce `Object#as_tags`, as a generalisation of the `class_names`
+    view helper.
+
+    Converts data structures to an array of nonblank strings, useful for
+    generating tag-like lists with expressive optionality:
+
+    ```ruby
+    [
+      "shipment",
+      overdue: delivery_date.past?,
+      international: origin.country != destination.country,
+      priority: customer.vip?
+    ].as_tags
+    # => ["shipment", "overdue", "priority"]
+    ```
+
+    *Josh Goodall*
+
 *   Support `prepend` with `ActiveSupport::Concern`.
 
     Allows a module with `extend ActiveSupport::Concern` to be prepended.
