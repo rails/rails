@@ -149,7 +149,7 @@ To see how a test failure is reported, you can add a failing test to the `articl
 ```ruby
 test "should not save article without title" do
   article = Article.new
-  assert_not article.save
+  assert article.save
 end
 ```
 
@@ -183,7 +183,7 @@ In the output, `F` denotes a failure. You can see the corresponding trace shown 
 ```ruby
 test "should not save article without title" do
   article = Article.new
-  assert_not article.save, "Saved the article without a title"
+  assert article.save, "Saved the article without a title"
 end
 ```
 
