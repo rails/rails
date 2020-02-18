@@ -1,3 +1,7 @@
+*   `rails stats` will now count TypeScript files toward JavaScript stats
+
+    *Joshua Cody*
+
 *   Run `git init` when generating plugins.
 
     Opt out with `--skip-git`.
