@@ -8,6 +8,8 @@ class CodeStatistics #:nodoc:
                 "Helper tests",
                 "Model tests",
                 "Mailer tests",
+                "Mailbox tests",
+                "Channel tests",
                 "Job tests",
                 "Integration tests",
                 "System tests"]
