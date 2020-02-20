@@ -445,7 +445,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_default_scope_select_ignored_by_grouped_aggregations
-    assert_equal Hash[Developer.all.group_by(&:salary).map { |s, d| [s, d.count] }],
+    assert_equal Developer.all.group_by(&:salary).transform_values(&:count),
                  DeveloperWithSelect.group(:salary).count
   end
 
