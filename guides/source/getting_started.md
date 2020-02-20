@@ -78,7 +78,14 @@ your prompt will look something like `c:\source_code>`
 ### Installing Rails
 
 Before you install Rails, you should check to make sure that your system has the
-proper prerequisites installed. These include Ruby and SQLite3.
+proper prerequisites installed. These include:
+
+* Ruby 
+* SQLite3
+* Node.js
+* Yarn
+
+#### Installing Ruby
 
 Open up a command line prompt. On macOS open Terminal.app, on Windows choose
 "Run" from your Start menu and type 'cmd.exe'. Any commands prefaced with a
@@ -100,6 +107,8 @@ Operating Systems take a look at [ruby-lang.org](https://www.ruby-lang.org/en/do
 If you are working on Windows, you should also install the
 [Ruby Installer Development Kit](https://rubyinstaller.org/downloads/).
 
+#### Installing SQLite3
+
 You will also need an installation of the SQLite3 database.
 Many popular UNIX-like OSes ship with an acceptable version of SQLite3.
 On Windows, if you installed Rails through Rails Installer, you
@@ -112,6 +121,33 @@ $ sqlite3 --version
 ```
 
 The program should report its version.
+
+#### Installing Node.js and Yarn
+
+Finally, you'll need Node.js and Yarn installed to manage your application's JavaScript.
+
+Find the installation instructions at the [Node.js website](https://nodejs.org/en/download/) and 
+verify it's installed correctly with the following command:
+
+```bash 
+$ node --version
+```
+
+The version of your Node.js runtime should be printed out. Make sure it's greater
+than 8.16.0.
+
+To install Yarn, follow the installation
+instructions at the [Yarn website](https://classic.yarnpkg.com/en/docs/install).
+
+Running this command should print out Yarn version:
+
+```bash
+$ yarn -v
+```
+
+If it says something like "1.22.0", Yarn has been installed correctly.
+
+#### Installing Rails
 
 To install Rails, use the `gem install` command provided by RubyGems:
 
