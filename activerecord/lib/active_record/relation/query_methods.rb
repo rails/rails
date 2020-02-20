@@ -855,7 +855,7 @@ module ActiveRecord
     # Sets the returned relation to strict_loading mode. This will raise an error
     # if the record tries to lazily load an association.
     #
-    #   user = User.first.strict_loading
+    #   user = User.strict_loading.first
     #   user.comments.to_a
     #   => ActiveRecord::StrictLoadingViolationError
     def strict_loading(value = true)

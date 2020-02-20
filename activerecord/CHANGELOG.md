@@ -5,7 +5,7 @@
     Usage:
 
     ```
-    >> Developer.strict_loading.first
+    >> dev = Developer.strict_loading.first
     >> dev.audit_logs.to_a
     => ActiveRecord::StrictLoadingViolationError: Developer is marked as strict_loading and AuditLog cannot be lazily loaded.
     ```
