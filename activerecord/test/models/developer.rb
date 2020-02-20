@@ -52,6 +52,7 @@ class Developer < ActiveRecord::Base
                           class_name: "SpecialProject"
 
   has_many :audit_logs
+  has_many :strict_loading_audit_logs, -> { strict_loading }, class_name: "AuditLog"
   has_many :contracts
   has_many :firms, through: :contracts, source: :firm
   has_many :comments, ->(developer) { where(body: "I'm #{developer.name}") }

@@ -143,8 +143,16 @@ module ActiveRecord
             end
 
             scope.merge!(reflection_scope) if reflection.scope
-            scope.merge!(preload_scope) if preload_scope
-            scope
+
+            if preload_scope && !preload_scope.empty_scope?
+              scope.merge!(preload_scope)
+            end
+
+            if preload_scope && preload_scope.strict_loading_value
+              scope.strict_loading
+            else
+              scope
+            end
           end
       end
     end
