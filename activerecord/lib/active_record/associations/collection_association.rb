@@ -278,8 +278,8 @@ module ActiveRecord
         target
       end
 
-      def add_to_target(record, skip_callbacks = false, &block)
-        if association_scope.distinct_value
+      def add_to_target(record, skip_callbacks: false, replace: false, &block)
+        if replace || association_scope.distinct_value
           index = @target.index(record)
         end
         replace_on_target(record, index, skip_callbacks, &block)
@@ -292,7 +292,7 @@ module ActiveRecord
         when Array
           super
         else
-          add_to_target(record, true)
+          add_to_target(record, skip_callbacks: true, replace: true)
         end
       end
 
