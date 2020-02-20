@@ -58,7 +58,7 @@ module ActiveRecord
       end
 
       def test_pool_has_reaper
-        config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+        config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
         pool_config = PoolConfig.new("primary", config)
         pool = ConnectionPool.new(pool_config)
 

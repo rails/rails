@@ -154,7 +154,7 @@ module ApplicationTests
         end
       end
 
-      def db_test_prepare_spec_name(spec_name, schema_format)
+      def db_test_prepare_name(name, schema_format)
         add_to_config "config.active_record.schema_format = :#{schema_format}"
         require "#{app_path}/config/environment"
 
@@ -162,24 +162,24 @@ module ApplicationTests
           generate_models_for_animals
 
           if schema_format == "ruby"
-            dump_command = "db:schema:dump:#{spec_name}"
+            dump_command = "db:schema:dump:#{name}"
           else
-            dump_command = "db:structure:dump:#{spec_name}"
+            dump_command = "db:structure:dump:#{name}"
           end
 
-          rails("db:migrate:#{spec_name}", dump_command)
+          rails("db:migrate:#{name}", dump_command)
 
-          output = rails("db:test:prepare:#{spec_name}", "--trace")
+          output = rails("db:test:prepare:#{name}", "--trace")
           if schema_format == "ruby"
-            assert_match(/Execute db:test:load_schema:#{spec_name}/, output)
+            assert_match(/Execute db:test:load_schema:#{name}/, output)
           else
-            assert_match(/Execute db:test:load_structure:#{spec_name}/, output)
+            assert_match(/Execute db:test:load_structure:#{name}/, output)
           end
 
           ar_tables = lambda { rails("runner", "-e", "test", "p ActiveRecord::Base.connection.tables").strip }
           animals_tables = lambda { rails("runner",  "-e", "test", "p AnimalsBase.connection.tables").strip }
 
-          if spec_name == "primary"
+          if name == "primary"
             assert_equal ["schema_migrations", "ar_internal_metadata", "books"].sort, JSON.parse(ar_tables[]).sort
             assert_equal "[]", animals_tables[]
           else
@@ -249,7 +249,7 @@ module ApplicationTests
           output = rails("db:prepare")
 
           ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
-            if db_config.spec_name == "primary"
+            if db_config.name == "primary"
               assert_match(/CreateBooks: migrated/, output)
             else
               assert_match(/CreateDogs: migrated/, output)
@@ -297,14 +297,14 @@ module ApplicationTests
       test "db:create and db:drop works on all databases for env" do
         require "#{app_path}/config/environment"
         ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
-          db_create_and_drop db_config.spec_name, db_config.database
+          db_create_and_drop db_config.name, db_config.database
         end
       end
 
       test "db:create:namespace and db:drop:namespace works on specified databases" do
         require "#{app_path}/config/environment"
         ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
-          db_create_and_drop_namespace db_config.spec_name, db_config.database
+          db_create_and_drop_namespace db_config.name, db_config.database
         end
       end
 
@@ -335,46 +335,46 @@ module ApplicationTests
         db_migrate_and_schema_dump_and_load "structure"
       end
 
-      test "db:migrate:spec_name and db:schema:dump:spec_name and db:schema:load:spec_name works for the primary database" do
+      test "db:migrate:name and db:schema:dump:name and db:schema:load:name works for the primary database" do
         require "#{app_path}/config/environment"
         db_migrate_and_schema_dump_and_load_one_database("schema", "primary")
       end
 
-      test "db:migrate:spec_name and db:schema:dump:spec_name and db:schema:load:spec_name works for the animals database" do
+      test "db:migrate:name and db:schema:dump:name and db:schema:load:name works for the animals database" do
         require "#{app_path}/config/environment"
         db_migrate_and_schema_dump_and_load_one_database("schema", "animals")
       end
 
-      test "db:migrate:spec_name and db:structure:dump:spec_name and db:structure:load:spec_name works for the primary database" do
+      test "db:migrate:name and db:structure:dump:name and db:structure:load:name works for the primary database" do
         require "#{app_path}/config/environment"
         db_migrate_and_schema_dump_and_load_one_database("structure", "primary")
       end
 
-      test "db:migrate:spec_name and db:structure:dump:spec_name and db:structure:load:spec_name works for the animals database" do
+      test "db:migrate:name and db:structure:dump:name and db:structure:load:name works for the animals database" do
         require "#{app_path}/config/environment"
         db_migrate_and_schema_dump_and_load_one_database("structure", "animals")
       end
 
-      test "db:test:prepare:spec_name works for the primary database with a ruby schema" do
-        db_test_prepare_spec_name("primary", "ruby")
+      test "db:test:prepare:name works for the primary database with a ruby schema" do
+        db_test_prepare_name("primary", "ruby")
       end
 
-      test "db:test:prepare:spec_name works for the animals database with a ruby schema" do
-        db_test_prepare_spec_name("animals", "ruby")
+      test "db:test:prepare:name works for the animals database with a ruby schema" do
+        db_test_prepare_name("animals", "ruby")
       end
 
-      test "db:test:prepare:spec_name works for the primary database with a sql schema" do
-        db_test_prepare_spec_name("primary", "sql")
+      test "db:test:prepare:name works for the primary database with a sql schema" do
+        db_test_prepare_name("primary", "sql")
       end
 
-      test "db:test:prepare:spec_name works for the animals database with a sql schema" do
-        db_test_prepare_spec_name("animals", "sql")
+      test "db:test:prepare:name works for the animals database with a sql schema" do
+        db_test_prepare_name("animals", "sql")
       end
 
       test "db:migrate:namespace works" do
         require "#{app_path}/config/environment"
         ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
-          db_migrate_namespaced db_config.spec_name
+          db_migrate_namespaced db_config.name
         end
       end
 
@@ -414,8 +414,8 @@ module ApplicationTests
       test "db:migrate:status:namespace works" do
         require "#{app_path}/config/environment"
         ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
-          db_migrate_namespaced db_config.spec_name
-          db_migrate_status_namespaced db_config.spec_name
+          db_migrate_namespaced db_config.name
+          db_migrate_status_namespaced db_config.name
         end
       end
 

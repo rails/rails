@@ -203,7 +203,7 @@ module ActiveRecord
     #
     #  ActiveRecord::Base.connection_db_config
     #    #<ActiveRecord::DatabaseConfigurations::HashConfig:0x00007fd1acbded10 @env_name="development",
-    #      @spec_name="primary", @config={pool: 5, timeout: 5000, database: "db/development.sqlite3", adapter: "sqlite3"}>
+    #      @name="primary", @config={pool: 5, timeout: 5000, database: "db/development.sqlite3", adapter: "sqlite3"}>
     #
     # Use only for reading.
     def connection_db_config
