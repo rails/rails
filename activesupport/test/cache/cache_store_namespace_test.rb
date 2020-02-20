@@ -37,4 +37,10 @@ class CacheStoreNamespaceTest < ActiveSupport::TestCase
     assert_not cache.exist?("foo")
     assert cache.exist?("fu")
   end
+
+  def test_memory_store_options
+    cache = ActiveSupport::Cache.lookup_store(:memory_store, { size: 64.megabytes })
+    cache.write("foo", "bar")
+    assert_equal "bar", cache.read("foo")
+  end
 end

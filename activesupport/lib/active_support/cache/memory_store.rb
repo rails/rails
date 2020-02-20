@@ -18,8 +18,7 @@ module ActiveSupport
     #
     # MemoryStore is thread-safe.
     class MemoryStore < Store
-      def initialize(options = nil)
-        options ||= {}
+      def initialize(**options)
         super(options)
         @data = {}
         @key_access = {}
