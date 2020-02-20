@@ -928,12 +928,9 @@ module ActionMailer
       end
 
       def apply_defaults(headers)
-        default_values = self.class.default.map do |key, value|
-          [
-            key,
-            compute_default(value)
-          ]
-        end.to_h
+        default_values = self.class.default.transform_values do |value|
+          compute_default(value)
+        end
 
         headers_with_defaults = headers.reverse_merge(default_values)
         headers_with_defaults[:subject] ||= default_i18n_subject
