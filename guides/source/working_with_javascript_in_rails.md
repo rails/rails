@@ -48,7 +48,7 @@ fetch("/test")
   });
 ```
 
-This code fetches data from "/test", and then appends the result to the `div`
+This code fetches data from "/test", and then appends the result to the element
 with an id of `results`.
 
 Rails provides quite a bit of built-in support for building web pages with this
