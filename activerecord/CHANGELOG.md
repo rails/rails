@@ -1,3 +1,21 @@
+*   Add support for `strict_loading` mode on association declarations.
+
+    Raise an error if attempting to load a record from an association that has been marked as `strict_loading` unless it was explicitly eager loaded.
+
+    Usage:
+
+    ```
+    >> class Developer < ApplicationRecord
+    >>   has_many :projects, strict_loading: true
+    >> end
+    >>
+    >> dev = Developer.first
+    >> dev.projects.first
+    => ActiveRecord::StrictLoadingViolationError: The projects association is marked as strict_loading and cannot be lazily loaded.
+    ```
+
+    *Kevin Deisz*
+
 *   Add support for `strict_loading` mode to prevent lazy loading of records.
 
     Raise an error if a parent record is marked as `strict_loading` and attempts to lazily load its associations. This is useful for finding places you may want to preload an association and avoid additional queries.
