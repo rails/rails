@@ -19,9 +19,9 @@ module ActionView
                               enabled formnovalidate hidden indeterminate inert
                               ismap itemscope loop multiple muted nohref
                               noresize noshade novalidate nowrap open
-                              pauseonexit readonly required reversed scoped
-                              seamless selected sortable truespeed typemustmatch
-                              visible).to_set
+                              pauseonexit playsinline readonly required reversed
+                              scoped seamless selected sortable truespeed
+                              typemustmatch visible).to_set
 
       BOOLEAN_ATTRIBUTES.merge(BOOLEAN_ATTRIBUTES.map(&:to_sym))
       BOOLEAN_ATTRIBUTES.freeze
