@@ -151,7 +151,7 @@ module ActiveJob
 
       def determine_jitter_for_delay(delay, jitter)
         return 0.0 if jitter.zero?
-        Kernel.rand(delay * jitter)
+        Kernel.rand * delay * jitter
       end
 
       def executions_for(exceptions)
