@@ -67,6 +67,9 @@ class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
     expected = %(CREATE  INDEX  "index_people_on_last_name" ON "people"  ("last_name" NULLS FIRST))
     assert_equal expected, add_index(:people, :last_name, order: "NULLS FIRST")
 
+    expected = %(CREATE  INDEX IF NOT EXISTS  "index_people_on_last_name" ON "people"  ("last_name"))
+    assert_equal expected, add_index(:people, :last_name, if_not_exists: true)
+
     assert_raise ArgumentError do
       add_index(:people, :last_name, algorithm: :copy)
     end

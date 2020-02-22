@@ -1,3 +1,20 @@
+*   Add support for `if_not_exists` option for adding index.
+
+    The `add_index` method respects `if_not_exists` option. If it is set to true
+    index won't be added.
+
+    Usage:
+
+    ```
+      add_index :users, :account_id, if_not_exists: true
+    ```
+
+    The `if_not_exists` option passed to `create_table` also gets propogated to indexes
+    created within that migration so that if table and its indexes exist then there is no
+    attempt to create them again.
+
+    *Prathamesh Sonpatki*
+
 *   Dump the schema or structure of a database when calling db:migrate:name
 
     In previous versions of Rails, `rails db:migrate` would dump the schema of the database. In Rails 6, that holds true (`rails db:migrate` dumps all databases' schemas), but `rails db:migrate:name` does not share that behavior.
