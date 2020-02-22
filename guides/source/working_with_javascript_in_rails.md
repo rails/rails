@@ -56,13 +56,15 @@ technique. You rarely have to write this code yourself. The rest of this guide
 will show you how Rails can help you write websites in this way, but it's
 all built on top of this fairly simple technique.
 
-Unobtrusive JavaScript
+Unobtrusive JavaScript (UJS)
 ----------------------
 
 Rails uses a technique called "Unobtrusive JavaScript" to handle attaching
 JavaScript to the DOM. This is generally considered to be a best-practice
 within the frontend community, but you may occasionally read tutorials that
 demonstrate other ways.
+
+NOTE: To enable unobtrusive JavaScript on a page, use `Rails.start()`. We do not encourage use of any other UJS function, as they may change over time.
 
 Here's the simplest way to write JavaScript. You may see it referred to as
 'inline JavaScript':
