@@ -355,6 +355,16 @@ module ActiveRecord
         end
       end
 
+      def test_index_with_if_not_exists
+        with_example_table do
+          @conn.add_index "ex", "id"
+
+          assert_nothing_raised do
+            @conn.add_index "ex", "id", if_not_exists: true
+          end
+        end
+      end
+
       def test_non_unique_index
         with_example_table do
           @conn.add_index "ex", "id", name: "fun"
