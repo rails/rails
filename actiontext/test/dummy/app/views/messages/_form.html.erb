@@ -17,9 +17,9 @@
   </div>
 
   <div class="field">
-    <%= form.label :content %>
+    <%= form.label :content, "Message content label" %>
     <%= form.rich_text_area :content, class: "trix-content",
-          placeholder: "Your message here", aria: { label: "Message content" } %>
+          placeholder: "Your message here", aria: { label: "Message content aria-label" } %>
   </div>
 
   <div class="actions">

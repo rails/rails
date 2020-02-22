@@ -19,8 +19,15 @@ class ActionText::SystemTestHelperTest < ApplicationSystemTestCase
 
   test "filling in a rich-text area by aria-label" do
     visit new_message_url
-    assert_selector "trix-editor[aria-label='Message content']"
-    fill_in_rich_text_area "Message content", with: "Hello world!"
+    assert_selector "trix-editor[aria-label='Message content aria-label']"
+    fill_in_rich_text_area "Message content aria-label", with: "Hello world!"
+    assert_selector :field, "message[content]", with: /Hello world!/, type: "hidden"
+  end
+
+  test "filling in a rich-text area by label" do
+    visit new_message_url
+    assert_selector "label", text: "Message content label"
+    fill_in_rich_text_area "Message content label", with: "Hello world!"
     assert_selector :field, "message[content]", with: /Hello world!/, type: "hidden"
   end
 

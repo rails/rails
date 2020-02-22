@@ -1,3 +1,11 @@
+*   Locate `fill_in_rich_text_area` by `<label>` text
+
+    In addition to searching for `<trix-editor>` elements with the appropriate
+    `aria-label` attribute, also support locating elements that match the
+    corresponding `<label>` element's text.
+
+    *Sean Doyle*
+
 *   Be able to add a default value to `rich_text_area`.
 
     ```ruby
