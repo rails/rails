@@ -1,3 +1,8 @@
+*   Alias `ActionView::Helpers::Tags::Label::LabelBuilder#translation` to
+    `#to_s` so that `form.label` calls can yield that value to their blocks.
+
+    *Sean Doyle*
+
 *   Rename the new `TagHelper#class_names` method to `TagHelper#token_list`,
     and make the original available as an alias.
 

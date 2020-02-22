@@ -1111,6 +1111,16 @@ module ActionView
       #   label(:post, :privacy, "Public Post", value: "public")
       #   # => <label for="post_privacy_public">Public Post</label>
       #
+      #   label(:post, :cost) do |translation|
+      #     content_tag(:span, translation, class: "cost_label")
+      #   end
+      #   # => <label for="post_cost"><span class="cost_label">Total cost</span></label>
+      #
+      #   label(:post, :cost) do |builder|
+      #     content_tag(:span, builder.translation, class: "cost_label")
+      #   end
+      #   # => <label for="post_cost"><span class="cost_label">Total cost</span></label>
+      #
       #   label(:post, :terms) do
       #     raw('Accept <a href="/terms">Terms</a>.')
       #   end
@@ -2244,6 +2254,24 @@ module ActionView
       #
       #   label(:privacy, "Public Post", value: "public")
       #   # => <label for="post_privacy_public">Public Post</label>
+      #
+      #   label(:cost) do |translation|
+      #     content_tag(:span, translation, class: "cost_label")
+      #   end
+      #   # => <label for="post_cost"><span class="cost_label">Total cost</span></label>
+      #
+      #   label(:cost) do |builder|
+      #     content_tag(:span, builder.translation, class: "cost_label")
+      #   end
+      #   # => <label for="post_cost"><span class="cost_label">Total cost</span></label>
+      #
+      #   label(:cost) do |builder|
+      #     content_tag(:span, builder.translation, class: [
+      #       "cost_label",
+      #       ("error_label" if builder.object.errors.include?(:cost))
+      #     ])
+      #   end
+      #   # => <label for="post_cost"><span class="cost_label error_label">Total cost</span></label>
       #
       #   label(:terms) do
       #     raw('Accept <a href="/terms">Terms</a>.')
