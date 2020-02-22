@@ -23,6 +23,16 @@ class ActionText::FormHelperTest < ActionView::TestCase
         }
       }
     )
+
+    I18n.backend.store_translations("label",
+      helpers: {
+        label: {
+          message: {
+            title: "Story title"
+          }
+        }
+      }
+    )
   end
 
   test "form with rich text area" do
@@ -106,6 +116,38 @@ class ActionText::FormHelperTest < ActionView::TestCase
       '<form action="/messages" accept-charset="UTF-8" data-remote="true" method="post">' \
         '<input type="hidden" name="message[title]" id="message_title_trix_input_message" />' \
         '<trix-editor placeholder="Story title" id="message_title" input="message_title_trix_input_message" class="trix-content" data-direct-upload-url="http://test.host/rails/active_storage/direct_uploads" data-blob-url-template="http://test.host/rails/active_storage/blobs/:signed_id/:filename">' \
+        "</trix-editor>" \
+      "</form>",
+      output_buffer
+  end
+
+  test "form with rich text area having aria-label with locale" do
+    I18n.with_locale :label do
+      form_with model: Message.new, scope: :message do |form|
+        form.rich_text_area :title, label: true
+      end
+    end
+
+    assert_dom_equal \
+      '<form action="/messages" accept-charset="UTF-8" data-remote="true" method="post">' \
+        '<input type="hidden" name="message[title]" id="message_title_trix_input_message" />' \
+        '<trix-editor aria-label="Story title" id="message_title" input="message_title_trix_input_message" class="trix-content" data-direct-upload-url="http://test.host/rails/active_storage/direct_uploads" data-blob-url-template="http://test.host/rails/active_storage/blobs/:signed_id/:filename">' \
+        "</trix-editor>" \
+      "</form>",
+      output_buffer
+  end
+
+  test "form with rich text area label: true does not override aria-label" do
+    I18n.with_locale :label do
+      form_with model: Message.new, scope: :message do |form|
+        form.rich_text_area :title, label: true, "aria-label" => "not translated"
+      end
+    end
+
+    assert_dom_equal \
+      '<form action="/messages" accept-charset="UTF-8" data-remote="true" method="post">' \
+        '<input type="hidden" name="message[title]" id="message_title_trix_input_message" />' \
+        '<trix-editor aria-label="not translated" id="message_title" input="message_title_trix_input_message" class="trix-content" data-direct-upload-url="http://test.host/rails/active_storage/direct_uploads" data-blob-url-template="http://test.host/rails/active_storage/blobs/:signed_id/:filename">' \
         "</trix-editor>" \
       "</form>",
       output_buffer

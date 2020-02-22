@@ -46,6 +46,22 @@ module ActionView::Helpers
       options = @options.stringify_keys
       add_default_name_and_id(options)
       options["input"] ||= dom_id(object, [options["id"], :trix_input].compact.join("_")) if object
+
+      translate_label = options.delete("label")
+
+      if !options.key?("aria-label") && translate_label
+        aria_label ||= ActionView::Helpers::Tags::Translator.new(
+          @object,
+          @object_name,
+          @method_name,
+          scope: "helpers.label",
+        ).translate
+
+        aria_label ||= @method_name.humanize
+
+        options["aria-label"] = aria_label
+      end
+
       @template_object.rich_text_area_tag(options.delete("name"), editable_value, options)
     end
 
@@ -60,6 +76,8 @@ module ActionView::Helpers
     #
     # ==== Options
     # * <tt>:class</tt> - Defaults to "trix-content" which ensures default styling is applied.
+    # * <tt>:label</tt> - When `true`, attempts to translate the contents of the `<trix-editor>` element's
+    #                     `aria-label` attribute
     #
     # ==== Example
     #   form_with(model: @message) do |form|

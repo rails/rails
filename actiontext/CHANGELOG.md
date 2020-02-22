@@ -1,3 +1,11 @@
+*   Generate `aria-label` in calls to `rich_text_area`
+    
+    Extend the `rich_text_area` element to accept the `label: true` option to
+    generates an appropriate `aria-label` value in the same way that a call to
+    `form.label(:attribute)` would.
+
+    *Sean Doyle*
+
 *   Add method to confirm rich text content existence by adding `?` after content name.
 
     *Kyohei Toyoda*
