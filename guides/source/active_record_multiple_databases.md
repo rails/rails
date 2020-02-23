@@ -7,7 +7,7 @@ This guide covers using multiple databases with your Rails application.
 
 After reading this guide you will know:
 
-* How to setup your application for multiple databases.
+* How to set up your application for multiple databases.
 * How automatic connection switching works.
 * What features are supported and what's still a work in progress.
 
@@ -102,6 +102,7 @@ class AnimalsBase < ApplicationRecord
   connects_to database: { writing: :animals, reading: :animals_replica }
 end
 ```
+
  Then we need to
 update `ApplicationRecord` to be aware of our new replica.
 
@@ -133,7 +134,7 @@ Rails 6.0 ships with all the rails tasks you need to use multiple databases in R
 
 You can run `rails -T` to see all the commands you're able to run. You should see the following:
 
-```
+```bash
 $ rails -T
 rails db:create                          # Creates the database from DATABASE_URL or config/database.yml for the ...
 rails db:create:animals                  # Create animals database for current environment
@@ -162,12 +163,12 @@ name of the database key in the configuration.
 You also need to set the `migrations_paths` in the database configurations to tell Rails
 where to find the migrations.
 
-For example the `animals` database would look in the `db/animals_migrate` directory and
+For example the `animals` database would look for migrations in the `db/animals_migrate` directory and
 `primary` would look in `db/migrate`. Rails generators now take a `--database` option
 so that the file is generated in the correct directory. The command can be run like so:
 
-```
-$ rails g migration CreateDogs name:string --database animals
+```bash
+$ bin/rails generate migration CreateDogs name:string --database animals
 ```
 
 ## Activating automatic connection switching
@@ -179,7 +180,7 @@ Automatic switching allows the application to switch from the primary to replica
 to primary based on the HTTP verb and whether there was a recent write.
 
 If the application is receiving a POST, PUT, DELETE, or PATCH request the application will
-automatically write to the primary. For the specified time after the write the application
+automatically write to the primary. For the specified time after the write, the application
 will read from the primary. For a GET or HEAD request the application will read from the
 replica unless there was a recent write.
 
@@ -199,7 +200,7 @@ a recent write" for other users within the delay window and will send GET and HE
 to the replicas unless they wrote recently.
 
 The automatic connection switching in Rails is relatively primitive and deliberately doesn't
-do a whole lot. The goal was a system that demonstrated how to do automatic connection
+do a whole lot. The goal is a system that demonstrates how to do automatic connection
 switching that was flexible enough to be customizable by app developers.
 
 The setup in Rails allows you to easily change how the switching is done and what
@@ -239,18 +240,6 @@ end
 The "role" in the `connected_to` call looks up the connections that are connected on that
 connection handler (or role). The `reading` connection handler will hold all the connections
 that were connected via `connects_to` with the role name of `reading`.
-
-There also may be a case where you have a database that you don't always want to connect to
-on application boot but may need for a slow query or analytics. After defining that database
-in the `database.yml` you can connect by passing a database argument to `connected_to`
-
-```ruby
-ActiveRecord::Base.connected_to(database: { reading_slow: :animals_slow_replica }) do
-  # do something while connected to the slow replica
-end
-```
-
-The `database` argument for `connected_to` will take a symbol or a config hash.
 
 Note that `connected_to` with a role will look up an existing connection and switch
 using the connection specification name. This means that if you pass an unknown role

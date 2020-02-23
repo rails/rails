@@ -1,22 +1,100 @@
-*  `respond_to#any` no longer returns a response's Content-Type based on the
-   request format but based on the block given.
+*   `ActionDispatch::Request.remote_ip` has ip address even when all sites are trusted.
 
-   Example:
+    Before, if all `X-Forwarded-For` sites were trusted, the `remote_ip` would default to `127.0.0.1`.
+    Now, the furthest proxy site is used. e.g.: It now gives an ip address when using curl from the load balancer.
 
-   ```ruby
-     def my_action
-       respond_to do |format|
-         format.any { render(json: { foo: 'bar' }) }
-       end
-     end
+    *Keenan Brock*
 
-     get('my_action.csv')
-   ```
-   The previous behaviour was to respond with a `text/csv` Content-Type which
-   is inaccurate since a JSON response is being rendered.
-   Now it correctly returns a `application/json` Content-Type.
+*   Fix possible information leak / session hijacking vulnerability.
 
-   * Edouard Chin*
+    The `ActionDispatch::Session::MemcacheStore` is still vulnerable given it requires the
+    gem dalli to be updated as well.
+
+    CVE-2019-16782.
+
+*   Include child session assertion count in ActionDispatch::IntegrationTest
+
+    `IntegrationTest#open_session` uses `dup` to create the new session, which
+    meant it had its own copy of `@assertions`. This prevented the assertions
+    from being correctly counted and reported.
+
+    Child sessions now have their `attr_accessor` overridden to delegate to the
+    root session.
+
+    Fixes #32142
+
+    *Sam Bostock*
+
+*   Add SameSite protection to every written cookie.
+
+    Enabling `SameSite` cookie protection is an addition to CSRF protection,
+    where cookies won't be sent by browsers in cross-site POST requests when set to `:lax`.
+
+    `:strict` disables cookies being sent in cross-site GET or POST requests.
+
+    Passing `:none` disables this protection and is the same as previous versions albeit a `; SameSite=None` is appended to the cookie.
+
+    See upgrade instructions in config/initializers/new_framework_defaults_6_1.rb.
+
+    More info [here](https://tools.ietf.org/html/draft-west-first-party-cookies-07)
+
+    _NB: Technically already possible as Rack supports SameSite protection, this is to ensure it's applied to all cookies_
+
+    *Cédric Fabianski*
+
+*   Bring back the feature that allows loading external route files from the router.
+
+    This feature existed back in 2012 but got reverted with the incentive that
+    https://github.com/rails/routing_concerns was a better approach. Turned out
+    that this wasn't fully the case and loading external route files from the router
+    can be helpful for applications with a really large set of routes.
+    Without this feature, application needs to implement routes reloading
+    themselves and it's not straightforward.
+
+    ```ruby
+    # config/routes.rb
+
+    Rails.application.routes.draw do
+      draw(:admin)
+    end
+
+    # config/routes/admin.rb
+
+    get :foo, to: 'foo#bar'
+    ```
+
+    *Yehuda Katz*, *Edouard Chin*
+
+*   Fix system test driver option initialization for non-headless browsers.
+
+    *glaszig*
+
+*   `redirect_to.action_controller` notifications now include the `ActionDispatch::Request` in
+    their payloads as `:request`.
+
+    *Austin Story*
+
+*   `respond_to#any` no longer returns a response's Content-Type based on the
+    request format but based on the block given.
+
+    Example:
+
+    ```ruby
+      def my_action
+        respond_to do |format|
+          format.any { render(json: { foo: 'bar' }) }
+        end
+      end
+
+      get('my_action.csv')
+    ```
+
+    The previous behaviour was to respond with a `text/csv` Content-Type which
+    is inaccurate since a JSON response is being rendered.
+
+    Now it correctly returns a `application/json` Content-Type.
+
+    *Edouard Chin*
 
 *   Replaces (back)slashes in failure screenshot image paths with dashes.
 
@@ -25,7 +103,7 @@
 
     *Damir Zekic*
 
-*   Add `params.member?` to mimic Hash behavior
+*   Add `params.member?` to mimic Hash behavior.
 
     *Younes Serraj*
 
@@ -40,7 +118,7 @@
     `remote_ip` to `nil` before setting the header that the value is derived
     from.
 
-    Fixes https://github.com/rails/rails/issues/37383
+    Fixes #37383.
 
     *Norm Provost*
 
@@ -75,7 +153,7 @@
 
     https://github.com/rails/rails/pull/36213
 
-    Fixes #25842
+    Fixes #25842.
 
     *Stan Lo*
 
@@ -92,7 +170,7 @@
 
     *Alberto Fernández-Capel*
 
-*   Add DSL for configuring HTTP Feature Policy
+*   Add DSL for configuring HTTP Feature Policy.
 
     This new DSL provides a way to configure an HTTP Feature Policy at a
     global or per-controller level. Full details of HTTP Feature Policy
@@ -100,9 +178,9 @@
 
     https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy
 
-    Example global policy
+    Example global policy:
 
-    ```
+    ```ruby
     Rails.application.config.feature_policy do |f|
       f.camera      :none
       f.gyroscope   :none
@@ -113,9 +191,9 @@
     end
     ```
 
-    Example controller level policy
+    Example controller level policy:
 
-    ```
+    ```ruby
     class PagesController < ApplicationController
       feature_policy do |p|
         p.geolocation "https://example.com"

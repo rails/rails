@@ -160,7 +160,9 @@ module Rails
             "#{css}:scaffold",
             "#{css}:assets",
             "css:assets",
-            "css:scaffold"
+            "css:scaffold",
+            "action_text:install",
+            "action_mailbox:install"
           ]
         end
       end
@@ -274,7 +276,7 @@ module Rails
 
           puts <<~MSG
             Could not find generator '#{namespace}'. #{suggestion_msg}
-            Run `rails generate --help` for more options.
+            Run `bin/rails generate --help` for more options.
           MSG
         end
       end

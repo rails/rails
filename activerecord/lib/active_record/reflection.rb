@@ -306,6 +306,10 @@ module ActiveRecord
         active_record_primary_key
       end
 
+      def strict_loading?
+        options[:strict_loading]
+      end
+
       protected
         def actual_source_reflection # FIXME: this is a horrible name
           self
@@ -619,7 +623,7 @@ module ActiveRecord
             end
 
             if valid_inverse_reflection?(reflection)
-              return inverse_name
+              inverse_name
             end
           end
         end

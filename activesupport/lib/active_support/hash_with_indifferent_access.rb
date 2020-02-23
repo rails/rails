@@ -91,7 +91,7 @@ module ActiveSupport
     #
     # This value can be later fetched using either +:key+ or <tt>'key'</tt>.
     def []=(key, value)
-      regular_writer(convert_key(key), convert_value(value, for: :assignment))
+      regular_writer(convert_key(key), convert_value(value, conversion: :assignment))
     end
 
     alias_method :store, :[]=
@@ -357,19 +357,17 @@ module ActiveSupport
       set_defaults(_new_hash)
 
       each do |key, value|
-        _new_hash[key] = convert_value(value, for: :to_hash)
+        _new_hash[key] = convert_value(value, conversion: :to_hash)
       end
       _new_hash
     end
 
     private
-      def convert_key(key) # :doc:
+      def convert_key(key)
         key.kind_of?(Symbol) ? key.to_s : key
       end
 
-      def convert_value(value, for: nil) # :doc:
-        conversion = binding.local_variable_get(:for)
-
+      def convert_value(value, conversion: nil)
         if value.is_a? Hash
           if conversion == :to_hash
             value.to_hash
@@ -380,13 +378,13 @@ module ActiveSupport
           if conversion != :assignment || value.frozen?
             value = value.dup
           end
-          value.map! { |e| convert_value(e, for: conversion) }
+          value.map! { |e| convert_value(e, conversion: conversion) }
         else
           value
         end
       end
 
-      def set_defaults(target) # :doc:
+      def set_defaults(target)
         if default_proc
           target.default_proc = default_proc.dup
         else

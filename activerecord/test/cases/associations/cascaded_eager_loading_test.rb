@@ -200,4 +200,46 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
 
     assert_equal expected, actual
   end
+
+  def test_preloading_across_has_one_constrains_loaded_records
+    author = authors(:david)
+
+    old_post = author.posts.create!(title: "first post", body: "test")
+    old_post.comments.create!(author: authors(:mary), body: "a response")
+
+    recent_post = author.posts.create!(title: "first post", body: "test")
+    last_comment = recent_post.comments.create!(author: authors(:bob), body: "a response")
+
+    authors = Author.where(id: author.id)
+    retrieved_comments = []
+
+    reset_callbacks(Comment, :initialize) do
+      Comment.after_initialize { |record| retrieved_comments << record }
+      authors.preload(recent_post: :comments).load
+    end
+
+    assert_equal 1, retrieved_comments.size
+    assert_equal [last_comment], retrieved_comments
+  end
+
+  def test_preloading_across_has_one_through_constrains_loaded_records
+    author = authors(:david)
+
+    old_post = author.posts.create!(title: "first post", body: "test")
+    old_post.comments.create!(author: authors(:mary), body: "a response")
+
+    recent_post = author.posts.create!(title: "first post", body: "test")
+    recent_post.comments.create!(author: authors(:bob), body: "a response")
+
+    authors = Author.where(id: author.id)
+    retrieved_authors = []
+
+    reset_callbacks(Author, :initialize) do
+      Author.after_initialize { |record| retrieved_authors << record }
+      authors.preload(recent_response: :author).load
+    end
+
+    assert_equal 2, retrieved_authors.size
+    assert_equal [author, authors(:bob)], retrieved_authors
+  end
 end

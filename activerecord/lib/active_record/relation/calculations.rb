@@ -190,7 +190,13 @@ module ActiveRecord
         klass.disallow_raw_sql!(column_names)
         relation = spawn
         relation.select_values = column_names
-        result = skip_query_cache_if_necessary { klass.connection.select_all(relation.arel, nil) }
+        result = skip_query_cache_if_necessary do
+          if where_clause.contradiction?
+            ActiveRecord::Result.new([], [])
+          else
+            klass.connection.select_all(relation.arel, nil)
+          end
+        end
         result.cast_values(klass.attribute_types)
       end
     end

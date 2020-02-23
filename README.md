@@ -68,7 +68,7 @@ and may also be used independently outside Rails.
 3. Change directory to `myapp` and start the web server:
 
         $ cd myapp
-        $ rails server
+        $ bin/rails server
 
    Run with `--help` or `-h` for options.
 
@@ -80,7 +80,6 @@ and may also be used independently outside Rails.
     * [Getting Started with Rails](https://guides.rubyonrails.org/getting_started.html)
     * [Ruby on Rails Guides](https://guides.rubyonrails.org)
     * [The API Documentation](https://api.rubyonrails.org)
-    * [Ruby on Rails Tutorial](https://www.railstutorial.org/book)
 
 ## Contributing
 

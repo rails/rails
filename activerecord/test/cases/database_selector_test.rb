@@ -49,26 +49,31 @@ module ActiveRecord
       assert called
     end
 
-    def test_can_write_while_reading_from_replicas_if_explicit
-      @session_store[:last_write] = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session.convert_time_to_timestamp(Time.now)
+    unless in_memory_db?
+      def test_can_write_while_reading_from_replicas_if_explicit
+        @session_store[:last_write] = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session.convert_time_to_timestamp(Time.now - 5.seconds)
 
-      resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver.new(@session)
+        resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver.new(@session)
 
-      called = false
-      resolver.read do
-        called = true
-        assert ActiveRecord::Base.connected_to?(role: :writing)
-        assert_predicate ActiveRecord::Base.connection, :preventing_writes?
+        called = false
+        resolver.read do
+          ActiveRecord::Base.establish_connection :arunit
 
-        ActiveRecord::Base.connected_to(role: :writing, prevent_writes: false) do
-          assert ActiveRecord::Base.connected_to?(role: :writing)
-          assert_not_predicate ActiveRecord::Base.connection, :preventing_writes?
+          called = true
+
+          assert ActiveRecord::Base.connected_to?(role: :reading)
+          assert_predicate ActiveRecord::Base.connection, :preventing_writes?
+
+          ActiveRecord::Base.connected_to(role: :writing, prevent_writes: false) do
+            assert ActiveRecord::Base.connected_to?(role: :writing)
+            assert_not_predicate ActiveRecord::Base.connection, :preventing_writes?
+          end
+
+          assert ActiveRecord::Base.connected_to?(role: :reading)
+          assert_predicate ActiveRecord::Base.connection, :preventing_writes?
         end
-
-        assert ActiveRecord::Base.connected_to?(role: :writing)
-        assert_predicate ActiveRecord::Base.connection, :preventing_writes?
+        assert called
       end
-      assert called
     end
 
     def test_read_from_primary
@@ -99,6 +104,38 @@ module ActiveRecord
 
       # and be populated by the last write time
       assert @session_store[:last_write]
+    end
+
+    def test_write_to_primary_and_update_custom_context
+      custom_context = Class.new(ActiveRecord::Middleware::DatabaseSelector::Resolver::Session) do
+        def update_last_write_timestamp
+          super
+          @wrote_to_primary = true
+        end
+
+        def save(response)
+          response[:wrote_to_primary] = @wrote_to_primary
+        end
+      end
+
+      resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver.new(custom_context.new(@session_store))
+
+      # Session should start empty
+      assert_nil @session_store[:last_write]
+
+      called = false
+      resolver.write do
+        assert ActiveRecord::Base.connected_to?(role: :writing)
+        called = true
+      end
+      assert called
+      response = {}
+      resolver.update_context(response)
+
+      # and be populated by the last write time
+      assert @session_store[:last_write]
+      # plus the response updated
+      assert response[:wrote_to_primary]
     end
 
     def test_write_to_primary_with_exception

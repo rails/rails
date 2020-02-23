@@ -360,14 +360,13 @@ module ActiveModel
         # using the given `extra` args. This falls back on `define_method`
         # and `send` if the given names cannot be compiled.
         def define_proxy_call(include_private, mod, name, target, *extra)
-          kw = RUBY_VERSION >= "2.7" ? ", **options" : nil
           defn = if NAME_COMPILABLE_REGEXP.match?(name)
-            "def #{name}(*args#{kw})"
+            "def #{name}(*args)"
           else
-            "define_method(:'#{name}') do |*args#{kw}|"
+            "define_method(:'#{name}') do |*args|"
           end
 
-          extra = (extra.map!(&:inspect) << "*args#{kw}").join(", ")
+          extra = (extra.map!(&:inspect) << "*args").join(", ")
 
           body = if CALL_COMPILABLE_REGEXP.match?(target)
             "#{"self." unless include_private}#{target}(#{extra})"
@@ -376,9 +375,11 @@ module ActiveModel
           end
 
           mod.module_eval <<-RUBY, __FILE__, __LINE__ + 1
+            # frozen_string_literal: true
             #{defn}
               #{body}
             end
+            ruby2_keywords(:'#{name}') if respond_to?(:ruby2_keywords, true)
           RUBY
         end
 
@@ -424,6 +425,7 @@ module ActiveModel
         match ? attribute_missing(match, *args, &block) : super
       end
     end
+    ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
 
     # +attribute_missing+ is like +method_missing+, but for attributes. When
     # +method_missing+ is called we check to see if there is a matching

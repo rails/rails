@@ -358,12 +358,38 @@ class CookiesTest < ActionController::TestCase
     @request.env["action_dispatch.encrypted_signed_cookie_salt"] = ENCRYPTED_SIGNED_COOKIE_SALT
     @request.env["action_dispatch.authenticated_encrypted_cookie_salt"] = AUTHENTICATED_ENCRYPTED_COOKIE_SALT
 
+    @request.env["action_dispatch.cookies_same_site_protection"] = :lax
     @request.host = "www.nextangle.com"
+  end
+
+  def test_setting_cookie_with_no_protection
+    @request.env["action_dispatch.cookies_same_site_protection"] = :none
+
+    get :authenticate
+    assert_cookie_header "user_name=david; path=/; SameSite=None"
+    assert_equal({ "user_name" => "david" }, @response.cookies)
+  end
+
+  def test_setting_cookie_with_misspelled_protection_raises
+    @request.env["action_dispatch.cookies_same_site_protection"] = :funky
+
+    error = assert_raise ArgumentError do
+      get :authenticate
+    end
+    assert_match "Invalid SameSite value: :funky", error.message
+  end
+
+  def test_setting_cookie_with_strict
+    @request.env["action_dispatch.cookies_same_site_protection"] = :strict
+
+    get :authenticate
+    assert_cookie_header "user_name=david; path=/; SameSite=Strict"
+    assert_equal({ "user_name" => "david" }, @response.cookies)
   end
 
   def test_setting_cookie
     get :authenticate
-    assert_cookie_header "user_name=david; path=/"
+    assert_cookie_header "user_name=david; path=/; SameSite=Lax"
     assert_equal({ "user_name" => "david" }, @response.cookies)
   end
 
@@ -381,39 +407,39 @@ class CookiesTest < ActionController::TestCase
 
   def test_setting_with_escapable_characters
     get :set_with_with_escapable_characters
-    assert_cookie_header "that+%26+guy=foo+%26+bar+%3D%3E+baz; path=/"
+    assert_cookie_header "that+%26+guy=foo+%26+bar+%3D%3E+baz; path=/; SameSite=Lax"
     assert_equal({ "that & guy" => "foo & bar => baz" }, @response.cookies)
   end
 
   def test_setting_cookie_for_fourteen_days
     get :authenticate_for_fourteen_days
-    assert_cookie_header "user_name=david; path=/; expires=Mon, 10 Oct 2005 05:00:00 -0000"
+    assert_cookie_header "user_name=david; path=/; expires=Mon, 10 Oct 2005 05:00:00 GMT; SameSite=Lax"
     assert_equal({ "user_name" => "david" }, @response.cookies)
   end
 
   def test_setting_cookie_for_fourteen_days_with_symbols
     get :authenticate_for_fourteen_days_with_symbols
-    assert_cookie_header "user_name=david; path=/; expires=Mon, 10 Oct 2005 05:00:00 -0000"
+    assert_cookie_header "user_name=david; path=/; expires=Mon, 10 Oct 2005 05:00:00 GMT; SameSite=Lax"
     assert_equal({ "user_name" => "david" }, @response.cookies)
   end
 
   def test_setting_cookie_with_http_only
     get :authenticate_with_http_only
-    assert_cookie_header "user_name=david; path=/; HttpOnly"
+    assert_cookie_header "user_name=david; path=/; HttpOnly; SameSite=Lax"
     assert_equal({ "user_name" => "david" }, @response.cookies)
   end
 
   def test_setting_cookie_with_secure
     @request.env["HTTPS"] = "on"
     get :authenticate_with_secure
-    assert_cookie_header "user_name=david; path=/; secure"
+    assert_cookie_header "user_name=david; path=/; secure; SameSite=Lax"
     assert_equal({ "user_name" => "david" }, @response.cookies)
   end
 
   def test_setting_cookie_with_secure_when_always_write_cookie_is_true
     old_cookie, @request.cookie_jar.always_write_cookie = @request.cookie_jar.always_write_cookie, true
     get :authenticate_with_secure
-    assert_cookie_header "user_name=david; path=/; secure"
+    assert_cookie_header "user_name=david; path=/; secure; SameSite=Lax"
     assert_equal({ "user_name" => "david" }, @response.cookies)
   ensure
     @request.cookie_jar.always_write_cookie = old_cookie
@@ -428,7 +454,7 @@ class CookiesTest < ActionController::TestCase
   def test_multiple_cookies
     get :set_multiple_cookies
     assert_equal 2, @response.cookies.size
-    assert_cookie_header "user_name=david; path=/; expires=Mon, 10 Oct 2005 05:00:00 -0000\nlogin=XJ-122; path=/"
+    assert_cookie_header "user_name=david; path=/; expires=Mon, 10 Oct 2005 05:00:00 GMT; SameSite=Lax\nlogin=XJ-122; path=/; SameSite=Lax"
     assert_equal({ "login" => "XJ-122", "user_name" => "david" }, @response.cookies)
   end
 
@@ -439,14 +465,14 @@ class CookiesTest < ActionController::TestCase
   def test_expiring_cookie
     request.cookies[:user_name] = "Joe"
     get :logout
-    assert_cookie_header "user_name=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 -0000"
+    assert_cookie_header "user_name=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax"
     assert_equal({ "user_name" => nil }, @response.cookies)
   end
 
   def test_delete_cookie_with_path
     request.cookies[:user_name] = "Joe"
     get :delete_cookie_with_path
-    assert_cookie_header "user_name=; path=/beaten; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 -0000"
+    assert_cookie_header "user_name=; path=/beaten; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax"
   end
 
   def test_delete_unexisting_cookie
@@ -723,7 +749,7 @@ class CookiesTest < ActionController::TestCase
   def test_delete_and_set_cookie
     request.cookies[:user_name] = "Joe"
     get :delete_and_set_cookie
-    assert_cookie_header "user_name=david; path=/; expires=Mon, 10 Oct 2005 05:00:00 -0000"
+    assert_cookie_header "user_name=david; path=/; expires=Mon, 10 Oct 2005 05:00:00 GMT; SameSite=Lax"
     assert_equal({ "user_name" => "david" }, @response.cookies)
   end
 
@@ -876,7 +902,7 @@ class CookiesTest < ActionController::TestCase
     secret = "b3c631c314c0bbca50c1b2843150fe33"
 
     @request.env["action_dispatch.encrypted_cookie_cipher"] = "aes-256-gcm"
-    @request.env["action_dispatch.cookies_rotations"].rotate :encrypted, secret
+    @request.env["action_dispatch.cookies_rotations"].rotate :encrypted, secret, digest: "SHA1"
 
     key_len = ActiveSupport::MessageEncryptor.key_len("aes-256-gcm")
 
@@ -909,118 +935,118 @@ class CookiesTest < ActionController::TestCase
   def test_cookie_with_all_domain_option
     get :set_cookie_with_domain
     assert_response :success
-    assert_cookie_header "user_name=rizwanreza; domain=.nextangle.com; path=/"
+    assert_cookie_header "user_name=rizwanreza; domain=.nextangle.com; path=/; SameSite=Lax"
   end
 
   def test_cookie_with_all_domain_option_using_a_non_standard_tld
     @request.host = "two.subdomains.nextangle.local"
     get :set_cookie_with_domain
     assert_response :success
-    assert_cookie_header "user_name=rizwanreza; domain=.nextangle.local; path=/"
+    assert_cookie_header "user_name=rizwanreza; domain=.nextangle.local; path=/; SameSite=Lax"
   end
 
   def test_cookie_with_all_domain_option_using_australian_style_tld
     @request.host = "nextangle.com.au"
     get :set_cookie_with_domain
     assert_response :success
-    assert_cookie_header "user_name=rizwanreza; domain=.nextangle.com.au; path=/"
+    assert_cookie_header "user_name=rizwanreza; domain=.nextangle.com.au; path=/; SameSite=Lax"
   end
 
   def test_cookie_with_all_domain_option_using_uk_style_tld
     @request.host = "nextangle.co.uk"
     get :set_cookie_with_domain
     assert_response :success
-    assert_cookie_header "user_name=rizwanreza; domain=.nextangle.co.uk; path=/"
+    assert_cookie_header "user_name=rizwanreza; domain=.nextangle.co.uk; path=/; SameSite=Lax"
   end
 
   def test_cookie_with_all_domain_option_using_host_with_port
     @request.host = "nextangle.local:3000"
     get :set_cookie_with_domain
     assert_response :success
-    assert_cookie_header "user_name=rizwanreza; domain=.nextangle.local; path=/"
+    assert_cookie_header "user_name=rizwanreza; domain=.nextangle.local; path=/; SameSite=Lax"
   end
 
   def test_cookie_with_all_domain_option_using_localhost
     @request.host = "localhost"
     get :set_cookie_with_domain
     assert_response :success
-    assert_cookie_header "user_name=rizwanreza; path=/"
+    assert_cookie_header "user_name=rizwanreza; path=/; SameSite=Lax"
   end
 
   def test_cookie_with_all_domain_option_using_ipv4_address
     @request.host = "192.168.1.1"
     get :set_cookie_with_domain
     assert_response :success
-    assert_cookie_header "user_name=rizwanreza; path=/"
+    assert_cookie_header "user_name=rizwanreza; path=/; SameSite=Lax"
   end
 
   def test_cookie_with_all_domain_option_using_ipv6_address
     @request.host = "2001:0db8:85a3:0000:0000:8a2e:0370:7334"
     get :set_cookie_with_domain
     assert_response :success
-    assert_cookie_header "user_name=rizwanreza; path=/"
+    assert_cookie_header "user_name=rizwanreza; path=/; SameSite=Lax"
   end
 
   def test_deleting_cookie_with_all_domain_option
     request.cookies[:user_name] = "Joe"
     get :delete_cookie_with_domain
     assert_response :success
-    assert_cookie_header "user_name=; domain=.nextangle.com; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 -0000"
+    assert_cookie_header "user_name=; domain=.nextangle.com; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax"
   end
 
   def test_cookie_with_all_domain_option_and_tld_length
     get :set_cookie_with_domain_and_tld
     assert_response :success
-    assert_cookie_header "user_name=rizwanreza; domain=.nextangle.com; path=/"
+    assert_cookie_header "user_name=rizwanreza; domain=.nextangle.com; path=/; SameSite=Lax"
   end
 
   def test_cookie_with_all_domain_option_using_a_non_standard_tld_and_tld_length
     @request.host = "two.subdomains.nextangle.local"
     get :set_cookie_with_domain_and_tld
     assert_response :success
-    assert_cookie_header "user_name=rizwanreza; domain=.nextangle.local; path=/"
+    assert_cookie_header "user_name=rizwanreza; domain=.nextangle.local; path=/; SameSite=Lax"
   end
 
   def test_cookie_with_all_domain_option_using_a_non_standard_2_letter_tld
     @request.host = "admin.lvh.me"
     get :set_cookie_with_domain_and_tld
     assert_response :success
-    assert_cookie_header "user_name=rizwanreza; domain=.lvh.me; path=/"
+    assert_cookie_header "user_name=rizwanreza; domain=.lvh.me; path=/; SameSite=Lax"
   end
 
   def test_cookie_with_all_domain_option_using_host_with_port_and_tld_length
     @request.host = "nextangle.local:3000"
     get :set_cookie_with_domain_and_tld
     assert_response :success
-    assert_cookie_header "user_name=rizwanreza; domain=.nextangle.local; path=/"
+    assert_cookie_header "user_name=rizwanreza; domain=.nextangle.local; path=/; SameSite=Lax"
   end
 
   def test_deleting_cookie_with_all_domain_option_and_tld_length
     request.cookies[:user_name] = "Joe"
     get :delete_cookie_with_domain_and_tld
     assert_response :success
-    assert_cookie_header "user_name=; domain=.nextangle.com; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 -0000"
+    assert_cookie_header "user_name=; domain=.nextangle.com; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax"
   end
 
   def test_cookie_with_several_preset_domains_using_one_of_these_domains
     @request.host = "example1.com"
     get :set_cookie_with_domains
     assert_response :success
-    assert_cookie_header "user_name=rizwanreza; domain=example1.com; path=/"
+    assert_cookie_header "user_name=rizwanreza; domain=example1.com; path=/; SameSite=Lax"
   end
 
   def test_cookie_with_several_preset_domains_using_other_domain
     @request.host = "other-domain.com"
     get :set_cookie_with_domains
     assert_response :success
-    assert_cookie_header "user_name=rizwanreza; path=/"
+    assert_cookie_header "user_name=rizwanreza; path=/; SameSite=Lax"
   end
 
   def test_cookie_with_several_preset_domains_using_shared_domain
     @request.host = "example3.com"
     get :set_cookie_with_domains
     assert_response :success
-    assert_cookie_header "user_name=rizwanreza; domain=.example3.com; path=/"
+    assert_cookie_header "user_name=rizwanreza; domain=.example3.com; path=/; SameSite=Lax"
   end
 
   def test_deletings_cookie_with_several_preset_domains_using_one_of_these_domains
@@ -1028,7 +1054,7 @@ class CookiesTest < ActionController::TestCase
     request.cookies[:user_name] = "Joe"
     get :delete_cookie_with_domains
     assert_response :success
-    assert_cookie_header "user_name=; domain=example2.com; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 -0000"
+    assert_cookie_header "user_name=; domain=example2.com; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax"
   end
 
   def test_deletings_cookie_with_several_preset_domains_using_other_domain
@@ -1036,7 +1062,7 @@ class CookiesTest < ActionController::TestCase
     request.cookies[:user_name] = "Joe"
     get :delete_cookie_with_domains
     assert_response :success
-    assert_cookie_header "user_name=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 -0000"
+    assert_cookie_header "user_name=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax"
   end
 
   def test_cookies_hash_is_indifferent_access
@@ -1062,7 +1088,7 @@ class CookiesTest < ActionController::TestCase
 
   def test_cookies_retained_across_requests
     get :symbol_key
-    assert_cookie_header "user_name=david; path=/"
+    assert_cookie_header "user_name=david; path=/; SameSite=Lax"
     assert_equal "david", cookies[:user_name]
 
     get :noop
@@ -1181,7 +1207,7 @@ class CookiesTest < ActionController::TestCase
   def test_vanilla_cookie_with_expires_set_relatively
     travel_to Time.utc(2017, 8, 15) do
       get :cookie_expires_in_two_hours
-      assert_cookie_header "user_name=assain; path=/; expires=Tue, 15 Aug 2017 02:00:00 -0000"
+      assert_cookie_header "user_name=assain; path=/; expires=Tue, 15 Aug 2017 02:00:00 GMT; SameSite=Lax"
     end
   end
 

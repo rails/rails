@@ -105,9 +105,10 @@ module ActiveStorage
       raise NotImplementedError
     end
 
-    # Returns a signed, temporary URL for the file at the +key+. The URL will be valid for the amount
-    # of seconds specified in +expires_in+. You must also provide the +disposition+ (+:inline+ or +:attachment+),
-    # +filename+, and +content_type+ that you wish the file to be served with on request.
+    # Returns the URL for the file at the +key+. This returns a permanent URL for public files, and returns a
+    # short-lived URL for private files. You must provide the +disposition+ (+:inline+ or +:attachment+),
+    # +filename+, and +content_type+ that you wish the file to be served with on request. In addition, for
+    # private files, you must also provide the amount of seconds the URL will be valid for, specified in +expires_in+.
     def url(key, **options)
       instrument :url, key: key do |payload|
         generated_url =

@@ -42,6 +42,7 @@ module ActionCable
         pg_conn = ar_conn.raw_connection
 
         verify!(pg_conn)
+        pg_conn.exec("SET application_name = #{pg_conn.escape_identifier(identifier)}")
         yield pg_conn
       ensure
         ar_conn.disconnect!

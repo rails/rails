@@ -27,7 +27,7 @@ class TestFixturesTest < ActiveRecord::TestCase
       File.write(File.join(tmp_dir, "zines.yml"), <<~YML)
       going_out:
         title: Hello
-    YML
+      YML
 
       klass = Class.new(Minitest::Test) do
         include ActiveRecord::TestFixtures

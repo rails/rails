@@ -7,7 +7,7 @@ module ActiveRecord
                             :order, :joins, :left_outer_joins, :references,
                             :extending, :unscope, :optimizer_hints, :annotate]
 
-    SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :reordering,
+    SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :reordering, :strict_loading,
                             :reverse_order, :distinct, :create_with, :skip_query_cache]
 
     CLAUSE_METHODS = [:where, :having, :from]
@@ -317,7 +317,7 @@ module ActiveRecord
       query_signature = ActiveSupport::Digest.hexdigest(to_sql)
       key = "#{klass.model_name.cache_key}/query-#{query_signature}"
 
-      if cache_version(timestamp_column)
+      if collection_cache_versioning
         key
       else
         "#{key}-#{compute_cache_version(timestamp_column)}"
@@ -385,6 +385,15 @@ module ActiveRecord
     end
     private :compute_cache_version
 
+    # Returns a cache key along with the version.
+    def cache_key_with_version
+      if version = cache_version
+        "#{cache_key}-#{version}"
+      else
+        cache_key
+      end
+    end
+
     # Scope all queries to the current scope.
     #
     #   Comment.where(post_id: 1).scoping do
@@ -408,7 +417,7 @@ module ActiveRecord
     # Updates all records in the current relation with details given. This method constructs a single SQL UPDATE
     # statement and sends it straight to the database. It does not instantiate the involved models and it does not
     # trigger Active Record callbacks or validations. However, values passed to #update_all will still go through
-    # Active Record's normal type casting and serialization.
+    # Active Record's normal type casting and serialization. Returns the number of rows affected.
     #
     # Note: As Active Record callbacks are not triggered, this method will not automatically update +updated_at+/+updated_on+ columns.
     #
@@ -626,7 +635,10 @@ module ActiveRecord
     #
     #   Post.where(published: true).load # => #<ActiveRecord::Relation>
     def load(&block)
-      exec_queries(&block) unless loaded?
+      unless loaded?
+        @records = exec_queries(&block)
+        @loaded = true
+      end
 
       self
     end
@@ -739,13 +751,24 @@ module ActiveRecord
       ActiveRecord::Associations::AliasTracker.create(connection, table.name, joins)
     end
 
+    class StrictLoadingScope
+      def self.empty_scope?
+        true
+      end
+
+      def self.strict_loading_value
+        true
+      end
+    end
+
     def preload_associations(records) # :nodoc:
       preload = preload_values
       preload += includes_values unless eager_loading?
       preloader = nil
+      scope = strict_loading_value ? StrictLoadingScope : nil
       preload.each do |associations|
         preloader ||= build_preloader
-        preloader.preload records, associations
+        preloader.preload records, associations, scope
       end
     end
 
@@ -809,7 +832,7 @@ module ActiveRecord
 
       def exec_queries(&block)
         skip_query_cache_if_necessary do
-          @records =
+          records =
             if where_clause.contradiction?
               []
             elsif eager_loading?
@@ -819,19 +842,19 @@ module ActiveRecord
                 else
                   relation = join_dependency.apply_column_aliases(relation)
                   rows = connection.select_all(relation.arel, "SQL")
-                  join_dependency.instantiate(rows, &block)
+                  join_dependency.instantiate(rows, strict_loading_value, &block)
                 end.freeze
               end
             else
               klass.find_by_sql(arel, &block).freeze
             end
 
-          preload_associations(@records) unless skip_preloading_value
+          preload_associations(records) unless skip_preloading_value
 
-          @records.each(&:readonly!) if readonly_value
+          records.each(&:readonly!) if readonly_value
+          records.each(&:strict_loading!) if strict_loading_value
 
-          @loaded = true
-          @records
+          records
         end
       end
 

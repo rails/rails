@@ -280,7 +280,7 @@ module ActionController #:nodoc:
 
       # Check for cross-origin JavaScript responses.
       def non_xhr_javascript_response? # :doc:
-        media_type && %r(\A(?:text|application)/javascript).match?(media_type) && !request.xhr?
+        %r(\A(?:text|application)/javascript).match?(media_type) && !request.xhr?
       end
 
       AUTHENTICITY_TOKEN_LENGTH = 32
@@ -381,7 +381,7 @@ module ActionController #:nodoc:
         if per_form_csrf_tokens
           correct_token = per_form_csrf_token(
             session,
-            normalize_action_path(request.fullpath),
+            request.path.chomp("/"),
             request.request_method
           )
 

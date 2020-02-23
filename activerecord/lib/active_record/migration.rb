@@ -19,7 +19,7 @@ module ActiveRecord
   # For example the following migration is not reversible.
   # Rolling back this migration will raise an ActiveRecord::IrreversibleMigration error.
   #
-  #   class IrreversibleMigrationExample < ActiveRecord::Migration[5.0]
+  #   class IrreversibleMigrationExample < ActiveRecord::Migration[6.0]
   #     def change
   #       create_table :distributors do |t|
   #         t.string :zipcode
@@ -37,7 +37,7 @@ module ActiveRecord
   #
   # 1. Define <tt>#up</tt> and <tt>#down</tt> methods instead of <tt>#change</tt>:
   #
-  #  class ReversibleMigrationExample < ActiveRecord::Migration[5.0]
+  #  class ReversibleMigrationExample < ActiveRecord::Migration[6.0]
   #    def up
   #      create_table :distributors do |t|
   #        t.string :zipcode
@@ -62,7 +62,7 @@ module ActiveRecord
   #
   # 2. Use the #reversible method in <tt>#change</tt> method:
   #
-  #   class ReversibleMigrationExample < ActiveRecord::Migration[5.0]
+  #   class ReversibleMigrationExample < ActiveRecord::Migration[6.0]
   #     def change
   #       create_table :distributors do |t|
   #         t.string :zipcode
@@ -138,9 +138,9 @@ module ActiveRecord
 
     def initialize(message = nil)
       if !message && defined?(Rails.env)
-        super("Migrations are pending. To resolve this issue, run:\n\n        rails db:migrate RAILS_ENV=#{::Rails.env}")
+        super("Migrations are pending. To resolve this issue, run:\n\n        bin/rails db:migrate RAILS_ENV=#{::Rails.env}")
       elsif !message
-        super("Migrations are pending. To resolve this issue, run:\n\n        rails db:migrate")
+        super("Migrations are pending. To resolve this issue, run:\n\n        bin/rails db:migrate")
       else
         super
       end
@@ -158,7 +158,7 @@ module ActiveRecord
 
   class NoEnvironmentInSchemaError < MigrationError #:nodoc:
     def initialize
-      msg = "Environment data not found in the schema. To resolve this issue, run: \n\n        rails db:environment:set"
+      msg = "Environment data not found in the schema. To resolve this issue, run: \n\n        bin/rails db:environment:set"
       if defined?(Rails.env)
         super("#{msg} RAILS_ENV=#{::Rails.env}")
       else
@@ -181,7 +181,7 @@ module ActiveRecord
       msg = +"You are attempting to modify a database that was last run in `#{ stored }` environment.\n"
       msg << "You are running in `#{ current }` environment. "
       msg << "If you are sure you want to continue, first set the environment using:\n\n"
-      msg << "        rails db:environment:set"
+      msg << "        bin/rails db:environment:set"
       if defined?(Rails.env)
         super("#{msg} RAILS_ENV=#{::Rails.env}\n\n")
       else
@@ -202,7 +202,7 @@ module ActiveRecord
   #
   # Example of a simple migration:
   #
-  #   class AddSsl < ActiveRecord::Migration[5.0]
+  #   class AddSsl < ActiveRecord::Migration[6.0]
   #     def up
   #       add_column :accounts, :ssl_enabled, :boolean, default: true
   #     end
@@ -222,7 +222,7 @@ module ActiveRecord
   #
   # Example of a more complex migration that also needs to initialize data:
   #
-  #   class AddSystemSettings < ActiveRecord::Migration[5.0]
+  #   class AddSystemSettings < ActiveRecord::Migration[6.0]
   #     def up
   #       create_table :system_settings do |t|
   #         t.string  :name
@@ -338,7 +338,7 @@ module ActiveRecord
   # The Rails package has several tools to help create and apply migrations.
   #
   # To generate a new migration, you can use
-  #   rails generate migration MyNewMigration
+  #   bin/rails generate migration MyNewMigration
   #
   # where MyNewMigration is the name of your migration. The generator will
   # create an empty migration file <tt>timestamp_my_new_migration.rb</tt>
@@ -347,26 +347,26 @@ module ActiveRecord
   #
   # There is a special syntactic shortcut to generate migrations that add fields to a table.
   #
-  #   rails generate migration add_fieldname_to_tablename fieldname:string
+  #   bin/rails generate migration add_fieldname_to_tablename fieldname:string
   #
   # This will generate the file <tt>timestamp_add_fieldname_to_tablename.rb</tt>, which will look like this:
-  #   class AddFieldnameToTablename < ActiveRecord::Migration[5.0]
+  #   class AddFieldnameToTablename < ActiveRecord::Migration[6.0]
   #     def change
   #       add_column :tablenames, :fieldname, :string
   #     end
   #   end
   #
   # To run migrations against the currently configured database, use
-  # <tt>rails db:migrate</tt>. This will update the database by running all of the
+  # <tt>bin/rails db:migrate</tt>. This will update the database by running all of the
   # pending migrations, creating the <tt>schema_migrations</tt> table
   # (see "About the schema_migrations table" section below) if missing. It will also
   # invoke the db:schema:dump command, which will update your db/schema.rb file
   # to match the structure of your database.
   #
   # To roll the database back to a previous migration version, use
-  # <tt>rails db:rollback VERSION=X</tt> where <tt>X</tt> is the version to which
+  # <tt>bin/rails db:rollback VERSION=X</tt> where <tt>X</tt> is the version to which
   # you wish to downgrade. Alternatively, you can also use the STEP option if you
-  # wish to rollback last few migrations. <tt>rails db:rollback STEP=2</tt> will rollback
+  # wish to rollback last few migrations. <tt>bin/rails db:rollback STEP=2</tt> will rollback
   # the latest two migrations.
   #
   # If any of the migrations throw an <tt>ActiveRecord::IrreversibleMigration</tt> exception,
@@ -381,7 +381,7 @@ module ActiveRecord
   #
   # Not all migrations change the schema. Some just fix the data:
   #
-  #   class RemoveEmptyTags < ActiveRecord::Migration[5.0]
+  #   class RemoveEmptyTags < ActiveRecord::Migration[6.0]
   #     def up
   #       Tag.all.each { |tag| tag.destroy if tag.pages.empty? }
   #     end
@@ -394,7 +394,7 @@ module ActiveRecord
   #
   # Others remove columns when they migrate up instead of down:
   #
-  #   class RemoveUnnecessaryItemAttributes < ActiveRecord::Migration[5.0]
+  #   class RemoveUnnecessaryItemAttributes < ActiveRecord::Migration[6.0]
   #     def up
   #       remove_column :items, :incomplete_items_count
   #       remove_column :items, :completed_items_count
@@ -408,7 +408,7 @@ module ActiveRecord
   #
   # And sometimes you need to do something in SQL not abstracted directly by migrations:
   #
-  #   class MakeJoinUnique < ActiveRecord::Migration[5.0]
+  #   class MakeJoinUnique < ActiveRecord::Migration[6.0]
   #     def up
   #       execute "ALTER TABLE `pages_linked_pages` ADD UNIQUE `page_id_linked_page_id` (`page_id`,`linked_page_id`)"
   #     end
@@ -425,7 +425,7 @@ module ActiveRecord
   # <tt>Base#reset_column_information</tt> in order to ensure that the model has the
   # latest column data from after the new column was added. Example:
   #
-  #   class AddPeopleSalary < ActiveRecord::Migration[5.0]
+  #   class AddPeopleSalary < ActiveRecord::Migration[6.0]
   #     def up
   #       add_column :people, :salary, :integer
   #       Person.reset_column_information
@@ -483,7 +483,7 @@ module ActiveRecord
   # To define a reversible migration, define the +change+ method in your
   # migration like this:
   #
-  #   class TenderloveMigration < ActiveRecord::Migration[5.0]
+  #   class TenderloveMigration < ActiveRecord::Migration[6.0]
   #     def change
   #       create_table(:horses) do |t|
   #         t.column :content, :text
@@ -513,7 +513,7 @@ module ActiveRecord
   # can't execute inside a transaction though, and for these situations
   # you can turn the automatic transactions off.
   #
-  #   class ChangeEnum < ActiveRecord::Migration[5.0]
+  #   class ChangeEnum < ActiveRecord::Migration[6.0]
   #     disable_ddl_transaction!
   #
   #     def up
@@ -604,7 +604,7 @@ module ActiveRecord
       end
 
       def load_schema_if_pending!
-        current_config = Base.connection_config
+        current_db_config = Base.connection_db_config
         all_configs = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env)
 
         needs_update = !all_configs.all? do |db_config|
@@ -621,7 +621,7 @@ module ActiveRecord
         end
 
         # Establish a new connection, the old database may be gone (db:test:prepare uses purge)
-        Base.establish_connection(current_config)
+        Base.establish_connection(current_db_config)
 
         check_pending!
       end
@@ -635,6 +635,7 @@ module ActiveRecord
       def method_missing(name, *args, &block) #:nodoc:
         nearest_delegate.send(name, *args, &block)
       end
+      ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
 
       def migrate(direction)
         new.migrate direction
@@ -673,7 +674,7 @@ module ActiveRecord
     # and create the table 'apples' on the way up, and the reverse
     # on the way down.
     #
-    #   class FixTLMigration < ActiveRecord::Migration[5.0]
+    #   class FixTLMigration < ActiveRecord::Migration[6.0]
     #     def change
     #       revert do
     #         create_table(:horses) do |t|
@@ -692,7 +693,7 @@ module ActiveRecord
     #
     #   require_relative '20121212123456_tenderlove_migration'
     #
-    #   class FixupTLMigration < ActiveRecord::Migration[5.0]
+    #   class FixupTLMigration < ActiveRecord::Migration[6.0]
     #     def change
     #       revert TenderloveMigration
     #
@@ -743,7 +744,7 @@ module ActiveRecord
     # when the three columns 'first_name', 'last_name' and 'full_name' exist,
     # even when migrating down:
     #
-    #    class SplitNameMigration < ActiveRecord::Migration[5.0]
+    #    class SplitNameMigration < ActiveRecord::Migration[6.0]
     #      def change
     #        add_column :users, :first_name, :string
     #        add_column :users, :last_name, :string
@@ -771,7 +772,7 @@ module ActiveRecord
     # In the following example, the new column +published+ will be given
     # the value +true+ for all existing records.
     #
-    #    class AddPublishedToPosts < ActiveRecord::Migration[5.2]
+    #    class AddPublishedToPosts < ActiveRecord::Migration[6.0]
     #      def change
     #        add_column :posts, :published, :boolean, default: false
     #        up_only do
@@ -906,6 +907,7 @@ module ActiveRecord
         connection.send(method, *arguments, &block)
       end
     end
+    ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
 
     def copy(destination, sources, options = {})
       copied = []
@@ -1371,7 +1373,8 @@ module ActiveRecord
 
       def with_advisory_lock
         lock_id = generate_migrator_advisory_lock_id
-        connection = Base.connection
+        AdvisoryLockBase.establish_connection(ActiveRecord::Base.connection_db_config) unless AdvisoryLockBase.connected?
+        connection = AdvisoryLockBase.connection
         got_lock = connection.get_advisory_lock(lock_id)
         raise ConcurrentMigrationError unless got_lock
         load_migrated # reload schema_migrations to be sure it wasn't changed by another process before we got the lock

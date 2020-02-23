@@ -45,7 +45,7 @@ module ActiveRecord
       association = klass._reflect_on_association(table_name) || klass._reflect_on_association(table_name.to_s.singularize)
 
       if !association && table_name == arel_table.name
-        return self
+        self
       elsif association && !association.polymorphic?
         association_klass = association.klass
         arel_table = association_klass.arel_table.alias(table_name)
@@ -55,6 +55,10 @@ module ActiveRecord
         arel_table = Arel::Table.new(table_name, type_caster: type_caster)
         TableMetadata.new(nil, arel_table, association, type_caster)
       end
+    end
+
+    def associated_predicate_builder(table_name)
+      associated_table(table_name).predicate_builder
     end
 
     def polymorphic_association?
@@ -68,6 +72,17 @@ module ActiveRecord
     def reflect_on_aggregation(aggregation_name)
       klass.reflect_on_aggregation(aggregation_name)
     end
+
+    protected
+      def predicate_builder
+        if klass
+          predicate_builder = klass.predicate_builder.dup
+          predicate_builder.instance_variable_set(:@table, self)
+          predicate_builder
+        else
+          PredicateBuilder.new(self)
+        end
+      end
 
     private
       attr_reader :klass, :types, :arel_table, :association

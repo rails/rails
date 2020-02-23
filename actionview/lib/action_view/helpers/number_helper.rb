@@ -57,7 +57,7 @@ module ActionView
       #
       #   number_to_phone(75561234567, pattern: /(\d{1,4})(\d{4})(\d{4})$/, area_code: true)
       #   # => "(755) 6123-4567"
-      #   number_to_phone(13312345678, pattern: /(\d{3})(\d{4})(\d{4})$/))
+      #   number_to_phone(13312345678, pattern: /(\d{3})(\d{4})(\d{4})$/)
       #   # => "133-1234-5678"
       def number_to_phone(number, options = {})
         return unless number
@@ -114,6 +114,8 @@ module ActionView
       #
       #   number_to_currency("123a456", raise: true)           # => InvalidNumberError
       #
+      #   number_to_currency(-0.456789, precision: 0)
+      #   # => "$0"
       #   number_to_currency(-1234567890.50, negative_format: "(%u%n)")
       #   # => ($1,234,567,890.50)
       #   number_to_currency(1234567890.50, unit: "R$", separator: ",", delimiter: "")
@@ -423,9 +425,9 @@ module ActionView
         end
 
         def escape_units(units)
-          Hash[units.map do |k, v|
-            [k, ERB::Util.html_escape(v)]
-          end]
+          units.transform_values do |v|
+            ERB::Util.html_escape(v)
+          end
         end
 
         def wrap_with_output_safety_handling(number, raise_on_invalid, &block)

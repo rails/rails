@@ -25,6 +25,9 @@ module ActionView
     def render_to_object(context, options) # :nodoc:
       if options.key?(:partial)
         render_partial_to_object(context, options)
+      elsif options.key?(:object)
+        object = options[:object]
+        AbstractRenderer::RenderedTemplate.new(object.render_in(context), object)
       else
         render_template_to_object(context, options)
       end

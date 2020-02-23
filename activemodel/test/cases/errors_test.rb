@@ -103,6 +103,15 @@ class ErrorsTest < ActiveModel::TestCase
     assert_empty person.errors
   end
 
+  test "clear errors by key" do
+    person = Person.new
+    person.validate!
+
+    assert_equal 1, person.errors.count
+    assert_deprecated { person.errors[:name].clear }
+    assert_empty person.errors
+  end
+
   test "error access is indifferent" do
     errors = ActiveModel::Errors.new(Person.new)
     errors.add(:name, "omg")
@@ -617,6 +626,15 @@ class ErrorsTest < ActiveModel::TestCase
       },
       errors.details
     )
+  end
+
+  test "messages delete (deprecated)" do
+    person = Person.new
+    person.validate!
+
+    assert_equal 1, person.errors.count
+    assert_deprecated { person.errors.messages.delete(:name) }
+    assert_empty person.errors
   end
 
   test "group_by_attribute" do

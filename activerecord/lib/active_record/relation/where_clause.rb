@@ -83,11 +83,18 @@ module ActiveRecord
       end
 
       def self.empty
-        @empty ||= new([])
+        @empty ||= new([]).tap(&:referenced_columns).freeze
       end
 
       def contradiction?
-        predicates.any? { |x| Arel::Nodes::In === x && Array === x.right && x.right.empty? }
+        predicates.any? do |x|
+          case x
+          when Arel::Nodes::In
+            Array === x.right && x.right.empty?
+          when Arel::Nodes::Equality
+            x.right.respond_to?(:unboundable?) && x.right.unboundable?
+          end
+        end
       end
 
       protected

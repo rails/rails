@@ -69,6 +69,10 @@ module ActionDispatch
       get_header Cookies::COOKIES_SERIALIZER
     end
 
+    def cookies_same_site_protection
+      get_header Cookies::COOKIES_SAME_SITE_PROTECTION
+    end
+
     def cookies_digest
       get_header Cookies::COOKIES_DIGEST
     end
@@ -150,8 +154,10 @@ module ActionDispatch
   # * <tt>:domain</tt> - The domain for which this cookie applies so you can
   #   restrict to the domain level. If you use a schema like www.example.com
   #   and want to share session with user.example.com set <tt>:domain</tt>
-  #   to <tt>:all</tt>. Make sure to specify the <tt>:domain</tt> option with
-  #   <tt>:all</tt> or <tt>Array</tt> again when deleting cookies.
+  #   to <tt>:all</tt>. To support multiple domains, provide an array, and
+  #   the first domain matching <tt>request.host</tt> will be used. Make
+  #   sure to specify the <tt>:domain</tt> option with <tt>:all</tt> or
+  #   <tt>Array</tt> again when deleting cookies.
   #
   #     domain: nil  # Does not set cookie domain. (default)
   #     domain: :all # Allow the cookie for the top most level
@@ -181,6 +187,7 @@ module ActionDispatch
     COOKIES_SERIALIZER = "action_dispatch.cookies_serializer"
     COOKIES_DIGEST = "action_dispatch.cookies_digest"
     COOKIES_ROTATIONS = "action_dispatch.cookies_rotations"
+    COOKIES_SAME_SITE_PROTECTION = "action_dispatch.cookies_same_site_protection"
     USE_COOKIES_WITH_METADATA = "action_dispatch.use_cookies_with_metadata"
 
     # Cookies can typically store 4096 bytes.
@@ -431,7 +438,8 @@ module ActionDispatch
             options[:expires] = options[:expires].from_now
           end
 
-          options[:path] ||= "/"
+          options[:path]      ||= "/"
+          options[:same_site] ||= request.cookies_same_site_protection
 
           if options[:domain] == :all || options[:domain] == "all"
             # If there is a provided tld length then we use it otherwise default domain regexp.
@@ -571,7 +579,8 @@ module ActionDispatch
         secret = request.key_generator.generate_key(request.signed_cookie_salt)
         @verifier = ActiveSupport::MessageVerifier.new(secret, digest: signed_cookie_digest, serializer: SERIALIZER)
 
-        request.cookies_rotations.signed.each do |*secrets, **options|
+        request.cookies_rotations.signed.each do |(*secrets)|
+          options = secrets.extract_options!
           @verifier.rotate(*secrets, serializer: SERIALIZER, **options)
         end
       end
@@ -607,7 +616,8 @@ module ActionDispatch
           @encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, cipher: "aes-256-cbc", serializer: SERIALIZER)
         end
 
-        request.cookies_rotations.encrypted.each do |*secrets, **options|
+        request.cookies_rotations.encrypted.each do |(*secrets)|
+          options = secrets.extract_options!
           @encryptor.rotate(*secrets, serializer: SERIALIZER, **options)
         end
 

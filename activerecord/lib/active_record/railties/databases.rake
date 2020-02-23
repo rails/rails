@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_record"
+require "active_support/configuration_file"
 
 databases = ActiveRecord::Tasks::DatabaseTasks.setup_initial_database_yaml
 
@@ -34,7 +35,7 @@ db_namespace = namespace :db do
     end
   end
 
-  desc "Creates the database from DATABASE_URL or config/database.yml for the current RAILS_ENV (use db:create:all to create all databases in the config). Without RAILS_ENV or when RAILS_ENV is development, it defaults to creating the development and test databases."
+  desc "Creates the database from DATABASE_URL or config/database.yml for the current RAILS_ENV (use db:create:all to create all databases in the config). Without RAILS_ENV or when RAILS_ENV is development, it defaults to creating the development and test databases, except when DATABASE_URL is present."
   task create: [:load_config] do
     ActiveRecord::Tasks::DatabaseTasks.create_current
   end
@@ -53,7 +54,7 @@ db_namespace = namespace :db do
     end
   end
 
-  desc "Drops the database from DATABASE_URL or config/database.yml for the current RAILS_ENV (use db:drop:all to drop all databases in the config). Without RAILS_ENV or when RAILS_ENV is development, it defaults to dropping the development and test databases."
+  desc "Drops the database from DATABASE_URL or config/database.yml for the current RAILS_ENV (use db:drop:all to drop all databases in the config). Without RAILS_ENV or when RAILS_ENV is development, it defaults to dropping the development and test databases, except when DATABASE_URL is present."
   task drop: [:load_config, :check_protected_environments] do
     db_namespace["drop:_unsafe"].invoke
   end
@@ -73,21 +74,21 @@ db_namespace = namespace :db do
     ActiveRecord::Tasks::DatabaseTasks.truncate_all
   end
 
-  # desc "Empty the database from DATABASE_URL or config/database.yml for the current RAILS_ENV (use db:purge:all to purge all databases in the config). Without RAILS_ENV it defaults to purging the development and test databases."
+  # desc "Empty the database from DATABASE_URL or config/database.yml for the current RAILS_ENV (use db:purge:all to purge all databases in the config). Without RAILS_ENV it defaults to purging the development and test databases, except when DATABASE_URL is present."
   task purge: [:load_config, :check_protected_environments] do
     ActiveRecord::Tasks::DatabaseTasks.purge_current
   end
 
   desc "Migrate the database (options: VERSION=x, VERBOSE=false, SCOPE=blog)."
   task migrate: :load_config do
-    original_config = ActiveRecord::Base.connection_config
+    original_db_config = ActiveRecord::Base.connection_db_config
     ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
       ActiveRecord::Base.establish_connection(db_config)
       ActiveRecord::Tasks::DatabaseTasks.migrate
     end
     db_namespace["_dump"].invoke
   ensure
-    ActiveRecord::Base.establish_connection(original_config)
+    ActiveRecord::Base.establish_connection(original_db_config)
   end
 
   # IMPORTANT: This task won't dump the schema if ActiveRecord::Base.dump_schema_after_migration is set to false
@@ -266,7 +267,7 @@ db_namespace = namespace :db do
       pending_migrations.each do |pending_migration|
         puts "  %4d %s" % [pending_migration.version, pending_migration.name]
       end
-      abort %{Run `rails db:migrate` to update your database then try again.}
+      abort %{Run `bin/rails db:migrate` to update your database then try again.}
     end
   ensure
     ActiveRecord::Base.establish_connection(ActiveRecord::Tasks::DatabaseTasks.env.to_sym)
@@ -369,7 +370,7 @@ db_namespace = namespace :db do
       base_dir = ActiveRecord::Tasks::DatabaseTasks.fixtures_path
 
       Dir["#{base_dir}/**/*.yml"].each do |file|
-        if data = YAML.load(ERB.new(IO.read(file)).result)
+        if data = ActiveSupport::ConfigurationFile.parse(file)
           data.each_key do |key|
             key_id = ActiveRecord::FixtureSet.identify(key)
 
@@ -407,7 +408,10 @@ db_namespace = namespace :db do
       task dump: :load_config do
         ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
           ActiveRecord::Base.establish_connection(db_config)
-          filename = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(db_config.spec_name)
+          filename = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(
+            db_config.spec_name,
+            schema_cache_path: db_config.schema_cache_path,
+          )
           ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(
             ActiveRecord::Base.connection,
             filename,
@@ -418,8 +422,13 @@ db_namespace = namespace :db do
       desc "Clears a db/schema_cache.yml file."
       task clear: :load_config do
         ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
-          filename = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(db_config.spec_name)
-          rm_f filename, verbose: false
+          filename = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(
+            db_config.spec_name,
+            schema_cache_path: db_config.schema_cache_path,
+          )
+          ActiveRecord::Tasks::DatabaseTasks.clear_schema_cache(
+            filename,
+          )
         end
       end
     end
@@ -467,7 +476,7 @@ db_namespace = namespace :db do
       end
     ensure
       if should_reconnect
-        ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations.default_hash(ActiveRecord::Tasks::DatabaseTasks.env))
+        ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env, spec_name: "primary"))
       end
     end
 

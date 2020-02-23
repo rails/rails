@@ -239,9 +239,10 @@ module ApplicationTests
     end
 
     test "Rails.cache does not respond to middleware" do
-      add_to_config "config.cache_store = :memory_store"
+      add_to_config "config.cache_store = :memory_store, { timeout: 10 }"
       boot!
       assert_equal "Rack::Runtime", middleware[5]
+      assert_instance_of ActiveSupport::Cache::MemoryStore, Rails.cache
     end
 
     test "Rails.cache does respond to middleware" do

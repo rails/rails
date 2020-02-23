@@ -12,6 +12,7 @@ module ActiveModel
       #
       # Examples of using the default rails validators:
       #
+      #   validates :username, absence: true
       #   validates :terms, acceptance: true
       #   validates :password, confirmation: true
       #   validates :username, exclusion: { in: %w(admin superuser) }

@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../abstract_unit"
 require "active_support/time"
-require "core_ext/date_and_time_behavior"
-require "time_zone_test_helpers"
+require_relative "../core_ext/date_and_time_behavior"
+require_relative "../time_zone_test_helpers"
 
 class TimeExtCalculationsTest < ActiveSupport::TestCase
   def date_time_init(year, month, day, hour, minute, second, usec = 0)

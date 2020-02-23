@@ -86,10 +86,10 @@ module Rails
                                            desc: "Skip bootsnap gem"
 
         class_option :dev,                 type: :boolean, default: false,
-                                           desc: "Setup the #{name} with Gemfile pointing to your Rails checkout"
+                                           desc: "Set up the #{name} with Gemfile pointing to your Rails checkout"
 
         class_option :edge,                type: :boolean, default: false,
-                                           desc: "Setup the #{name} with Gemfile pointing to Rails repository"
+                                           desc: "Set up the #{name} with Gemfile pointing to Rails repository"
 
         class_option :rc,                  type: :string, default: nil,
                                            desc: "Path to file containing extra configuration options for rails command"
@@ -409,8 +409,10 @@ module Rails
 
       def run_webpack
         if webpack_install?
-          rails_command "webpacker:install"
-          rails_command "webpacker:install:#{options[:webpack]}" if options[:webpack] && options[:webpack] != "webpack"
+          rails_command "webpacker:install", inline: true
+          if options[:webpack] && options[:webpack] != "webpack"
+            rails_command "webpacker:install:#{options[:webpack]}", inline: true
+          end
         end
       end
 

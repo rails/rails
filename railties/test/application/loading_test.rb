@@ -134,7 +134,7 @@ class LoadingTest < ActiveSupport::TestCase
     setup_ar!
 
     initial = [ActiveStorage::Blob, ActiveStorage::Attachment, ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata, ApplicationRecord, "primary::SchemaMigration"].collect(&:to_s).sort
-    assert_equal initial, ActiveRecord::Base.descendants.collect(&:to_s).sort
+    assert_equal initial, ActiveRecord::Base.descendants.collect(&:to_s).sort.uniq
     get "/load"
     assert_equal [Post].collect(&:to_s).sort, ActiveRecord::Base.descendants.collect(&:to_s).sort - initial
     get "/unload"
@@ -378,7 +378,7 @@ class LoadingTest < ActiveSupport::TestCase
 
   test "frameworks aren't loaded during initialization" do
     app_file "config/initializers/raise_when_frameworks_load.rb", <<-RUBY
-      %i(action_controller action_mailer active_job active_record).each do |framework|
+      %i(action_controller action_mailer active_job active_record action_view).each do |framework|
         ActiveSupport.on_load(framework) { raise "\#{framework} loaded!" }
       end
     RUBY

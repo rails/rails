@@ -145,21 +145,36 @@ module ActiveRecord
             # used as keys in ActiveRecord::Base's @attributes hash
             columns = @columns.map(&:-@)
             length  = columns.length
+            template = nil
 
             @rows.map { |row|
-              # In the past we used Hash[columns.zip(row)]
-              #  though elegant, the verbose way is much more efficient
-              #  both time and memory wise cause it avoids a big array allocation
-              #  this method is called a lot and needs to be micro optimised
-              hash = {}
+              if template
+                # We use transform_values to build subsequent rows from the
+                # hash of the first row. This is faster because we avoid any
+                # reallocs and in Ruby 2.7+ avoid hashing entirely.
+                index = -1
+                template.transform_values do
+                  row[index += 1]
+                end
+              else
+                # In the past we used Hash[columns.zip(row)]
+                #  though elegant, the verbose way is much more efficient
+                #  both time and memory wise cause it avoids a big array allocation
+                #  this method is called a lot and needs to be micro optimised
+                hash = {}
 
-              index = 0
-              while index < length
-                hash[columns[index]] = row[index]
-                index += 1
+                index = 0
+                while index < length
+                  hash[columns[index]] = row[index]
+                  index += 1
+                end
+
+                # It's possible to select the same column twice, in which case
+                # we can't use a template
+                template = hash if hash.length == length
+
+                hash
               end
-
-              hash
             }
           end
       end

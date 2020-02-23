@@ -1,3 +1,21 @@
+*   `ActionView::Helpers::TranslationHelper#translate` returns nil when
+    passed `default: nil` without a translation matching `I18n#translate`.
+
+    *Stefan Wrobel*
+
+*   `OptimizedFileSystemResolver` prefers template details in order of locale,
+    formats, variants, handlers.
+
+    *Iago Pimenta*
+
+*   Added `class_names` helper to create a CSS class value with conditional classes.
+
+    *Joel Hawksley*, *Aaron Patterson*
+
+*   Add support for conditional values to TagBuilder.
+
+    *Joel Hawksley*
+
 *   `ActionView::Helpers::FormOptionsHelper#select` should mark option for `nil` as selected.
 
     ```ruby
@@ -36,7 +54,7 @@
 
     *Juanito Fatas*
 
-*   Added `phone_to` helper method to create a link from mobile numbers
+*   Added `phone_to` helper method to create a link from mobile numbers.
 
     *Pietro Moro*
 
@@ -49,7 +67,7 @@
 
     *Guilherme Mansur*, *Gannon McGibbon*
 
-*   `RenderingHelper` supports rendering objects that `respond_to?` `:render_in`
+*   `RenderingHelper` supports rendering objects that `respond_to?` `:render_in`.
 
     *Joel Hawksley*, *Natasha Umer*, *Aaron Patterson*, *Shawn Allen*, *Emily Plummer*, *Diana Mounter*, *John Hawthorn*, *Nathan Herald*, *Zaid Zawaideh*, *Zach Ahn*
 

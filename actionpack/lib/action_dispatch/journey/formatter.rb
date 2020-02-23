@@ -125,19 +125,10 @@ module ActionDispatch
           routes
         end
 
-        module RegexCaseComparator
-          DEFAULT_INPUT = /[-_.a-zA-Z0-9]+\/[-_.a-zA-Z0-9]+/
-          DEFAULT_REGEX = /\A#{DEFAULT_INPUT}\Z/
-
-          def self.===(regex)
-            DEFAULT_INPUT == regex
-          end
-        end
-
         # Returns an array populated with missing keys if any are present.
         def missing_keys(route, parts)
           missing_keys = nil
-          tests = route.path.requirements
+          tests = route.path.requirements_for_missing_keys_check
           route.required_parts.each { |key|
             case tests[key]
             when nil
@@ -145,13 +136,8 @@ module ActionDispatch
                 missing_keys ||= []
                 missing_keys << key
               end
-            when RegexCaseComparator
-              unless RegexCaseComparator::DEFAULT_REGEX.match?(parts[key])
-                missing_keys ||= []
-                missing_keys << key
-              end
             else
-              if parts[key].nil? || !/\A#{tests[key]}\Z/.match?(parts[key])
+              unless tests[key].match?(parts[key])
                 missing_keys ||= []
                 missing_keys << key
               end

@@ -7,6 +7,7 @@ module ActiveRecord
     # as this is the parent class for the types of database configuration objects.
     class DatabaseConfig # :nodoc:
       attr_reader :env_name, :spec_name
+      attr_accessor :owner_name
 
       def initialize(env_name, spec_name)
         @env_name = env_name
@@ -21,7 +22,15 @@ module ActiveRecord
         "#{adapter}_connection"
       end
 
+      def host
+        raise NotImplementedError
+      end
+
       def database
+        raise NotImplementedError
+      end
+
+      def _database=(database)
         raise NotImplementedError
       end
 
@@ -55,6 +64,10 @@ module ActiveRecord
 
       def for_current_env?
         env_name == ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+      end
+
+      def schema_cache_path
+        raise NotImplementedError
       end
     end
   end

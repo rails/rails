@@ -51,7 +51,7 @@ This will help you with the creation of new files and changes of old files in an
 interactive session.
 
 ```bash
-$ rails app:update
+$ bin/rails app:update
    identical  config/boot.rb
        exist  config
     conflict  config/routes.rb
@@ -74,6 +74,30 @@ To allow you to upgrade to new defaults one by one, the update task has created 
 
 Upgrading from Rails 6.0 to Rails 6.1
 -------------------------------------
+
+### `Rails.application.config_for` return value no longer supports access with String keys.
+
+Given a configuration file like this:
+
+```yaml
+# config/example.yml
+development:
+  options:
+    key: value
+```
+
+```ruby
+Rails.application.config_for(:example).options
+```
+
+This used to return a hash on which you could access values with String keys. That was deprecated in 6.0, and now doesn't work anymore.
+
+You can call `with_indifferent_access` on the return value of `config_for` if you still want to access values with String keys, e.g.:
+
+```ruby
+Rails.application.config_for(:example).with_indifferent_access.dig('options', 'key')
+```
+
 
 ### Response's Content-Type when using `respond_to#any`
 
@@ -100,7 +124,7 @@ If your application relies on the previous incorrect behaviour, you are encourag
 which formats your action accepts, i.e.
 
 ```ruby
-   format.any(:xml, :json) { render request.format.to_sym => @people }
+  format.any(:xml, :json) { render request.format.to_sym => @people }
 ```
 
 
@@ -700,7 +724,7 @@ it.
 Rails 5 adds the ability to run tasks and tests through `bin/rails` instead of rake. Generally
 these changes are in parallel with rake, but some were ported over altogether. As the `rails`
 command already looks for and runs `bin/rails`, we recommend you to use the shorter `rails`
-over `bin/rails.
+over `bin/rails`.
 
 To use the new test runner simply type `rails test`.
 
@@ -820,6 +844,26 @@ This default will be automatically configured in new applications. If existing a
 want to add this feature it will need to be turned on in an initializer.
 
     config.active_record.belongs_to_required_by_default = true
+
+The configuration is by default global for all your models, but you can
+override it on a per model basis. This should help you migrate all your models to have their
+associations required by default.
+
+```ruby
+class Book < ApplicationRecord
+  # model is not yet ready to have its association required by default
+
+  self.belongs_to_required_by_default = false
+  belongs_to(:author)
+end
+
+class Car < ApplicationRecord
+  # model is ready to have its association required by default
+
+  self.belongs_to_required_by_default = true
+  belongs_to(:pilot)
+end
+```
 
 #### Per-form CSRF Tokens
 

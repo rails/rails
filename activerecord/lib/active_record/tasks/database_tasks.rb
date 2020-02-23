@@ -242,7 +242,7 @@ module ActiveRecord
         end
 
         # output
-        puts "\ndatabase: #{ActiveRecord::Base.connection_config[:database]}\n\n"
+        puts "\ndatabase: #{ActiveRecord::Base.connection_db_config.database}\n\n"
         puts "#{'Status'.center(8)}  #{'Migration ID'.ljust(14)}  Migration Name"
         puts "-" * 50
         ActiveRecord::Base.connection.migration_context.migrations_status.each do |status, version, name|
@@ -409,14 +409,14 @@ module ActiveRecord
         ENV["SCHEMA"] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
       end
 
-      def cache_dump_filename(namespace)
+      def cache_dump_filename(namespace, schema_cache_path: nil)
         filename = if namespace == "primary"
           "schema_cache.yml"
         else
           "#{namespace}_schema_cache.yml"
         end
 
-        ENV["SCHEMA_CACHE"] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
+        schema_cache_path || ENV["SCHEMA_CACHE"] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
       end
 
       def load_schema_current(format = ActiveRecord::Base.schema_format, file = nil, environment = env)
@@ -428,7 +428,7 @@ module ActiveRecord
 
       def check_schema_file(filename)
         unless File.exist?(filename)
-          message = +%{#{filename} doesn't exist yet. Run `rails db:migrate` to create it, then try again.}
+          message = +%{#{filename} doesn't exist yet. Run `bin/rails db:migrate` to create it, then try again.}
           message << %{ If you do not intend to use a database, you should instead alter #{Rails.root}/config/application.rb to limit the frameworks that will be loaded.} if defined?(::Rails.root)
           Kernel.abort message
         end
@@ -449,9 +449,11 @@ module ActiveRecord
       # ==== Examples:
       #   ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(ActiveRecord::Base.connection, "tmp/schema_dump.yaml")
       def dump_schema_cache(conn, filename)
-        conn.schema_cache.clear!
-        conn.data_sources.each { |table| conn.schema_cache.add(table) }
-        open(filename, "wb") { |f| f.write(YAML.dump(conn.schema_cache)) }
+        conn.schema_cache.dump_to(filename)
+      end
+
+      def clear_schema_cache(filename)
+        FileUtils.rm_f filename, verbose: false
       end
 
       private
@@ -484,7 +486,7 @@ module ActiveRecord
 
         def each_current_configuration(environment, spec_name = nil)
           environments = [environment]
-          environments << "test" if environment == "development"
+          environments << "test" if environment == "development" && !ENV["DATABASE_URL"]
 
           environments.each do |env|
             ActiveRecord::Base.configurations.configs_for(env_name: env).each do |db_config|
@@ -508,7 +510,7 @@ module ActiveRecord
         end
 
         def local_database?(db_config)
-          host = db_config.configuration_hash[:host]
+          host = db_config.host
           host.blank? || LOCAL_HOSTS.include?(host)
         end
 

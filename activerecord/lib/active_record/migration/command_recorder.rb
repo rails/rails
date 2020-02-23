@@ -32,7 +32,8 @@ module ActiveRecord
     # * rename_index
     # * rename_table
     class CommandRecorder
-      ReversibleAndIrreversibleMethods = [:create_table, :create_join_table, :rename_table, :add_column, :remove_column,
+      ReversibleAndIrreversibleMethods = [
+        :create_table, :create_join_table, :rename_table, :add_column, :remove_column,
         :rename_index, :rename_column, :add_index, :remove_index, :add_timestamps, :remove_timestamps,
         :change_column_default, :add_reference, :remove_reference, :transaction,
         :drop_join_table, :drop_table, :execute_block, :enable_extension, :disable_extension,
@@ -73,7 +74,12 @@ module ActiveRecord
       #   recorder.record(:method_name, [:arg1, :arg2])
       def record(*command, &block)
         if @reverting
-          @commands << inverse_of(*command, &block)
+          inverse_command = inverse_of(*command, &block)
+          if inverse_command[0].is_a?(Array)
+            @commands = @commands.concat(inverse_command)
+          else
+            @commands << inverse_command
+          end
         else
           @commands << (command << block)
         end
@@ -83,6 +89,11 @@ module ActiveRecord
       #
       #   recorder.inverse_of(:rename_table, [:old, :new])
       #   # => [:rename_table, [:new, :old]]
+      #
+      # If the inverse of a command requires several commands, returns array of commands.
+      #
+      #   recorder.inverse_of(:remove_columns, [:some_table, :foo, :bar, type: :string])
+      #   # => [[:add_column, :some_table, :foo, :string], [:add_column, :some_table, :bar, :string]]
       #
       # This method will raise an +IrreversibleMigration+ exception if it cannot
       # invert the +command+.
@@ -103,11 +114,12 @@ module ActiveRecord
             record(:"#{method}", args, &block)  #   record(:create_table, args, &block)
           end                                   # end
         EOV
+        ruby2_keywords(method) if respond_to?(:ruby2_keywords, true)
       end
       alias :add_belongs_to :add_reference
       alias :remove_belongs_to :remove_reference
 
-      def change_table(table_name, options = {}) # :nodoc:
+      def change_table(table_name, **options) # :nodoc:
         yield delegate.update_table_definition(table_name, self)
       end
 
@@ -127,6 +139,7 @@ module ActiveRecord
               add_column:        :remove_column,
               add_timestamps:    :remove_timestamps,
               add_reference:     :remove_reference,
+              add_foreign_key:   :remove_foreign_key,
               enable_extension:  :disable_extension
             }.each do |cmd, inv|
               [[inv, cmd], [cmd, inv]].uniq.each do |method, inverse|
@@ -166,6 +179,18 @@ module ActiveRecord
         def invert_remove_column(args)
           raise ActiveRecord::IrreversibleMigration, "remove_column is only reversible if given a type." if args.size <= 2
           super
+        end
+
+        def invert_remove_columns(args)
+          unless args[-1].is_a?(Hash) && args[-1].has_key?(:type)
+            raise ActiveRecord::IrreversibleMigration, "remove_columns is only reversible if given a type."
+          end
+
+          column_options = args.extract_options!
+          type = column_options.delete(:type)
+          args[1..-1].map do |arg|
+            [:add_column, [args[0], arg, type, column_options]]
+          end
         end
 
         def invert_rename_index(args)
@@ -220,21 +245,6 @@ module ActiveRecord
           [:change_column_null, args]
         end
 
-        def invert_add_foreign_key(args)
-          from_table, to_table, add_options = args
-          add_options ||= {}
-
-          if add_options[:name]
-            options = { name: add_options[:name] }
-          elsif add_options[:column]
-            options = { column: add_options[:column] }
-          else
-            options = to_table
-          end
-
-          [:remove_foreign_key, [from_table, options]]
-        end
-
         def invert_remove_foreign_key(args)
           options = args.extract_options!
           from_table, to_table = args
@@ -281,6 +291,7 @@ module ActiveRecord
             super
           end
         end
+        ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
     end
   end
 end

@@ -16,13 +16,13 @@ module ApplicationTests
         list_tables = lambda { rails("runner", "p ActiveRecord::Base.connection.tables").strip }
         File.write("log/test.log", "zomg!")
 
-        assert_match "[]", list_tables.call
+        assert_equal "[]", list_tables.call
         assert_equal 5, File.size("log/test.log")
         assert_not File.exist?("tmp/restart.txt")
 
         `bin/setup 2>&1`
         assert_equal 0, File.size("log/test.log")
-        assert_match '["schema_migrations", "ar_internal_metadata", "articles"]', list_tables.call
+        assert_equal '["schema_migrations", "ar_internal_metadata", "articles"]', list_tables.call
         assert File.exist?("tmp/restart.txt")
       end
     end
@@ -44,17 +44,18 @@ module ApplicationTests
         # Ignore warnings such as `Psych.safe_load is deprecated`
         output.gsub!(/^warning:\s.*\n/, "")
 
-        assert_match(<<~OUTPUT, output)
+        assert_equal(<<~OUTPUT, output)
           == Installing dependencies ==
           The Gemfile's dependencies are satisfied
 
           == Preparing database ==
-        OUTPUT
+          Created database 'app_development'
+          Created database 'app_test'
 
-        assert_match("Created database 'app_development'", output)
-        assert_match("Created database 'app_test'", output)
-        assert_match("== Removing old logs and tempfiles ==", output)
-        assert_match("== Restarting application server ==", output)
+          == Removing old logs and tempfiles ==
+
+          == Restarting application server ==
+        OUTPUT
       end
     end
   end

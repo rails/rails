@@ -3,6 +3,7 @@
 require "ipaddr"
 require "active_support/core_ext/kernel/reporting"
 require "active_support/file_update_checker"
+require "active_support/configuration_file"
 require "rails/engine/configuration"
 require "rails/source_annotation_extractor"
 
@@ -19,7 +20,8 @@ module Rails
                     :beginning_of_week, :filter_redirect, :x, :enable_dependency_loading,
                     :read_encrypted_secrets, :log_level, :content_security_policy_report_only,
                     :content_security_policy_nonce_generator, :content_security_policy_nonce_directives,
-                    :require_master_key, :credentials, :disable_sandbox, :add_autoload_paths_to_load_path
+                    :require_master_key, :credentials, :disable_sandbox, :add_autoload_paths_to_load_path,
+                    :rake_eager_load
 
       attr_reader :encoding, :api_only, :loaded_config_version, :autoloader
 
@@ -70,6 +72,7 @@ module Rails
         @disable_sandbox                         = false
         @add_autoload_paths_to_load_path         = true
         @feature_policy                          = nil
+        @rake_eager_load                         = false
       end
 
       # Loads default configurations. See {the result of the method for each version}[https://guides.rubyonrails.org/configuring.html#results-of-config-load-defaults].
@@ -156,8 +159,24 @@ module Rails
         when "6.1"
           load_defaults "6.0"
 
+          if respond_to?(:active_job)
+            active_job.retry_jitter = 0.15
+          end
+
           if respond_to?(:active_record)
             active_record.has_many_inversing = true
+          end
+
+          if respond_to?(:active_storage)
+            active_storage.track_variants = true
+          end
+
+          if respond_to?(:active_job)
+            active_job.skip_after_callbacks_if_terminated = true
+          end
+
+          if respond_to?(:action_dispatch)
+            action_dispatch.cookies_same_site_protection = :lax
           end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
@@ -229,12 +248,9 @@ module Rails
         path = paths["config/database"].existent.first
         yaml = Pathname.new(path) if path
 
-        config = if yaml && yaml.exist?
-          require "yaml"
-          require "erb"
-          loaded_yaml = YAML.load(ERB.new(yaml.read).result) || {}
-          shared = loaded_yaml.delete("shared")
-          if shared
+        config = if yaml&.exist?
+          loaded_yaml = ActiveSupport::ConfigurationFile.parse(yaml)
+          if (shared = loaded_yaml.delete("shared"))
             loaded_yaml.each do |_k, values|
               values.reverse_merge!(shared)
             end
@@ -249,10 +265,6 @@ module Rails
         end
 
         config
-      rescue Psych::SyntaxError => e
-        raise "YAML syntax error occurred while parsing #{paths["config/database"].first}. " \
-              "Please note that YAML must be consistently indented using spaces. Tabs are not allowed. " \
-              "Error: #{e.message}"
       rescue => e
         raise e, "Cannot load database configuration:\n#{e.message}", e.backtrace
       end

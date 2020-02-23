@@ -194,6 +194,8 @@ module ActiveRecord
           if handler != writing_handler
             handler.connection_pool_names.each do |name|
               writing_pool_manager = writing_handler.send(:owner_to_pool_manager)[name]
+              return unless writing_pool_manager
+
               writing_pool_config = writing_pool_manager.get_pool_config(:default)
 
               pool_manager = handler.send(:owner_to_pool_manager)[name]

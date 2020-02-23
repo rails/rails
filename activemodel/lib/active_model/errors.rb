@@ -305,7 +305,7 @@ module ActiveModel
 
     def to_h
       ActiveSupport::Deprecation.warn(<<~EOM)
-        ActiveModel::Errors#to_h is deprecated and will be removed in Rails 6.2
+        ActiveModel::Errors#to_h is deprecated and will be removed in Rails 6.2.
         Please use `ActiveModel::Errors.to_hash` instead. The values in the hash
         returned by `ActiveModel::Errors.to_hash` is an array of error messages.
       EOM
@@ -567,6 +567,12 @@ module ActiveModel
       __setobj__ prepare_content
     end
 
+    def delete(attribute)
+      ActiveSupport::Deprecation.warn("Calling `delete` to an ActiveModel::Errors messages hash is deprecated. Please call `ActiveModel::Errors#delete` instead.")
+
+      @errors.delete(attribute)
+    end
+
     private
       def prepare_content
         content = @errors.to_hash
@@ -596,6 +602,12 @@ module ActiveModel
       @errors.add(@attribute, message)
       __setobj__ @errors.messages_for(@attribute)
       self
+    end
+
+    def clear
+      ActiveSupport::Deprecation.warn("Calling `clear` to an ActiveModel::Errors message array in order to delete all errors is deprecated. Please call `ActiveModel::Errors#delete` instead.")
+
+      @errors.delete(@attribute)
     end
   end
 

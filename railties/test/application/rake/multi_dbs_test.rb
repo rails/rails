@@ -107,8 +107,8 @@ module ApplicationTests
           ar_tables = lambda { rails("runner", "p ActiveRecord::Base.connection.tables").strip }
           animals_tables = lambda { rails("runner", "p AnimalsBase.connection.tables").strip }
 
-          assert_match '["schema_migrations", "ar_internal_metadata", "books"]', ar_tables[]
-          assert_match '["schema_migrations", "ar_internal_metadata", "dogs"]', animals_tables[]
+          assert_equal '["schema_migrations", "ar_internal_metadata", "books"]', ar_tables[]
+          assert_equal '["schema_migrations", "ar_internal_metadata", "dogs"]', animals_tables[]
         end
       end
 
@@ -311,6 +311,25 @@ module ApplicationTests
         db_migrate_and_schema_cache_dump
       end
 
+      # Note that schema cache loader depends on the connection and
+      # does not work for all connections.
+      test "schema_cache is loaded on primary db in multi-db app" do
+        require "#{app_path}/config/environment"
+        db_migrate_and_schema_cache_dump
+
+        cache_size_a = lambda { rails("runner", "p ActiveRecord::Base.connection.schema_cache.size").strip }
+        cache_tables_a = lambda { rails("runner", "p ActiveRecord::Base.connection.schema_cache.columns('books')").strip }
+        cache_size_b = lambda { rails("runner", "p AnimalsBase.connection.schema_cache.size").strip }
+        cache_tables_b = lambda { rails("runner", "p AnimalsBase.connection.schema_cache.columns('dogs')").strip }
+
+        assert_equal "12", cache_size_a[]
+        assert_includes cache_tables_a[], "title", "expected cache_tables_a to include a title entry"
+
+        # Will be 0 because it's not loaded by the railtie
+        assert_equal "0", cache_size_b[]
+        assert_includes cache_tables_b[], "name", "expected cache_tables_b to include a name entry"
+      end
+
       test "db:schema:cache:clear works on all databases" do
         require "#{app_path}/config/environment"
         db_migrate_and_schema_cache_dump_and_schema_cache_clear
@@ -380,7 +399,7 @@ module ApplicationTests
         RUBY
 
         output = rails("db:seed")
-        assert_includes output, "db/development.sqlite3"
+        assert_equal output, "db/development.sqlite3"
       ensure
         ENV["RAILS_ENV"] = @old_rails_env
         ENV["RACK_ENV"] = @old_rack_env

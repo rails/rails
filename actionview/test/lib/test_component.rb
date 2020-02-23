@@ -1,9 +1,6 @@
 # frozen_string_literal: true
 
 class TestComponent < ActionView::Base
-  include ActiveModel::Validations
-
-  validates :content, :title, presence: true
   delegate :render, to: :view_context
 
   def initialize(title:)
@@ -17,7 +14,6 @@ class TestComponent < ActionView::Base
     self.class.compile
     @view_context = view_context
     @content = view_context.capture(&block) if block_given?
-    validate!
     rendered_template
   end
 

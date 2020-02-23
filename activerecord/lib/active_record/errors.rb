@@ -228,6 +228,10 @@ module ActiveRecord
   class ReadOnlyRecord < ActiveRecordError
   end
 
+  # Raised on attempt to lazily load records that are marked as strict loading.
+  class StrictLoadingViolationError < ActiveRecordError
+  end
+
   # {ActiveRecord::Base.transaction}[rdoc-ref:Transactions::ClassMethods#transaction]
   # uses this exception to distinguish a deliberate rollback from other exceptional situations.
   # Normally, raising an exception will cause the

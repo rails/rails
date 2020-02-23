@@ -83,8 +83,8 @@ module ActiveRecord
   #
   # == Types of callbacks
   #
-  # There are four types of callbacks accepted by the callback macros: Method references (symbol), callback objects,
-  # inline methods (using a proc). Method references and callback objects
+  # There are three types of callbacks accepted by the callback macros: Method references (symbol), callback objects,
+  # and inline methods (using a proc). Method references and callback objects
   # are the recommended approaches, inline methods using a proc are sometimes appropriate (such as for
   # creating mix-ins).
   #

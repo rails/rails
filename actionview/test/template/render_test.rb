@@ -21,6 +21,8 @@ module RenderTestCases
     end.with_view_paths(paths, @assigns)
 
     controller = TestController.new
+    controller.perform_caching = true
+    @view.controller = controller
 
     @controller_view = controller.view_context_class.with_empty_template_cache.new(
       controller.lookup_context,
@@ -679,14 +681,6 @@ module RenderTestCases
       @view.render(TestComponent.new(title: "my title")) { "Hello, World!" }.strip
     )
   end
-
-  def test_render_component_with_validation_error
-    error = assert_raises(ActiveModel::ValidationError) do
-      @view.render(TestComponent.new(title: "my title")).strip
-    end
-
-    assert_match "Content can't be blank", error.message
-  end
 end
 
 class CachedViewRenderTest < ActiveSupport::TestCase
@@ -786,6 +780,30 @@ class CachedCollectionViewRenderTest < ActiveSupport::TestCase
 
     assert_not_equal "Cached",
       @view.render(partial: "test/customer", collection: [customer])
+  end
+
+  test "collection caching does not cache if controller doesn't respond to perform_caching" do
+    @view.controller = nil
+
+    customer = Customer.new("david", 1)
+    key = cache_key(customer, "test/_customer")
+
+    ActionView::PartialRenderer.collection_cache.write(key, "Cached")
+
+    assert_not_equal "Cached",
+      @view.render(partial: "test/customer", collection: [customer], cached: true)
+  end
+
+  test "collection caching does not cache if perform_caching is disabled" do
+    @view.controller.perform_caching = false
+
+    customer = Customer.new("david", 1)
+    key = cache_key(customer, "test/_customer")
+
+    ActionView::PartialRenderer.collection_cache.write(key, "Cached")
+
+    assert_not_equal "Cached",
+      @view.render(partial: "test/customer", collection: [customer], cached: true)
   end
 
   test "collection caching with partial that doesn't use fragment caching" do

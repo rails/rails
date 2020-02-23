@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "shellwords"
+require "active_support/core_ext/kernel/reporting"
 require "active_support/core_ext/string/strip"
 
 module Rails
@@ -225,10 +227,9 @@ module Rails
         log :generate, what
 
         options = args.extract_options!
-        options[:without_rails_env] = true
-        argument = args.flat_map(&:to_s).join(" ")
+        options[:abort_on_failure] = !options[:inline]
 
-        execute_command :rails, "generate #{what} #{argument}", options
+        rails_command "generate #{what} #{args.join(" ")}", options
       end
 
       # Runs the supplied rake task (invoked with 'rake ...')
@@ -248,13 +249,28 @@ module Rails
       #   rails_command("gems:install", sudo: true)
       #   rails_command("gems:install", capture: true)
       def rails_command(command, options = {})
-        execute_command :rails, command, options
+        if options[:inline]
+          log :rails, command
+          command, *args = Shellwords.split(command)
+          in_root do
+            silence_warnings do
+              ::Rails::Command.invoke(command, args, options)
+            end
+          end
+        else
+          execute_command :rails, command, options
+        end
       end
 
       # Make an entry in Rails routing file <tt>config/routes.rb</tt>
       #
       #   route "root 'welcome#index'"
-      def route(routing_code)
+      #   route "root 'admin#index'", namespace: :admin
+      def route(routing_code, namespace: nil)
+        routing_code = Array(namespace).reverse.reduce(routing_code) do |code, ns|
+          "namespace :#{ns} do\n#{indent(code, 2)}\nend"
+        end
+
         log :route, routing_code
         sentinel = /\.routes\.draw do\s*\n/m
 
@@ -287,15 +303,15 @@ module Rails
         # based on the executor parameter provided.
         def execute_command(executor, command, options = {}) # :doc:
           log executor, command
-          env = options[:env] || ENV["RAILS_ENV"] || "development"
-          rails_env = " RAILS_ENV=#{env}" unless options[:without_rails_env]
           sudo = options[:sudo] && !Gem.win_platform? ? "sudo " : ""
-          config = { verbose: false }
+          config = {
+            env: { "RAILS_ENV" => (options[:env] || ENV["RAILS_ENV"] || "development") },
+            verbose: false,
+            capture: options[:capture],
+            abort_on_failure: options[:abort_on_failure],
+          }
 
-          config[:capture] = options[:capture] if options[:capture]
-          config[:abort_on_failure] = options[:abort_on_failure] if options[:abort_on_failure]
-
-          in_root { run("#{sudo}#{extify(executor)} #{command}#{rails_env}", config) }
+          in_root { run("#{sudo}#{extify(executor)} #{command}", config) }
         end
 
         # Add an extension to the given name based on the platform.
@@ -327,12 +343,7 @@ module Rails
         # Returns optimized string with indentation
         def optimize_indentation(value, amount = 0) # :doc:
           return "#{value}\n" unless value.is_a?(String)
-
-          if value.lines.size > 1
-            value.strip_heredoc.indent(amount)
-          else
-            "#{value.strip.indent(amount)}\n"
-          end
+          "#{value.strip_heredoc.indent(amount).chomp}\n"
         end
 
         # Indent the +Gemfile+ to the depth of @indentation

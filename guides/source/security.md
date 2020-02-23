@@ -100,7 +100,7 @@ verification key used for
 [signed](https://api.rubyonrails.org/classes/ActionDispatch/Cookies/ChainedCookieJars.html#method-i-signed)
 cookies, is derived from the `secret_key_base` configuration value.
 
-TIP: Secrets must be long and random. Use `rails secret` to get new unique secrets.
+TIP: Secrets must be long and random. Use `bin/rails secret` to get new unique secrets.
 
 INFO: Learn more about [managing credentials later in this guide](security.html#custom-credentials)
 
@@ -111,7 +111,9 @@ security features which in turn may weaken the strength of the key.
 
 In test and development applications get a `secret_key_base` derived from the app name. Other environments must use a random key present in `config/credentials.yml.enc`, shown here in its decrypted state:
 
-    secret_key_base: 492f...
+```yaml
+secret_key_base: 492f...
+```
 
 WARNING: If your application's secrets may have been exposed, strongly consider changing them. Changing `secret_key_base` will expire currently active sessions.
 
@@ -149,7 +151,7 @@ rotation.
 Once users with SHA1 digested signed cookies should no longer have a chance to
 have their cookies rewritten, remove the rotation.
 
-While you can setup as many rotations as you'd like it's not common to have many
+While you can set up as many rotations as you'd like it's not common to have many
 rotations going at any one time.
 
 For more details on key rotation with encrypted and signed messages as
@@ -1169,7 +1171,7 @@ Environmental Security
 
 It is beyond the scope of this guide to inform you on how to secure your application code and environments. However, please secure your database configuration, e.g. `config/database.yml`, master key for `credentials.yml`, and other unencrypted secrets. You may want to further restrict access, using environment-specific versions of these files and any others that may contain sensitive information.
 
-### Custom credentials
+### Custom Credentials
 
 Rails stores secrets in `config/credentials.yml.enc`, which is encrypted and hence cannot be edited directly. Rails uses `config/master.key` or alternatively looks for environment variable `ENV["RAILS_MASTER_KEY"]` to encrypt the credentials file. The credentials file can be stored in version control, as long as master key is kept safe.
 
@@ -1181,8 +1183,10 @@ By default, this file contains the application's
 The secrets kept in credentials file are accessible via `Rails.application.credentials`.
 For example, with the following decrypted `config/credentials.yml.enc`:
 
-    secret_key_base: 3b7cd727ee24e8444053437c36cc66c3
-    some_api_key: SOMEKEY
+```yaml
+secret_key_base: 3b7cd727ee24e8444053437c36cc66c3
+some_api_key: SOMEKEY
+```
 
 `Rails.application.credentials.some_api_key` returns `SOMEKEY` in any environment.
 

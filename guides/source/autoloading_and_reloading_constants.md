@@ -90,11 +90,11 @@ INFO. Autoload paths are called _root directories_ in Zeitwerk documentation, bu
 
 Within an autoload path, file names must match the constants they define as documented [here](https://github.com/fxn/zeitwerk#file-structure).
 
-By default, the autoload paths of an application consist of all the subdirectories of `app` that exist when the application boots ---except for `assets`, `javascripts`, `views`,--- plus the autoload paths of engines it might depend on.
+By default, the autoload paths of an application consist of all the subdirectories of `app` that exist when the application boots ---except for `assets`, `javascript`, `views`,--- plus the autoload paths of engines it might depend on.
 
 For example, if `UsersHelper` is implemented in `app/helpers/users_helper.rb`, the module is autoloadable, you do not need (and should not write) a `require` call for it:
 
-```
+```bash
 $ bin/rails runner 'p UsersHelper'
 UsersHelper
 ```
@@ -133,7 +133,7 @@ In a Rails console there is no file watcher active regardless of the value of `c
 
 However, you can force a reload in the console executing `reload!`:
 
-```
+```bash
 $ bin/rails c
 Loading development environment (Rails 6.0.0)
 irb(main):001:0> User.object_id
@@ -233,8 +233,7 @@ module StiPreload
             select(inheritance_column).
             distinct.
             pluck(inheritance_column).
-            compact.
-            each(&:constantize)
+            compact
 
         types_in_db.each do |type|
           logger.debug("Preloading STI type #{type}")

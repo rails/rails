@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../../abstract_unit"
 require "active_support/core_ext/module/attribute_accessors_per_thread"
 
 class ModuleAttributeAccessorPerThreadTest < ActiveSupport::TestCase

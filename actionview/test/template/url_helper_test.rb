@@ -2,6 +2,24 @@
 
 require "abstract_unit"
 
+class Workshop
+  extend ActiveModel::Naming
+  include ActiveModel::Conversion
+  attr_accessor :id
+
+  def initialize(id)
+    @id = id
+  end
+
+  def persisted?
+    id.present?
+  end
+
+  def to_s
+    id.to_s
+  end
+end
+
 class UrlHelperTest < ActiveSupport::TestCase
   # In a few cases, the helper proxies to 'controller'
   # or request.

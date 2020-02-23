@@ -83,13 +83,8 @@ module ActionDispatch
       include Minitest::Assertions
       include TestProcess, RequestHelpers, Assertions
 
-      %w( status status_message headers body redirect? ).each do |method|
-        delegate method, to: :response, allow_nil: true
-      end
-
-      %w( path ).each do |method|
-        delegate method, to: :request, allow_nil: true
-      end
+      delegate :status, :status_message, :headers, :body, :redirect?, to: :response, allow_nil: true
+      delegate :path, to: :request, allow_nil: true
 
       # The hostname used in the last request.
       def host
@@ -133,7 +128,7 @@ module ActionDispatch
 
       def url_options
         @url_options ||= default_url_options.dup.tap do |url_options|
-          url_options.reverse_merge!(controller.url_options) if controller
+          url_options.reverse_merge!(controller.url_options) if controller.respond_to?(:url_options)
 
           if @app.respond_to?(:routes)
             url_options.reverse_merge!(@app.routes.default_url_options)
@@ -320,6 +315,7 @@ module ActionDispatch
       APP_SESSIONS = {}
 
       attr_reader :app
+      attr_accessor :root_session # :nodoc:
 
       def initialize(*args, &blk)
         super(*args, &blk)
@@ -358,20 +354,22 @@ module ActionDispatch
       end
 
       %w(get post patch put head delete cookies assigns follow_redirect!).each do |method|
-        define_method(method) do |*args, **options|
-          # reset the html_document variable, except for cookies/assigns calls
-          unless method == "cookies" || method == "assigns"
-            @html_document = nil
-          end
-
-          result = if options.any?
-            integration_session.__send__(method, *args, **options)
-          else
-            integration_session.__send__(method, *args)
-          end
-          copy_session_variables!
-          result
+        # reset the html_document variable, except for cookies/assigns calls
+        unless method == "cookies" || method == "assigns"
+          reset_html_document = "@html_document = nil"
         end
+
+        definition = RUBY_VERSION >= "2.7" ? "..." : "*args"
+
+        module_eval <<~RUBY, __FILE__, __LINE__ + 1
+          def #{method}(#{definition})
+            #{reset_html_document}
+
+            result = integration_session.#{method}(#{definition})
+            copy_session_variables!
+            result
+          end
+        RUBY
       end
 
       # Open a new session instance. If a block is given, the new session is
@@ -387,8 +385,17 @@ module ActionDispatch
       def open_session
         dup.tap do |session|
           session.reset!
+          session.root_session = self.root_session || self
           yield session if block_given?
         end
+      end
+
+      def assertions # :nodoc:
+        root_session ? root_session.assertions : super
+      end
+
+      def assertions=(assertions) # :nodoc:
+        root_session ? root_session.assertions = assertions : super
       end
 
       # Copy the instance variables from the current session instance into the
@@ -422,6 +429,7 @@ module ActionDispatch
           super
         end
       end
+      ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
     end
   end
 

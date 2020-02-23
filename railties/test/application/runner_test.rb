@@ -39,7 +39,7 @@ module ApplicationTests
 
     def test_should_set_argv_when_running_code
       output = rails("runner", "puts ARGV.join(',')", "--foo", "a1", "-b", "a2", "a3", "--moo")
-      assert_match "--foo,a1,-b,a2,a3,--moo", output.chomp
+      assert_equal "--foo,a1,-b,a2,a3,--moo", output.chomp
     end
 
     def test_should_run_file

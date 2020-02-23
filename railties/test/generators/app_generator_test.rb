@@ -836,6 +836,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_gem "spring"
     assert_file("config/environments/test.rb") do |contents|
       assert_match("config.cache_classes = false", contents)
+      assert_match("config.action_view.cache_template_loading = true", contents)
     end
   end
 
@@ -1022,7 +1023,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
       lib/tasks
       lib/assets
       log
-      test/fixtures
       test/fixtures/files
       test/controllers
       test/mailers
@@ -1132,7 +1132,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     def assert_listen_related_configuration
       assert_gem "listen"
-      assert_gem "spring-watcher-listen"
 
       assert_file "config/environments/development.rb" do |content|
         assert_match(/^\s*config\.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)

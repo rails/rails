@@ -59,7 +59,7 @@ module ActiveRecord
             ActiveRecord::Base.dump_schemas
           end
 
-        args = ["-s", "-x", "-O", "-f", filename]
+        args = ["--schema-only", "--no-privileges", "--no-owner", "--file", filename]
         args.concat(Array(extra_flags)) if extra_flags
         unless search_path.blank?
           args += search_path.split(",").map do |part|
@@ -80,7 +80,7 @@ module ActiveRecord
 
       def structure_load(filename, extra_flags)
         set_psql_env
-        args = ["-v", ON_ERROR_STOP_1, "-q", "-X", "-f", filename]
+        args = ["--set", ON_ERROR_STOP_1, "--quiet", "--no-psqlrc", "--file", filename]
         args.concat(Array(extra_flags)) if extra_flags
         args << db_config.database
         run_cmd("psql", args, "loading")
@@ -101,7 +101,7 @@ module ActiveRecord
         end
 
         def set_psql_env
-          ENV["PGHOST"]     = configuration_hash[:host]          if configuration_hash[:host]
+          ENV["PGHOST"]     = db_config.host                     if db_config.host
           ENV["PGPORT"]     = configuration_hash[:port].to_s     if configuration_hash[:port]
           ENV["PGPASSWORD"] = configuration_hash[:password].to_s if configuration_hash[:password]
           ENV["PGUSER"]     = configuration_hash[:username].to_s if configuration_hash[:username]

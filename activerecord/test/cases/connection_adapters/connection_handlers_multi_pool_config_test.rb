@@ -11,7 +11,7 @@ module ActiveRecord
       fixtures :people
 
       def setup
-        @writing_handler = ActiveRecord::Base.connection_handlers[:writing]
+        @writing_handler = ConnectionHandler.new
       end
 
       def teardown
@@ -62,7 +62,7 @@ module ActiveRecord
           @writing_handler.establish_connection(:primary, :pool_config_two)
 
           # remove default
-          @writing_handler.remove_connection("primary")
+          @writing_handler.remove_connection_pool("primary")
 
           assert_nil @writing_handler.retrieve_connection_pool("primary")
           assert_not_nil @writing_handler.retrieve_connection_pool("primary", :pool_config_two)

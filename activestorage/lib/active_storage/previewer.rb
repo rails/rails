@@ -18,8 +18,9 @@ module ActiveStorage
     end
 
     # Override this method in a concrete subclass. Have it yield an attachable preview image (i.e.
-    # anything accepted by ActiveStorage::Attached::One#attach).
-    def preview
+    # anything accepted by ActiveStorage::Attached::One#attach). Pass the additional options to
+    # the underlying blob that is created.
+    def preview(**options)
       raise NotImplementedError
     end
 

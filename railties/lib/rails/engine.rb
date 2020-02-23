@@ -471,7 +471,8 @@ module Rails
     end
 
     def eager_load!
-      # Already done by Zeitwerk::Loader.eager_load_all in the finisher.
+      # Already done by Zeitwerk::Loader.eager_load_all. We need this guard to
+      # easily provide a compatible API for both zeitwerk and classic modes.
       return if Rails.autoloaders.zeitwerk_enabled?
 
       config.eager_load_paths.each do |load_path|
@@ -593,10 +594,13 @@ module Rails
 
     initializer :add_routing_paths do |app|
       routing_paths = paths["config/routes.rb"].existent
+      external_paths = self.paths["config/routes"].paths
+      routes.draw_paths.concat(external_paths)
 
       if routes? || routing_paths.any?
         app.routes_reloader.paths.unshift(*routing_paths)
         app.routes_reloader.route_sets << routes
+        app.routes_reloader.external_routes.unshift(*external_paths)
       end
     end
 
