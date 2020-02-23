@@ -454,13 +454,21 @@ Client.where("orders_count = ?", params[:orders])
 
 Active Record will take the first argument as the conditions string and any additional arguments will replace the question marks `(?)` in it.
 
-If you want to specify multiple conditions:
+If you want to specify multiple conditions, you can pass multiple arguments:
 
 ```ruby
 Client.where("orders_count = ? AND locked = ?", params[:orders], false)
 ```
 
 In this example, the first question mark will be replaced with the value in `params[:orders]` and the second will be replaced with the SQL representation of `false`, which depends on the adapter.
+
+When you want to use a wildcard character (for example `%`), you can add the wildcard to the argument:
+
+```ruby
+Client.where("first_name LIKE ?", "%#{params[:first_name]}%")
+```
+
+#### Argument Safety
 
 This code is highly preferable:
 
