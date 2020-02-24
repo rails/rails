@@ -1,3 +1,23 @@
+*   Deprecate `spec_name` in favor of `name` on database configurations
+
+    The accessors for `spec_name` on `configs_for` and `DatabaseConfig` are deprecated. Please use `name` instead.
+
+    Deprecated behavior:
+
+    ```ruby
+    db_config = ActiveRecord::Base.configs_for(env_name: "development", spec_name: "primary")
+    db_config.spec_name
+    ```
+
+    New behavior:
+
+    ```ruby
+    db_config = ActiveRecord::Base.configs_for(env_name: "development", name: "primary")
+    db_config.name
+    ```
+
+    *Eileen M. Uchitelle*
+
 *   Add additional database-specific rake tasks for multi-database users
 
     Previously, `rails db:create`, `rails db:drop`, and `rails db:migrate` were the only rails tasks that could operate on a single

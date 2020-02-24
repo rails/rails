@@ -15,7 +15,7 @@ module ActiveRecord
         @rw_handler = @handlers[:writing]
         @ro_handler = @handlers[:reading]
         @owner_name = "ActiveRecord::Base"
-        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
         @rw_pool = @handlers[:writing].establish_connection(db_config)
         @ro_pool = @handlers[:reading].establish_connection(db_config)
       end
@@ -100,11 +100,11 @@ module ActiveRecord
 
           assert_not_nil pool = ActiveRecord::Base.connection_handlers[:writing].retrieve_connection_pool("ActiveRecord::Base")
           assert_equal "db/primary.sqlite3", pool.db_config.database
-          assert_equal "default", pool.db_config.spec_name
+          assert_equal "default", pool.db_config.name
 
           assert_not_nil pool = ActiveRecord::Base.connection_handlers[:reading].retrieve_connection_pool("ActiveRecord::Base")
           assert_equal "db/readonly.sqlite3", pool.db_config.database
-          assert_equal "readonly", pool.db_config.spec_name
+          assert_equal "readonly", pool.db_config.name
         ensure
           ActiveRecord::Base.configurations = @prev_configs
           ActiveRecord::Base.establish_connection(:arunit)

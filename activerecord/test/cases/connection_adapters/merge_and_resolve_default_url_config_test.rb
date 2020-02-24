@@ -19,7 +19,7 @@ module ActiveRecord
 
       def resolve_config(config, env_name = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call)
         configs = ActiveRecord::DatabaseConfigurations.new(config)
-        configs.configs_for(env_name: env_name, spec_name: "primary")&.configuration_hash
+        configs.configs_for(env_name: env_name, name: "primary")&.configuration_hash
       end
 
       def resolve_db_config(spec, config)
@@ -370,7 +370,7 @@ module ActiveRecord
         }
 
         configs = ActiveRecord::DatabaseConfigurations.new(config)
-        actual = configs.configs_for(env_name: "default_env", spec_name: "primary").configuration_hash
+        actual = configs.configs_for(env_name: "default_env", name: "primary").configuration_hash
         expected = {
           adapter:  "postgresql",
           database: "foo",
@@ -381,7 +381,7 @@ module ActiveRecord
         assert_equal expected, actual
 
         configs = ActiveRecord::DatabaseConfigurations.new(config)
-        actual = configs.configs_for(env_name: "default_env", spec_name: "animals").configuration_hash
+        actual = configs.configs_for(env_name: "default_env", name: "animals").configuration_hash
         expected = { pool: 5 }
 
         assert_equal expected, actual
@@ -400,11 +400,11 @@ module ActiveRecord
         }
 
         configs = ActiveRecord::DatabaseConfigurations.new(config)
-        actual = configs.configs_for(env_name: "default_env", spec_name: "primary").configuration_hash
+        actual = configs.configs_for(env_name: "default_env", name: "primary").configuration_hash
         assert_equal "primary", actual[:database]
 
         configs = ActiveRecord::DatabaseConfigurations.new(config)
-        actual = configs.configs_for(env_name: "default_env", spec_name: "animals").configuration_hash
+        actual = configs.configs_for(env_name: "default_env", name: "animals").configuration_hash
         assert_equal "animals", actual[:database]
       ensure
         ENV.delete("PRIMARY_DATABASE_URL")
