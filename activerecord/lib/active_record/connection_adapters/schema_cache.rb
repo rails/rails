@@ -33,11 +33,13 @@ module ActiveRecord
       end
 
       def encode_with(coder)
+        reset_version!
+
         coder["columns"]          = @columns
         coder["primary_keys"]     = @primary_keys
         coder["data_sources"]     = @data_sources
         coder["indexes"]          = @indexes
-        coder["version"]          = connection.migration_context.current_version
+        coder["version"]          = @version
         coder["database_version"] = database_version
       end
 
@@ -149,8 +151,8 @@ module ActiveRecord
       end
 
       def marshal_dump
-        # if we get current version during initialization, it happens stack over flow.
-        @version = connection.migration_context.current_version
+        reset_version!
+
         [@version, @columns, {}, @primary_keys, @data_sources, @indexes, database_version]
       end
 
@@ -162,6 +164,10 @@ module ActiveRecord
       end
 
       private
+        def reset_version!
+          @version = connection.migration_context.current_version
+        end
+
         def derive_columns_hash_and_deduplicate_values
           @columns      = deep_deduplicate(@columns)
           @columns_hash = @columns.transform_values { |columns| columns.index_by(&:name) }
