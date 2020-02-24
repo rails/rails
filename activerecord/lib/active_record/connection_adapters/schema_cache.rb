@@ -9,7 +9,7 @@ module ActiveRecord
         return unless File.file?(filename)
 
         file = File.read(filename)
-        filename.end_with?(".dump") ? Marshal.load(file) : YAML.load(file)
+        filename.include?(".dump") ? Marshal.load(file) : YAML.load(file)
       end
 
       attr_reader :version
@@ -144,7 +144,7 @@ module ActiveRecord
         clear!
         connection.data_sources.each { |table| add(table) }
         File.atomic_write(filename) { |f|
-          if filename.end_with?(".dump")
+          if filename.include?(".dump")
             f.write(Marshal.dump(self))
           else
             f.write(YAML.dump(self))
