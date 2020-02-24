@@ -1,3 +1,43 @@
+*   Add additional database-specific rake tasks for multi-database users
+
+    Previously, `rails db:create`, `rails db:drop`, and `rails db:migrate` were the only rails tasks that could operate on a single
+    database. For example:
+
+    ```
+    rails db:create
+    rails db:create:primary
+    rails db:create:animals
+    rails db:drop
+    rails db:drop:primary
+    rails db:drop:animals
+    rails db:migrate
+    rails db:migrate:primary
+    rails db:migrate:animals
+    ```
+
+    With these changes, `rails db:schema:dump`, `rails db:schema:load`, `rails db:structure:dump`, `rails db:structure:load` and
+    `rails db:test:prepare` can additionally operate on a single database. For example:
+
+    ```
+    rails db:schema:dump
+    rails db:schema:dump:primary
+    rails db:schema:dump:animals
+    rails db:schema:load
+    rails db:schema:load:primary
+    rails db:schema:load:animals
+    rails db:structure:dump
+    rails db:structure:dump:primary
+    rails db:structure:dump:animals
+    rails db:structure:load
+    rails db:structure:load:primary
+    rails db:structure:load:animals
+    rails db:test:prepare
+    rails db:test:prepare:primary
+    rails db:test:prepare:animals
+    ```
+
+    *Kyle Thompson*
+
 *   Add support for `strict_loading` mode on association declarations.
 
     Raise an error if attempting to load a record from an association that has been marked as `strict_loading` unless it was explicitly eager loaded.
