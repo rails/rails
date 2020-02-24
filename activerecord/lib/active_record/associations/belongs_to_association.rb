@@ -1,9 +1,13 @@
 # frozen_string_literal: true
 
+require "active_record/associations/set_through_association_source_target"
+
 module ActiveRecord
   module Associations
     # = Active Record Belongs To Association
     class BelongsToAssociation < SingularAssociation #:nodoc:
+      include SetThroughAssociationSourceTarget
+
       def handle_dependency
         return unless load_target
 
@@ -72,14 +76,7 @@ module ActiveRecord
 
           self.target = record
 
-          through_reflection = self.reflection.active_record.reflections.values.find { |r| r.through_reflection && r.through_reflection.name == self.reflection.name }
-          if through_reflection && !through_reflection.collection?
-            through_target = record.send(through_reflection.name)
-            if through_target
-              source_target_name = through_reflection.source_reflection.name
-              owner.send("#{source_target_name}=", through_target)
-            end
-          end
+          set_through_association_source_target(record)
         end
 
         def update_counters(by)
