@@ -103,6 +103,21 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal club.id, member.current_membership.club_id
   end
 
+  def test_assigning_a_belongs_to_through_record_also_assigns_the_source_record
+    # setting ids is needed here because of `self.primary_key=` in models
+    minivan = Minivan.new(name: "A minivan", minivan_id: 999)
+    dashboard = Dashboard.new(name: "A dashboard", dashboard_id: 1000)
+    speedometer = Speedometer.new(dashboard: dashboard, speedometer_id: 1001)
+
+    minivan.speedometer = speedometer
+
+    assert_equal dashboard, minivan.dashboard
+
+    minivan.save!
+    minivan.reload
+
+    assert_equal dashboard, minivan.dashboard
+  end
 
   def test_assigning_a_has_one_through_record_also_assigns_the_source_record
     club = Club.new(name: "Da Club")
