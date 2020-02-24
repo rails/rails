@@ -21,8 +21,8 @@ module ActiveRecord
   # * (6) <tt>after_save</tt>
   # * (7) <tt>after_commit</tt>
   #
-  # Check out ActiveRecord::Transactions for more details about <tt>after_commit</tt> and
   # Also, an <tt>after_rollback</tt> callback can be configured to be triggered whenever a rollback is issued.
+  # Check out ActiveRecord::Transactions for more details about <tt>after_commit</tt> and
   # <tt>after_rollback</tt>.
   #
   # Additionally, an <tt>after_touch</tt> callback is triggered whenever an
@@ -83,7 +83,7 @@ module ActiveRecord
   #
   # == Types of callbacks
   #
-  # There are four types of callbacks accepted by the callback macros: method references (symbol), callback objects,
+  # There are three types of callbacks accepted by the callback macros: method references (symbol), callback objects,
   # inline methods (using a proc). Method references and callback objects are the recommended approaches,
   # inline methods using a proc are sometimes appropriate (such as for creating mix-ins).
   #
