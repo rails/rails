@@ -8,9 +8,21 @@ module ActiveRecord
       def self.load_from(filename)
         return unless File.file?(filename)
 
-        file = File.read(filename)
-        filename.end_with?(".dump") ? Marshal.load(file) : YAML.load(file)
+        read(filename) do |file|
+          filename.include?(".dump") ? Marshal.load(file) : YAML.load(file)
+        end
       end
+
+      def self.read(filename, &block)
+        if File.extname(filename) == ".gz"
+          Zlib::GzipReader.open(filename) { |gz|
+            yield gz.read
+          }
+        else
+          yield File.read(filename)
+        end
+      end
+      private_class_method :read
 
       attr_reader :version
       attr_accessor :connection
@@ -143,8 +155,8 @@ module ActiveRecord
       def dump_to(filename)
         clear!
         connection.data_sources.each { |table| add(table) }
-        File.atomic_write(filename) { |f|
-          if filename.end_with?(".dump")
+        open(filename) { |f|
+          if filename.include?(".dump")
             f.write(Marshal.dump(self))
           else
             f.write(YAML.dump(self))
@@ -193,6 +205,19 @@ module ActiveRecord
 
         def prepare_data_sources
           connection.data_sources.each { |source| @data_sources[source] = true }
+        end
+
+        def open(filename)
+          File.atomic_write(filename) do |file|
+            if File.extname(filename) == ".gz"
+              zipper = Zlib::GzipWriter.new file
+              yield zipper
+              zipper.flush
+              zipper.close
+            else
+              yield file
+            end
+          end
         end
     end
   end
