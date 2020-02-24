@@ -43,6 +43,49 @@ module ActiveRecord
         tempfile.unlink
       end
 
+      def test_yaml_dump_and_load_with_gzip
+        # Create an empty cache.
+        cache = SchemaCache.new @connection
+
+        tempfile = Tempfile.new(["schema_cache-", ".yml.gz"])
+        # Dump it. It should get populated before dumping.
+        cache.dump_to(tempfile.path)
+
+        # Unzip and load manually.
+        cache = Zlib::GzipReader.open(tempfile.path) { |gz| YAML.load(gz.read) }
+
+        # Give it a connection. Usually the connection
+        # would get set on the cache when it's retrieved
+        # from the pool.
+        cache.connection = @connection
+
+        assert_no_queries do
+          assert_equal 12, cache.columns("posts").size
+          assert_equal 12, cache.columns_hash("posts").size
+          assert cache.data_sources("posts")
+          assert_equal "id", cache.primary_keys("posts")
+          assert_equal 1, cache.indexes("posts").size
+          assert_equal @database_version.to_s, cache.database_version.to_s
+        end
+
+        # Load the cache the usual way.
+        cache = SchemaCache.load_from(tempfile.path)
+
+        # Give it a connection.
+        cache.connection = @connection
+
+        assert_no_queries do
+          assert_equal 12, cache.columns("posts").size
+          assert_equal 12, cache.columns_hash("posts").size
+          assert cache.data_sources("posts")
+          assert_equal "id", cache.primary_keys("posts")
+          assert_equal 1, cache.indexes("posts").size
+          assert_equal @database_version.to_s, cache.database_version.to_s
+        end
+      ensure
+        tempfile.unlink
+      end
+
       def test_yaml_loads_5_1_dump
         cache = SchemaCache.load_from(schema_dump_path)
         cache.connection = @connection
@@ -145,6 +188,43 @@ module ActiveRecord
         tempfile = Tempfile.new(["schema_cache-", ".dump"])
         # Dump it. It should get populated before dumping.
         cache.dump_to(tempfile.path)
+
+        # Load a new cache.
+        cache = SchemaCache.load_from(tempfile.path)
+        cache.connection = @connection
+
+        assert_no_queries do
+          assert_equal 12, cache.columns("posts").size
+          assert_equal 12, cache.columns_hash("posts").size
+          assert cache.data_sources("posts")
+          assert_equal "id", cache.primary_keys("posts")
+          assert_equal 1, cache.indexes("posts").size
+          assert_equal @database_version.to_s, cache.database_version.to_s
+        end
+      ensure
+        tempfile.unlink
+      end
+
+      def test_marshal_dump_and_load_with_gzip
+        # Create an empty cache.
+        cache = SchemaCache.new @connection
+
+        tempfile = Tempfile.new(["schema_cache-", ".dump.gz"])
+        # Dump it. It should get populated before dumping.
+        cache.dump_to(tempfile.path)
+
+        # Load a new cache manually.
+        cache = Zlib::GzipReader.open(tempfile.path) { |gz| Marshal.load(gz.read) }
+        cache.connection = @connection
+
+        assert_no_queries do
+          assert_equal 12, cache.columns("posts").size
+          assert_equal 12, cache.columns_hash("posts").size
+          assert cache.data_sources("posts")
+          assert_equal "id", cache.primary_keys("posts")
+          assert_equal 1, cache.indexes("posts").size
+          assert_equal @database_version.to_s, cache.database_version.to_s
+        end
 
         # Load a new cache.
         cache = SchemaCache.load_from(tempfile.path)
