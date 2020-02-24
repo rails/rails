@@ -132,6 +132,8 @@ module ActiveRecord
 
       class_attribute :default_connection_handler, instance_writer: false
 
+      class_attribute :default_pool_key, instance_writer: false
+
       self.filter_attributes = []
 
       def self.connection_handler
@@ -142,7 +144,16 @@ module ActiveRecord
         Thread.current.thread_variable_set(:ar_connection_handler, handler)
       end
 
+      def self.current_pool_key
+        Thread.current.thread_variable_get(:ar_pool_key) || default_pool_key
+      end
+
+      def self.current_pool_key=(pool_key)
+        Thread.current.thread_variable_set(:ar_pool_key, pool_key)
+      end
+
       self.default_connection_handler = ConnectionAdapters::ConnectionHandler.new
+      self.default_pool_key = :default
     end
 
     module ClassMethods

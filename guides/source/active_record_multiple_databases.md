@@ -9,6 +9,7 @@ After reading this guide you will know:
 
 * How to set up your application for multiple databases.
 * How automatic connection switching works.
+* How to use horizontal sharding for multiple databases.
 * What features are supported and what's still a work in progress.
 
 --------------------------------------------------------------------------------
@@ -29,7 +30,7 @@ databases
 
 The following features are not (yet) supported:
 
-* Sharding
+* Automatic swapping for horizontal sharding
 * Joining across clusters
 * Load balancing replicas
 * Dumping schema caches for multiple databases
@@ -259,15 +260,75 @@ like `connected_to(role: :nonexistent)` you will get an error that says
 `ActiveRecord::ConnectionNotEstablished (No connection pool with 'AnimalsBase' found
 for the 'nonexistent' role.)`
 
+## Horizontal sharding
+
+Horizontal sharding is when you split up your database to reduce the number of rows on each
+database server, but maintain the same schema across "shards". This is commonly called "multi-tenant"
+sharding.
+
+The API for supporting horizontal sharding in Rails is similar to the multiple database / vertical
+sharding API that's existed since Rails 6.0.
+
+Shards are declared in the three-tier config like this:
+
+```yaml
+production:
+  primary:
+    database: my_primary_database
+    adapter: mysql
+  primary_replica:
+    database: my_primary_database
+    adapter: mysql
+    replica: true
+  primary_shard_one:
+    database: my_primary_shard_one
+    adapter: mysql
+  primary_shard_one_replica:
+    database: my_primary_shard_one
+    adapter: mysql
+    replica: true
+```
+
+Models are then connected with the `connects_to` API via the `shards` key:
+
+```ruby
+class ApplicationRecord < ActiveRecord::Base
+  self.abstract_class = true
+
+  connects_to shards: {
+    default: { writing: :primary, reading: :primary_replica },
+    shard_one: { writing: :primary_shard_one, reading: :primary_shard_one_replica }
+  }
+end
+
+Then models can swap connections manually via the `connected_to` API:
+
+```ruby
+ActiveRecord::Base.connected_to(shard: :default) do
+  @id = Record.create! # creates a record in shard one
+end
+
+ActiveRecord::Base.connected_to(shard: :shard_one) do
+  Record.find(@id) # can't find record, doesn't exist
+end
+```
+
+The horizontal sharding API also supports read replicas. You can swap the
+role and the shard with the `connected_to` API.
+
+```ruby
+ActiveRecord::Base.connected_to(role: :reading, shard: :shard_one) do
+  Record.first # lookup record from read replica of shard one
+end
+```
+
 ## Caveats
 
-### Sharding
+### Automatic swapping for horizontal sharding
 
-As noted at the top, Rails doesn't (yet) support sharding. We had to do a lot of work
-to support multiple databases for Rails 6.0. The lack of support for sharding isn't
-an oversight, but does require additional work that didn't make it in for 6.0. For now
-if you need sharding it may be advisable to continue using one of the many gems
-that supports this.
+While Rails now supports an API for connecting to and swapping connections of shards, it does
+not yet support an automatic swapping strategy. Any shard swapping will need to be done manually
+in your app via a middleware or `around_action`.
 
 ### Load Balancing Replicas
 
