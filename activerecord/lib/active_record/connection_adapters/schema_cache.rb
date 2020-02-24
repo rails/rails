@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/file/atomic"
+
 module ActiveRecord
   module ConnectionAdapters
     class SchemaCache
@@ -141,7 +143,7 @@ module ActiveRecord
       def dump_to(filename)
         clear!
         connection.data_sources.each { |table| add(table) }
-        open(filename, "wb") { |f|
+        File.atomic_write(filename) { |f|
           if filename.end_with?(".dump")
             f.write(Marshal.dump(self))
           else
