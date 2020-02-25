@@ -334,11 +334,11 @@ module ActionView
           end
 
           collection_body = if template
-            cache_collection_render(payload, view, template) do
-              collection_with_template(view, template)
+            cache_collection_render(payload, view, template, @collection) do |collection|
+              collection_with_template(view, template, collection)
             end
           else
-            collection_with_template(view, nil)
+            collection_with_template(view, nil, @collection)
           end
           build_rendered_collection(collection_body, spacer)
         end
@@ -436,7 +436,7 @@ module ActionView
         @lookup_context.find_template(path, prefixes, true, locals, @details)
       end
 
-      def collection_with_template(view, template)
+      def collection_with_template(view, template, collection)
         locals, collection_data = @locals, @collection_data
         cache = {}
 
@@ -444,9 +444,9 @@ module ActionView
           layout = find_template(layout, template_keys)
         end
 
-        partial_iteration = PartialIteration.new(@collection.size)
+        partial_iteration = PartialIteration.new(collection.size)
 
-        @collection.map do |object|
+        collection.map do |object|
           index = partial_iteration.index
           path, as, counter, iteration = collection_data[index]
 
