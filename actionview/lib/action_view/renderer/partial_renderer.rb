@@ -353,7 +353,6 @@ module ActionView
             layout = find_template(layout.to_s, template_keys)
           end
 
-          object = locals[as] if object.nil? # Respect object when object is false
           locals[as] = object if @has_object
 
           content = template.render(view, locals) do |*name|
