@@ -291,27 +291,28 @@ module ActionView
       @context_prefix = @lookup_context.prefixes.first
     end
 
+    def template_keys
+      if @has_object || @collection
+        @locals.keys + retrieve_variable(@path, @as)
+      else
+        @locals.keys
+      end
+    end
+
     def render(context, options, block)
-      as = as_variable(options)
+      as = @as = as_variable(options)
       setup(context, options, as, block)
 
       if @path
         @variable           = nil
         @variable_counter   = nil
         @variable_iteration = nil
-        @template_keys      = @locals.keys
 
         if @has_object || @collection
           @variable, @variable_counter, @variable_iteration = retrieve_variable(@path, as)
-          @template_keys << @variable
-
-          if @collection
-            @template_keys << @variable_counter
-            @template_keys << @variable_iteration
-          end
         end
 
-        template = find_template(@path, @template_keys)
+        template = find_template(@path, template_keys)
         @variable ||= template.variable
       else
         if options[:cached]
@@ -357,7 +358,7 @@ module ActionView
           object, as = @object, @variable
 
           if !block && (layout = @options[:layout])
-            layout = find_template(layout.to_s, @template_keys)
+            layout = find_template(layout.to_s, template_keys)
           end
 
           object = locals[as] if object.nil? # Respect object when object is false
@@ -443,7 +444,7 @@ module ActionView
         as, counter, iteration = @variable, @variable_counter, @variable_iteration
 
         if layout = @options[:layout]
-          layout = find_template(layout, @template_keys)
+          layout = find_template(layout, template_keys)
         end
 
         partial_iteration = PartialIteration.new(@collection.size)
