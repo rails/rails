@@ -21,14 +21,13 @@ module ActiveRecord
 
   module ConnectionAdapters
     module AbstractPool # :nodoc:
-      def get_schema_cache(connection)
-        self.schema_cache ||= SchemaCache.new(connection)
-        schema_cache.connection = connection
-        schema_cache
+      def get_schema_cache
+        self.schema_cache ||= SchemaCache.new(nil)
       end
 
       def set_schema_cache(cache)
-        self.schema_cache = cache
+        # The pool's cache should not have a connection attached
+        self.schema_cache = SchemaCache.new(nil, data: cache.data)
       end
     end
 

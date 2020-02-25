@@ -5,6 +5,27 @@ require "active_support/core_ext/file/atomic"
 module ActiveRecord
   module ConnectionAdapters
     class SchemaCache
+      class SchemaCacheData
+        attr_accessor :columns, :columns_hash, :primary_keys, :data_sources, :indexes, :version, :database_version
+
+        def initialize
+          @columns      = {}
+          @columns_hash = {}
+          @primary_keys = {}
+          @data_sources = {}
+          @indexes      = {}
+        end
+
+        def initialize_dup(other)
+          super
+          @columns      = @columns.dup
+          @columns_hash = @columns_hash.dup
+          @primary_keys = @primary_keys.dup
+          @data_sources = @data_sources.dup
+          @indexes      = @indexes.dup
+        end
+      end
+
       def self.load_from(filename)
         return unless File.file?(filename)
 
@@ -24,64 +45,63 @@ module ActiveRecord
       end
       private_class_method :read
 
-      attr_reader :version
       attr_accessor :connection
+      attr_writer :data
 
-      def initialize(conn)
+      def initialize(conn, data: nil)
         @connection = conn
+        @data = data
+      end
 
-        @columns      = {}
-        @columns_hash = {}
-        @primary_keys = {}
-        @data_sources = {}
-        @indexes      = {}
+      def data
+        @data ||= SchemaCacheData.new
       end
 
       def initialize_dup(other)
         super
-        @columns      = @columns.dup
-        @columns_hash = @columns_hash.dup
-        @primary_keys = @primary_keys.dup
-        @data_sources = @data_sources.dup
-        @indexes      = @indexes.dup
+        @data = @data.dup
       end
 
       def encode_with(coder)
         reset_version!
 
-        coder["columns"]          = @columns
-        coder["primary_keys"]     = @primary_keys
-        coder["data_sources"]     = @data_sources
-        coder["indexes"]          = @indexes
-        coder["version"]          = @version
+        coder["columns"]          = data.columns
+        coder["primary_keys"]     = data.primary_keys
+        coder["data_sources"]     = data.data_sources
+        coder["indexes"]          = data.indexes
+        coder["version"]          = data.version
         coder["database_version"] = database_version
       end
 
       def init_with(coder)
-        @columns          = coder["columns"]
-        @primary_keys     = coder["primary_keys"]
-        @data_sources     = coder["data_sources"]
-        @indexes          = coder["indexes"] || {}
-        @version          = coder["version"]
-        @database_version = coder["database_version"]
+        data.columns          = coder["columns"]
+        data.primary_keys     = coder["primary_keys"]
+        data.data_sources     = coder["data_sources"]
+        data.indexes          = coder["indexes"] || {}
+        data.version          = coder["version"]
+        data.database_version = coder["database_version"]
 
         derive_columns_hash_and_deduplicate_values
       end
 
+      def version
+        data.version
+      end
+
       def primary_keys(table_name)
-        @primary_keys.fetch(table_name) do
+        data.primary_keys.fetch(table_name) do
           if data_source_exists?(table_name)
-            @primary_keys[deep_deduplicate(table_name)] = deep_deduplicate(connection.primary_key(table_name))
+            data.primary_keys[deep_deduplicate(table_name)] = deep_deduplicate(connection.primary_key(table_name))
           end
         end
       end
 
       # A cached lookup for table existence.
       def data_source_exists?(name)
-        prepare_data_sources if @data_sources.empty?
-        return @data_sources[name] if @data_sources.key? name
+        prepare_data_sources if data.data_sources.empty?
+        return data.data_sources[name] if data.data_sources.key? name
 
-        @data_sources[deep_deduplicate(name)] = connection.data_source_exists?(name)
+        data.data_sources[deep_deduplicate(name)] = connection.data_source_exists?(name)
       end
 
       # Add internal cache for table with +table_name+.
@@ -95,61 +115,61 @@ module ActiveRecord
       end
 
       def data_sources(name)
-        @data_sources[name]
+        data.data_sources[name]
       end
 
       # Get the columns for a table
       def columns(table_name)
-        @columns.fetch(table_name) do
-          @columns[deep_deduplicate(table_name)] = deep_deduplicate(connection.columns(table_name))
+        data.columns.fetch(table_name) do
+          data.columns[deep_deduplicate(table_name)] = deep_deduplicate(connection.columns(table_name))
         end
       end
 
       # Get the columns for a table as a hash, key is the column name
       # value is the column object.
       def columns_hash(table_name)
-        @columns_hash.fetch(table_name) do
-          @columns_hash[deep_deduplicate(table_name)] = columns(table_name).index_by(&:name)
+        data.columns_hash.fetch(table_name) do
+          data.columns_hash[deep_deduplicate(table_name)] = columns(table_name).index_by(&:name)
         end
       end
 
       # Checks whether the columns hash is already cached for a table.
       def columns_hash?(table_name)
-        @columns_hash.key?(table_name)
+        data.columns_hash.key?(table_name)
       end
 
       def indexes(table_name)
-        @indexes.fetch(table_name) do
-          @indexes[deep_deduplicate(table_name)] = deep_deduplicate(connection.indexes(table_name))
+        data.indexes.fetch(table_name) do
+          data.indexes[deep_deduplicate(table_name)] = deep_deduplicate(connection.indexes(table_name))
         end
       end
 
       def database_version # :nodoc:
-        @database_version ||= connection.get_database_version
+        data.database_version ||= connection.get_database_version
       end
 
       # Clears out internal caches
       def clear!
-        @columns.clear
-        @columns_hash.clear
-        @primary_keys.clear
-        @data_sources.clear
-        @indexes.clear
-        @version = nil
-        @database_version = nil
+        data.columns.clear
+        data.columns_hash.clear
+        data.primary_keys.clear
+        data.data_sources.clear
+        data.indexes.clear
+        data.version = nil
+        data.database_version = nil
       end
 
       def size
-        [@columns, @columns_hash, @primary_keys, @data_sources].sum(&:size)
+        [data.columns, data.columns_hash, data.primary_keys, data.data_sources].sum(&:size)
       end
 
       # Clear out internal caches for the data source +name+.
       def clear_data_source_cache!(name)
-        @columns.delete name
-        @columns_hash.delete name
-        @primary_keys.delete name
-        @data_sources.delete name
-        @indexes.delete name
+        data.columns.delete name
+        data.columns_hash.delete name
+        data.primary_keys.delete name
+        data.data_sources.delete name
+        data.indexes.delete name
       end
 
       def dump_to(filename)
@@ -167,27 +187,27 @@ module ActiveRecord
       def marshal_dump
         reset_version!
 
-        [@version, @columns, {}, @primary_keys, @data_sources, @indexes, database_version]
+        [data.version, data.columns, {}, data.primary_keys, data.data_sources, data.indexes, database_version]
       end
 
       def marshal_load(array)
-        @version, @columns, _columns_hash, @primary_keys, @data_sources, @indexes, @database_version = array
-        @indexes ||= {}
+        data.version, data.columns, _columns_hash, data.primary_keys, data.data_sources, data.indexes, data.database_version = array
+        data.indexes ||= {}
 
         derive_columns_hash_and_deduplicate_values
       end
 
       private
         def reset_version!
-          @version = connection.migration_context.current_version
+          data.version = connection.migration_context.current_version
         end
 
         def derive_columns_hash_and_deduplicate_values
-          @columns      = deep_deduplicate(@columns)
-          @columns_hash = @columns.transform_values { |columns| columns.index_by(&:name) }
-          @primary_keys = deep_deduplicate(@primary_keys)
-          @data_sources = deep_deduplicate(@data_sources)
-          @indexes      = deep_deduplicate(@indexes)
+          data.columns      = deep_deduplicate(data.columns)
+          data.columns_hash = data.columns.transform_values { |columns| columns.index_by(&:name) }
+          data.primary_keys = deep_deduplicate(data.primary_keys)
+          data.data_sources = deep_deduplicate(data.data_sources)
+          data.indexes      = deep_deduplicate(data.indexes)
         end
 
         def deep_deduplicate(value)
@@ -204,7 +224,7 @@ module ActiveRecord
         end
 
         def prepare_data_sources
-          connection.data_sources.each { |source| @data_sources[source] = true }
+          connection.data_sources.each { |source| data.data_sources[source] = true }
         end
 
         def open(filename)
