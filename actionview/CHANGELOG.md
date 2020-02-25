@@ -1,3 +1,8 @@
+*   `ActionView::Helpers::TranslationHelper#translate` returns nil when
+    passed `default: nil` without a translation matching `I18n#translate`.
+
+    *Stefan Wrobel*
+
 *   `OptimizedFileSystemResolver` prefers template details in order of locale,
     formats, variants, handlers.
 

@@ -13,7 +13,7 @@ class TestDatabasesTest < ActiveRecord::TestCase
         }
       }
 
-      base_db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+      base_db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
       expected_database = "#{base_db_config.database}-2"
 
       ActiveRecord::Tasks::DatabaseTasks.stub(:reconstruct_from_schema, ->(db_config, _, _) {
@@ -37,7 +37,7 @@ class TestDatabasesTest < ActiveRecord::TestCase
       }
 
       idx = 42
-      base_db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+      base_db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
       expected_database = "#{base_db_config.database}-#{idx}"
 
       ActiveRecord::Tasks::DatabaseTasks.stub(:reconstruct_from_schema, ->(db_config, _, _) {
@@ -47,7 +47,7 @@ class TestDatabasesTest < ActiveRecord::TestCase
       end
 
       # Updates the database configuration
-      assert_equal expected_database, ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary").database
+      assert_equal expected_database, ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary").database
     ensure
       ActiveRecord::Base.configurations = prev_configs
       ActiveRecord::Base.establish_connection(:arunit)
@@ -65,10 +65,10 @@ class TestDatabasesTest < ActiveRecord::TestCase
       }
 
       idx = 42
-      base_configs_order = ActiveRecord::Base.configurations.configs_for(env_name: "arunit").map(&:spec_name)
+      base_configs_order = ActiveRecord::Base.configurations.configs_for(env_name: "arunit").map(&:name)
 
       ActiveRecord::Tasks::DatabaseTasks.stub(:reconstruct_from_schema, ->(db_config, _, _) {
-        assert_equal base_configs_order, ActiveRecord::Base.configurations.configs_for(env_name: "arunit").map(&:spec_name)
+        assert_equal base_configs_order, ActiveRecord::Base.configurations.configs_for(env_name: "arunit").map(&:name)
       }) do
         ActiveSupport::Testing::Parallelization.after_fork_hooks.each { |cb| cb.call(idx) }
       end

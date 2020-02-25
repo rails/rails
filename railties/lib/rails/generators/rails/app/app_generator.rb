@@ -318,7 +318,7 @@ module Rails
 
       def update_active_storage
         unless skip_active_storage?
-          rails_command "active_storage:update"
+          rails_command "active_storage:update", inline: true
         end
       end
       remove_task :update_active_storage

@@ -12,12 +12,12 @@ module ActiveRecord
     # Becomes:
     #
     #   #<ActiveRecord::DatabaseConfigurations::HashConfig:0x00007fd1acbded10
-    #     @env_name="development", @spec_name="primary", @config={database: "db_name"}>
+    #     @env_name="development", @name="primary", @config={database: "db_name"}>
     #
     # ==== Options
     #
     # * <tt>:env_name</tt> - The Rails environment, i.e. "development".
-    # * <tt>:spec_name</tt> - The specification name. In a standard two-tier
+    # * <tt>:name</tt> - The db config name. In a standard two-tier
     #   database configuration this will default to "primary". In a multiple
     #   database three-tier database configuration this corresponds to the name
     #   used in the second tier, for example "primary_readonly".
@@ -25,8 +25,8 @@ module ActiveRecord
     #   database adapter, name, and other important information for database
     #   connections.
     class HashConfig < DatabaseConfig
-      def initialize(env_name, spec_name, config)
-        super(env_name, spec_name)
+      def initialize(env_name, name, config)
+        super(env_name, name)
         @config = config.symbolize_keys
       end
 

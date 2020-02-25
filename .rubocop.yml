@@ -213,6 +213,12 @@ Lint/DeprecatedClassMethods:
 Style/ParenthesesAroundCondition:
   Enabled: true
 
+Style/HashTransformKeys:
+  Enabled: true
+
+Style/HashTransformValues:
+  Enabled: true
+
 Style/RedundantBegin:
   Enabled: true
 

@@ -378,22 +378,36 @@ class ActionsTest < Rails::Generators::TestCase
     assert_file "config/initializers/constants.rb", code.strip_heredoc
   end
 
-  def test_generate_should_run_script_generate_with_argument_and_options
+  test "generate" do
     run_generator
     action :generate, "model", "MyModel"
     assert_file "app/models/my_model.rb", /MyModel/
   end
 
-  def test_generate_aborts_when_subprocess_fails_if_requested
+  test "generate should raise on failure" do
     run_generator
-    content = capture(:stderr) do
+    message = capture(:stderr) do
       assert_raises SystemExit do
-        action :generate, "model", "MyModel:ADsad", abort_on_failure: true
-        action :generate, "model", "MyModel"
+        action :generate, "model", "1234567890"
       end
     end
-    assert_match(/wrong constant name MyModel:aDsad/, content)
-    assert_no_file "app/models/my_model.rb"
+    assert_match(/1234567890/, message)
+  end
+
+  test "generate with inline option" do
+    run_generator
+    assert_not_called(generator, :run) do
+      action :generate, "model", "MyModel", inline: true
+    end
+    assert_file "app/models/my_model.rb", /MyModel/
+  end
+
+  test "generate with inline option should raise on failure" do
+    run_generator
+    error = assert_raises do
+      action :generate, "model", "1234567890", inline: true
+    end
+    assert_match(/1234567890/, error.message)
   end
 
   test "rake should run rake with the default environment" do
@@ -435,6 +449,14 @@ class ActionsTest < Rails::Generators::TestCase
   test "rake with capture option should run rake with capture" do
     assert_runs "rake log:clear", capture: true do
       action :rake, "log:clear", capture: true
+    end
+  end
+
+  test "rake with abort_on_failure option should raise on failure" do
+    capture(:stderr) do
+      assert_raises SystemExit do
+        action :rake, "invalid", abort_on_failure: true
+      end
     end
   end
 
@@ -482,6 +504,31 @@ class ActionsTest < Rails::Generators::TestCase
         action :rails_command, "log:clear", capture: true
       end
     end
+  end
+
+  test "rails_command with abort_on_failure option should raise on failure" do
+    run_generator
+    capture(:stderr) do
+      assert_raises SystemExit do
+        action :rails_command, "invalid", abort_on_failure: true
+      end
+    end
+  end
+
+  test "rails_command with inline option" do
+    run_generator
+    assert_not_called(generator, :run) do
+      action :rails_command, "generate model MyModel", inline: true
+    end
+    assert_file "app/models/my_model.rb", /MyModel/
+  end
+
+  test "rails_command with inline option should raise on failure" do
+    run_generator
+    error = assert_raises do
+      action :rails_command, "generate model 1234567890", inline: true
+    end
+    assert_match(/1234567890/, error.message)
   end
 
   test "route should add route" do

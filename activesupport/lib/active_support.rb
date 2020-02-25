@@ -35,6 +35,7 @@ module ActiveSupport
 
   autoload :Concern
   autoload :ActionableError
+  autoload :ConfigurationFile
   autoload :CurrentAttributes
   autoload :Dependencies
   autoload :DescendantsTracker

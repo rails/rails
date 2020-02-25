@@ -681,14 +681,6 @@ module RenderTestCases
       @view.render(TestComponent.new(title: "my title")) { "Hello, World!" }.strip
     )
   end
-
-  def test_render_component_with_validation_error
-    error = assert_raises(ActiveModel::ValidationError) do
-      @view.render(TestComponent.new(title: "my title")).strip
-    end
-
-    assert_match "Content can't be blank", error.message
-  end
 end
 
 class CachedViewRenderTest < ActiveSupport::TestCase

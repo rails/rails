@@ -208,7 +208,7 @@ module ActiveSupport
         elsif become_empty_string?(value)
           ""
         elsif become_hash?(value)
-          xml_value = Hash[value.map { |k, v| [k, deep_to_h(v)] }]
+          xml_value = value.transform_values { |v| deep_to_h(v) }
 
           # Turn { files: { file: #<StringIO> } } into { files: #<StringIO> } so it is compatible with
           # how multipart uploaded files from HTML appear

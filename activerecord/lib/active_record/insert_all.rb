@@ -154,8 +154,20 @@ module ActiveRecord
           quote_columns(insert_all.updatable_columns)
         end
 
+        def touch_model_timestamps_unless(&block)
+          model.send(:timestamp_attributes_for_update_in_model).map do |column_name|
+            if touch_timestamp_attribute?(column_name)
+              "#{column_name}=(CASE WHEN (#{updatable_columns.map(&block).join(" AND ")}) THEN #{model.quoted_table_name}.#{column_name} ELSE CURRENT_TIMESTAMP END),"
+            end
+          end.compact.join
+        end
+
         private
           attr_reader :connection, :insert_all
+
+          def touch_timestamp_attribute?(column_name)
+            update_duplicates? && !insert_all.updatable_columns.include?(column_name)
+          end
 
           def columns_list
             format_columns(insert_all.keys)

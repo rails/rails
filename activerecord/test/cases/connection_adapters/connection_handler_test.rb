@@ -13,7 +13,7 @@ module ActiveRecord
       def setup
         @handler = ConnectionHandler.new
         @owner_name = "ActiveRecord::Base"
-        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
         @pool = @handler.establish_connection(db_config)
       end
 
@@ -28,7 +28,7 @@ module ActiveRecord
         ENV["RACK_ENV"]  = original_rack_env
       end
 
-      def test_establish_connection_uses_config_hash_with_spec_name
+      def test_establish_connection_uses_config_hash_with_name
         old_config = ActiveRecord::Base.configurations
         config = { "readonly" => { "adapter" => "sqlite3", "pool" => "5" } }
         ActiveRecord::Base.configurations = config
@@ -213,7 +213,7 @@ module ActiveRecord
         ActiveRecord::Base.configurations.configs_for.each do |db_config|
           assert_instance_of ActiveRecord::DatabaseConfigurations::HashConfig, db_config
           assert_instance_of String, db_config.env_name
-          assert_instance_of String, db_config.spec_name
+          assert_instance_of String, db_config.name
 
           db_config.configuration_hash.keys.each do |key|
             assert_instance_of Symbol, key
@@ -427,7 +427,7 @@ module ActiveRecord
           wr.binmode
 
           pid = fork do
-            config_hash = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary").configuration_hash.merge(database: file.path)
+            config_hash = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary").configuration_hash.merge(database: file.path)
             ActiveRecord::Base.establish_connection(config_hash)
 
             pid2 = fork do

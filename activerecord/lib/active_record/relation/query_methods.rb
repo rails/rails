@@ -51,7 +51,7 @@ module ActiveRecord
         if not_behaves_as_nor?(opts)
           ActiveSupport::Deprecation.warn(<<~MSG.squish)
             NOT conditions will no longer behave as NOR in Rails 6.1.
-            To continue using NOR conditions, NOT each conditions manually
+            To continue using NOR conditions, NOT each condition individually
             (`#{
               opts.flat_map { |key, value|
                 if value.is_a?(Hash) && value.size > 1
@@ -852,6 +852,21 @@ module ActiveRecord
       self
     end
 
+    # Sets the returned relation to strict_loading mode. This will raise an error
+    # if the record tries to lazily load an association.
+    #
+    #   user = User.strict_loading.first
+    #   user.comments.to_a
+    #   => ActiveRecord::StrictLoadingViolationError
+    def strict_loading(value = true)
+      spawn.strict_loading!(value)
+    end
+
+    def strict_loading!(value = true) # :nodoc:
+      self.strict_loading_value = value
+      self
+    end
+
     # Sets attributes to be used when creating new records from a
     # relation object.
     #
@@ -1253,7 +1268,9 @@ module ActiveRecord
       end
 
       def table_name_matches?(from)
-        /(?:\A|(?<!FROM)\s)(?:\b#{table.name}\b|#{connection.quote_table_name(table.name)})(?!\.)/i.match?(from.to_s)
+        table_name = Regexp.escape(table.name)
+        quoted_table_name = Regexp.escape(connection.quote_table_name(table.name))
+        /(?:\A|(?<!FROM)\s)(?:\b#{table_name}\b|#{quoted_table_name})(?!\.)/i.match?(from.to_s)
       end
 
       def reverse_sql_order(order_query)

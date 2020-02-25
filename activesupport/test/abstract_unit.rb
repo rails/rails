@@ -28,6 +28,8 @@ ActiveSupport.to_time_preserves_timezone = ENV["PRESERVE_TIMEZONES"] == "1"
 I18n.enforce_available_locales = false
 
 class ActiveSupport::TestCase
+  parallelize
+
   include ActiveSupport::Testing::MethodCallAssertions
 
   private

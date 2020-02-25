@@ -1,17 +1,41 @@
-*   Cache compiled view templates when running tests by default
+*   `rails stats` will now count TypeScript files toward JavaScript stats.
 
-    When generating a new app without `--skip-spring`, caching classes is 
-    disabled in `environments/test.rb`. This implicitly disables caching 
-    view templates too. This change will enable view template caching by 
-    adding this to the generated `environments/test.rb`: 
+    *Joshua Cody*
+
+*   Run `git init` when generating plugins.
+
+    Opt out with `--skip-git`.
+
+    *OKURA Masafumi*
+
+*   Add benchmark generator.
+
+    Introduce benchmark generator to benchmark Rails applications.
+
+      `rails generate benchmark opt_compare`
+
+    This creates a benchmark file that uses [`benchmark-ips`](https://github.com/evanphx/benchmark-ips).
+    By default, two code blocks can be benchmarked using the `before` and `after` reports.
+
+    You can run the generated benchmark file using:
+      `ruby script/benchmarks/opt_compare.rb`
+
+    *Kevin Jalbert*, *Gannon McGibbon*
+
+*   Cache compiled view templates when running tests by default.
+
+    When generating a new app without `--skip-spring`, caching classes is
+    disabled in `environments/test.rb`. This implicitly disables caching
+    view templates too. This change will enable view template caching by
+    adding this to the generated `environments/test.rb`:
 
     ```ruby
     config.action_view.cache_template_loading = true
     ```
-    
+
     *Jorge Manrubia*
 
-*   Introduce middleware move operations
+*   Introduce middleware move operations.
 
     With this change, you no longer need to delete and reinsert a middleware to
     move it from one place to another in the stack:
@@ -29,7 +53,7 @@
 
     *Genadi Samokovarov*
 
-*   Generators that inherit from NamedBase respect `--force` option
+*   Generators that inherit from NamedBase respect `--force` option.
 
     *Josh Brody*
 
@@ -41,7 +65,7 @@
 
     *Thierry Joyal*
 
-*   Ensure Rails migration generator respects system-wide primary key config
+*   Ensure Rails migration generator respects system-wide primary key config.
 
     When rails is configured to use a specific primary key type:
 
@@ -60,9 +84,9 @@
     The references line in the migration would not have `type: :uuid`.
     This change causes the type to be applied appropriately.
 
-    *Louis-Michel Couture* *Dermot Haughey*
+    *Louis-Michel Couture*, *Dermot Haughey*
 
-*   Deprecate `Rails::DBConsole#config`
+*   Deprecate `Rails::DBConsole#config`.
 
     `Rails::DBConsole#config` is deprecated without replacement. Use `Rails::DBConsole.db_config.configuration_hash` instead.
 

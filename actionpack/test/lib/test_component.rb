@@ -1,9 +1,6 @@
 # frozen_string_literal: true
 
 class TestComponent < ActionView::Base
-  include ActiveModel::Validations
-
-  validates :title, presence: true
   delegate :render, to: :view_context
 
   def initialize(title:)
@@ -13,7 +10,6 @@ class TestComponent < ActionView::Base
   def render_in(view_context)
     self.class.compile
     @view_context = view_context
-    validate!
     rendered_template
   end
 

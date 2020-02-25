@@ -8,17 +8,14 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Ruby 2.6
-      uses: actions/setup-ruby@v1
+    - name: Set up Ruby 2.7
+      uses: ruby/setup-ruby@v1
       with:
-        ruby-version: 2.6.x
+        ruby-version: 2.7
     - name: Install required package
       run: |
         sudo apt-get update
         sudo apt-get -y install libmysqlclient-dev libpq-dev libsqlite3-dev libncurses5-dev
-    - name: Install bundler
-      run: |
-        gem install bundler:2.1.2
     - name: Cache gems
       uses: actions/cache@v1
       with:

@@ -36,7 +36,7 @@ module ActiveRecord
       end
 
       def test_database_exists_returns_true_when_database_exists
-        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
         assert SQLite3Adapter.database_exists?(db_config.configuration_hash),
           "expected #{db_config.database} to exist"
       end
@@ -545,7 +545,7 @@ module ActiveRecord
       end
 
       def test_statement_closed
-        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
         db = ::SQLite3::Database.new(db_config.database)
 
         statement = ::SQLite3::Statement.new(db,

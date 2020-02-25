@@ -8,4 +8,8 @@ module SomeConcern
   included do
     # shouldn't raise when module is loaded more than once
   end
+
+  prepended do
+    # shouldn't raise when module is loaded more than once
+  end
 end

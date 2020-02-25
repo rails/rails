@@ -1,3 +1,11 @@
+*   `*_previously_changed?` accepts `:from` and `:to` keyword arguments like `*_changed?`.
+
+        topic.update!(status: :archived)
+        topic.status_previously_changed?(from: "active", to: "archived")
+        # => true
+
+    *George Claghorn*
+
 *   Raise FrozenError when trying to write attributes that aren't backed by the database on an object that is frozen:
 
         class Animal
@@ -11,7 +19,7 @@
 
     *Josh Brody*
 
-*   Add *_previously_was attribute methods when dirty tracking. Example:
+*   Add `*_previously_was` attribute methods when dirty tracking. Example:
 
         pirate.update(catchphrase: "Ahoy!")
         pirate.previous_changes["catchphrase"] # => ["Thar She Blows!", "Ahoy!"]
