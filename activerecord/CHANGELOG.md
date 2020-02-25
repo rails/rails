@@ -1,3 +1,7 @@
+*   Fix a bug in the PostgreSQL adapter that could cause models to have invalid type casting behavior for custom PostgreSQL types.
+
+    *Thibaud Guillaume-Gentil*, *Yves Senn*
+
 *   Add support for horizontal sharding to `connects_to` and `connected_to`.
 
     Applications can now connect to multiple shards and switch between their shards in an application. Note that the shard swapping is still a manual process as this change does not include an API for automatic shard swapping.
