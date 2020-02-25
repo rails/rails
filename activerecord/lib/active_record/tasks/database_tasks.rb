@@ -106,7 +106,7 @@ module ActiveRecord
       def spec
         @spec ||= "primary"
       end
-      deprecate :spec, "spec_name accessors are deprecated and will be removed in Rails 6.2, please use name instead."
+      deprecate spec: "please use name instead"
 
       def name
         @name ||= "primary"
