@@ -1,3 +1,9 @@
+*   No longer include `rake rdoc` task when generating plugins.
+
+    To generate docs, use the `rdoc lib` command instead.
+
+    *Jonathan Hefner*
+
 *   Allow relative paths with trailing slashes to be passed to `rails test`.
 
     *Eugene Kenny*
