@@ -300,20 +300,12 @@ module ActionView
     end
 
     def render(context, options, block)
-      as = @as = as_variable(options)
-      setup(context, options, as, block)
+      @as = as_variable(options)
+      setup(context, options, @as, block)
 
       if @path
-        @variable           = nil
-        @variable_counter   = nil
-        @variable_iteration = nil
-
-        if @has_object || @collection
-          @variable, @variable_counter, @variable_iteration = retrieve_variable(@path, as)
-        end
-
         template = find_template(@path, template_keys)
-        @variable ||= template.variable
+        @variable = template.variable
       else
         if options[:cached]
           raise NotImplementedError, "render caching requires a template. Please specify a partial when rendering"
@@ -395,6 +387,11 @@ module ActionView
           @object     = options[:object]
           @collection = collection_from_options
           @path       = partial
+
+          if @collection
+            paths = @collection_data = @collection.map { |o| @path }
+            paths.map! { |path| retrieve_variable(path, as).unshift(path) }
+          end
         else
           @has_object = true
           @object = partial
@@ -404,6 +401,7 @@ module ActionView
             paths = @collection_data = @collection.map { |o| partial_path(o, context) }
             if paths.uniq.length == 1
               @path = paths.first
+              paths.map! { |path| retrieve_variable(path, as).unshift(path) }
             else
               paths.map! { |path| retrieve_variable(path, as).unshift(path) }
               @path = nil
@@ -440,19 +438,21 @@ module ActionView
       end
 
       def collection_with_template(view, template)
-        locals = @locals
-        as, counter, iteration = @variable, @variable_counter, @variable_iteration
+        locals, collection_data = @locals, @collection_data
 
         if layout = @options[:layout]
           layout = find_template(layout, template_keys)
         end
 
         partial_iteration = PartialIteration.new(@collection.size)
-        locals[iteration] = partial_iteration
 
         @collection.map do |object|
+          index = partial_iteration.index
+          path, as, counter, iteration = collection_data[index]
+
           locals[as]        = object
-          locals[counter]   = partial_iteration.index
+          locals[counter]   = index
+          locals[iteration] = partial_iteration
 
           content = template.render(view, locals)
           content = layout.render(view, locals) { content } if layout
