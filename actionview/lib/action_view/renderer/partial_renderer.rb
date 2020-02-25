@@ -291,20 +291,12 @@ module ActionView
       @context_prefix = @lookup_context.prefixes.first
     end
 
-    def template_keys
-      if @has_object || @collection
-        @locals.keys + retrieve_variable(@path, @as)
-      else
-        @locals.keys
-      end
-    end
-
     def render(context, options, block)
-      @as = as_variable(options)
-      setup(context, options, @as)
+      as = as_variable(options)
+      setup(context, options, as)
 
       if @path
-        template = find_template(@path, template_keys)
+        template = find_template(@path, template_keys(@path, as))
       else
         if options[:cached]
           raise NotImplementedError, "render caching requires a template. Please specify a partial when rendering"
@@ -312,15 +304,27 @@ module ActionView
         template = nil
       end
 
+      if !block && (layout = @options[:layout])
+        layout = find_template(layout.to_s, template_keys(@path, as))
+      end
+
       if @collection
-        render_collection(context, template)
+        render_collection(context, template, layout)
       else
-        render_partial(context, template, block)
+        render_partial(context, template, layout, block)
       end
     end
 
     private
-      def render_collection(view, template)
+      def template_keys(path, as)
+        if @has_object || @collection
+          @locals.keys + retrieve_variable(path, as)
+        else
+          @locals.keys
+        end
+      end
+
+      def render_collection(view, template, layout)
         identifier = (template && template.identifier) || @path
         instrument(:collection, identifier: identifier, count: @collection.size) do |payload|
           return RenderedCollection.empty(@lookup_context.formats.first) if @collection.blank?
@@ -334,24 +338,20 @@ module ActionView
 
           collection_body = if template
             cache_collection_render(payload, view, template, @collection) do |collection|
-              collection_with_template(view, template, collection)
+              collection_with_template(view, template, layout, collection)
             end
           else
-            collection_with_template(view, nil, @collection)
+            collection_with_template(view, nil, layout, @collection)
           end
           build_rendered_collection(collection_body, spacer)
         end
       end
 
-      def render_partial(view, template, block)
+      def render_partial(view, template, layout, block)
         instrument(:partial, identifier: template.identifier) do |payload|
           locals = @locals
           as     = template.variable
           object = @object
-
-          if !block && (layout = @options[:layout])
-            layout = find_template(layout.to_s, template_keys)
-          end
 
           locals[as] = object if @has_object
 
@@ -436,13 +436,9 @@ module ActionView
         @lookup_context.find_template(path, prefixes, true, locals, @details)
       end
 
-      def collection_with_template(view, template, collection)
+      def collection_with_template(view, template, layout, collection)
         locals, collection_data = @locals, @collection_data
-        cache = {}
-
-        if layout = @options[:layout]
-          layout = find_template(layout, template_keys)
-        end
+        cache = template || {}
 
         partial_iteration = PartialIteration.new(collection.size)
 

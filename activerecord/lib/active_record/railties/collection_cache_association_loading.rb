@@ -22,7 +22,7 @@ module ActiveRecord
         end
       end
 
-      def collection_with_template(_, _, collection)
+      def collection_with_template(_, _, _, collection)
         @relation.preload_associations(collection) if @relation
         super
       end
