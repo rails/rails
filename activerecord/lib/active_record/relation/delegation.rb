@@ -104,7 +104,13 @@ module ActiveRecord
         def method_missing(method, *args, **kwargs, &block)
           if @klass.respond_to?(method)
             @klass.generate_relation_method(method)
-            scoping { @klass.public_send(method, *args, **kwargs, &block) }
+            scoping do
+              if kwargs.empty?
+                @klass.public_send(method, *args, &block)
+              else
+                @klass.public_send(method, *args, **kwargs, &block)
+              end
+            end
           else
             super
           end

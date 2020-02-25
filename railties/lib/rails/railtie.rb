@@ -187,7 +187,11 @@ module Rails
         # to the Railtie instance.
         def method_missing(name, *args, **kwargs, &block)
           if instance.respond_to?(name)
-            instance.public_send(name, *args, **kwargs, &block)
+            if kwargs.empty?
+              instance.public_send(name, *args, &block)
+            else
+              instance.public_send(name, *args, **kwargs, &block)
+            end
           else
             super
           end

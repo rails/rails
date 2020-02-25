@@ -25,7 +25,12 @@ module ActiveJob
 
       private
         def job_or_instantiate(*args, **kwargs) # :doc:
-          args.first.is_a?(self) ? args.first : new(*args, **kwargs)
+          return args.first if args.first.is_a?(self)
+          if kwargs.empty?
+            new(*args)
+          else
+            new(*args, **kwargs)
+          end
         end
         ruby2_keywords(:job_or_instantiate) if respond_to?(:ruby2_keywords, true)
     end

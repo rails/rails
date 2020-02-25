@@ -12,7 +12,11 @@ module ActiveSupport
           yield self
         end
       elsif respond_to?(method_name)
-        public_send(method_name, *args, **kwargs, &b)
+        if kwargs.empty?
+          public_send(method_name, *args, &b)
+        else
+          public_send(method_name, *args, **kwargs, &b)
+        end
       end
     end
     ruby2_keywords(:try) if respond_to?(:ruby2_keywords, true)
@@ -25,7 +29,11 @@ module ActiveSupport
           yield self
         end
       else
-        public_send(method_name, *args, **kwargs, &b)
+        if kwargs.empty?
+          public_send(method_name, *args, &b)
+        else
+          public_send(method_name, *args, **kwargs, &b)
+        end
       end
     end
     ruby2_keywords(:try!) if respond_to?(:ruby2_keywords, true)

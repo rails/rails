@@ -35,7 +35,11 @@ module ActionDispatch
       end
 
       def build(app)
-        klass.new(app, *args, **kwargs, &block)
+        if kwargs.empty?
+          klass.new(app, *args, &block)
+        else
+          klass.new(app, *args, **kwargs, &block)
+        end
       end
 
       def build_instrumented(app)

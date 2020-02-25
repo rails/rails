@@ -8,12 +8,20 @@ module ActiveJob
     end
 
     def perform_now(*args, **kwargs)
-      @job_class.new(*args, **kwargs).perform_now
+      if kwargs.empty?
+        @job_class.new(*args).perform_now
+      else
+        @job_class.new(*args, **kwargs).perform_now
+      end
     end
     ruby2_keywords(:perform_now) if respond_to?(:ruby2_keywords, true)
 
     def perform_later(*args, **kwargs)
-      @job_class.new(*args, **kwargs).enqueue @options
+      if kwargs.empty?
+        @job_class.new(*args).enqueue @options
+      else
+        @job_class.new(*args, **kwargs).enqueue @options
+      end
     end
     ruby2_keywords(:perform_later) if respond_to?(:ruby2_keywords, true)
   end
