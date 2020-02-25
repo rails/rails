@@ -38,7 +38,8 @@
     The horizontal sharding API also supports read replicas. See guides for more details.
 
     *Eileen M. Uchitelle*, *John Crepezzi*
-*   Deprecate `spec_name` in favor of `name` on database configurations
+
+*   Deprecate `spec_name` in favor of `name` on database configurations.
 
     The accessors for `spec_name` on `configs_for` and `DatabaseConfig` are deprecated. Please use `name` instead.
 
@@ -58,7 +59,7 @@
 
     *Eileen M. Uchitelle*
 
-*   Add additional database-specific rake tasks for multi-database users
+*   Add additional database-specific rake tasks for multi-database users.
 
     Previously, `rails db:create`, `rails db:drop`, and `rails db:migrate` were the only rails tasks that could operate on a single
     database. For example:
@@ -140,7 +141,7 @@
 
     Example Usage:
 
-    ```
+    ```ruby
     class AddColumnTitle < ActiveRecord::Migration[6.1]
       def change
         add_column :posts, :title, :string, if_not_exists: true
@@ -148,7 +149,7 @@
     end
     ```
 
-    ```
+    ```ruby
     class RemoveColumnTitle < ActiveRecord::Migration[6.1]
       def change
         remove_column :posts, :title, if_exists: true
@@ -158,7 +159,7 @@
 
     *Eileen M. Uchitelle*
 
-*   Regexp-escape table name for MS SQL
+*   Regexp-escape table name for MS SQL Server.
 
     Add `Regexp.escape` to one method in ActiveRecord, so that table names with regular expression characters in them work as expected. Since MS SQL Server uses "[" and "]" to quote table and column names, and those characters are regular expression characters, methods like `pluck` and `select` fail in certain cases when used with the MS SQL Server adapter.
 
@@ -176,7 +177,7 @@
 
     For example:
 
-    ```
+    ```yaml
     development:
       adapter: postgresql
       database: blog_development
@@ -192,7 +193,7 @@
 
     *Eileen M. Uchitelle*, *John Crepezzi*
 
-*   Deprecate `#default_hash` and it's alias `#[]` on database configurations
+*   Deprecate `#default_hash` and it's alias `#[]` on database configurations.
 
     Applications should use `configs_for`. `#default_hash` and `#[]` will be removed in 6.2.
 
@@ -224,7 +225,7 @@
 
     *Eileen M. Uchitelle*
 
-*   Deprecate "primary" as the connection_specification_name for ActiveRecord::Base
+*   Deprecate "primary" as the connection_specification_name for ActiveRecord::Base.
 
     `"primary"` has been deprecated as the `connection_specification_name` for `ActiveRecord::Base` in favor of using `"ActiveRecord::Base"`. This change affects calls to `ActiveRecord::Base.connection_handler.retrieve_connection` and `ActiveRecord::Base.connection_handler.remove_connection`. If you're calling these methods with `"primary"`, please switch to `"ActiveRecord::Base"`.
 
@@ -239,7 +240,9 @@
     ActiveRecord::Relation#cache_key_with_version. This method will be used by
     ActionController::ConditionalGet to ensure that when collection cache versioning
     is enabled, requests using ConditionalGet don't return the same ETag header
-    after a collection is modified. Fixes #38078.
+    after a collection is modified.
+
+    Fixes #38078.
 
     *Aaron Lipman*
 

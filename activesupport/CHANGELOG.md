@@ -17,7 +17,7 @@
     Class methods are prepended to the base class, concerning is also 
     updated: `concerning :Imposter, prepend: true do`.
 
-    *Jason Karns, Elia Schito*
+    *Jason Karns*, *Elia Schito*
 
 *   Deprecate using `Range#include?` method to check the inclusion of a value
     in a date time range. It is recommended to use `Range#cover?` method

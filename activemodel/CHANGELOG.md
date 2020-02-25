@@ -19,7 +19,7 @@
 
     *Josh Brody*
 
-*   Add *_previously_was attribute methods when dirty tracking. Example:
+*   Add `*_previously_was` attribute methods when dirty tracking. Example:
 
         pirate.update(catchphrase: "Ahoy!")
         pirate.previous_changes["catchphrase"] # => ["Thar She Blows!", "Ahoy!"]
