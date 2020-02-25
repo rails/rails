@@ -305,7 +305,6 @@ module ActionView
 
       if @path
         template = find_template(@path, template_keys)
-        @variable = template.variable
       else
         if options[:cached]
           raise NotImplementedError, "render caching requires a template. Please specify a partial when rendering"
@@ -347,7 +346,8 @@ module ActionView
       def render_partial(view, template, block)
         instrument(:partial, identifier: template.identifier) do |payload|
           locals = @locals
-          object, as = @object, @variable
+          as     = template.variable
+          object = @object
 
           if !block && (layout = @options[:layout])
             layout = find_template(layout.to_s, template_keys)
@@ -388,6 +388,7 @@ module ActionView
           @path       = partial
 
           if @collection
+            @has_object = true
             paths = @collection_data = @collection.map { |o| @path }
             paths.map! { |path| retrieve_variable(path, as).unshift(path) }
           end
