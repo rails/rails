@@ -3,7 +3,7 @@
 module ActiveRecord
   module Railties # :nodoc:
     module CollectionCacheAssociationLoading #:nodoc:
-      def setup(context, options, as, block)
+      def setup(context, options, as)
         @relation = nil
 
         return super unless options[:cached]

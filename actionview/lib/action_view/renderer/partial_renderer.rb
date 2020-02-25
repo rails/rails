@@ -301,7 +301,7 @@ module ActionView
 
     def render(context, options, block)
       @as = as_variable(options)
-      setup(context, options, @as, block)
+      setup(context, options, @as)
 
       if @path
         template = find_template(@path, template_keys)
@@ -316,7 +316,7 @@ module ActionView
       if @collection
         render_collection(context, template)
       else
-        render_partial(context, template)
+        render_partial(context, template, block)
       end
     end
 
@@ -344,9 +344,9 @@ module ActionView
         end
       end
 
-      def render_partial(view, template)
+      def render_partial(view, template, block)
         instrument(:partial, identifier: template.identifier) do |payload|
-          locals, block = @locals, @block
+          locals = @locals
           object, as = @object, @variable
 
           if !block && (layout = @options[:layout])
@@ -373,9 +373,8 @@ module ActionView
       # If +options[:partial]+ is a string, then the <tt>@path</tt> instance variable is
       # set to that string. Otherwise, the +options[:partial]+ object must
       # respond to +to_partial_path+ in order to set up the path.
-      def setup(context, options, as, block)
+      def setup(context, options, as)
         @options = options
-        @block   = block
 
         @locals  = options[:locals] || {}
         @details = extract_details(options)
