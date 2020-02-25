@@ -296,12 +296,21 @@ module ActionView
       setup(context, options, as, block)
 
       if @path
+        @variable           = nil
+        @variable_counter   = nil
+        @variable_iteration = nil
+        @template_keys      = @locals.keys
+
         if @has_object || @collection
           @variable, @variable_counter, @variable_iteration = retrieve_variable(@path, as)
-          @template_keys = retrieve_template_keys(@variable)
-        else
-          @template_keys = @locals.keys
+          @template_keys << @variable
+
+          if @collection
+            @template_keys << @variable_counter
+            @template_keys << @variable_iteration
+          end
         end
+
         template = find_template(@path, @template_keys)
         @variable ||= template.variable
       else
@@ -515,16 +524,6 @@ module ActionView
         else
           object_path
         end
-      end
-
-      def retrieve_template_keys(variable)
-        keys = @locals.keys
-        keys << variable
-        if @collection
-          keys << @variable_counter
-          keys << @variable_iteration
-        end
-        keys
       end
 
       def retrieve_variable(path, as)
