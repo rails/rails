@@ -338,7 +338,7 @@ module ActionView
               collection_with_template(view, template)
             end
           else
-            collection_without_template(view)
+            collection_with_template(view, nil)
           end
           build_rendered_collection(collection_body, spacer)
         end
@@ -439,6 +439,7 @@ module ActionView
 
       def collection_with_template(view, template)
         locals, collection_data = @locals, @collection_data
+        cache = {}
 
         if layout = @options[:layout]
           layout = find_template(layout, template_keys)
@@ -454,32 +455,11 @@ module ActionView
           locals[counter]   = index
           locals[iteration] = partial_iteration
 
-          content = template.render(view, locals)
+          _template = template || (cache[path] ||= find_template(path, @locals.keys + [as, counter, iteration]))
+          content = _template.render(view, locals)
           content = layout.render(view, locals) { content } if layout
           partial_iteration.iterate!
-          build_rendered_template(content, template)
-        end
-      end
-
-      def collection_without_template(view)
-        locals, collection_data = @locals, @collection_data
-        cache = {}
-        keys  = @locals.keys
-
-        partial_iteration = PartialIteration.new(@collection.size)
-
-        @collection.map do |object|
-          index = partial_iteration.index
-          path, as, counter, iteration = collection_data[index]
-
-          locals[as]        = object
-          locals[counter]   = index
-          locals[iteration] = partial_iteration
-
-          template = (cache[path] ||= find_template(path, keys + [as, counter, iteration]))
-          content = template.render(view, locals)
-          partial_iteration.iterate!
-          build_rendered_template(content, template)
+          build_rendered_template(content, _template)
         end
       end
 
