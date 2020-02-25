@@ -423,12 +423,12 @@ module ActionView
       def collection_from_options
         if @options.key?(:collection)
           collection = @options[:collection]
-          collection ? collection.to_a : []
+          collection || []
         end
       end
 
       def collection_from_object
-        @object.to_ary if @object.respond_to?(:to_ary)
+        @object if @object.respond_to?(:to_ary)
       end
 
       def find_template(path, locals)
@@ -475,14 +475,10 @@ module ActionView
         end
 
         if view.prefix_partial_path_with_controller_namespace
-          prefixed_partial_names[path] ||= merge_prefix_into_object_path(@context_prefix, path.dup)
+          PREFIXED_PARTIAL_NAMES[@context_prefix][path] ||= merge_prefix_into_object_path(@context_prefix, path.dup)
         else
           path
         end
-      end
-
-      def prefixed_partial_names
-        @prefixed_partial_names ||= PREFIXED_PARTIAL_NAMES[@context_prefix]
       end
 
       def merge_prefix_into_object_path(prefix, object_path)
