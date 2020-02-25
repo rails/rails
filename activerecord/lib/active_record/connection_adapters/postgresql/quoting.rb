@@ -75,7 +75,7 @@ module ActiveRecord
         end
 
         def lookup_cast_type_from_column(column) # :nodoc:
-          type_map.lookup(column.oid, column.fmod, column.sql_type)
+          get_oid_type(column.oid, column.fmod, column.name, column.sql_type || "")
         end
 
         def column_name_matcher
