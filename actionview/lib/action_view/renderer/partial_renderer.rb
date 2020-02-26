@@ -460,12 +460,12 @@ module ActionView
 
         else
           @has_object = true
-          @object = partial
-          @collection = collection_from_object || collection_from_options
+          @collection = collection_from_object(partial) || collection_from_options
 
           if @collection
             @collection = build_collection_iterator(@collection, nil, as, context)
           else
+            @object = partial
             @path = partial_path(@object, context)
           end
         end
@@ -487,8 +487,8 @@ module ActionView
         end
       end
 
-      def collection_from_object
-        @object if @object.respond_to?(:to_ary)
+      def collection_from_object(partial)
+        partial if partial.respond_to?(:to_ary)
       end
 
       def find_template(path, locals)
