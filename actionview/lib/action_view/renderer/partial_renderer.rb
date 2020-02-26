@@ -313,11 +313,7 @@ module ActionView
 
     private
       def template_keys(path, as)
-        if @has_object
-          @locals.keys + retrieve_variable(path, as)
-        else
-          @locals.keys
-        end
+        @locals.keys
       end
 
       def render_partial(view, locals, template, layout, block)
@@ -347,7 +343,6 @@ module ActionView
         partial = options[:partial]
 
         if String === partial
-          @has_object = options.key?(:object)
           @path       = partial
         else
           @path = partial_path(@object, context)
@@ -492,7 +487,6 @@ module ActionView
       @details = extract_details(options)
       @path    = partial
 
-      @has_object = true
       @collection = build_collection_iterator(collection, partial, as, context)
 
       if options[:cached] && !partial
@@ -520,6 +514,10 @@ module ActionView
     end
 
     private
+      def template_keys(path, as)
+        super + retrieve_variable(path, as)
+      end
+
       def retrieve_variable(path, as)
         vars = super
         variable = vars.first
@@ -587,19 +585,20 @@ module ActionView
 
   class ObjectRenderer < PartialRenderer
     def render_object_with_partial(object, partial, context, options, block)
-      @has_object = true
       @object = object
-
       render(context, options, block)
     end
 
     def render_object_derive_partial(object, context, options, block)
       path = partial_path(object, context)
-
       render_object_with_partial(object, path, context, options, block)
     end
 
     private
+
+      def template_keys(path, as)
+        super + retrieve_variable(path, as)
+      end
 
       def render_partial(view, locals, template, layout, block)
         as     = template.variable
