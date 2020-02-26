@@ -347,7 +347,6 @@ module ActionView
       # respond to +to_partial_path+ in order to set up the path.
       def setup(context, options, as)
         @options = options
-
         @locals  = options[:locals] || {}
         @details = extract_details(options)
 
@@ -356,32 +355,15 @@ module ActionView
         if String === partial
           @has_object = options.key?(:object)
           @object     = options[:object]
-          @collection = collection_from_options(options)
           @path       = partial
         else
           @has_object = true
-          @collection = collection_from_object(partial) || collection_from_options(options)
 
-          if @collection
-            @collection = build_collection_iterator(@collection, nil, as, context)
-          else
-            @object = partial
-            @path = partial_path(@object, context)
-          end
+          @object = partial
+          @path = partial_path(@object, context)
         end
 
         self
-      end
-
-      def collection_from_options(options)
-        if options.key?(:collection)
-          collection = options[:collection]
-          collection || []
-        end
-      end
-
-      def collection_from_object(object)
-        object if object.respond_to?(:to_ary)
       end
 
       def as_variable(options)
@@ -394,27 +376,6 @@ module ActionView
       def find_template(path, locals)
         prefixes = path.include?(?/) ? [] : @lookup_context.prefixes
         @lookup_context.find_template(path, prefixes, true, locals, @details)
-      end
-
-      def collection_with_template(view, template, layout, collection)
-        locals = @locals
-        cache = template || {}
-
-        partial_iteration = PartialIteration.new(collection.size)
-
-        collection.each_with_info.map do |object, (path, as, counter, iteration)|
-          index = partial_iteration.index
-
-          locals[as]        = object
-          locals[counter]   = index
-          locals[iteration] = partial_iteration
-
-          _template = template || (cache[path] ||= find_template(path, @locals.keys + [as, counter, iteration]))
-          content = _template.render(view, locals)
-          content = layout.render(view, locals) { content } if layout
-          partial_iteration.iterate!
-          build_rendered_template(content, _template)
-        end
       end
 
       # Obtains the path to where the object's partial is located. If the object
@@ -611,5 +572,27 @@ module ActionView
           build_rendered_collection(collection_body, spacer)
         end
       end
+
+      def collection_with_template(view, template, layout, collection)
+        locals = @locals
+        cache = template || {}
+
+        partial_iteration = PartialIteration.new(collection.size)
+
+        collection.each_with_info.map do |object, (path, as, counter, iteration)|
+          index = partial_iteration.index
+
+          locals[as]        = object
+          locals[counter]   = index
+          locals[iteration] = partial_iteration
+
+          _template = template || (cache[path] ||= find_template(path, @locals.keys + [as, counter, iteration]))
+          content = _template.render(view, locals)
+          content = layout.render(view, locals) { content } if layout
+          partial_iteration.iterate!
+          build_rendered_template(content, _template)
+        end
+      end
+
   end
 end
