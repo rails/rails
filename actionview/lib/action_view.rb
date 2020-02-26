@@ -52,6 +52,7 @@ module ActionView
       autoload :AbstractRenderer
       autoload :PartialRenderer
       autoload :CollectionRenderer, "action_view/renderer/partial_renderer"
+      autoload :ObjectRenderer, "action_view/renderer/partial_renderer"
       autoload :TemplateRenderer
       autoload :StreamingTemplateRenderer
     end

@@ -308,7 +308,7 @@ module ActionView
         layout = find_template(layout.to_s, template_keys(@path, as))
       end
 
-      render_partial(context, template, layout, block)
+      render_partial(context, @locals, template, layout, block)
     end
 
     private
@@ -320,14 +320,8 @@ module ActionView
         end
       end
 
-      def render_partial(view, template, layout, block)
+      def render_partial(view, locals, template, layout, block)
         instrument(:partial, identifier: template.identifier) do |payload|
-          locals = @locals
-          as     = template.variable
-          object = @object
-
-          locals[as] = object if @has_object
-
           content = template.render(view, locals) do |*name|
             view._layout_for(*name, &block)
           end
@@ -354,12 +348,8 @@ module ActionView
 
         if String === partial
           @has_object = options.key?(:object)
-          @object     = options[:object]
           @path       = partial
         else
-          @has_object = true
-
-          @object = partial
           @path = partial_path(@object, context)
         end
 
@@ -593,6 +583,28 @@ module ActionView
           build_rendered_template(content, _template)
         end
       end
+  end
 
+  class ObjectRenderer < PartialRenderer
+    def render_object_with_partial(object, partial, context, options, block)
+      @has_object = true
+      @object = object
+
+      render(context, options, block)
+    end
+
+    def render_object_derive_partial(object, context, options, block)
+      path = partial_path(object, context)
+
+      render_object_with_partial(object, path, context, options, block)
+    end
+
+    private
+
+      def render_partial(view, locals, template, layout, block)
+        as     = template.variable
+        locals[as] = @object
+        super(view, locals, template, layout, block)
+      end
   end
 end

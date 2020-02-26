@@ -82,8 +82,8 @@ module ActionView
           else
             if options.key?(:object)
               # Object + Partial
-              renderer = PartialRenderer.new(@lookup_context)
-              renderer.render(context, options, block)
+              renderer = ObjectRenderer.new(@lookup_context)
+              renderer.render_object_with_partial(options[:object], partial, context, options, block)
             else
               # Partial
               renderer = PartialRenderer.new(@lookup_context)
@@ -99,8 +99,8 @@ module ActionView
             renderer.render_collection_derive_partial(collection, context, options, block)
           else
             # Object + Derived Partial
-            renderer = PartialRenderer.new(@lookup_context)
-            renderer.render(context, options, block)
+            renderer = ObjectRenderer.new(@lookup_context)
+            renderer.render_object_derive_partial(partial, context, options, block)
           end
         end
       end
