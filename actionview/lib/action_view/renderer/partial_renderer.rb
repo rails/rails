@@ -296,7 +296,7 @@ module ActionView
       setup(context, options, as)
 
       if @path
-        template = find_template(@path, template_keys(@path, as))
+        template = find_template(@path, template_keys(@path, as, @collection))
       else
         if options[:cached]
           raise NotImplementedError, "render caching requires a template. Please specify a partial when rendering"
@@ -305,63 +305,18 @@ module ActionView
       end
 
       if !block && (layout = @options[:layout])
-        layout = find_template(layout.to_s, template_keys(@path, as))
+        layout = find_template(layout.to_s, template_keys(@path, as, @collection))
       end
 
-      if @collection
-        render_collection(context, template, layout)
-      else
-        render_partial(context, template, layout, block)
-      end
+      render_partial(context, template, layout, block)
     end
 
     private
-      def build_collection_iterator(collection, path, as, context)
-        if path
-          SameCollectionIterator.new(collection, path, retrieve_variable(path, as))
-        else
-          paths = collection.map { |o| partial_path(o, context) }
-
-          if paths.uniq.length == 1
-            @path = paths.first
-            build_collection_iterator(collection, @path, as, context)
-          else
-            paths.map! { |path| retrieve_variable(path, as).unshift(path) }
-            @path = nil
-            MixedCollectionIterator.new(collection, paths)
-          end
-        end
-      end
-
-      def template_keys(path, as)
+      def template_keys(path, as, collection)
         if @has_object
-          @locals.keys + retrieve_variable(path, as)
+          @locals.keys + retrieve_variable(path, as, collection)
         else
           @locals.keys
-        end
-      end
-
-      def render_collection(view, template, layout)
-        identifier = (template && template.identifier) || @path
-        instrument(:collection, identifier: identifier, count: @collection.size) do |payload|
-          spacer = if @options.key?(:spacer_template)
-            spacer_template = find_template(@options[:spacer_template], @locals.keys)
-            build_rendered_template(spacer_template.render(view, @locals), spacer_template)
-          else
-            RenderedTemplate::EMPTY_SPACER
-          end
-
-          collection_body = if template
-            cache_collection_render(payload, view, template, @collection) do |collection|
-              collection_with_template(view, template, layout, collection)
-            end
-          else
-            collection_with_template(view, nil, layout, @collection)
-          end
-
-          return RenderedCollection.empty(@lookup_context.formats.first) if collection_body.empty?
-
-          build_rendered_collection(collection_body, spacer)
         end
       end
 
@@ -383,55 +338,6 @@ module ActionView
         end
       end
 
-      class CollectionIterator # :nodoc:
-        include Enumerable
-
-        attr_reader :collection
-
-        def initialize(collection)
-          @collection = collection
-        end
-
-        def each(&blk)
-          @collection.each(&blk)
-        end
-
-        def size
-          @collection.size
-        end
-      end
-
-      class SameCollectionIterator < CollectionIterator # :nodoc:
-        def initialize(collection, path, variables)
-          super(collection)
-          @path      = path
-          @variables = variables
-        end
-
-        def from_collection(collection)
-          return collection if collection == self
-          self.class.new(collection, @path, @variables)
-        end
-
-        def each_with_info
-          return enum_for(:each_with_info) unless block_given?
-          variables = [@path] + @variables
-          @collection.each { |o| yield(o, variables) }
-        end
-      end
-
-      class MixedCollectionIterator < CollectionIterator # :nodoc:
-        def initialize(collection, paths)
-          super(collection)
-          @paths = paths
-        end
-
-        def each_with_info
-          return enum_for(:each_with_info) unless block_given?
-          collection.each_with_index { |o, i| yield(o, @paths[i]) }
-        end
-      end
-
       # Sets up instance variables needed for rendering a partial. This method
       # finds the options and details and extracts them. The method also contains
       # logic that handles the type of object passed in as the partial.
@@ -450,17 +356,11 @@ module ActionView
         if String === partial
           @has_object = options.key?(:object)
           @object     = options[:object]
-          @collection = collection_from_options
+          @collection = collection_from_options(options)
           @path       = partial
-
-          if @collection
-            @has_object = true
-            @collection = build_collection_iterator(@collection, @path, as, context)
-          end
-
         else
           @has_object = true
-          @collection = collection_from_object(partial) || collection_from_options
+          @collection = collection_from_object(partial) || collection_from_options(options)
 
           if @collection
             @collection = build_collection_iterator(@collection, nil, as, context)
@@ -473,22 +373,22 @@ module ActionView
         self
       end
 
+      def collection_from_options(options)
+        if options.key?(:collection)
+          collection = options[:collection]
+          collection || []
+        end
+      end
+
+      def collection_from_object(object)
+        object if object.respond_to?(:to_ary)
+      end
+
       def as_variable(options)
         if as = options[:as]
           raise_invalid_option_as(as) unless /\A[a-z_]\w*\z/.match?(as.to_s)
           as.to_sym
         end
-      end
-
-      def collection_from_options
-        if @options.key?(:collection)
-          collection = @options[:collection]
-          collection || []
-        end
-      end
-
-      def collection_from_object(partial)
-        partial if partial.respond_to?(:to_ary)
       end
 
       def find_template(path, locals)
@@ -557,13 +457,13 @@ module ActionView
         end
       end
 
-      def retrieve_variable(path, as)
+      def retrieve_variable(path, as, collection)
         variable = as || begin
           base = path[-1] == "/" ? "" : File.basename(path)
           raise_invalid_identifier(path) unless base =~ /\A_?(.*?)(?:\.\w+)*\z/
           $1.to_sym
         end
-        if @collection
+        if collection
           variable_counter = :"#{variable}_counter"
           variable_iteration = :"#{variable}_iteration"
         end
@@ -583,6 +483,129 @@ module ActionView
 
       def raise_invalid_option_as(as)
         raise ArgumentError.new(OPTION_AS_ERROR_MESSAGE % (as))
+      end
+  end
+
+  class CollectionRenderer < PartialRenderer
+    class CollectionIterator # :nodoc:
+      include Enumerable
+
+      attr_reader :collection
+
+      def initialize(collection)
+        @collection = collection
+      end
+
+      def each(&blk)
+        @collection.each(&blk)
+      end
+
+      def size
+        @collection.size
+      end
+    end
+
+    class SameCollectionIterator < CollectionIterator # :nodoc:
+      def initialize(collection, path, variables)
+        super(collection)
+        @path      = path
+        @variables = variables
+      end
+
+      def from_collection(collection)
+        return collection if collection == self
+        self.class.new(collection, @path, @variables)
+      end
+
+      def each_with_info
+        return enum_for(:each_with_info) unless block_given?
+        variables = [@path] + @variables
+        @collection.each { |o| yield(o, variables) }
+      end
+    end
+
+    class MixedCollectionIterator < CollectionIterator # :nodoc:
+      def initialize(collection, paths)
+        super(collection)
+        @paths = paths
+      end
+
+      def each_with_info
+        return enum_for(:each_with_info) unless block_given?
+        collection.each_with_index { |o, i| yield(o, @paths[i]) }
+      end
+    end
+
+    def render_collection_with_partial(collection, partial, context, options, block)
+      as = as_variable(options)
+
+      @options = options
+
+      @locals  = options[:locals] || {}
+      @details = extract_details(options)
+      @path    = partial
+
+      @has_object = true
+      @collection = build_collection_iterator(collection, partial, as, context)
+
+      if options[:cached] && !partial
+        raise NotImplementedError, "render caching requires a template. Please specify a partial when rendering"
+      end
+
+      template = find_template(partial, template_keys(partial, as, collection)) if partial
+
+      if !block && (layout = options[:layout])
+        layout = find_template(layout.to_s, template_keys(partial, as, collection))
+      end
+
+      render_collection(context, template, layout)
+    end
+
+    def render_collection_derive_partial(collection, context, options, block)
+      paths = collection.map { |o| partial_path(o, context) }
+
+      if paths.uniq.length == 1
+        # Homogeneous
+        render_collection_with_partial(collection, paths.first, context, options, block)
+      else
+        render_collection_with_partial(collection, nil, context, options, block)
+      end
+    end
+
+    private
+      def build_collection_iterator(collection, path, as, context)
+        if path
+          SameCollectionIterator.new(collection, path, retrieve_variable(path, as, collection))
+        else
+          paths = collection.map { |o| partial_path(o, context) }
+          paths.map! { |path| retrieve_variable(path, as, collection).unshift(path) }
+          @path = nil
+          MixedCollectionIterator.new(collection, paths)
+        end
+      end
+
+      def render_collection(view, template, layout)
+        identifier = (template && template.identifier) || @path
+        instrument(:collection, identifier: identifier, count: @collection.size) do |payload|
+          spacer = if @options.key?(:spacer_template)
+            spacer_template = find_template(@options[:spacer_template], @locals.keys)
+            build_rendered_template(spacer_template.render(view, @locals), spacer_template)
+          else
+            RenderedTemplate::EMPTY_SPACER
+          end
+
+          collection_body = if template
+            cache_collection_render(payload, view, template, @collection) do |collection|
+              collection_with_template(view, template, layout, collection)
+            end
+          else
+            collection_with_template(view, nil, layout, @collection)
+          end
+
+          return RenderedCollection.empty(@lookup_context.formats.first) if collection_body.empty?
+
+          build_rendered_collection(collection_body, spacer)
+        end
       end
   end
 end

@@ -224,7 +224,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
     initializer "active_record.collection_cache_association_loading" do
       require "active_record/railties/collection_cache_association_loading"
       ActiveSupport.on_load(:action_view) do
-        ActionView::PartialRenderer.prepend(ActiveRecord::Railties::CollectionCacheAssociationLoading)
+        ActionView::CollectionRenderer.prepend(ActiveRecord::Railties::CollectionCacheAssociationLoading)
       end
     end
 
