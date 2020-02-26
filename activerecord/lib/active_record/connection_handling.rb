@@ -136,6 +136,8 @@ module ActiveRecord
     #
     # The database kwarg is deprecated and will be removed in 6.2.0 without replacement.
     def connected_to(database: nil, role: nil, shard: nil, prevent_writes: false, &blk)
+      raise NotImplementedError, "connected_to can only be called on ActiveRecord::Base" unless self == Base
+
       if database
         ActiveSupport::Deprecation.warn("The database key in `connected_to` is deprecated. It will be removed in Rails 6.2.0 without replacement.")
       end
