@@ -87,7 +87,7 @@ module ActionView
             else
               # Partial
               renderer = PartialRenderer.new(@lookup_context)
-              renderer.render(context, options, block)
+              renderer.render(partial, context, options, block)
             end
           end
         else

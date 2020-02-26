@@ -291,24 +291,21 @@ module ActionView
       @context_prefix = @lookup_context.prefixes.first
     end
 
-    def render(context, options, block)
-      as = as_variable(options)
-      setup(context, options, as)
+    def render(partial, context, options, block)
+      @options = options
+      @locals  = options[:locals] || {}
+      @details = extract_details(options)
+      @path    = partial
 
-      if @path
-        template = find_template(@path, template_keys(@path, as))
-      else
-        if options[:cached]
-          raise NotImplementedError, "render caching requires a template. Please specify a partial when rendering"
-        end
-        template = nil
-      end
+      as = as_variable(options)
+
+      template = find_template(@path, template_keys(@path, as))
 
       if !block && (layout = @options[:layout])
         layout = find_template(layout.to_s, template_keys(@path, as))
       end
 
-      render_partial(context, @locals, template, layout, block)
+      render_partial_template(context, @locals, template, layout, block)
     end
 
     private
@@ -316,7 +313,7 @@ module ActionView
         @locals.keys
       end
 
-      def render_partial(view, locals, template, layout, block)
+      def render_partial_template(view, locals, template, layout, block)
         instrument(:partial, identifier: template.identifier) do |payload|
           content = template.render(view, locals) do |*name|
             view._layout_for(*name, &block)
@@ -326,29 +323,6 @@ module ActionView
           payload[:cache_hit] = view.view_renderer.cache_hits[template.virtual_path]
           build_rendered_template(content, template)
         end
-      end
-
-      # Sets up instance variables needed for rendering a partial. This method
-      # finds the options and details and extracts them. The method also contains
-      # logic that handles the type of object passed in as the partial.
-      #
-      # If +options[:partial]+ is a string, then the <tt>@path</tt> instance variable is
-      # set to that string. Otherwise, the +options[:partial]+ object must
-      # respond to +to_partial_path+ in order to set up the path.
-      def setup(context, options, as)
-        @options = options
-        @locals  = options[:locals] || {}
-        @details = extract_details(options)
-
-        partial = options[:partial]
-
-        if String === partial
-          @path       = partial
-        else
-          @path = partial_path(@object, context)
-        end
-
-        self
       end
 
       def as_variable(options)
@@ -586,7 +560,7 @@ module ActionView
   class ObjectRenderer < PartialRenderer
     def render_object_with_partial(object, partial, context, options, block)
       @object = object
-      render(context, options, block)
+      render(partial, context, options, block)
     end
 
     def render_object_derive_partial(object, context, options, block)
@@ -600,7 +574,7 @@ module ActionView
         super + retrieve_variable(path, as)
       end
 
-      def render_partial(view, locals, template, layout, block)
+      def render_partial_template(view, locals, template, layout, block)
         as     = template.variable
         locals[as] = @object
         super(view, locals, template, layout, block)
