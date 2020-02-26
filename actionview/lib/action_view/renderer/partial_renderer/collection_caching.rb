@@ -11,8 +11,14 @@ module ActionView
     end
 
     private
+      def will_cache?(options, view)
+        options[:cached] && view.controller.respond_to?(:perform_caching) && view.controller.perform_caching
+      end
+
       def cache_collection_render(instrumentation_payload, view, template, collection)
-        return yield(collection) unless @options[:cached] && view.controller.respond_to?(:perform_caching) && view.controller.perform_caching
+        return yield(collection) unless will_cache?(@options, view)
+
+        collection_iterator = collection
 
         # Result is a hash with the key represents the
         # key used for cache lookup and the value is the item
@@ -37,7 +43,7 @@ module ActionView
         # If the cache is missing elements then
         # the block will be called against the remaining items
         # in the @collection.
-        rendered_partials = collection.empty? ? [] : yield(collection)
+        rendered_partials = collection.empty? ? [] : yield(collection_iterator.from_collection(collection))
 
         index = 0
         keyed_partials = fetch_or_cache_partial(cached_partials, template, order_by: keyed_collection.each_key) do

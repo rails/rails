@@ -366,6 +366,61 @@ module ActionView
         end
       end
 
+      class CollectionIterator # :nodoc:
+        include Enumerable
+
+        attr_reader :collection
+
+        def initialize(collection, path, variables)
+          @collection = collection
+          @path       = path
+          @variables  = variables
+        end
+
+        def from_collection(collection)
+          return collection if collection == self
+
+          self.class.new(collection, @path, @variables)
+        end
+
+        def each(&blk)
+          @collection.each(&blk)
+        end
+
+        def each_with_info
+          return enum_for(:each_with_info) unless block_given?
+
+          variables = [@path] + @variables
+          @collection.each { |o| yield(o, variables) }
+        end
+
+        def size
+          @collection.size
+        end
+      end
+
+      class MixedCollectionIterator # :nodoc:
+        include Enumerable
+
+        def initialize(collection, paths)
+          @collection = collection
+          @paths      = paths
+        end
+
+        def each(&blk)
+          @collection.each(&blk)
+        end
+
+        def each_with_info
+          return enum_for(:each_with_info) unless block_given?
+          @collection.each_with_index { |o, i| yield(o, @paths[i]) }
+        end
+
+        def size
+          @collection.size
+        end
+      end
+
       # Sets up instance variables needed for rendering a partial. This method
       # finds the options and details and extracts them. The method also contains
       # logic that handles the type of object passed in as the partial.
@@ -389,8 +444,7 @@ module ActionView
 
           if @collection
             @has_object = true
-            paths = @collection_data = @collection.map { |o| @path }
-            paths.map! { |path| retrieve_variable(path, as).unshift(path) }
+            @collection = CollectionIterator.new(@collection, @path, retrieve_variable(@path, as))
           end
         else
           @has_object = true
@@ -398,13 +452,14 @@ module ActionView
           @collection = collection_from_object || collection_from_options
 
           if @collection
-            paths = @collection_data = @collection.map { |o| partial_path(o, context) }
+            paths = @collection.map { |o| partial_path(o, context) }
             if paths.uniq.length == 1
               @path = paths.first
-              paths.map! { |path| retrieve_variable(path, as).unshift(path) }
+              @collection = CollectionIterator.new(@collection, @path, retrieve_variable(@path, as))
             else
               paths.map! { |path| retrieve_variable(path, as).unshift(path) }
               @path = nil
+              @collection = MixedCollectionIterator.new(@collection, paths)
             end
           else
             @path = partial_path(@object, context)
@@ -438,14 +493,13 @@ module ActionView
       end
 
       def collection_with_template(view, template, layout, collection)
-        locals, collection_data = @locals, @collection_data
+        locals = @locals
         cache = template || {}
 
         partial_iteration = PartialIteration.new(collection.size)
 
-        collection.map do |object|
+        collection.each_with_info.map do |object, (path, as, counter, iteration)|
           index = partial_iteration.index
-          path, as, counter, iteration = collection_data[index]
 
           locals[as]        = object
           locals[counter]   = index
