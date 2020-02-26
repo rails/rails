@@ -292,11 +292,11 @@ module ActionView
     end
 
     def render(context, options, block)
-      @as = as_variable(options)
-      setup(context, options, @as)
+      as = as_variable(options)
+      setup(context, options, as)
 
       if @path
-        template = find_template(@path, template_keys(@path, @as))
+        template = find_template(@path, template_keys(@path, as))
       else
         if options[:cached]
           raise NotImplementedError, "render caching requires a template. Please specify a partial when rendering"
@@ -305,7 +305,7 @@ module ActionView
       end
 
       if !block && (layout = @options[:layout])
-        layout = find_template(layout.to_s, template_keys(@path, @as))
+        layout = find_template(layout.to_s, template_keys(@path, as))
       end
 
       render_partial(context, template, layout, block)
