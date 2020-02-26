@@ -316,8 +316,25 @@ module ActionView
     end
 
     private
+      def build_collection_iterator(collection, path, as, context)
+        if path
+          SameCollectionIterator.new(collection, path, retrieve_variable(path, as))
+        else
+          paths = collection.map { |o| partial_path(o, context) }
+
+          if paths.uniq.length == 1
+            @path = paths.first
+            build_collection_iterator(collection, @path, as, context)
+          else
+            paths.map! { |path| retrieve_variable(path, as).unshift(path) }
+            @path = nil
+            MixedCollectionIterator.new(collection, paths)
+          end
+        end
+      end
+
       def template_keys(path, as)
-        if @has_object || @collection
+        if @has_object
           @locals.keys + retrieve_variable(path, as)
         else
           @locals.keys
@@ -371,27 +388,12 @@ module ActionView
 
         attr_reader :collection
 
-        def initialize(collection, path, variables)
+        def initialize(collection)
           @collection = collection
-          @path       = path
-          @variables  = variables
-        end
-
-        def from_collection(collection)
-          return collection if collection == self
-
-          self.class.new(collection, @path, @variables)
         end
 
         def each(&blk)
           @collection.each(&blk)
-        end
-
-        def each_with_info
-          return enum_for(:each_with_info) unless block_given?
-
-          variables = [@path] + @variables
-          @collection.each { |o| yield(o, variables) }
         end
 
         def size
@@ -399,25 +401,34 @@ module ActionView
         end
       end
 
-      class MixedCollectionIterator # :nodoc:
-        include Enumerable
-
-        def initialize(collection, paths)
-          @collection = collection
-          @paths      = paths
+      class SameCollectionIterator < CollectionIterator # :nodoc:
+        def initialize(collection, path, variables)
+          super(collection)
+          @path      = path
+          @variables = variables
         end
 
-        def each(&blk)
-          @collection.each(&blk)
+        def from_collection(collection)
+          return collection if collection == self
+          self.class.new(collection, @path, @variables)
         end
 
         def each_with_info
           return enum_for(:each_with_info) unless block_given?
-          @collection.each_with_index { |o, i| yield(o, @paths[i]) }
+          variables = [@path] + @variables
+          @collection.each { |o| yield(o, variables) }
+        end
+      end
+
+      class MixedCollectionIterator < CollectionIterator # :nodoc:
+        def initialize(collection, paths)
+          super(collection)
+          @paths = paths
         end
 
-        def size
-          @collection.size
+        def each_with_info
+          return enum_for(:each_with_info) unless block_given?
+          collection.each_with_index { |o, i| yield(o, @paths[i]) }
         end
       end
 
@@ -444,23 +455,16 @@ module ActionView
 
           if @collection
             @has_object = true
-            @collection = CollectionIterator.new(@collection, @path, retrieve_variable(@path, as))
+            @collection = build_collection_iterator(@collection, @path, as, context)
           end
+
         else
           @has_object = true
           @object = partial
           @collection = collection_from_object || collection_from_options
 
           if @collection
-            paths = @collection.map { |o| partial_path(o, context) }
-            if paths.uniq.length == 1
-              @path = paths.first
-              @collection = CollectionIterator.new(@collection, @path, retrieve_variable(@path, as))
-            else
-              paths.map! { |path| retrieve_variable(path, as).unshift(path) }
-              @path = nil
-              @collection = MixedCollectionIterator.new(@collection, paths)
-            end
+            @collection = build_collection_iterator(@collection, nil, as, context)
           else
             @path = partial_path(@object, context)
           end
