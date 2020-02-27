@@ -83,15 +83,9 @@ module ActionView
     end
 
     def render_collection_with_partial(collection, partial, context, block)
-      collection = build_collection_iterator(collection, partial, context)
+      collection = SameCollectionIterator.new(collection, partial, retrieve_variable(partial))
 
-      template = find_template(partial, template_keys(partial)) if partial
-
-      if !block && (layout = @options[:layout])
-        layout = find_template(layout.to_s, template_keys(partial))
-      end
-
-      render_collection(collection, context, template, partial, layout)
+      render_collection(collection, context, partial, block)
     end
 
     def render_collection_derive_partial(collection, context, block)
@@ -105,7 +99,9 @@ module ActionView
           raise NotImplementedError, "render caching requires a template. Please specify a partial when rendering"
         end
 
-        render_collection_with_partial(collection, nil, context, block)
+        paths.map! { |path| retrieve_variable(path).unshift(path) }
+        collection = MixedCollectionIterator.new(collection, paths)
+        render_collection(collection, context, nil, block)
       end
     end
 
@@ -118,17 +114,13 @@ module ActionView
         vars
       end
 
-      def build_collection_iterator(collection, path, context)
-        if path
-          SameCollectionIterator.new(collection, path, retrieve_variable(path))
-        else
-          paths = collection.map { |o| partial_path(o, context) }
-          paths.map! { |path| retrieve_variable(path).unshift(path) }
-          MixedCollectionIterator.new(collection, paths)
-        end
-      end
+      def render_collection(collection, view, path, block)
+        template = find_template(path, template_keys(path)) if path
 
-      def render_collection(collection, view, template, path, layout)
+        if !block && (layout = @options[:layout])
+          layout = find_template(layout.to_s, template_keys(path))
+        end
+
         identifier = (template && template.identifier) || path
         instrument(:collection, identifier: identifier, count: collection.size) do |payload|
           spacer = if @options.key?(:spacer_template)
