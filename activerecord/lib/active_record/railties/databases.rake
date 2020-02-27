@@ -110,9 +110,12 @@ db_namespace = namespace :db do
     ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
       desc "Migrate #{name} database for current environment"
       task name => :load_config do
+        original_db_config = ActiveRecord::Base.connection_db_config
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: name)
         ActiveRecord::Base.establish_connection(db_config)
         ActiveRecord::Tasks::DatabaseTasks.migrate
+      ensure
+        ActiveRecord::Base.establish_connection(original_db_config)
       end
     end
 
