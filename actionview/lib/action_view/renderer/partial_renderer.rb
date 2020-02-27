@@ -500,7 +500,6 @@ module ActionView
         else
           paths = collection.map { |o| partial_path(o, context) }
           paths.map! { |path| retrieve_variable(path).unshift(path) }
-          @path = nil
           MixedCollectionIterator.new(collection, paths)
         end
       end
