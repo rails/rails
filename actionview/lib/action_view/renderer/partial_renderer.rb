@@ -289,8 +289,6 @@ module ActionView
     end
 
     def render(partial, context, block)
-      @path    = partial
-
       template = find_template(partial, template_keys(partial))
 
       if !block && (layout = @options[:layout])
@@ -408,8 +406,6 @@ module ActionView
     end
 
     def render_collection_with_partial(collection, partial, context, block)
-      @path    = partial
-
       @collection = build_collection_iterator(collection, partial, context)
 
       if @options[:cached] && !partial
@@ -422,7 +418,7 @@ module ActionView
         layout = find_template(layout.to_s, template_keys(partial))
       end
 
-      render_collection(context, template, layout)
+      render_collection(context, template, partial, layout)
     end
 
     def render_collection_derive_partial(collection, context, block)
@@ -455,8 +451,8 @@ module ActionView
         end
       end
 
-      def render_collection(view, template, layout)
-        identifier = (template && template.identifier) || @path
+      def render_collection(view, template, path, layout)
+        identifier = (template && template.identifier) || path
         instrument(:collection, identifier: identifier, count: @collection.size) do |payload|
           spacer = if @options.key?(:spacer_template)
             spacer_template = find_template(@options[:spacer_template], @locals.keys)
