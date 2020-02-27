@@ -26,7 +26,6 @@ module ActiveRecord
       end
 
       def set_schema_cache(cache)
-        # The pool's cache should not have a connection attached
         self.schema_cache = SchemaCache.new(nil, data: cache.data)
       end
     end
