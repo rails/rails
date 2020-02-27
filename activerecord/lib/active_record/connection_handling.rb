@@ -157,7 +157,7 @@ module ActiveRecord
 
         with_handler(role, &blk)
       elsif shard
-        with_shard(connection_specification_name, shard, role || current_role, prevent_writes, &blk)
+        with_shard(shard, role || current_role, prevent_writes, &blk)
       elsif role
         with_role(role, prevent_writes, &blk)
       else
@@ -303,7 +303,7 @@ module ActiveRecord
         end
       end
 
-      def with_shard(connection_specification_name, pool_key, role, prevent_writes)
+      def with_shard(pool_key, role, prevent_writes)
         old_pool_key = current_pool_key
 
         with_role(role, prevent_writes) do
