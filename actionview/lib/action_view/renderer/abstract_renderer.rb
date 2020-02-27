@@ -146,12 +146,18 @@ module ActionView
     end
 
     private
+      NO_DETAILS = {}.freeze
+
       def extract_details(options) # :doc:
-        @lookup_context.registered_details.each_with_object({}) do |key, details|
+        details = nil
+        @lookup_context.registered_details.each do |key|
           value = options[key]
 
-          details[key] = Array(value) if value
+          if value
+            (details ||= {})[key] = Array(value)
+          end
         end
+        details || NO_DETAILS
       end
 
       def instrument(name, **options) # :doc:
