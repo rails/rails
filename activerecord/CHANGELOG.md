@@ -1,3 +1,11 @@
+*   Prevent schema_cache leaking connections between threads
+
+    49b6b21 changed schema_cache to be per-connection-pool rather than per-connection. However, the schema_cache still maintained an internal reference to a single connection. This reference was replaced each time the schema_cache was requested, but the change would affect all threads. Under some circumstances, this resulted in multiple threads trying to use the same connection.
+
+    This change switches back to a single SchemaCache instance per connection, and also introduces a new SchemaCacheData class. A single instance of SchemaCacheData is shared between all SchemaCache instances for a pool.
+
+    *David Taylor*
+
 *   Reset the `ActiveRecord::Base` connection after `rails db:migrate:name`
 
     When `rails db:migrate` has finished, it ensures the `ActiveRecord::Base` connection is reset to its original configuration. Going forward, `rails db:migrate:name` will have the same behavior.

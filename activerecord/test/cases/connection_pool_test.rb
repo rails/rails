@@ -521,6 +521,18 @@ module ActiveRecord
         pool.checkin connection
       end
 
+      def test_concurrent_schema_cache
+        first_schema_cache = pool.connection.schema_cache
+
+        second_schema_cache = nil
+        Thread.new do
+          second_schema_cache = pool.connection.schema_cache
+        end.join
+
+        assert_not_equal first_schema_cache.connection, second_schema_cache.connection
+        assert_equal first_schema_cache.data, second_schema_cache.data
+      end
+
       def test_concurrent_connection_establishment
         assert_operator @pool.connections.size, :<=, 1
 

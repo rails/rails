@@ -195,11 +195,12 @@ module ActiveRecord
       end
 
       def schema_cache
-        @pool.get_schema_cache(self)
+        @schema_cache ||= SchemaCache.new(self)
+        @schema_cache.data = @pool.get_schema_cache.data
+        @schema_cache
       end
 
       def schema_cache=(cache)
-        cache.connection = self
         @pool.set_schema_cache(cache)
       end
 

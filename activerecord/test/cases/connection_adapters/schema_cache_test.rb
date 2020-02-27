@@ -113,7 +113,7 @@ module ActiveRecord
 
         # We can't verify queries get executed because the database version gets
         # cached in both MySQL and PostgreSQL outside of the schema cache.
-        assert_nil cache.instance_variable_get(:@database_version)
+        assert_nil cache.data.instance_variable_get(:@database_version)
         assert_equal @database_version.to_s, cache.database_version.to_s
       end
 
@@ -158,7 +158,7 @@ module ActiveRecord
         @cache.clear!
 
         assert_equal 0, @cache.size
-        assert_nil @cache.instance_variable_get(:@database_version)
+        assert_nil @cache.data.instance_variable_get(:@database_version)
       end
 
       def test_marshal_dump_and_load
