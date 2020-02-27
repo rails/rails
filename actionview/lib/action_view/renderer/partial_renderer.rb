@@ -297,19 +297,17 @@ module ActionView
       @details = extract_details(options)
       @path    = partial
 
-      as = as_variable(options)
-
-      template = find_template(@path, template_keys(@path, as))
+      template = find_template(@path, template_keys(@path))
 
       if !block && (layout = @options[:layout])
-        layout = find_template(layout.to_s, template_keys(@path, as))
+        layout = find_template(layout.to_s, template_keys(@path))
       end
 
       render_partial_template(context, @locals, template, layout, block)
     end
 
     private
-      def template_keys(path, as)
+      def template_keys(path)
         @locals.keys
       end
 
@@ -322,13 +320,6 @@ module ActionView
           content = layout.render(view, locals) { content } if layout
           payload[:cache_hit] = view.view_renderer.cache_hits[template.virtual_path]
           build_rendered_template(content, template)
-        end
-      end
-
-      def as_variable(options)
-        if as = options[:as]
-          raise_invalid_option_as(as) unless /\A[a-z_]\w*\z/.match?(as.to_s)
-          as.to_sym
         end
       end
 
@@ -377,11 +368,16 @@ module ActionView
         end
       end
 
-      def retrieve_variable(path, as)
-        variable = as || begin
-          base = path[-1] == "/" ? "" : File.basename(path)
-          raise_invalid_identifier(path) unless base =~ /\A_?(.*?)(?:\.\w+)*\z/
-          $1.to_sym
+      def retrieve_variable(path)
+        variable = if as = @options[:as]
+          raise_invalid_option_as(as) unless /\A[a-z_]\w*\z/.match?(as.to_s)
+          as.to_sym
+        else
+          begin
+            base = path[-1] == "/" ? "" : File.basename(path)
+            raise_invalid_identifier(path) unless base =~ /\A_?(.*?)(?:\.\w+)*\z/
+            $1.to_sym
+          end
         end
         [variable]
       end
@@ -453,24 +449,22 @@ module ActionView
     end
 
     def render_collection_with_partial(collection, partial, context, options, block)
-      as = as_variable(options)
-
       @options = options
 
       @locals  = options[:locals] || {}
       @details = extract_details(options)
       @path    = partial
 
-      @collection = build_collection_iterator(collection, partial, as, context)
+      @collection = build_collection_iterator(collection, partial, context)
 
       if options[:cached] && !partial
         raise NotImplementedError, "render caching requires a template. Please specify a partial when rendering"
       end
 
-      template = find_template(partial, template_keys(partial, as)) if partial
+      template = find_template(partial, template_keys(partial)) if partial
 
       if !block && (layout = options[:layout])
-        layout = find_template(layout.to_s, template_keys(partial, as))
+        layout = find_template(layout.to_s, template_keys(partial))
       end
 
       render_collection(context, template, layout)
@@ -488,11 +482,11 @@ module ActionView
     end
 
     private
-      def template_keys(path, as)
-        super + retrieve_variable(path, as)
+      def template_keys(path)
+        super + retrieve_variable(path)
       end
 
-      def retrieve_variable(path, as)
+      def retrieve_variable(path)
         vars = super
         variable = vars.first
         vars << :"#{variable}_counter"
@@ -500,12 +494,12 @@ module ActionView
         vars
       end
 
-      def build_collection_iterator(collection, path, as, context)
+      def build_collection_iterator(collection, path, context)
         if path
-          SameCollectionIterator.new(collection, path, retrieve_variable(path, as))
+          SameCollectionIterator.new(collection, path, retrieve_variable(path))
         else
           paths = collection.map { |o| partial_path(o, context) }
-          paths.map! { |path| retrieve_variable(path, as).unshift(path) }
+          paths.map! { |path| retrieve_variable(path).unshift(path) }
           @path = nil
           MixedCollectionIterator.new(collection, paths)
         end
@@ -570,8 +564,8 @@ module ActionView
 
     private
 
-      def template_keys(path, as)
-        super + retrieve_variable(path, as)
+      def template_keys(path)
+        super + retrieve_variable(path)
       end
 
       def render_partial_template(view, locals, template, layout, block)
