@@ -3,10 +3,10 @@
 module ActiveRecord
   module Railties # :nodoc:
     module CollectionCacheAssociationLoading #:nodoc:
-      def render_collection_with_partial(collection, partial, context, options, block)
+      def render_collection_with_partial(collection, partial, context, block)
         @relation = nil
 
-        return super unless options[:cached]
+        return super unless @options[:cached]
 
         @relation = get_relation(collection)
 

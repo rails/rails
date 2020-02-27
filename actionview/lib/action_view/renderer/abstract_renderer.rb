@@ -27,6 +27,27 @@ module ActionView
       raise NotImplementedError
     end
 
+    module ObjectRendering # :nodoc:
+      private
+        def template_keys(path)
+          super + retrieve_variable(path)
+        end
+
+        def retrieve_variable(path)
+          variable = if as = @options[:as]
+            raise_invalid_option_as(as) unless /\A[a-z_]\w*\z/.match?(as.to_s)
+            as.to_sym
+          else
+            begin
+              base = path[-1] == "/" ? "" : File.basename(path)
+              raise_invalid_identifier(path) unless base =~ /\A_?(.*?)(?:\.\w+)*\z/
+              $1.to_sym
+            end
+          end
+          [variable]
+        end
+    end
+
     class RenderedCollection # :nodoc:
       def self.empty(format)
         EmptyCollection.new format

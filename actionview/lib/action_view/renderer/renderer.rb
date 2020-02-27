@@ -77,17 +77,17 @@ module ActionView
 
           if collection
             # Collection + Partial
-            renderer = CollectionRenderer.new(@lookup_context)
-            renderer.render_collection_with_partial(collection, partial, context, options, block)
+            renderer = CollectionRenderer.new(@lookup_context, options)
+            renderer.render_collection_with_partial(collection, partial, context, block)
           else
             if options.key?(:object)
               # Object + Partial
-              renderer = ObjectRenderer.new(@lookup_context)
-              renderer.render_object_with_partial(options[:object], partial, context, options, block)
+              renderer = ObjectRenderer.new(@lookup_context, options)
+              renderer.render_object_with_partial(options[:object], partial, context, block)
             else
               # Partial
-              renderer = PartialRenderer.new(@lookup_context)
-              renderer.render(partial, context, options, block)
+              renderer = PartialRenderer.new(@lookup_context, options)
+              renderer.render(partial, context, block)
             end
           end
         else
@@ -95,12 +95,12 @@ module ActionView
 
           if collection
             # Collection + Derived Partial
-            renderer = CollectionRenderer.new(@lookup_context)
-            renderer.render_collection_derive_partial(collection, context, options, block)
+            renderer = CollectionRenderer.new(@lookup_context, options)
+            renderer.render_collection_derive_partial(collection, context, block)
           else
             # Object + Derived Partial
-            renderer = ObjectRenderer.new(@lookup_context)
-            renderer.render_object_derive_partial(partial, context, options, block)
+            renderer = ObjectRenderer.new(@lookup_context, options)
+            renderer.render_object_derive_partial(partial, context, block)
           end
         end
       end

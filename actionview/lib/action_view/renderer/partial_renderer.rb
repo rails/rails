@@ -286,15 +286,15 @@ module ActionView
       h[k] = Concurrent::Map.new
     end
 
-    def initialize(*)
-      super
+    def initialize(lookup_context, options)
+      super(lookup_context)
+      @options = options
       @context_prefix = @lookup_context.prefixes.first
     end
 
-    def render(partial, context, options, block)
-      @options = options
-      @locals  = options[:locals] || {}
-      @details = extract_details(options)
+    def render(partial, context, block)
+      @locals  = @options[:locals] || {}
+      @details = extract_details(@options)
       @path    = partial
 
       template = find_template(@path, template_keys(@path))
@@ -307,7 +307,7 @@ module ActionView
     end
 
     private
-      def template_keys(path)
+      def template_keys(_)
         @locals.keys
       end
 
@@ -368,20 +368,6 @@ module ActionView
         end
       end
 
-      def retrieve_variable(path)
-        variable = if as = @options[:as]
-          raise_invalid_option_as(as) unless /\A[a-z_]\w*\z/.match?(as.to_s)
-          as.to_sym
-        else
-          begin
-            base = path[-1] == "/" ? "" : File.basename(path)
-            raise_invalid_identifier(path) unless base =~ /\A_?(.*?)(?:\.\w+)*\z/
-            $1.to_sym
-          end
-        end
-        [variable]
-      end
-
       IDENTIFIER_ERROR_MESSAGE = "The partial name (%s) is not a valid Ruby identifier; " \
                                  "make sure your partial name starts with underscore."
 
@@ -399,6 +385,8 @@ module ActionView
   end
 
   class CollectionRenderer < PartialRenderer
+    include ObjectRendering
+
     class CollectionIterator # :nodoc:
       include Enumerable
 
@@ -448,44 +436,38 @@ module ActionView
       end
     end
 
-    def render_collection_with_partial(collection, partial, context, options, block)
-      @options = options
-
-      @locals  = options[:locals] || {}
-      @details = extract_details(options)
+    def render_collection_with_partial(collection, partial, context, block)
+      @locals  = @options[:locals] || {}
+      @details = extract_details(@options)
       @path    = partial
 
       @collection = build_collection_iterator(collection, partial, context)
 
-      if options[:cached] && !partial
+      if @options[:cached] && !partial
         raise NotImplementedError, "render caching requires a template. Please specify a partial when rendering"
       end
 
       template = find_template(partial, template_keys(partial)) if partial
 
-      if !block && (layout = options[:layout])
+      if !block && (layout = @options[:layout])
         layout = find_template(layout.to_s, template_keys(partial))
       end
 
       render_collection(context, template, layout)
     end
 
-    def render_collection_derive_partial(collection, context, options, block)
+    def render_collection_derive_partial(collection, context, block)
       paths = collection.map { |o| partial_path(o, context) }
 
       if paths.uniq.length == 1
         # Homogeneous
-        render_collection_with_partial(collection, paths.first, context, options, block)
+        render_collection_with_partial(collection, paths.first, context, block)
       else
-        render_collection_with_partial(collection, nil, context, options, block)
+        render_collection_with_partial(collection, nil, context, block)
       end
     end
 
     private
-      def template_keys(path)
-        super + retrieve_variable(path)
-      end
-
       def retrieve_variable(path)
         vars = super
         variable = vars.first
@@ -551,21 +533,19 @@ module ActionView
   end
 
   class ObjectRenderer < PartialRenderer
-    def render_object_with_partial(object, partial, context, options, block)
+    include ObjectRendering
+
+    def render_object_with_partial(object, partial, context, block)
       @object = object
-      render(partial, context, options, block)
+      render(partial, context, block)
     end
 
-    def render_object_derive_partial(object, context, options, block)
+    def render_object_derive_partial(object, context, block)
       path = partial_path(object, context)
-      render_object_with_partial(object, path, context, options, block)
+      render_object_with_partial(object, path, context, block)
     end
 
     private
-
-      def template_keys(path)
-        super + retrieve_variable(path)
-      end
 
       def render_partial_template(view, locals, template, layout, block)
         as     = template.variable
