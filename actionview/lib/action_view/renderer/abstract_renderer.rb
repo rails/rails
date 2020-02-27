@@ -58,6 +58,21 @@ module ActionView
           [variable]
         end
 
+        IDENTIFIER_ERROR_MESSAGE = "The partial name (%s) is not a valid Ruby identifier; " \
+                                   "make sure your partial name starts with underscore."
+
+        OPTION_AS_ERROR_MESSAGE  = "The value (%s) of the option `as` is not a valid Ruby identifier; " \
+                                   "make sure it starts with lowercase letter, " \
+                                   "and is followed by any combination of letters, numbers and underscores."
+
+        def raise_invalid_identifier(path)
+          raise ArgumentError, IDENTIFIER_ERROR_MESSAGE % path
+        end
+
+        def raise_invalid_option_as(as)
+          raise ArgumentError, OPTION_AS_ERROR_MESSAGE % as
+        end
+
         # Obtains the path to where the object's partial is located. If the object
         # responds to +to_partial_path+, then +to_partial_path+ will be called and
         # will provide the path. If the object does not respond to +to_partial_path+,
