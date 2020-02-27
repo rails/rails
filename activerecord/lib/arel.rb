@@ -49,7 +49,11 @@ module Arel
   def self.fetch_attribute(value) # :nodoc:
     case value
     when Arel::Nodes::Between, Arel::Nodes::In, Arel::Nodes::NotIn, Arel::Nodes::Equality, Arel::Nodes::NotEqual, Arel::Nodes::LessThan, Arel::Nodes::LessThanOrEqual, Arel::Nodes::GreaterThan, Arel::Nodes::GreaterThanOrEqual
-      yield value.left.is_a?(Arel::Attributes::Attribute) ? value.left : value.right
+      if value.left.is_a?(Arel::Attributes::Attribute)
+        yield value.left
+      elsif value.right.is_a?(Arel::Attributes::Attribute)
+        yield value.right
+      end
     end
   end
 
