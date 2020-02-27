@@ -146,7 +146,7 @@ module ActionView
 
       def collection_with_template(view, template, layout, collection)
         locals = @locals
-        cache = template || {}
+        cache = {}
 
         partial_iteration = PartialIteration.new(collection.size)
 
@@ -157,7 +157,8 @@ module ActionView
           locals[counter]   = index
           locals[iteration] = partial_iteration
 
-          _template = template || (cache[path] ||= find_template(path, @locals.keys + [as, counter, iteration]))
+          _template = (cache[path] ||= (template || find_template(path, @locals.keys + [as, counter, iteration])))
+
           content = _template.render(view, locals)
           content = layout.render(view, locals) { content } if layout
           partial_iteration.iterate!
