@@ -320,23 +320,6 @@ module ActionView
         @lookup_context.find_template(path, prefixes, true, locals, @details)
       end
 
-      def merge_prefix_into_object_path(prefix, object_path)
-        if prefix.include?(?/) && object_path.include?(?/)
-          prefixes = []
-          prefix_array = File.dirname(prefix).split("/")
-          object_path_array = object_path.split("/")[0..-3] # skip model dir & partial
-
-          prefix_array.each_with_index do |dir, index|
-            break if dir == object_path_array[index]
-            prefixes << dir
-          end
-
-          (prefixes << object_path).join("/")
-        else
-          object_path
-        end
-      end
-
       IDENTIFIER_ERROR_MESSAGE = "The partial name (%s) is not a valid Ruby identifier; " \
                                  "make sure your partial name starts with underscore."
 
