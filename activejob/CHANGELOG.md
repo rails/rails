@@ -21,7 +21,7 @@
         before_enqueue { throw(:abort) }
       end
 
-      MyJob.perform_later # Will no longer log "Enqueud MyJob" since job wasn't even enqueued through adapter.
+      MyJob.perform_later # Will no longer log "Enqueued MyJob" since job wasn't even enqueued through adapter.
     ```
 
     A new message will be logged in case a job couldn't be enqueued, either because the callback chain was halted or
@@ -65,14 +65,16 @@
 
     *Vlado Cingel*
 
-*   Add jitter to :exponentially_longer
+*   Add jitter to :exponentially_longer.
 
     ActiveJob::Exceptions.retry_on with :exponentially_longer now uses a random amount of jitter in order to
-    prevent the [thundering herd effect.](https://en.wikipedia.org/wiki/Thundering_herd_problem).  Defaults to
+    prevent the [thundering herd effect](https://en.wikipedia.org/wiki/Thundering_herd_problem). Defaults to
     15% (represented as 0.15) but overridable via the `:jitter` option when using `retry_on`.
-    Jitter is applied when an `Integer`, `ActiveSupport::Duration` or `exponentially_longer`, is passed to the `wait` argument in `retry_on`.
+    Jitter is applied when an `Integer`, `ActiveSupport::Duration` or `:exponentially_longer`, is passed to the `wait` argument in `retry_on`.
 
+    ```ruby
     retry_on(MyError, wait: :exponentially_longer, jitter: 0.30)
+    ```
 
     *Anthony Ross*
 

@@ -51,7 +51,8 @@ module ApplicationTests
 
       test "db:create and db:drop without database URL" do
         require "#{app_path}/config/environment"
-        db_create_and_drop ActiveRecord::Base.configurations[Rails.env][:database]
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: "primary")
+        db_create_and_drop db_config.database
       end
 
       test "db:create and db:drop with database URL" do
@@ -332,7 +333,8 @@ module ApplicationTests
 
       test "db:migrate and db:migrate:status without database_url" do
         require "#{app_path}/config/environment"
-        db_migrate_and_status ActiveRecord::Base.configurations[Rails.env][:database]
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: "primary")
+        db_migrate_and_status db_config.database
       end
 
       test "db:migrate and db:migrate:status with database_url" do
@@ -359,6 +361,82 @@ module ApplicationTests
         db_schema_dump
       end
 
+      def db_schema_cache_dump(filename = "db/schema_cache.yml")
+        Dir.chdir(app_path) do
+          rails "db:schema:cache:dump"
+
+          cache_size = lambda { rails("runner", "p ActiveRecord::Base.connection.schema_cache.size").strip }
+          cache_tables = lambda { rails("runner", "p ActiveRecord::Base.connection.schema_cache.columns('books')").strip }
+
+          assert_equal "12", cache_size[]
+          assert_includes cache_tables[], "id", "expected cache_tables to include an id entry"
+          assert_includes cache_tables[], "title", "expected cache_tables to include a title entry"
+        end
+      end
+
+      test "db:schema:cache:dump" do
+        db_schema_dump
+        db_schema_cache_dump
+      end
+
+      test "db:schema:cache:dump with custom filename" do
+        Dir.chdir(app_path) do
+          File.open("#{app_path}/config/database.yml", "w") do |f|
+            f.puts <<-YAML
+            default: &default
+              adapter: sqlite3
+              pool: 5
+              timeout: 5000
+              variables:
+                statement_timeout: 1000
+            development:
+              <<: *default
+              database: db/development.sqlite3
+              schema_cache_path: db/special_schema_cache.yml
+            YAML
+          end
+        end
+
+        db_schema_dump
+        db_schema_cache_dump("db/special_schema_cache.yml")
+      end
+
+      test "db:schema:cache:dump custom env" do
+        @old_schema_cache_env = ENV["SCHEMA_CACHE"]
+        filename = "db/special_schema_cache.yml"
+        ENV["SCHEMA_CACHE"] = filename
+
+        db_schema_dump
+        db_schema_cache_dump(filename)
+      ensure
+        ENV["SCHEMA_CACHE"] = @old_schema_cache_env
+      end
+
+      test "db:schema:cache:dump primary wins" do
+        Dir.chdir(app_path) do
+          File.open("#{app_path}/config/database.yml", "w") do |f|
+            f.puts <<-YAML
+            default: &default
+              adapter: sqlite3
+              pool: 5
+              timeout: 5000
+              variables:
+                statement_timeout: 1000
+            development:
+              some_entry:
+                <<: *default
+                database: db/development_other.sqlite3
+              primary:
+                <<: *default
+                database: db/development.sqlite3
+            YAML
+          end
+        end
+
+        db_schema_dump
+        db_schema_cache_dump
+      end
+
       def db_fixtures_load(expected_database)
         Dir.chdir(app_path) do
           rails "generate", "model", "book", "title:string"
@@ -372,7 +450,8 @@ module ApplicationTests
 
       test "db:fixtures:load without database_url" do
         require "#{app_path}/config/environment"
-        db_fixtures_load ActiveRecord::Base.configurations[Rails.env][:database]
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: "primary")
+        db_fixtures_load db_config.database
       end
 
       test "db:fixtures:load with database_url" do
@@ -407,7 +486,8 @@ module ApplicationTests
 
       test "db:structure:dump and db:structure:load without database_url" do
         require "#{app_path}/config/environment"
-        db_structure_dump_and_load ActiveRecord::Base.configurations[Rails.env][:database]
+        db_config = ActiveRecord::Base.connection_db_config
+        db_structure_dump_and_load db_config.database
       end
 
       test "db:structure:dump and db:structure:load with database_url" do
@@ -418,7 +498,8 @@ module ApplicationTests
 
       test "db:structure:dump and db:structure:load set ar_internal_metadata" do
         require "#{app_path}/config/environment"
-        db_structure_dump_and_load ActiveRecord::Base.configurations[Rails.env][:database]
+        db_config = ActiveRecord::Base.connection_db_config
+        db_structure_dump_and_load db_config.database
 
         assert_equal "test", rails("runner", "-e", "test", "puts ActiveRecord::InternalMetadata[:environment]").strip
         assert_equal "development", rails("runner", "puts ActiveRecord::InternalMetadata[:environment]").strip
@@ -497,8 +578,8 @@ module ApplicationTests
           require "#{app_path}/app/models/book"
           # if structure is not loaded correctly, exception would be raised
           assert_equal 0, Book.count
-          assert_match ActiveRecord::Base.configurations["test"][:database],
-            ActiveRecord::Base.connection_db_config.database
+          db_config = ActiveRecord::Base.configurations.configs_for(env_name: "test", name: "primary")
+          assert_match db_config.database, ActiveRecord::Base.connection_db_config.database
         end
       end
 

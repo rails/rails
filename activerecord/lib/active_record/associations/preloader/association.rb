@@ -19,7 +19,7 @@ module ActiveRecord
             end
           else
             # Custom preload scope is used and
-            # the association can not be marked as loaded
+            # the association cannot be marked as loaded
             # Loading into a Hash instead
             records_by_owner
           end
@@ -48,18 +48,18 @@ module ActiveRecord
             raw_records = owner_keys.empty? ? [] : records_for(owner_keys)
 
             @preloaded_records = raw_records.select do |record|
-              assignments = []
+              assignments = false
 
               owners_by_key[convert_key(record[association_key_name])].each do |owner|
                 entries = (@records_by_owner[owner] ||= [])
 
                 if reflection.collection? || entries.empty?
                   entries << record
-                  assignments << record
+                  assignments = true
                 end
               end
 
-              !assignments.empty?
+              assignments
             end
           end
 
@@ -143,8 +143,16 @@ module ActiveRecord
             end
 
             scope.merge!(reflection_scope) if reflection.scope
-            scope.merge!(preload_scope) if preload_scope
-            scope
+
+            if preload_scope && !preload_scope.empty_scope?
+              scope.merge!(preload_scope)
+            end
+
+            if preload_scope && preload_scope.strict_loading_value
+              scope.strict_loading
+            else
+              scope
+            end
           end
       end
     end

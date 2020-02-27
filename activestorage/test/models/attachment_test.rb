@@ -25,6 +25,18 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
     assert_equal 2736, blob.metadata[:height]
   end
 
+  test "attaching a un-analyzable blob" do
+    blob = create_blob(filename: "blank.txt")
+
+    assert_not_predicate blob, :analyzed?
+
+    assert_no_enqueued_jobs do
+      @user.highlights.attach(blob)
+    end
+
+    assert_predicate blob.reload, :analyzed?
+  end
+
   test "mirroring a directly-uploaded blob after attaching it" do
     with_service("mirror") do
       blob = directly_upload_file_blob

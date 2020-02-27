@@ -79,7 +79,7 @@ module Rails
     def app
       directory "app"
 
-      keep_file "app/assets/images"
+      empty_directory_with_keep_file "app/assets/images"
 
       keep_file  "app/controllers/concerns"
       keep_file  "app/models/concerns"
@@ -316,7 +316,7 @@ module Rails
 
       def update_active_storage
         unless skip_active_storage?
-          rails_command "active_storage:update"
+          rails_command "active_storage:update", inline: true
         end
       end
       remove_task :update_active_storage

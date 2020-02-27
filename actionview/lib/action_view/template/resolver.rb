@@ -204,9 +204,13 @@ module ActionView
         end
       end
 
+      def source_for_template(template)
+        Template::Sources::File.new(template)
+      end
+
       def build_unbound_template(template, virtual_path)
         handler, format, variant = extract_handler_and_format_and_variant(template)
-        source = Template::Sources::File.new(template)
+        source = source_for_template(template)
 
         UnboundTemplate.new(
           source,
@@ -316,14 +320,22 @@ module ActionView
     end
 
     private
-      def find_template_paths_from_details(path, details)
+      def find_candidate_template_paths(path)
         # Instead of checking for every possible path, as our other globs would
         # do, scan the directory for files with the right prefix.
         query = "#{escape_entry(File.join(@path, path))}*"
 
+        Dir[query].reject do |filename|
+          File.directory?(filename)
+        end
+      end
+
+      def find_template_paths_from_details(path, details)
+        candidates = find_candidate_template_paths(path)
+
         regex = build_regex(path, details)
 
-        Dir[query].uniq.reject do |filename|
+        candidates.uniq.reject do |filename|
           # This regex match does double duty of finding only files which match
           # details (instead of just matching the prefix) and also filtering for
           # case-insensitive file systems.

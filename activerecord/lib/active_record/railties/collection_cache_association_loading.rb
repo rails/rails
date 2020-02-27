@@ -4,14 +4,16 @@ module ActiveRecord
   module Railties # :nodoc:
     module CollectionCacheAssociationLoading #:nodoc:
       def setup(context, options, as, block)
-        @relation = relation_from_options(**options)
+        @relation = nil
+
+        return super unless options[:cached]
+
+        @relation = relation_from_options(options[:partial], options[:collection])
 
         super
       end
 
-      def relation_from_options(cached: nil, partial: nil, collection: nil, **_)
-        return unless cached
-
+      def relation_from_options(partial, collection)
         relation = partial if partial.is_a?(ActiveRecord::Relation)
         relation ||= collection if collection.is_a?(ActiveRecord::Relation)
 

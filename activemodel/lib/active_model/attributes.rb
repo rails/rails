@@ -48,7 +48,6 @@ module ActiveModel
           ) do |temp_method_name, attr_name_expr|
             generated_attribute_methods.module_eval <<-RUBY, __FILE__, __LINE__ + 1
               def #{temp_method_name}(value)
-                raise FrozenError, "can't modify frozen #{self.class.name}" if frozen?
                 name = #{attr_name_expr}
                 write_attribute(name, value)
               end
@@ -83,7 +82,6 @@ module ActiveModel
     # Returns a hash of all the attributes with their names as keys and the values of the attributes as values.
     #
     #   class Person
-    #     include ActiveModel::Model
     #     include ActiveModel::Attributes
     #
     #     attribute :name, :string
@@ -111,6 +109,11 @@ module ActiveModel
     #   # => ["name", "age"]
     def attribute_names
       @attributes.keys
+    end
+
+    def freeze
+      @attributes = @attributes.clone.freeze
+      super
     end
 
     private

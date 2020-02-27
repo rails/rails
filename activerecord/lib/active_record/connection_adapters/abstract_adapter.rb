@@ -130,12 +130,12 @@ module ActiveRecord
       def schema_migration # :nodoc:
         @schema_migration ||= begin
                                 conn = self
-                                spec_name = conn.pool.db_config.spec_name
-                                name = "#{spec_name}::SchemaMigration"
+                                name = conn.pool.db_config.name
+                                schema_migration_name = "#{name}::SchemaMigration"
 
                                 Class.new(ActiveRecord::SchemaMigration) do
-                                  define_singleton_method(:name) { name }
-                                  define_singleton_method(:to_s) { name }
+                                  define_singleton_method(:name) { schema_migration_name }
+                                  define_singleton_method(:to_s) { schema_migration_name }
 
                                   connection_handler.connection_pool_names.each do |pool_name|
                                     if conn.pool == connection_handler.retrieve_connection_pool(pool_name)
@@ -280,6 +280,10 @@ module ActiveRecord
       # sequence before the insert statement? If true, next_sequence_value
       # is called before each insert to set the record's primary key.
       def prefetch_primary_key?(table_name = nil)
+        false
+      end
+
+      def supports_partitioned_indexes?
         false
       end
 

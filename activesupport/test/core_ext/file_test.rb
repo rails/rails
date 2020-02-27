@@ -85,7 +85,7 @@ class AtomicWriteTest < ActiveSupport::TestCase
 
   private
     def file_name
-      "atomic.file"
+      "atomic-#{Process.pid}.file"
     end
 
     def file_mode

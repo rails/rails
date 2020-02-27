@@ -242,7 +242,7 @@ module ActiveRecord
     # Inside migration files, the +t+ object in {create_table}[rdoc-ref:SchemaStatements#create_table]
     # is actually of this type:
     #
-    #   class SomeMigration < ActiveRecord::Migration[5.0]
+    #   class SomeMigration < ActiveRecord::Migration[6.0]
     #     def up
     #       create_table :foo do |t|
     #         puts t.class  # => "ActiveRecord::ConnectionAdapters::TableDefinition"
@@ -364,7 +364,6 @@ module ActiveRecord
       def column(name, type, **options)
         name = name.to_s
         type = type.to_sym if type
-        options = options.dup
 
         if @columns_hash[name]
           if @columns_hash[name].primary_key?
@@ -550,7 +549,7 @@ module ActiveRecord
       #  t.string(:name) unless t.column_exists?(:name, :string)
       #
       # See {connection.column_exists?}[rdoc-ref:SchemaStatements#column_exists?]
-      def column_exists?(column_name, type = nil, options = {})
+      def column_exists?(column_name, type = nil, **options)
         @base.column_exists?(name, column_name, type, **options)
       end
 
@@ -591,8 +590,8 @@ module ActiveRecord
       #  t.timestamps(null: false)
       #
       # See {connection.add_timestamps}[rdoc-ref:SchemaStatements#add_timestamps]
-      def timestamps(options = {})
-        @base.add_timestamps(name, options)
+      def timestamps(**options)
+        @base.add_timestamps(name, **options)
       end
 
       # Changes the column's definition according to the new options.
@@ -622,8 +621,8 @@ module ActiveRecord
       #  t.remove(:qualification, :experience)
       #
       # See {connection.remove_columns}[rdoc-ref:SchemaStatements#remove_columns]
-      def remove(*column_names)
-        @base.remove_columns(name, *column_names)
+      def remove(*column_names, **options)
+        @base.remove_columns(name, *column_names, **options)
       end
 
       # Removes the given index from the table.
@@ -643,8 +642,8 @@ module ActiveRecord
       #  t.remove_timestamps
       #
       # See {connection.remove_timestamps}[rdoc-ref:SchemaStatements#remove_timestamps]
-      def remove_timestamps(options = {})
-        @base.remove_timestamps(name, options)
+      def remove_timestamps(**options)
+        @base.remove_timestamps(name, **options)
       end
 
       # Renames a column.
@@ -707,8 +706,8 @@ module ActiveRecord
       #  t.foreign_key(:authors) unless t.foreign_key_exists?(:authors)
       #
       # See {connection.foreign_key_exists?}[rdoc-ref:SchemaStatements#foreign_key_exists?]
-      def foreign_key_exists?(*args)
-        @base.foreign_key_exists?(name, *args)
+      def foreign_key_exists?(*args, **options)
+        @base.foreign_key_exists?(name, *args, **options)
       end
     end
   end

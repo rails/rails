@@ -366,7 +366,7 @@ class CookiesTest < ActionController::TestCase
     @request.env["action_dispatch.cookies_same_site_protection"] = :none
 
     get :authenticate
-    assert_cookie_header "user_name=david; path=/" # TODO: append "; SameSite=None" when rack 2.1.0 is out and bump rack dependency version.
+    assert_cookie_header "user_name=david; path=/; SameSite=None"
     assert_equal({ "user_name" => "david" }, @response.cookies)
   end
 
@@ -902,7 +902,7 @@ class CookiesTest < ActionController::TestCase
     secret = "b3c631c314c0bbca50c1b2843150fe33"
 
     @request.env["action_dispatch.encrypted_cookie_cipher"] = "aes-256-gcm"
-    @request.env["action_dispatch.cookies_rotations"].rotate :encrypted, secret
+    @request.env["action_dispatch.cookies_rotations"].rotate :encrypted, secret, digest: "SHA1"
 
     key_len = ActiveSupport::MessageEncryptor.key_len("aes-256-gcm")
 

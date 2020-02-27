@@ -633,7 +633,7 @@ You can also inspect for an object method this way:
 
 ```
 (byebug) var instance Article.new
-@_start_transaction_state = {}
+@_start_transaction_state = nil
 @aggregation_cache = {}
 @association_cache = {}
 @attributes = #<ActiveRecord::AttributeSet:0x007fd0682a9b18 @attributes={"id"=>#<ActiveRecord::Attribute::FromDatabase:0x007fd0682a9a00 @name="id", @value_be...

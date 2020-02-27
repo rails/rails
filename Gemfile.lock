@@ -349,7 +349,7 @@ GEM
       mini_portile2 (~> 2.4.0)
     os (1.0.1)
     parallel (1.19.1)
-    parser (2.6.5.0)
+    parser (2.7.0.2)
       ast (~> 2.4.0)
     path_expander (1.1.0)
     pg (1.2.0)
@@ -367,7 +367,7 @@ GEM
       thor
     raabro (1.1.6)
     racc (1.4.16)
-    rack (2.1.1)
+    rack (2.2.2)
     rack-cache (1.10.0)
       rack (>= 0.4)
     rack-protection (2.0.7)
@@ -409,11 +409,12 @@ GEM
       rufus-scheduler (~> 3.2)
     retriable (3.1.2)
     rexml (3.2.3)
-    rubocop (0.78.0)
+    rubocop (0.80.0)
       jaro_winkler (~> 1.5.1)
       parallel (~> 1.10)
-      parser (>= 2.6)
+      parser (>= 2.7.0.1)
       rainbow (>= 2.2.2, < 4.0)
+      rexml
       ruby-progressbar (~> 1.7)
       unicode-display_width (>= 1.4.0, < 1.7)
     rubocop-performance (1.5.2)
@@ -502,7 +503,7 @@ GEM
     uber (0.1.0)
     uglifier (4.2.0)
       execjs (>= 0.3.0, < 3)
-    unicode-display_width (1.6.0)
+    unicode-display_width (1.6.1)
     useragent (0.16.10)
     vegas (0.1.11)
       rack (>= 1.0.0)
@@ -609,4 +610,4 @@ DEPENDENCIES
   websocket-client-simple!
 
 BUNDLED WITH
-   2.1.2
+   2.1.4

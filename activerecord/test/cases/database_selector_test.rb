@@ -106,6 +106,38 @@ module ActiveRecord
       assert @session_store[:last_write]
     end
 
+    def test_write_to_primary_and_update_custom_context
+      custom_context = Class.new(ActiveRecord::Middleware::DatabaseSelector::Resolver::Session) do
+        def update_last_write_timestamp
+          super
+          @wrote_to_primary = true
+        end
+
+        def save(response)
+          response[:wrote_to_primary] = @wrote_to_primary
+        end
+      end
+
+      resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver.new(custom_context.new(@session_store))
+
+      # Session should start empty
+      assert_nil @session_store[:last_write]
+
+      called = false
+      resolver.write do
+        assert ActiveRecord::Base.connected_to?(role: :writing)
+        called = true
+      end
+      assert called
+      response = {}
+      resolver.update_context(response)
+
+      # and be populated by the last write time
+      assert @session_store[:last_write]
+      # plus the response updated
+      assert response[:wrote_to_primary]
+    end
+
     def test_write_to_primary_with_exception
       resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver.new(@session)
 

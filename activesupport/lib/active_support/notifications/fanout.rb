@@ -104,10 +104,6 @@ module ActiveSupport
           wrap_all pattern, subscriber_class.new(pattern, listener)
         end
 
-        def self.event_object_subscriber(pattern, block)
-          wrap_all pattern, EventObject.new(pattern, block)
-        end
-
         def self.wrap_all(pattern, subscriber)
           unless pattern
             AllMessages.new(subscriber)

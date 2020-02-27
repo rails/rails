@@ -7,6 +7,21 @@ class ModuleConcerningTest < ActiveSupport::TestCase
   def test_concerning_declares_a_concern_and_includes_it_immediately
     klass = Class.new { concerning(:Foo) { } }
     assert_includes klass.ancestors, klass::Foo, klass.ancestors.inspect
+
+    klass = Class.new { concerning(:Foo, prepend: true) { } }
+    assert_includes klass.ancestors, klass::Foo, klass.ancestors.inspect
+  end
+
+  def test_concerning_can_prepend_concern
+    klass = Class.new do
+      def hi; "self"; end
+
+      concerning(:Foo, prepend: true) do
+        def hi; "hello, #{super}"; end
+      end
+    end
+
+    assert_equal "hello, self", klass.new.hi
   end
 end
 
@@ -15,6 +30,7 @@ class ModuleConcernTest < ActiveSupport::TestCase
     klass = Class.new do
       concern :Baz do
         included { @foo = 1 }
+        prepended { @foo = 2 }
         def should_be_public; end
       end
     end
@@ -30,6 +46,9 @@ class ModuleConcernTest < ActiveSupport::TestCase
 
     # Calls included hook
     assert_equal 1, Class.new { include klass::Baz }.instance_variable_get("@foo")
+
+    # Calls prepended hook
+    assert_equal 2, Class.new { prepend klass::Baz }.instance_variable_get("@foo")
   end
 
   class Foo
@@ -52,6 +71,26 @@ class ModuleConcernTest < ActiveSupport::TestCase
         def doesnt_clobber; end
       end
     end
+
+    concerning :Baz, prepend: true do
+      module ClassMethods
+        def will_be_orphaned_also; end
+      end
+
+      const_set :ClassMethods, Module.new {
+        def hacked_on_also; end
+      }
+
+      # Doesn't overwrite existing ClassMethods module.
+      class_methods do
+        def nicer_dsl_also; end
+      end
+
+      # Doesn't overwrite previous class_methods definitions.
+      class_methods do
+        def doesnt_clobber_also; end
+      end
+    end
   end
 
   def test_using_class_methods_blocks_instead_of_ClassMethods_module
@@ -63,5 +102,16 @@ class ModuleConcernTest < ActiveSupport::TestCase
     # Orphan in Foo::ClassMethods, not Bar::ClassMethods.
     assert Foo.const_defined?(:ClassMethods)
     assert Foo::ClassMethods.method_defined?(:will_be_orphaned)
+  end
+
+  def test_using_class_methods_blocks_instead_of_ClassMethods_module_prepend
+    assert_not_respond_to Foo, :will_be_orphaned_also
+    assert_respond_to Foo, :hacked_on_also
+    assert_respond_to Foo, :nicer_dsl_also
+    assert_respond_to Foo, :doesnt_clobber_also
+
+    # Orphan in Foo::ClassMethods, not Bar::ClassMethods.
+    assert Foo.const_defined?(:ClassMethods)
+    assert Foo::ClassMethods.method_defined?(:will_be_orphaned_also)
   end
 end

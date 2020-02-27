@@ -161,7 +161,8 @@ module Rails
             "#{css}:assets",
             "css:assets",
             "css:scaffold",
-            "action_text:install"
+            "action_text:install",
+            "action_mailbox:install"
           ]
         end
       end

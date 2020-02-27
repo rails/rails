@@ -96,7 +96,7 @@ module Rails
 
       # Hard-coding a bunch of handlers here as we don't have a public way of
       # querying them from the Rack::Handler registry.
-      RACK_SERVERS = %w(cgi fastcgi webrick lsws scgi thin puma unicorn)
+      RACK_SERVERS = %w(cgi fastcgi webrick lsws scgi thin puma unicorn falcon)
 
       DEFAULT_PORT = 3000
       DEFAULT_PIDFILE = "tmp/pids/server.pid"

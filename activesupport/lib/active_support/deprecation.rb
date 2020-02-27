@@ -17,6 +17,7 @@ module ActiveSupport
     require "active_support/deprecation/instance_delegator"
     require "active_support/deprecation/behaviors"
     require "active_support/deprecation/reporting"
+    require "active_support/deprecation/disallowed"
     require "active_support/deprecation/constant_accessor"
     require "active_support/deprecation/method_wrappers"
     require "active_support/deprecation/proxy_wrappers"
@@ -27,6 +28,7 @@ module ActiveSupport
     include InstanceDelegator
     include Behavior
     include Reporting
+    include Disallowed
     include MethodWrapper
 
     # The version number in which the deprecated behavior will be removed, by default.
@@ -43,6 +45,7 @@ module ActiveSupport
       self.silenced = false
       self.debug = false
       @silenced_thread = Concurrent::ThreadLocalVar.new(false)
+      @explicitly_allowed_warnings = Concurrent::ThreadLocalVar.new(nil)
     end
   end
 end

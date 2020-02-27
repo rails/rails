@@ -43,7 +43,7 @@ class TimeTravelTest < ActiveSupport::TestCase
 
   def test_time_helper_travel_to
     Time.stub(:now, Time.now) do
-      expected_time = Time.new(2004, 11, 24, 01, 04, 44)
+      expected_time = Time.new(2004, 11, 24, 1, 4, 44)
       travel_to expected_time
 
       assert_equal expected_time, Time.now
@@ -56,7 +56,7 @@ class TimeTravelTest < ActiveSupport::TestCase
 
   def test_time_helper_travel_to_with_block
     Time.stub(:now, Time.now) do
-      expected_time = Time.new(2004, 11, 24, 01, 04, 44)
+      expected_time = Time.new(2004, 11, 24, 1, 4, 44)
 
       travel_to expected_time do
         assert_equal expected_time, Time.now
@@ -86,7 +86,7 @@ class TimeTravelTest < ActiveSupport::TestCase
 
   def test_time_helper_travel_back
     Time.stub(:now, Time.now) do
-      expected_time = Time.new(2004, 11, 24, 01, 04, 44)
+      expected_time = Time.new(2004, 11, 24, 1, 4, 44)
 
       travel_to expected_time
       assert_equal expected_time, Time.now
@@ -104,7 +104,7 @@ class TimeTravelTest < ActiveSupport::TestCase
 
   def test_time_helper_travel_back_with_block
     Time.stub(:now, Time.now) do
-      expected_time = Time.new(2004, 11, 24, 01, 04, 44)
+      expected_time = Time.new(2004, 11, 24, 1, 4, 44)
 
       travel_to expected_time
       assert_equal expected_time, Time.now
@@ -127,8 +127,8 @@ class TimeTravelTest < ActiveSupport::TestCase
 
   def test_time_helper_travel_to_with_nested_calls_with_blocks
     Time.stub(:now, Time.now) do
-      outer_expected_time = Time.new(2004, 11, 24, 01, 04, 44)
-      inner_expected_time = Time.new(2004, 10, 24, 01, 04, 44)
+      outer_expected_time = Time.new(2004, 11, 24, 1, 4, 44)
+      inner_expected_time = Time.new(2004, 10, 24, 1, 4, 44)
       travel_to outer_expected_time do
         e = assert_raises(RuntimeError) do
           travel_to(inner_expected_time) do
@@ -142,8 +142,8 @@ class TimeTravelTest < ActiveSupport::TestCase
 
   def test_time_helper_travel_to_with_nested_calls
     Time.stub(:now, Time.now) do
-      outer_expected_time = Time.new(2004, 11, 24, 01, 04, 44)
-      inner_expected_time = Time.new(2004, 10, 24, 01, 04, 44)
+      outer_expected_time = Time.new(2004, 11, 24, 1, 4, 44)
+      inner_expected_time = Time.new(2004, 10, 24, 1, 4, 44)
       travel_to outer_expected_time do
         assert_nothing_raised do
           travel_to(inner_expected_time)
@@ -156,8 +156,8 @@ class TimeTravelTest < ActiveSupport::TestCase
 
   def test_time_helper_travel_to_with_subsequent_calls
     Time.stub(:now, Time.now) do
-      initial_expected_time = Time.new(2004, 11, 24, 01, 04, 44)
-      subsequent_expected_time = Time.new(2004, 10, 24, 01, 04, 44)
+      initial_expected_time = Time.new(2004, 11, 24, 1, 4, 44)
+      subsequent_expected_time = Time.new(2004, 10, 24, 1, 4, 44)
       assert_nothing_raised do
         travel_to initial_expected_time
         travel_to subsequent_expected_time

@@ -2,7 +2,7 @@
 
 require "test_helper"
 
-ENV["MAILGUN_INGRESS_API_KEY"] = "tbsy84uSV1Kt3ZJZELY2TmShPRs91E3yL4tzf96297vBCkDWgL"
+ENV["MAILGUN_INGRESS_SIGNING_KEY"] = "tbsy84uSV1Kt3ZJZELY2TmShPRs91E3yL4tzf96297vBCkDWgL"
 
 class ActionMailbox::Ingresses::Mailgun::InboundEmailsControllerTest < ActionDispatch::IntegrationTest
   setup { ActionMailbox.ingress = :mailgun }
@@ -53,7 +53,7 @@ class ActionMailbox::Ingresses::Mailgun::InboundEmailsControllerTest < ActionDis
     assert_response :unauthorized
   end
 
-  test "raising when the configured Mailgun API key is nil" do
+  test "raising when the configured Mailgun Signing key is nil" do
     switch_key_to nil do
       assert_raises ArgumentError do
         travel_to "2018-10-09 15:15:00 EDT"
@@ -67,7 +67,7 @@ class ActionMailbox::Ingresses::Mailgun::InboundEmailsControllerTest < ActionDis
     end
   end
 
-  test "raising when the configured Mailgun API key is blank" do
+  test "raising when the configured Mailgun Signing key is blank" do
     switch_key_to "" do
       assert_raises ArgumentError do
         travel_to "2018-10-09 15:15:00 EDT"
@@ -83,9 +83,9 @@ class ActionMailbox::Ingresses::Mailgun::InboundEmailsControllerTest < ActionDis
 
   private
     def switch_key_to(new_key)
-      previous_key, ENV["MAILGUN_INGRESS_API_KEY"] = ENV["MAILGUN_INGRESS_API_KEY"], new_key
+      previous_key, ENV["MAILGUN_INGRESS_SIGNING_KEY"] = ENV["MAILGUN_INGRESS_SIGNING_KEY"], new_key
       yield
     ensure
-      ENV["MAILGUN_INGRESS_API_KEY"] = previous_key
+      ENV["MAILGUN_INGRESS_SIGNING_KEY"] = previous_key
     end
 end
