@@ -289,12 +289,12 @@ module ActionView
     def initialize(lookup_context, options)
       super(lookup_context)
       @options = options
+      @locals  = @options[:locals] || {}
+      @details = extract_details(@options)
       @context_prefix = @lookup_context.prefixes.first
     end
 
     def render(partial, context, block)
-      @locals  = @options[:locals] || {}
-      @details = extract_details(@options)
       @path    = partial
 
       template = find_template(@path, template_keys(@path))
@@ -437,8 +437,6 @@ module ActionView
     end
 
     def render_collection_with_partial(collection, partial, context, block)
-      @locals  = @options[:locals] || {}
-      @details = extract_details(@options)
       @path    = partial
 
       @collection = build_collection_iterator(collection, partial, context)
