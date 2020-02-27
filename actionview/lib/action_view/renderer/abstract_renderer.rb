@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "concurrent/map"
+
 module ActionView
   # This class defines the interface for a renderer. Each class that
   # subclasses +AbstractRenderer+ is used by the base +Renderer+ class to
@@ -28,6 +30,15 @@ module ActionView
     end
 
     module ObjectRendering # :nodoc:
+      PREFIXED_PARTIAL_NAMES = Concurrent::Map.new do |h, k|
+        h[k] = Concurrent::Map.new
+      end
+
+      def initialize(lookup_context, options)
+        super
+        @context_prefix = lookup_context.prefixes.first
+      end
+
       private
         def template_keys(path)
           super + retrieve_variable(path)
@@ -45,6 +56,29 @@ module ActionView
             end
           end
           [variable]
+        end
+
+        # Obtains the path to where the object's partial is located. If the object
+        # responds to +to_partial_path+, then +to_partial_path+ will be called and
+        # will provide the path. If the object does not respond to +to_partial_path+,
+        # then an +ArgumentError+ is raised.
+        #
+        # If +prefix_partial_path_with_controller_namespace+ is true, then this
+        # method will prefix the partial paths with a namespace.
+        def partial_path(object, view)
+          object = object.to_model if object.respond_to?(:to_model)
+
+          path = if object.respond_to?(:to_partial_path)
+            object.to_partial_path
+          else
+            raise ArgumentError.new("'#{object.inspect}' is not an ActiveModel-compatible object. It must implement :to_partial_path.")
+          end
+
+          if view.prefix_partial_path_with_controller_namespace
+            PREFIXED_PARTIAL_NAMES[@context_prefix][path] ||= merge_prefix_into_object_path(@context_prefix, path.dup)
+          else
+            path
+          end
         end
     end
 

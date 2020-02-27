@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "concurrent/map"
 require "action_view/renderer/partial_renderer/collection_caching"
 
 module ActionView
@@ -282,25 +281,20 @@ module ActionView
   class PartialRenderer < AbstractRenderer
     include CollectionCaching
 
-    PREFIXED_PARTIAL_NAMES = Concurrent::Map.new do |h, k|
-      h[k] = Concurrent::Map.new
-    end
-
     def initialize(lookup_context, options)
       super(lookup_context)
       @options = options
       @locals  = @options[:locals] || {}
       @details = extract_details(@options)
-      @context_prefix = @lookup_context.prefixes.first
     end
 
     def render(partial, context, block)
       @path    = partial
 
-      template = find_template(@path, template_keys(@path))
+      template = find_template(partial, template_keys(partial))
 
       if !block && (layout = @options[:layout])
-        layout = find_template(layout.to_s, template_keys(@path))
+        layout = find_template(layout.to_s, template_keys(partial))
       end
 
       render_partial_template(context, @locals, template, layout, block)
@@ -326,29 +320,6 @@ module ActionView
       def find_template(path, locals)
         prefixes = path.include?(?/) ? [] : @lookup_context.prefixes
         @lookup_context.find_template(path, prefixes, true, locals, @details)
-      end
-
-      # Obtains the path to where the object's partial is located. If the object
-      # responds to +to_partial_path+, then +to_partial_path+ will be called and
-      # will provide the path. If the object does not respond to +to_partial_path+,
-      # then an +ArgumentError+ is raised.
-      #
-      # If +prefix_partial_path_with_controller_namespace+ is true, then this
-      # method will prefix the partial paths with a namespace.
-      def partial_path(object, view)
-        object = object.to_model if object.respond_to?(:to_model)
-
-        path = if object.respond_to?(:to_partial_path)
-          object.to_partial_path
-        else
-          raise ArgumentError.new("'#{object.inspect}' is not an ActiveModel-compatible object. It must implement :to_partial_path.")
-        end
-
-        if view.prefix_partial_path_with_controller_namespace
-          PREFIXED_PARTIAL_NAMES[@context_prefix][path] ||= merge_prefix_into_object_path(@context_prefix, path.dup)
-        else
-          path
-        end
       end
 
       def merge_prefix_into_object_path(prefix, object_path)
