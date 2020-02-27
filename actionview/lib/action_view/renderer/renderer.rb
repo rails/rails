@@ -100,7 +100,6 @@ module ActionView
     end
 
     private
-
       def collection_from_options(options)
         if options.key?(:collection)
           collection = options[:collection]

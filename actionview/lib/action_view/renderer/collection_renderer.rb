@@ -89,7 +89,7 @@ module ActionView
       template = find_template(partial, @locals.keys + iter_vars)
 
       layout = if !block && (layout = @options[:layout])
-         find_template(layout.to_s, @locals.keys + iter_vars)
+        find_template(layout.to_s, @locals.keys + iter_vars)
       end
 
       render_collection(collection, context, partial, template, layout, block)
@@ -129,8 +129,8 @@ module ActionView
           end
 
           collection_body = if template
-            cache_collection_render(payload, view, template, collection) do |collection|
-              collection_with_template(view, template, layout, collection)
+            cache_collection_render(payload, view, template, collection) do |filtered_collection|
+              collection_with_template(view, template, layout, filtered_collection)
             end
           else
             collection_with_template(view, nil, layout, collection)
