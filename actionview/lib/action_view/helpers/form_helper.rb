@@ -1905,7 +1905,7 @@ module ActionView
         class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
           def #{selector}(method, options = {})  # def text_field(method, options = {})
             @template.send(                      #   @template.send(
-              #{selector.inspect},               #     "text_field",
+              #{selector.inspect},               #     :text_field,
               @object_name,                      #     @object_name,
               method,                            #     method,
               objectify_options(options))        #     objectify_options(options))

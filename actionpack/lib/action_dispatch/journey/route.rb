@@ -13,6 +13,7 @@ module ActionDispatch
         VERBS = %w{ DELETE GET HEAD OPTIONS LINK PATCH POST PUT TRACE UNLINK }
         VERBS.each do |v|
           class_eval <<-eoc, __FILE__, __LINE__ + 1
+            # frozen_string_literal: true
             class #{v}
               def self.verb; name.split("::").last; end
               def self.call(req); req.#{v.downcase}?; end

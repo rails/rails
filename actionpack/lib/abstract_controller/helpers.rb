@@ -66,10 +66,10 @@ module AbstractController
 
         methods.each do |method|
           _helpers.class_eval <<-ruby_eval, file, line
-            def #{method}(*args, &blk)                     # def current_user(*args, &blk)
-              controller.send(%(#{method}), *args, &blk)   #   controller.send(:current_user, *args, &blk)
-            end                                            # end
-            ruby2_keywords(%(#{method})) if respond_to?(:ruby2_keywords, true)
+            def #{method}(*args, &block)                    # def current_user(*args, &block)
+              controller.send(:'#{method}', *args, &block)  #   controller.send(:'current_user', *args, &block)
+            end                                             # end
+            ruby2_keywords(:'#{method}') if respond_to?(:ruby2_keywords, true)
           ruby_eval
         end
       end
