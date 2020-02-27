@@ -1,3 +1,11 @@
+*   Prevent schema_cache leaking connections between threads
+
+    49b6b21 changed schema_cache to be per-connection-pool rather than per-connection. However, the schema_cache still maintained an internal reference to a single connection. This reference was replaced each time the schema_cache was requested, but the change would affect all threads. Under some circumstances, this resulted in multiple threads trying to use the same connection.
+
+    This change switches back to a single SchemaCache instance per connection, and also introduces a new SchemaCacheData class. A single instance of SchemaCacheData is shared between all SchemaCache instances for a pool.
+
+    *David Taylor*
+
 *   Add support for horizontal sharding to `connects_to` and `connected_to`.
 
     Applications can now connect to multiple shards and switch between their shards in an application. Note that the shard swapping is still a manual process as this change does not include an API for automatic shard swapping.
