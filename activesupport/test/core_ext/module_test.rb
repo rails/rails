@@ -24,6 +24,10 @@ Someone = Struct.new(:name, :place) do
   self::FAILED_DELEGATE_LINE_2 = __LINE__ + 1
   delegate :bar, to: :place, allow_nil: true
 
+  def kw_send(method:)
+    public_send(method)
+  end
+
   private
     def private_name
       "Private"
@@ -373,6 +377,10 @@ class ModuleTest < ActiveSupport::TestCase
 
   def test_delegate_missing_to_with_reserved_methods
     assert_equal "David", DecoratedReserved.new(@david).name
+  end
+
+  def test_delegate_missing_to_with_keyword_methods
+    assert_equal "David", DecoratedReserved.new(@david).kw_send(method: "name")
   end
 
   def test_delegate_missing_to_does_not_delegate_to_private_methods
