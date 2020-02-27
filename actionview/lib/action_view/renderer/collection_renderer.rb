@@ -85,10 +85,6 @@ module ActionView
     def render_collection_with_partial(collection, partial, context, block)
       collection = build_collection_iterator(collection, partial, context)
 
-      if @options[:cached] && !partial
-        raise NotImplementedError, "render caching requires a template. Please specify a partial when rendering"
-      end
-
       template = find_template(partial, template_keys(partial)) if partial
 
       if !block && (layout = @options[:layout])
@@ -105,6 +101,10 @@ module ActionView
         # Homogeneous
         render_collection_with_partial(collection, paths.first, context, block)
       else
+        if @options[:cached]
+          raise NotImplementedError, "render caching requires a template. Please specify a partial when rendering"
+        end
+
         render_collection_with_partial(collection, nil, context, block)
       end
     end
