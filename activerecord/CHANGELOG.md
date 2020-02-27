@@ -6,6 +6,18 @@
 
     *David Taylor*
 
+*   Reset the `ActiveRecord::Base` connection after `rails db:migrate:name`
+
+    When `rails db:migrate` has finished, it ensures the `ActiveRecord::Base` connection is reset to its original configuration. Going forward, `rails db:migrate:name` will have the same behavior.
+
+    *Kyle Thompson*
+
+*   Disallow calling `connected_to` on subclasses of `ActiveRecord::Base`.
+
+    Behavior has not changed here but the previous API could be misleading to people who thought it would switch connections for only that class. `connected_to` switches the context from which we are getting connections, not the connections themselves.
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
 *   Add support for horizontal sharding to `connects_to` and `connected_to`.
 
     Applications can now connect to multiple shards and switch between their shards in an application. Note that the shard swapping is still a manual process as this change does not include an API for automatic shard swapping.

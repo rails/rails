@@ -1591,6 +1591,14 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
+  test "cannot call connected_to on subclasses of ActiveRecord::Base" do
+    error = assert_raises(NotImplementedError) do
+      Bird.connected_to(role: :reading) { }
+    end
+
+    assert_equal "connected_to can only be called on ActiveRecord::Base", error.message
+  end
+
   test "preventing writes applies to all connections on a handler" do
     conn1_error = assert_raises ActiveRecord::ReadOnlyError do
       ActiveRecord::Base.connection_handler.while_preventing_writes do
