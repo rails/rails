@@ -53,7 +53,7 @@ module Arel
          Arel::Nodes::GreaterThan, Arel::Nodes::GreaterThanOrEqual
       if value.left.is_a?(Arel::Attributes::Attribute)
         yield value.left
-      else
+      elsif value.right.is_a?(Arel::Attributes::Attribute)
         yield value.right
       end
     when Arel::Nodes::Or
