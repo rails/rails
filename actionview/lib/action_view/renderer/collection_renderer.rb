@@ -83,7 +83,7 @@ module ActionView
     end
 
     def render_collection_with_partial(collection, partial, context, block)
-      @collection = build_collection_iterator(collection, partial, context)
+      collection = build_collection_iterator(collection, partial, context)
 
       if @options[:cached] && !partial
         raise NotImplementedError, "render caching requires a template. Please specify a partial when rendering"
@@ -95,7 +95,7 @@ module ActionView
         layout = find_template(layout.to_s, template_keys(partial))
       end
 
-      render_collection(context, template, partial, layout)
+      render_collection(collection, context, template, partial, layout)
     end
 
     def render_collection_derive_partial(collection, context, block)
@@ -128,9 +128,9 @@ module ActionView
         end
       end
 
-      def render_collection(view, template, path, layout)
+      def render_collection(collection, view, template, path, layout)
         identifier = (template && template.identifier) || path
-        instrument(:collection, identifier: identifier, count: @collection.size) do |payload|
+        instrument(:collection, identifier: identifier, count: collection.size) do |payload|
           spacer = if @options.key?(:spacer_template)
             spacer_template = find_template(@options[:spacer_template], @locals.keys)
             build_rendered_template(spacer_template.render(view, @locals), spacer_template)
@@ -139,11 +139,11 @@ module ActionView
           end
 
           collection_body = if template
-            cache_collection_render(payload, view, template, @collection) do |collection|
+            cache_collection_render(payload, view, template, collection) do |collection|
               collection_with_template(view, template, layout, collection)
             end
           else
-            collection_with_template(view, nil, layout, @collection)
+            collection_with_template(view, nil, layout, collection)
           end
 
           return RenderedCollection.empty(@lookup_context.formats.first) if collection_body.empty?
