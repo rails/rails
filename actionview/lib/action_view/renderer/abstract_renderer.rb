@@ -40,12 +40,8 @@ module ActionView
       end
 
       private
-        def template_keys(path)
-          super + retrieve_variable(path)
-        end
-
-        def retrieve_variable(path)
-          variable = if as = @options[:as]
+        def local_variable(path)
+          if as = @options[:as]
             raise_invalid_option_as(as) unless /\A[a-z_]\w*\z/.match?(as.to_s)
             as.to_sym
           else
@@ -55,7 +51,6 @@ module ActionView
               $1.to_sym
             end
           end
-          [variable]
         end
 
         IDENTIFIER_ERROR_MESSAGE = "The partial name (%s) is not a valid Ruby identifier; " \

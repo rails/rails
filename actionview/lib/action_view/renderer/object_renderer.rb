@@ -15,6 +15,9 @@ module ActionView
     end
 
     private
+      def template_keys(path)
+        super + [local_variable(path)]
+      end
 
       def render_partial_template(view, locals, template, layout, block)
         as     = template.variable

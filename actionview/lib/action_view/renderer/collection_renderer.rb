@@ -83,9 +83,16 @@ module ActionView
     end
 
     def render_collection_with_partial(collection, partial, context, block)
-      collection = SameCollectionIterator.new(collection, partial, retrieve_variable(partial))
+      iter_vars  = retrieve_variable(partial)
+      collection = SameCollectionIterator.new(collection, partial, iter_vars)
 
-      render_collection(collection, context, partial, block)
+      template = find_template(partial, @locals.keys + iter_vars)
+
+      layout = if !block && (layout = @options[:layout])
+         find_template(layout.to_s, @locals.keys + iter_vars)
+      end
+
+      render_collection(collection, context, partial, template, layout, block)
     end
 
     def render_collection_derive_partial(collection, context, block)
@@ -101,26 +108,17 @@ module ActionView
 
         paths.map! { |path| retrieve_variable(path).unshift(path) }
         collection = MixedCollectionIterator.new(collection, paths)
-        render_collection(collection, context, nil, block)
+        render_collection(collection, context, nil, nil, nil, block)
       end
     end
 
     private
       def retrieve_variable(path)
-        vars = super
-        variable = vars.first
-        vars << :"#{variable}_counter"
-        vars << :"#{variable}_iteration"
-        vars
+        variable = local_variable(path)
+        [variable, :"#{variable}_counter", :"#{variable}_iteration"]
       end
 
-      def render_collection(collection, view, path, block)
-        template = find_template(path, template_keys(path)) if path
-
-        if !block && (layout = @options[:layout])
-          layout = find_template(layout.to_s, template_keys(path))
-        end
-
+      def render_collection(collection, view, path, template, layout, block)
         identifier = (template && template.identifier) || path
         instrument(:collection, identifier: identifier, count: collection.size) do |payload|
           spacer = if @options.key?(:spacer_template)
