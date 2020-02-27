@@ -185,8 +185,8 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
       end
     end
 
-    def method_missing(method_symbol, *arguments)
-      ActiveRecord::Base.connection.send(method_symbol, *arguments)
+    def method_missing(method_symbol, *arguments, **kwargs)
+      ActiveRecord::Base.connection.send(method_symbol, *arguments, **kwargs)
     end
     ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
 end

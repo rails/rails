@@ -612,9 +612,9 @@ module ActionMailer
         payload[:perform_deliveries] = mail.perform_deliveries
       end
 
-      def method_missing(method_name, *args)
+      def method_missing(method_name, *args, **kwargs)
         if action_methods.include?(method_name.to_s)
-          MessageDelivery.new(self, method_name, *args)
+          MessageDelivery.new(self, method_name, *args, **kwargs)
         else
           super
         end

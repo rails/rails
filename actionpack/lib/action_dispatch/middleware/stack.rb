@@ -98,7 +98,7 @@ module ActionDispatch
       self.middlewares = other.middlewares.dup
     end
 
-    def insert(index, klass, *args, &block)
+    def insert(index, klass, *args, **kwargs, &block)
       index = assert_index(index, :before)
       middlewares.insert(index, Middleware.new(klass, *args, **kwargs, &block))
     end
@@ -106,15 +106,15 @@ module ActionDispatch
 
     alias_method :insert_before, :insert
 
-    def insert_after(index, *args, &block)
+    def insert_after(index, *args, **kwargs, &block)
       index = assert_index(index, :after)
-      insert(index + 1, *args, &block)
+      insert(index + 1, *args, **kwargs, &block)
     end
     ruby2_keywords(:insert_after) if respond_to?(:ruby2_keywords, true)
 
-    def swap(target, *args, &block)
+    def swap(target, *args, **kwargs, &block)
       index = assert_index(target, :before)
-      insert(index, *args, &block)
+      insert(index, *args, **kwargs, &block)
       middlewares.delete_at(index + 1)
     end
     ruby2_keywords(:swap) if respond_to?(:ruby2_keywords, true)

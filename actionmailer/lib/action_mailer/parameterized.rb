@@ -108,9 +108,9 @@ module ActionMailer
       end
 
       private
-        def method_missing(method_name, *args)
+        def method_missing(method_name, *args, **kwargs)
           if @mailer.action_methods.include?(method_name.to_s)
-            ActionMailer::Parameterized::MessageDelivery.new(@mailer, method_name, @params, *args)
+            ActionMailer::Parameterized::MessageDelivery.new(@mailer, method_name, @params, *args, **kwargs)
           else
             super
           end
@@ -123,15 +123,15 @@ module ActionMailer
     end
 
     class DeliveryJob < ActionMailer::DeliveryJob # :nodoc:
-      def perform(mailer, mail_method, delivery_method, params, *args)
-        mailer.constantize.with(params).public_send(mail_method, *args).send(delivery_method)
+      def perform(mailer, mail_method, delivery_method, params, *args, **kwargs)
+        mailer.constantize.with(params).public_send(mail_method, *args, **kwargs).send(delivery_method)
       end
       ruby2_keywords(:perform) if respond_to?(:ruby2_keywords, true)
     end
 
     class MessageDelivery < ActionMailer::MessageDelivery # :nodoc:
-      def initialize(mailer_class, action, params, *args)
-        super(mailer_class, action, *args)
+      def initialize(mailer_class, action, params, *args, **kwargs)
+        super(mailer_class, action, *args, **kwargs)
         @params = params
       end
       ruby2_keywords(:initialize) if respond_to?(:ruby2_keywords, true)

@@ -49,25 +49,25 @@ module Rails
         @delete_operations = delete_operations
       end
 
-      def insert_before(*args, &block)
-        @operations << -> middleware { middleware.send(__method__, *args, &block) }
+      def insert_before(*args, **kwargs, &block)
+        @operations << -> middleware { middleware.send(__method__, *args, **kwargs, &block) }
       end
       ruby2_keywords(:insert_before) if respond_to?(:ruby2_keywords, true)
 
       alias :insert :insert_before
 
-      def insert_after(*args, &block)
-        @operations << -> middleware { middleware.send(__method__, *args, &block) }
+      def insert_after(*args, **kwargs, &block)
+        @operations << -> middleware { middleware.send(__method__, *args, **kwargs, &block) }
       end
       ruby2_keywords(:insert_after) if respond_to?(:ruby2_keywords, true)
 
-      def swap(*args, &block)
-        @operations << -> middleware { middleware.send(__method__, *args, &block) }
+      def swap(*args, **kwargs, &block)
+        @operations << -> middleware { middleware.send(__method__, *args, **kwargs, &block) }
       end
       ruby2_keywords(:swap) if respond_to?(:ruby2_keywords, true)
 
-      def use(*args, &block)
-        @operations << -> middleware { middleware.send(__method__, *args, &block) }
+      def use(*args, **kwargs, &block)
+        @operations << -> middleware { middleware.send(__method__, *args, **kwargs, &block) }
       end
       ruby2_keywords(:use) if respond_to?(:ruby2_keywords, true)
 
@@ -85,8 +85,8 @@ module Rails
         @delete_operations << -> middleware { middleware.send(__method__, *args, &block) }
       end
 
-      def unshift(*args, &block)
-        @operations << -> middleware { middleware.send(__method__, *args, &block) }
+      def unshift(*args, **kwargs, &block)
+        @operations << -> middleware { middleware.send(__method__, *args, **kwargs, &block) }
       end
       ruby2_keywords(:unshift) if respond_to?(:ruby2_keywords, true)
 

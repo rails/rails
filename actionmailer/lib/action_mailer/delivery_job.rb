@@ -20,8 +20,8 @@ module ActionMailer
       MSG
     end
 
-    def perform(mailer, mail_method, delivery_method, *args) #:nodoc:
-      mailer.constantize.public_send(mail_method, *args).send(delivery_method)
+    def perform(mailer, mail_method, delivery_method, *args, **kwargs) #:nodoc:
+      mailer.constantize.public_send(mail_method, *args, **kwargs).send(delivery_method)
     end
     ruby2_keywords(:perform) if respond_to?(:ruby2_keywords, true)
 

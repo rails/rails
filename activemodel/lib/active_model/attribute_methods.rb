@@ -361,12 +361,12 @@ module ActiveModel
         # and `send` if the given names cannot be compiled.
         def define_proxy_call(include_private, mod, name, target, *extra)
           defn = if NAME_COMPILABLE_REGEXP.match?(name)
-            "def #{name}(*args)"
+            "def #{name}(*args, **kwargs)"
           else
-            "define_method(:'#{name}') do |*args|"
+            "define_method(:'#{name}') do |*args, **kwargs|"
           end
 
-          extra = (extra.map!(&:inspect) << "*args").join(", ")
+          extra = (extra.map!(&:inspect) << "*args" << "**kwargs").join(", ")
 
           body = if CALL_COMPILABLE_REGEXP.match?(target)
             "#{"self." unless include_private}#{target}(#{extra})"
@@ -417,12 +417,12 @@ module ActiveModel
     # It's also possible to instantiate related objects, so a <tt>Client</tt>
     # class belonging to the +clients+ table with a +master_id+ foreign key
     # can instantiate master through <tt>Client#master</tt>.
-    def method_missing(method, *args, &block)
+    def method_missing(method, *args, **kwargs, &block)
       if respond_to_without_attributes?(method, true)
         super
       else
         match = matched_attribute_method(method.to_s)
-        match ? attribute_missing(match, *args, &block) : super
+        match ? attribute_missing(match, *args, **kwargs, &block) : super
       end
     end
     ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
@@ -431,8 +431,8 @@ module ActiveModel
     # +method_missing+ is called we check to see if there is a matching
     # attribute method. If so, we tell +attribute_missing+ to dispatch the
     # attribute. This method can be overloaded to customize the behavior.
-    def attribute_missing(match, *args, &block)
-      __send__(match.target, match.attr_name, *args, &block)
+    def attribute_missing(match, *args, **kwargs, &block)
+      __send__(match.target, match.attr_name, *args, **kwargs, &block)
     end
 
     # A +Person+ instance with a +name+ attribute can ask

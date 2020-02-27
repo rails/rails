@@ -60,18 +60,18 @@ module ActiveSupport
           if target_module.method_defined?(method_name) || target_module.private_method_defined?(method_name)
             method = target_module.instance_method(method_name)
             target_module.module_eval do
-              redefine_method(method_name) do |*args, &block|
+              redefine_method(method_name) do |*args, **kwargs, &block|
                 deprecator.deprecation_warning(method_name, message)
-                method.bind(self).call(*args, &block)
+                method.bind(self).call(*args, **kwargs, &block)
               end
               ruby2_keywords(method_name) if respond_to?(:ruby2_keywords, true)
             end
           else
             mod ||= Module.new
             mod.module_eval do
-              define_method(method_name) do |*args, &block|
+              define_method(method_name) do |*args, **kwargs, &block|
                 deprecator.deprecation_warning(method_name, message)
-                super(*args, &block)
+                super(*args, **kwargs, &block)
               end
               ruby2_keywords(method_name) if respond_to?(:ruby2_keywords, true)
             end

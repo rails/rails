@@ -14,8 +14,8 @@ module ActiveJob
       #
       #   MyJob.perform_now("mike")
       #
-      def perform_now(*args)
-        job_or_instantiate(*args).perform_now
+      def perform_now(*args, **kwargs)
+        job_or_instantiate(*args, **kwargs).perform_now
       end
       ruby2_keywords(:perform_now) if respond_to?(:ruby2_keywords, true)
 

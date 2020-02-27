@@ -423,9 +423,9 @@ module ActionDispatch
       end
 
       # Delegate unhandled messages to the current session instance.
-      def method_missing(method, *args, &block)
+      def method_missing(method, *args, **kwargs, &block)
         if integration_session.respond_to?(method)
-          integration_session.public_send(method, *args, &block).tap do
+          integration_session.public_send(method, *args, **kwargs, &block).tap do
             copy_session_variables!
           end
         else

@@ -18,14 +18,14 @@ module ActiveJob
       #
       # Returns an instance of the job class queued with arguments available in
       # Job#arguments.
-      def perform_later(*args)
-        job_or_instantiate(*args).enqueue
+      def perform_later(*args, **kwargs)
+        job_or_instantiate(*args, **kwargs).enqueue
       end
       ruby2_keywords(:perform_later) if respond_to?(:ruby2_keywords, true)
 
       private
-        def job_or_instantiate(*args) # :doc:
-          args.first.is_a?(self) ? args.first : new(*args)
+        def job_or_instantiate(*args, **kwargs) # :doc:
+          args.first.is_a?(self) ? args.first : new(*args, **kwargs)
         end
         ruby2_keywords(:job_or_instantiate) if respond_to?(:ruby2_keywords, true)
     end
