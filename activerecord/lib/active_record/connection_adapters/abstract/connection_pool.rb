@@ -996,7 +996,7 @@ module ActiveRecord
     # should use.
     #
     # The ConnectionHandler class is not coupled with the Active models, as it has no knowledge
-    # about the model. The model needs to pass a specification name to the handler,
+    # about the model. The model needs to pass a connection specification name to the handler,
     # in order to look up the correct connection pool.
     class ConnectionHandler
       FINALIZER = lambda { |_| ActiveSupport::ForkTracker.check! }

@@ -30,7 +30,7 @@ module ActiveRecord
     #
     # * <tt>env_name:</tt> The environment name. Defaults to +nil+ which will collect
     #   configs for all environments.
-    # * <tt>name:</tt> The db name name (i.e. primary, animals, etc.). Defaults
+    # * <tt>name:</tt> The db config name (i.e. primary, animals, etc.). Defaults
     #   to +nil+. If no +env_name+ is specified the config for the default env and the
     #   passed +name+ will be returned.
     # * <tt>include_replicas:</tt> Determines whether to include replicas in

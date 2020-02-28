@@ -173,9 +173,9 @@ module ActiveRecord
   class RangeError < StatementInvalid
   end
 
-  # Raised when number of bind variables in statement given to +:condition+ key
-  # (for example, when using {ActiveRecord::Base.find}[rdoc-ref:FinderMethods#find] method)
-  # does not match number of expected values supplied.
+  # Raised when the number of placeholders in an SQL fragment passed to
+  # {ActiveRecord::Base.where}[rdoc-ref:QueryMethods#where]
+  # does not match the number of values supplied.
   #
   # For example, when there are two placeholders with only one value supplied:
   #

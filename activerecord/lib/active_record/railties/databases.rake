@@ -106,13 +106,36 @@ db_namespace = namespace :db do
     db_namespace["_dump"].reenable
   end
 
+  namespace :_dump do
+    ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
+      # IMPORTANT: This task won't dump the schema if ActiveRecord::Base.dump_schema_after_migration is set to false
+      task name do
+        if ActiveRecord::Base.dump_schema_after_migration
+          case ActiveRecord::Base.schema_format
+          when :ruby then db_namespace["schema:dump:#{name}"].invoke
+          when :sql  then db_namespace["structure:dump:#{name}"].invoke
+          else
+            raise "unknown schema format #{ActiveRecord::Base.schema_format}"
+          end
+        end
+        # Allow this task to be called as many times as required. An example is the
+        # migrate:redo task, which calls other two internally that depend on this one.
+        db_namespace["_dump:#{name}"].reenable
+      end
+    end
+  end
+
   namespace :migrate do
     ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
       desc "Migrate #{name} database for current environment"
       task name => :load_config do
+        original_db_config = ActiveRecord::Base.connection_db_config
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: name)
         ActiveRecord::Base.establish_connection(db_config)
         ActiveRecord::Tasks::DatabaseTasks.migrate
+        db_namespace["_dump:#{name}"].invoke
+      ensure
+        ActiveRecord::Base.establish_connection(original_db_config)
       end
     end
 

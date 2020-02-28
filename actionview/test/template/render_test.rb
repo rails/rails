@@ -325,6 +325,10 @@ module RenderTestCases
     assert_equal "NilClass", @view.render(partial: "test/klass", object: nil)
   end
 
+  def test_render_object_different_name
+    assert_equal "Hello: t.lo", @view.render(partial: "test/template_not_named_customer", object: Customer.new("t.lo"), as: "customer").chomp
+  end
+
   def test_render_object_with_array
     assert_equal "[1, 2, 3]", @view.render(partial: "test/object_inspector", object: [1, 2, 3])
   end

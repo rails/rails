@@ -15,7 +15,7 @@ module ActiveRecord
         @rw_handler = @handlers[:writing]
         @ro_handler = @handlers[:reading]
         @owner_name = "ActiveRecord::Base"
-        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
         @rw_pool = @handlers[:writing].establish_connection(db_config)
         @ro_pool = @handlers[:reading].establish_connection(db_config)
       end
@@ -47,11 +47,11 @@ module ActiveRecord
 
           assert_equal base_pool, default_pool
           assert_equal "db/primary.sqlite3", default_pool.db_config.database
-          assert_equal "primary", default_pool.db_config.spec_name
+          assert_equal "primary", default_pool.db_config.name
 
           assert_not_nil pool = ActiveRecord::Base.connection_handlers[:writing].retrieve_connection_pool("ActiveRecord::Base", :shard_one)
           assert_equal "db/primary_shard_one.sqlite3", pool.db_config.database
-          assert_equal "primary_shard_one", pool.db_config.spec_name
+          assert_equal "primary_shard_one", pool.db_config.name
         ensure
           ActiveRecord::Base.configurations = @prev_configs
           ActiveRecord::Base.establish_connection(:arunit)
@@ -81,21 +81,21 @@ module ActiveRecord
           base_writing_pool = ActiveRecord::Base.connection_handlers[:writing].retrieve_connection_pool("ActiveRecord::Base")
           assert_equal base_writing_pool, default_writing_pool
           assert_equal "db/primary.sqlite3", default_writing_pool.db_config.database
-          assert_equal "primary", default_writing_pool.db_config.spec_name
+          assert_equal "primary", default_writing_pool.db_config.name
 
           default_reading_pool = ActiveRecord::Base.connection_handlers[:reading].retrieve_connection_pool("ActiveRecord::Base", :default)
           base_reading_pool = ActiveRecord::Base.connection_handlers[:reading].retrieve_connection_pool("ActiveRecord::Base")
           assert_equal base_reading_pool, default_reading_pool
           assert_equal "db/primary.sqlite3", default_reading_pool.db_config.database
-          assert_equal "primary_replica", default_reading_pool.db_config.spec_name
+          assert_equal "primary_replica", default_reading_pool.db_config.name
 
           assert_not_nil pool = ActiveRecord::Base.connection_handlers[:writing].retrieve_connection_pool("ActiveRecord::Base", :shard_one)
           assert_equal "db/primary_shard_one.sqlite3", pool.db_config.database
-          assert_equal "primary_shard_one", pool.db_config.spec_name
+          assert_equal "primary_shard_one", pool.db_config.name
 
           assert_not_nil pool = ActiveRecord::Base.connection_handlers[:reading].retrieve_connection_pool("ActiveRecord::Base", :shard_one)
           assert_equal "db/primary_shard_one.sqlite3", pool.db_config.database
-          assert_equal "primary_shard_one_replica", pool.db_config.spec_name
+          assert_equal "primary_shard_one_replica", pool.db_config.name
         ensure
           ActiveRecord::Base.configurations = @prev_configs
           ActiveRecord::Base.establish_connection(:arunit)
@@ -192,25 +192,25 @@ module ActiveRecord
 
           ActiveRecord::Base.connected_to(role: :reading, shard: :shard_one) do
             # Uses the correct connection
-            assert_equal "primary_shard_one_replica", ActiveRecord::Base.connection_pool.db_config.spec_name
+            assert_equal "primary_shard_one_replica", ActiveRecord::Base.connection_pool.db_config.name
 
             # Uses the shard currently in use
             ActiveRecord::Base.connected_to(role: :writing) do
-              assert_equal "primary_shard_one", ActiveRecord::Base.connection_pool.db_config.spec_name
+              assert_equal "primary_shard_one", ActiveRecord::Base.connection_pool.db_config.name
             end
 
             # Allows overriding the shard as well
             ActiveRecord::Base.connected_to(role: :reading, shard: :default) do
-              assert_equal "primary_replica", ActiveRecord::Base.connection_pool.db_config.spec_name
+              assert_equal "primary_replica", ActiveRecord::Base.connection_pool.db_config.name
             end
 
             # Uses the current role
             ActiveRecord::Base.connected_to(shard: :default) do
-              assert_equal "primary_replica", ActiveRecord::Base.connection_pool.db_config.spec_name
+              assert_equal "primary_replica", ActiveRecord::Base.connection_pool.db_config.name
             end
 
             # Resets correctly
-            assert_equal "primary_shard_one_replica", ActiveRecord::Base.connection_pool.db_config.spec_name
+            assert_equal "primary_shard_one_replica", ActiveRecord::Base.connection_pool.db_config.name
           end
         ensure
           ActiveRecord::Base.configurations = @prev_configs

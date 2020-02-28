@@ -157,7 +157,7 @@ Note that translations are not submitted to the Rails repository. As detailed ab
 To generate the guides in HTML format you will need to install the guides dependencies, `cd` into the *guides* directory, and then run (e.g. for it-IT):
 
 ```bash
-$ # only install gems necessary for the guides. To undo run: bundle config --delete without
+# only install gems necessary for the guides. To undo run: bundle config --delete without
 $ bundle install --without job cable storage ujs test db
 $ cd guides/
 $ bundle exec rake guides:generate:html GUIDES_LANGUAGE=it-IT
@@ -456,7 +456,9 @@ A CHANGELOG entry should summarize what was changed and should end with the auth
           end
         end
 
-    You can continue after the code example and you can attach issue number. Fixes #1234.
+    You can continue after the code example and you can attach issue number.
+
+    Fixes #1234.
 
     *Your Name*
 ```

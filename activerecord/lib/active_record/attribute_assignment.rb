@@ -6,30 +6,24 @@ module ActiveRecord
   module AttributeAssignment
     include ActiveModel::AttributeAssignment
 
-    def assign_attributes(attributes)
-      super(attributes.dup)
-    end
-
-    alias attributes= assign_attributes
-
     private
       def _assign_attributes(attributes)
-        multi_parameter_attributes  = {}
-        nested_parameter_attributes = {}
+        multi_parameter_attributes = nested_parameter_attributes = nil
 
         attributes.each do |k, v|
           key = k.to_s
 
           if key.include?("(")
-            multi_parameter_attributes[key] = attributes.delete(k)
+            (multi_parameter_attributes ||= {})[key] = v
           elsif v.is_a?(Hash)
-            nested_parameter_attributes[key] = attributes.delete(k)
+            (nested_parameter_attributes ||= {})[key] = v
+          else
+            _assign_attribute(key, v)
           end
         end
-        super(attributes)
 
-        assign_nested_parameter_attributes(nested_parameter_attributes) unless nested_parameter_attributes.empty?
-        assign_multiparameter_attributes(multi_parameter_attributes) unless multi_parameter_attributes.empty?
+        assign_nested_parameter_attributes(nested_parameter_attributes) if nested_parameter_attributes
+        assign_multiparameter_attributes(multi_parameter_attributes) if multi_parameter_attributes
       end
 
       # Assign any deferred nested attributes after the base attributes have been set.
