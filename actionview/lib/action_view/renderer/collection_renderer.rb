@@ -36,8 +36,6 @@ module ActionView
     class CollectionIterator # :nodoc:
       include Enumerable
 
-      attr_reader :collection
-
       def initialize(collection)
         @collection = collection
       end
@@ -59,7 +57,6 @@ module ActionView
       end
 
       def from_collection(collection)
-        return collection if collection == self
         self.class.new(collection, @path, @variables)
       end
 
@@ -96,7 +93,7 @@ module ActionView
 
       def each_with_info
         return enum_for(:each_with_info) unless block_given?
-        collection.each_with_index { |o, i| yield(o, @paths[i]) }
+        @collection.each_with_index { |o, i| yield(o, @paths[i]) }
       end
     end
 
