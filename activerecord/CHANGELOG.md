@@ -9,6 +9,14 @@
 
     *Slava Korolev*
 
+*   Dump the schema or structure of a database when calling db:migrate:name
+
+    In previous versions of Rails, `rails db:migrate` would dump the schema of the database. In Rails 6, that holds true (`rails db:migrate` dumps all databases' schemas), but `rails db:migrate:name` does not share that behavior.
+
+    Going forward, calls to `rails db:migrate:name` will dump the schema (or structure) of the database being migrated.
+
+    *Kyle Thompson*
+
 *   Reset the `ActiveRecord::Base` connection after `rails db:migrate:name`
 
     When `rails db:migrate` has finished, it ensures the `ActiveRecord::Base` connection is reset to its original configuration. Going forward, `rails db:migrate:name` will have the same behavior.
