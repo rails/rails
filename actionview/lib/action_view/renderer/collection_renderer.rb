@@ -70,6 +70,24 @@ module ActionView
       end
     end
 
+    class PreloadCollectionIterator < SameCollectionIterator # :nodoc:
+      def initialize(collection, path, variables, relation)
+        super(collection, path, variables)
+        relation.skip_preloading! unless relation.loaded?
+        @relation = relation
+      end
+
+      def from_collection(collection)
+        self.class.new(collection, @path, @variables, @relation)
+      end
+
+      def each_with_info
+        return super unless block_given?
+        @relation.preload_associations(@collection)
+        super
+      end
+    end
+
     class MixedCollectionIterator < CollectionIterator # :nodoc:
       def initialize(collection, paths)
         super(collection)
@@ -84,7 +102,13 @@ module ActionView
 
     def render_collection_with_partial(collection, partial, context, block)
       iter_vars  = retrieve_variable(partial)
-      collection = SameCollectionIterator.new(collection, partial, iter_vars)
+
+      collection = if collection.respond_to?(:preload_associations)
+        PreloadCollectionIterator.new(collection, partial, iter_vars, collection)
+      else
+        SameCollectionIterator.new(collection, partial, iter_vars)
+      end
+
 
       template = find_template(partial, @locals.keys + iter_vars)
 
