@@ -659,6 +659,9 @@ Below is a list of the subscription adapters available for end users.
 
 The async adapter is intended for development/testing and should not be used in production.
 
+It works within a single process only, so even in development, you won't be able to broadcast
+from the Rails console and receive it in the Rails web server. For that, use one of the other adapters.
+
 ##### Redis Adapter
 
 The Redis adapter requires users to provide a URL pointing to the Redis server.
