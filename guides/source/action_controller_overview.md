@@ -543,7 +543,7 @@ By default, adding values to the flash will make them available to the next requ
 ```ruby
 class ClientsController < ApplicationController
   def create
-    @client = Client.new(params[:client])
+    @client = Client.new(client_params)
     if @client.save
       # ...
     else
@@ -567,7 +567,7 @@ class CommentsController < ApplicationController
   end
 
   def create
-    @comment = Comment.new(params[:comment])
+    @comment = Comment.new(comment_params)
     if @comment.save
       flash[:notice] = "Thanks for your comment!"
       if params[:remember_name]
