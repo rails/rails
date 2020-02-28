@@ -24,6 +24,16 @@ end
 
 class ::MyOtherMailObserver < ::MyMailObserver; end
 
+class SomeCoolMiddleware
+  def initialize(app)
+    @app = app
+  end
+
+  def call(env)
+    @app.call(env)
+  end
+end
+
 module ApplicationTests
   class ConfigurationTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
@@ -1562,24 +1572,12 @@ module ApplicationTests
       assert_equal session_options, app.config.session_options
     end
 
-    test "warn_if_rack_runtime initializer raises deprecation usage of Rack::Runtime in default middleware stack" do
-      application = Class.new(::Rails::Application) do
-        config.eager_load = false
-      end
-
+    test "manipulation of the middleware stack with Rack::Runtime argument should raise a deprecation warning" do
       assert_deprecated("Rack::Runtime will be removed from the default middleware stack in future versions of Rails.") do
-        application.initialize!
-      end
-    end
-
-    test "warn_if_rack_runtime initializer does not raise a deprecation usage of Rack::Runtime if it is not used" do
-      application = Class.new(::Rails::Application) do
-        config.middleware.delete(Rack::Runtime)
-        config.eager_load = false
-      end
-
-      assert_not_deprecated do
-        application.initialize!
+        Class.new(::Rails::Application) do
+          config.eager_load = false
+          config.middleware.insert_before(Rack::Runtime, SomeCoolMiddleware)
+        end
       end
     end
 

@@ -1,6 +1,25 @@
 *   Deprecate `Rack::Runtime`
 
-    `Rack::Runtime` is deprecated in the default middleware stack.
+    Raise deprecation warning if `Rack::Runtime` is passed to methods that manipulate
+    the middleware stack.
+
+    The following methods of `MiddlewareStackProxy` check if `Rack::Runtime` is passed:
+
+    ```
+    :insert_before, :insert, :insert_after, :swap, :move_before, :move, :move_after, :unshift
+    ```
+
+    Initialization of cache middleware:
+
+    ```
+    config.middleware.insert_before(::Rack::Runtime, Rails.cache.middleware)
+    ```
+
+    Changed to:
+
+    ```
+    config.middleware.insert_after(::ActionDispatch::Executor, Rails.cache.middleware)
+    ```
 
     *Stanislav Valkanov*
 

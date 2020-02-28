@@ -50,6 +50,7 @@ module Rails
       end
 
       def insert_before(*args, &block)
+        warn_if_rack_runtime(args)
         @operations << -> middleware { middleware.send(__method__, *args, &block) }
       end
       ruby2_keywords(:insert_before) if respond_to?(:ruby2_keywords, true)
@@ -57,11 +58,13 @@ module Rails
       alias :insert :insert_before
 
       def insert_after(*args, &block)
+        warn_if_rack_runtime(args)
         @operations << -> middleware { middleware.send(__method__, *args, &block) }
       end
       ruby2_keywords(:insert_after) if respond_to?(:ruby2_keywords, true)
 
       def swap(*args, &block)
+        warn_if_rack_runtime(args)
         @operations << -> middleware { middleware.send(__method__, *args, &block) }
       end
       ruby2_keywords(:swap) if respond_to?(:ruby2_keywords, true)
@@ -76,16 +79,19 @@ module Rails
       end
 
       def move_before(*args, &block)
+        warn_if_rack_runtime(args)
         @delete_operations << -> middleware { middleware.send(__method__, *args, &block) }
       end
 
       alias :move :move_before
 
       def move_after(*args, &block)
+        warn_if_rack_runtime(args)
         @delete_operations << -> middleware { middleware.send(__method__, *args, &block) }
       end
 
       def unshift(*args, &block)
+        warn_if_rack_runtime(args)
         @operations << -> middleware { middleware.send(__method__, *args, &block) }
       end
       ruby2_keywords(:unshift) if respond_to?(:ruby2_keywords, true)
@@ -104,6 +110,16 @@ module Rails
 
       protected
         attr_reader :operations, :delete_operations
+
+      private
+        def warn_if_rack_runtime(args)
+          if args.map(&:to_s).include? "Rack::Runtime"
+            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+              Rack::Runtime will be removed from the default middleware stack
+              in future versions of Rails.
+            MSG
+          end
+        end
     end
 
     class Generators #:nodoc:

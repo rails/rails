@@ -97,15 +97,6 @@ module Rails
         build_middleware_stack
       end
 
-      initializer :warn_if_rack_runtime do |app|
-        if app.config.middleware.include?(::Rack::Runtime)
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            Rack::Runtime will be removed from the default middleware stack
-            in future versions of Rails.
-          MSG
-        end
-      end
-
       initializer :define_main_app_helper do |app|
         app.routes.define_mounted_helper(:main_app)
       end
