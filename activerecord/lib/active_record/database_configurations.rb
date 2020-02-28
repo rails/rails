@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_record/database_configurations/builder"
 require "active_record/database_configurations/database_config"
 require "active_record/database_configurations/hash_config"
 require "active_record/database_configurations/url_config"
@@ -15,8 +16,21 @@ module ActiveRecord
     attr_reader :configurations
     delegate :any?, to: :configurations
 
+    class << self
+      attr_accessor :builder
+
+      def configure(&blk) # :nodoc:
+        @builder ||= Builder.new
+        @builder.instance_eval(&blk)
+      end
+    end
+
     def initialize(configurations = {})
-      @configurations = build_configs(configurations)
+      if self.class.builder
+        @configurations = self.class.builder.configurations
+      else
+        @configurations = build_configs(configurations)
+      end
     end
 
     # Collects the configs for the environment and optionally the specification

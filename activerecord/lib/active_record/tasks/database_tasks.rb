@@ -151,13 +151,7 @@ module ActiveRecord
       def setup_initial_database_yaml
         return {} unless defined?(Rails)
 
-        begin
-          Rails.application.config.load_database_yaml
-        rescue
-          $stderr.puts "Rails couldn't infer whether you are using multiple databases from your database.yml and can't generate the tasks for the non-primary databases. If you'd like to use this feature, please simplify your ERB."
-
-          {}
-        end
+        Rails.application.config.load_dummy_databases
       end
 
       def for_each(databases)
