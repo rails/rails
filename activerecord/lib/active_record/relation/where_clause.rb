@@ -153,8 +153,24 @@ module ActiveRecord
         end
 
         def except_predicates(columns)
+          # columns is an array where items can be string or a hash with a single key-value pair.
+          # The key in this hash is a table name and value is an array of strings representing columns.
+          # For example: ["id", "name", { user: ["id", "age] }]
+          columns_without_tables = []
+          columns_in_tables = ::Hash.new { |hash, key| hash[key] = [] }
+          columns.each do |column|
+            case column
+            when ::String
+              columns_without_tables.push(column)
+            when ::Hash
+              table, table_columns = column.first
+              columns_in_tables[table.to_s] += Array(table_columns).map(&:to_s)
+            end
+          end
           predicates.reject do |node|
-            Arel.fetch_attribute(node) { |attr| columns.include?(attr.name.to_s) }
+            Arel.fetch_attribute(node) do |attr|
+              columns_without_tables.include?(attr.name.to_s) || columns_in_tables[attr.relation.name.to_s].include?(attr.name.to_s)
+            end
           end
         end
 

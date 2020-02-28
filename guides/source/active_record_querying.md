@@ -797,6 +797,13 @@ Article.order('id asc').merge(Article.unscope(:order))
 # SELECT "articles".* FROM "articles"
 ```
 
+However, when you unscope `where` clauses, you can specify a table and only this table will be affected:
+
+```ruby
+Article.where(id: 10, trashed: false).joins(:comments).where(comments: { id: 20 }).unscope(where: { articles: :id })
+# SELECT "articles".* FROM "articles" INNER JOIN "comments" ... WHERE "articles"."trashed" = 0 AND "comments"."id" = 20
+```
+
 ### `only`
 
 You can also override conditions using the `only` method. For example:

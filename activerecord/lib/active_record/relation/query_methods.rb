@@ -441,10 +441,27 @@ module ActiveRecord
     #
     # One can additionally pass a hash as an argument to unscope specific +:where+ values.
     # This is done by passing a hash with a single key-value pair. The key should be
-    # +:where+ and the value should be the where value to unscope. For example:
+    # +:where+ and the value should be the where value to unscope.
+    #
+    # Where value can be passed in several formats:
+    #
+    # === string or symbol
     #
     #   User.where(name: "John", active: true).unscope(where: :name)
     #       == User.where(active: true)
+    #
+    # === array of string or symbols
+    #
+    #   User.where(name: "John", active: true, age: 30).unscope(where: [:name, :age])
+    #       == User.where(active: true)
+    #
+    # === hash with single key-value pair
+    #  The key should be a table to unscope where values only from a specific table.
+    #  The value in this case should be either singe string or symbol or an array of them.
+    #
+    #   User.where(name: "John", active: true).joins(:posts).where(posts: { active: true }).unscope(where: { users: :active })
+    #       == User.where(name: "John").joins(:posts).where(posts: { active: true })
+    #
     #
     # This method is similar to #except, but unlike
     # #except, it persists across merges:
@@ -483,7 +500,15 @@ module ActiveRecord
               raise ArgumentError, "Hash arguments in .unscope(*args) must have :where as the key."
             end
 
-            target_values = Array(target_value).map(&:to_s)
+            case target_value
+            when Hash
+              target_values = []
+              target_value.each do |table, columns|
+                target_values.push({ table.to_s => Array(columns).map(&:to_s) })
+              end
+            else
+              target_values = Array(target_value).map(&:to_s)
+            end
             self.where_clause = where_clause.except(*target_values)
           end
         else

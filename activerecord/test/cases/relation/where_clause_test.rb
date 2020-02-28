@@ -120,6 +120,18 @@ class ActiveRecord::Relation
       assert_equal expected, where_clause.except("id", "name")
     end
 
+    test "except removes binary predicates referencing a given table and column" do
+      table2 = Arel::Table.new("table2")
+      where_clause = WhereClause.new([
+        table["id"].in([1, 2, 3]),
+        table["name"].eq(bind_param("Sean")),
+        table2["name"].eq(bind_param("Slava")),
+      ])
+      expected = WhereClause.new([table2["name"].eq(bind_param("Slava"))])
+
+      assert_equal expected, where_clause.except("id", { "table" => ["name"] })
+    end
+
     test "except jumps over unhandled binds (like with OR) correctly" do
       wcs = (0..9).map do |i|
         WhereClause.new([table["id#{i}"].eq(bind_param(i))])

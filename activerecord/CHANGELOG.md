@@ -1,3 +1,14 @@
+*   Add support for specifying tables in where clauses in `unscope` method.
+
+    Usage:
+
+    ```ruby
+    Article.where(id: 10, trashed: false).joins(:comments).where(comments: { id: 20 }).unscope(where: { articles: :id })
+    # SELECT "articles".* FROM "articles" INNER JOIN "comments" ... WHERE "articles"."trashed" = 0 AND "comments"."id" = 20
+    ```
+
+    *Slava Korolev*
+
 *   Reset the `ActiveRecord::Base` connection after `rails db:migrate:name`
 
     When `rails db:migrate` has finished, it ensures the `ActiveRecord::Base` connection is reset to its original configuration. Going forward, `rails db:migrate:name` will have the same behavior.

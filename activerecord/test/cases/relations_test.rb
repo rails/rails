@@ -2050,6 +2050,16 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 1, posts.unscope(where: :body).count
   end
 
+  def test_unscope_specific_table_where_value
+    post = Post.find_by(title: "sti comments", body: "hello", type: "Post")
+    comments = Comment.joins(:post).where(post_id: post.id, type: "Comment")
+    comments = comments.where(posts: { type: "NotPost" })
+
+    assert_equal 0, comments.count
+    assert_equal 5, comments.unscope(where: :type).count
+    assert_equal 1, comments.unscope(where: { posts: :type }).count
+  end
+
   def test_unscope_with_arel_sql
     posts = Post.where(Arel.sql("'Welcome to the weblog'").eq(Post.arel_attribute(:title)))
 
