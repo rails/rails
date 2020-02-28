@@ -26,15 +26,11 @@ module ActiveJob
       end
 
       def enqueue(job) #:nodoc:
-        return if filtered?(job)
-
         job_data = job_to_hash(job)
         perform_or_enqueue(perform_enqueued_jobs, job, job_data)
       end
 
       def enqueue_at(job, timestamp) #:nodoc:
-        return if filtered?(job)
-
         job_data = job_to_hash(job, at: timestamp)
         perform_or_enqueue(perform_enqueued_at_jobs, job, job_data)
       end
@@ -49,9 +45,9 @@ module ActiveJob
         end
 
         def perform_or_enqueue(perform, job, job_data)
-          if perform
+          if perform && !filtered?(job)
             performed_jobs << job_data
-            Base.execute job.serialize
+            Base.execute(job.serialize)
           else
             enqueued_jobs << job_data
           end
