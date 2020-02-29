@@ -53,6 +53,17 @@ class Array
     excluding(*elements)
   end
 
+  # Returns a copy of the Array excluding the specified indiciec.
+  #
+  #   ["a", "b", "c", "d", "e", "f", "g", "h"].except_index(0, 1, -1) # => ["c", "d", "e", "f", "g"]
+  #   ["a", "b", "c", "d", "e", "f", "g", "h"].except_index(0..1, -2..-1) # => ["c", "d", "e", "f"]
+  #   ["a", "b", "c", "d", "e", "f", "g", "h"].except_index(0..1, 3, -2..-1) # => ["c", "e", "f"]
+  def except_index(*indexes)
+    indexes.each_with_object(dup) do |ind, obj|
+      ind.is_a?(Range) ? ind.each { |i| obj[i] = false } : obj[ind] = false
+    end.select(&:itself)
+  end
+
   # Equal to <tt>self[1]</tt>.
   #
   #   %w( a b c d e ).second # => "b"

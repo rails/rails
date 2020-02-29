@@ -47,4 +47,12 @@ class AccessTest < ActiveSupport::TestCase
   def test_without
     assert_equal [1, 2, 4], [1, 2, 3, 4, 5].without(3, 5)
   end
+
+  def test_except_index
+    array = %w( a b c d e f g h )
+
+    assert_equal %w( c d e f g ), array.except_index(0, 1, -1)
+    assert_equal %w( c d e f ), array.except_index(0..1, -2..-1)
+    assert_equal %w( c e f ), array.except_index(0..1, 3, -2..-1)
+  end
 end

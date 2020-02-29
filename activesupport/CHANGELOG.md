@@ -233,5 +233,13 @@
 
     *Jordan Thomas*
 
+*   `except_index` would return the new array exclude passed indices.
+
+        ["a", "b", "c", "d", "e", "f", "g", "h"].except_index(0, 1, -1) # => ["c", "d", "e", "f", "g"]
+        ["a", "b", "c", "d", "e", "f", "g", "h"].except_index(0..1, -2..-1) # => ["c", "d", "e", "f"]
+        ["a", "b", "c", "d", "e", "f", "g", "h"].except_index(0..1, 3, -2..-1) # => ["c", "e", "f"]
+
+    *Alex Golubenko*
+
 
 Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/activesupport/CHANGELOG.md) for previous changes.
