@@ -59,9 +59,11 @@ class Array
   #   ["a", "b", "c", "d", "e", "f", "g", "h"].except_index(0..1, -2..-1) # => ["c", "d", "e", "f"]
   #   ["a", "b", "c", "d", "e", "f", "g", "h"].except_index(0..1, 3, -2..-1) # => ["c", "e", "f"]
   def except_index(*indexes)
-    indexes.each_with_object(dup) do |ind, obj|
-      ind.is_a?(Range) ? ind.each { |i| obj[i] = false } : obj[ind] = false
-    end.select(&:itself)
+    to_delete = Array.new(length)
+    indexes.each do |ind|
+      ind.is_a?(Range) ? ind.each { |i| to_delete[i] = true } : to_delete[ind] = true
+    end
+    reject.with_index { |_, ind| to_delete[ind] }
   end
 
   # Equal to <tt>self[1]</tt>.
