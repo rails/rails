@@ -1125,7 +1125,7 @@ module MyApp
 end
 ```
 
-and in `classsic` mode this:
+and in `classic` mode this:
 
 ```ruby
 # config/application.rb
