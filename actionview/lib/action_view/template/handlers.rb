@@ -14,7 +14,7 @@ module ActionView #:nodoc:
         base.register_template_handler :erb, ERB.new
         base.register_template_handler :html, Html.new
         base.register_template_handler :builder, Builder.new
-        base.register_template_handler :ruby, lambda { |_, source| source }
+        base.register_template_handler :rb, :ruby, lambda { |_, source| source }
       end
 
       @@template_handlers = {}
