@@ -53,15 +53,19 @@ class Array
     excluding(*elements)
   end
 
-  # Returns a copy of the Array excluding the specified indiciec.
+  # Returns a copy of the Array excluding the specified indicies.
   #
   #   ["a", "b", "c", "d", "e", "f", "g", "h"].except_index(0, 1, -1) # => ["c", "d", "e", "f", "g"]
   #   ["a", "b", "c", "d", "e", "f", "g", "h"].except_index(0..1, -2..-1) # => ["c", "d", "e", "f"]
   #   ["a", "b", "c", "d", "e", "f", "g", "h"].except_index(0..1, 3, -2..-1) # => ["c", "e", "f"]
-  def except_index(*indexes)
+  def except_index(*indicies)
     to_delete = Array.new(length)
-    indexes.each do |ind|
-      ind.is_a?(Range) ? ind.each { |i| to_delete[i] = true } : to_delete[ind] = true
+    indicies.each do |ind|
+      if ind.is_a?(Range)
+        ind.each { |i| i > length ? break : to_delete[i] = true }
+      else
+        to_delete[ind] = true
+      end
     end
     reject.with_index { |_, ind| to_delete[ind] }
   end

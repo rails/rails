@@ -54,5 +54,6 @@ class AccessTest < ActiveSupport::TestCase
     assert_equal %w( c d e f g ), array.except_index(0, 1, -1)
     assert_equal %w( c d e f ), array.except_index(0..1, -2..-1)
     assert_equal %w( c e f ), array.except_index(0..1, 3, -2..-1)
+    assert_equal %w( a ), array.except_index(-7..-1)
   end
 end
