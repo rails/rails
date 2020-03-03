@@ -1,3 +1,9 @@
+*   Remove entries from local cache on `RedisCacheStore#delete_matched`
+
+    Fixes #38627
+
+    *ojab*
+
 *   Speed up `ActiveSupport::SecurityUtils.fixed_length_secure_compare` by using
     `OpenSSL.fixed_length_secure_compare`, if available.
 

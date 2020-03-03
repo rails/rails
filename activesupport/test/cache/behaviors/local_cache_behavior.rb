@@ -102,6 +102,24 @@ module LocalCacheBehavior
     end
   end
 
+  def test_local_cache_of_delete_matched
+    begin
+      @cache.delete_matched("*")
+    rescue NotImplementedError
+      skip
+    end
+
+    @cache.with_local_cache do
+      @cache.write("foo", "bar")
+      @cache.write("fop", "bar")
+      @cache.write("bar", "foo")
+      @cache.delete_matched("fo*")
+      assert_not @cache.exist?("foo")
+      assert_not @cache.exist?("fop")
+      assert_equal "foo", @cache.read("bar")
+    end
+  end
+
   def test_local_cache_of_exist
     @cache.with_local_cache do
       @cache.write("foo", "bar")
