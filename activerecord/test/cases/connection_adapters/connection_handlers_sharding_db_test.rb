@@ -30,8 +30,8 @@ module ActiveRecord
 
           config = {
             "default_env" => {
-              "primary"  => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" },
-              "primary_shard_one" => { "adapter" => "sqlite3", "database" => "db/primary_shard_one.sqlite3" },
+              "primary"  => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" },
+              "primary_shard_one" => { "adapter" => "sqlite3", "database" => "test/db/primary_shard_one.sqlite3" },
             }
           }
 
@@ -46,11 +46,11 @@ module ActiveRecord
           default_pool = ActiveRecord::Base.connection_handlers[:writing].retrieve_connection_pool("ActiveRecord::Base", :default)
 
           assert_equal base_pool, default_pool
-          assert_equal "db/primary.sqlite3", default_pool.db_config.database
+          assert_equal "test/db/primary.sqlite3", default_pool.db_config.database
           assert_equal "primary", default_pool.db_config.name
 
           assert_not_nil pool = ActiveRecord::Base.connection_handlers[:writing].retrieve_connection_pool("ActiveRecord::Base", :shard_one)
-          assert_equal "db/primary_shard_one.sqlite3", pool.db_config.database
+          assert_equal "test/db/primary_shard_one.sqlite3", pool.db_config.database
           assert_equal "primary_shard_one", pool.db_config.name
         ensure
           ActiveRecord::Base.configurations = @prev_configs
@@ -63,10 +63,10 @@ module ActiveRecord
 
           config = {
             "default_env" => {
-              "primary"  => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" },
-              "primary_replica"  => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3", "replica" => true },
-              "primary_shard_one" => { "adapter" => "sqlite3", "database" => "db/primary_shard_one.sqlite3" },
-              "primary_shard_one_replica" => { "adapter" => "sqlite3", "database" => "db/primary_shard_one.sqlite3", "replica" => true }
+              "primary"  => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" },
+              "primary_replica"  => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3", "replica" => true },
+              "primary_shard_one" => { "adapter" => "sqlite3", "database" => "test/db/primary_shard_one.sqlite3" },
+              "primary_shard_one_replica" => { "adapter" => "sqlite3", "database" => "test/db/primary_shard_one.sqlite3", "replica" => true }
             }
           }
 
@@ -80,21 +80,21 @@ module ActiveRecord
           default_writing_pool = ActiveRecord::Base.connection_handlers[:writing].retrieve_connection_pool("ActiveRecord::Base", :default)
           base_writing_pool = ActiveRecord::Base.connection_handlers[:writing].retrieve_connection_pool("ActiveRecord::Base")
           assert_equal base_writing_pool, default_writing_pool
-          assert_equal "db/primary.sqlite3", default_writing_pool.db_config.database
+          assert_equal "test/db/primary.sqlite3", default_writing_pool.db_config.database
           assert_equal "primary", default_writing_pool.db_config.name
 
           default_reading_pool = ActiveRecord::Base.connection_handlers[:reading].retrieve_connection_pool("ActiveRecord::Base", :default)
           base_reading_pool = ActiveRecord::Base.connection_handlers[:reading].retrieve_connection_pool("ActiveRecord::Base")
           assert_equal base_reading_pool, default_reading_pool
-          assert_equal "db/primary.sqlite3", default_reading_pool.db_config.database
+          assert_equal "test/db/primary.sqlite3", default_reading_pool.db_config.database
           assert_equal "primary_replica", default_reading_pool.db_config.name
 
           assert_not_nil pool = ActiveRecord::Base.connection_handlers[:writing].retrieve_connection_pool("ActiveRecord::Base", :shard_one)
-          assert_equal "db/primary_shard_one.sqlite3", pool.db_config.database
+          assert_equal "test/db/primary_shard_one.sqlite3", pool.db_config.database
           assert_equal "primary_shard_one", pool.db_config.name
 
           assert_not_nil pool = ActiveRecord::Base.connection_handlers[:reading].retrieve_connection_pool("ActiveRecord::Base", :shard_one)
-          assert_equal "db/primary_shard_one.sqlite3", pool.db_config.database
+          assert_equal "test/db/primary_shard_one.sqlite3", pool.db_config.database
           assert_equal "primary_shard_one_replica", pool.db_config.name
         ensure
           ActiveRecord::Base.configurations = @prev_configs
@@ -107,10 +107,10 @@ module ActiveRecord
 
           config = {
             "default_env" => {
-              "primary"  => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" },
-              "primary_replica"  => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3", "replica" => true },
-              "primary_shard_one" => { "adapter" => "sqlite3", "database" => "db/primary_shard_one.sqlite3" },
-              "primary_shard_one_replica" => { "adapter" => "sqlite3", "database" => "db/primary_shard_one.sqlite3", "replica" => true }
+              "primary"  => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" },
+              "primary_replica"  => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3", "replica" => true },
+              "primary_shard_one" => { "adapter" => "sqlite3", "database" => "test/db/primary_shard_one.sqlite3" },
+              "primary_shard_one_replica" => { "adapter" => "sqlite3", "database" => "test/db/primary_shard_one.sqlite3", "replica" => true }
             }
           }
 
@@ -168,7 +168,6 @@ module ActiveRecord
           ActiveRecord::Base.configurations = @prev_configs
           ActiveRecord::Base.establish_connection(:arunit)
           ENV["RAILS_ENV"] = previous_env
-          FileUtils.rm_rf("db")
         end
 
         def test_retrieves_proper_connection_with_nested_connected_to
@@ -176,10 +175,10 @@ module ActiveRecord
 
           config = {
             "default_env" => {
-              "primary"  => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" },
-              "primary_replica"  => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3", "replica" => true },
-              "primary_shard_one" => { "adapter" => "sqlite3", "database" => "db/primary_shard_one.sqlite3" },
-              "primary_shard_one_replica" => { "adapter" => "sqlite3", "database" => "db/primary_shard_one.sqlite3", "replica" => true }
+              "primary"  => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" },
+              "primary_replica"  => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3", "replica" => true },
+              "primary_shard_one" => { "adapter" => "sqlite3", "database" => "test/db/primary_shard_one.sqlite3" },
+              "primary_shard_one_replica" => { "adapter" => "sqlite3", "database" => "test/db/primary_shard_one.sqlite3", "replica" => true }
             }
           }
 
@@ -216,7 +215,6 @@ module ActiveRecord
           ActiveRecord::Base.configurations = @prev_configs
           ActiveRecord::Base.establish_connection(:arunit)
           ENV["RAILS_ENV"] = previous_env
-          FileUtils.rm_rf("db")
         end
 
         def test_connected_to_raises_without_a_shard_or_role
