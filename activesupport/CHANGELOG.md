@@ -1,3 +1,26 @@
+*   [Breaking change] `ActiveSupport::Callbacks#halted_callback_hook` now receive a 2nd argument:
+
+    `ActiveSupport::Callbacks#halted_callback_hook` now receive the name of the callback
+    being halted as second argument.
+    This change will allow you to differentiate which callbacks halted the chain
+    and act accordingly.
+
+    ```ruby
+      class Book < ApplicationRecord
+        before_save { throw(:abort) }
+        before_create { throw(:abort) }
+
+        def halted_callback_hook(filter, callback_name)
+          Rails.logger.info("Book couldn't be #{callback_name}d")
+        end
+
+        Book.create # => "Book couldn't be created"
+        book.save # => "Book couldn't be saved"
+      end
+    ```
+
+    *Edouard Chin*
+
 *   Support `prepend` with `ActiveSupport::Concern`.
 
     Allows a module with `extend ActiveSupport::Concern` to be prepended.
@@ -14,7 +37,7 @@
           prepend Imposter
         end
 
-    Class methods are prepended to the base class, concerning is also 
+    Class methods are prepended to the base class, concerning is also
     updated: `concerning :Imposter, prepend: true do`.
 
     *Jason Karns*, *Elia Schito*
