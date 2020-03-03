@@ -153,6 +153,14 @@ module ActiveSupport
             super
           end
 
+          def delete_matched_entries(matcher, **options)
+            keys = super
+
+            keys.each { |key| local_cache.delete_entry(key, **options) } if local_cache && keys.present?
+
+            keys
+          end
+
           def delete_entry(key, **options)
             local_cache.delete_entry(key, **options) if local_cache
             super

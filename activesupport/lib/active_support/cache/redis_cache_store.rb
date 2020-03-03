@@ -237,7 +237,7 @@ module ActiveSupport
       # See https://redis.io/commands/KEYS for more.
       #
       # Failsafe: Raises errors.
-      def delete_matched(matcher, options = nil)
+      def delete_matched_entries(matcher, options = nil)
         instrument :delete_matched, matcher do
           unless String === matcher
             raise ArgumentError, "Only Redis glob strings are supported: #{matcher.inspect}"
@@ -248,10 +248,11 @@ module ActiveSupport
             # Fetch keys in batches using SCAN to avoid blocking the Redis server.
             nodes = c.respond_to?(:nodes) ? c.nodes : [c]
 
-            nodes.each do |node|
+            nodes.each_with_object(Set.new) do |node, set|
               begin
                 cursor, keys = node.scan(cursor, match: pattern, count: SCAN_BATCH_SIZE)
                 node.del(*keys) unless keys.empty?
+                set.merge(keys)
               end until cursor == "0"
             end
           end

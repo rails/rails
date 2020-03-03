@@ -102,6 +102,18 @@ module LocalCacheBehavior
     end
   end
 
+  def test_local_cache_of_delete_matched
+    @cache.with_local_cache do
+      @cache.write("foo", "bar")
+      @cache.write("fop", "bar")
+      @cache.write("bar", "foo")
+      @cache.delete_matched("fo*")
+      assert_nil @cache.read("foo")
+      assert_nil @cache.read("fop")
+      assert_equal @cache.read("bar"), "foo"
+    end
+  end
+
   def test_local_cache_of_exist
     @cache.with_local_cache do
       @cache.write("foo", "bar")

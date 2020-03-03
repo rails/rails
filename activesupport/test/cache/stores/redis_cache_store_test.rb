@@ -260,14 +260,6 @@ module ActiveSupport::Cache::RedisCacheStoreTests
   end
 
   class DeleteMatchedTest < StoreTest
-    test "deletes keys matching glob" do
-      @cache.write("foo", "bar")
-      @cache.write("fu", "baz")
-      @cache.delete_matched("foo*")
-      assert_not @cache.exist?("foo")
-      assert @cache.exist?("fu")
-    end
-
     test "fails with regexp matchers" do
       assert_raise ArgumentError do
         @cache.delete_matched(/OO/i)

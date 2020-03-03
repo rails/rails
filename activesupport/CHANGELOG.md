@@ -1,3 +1,9 @@
+*   Remove entries from local cache on `RedisCacheStore#delete_matched`
+
+    Fixes #38627
+
+    *ojab*
+
 *   [Breaking change] `ActiveSupport::Callbacks#halted_callback_hook` now receive a 2nd argument:
 
     `ActiveSupport::Callbacks#halted_callback_hook` now receive the name of the callback

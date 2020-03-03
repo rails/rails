@@ -506,7 +506,11 @@ module ActiveSupport
       #
       # Some implementations may not support this method.
       def delete_matched(matcher, options = nil)
-        raise NotImplementedError.new("#{self.class.name} does not support delete_matched")
+        options = merged_options(options)
+
+        instrument :delete_matched, matcher do
+          delete_matched_entries(matcher, **options)
+        end
       end
 
       # Increments an integer value in the cache.
