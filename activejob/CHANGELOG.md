@@ -1,3 +1,8 @@
+*   Add queue name support to Que adapter
+
+    *Brad Nauta*, *Wojciech Wnętrzak*
+
+
 ## Rails 6.0.2.1 (December 18, 2019) ##
 
 *   No changes.
