@@ -1,3 +1,7 @@
+*   Add queue name support to Que adapter
+
+    *Brad Nauta*, *Wojciech Wnętrzak*
+
 *   Don't run `after_enqueue` and `after_perform` callbacks if the callback chain is halted.
 
         class MyJob < ApplicationJob
