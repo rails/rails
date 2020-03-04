@@ -45,6 +45,20 @@ class ActiveStorage::DiskController < ActiveStorage::BaseController
       ActiveStorage.verifier.verified(params[:encoded_key], purpose: :blob_key)
     end
 
+    def serve_file(path, content_type:, disposition:)
+      Rack::File.new(nil).serving(request, path).tap do |(status, headers, body)|
+        self.status = status
+        self.response_body = body
+
+        headers.each do |name, value|
+          response.headers[name] = value
+        end
+
+        response.headers["Content-Type"] = content_type || DEFAULT_SEND_FILE_TYPE
+        response.headers["Content-Disposition"] = disposition || DEFAULT_SEND_FILE_DISPOSITION
+      end
+    end
+
     def decode_verified_token
       ActiveStorage.verifier.verified(params[:encoded_token], purpose: :blob_token)
     end
