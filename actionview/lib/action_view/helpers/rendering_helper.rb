@@ -22,8 +22,8 @@ module ActionView
       #   type of <tt>text/plain</tt> from <tt>ActionDispatch::Response</tt>
       #   object.
       #
-      # If no options hash is passed or :update specified, the default is to render a partial and use the second parameter
-      # as the locals hash.
+      # If no options hash is passed or :update specified, the default is to either call `render_in` on the first parameter if it
+      # responds to `render_in`, or to render a partial and use the second parameter as the locals hash.
       def render(options = {}, locals = {}, &block)
         case options
         when Hash

@@ -82,8 +82,8 @@ module ActionController
     #   need to call <tt>.to_json</tt> on the object you want to render.
     # * <tt>:body</tt> - Renders provided text and sets content type of <tt>text/plain</tt>.
     #
-    # If no <tt>options</tt> hash is passed or if <tt>:update</tt> is specified, the default is
-    # to render a partial and use the second parameter as the locals hash.
+    # If no options hash is passed or :update specified, the default is to either call `render_in` on the first parameter if it
+    # responds to `render_in`, or to render a partial and use the second parameter as the locals hash.
     def render(*args)
       raise "missing controller" unless controller
 
