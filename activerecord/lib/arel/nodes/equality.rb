@@ -6,13 +6,22 @@ module Arel # :nodoc: all
       def operator; :== end
       alias :operand1 :left
       alias :operand2 :right
+
+      def invert
+        Arel::Nodes::NotEqual.new(left, right)
+      end
     end
 
-    %w{
-      IsDistinctFrom
-      IsNotDistinctFrom
-    }.each do |name|
-      const_set name, Class.new(Equality)
+    class IsDistinctFrom < Equality
+      def invert
+        Arel::Nodes::IsNotDistinctFrom.new(left, right)
+      end
+    end
+
+    class IsNotDistinctFrom < Equality
+      def invert
+        Arel::Nodes::IsDistinctFrom.new(left, right)
+      end
     end
   end
 end

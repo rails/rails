@@ -27,6 +27,10 @@ module Arel # :nodoc: all
         Nodes::And.new [self, right]
       end
 
+      def invert
+        Arel::Nodes::Not.new(self)
+      end
+
       # FIXME: this method should go away.  I don't like people calling
       # to_sql on non-head nodes.  This forces us to walk the AST until we
       # can find a node that has a "relation" member.
