@@ -661,13 +661,13 @@ To show the uploaded files in a form:
 addEventListener("direct-upload:initialize", event => {
   const { target, detail } = event
   const { id, file } = detail
-  const sanitizedFileName = encodeURI(file.name)
   target.insertAdjacentHTML("beforebegin", `
     <div id="direct-upload-${id}" class="direct-upload direct-upload--pending">
       <div id="direct-upload-progress-${id}" class="direct-upload__progress" style="width: 0%"></div>
-      <span class="direct-upload__filename">${sanitizedFileName}</span>
+      <span class="direct-upload__filename"></span>
     </div>
   `)
+  target.previousElementSibling.querySelector(`.direct-upload__filename`).textContent = file.name
 })
 
 addEventListener("direct-upload:start", event => {
