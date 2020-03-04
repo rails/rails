@@ -8,7 +8,7 @@ require "active_support/core_ext/integer/time"
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
 
-  <%-# Spring executes the reloaders when files change. %>
+  <%-# Spring executes the reloaders when files change. -%>
   <%- if spring_install? -%>
   config.cache_classes = false
   config.action_view.cache_template_loading = true
