@@ -126,6 +126,13 @@ module ActiveRecord
       assert_instance_of(ActiveRecord::Result, result)
     end
 
+    def test_exec_query_returns_result_with_empty_metadata
+      result = @connection.exec_query "SELECT 1"
+      assert_instance_of(ActiveRecord::Result, result)
+      assert_equal({}, result.metadata)
+      assert_predicate(result.metadata, :frozen?)
+    end
+
     if current_adapter?(:Mysql2Adapter)
       def test_charset
         assert_not_nil @connection.charset

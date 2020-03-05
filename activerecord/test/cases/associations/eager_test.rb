@@ -1168,6 +1168,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
     assert_equal Developer.all.to_a.count, payload[:record_count]
     assert_equal Developer.name, payload[:class_name]
+    assert_instance_of ActiveRecord::Result, payload[:result_set]
   end
 
   def messages_for(name)

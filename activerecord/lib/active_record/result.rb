@@ -34,13 +34,16 @@ module ActiveRecord
   class Result
     include Enumerable
 
-    attr_reader :columns, :rows, :column_types
+    DEFAULT_EMPTY_METADATA = {}.freeze
 
-    def initialize(columns, rows, column_types = {})
+    attr_reader :columns, :rows, :column_types, :metadata
+
+    def initialize(columns, rows, column_types = {}, metadata = DEFAULT_EMPTY_METADATA)
       @columns      = columns
       @rows         = rows
       @hash_rows    = nil
       @column_types = column_types
+      @metadata     = metadata.freeze
     end
 
     # Returns true if this result set includes the column named +name+

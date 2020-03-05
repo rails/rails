@@ -50,7 +50,8 @@ module ActiveRecord
 
       payload = {
         record_count: result_set.length,
-        class_name: name
+        class_name: name,
+        result_set: result_set
       }
 
       message_bus.instrument("instantiation.active_record", payload) do

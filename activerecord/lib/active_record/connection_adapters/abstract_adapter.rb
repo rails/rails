@@ -740,6 +740,14 @@ module ActiveRecord
 
         def build_statement_pool
         end
+
+        def metadata
+          ActiveRecord::Result::DEFAULT_EMPTY_METADATA
+        end
+
+        def build_result(columns, rows, column_types = {})
+          ActiveRecord::Result.new(columns, rows, column_types, metadata)
+        end
     end
   end
 end
