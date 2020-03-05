@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/enumerable"
 require "active_support/core_ext/hash/indifferent_access"
 require "active_support/core_ext/string/filters"
 require "active_support/parameter_filter"
@@ -208,9 +209,7 @@ module ActiveRecord
         keys = hash.keys
 
         statement = cached_find_by_statement(keys) { |params|
-          wheres = keys.each_with_object({}) { |param, o|
-            o[param] = params.bind
-          }
+          wheres = keys.index_with { params.bind }
           where(wheres).limit(1)
         }
         begin
