@@ -19,7 +19,7 @@ class TestComponent < ActionView::Base
 
   def self.template
     <<~'erb'
-    <span title="<%= title %>">(<%= render(plain: "Inline render") %>)</span>
+    <span title="<%= @title %>">(<%= render(plain: "Inline render") %>)</span>
     erb
   end
 
@@ -37,5 +37,5 @@ class TestComponent < ActionView::Base
   end
 
 private
-  attr_reader :title, :view_context
+  attr_reader :view_context
 end

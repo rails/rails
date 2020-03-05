@@ -7,19 +7,18 @@ class TestComponent < ActionView::Base
     @title = title
   end
 
-  # Entrypoint for rendering. Called by ActionView::RenderingHelper#render.
-  #
-  # Returns ActionView::OutputBuffer.
   def render_in(view_context, &block)
     self.class.compile
+
     @view_context = view_context
     @content = view_context.capture(&block) if block_given?
+
     rendered_template
   end
 
   def self.template
     <<~'erb'
-    <span title="<%= title %>"><%= content %> (<%= render(plain: "Inline render") %>)</span>
+    <span title="<%= @title %>"><%= content %> (<%= render(plain: "Inline render") %>)</span>
     erb
   end
 
@@ -37,5 +36,5 @@ class TestComponent < ActionView::Base
   end
 
 private
-  attr_reader :content, :title, :view_context
+  attr_reader :content, :view_context
 end
