@@ -64,6 +64,13 @@ module ActiveSupport
         @__instance__[locale] ||= new
       end
 
+      def self.instance_or_fallback(locale)
+        I18n.fallbacks[locale].each do |k|
+          return @__instance__[k] if @__instance__.key?(k)
+        end
+        instance(locale)
+      end
+
       attr_reader :plurals, :singulars, :uncountables, :humans, :acronyms
 
       attr_reader :acronyms_camelize_regex, :acronyms_underscore_regex # :nodoc:
@@ -248,7 +255,7 @@ module ActiveSupport
       if block_given?
         yield Inflections.instance(locale)
       else
-        Inflections.instance(locale)
+        Inflections.instance_or_fallback(locale)
       end
     end
   end
