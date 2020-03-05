@@ -8,6 +8,7 @@ require "rails/command"
 
 require "active_support/core_ext/kernel/singleton_class"
 require "active_support/core_ext/array/extract_options"
+require "active_support/core_ext/enumerable"
 require "active_support/core_ext/hash/deep_merge"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/string/indent"
@@ -252,7 +253,7 @@ module Rails
 
         lookup(lookups)
 
-        namespaces = Hash[subclasses.map { |klass| [klass.namespace, klass] }]
+        namespaces = subclasses.index_by(&:namespace)
         lookups.each do |namespace|
           klass = namespaces[namespace]
           return klass if klass

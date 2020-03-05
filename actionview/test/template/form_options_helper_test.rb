@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "active_support/core_ext/enumerable"
 
 class Map < Hash
   def category
@@ -67,9 +68,9 @@ class FormOptionsHelperTest < ActionView::TestCase
   ActiveSupport::TimeZone.prepend FakeZones
 
   setup do
-    ActiveSupport::TimeZone.fake_zones = %w(A B C D E).map do |id|
-      [ id, FakeZones::FakeZone.new(id) ]
-    end.to_h
+    ActiveSupport::TimeZone.fake_zones = %w(A B C D E).index_with do |id|
+      FakeZones::FakeZone.new(id)
+    end
 
     @fake_timezones = ActiveSupport::TimeZone.all
   end
