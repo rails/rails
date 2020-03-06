@@ -1,3 +1,12 @@
+*   `ActionView::Helpers::TranslationHelper#translate` accepts a block, yielding
+    the translated text and the fully resolved translation key:
+
+        <%= translate(".relative_key") do |translation, resolved_key| %>
+          <span title="<%= resolved_key %>"><%= translation %></span>
+        <% end %>
+
+    *Sean Doyle*
+
 *   Deprecate template names with `.`
 
     *John Hawthorn*
