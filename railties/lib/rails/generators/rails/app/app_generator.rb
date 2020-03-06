@@ -12,6 +12,9 @@ module Rails
         install_shell_gemfile
         generate_edge_rails_app
       else
+        puts "*" * 300
+        puts "Missed if statement. Arguments are #{generator.inspect}"
+        puts "*" * 300
         @generator = generator
         @options   = generator.options
       end
@@ -20,10 +23,16 @@ module Rails
     private
 
       def install_shell_gemfile
+        puts "*" * 300
+        puts "Hit install shell gemfile"
+        puts "*" * 300
         template "GemfileMasterRailsInstaller", "Gemfile"
       end
 
       def generate_edge_rails_app
+        puts "*" * 300
+        puts "Hit generate edge rails app"
+        puts "*" * 300
         system 'bundle exec rails new . --edge'
       end
       %w(template copy_file directory empty_directory inside
