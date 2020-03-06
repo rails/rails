@@ -591,6 +591,114 @@ module ApplicationTests
         ENV["RAILS_ENV"] = @old_rails_env
         ENV["RACK_ENV"] = @old_rack_env
       end
+
+      test "db:create and db:drop don't raise errors when loading YAML with multiline ERB" do
+        app_file "config/database.yml", <<-YAML
+          development:
+            primary:
+              database: <%=
+                Rails.application.config.database
+              %>
+              adapter: sqlite3
+            animals:
+              database: db/develoment_animals.sqlite3
+              adapter: sqlite3
+        YAML
+
+        app_file "config/environments/development.rb", <<-RUBY
+          Rails.application.configure do
+            config.database = "db/development.sqlite3"
+          end
+        RUBY
+
+        db_create_and_drop_namespace("primary", "db/development.sqlite3")
+      end
+
+      test "db:create and db:drop don't raise errors when loading YAML containing conditional statements in ERB" do
+        app_file "config/database.yml", <<-YAML
+          development:
+            primary:
+            <% if Rails.application.config.database %>
+              database: <%= Rails.application.config.database %>
+            <% else %>
+              database: db/default.sqlite3
+            <% end %>
+              adapter: sqlite3
+            animals:
+              database: db/develoment_animals.sqlite3
+              adapter: sqlite3
+
+        YAML
+
+        app_file "config/environments/development.rb", <<-RUBY
+          Rails.application.configure do
+            config.database = "db/development.sqlite3"
+          end
+        RUBY
+
+        db_create_and_drop_namespace("primary", "db/development.sqlite3")
+      end
+
+      test "db:create and db:drop don't raise errors when loading YAML containing multiple ERB statements on the same line" do
+        app_file "config/database.yml", <<-YAML
+          development:
+            primary:
+              database: <% if Rails.application.config.database %><%= Rails.application.config.database %><% else %>db/default.sqlite3<% end %>
+              adapter: sqlite3
+            animals:
+              database: db/develoment_animals.sqlite3
+              adapter: sqlite3
+        YAML
+
+        app_file "config/environments/development.rb", <<-RUBY
+          Rails.application.configure do
+            config.database = "db/development.sqlite3"
+          end
+        RUBY
+
+        db_create_and_drop_namespace("primary", "db/development.sqlite3")
+      end
+
+      test "db:create and db:drop dont raise errors when loading YAML with single-line ERB" do
+        app_file "config/database.yml", <<-YAML
+          development:
+            primary:
+              <%= Rails.application.config.database ? 'database: db/development.sqlite3' : 'database: db/development.sqlite3' %>
+              adapter: sqlite3
+            animals:
+              database: db/develoment_animals.sqlite3
+              adapter: sqlite3
+        YAML
+
+        app_file "config/environments/development.rb", <<-RUBY
+          Rails.application.configure do
+            config.database = "db/development.sqlite3"
+          end
+        RUBY
+
+        db_create_and_drop_namespace("primary", "db/development.sqlite3")
+      end
+
+      test "db:create and db:drop don't raise errors when loading YAML which contains a key's value as an ERB statement" do
+        app_file "config/database.yml", <<-YAML
+          development:
+            primary:
+              database: <%= Rails.application.config.database ? 'db/development.sqlite3' : 'db/development.sqlite3' %>
+              custom_option: <%= ENV['CUSTOM_OPTION'] %>
+              adapter: sqlite3
+            animals:
+              database: db/develoment_animals.sqlite3
+              adapter: sqlite3
+        YAML
+
+        app_file "config/environments/development.rb", <<-RUBY
+          Rails.application.configure do
+            config.database = "db/development.sqlite3"
+          end
+        RUBY
+
+        db_create_and_drop_namespace("primary", "db/development.sqlite3")
+      end
     end
   end
 end
