@@ -90,6 +90,7 @@ module Rails
 
         class_option :edge,                type: :boolean, default: false,
                                            desc: "Set up the #{name} with Gemfile pointing to Rails repository"
+
         class_option :master,              type: :boolean, default: false,
                                            desc: "Set up the #{name} with Gemfile pointing to Rails repository master branch"
 
