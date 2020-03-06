@@ -7,11 +7,25 @@ module Rails
     attr_reader :options
 
     def initialize(generator)
-      @generator = generator
-      @options   = generator.options
+      if generator.options[:master]
+        puts '== Generating new rails app based off of rails/rails master branch =='
+        install_shell_gemfile
+        generate_edge_rails_app
+      else
+        @generator = generator
+        @options   = generator.options
+      end
     end
 
     private
+
+      def install_shell_gemfile
+        template "GemfileMasterRailsInstaller", "Gemfile"
+      end
+
+      def generate_edge_rails_app
+        system 'bundle exec rails new . --edge'
+      end
       %w(template copy_file directory empty_directory inside
          empty_directory_with_keep_file create_file chmod shebang).each do |method|
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
