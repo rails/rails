@@ -9,7 +9,7 @@ module Rails
     def initialize(generator)
       if generator.options[:master]
         puts '== Generating new rails app based off of rails/rails master branch =='
-        CustomAppBuilder.new
+        ::GemfileGenerator.new
         # install_shell_gemfile
         # generate_edge_rails_app
       else
@@ -22,21 +22,24 @@ module Rails
     end
 
     private
+      module ::Rails
+        module Generators
+          class GemfileGenerator
+            def install_shell_gemfile
+              puts "*" * 300
+              puts "Hit install shell gemfile"
+              puts "*" * 300
+              template "GemfileMasterRailsInstaller", "Gemfile"
+              run 'bundle install'
+            end
 
-      class CustomAppBuilder < ::Rails::AppBuilder
-        def install_shell_gemfile
-          puts "*" * 300
-          puts "Hit install shell gemfile"
-          puts "*" * 300
-          template "GemfileMasterRailsInstaller", "Gemfile"
-          run 'bundle install'
-        end
-
-        def generate_edge_rails_app
-          puts "*" * 300
-          puts "Hit generate edge rails app"
-          puts "*" * 300
-          run 'bundle exec rails new . --edge'
+            def generate_edge_rails_app
+              puts "*" * 300
+              puts "Hit generate edge rails app"
+              puts "*" * 300
+              run 'bundle exec rails new . --edge'
+            end
+          end
         end
       end
 
