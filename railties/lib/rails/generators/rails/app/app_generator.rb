@@ -9,8 +9,9 @@ module Rails
     def initialize(generator)
       if generator.options[:master]
         puts '== Generating new rails app based off of rails/rails master branch =='
-        install_shell_gemfile
-        generate_edge_rails_app
+        CustomAppBuilder.new
+        # install_shell_gemfile
+        # generate_edge_rails_app
       else
         puts "*" * 300
         puts "Missed if statement. Arguments are #{generator.inspect}"
@@ -22,19 +23,23 @@ module Rails
 
     private
 
-      def install_shell_gemfile
-        puts "*" * 300
-        puts "Hit install shell gemfile"
-        puts "*" * 300
-        template "GemfileMasterRailsInstaller", "Gemfile"
+      class CustomAppBuilder < Rails::AppBuilder
+        def install_shell_gemfile
+          puts "*" * 300
+          puts "Hit install shell gemfile"
+          puts "*" * 300
+          template "GemfileMasterRailsInstaller", "Gemfile"
+          run 'bundle install'
+        end
+
+        def generate_edge_rails_app
+          puts "*" * 300
+          puts "Hit generate edge rails app"
+          puts "*" * 300
+          run 'bundle exec rails new . --edge'
+        end
       end
 
-      def generate_edge_rails_app
-        puts "*" * 300
-        puts "Hit generate edge rails app"
-        puts "*" * 300
-        system 'bundle exec rails new . --edge'
-      end
       %w(template copy_file directory empty_directory inside
          empty_directory_with_keep_file create_file chmod shebang).each do |method|
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
