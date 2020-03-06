@@ -1039,8 +1039,10 @@ module ActiveRecord
       end
       alias :connection_pools :connection_pool_list
 
-      def establish_connection(config, pool_key = ActiveRecord::Base.default_pool_key)
-        pool_config = resolve_pool_config(config)
+      def establish_connection(config, pool_key = Base.default_pool_key, owner_name = Base.name)
+        owner_name = config.to_s if config.is_a?(Symbol)
+
+        pool_config = resolve_pool_config(config, owner_name)
         db_config = pool_config.db_config
 
         # Protects the connection named `ActiveRecord::Base` from being removed
@@ -1182,10 +1184,8 @@ module ActiveRecord
         #   pool_config.db_config.configuration_hash
         #   # => { host: "localhost", database: "foo", adapter: "sqlite3" }
         #
-        def resolve_pool_config(config)
-          pool_name = config if config.is_a?(Symbol)
-
-          db_config = Base.configurations.resolve(config, pool_name)
+        def resolve_pool_config(config, owner_name)
+          db_config = Base.configurations.resolve(config)
 
           raise(AdapterNotSpecified, "database configuration does not specify adapter") unless db_config.adapter
 
@@ -1214,9 +1214,7 @@ module ActiveRecord
             raise AdapterNotFound, "database configuration specifies nonexistent #{db_config.adapter} adapter"
           end
 
-          pool_name = db_config.owner_name || Base.name
-          db_config.owner_name = nil
-          ConnectionAdapters::PoolConfig.new(pool_name, db_config)
+          ConnectionAdapters::PoolConfig.new(owner_name, db_config)
         end
     end
   end

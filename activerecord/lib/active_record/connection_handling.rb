@@ -48,8 +48,8 @@ module ActiveRecord
     # may be returned on an error.
     def establish_connection(config_or_env = nil)
       config_or_env ||= DEFAULT_ENV.call.to_sym
-      db_config = resolve_config_for_connection(config_or_env)
-      connection_handler.establish_connection(db_config, current_pool_key)
+      db_config, owner_name = resolve_config_for_connection(config_or_env)
+      connection_handler.establish_connection(db_config, current_pool_key, owner_name)
     end
 
     # Connects a model to the databases specified. The +database+ keyword
@@ -86,18 +86,18 @@ module ActiveRecord
       connections = []
 
       database.each do |role, database_key|
-        db_config = resolve_config_for_connection(database_key)
+        db_config, owner_name = resolve_config_for_connection(database_key)
         handler = lookup_connection_handler(role.to_sym)
 
-        connections << handler.establish_connection(db_config)
+        connections << handler.establish_connection(db_config, default_pool_key, owner_name)
       end
 
       shards.each do |pool_key, database_keys|
         database_keys.each do |role, database_key|
-          db_config = resolve_config_for_connection(database_key)
+          db_config, owner_name = resolve_config_for_connection(database_key)
           handler = lookup_connection_handler(role.to_sym)
 
-          connections << handler.establish_connection(db_config, pool_key.to_sym)
+          connections << handler.establish_connection(db_config, pool_key.to_sym, owner_name)
         end
       end
 
@@ -151,10 +151,10 @@ module ActiveRecord
           role = role.to_sym
         end
 
-        db_config = resolve_config_for_connection(database)
+        db_config, owner_name = resolve_config_for_connection(database)
         handler = lookup_connection_handler(role)
 
-        handler.establish_connection(db_config)
+        handler.establish_connection(db_config, default_pool_key, owner_name)
 
         with_handler(role, &blk)
       elsif shard
@@ -282,12 +282,11 @@ module ActiveRecord
       def resolve_config_for_connection(config_or_env)
         raise "Anonymous class is not allowed." unless name
 
-        pool_name = primary_class? ? Base.name : name
-        self.connection_specification_name = pool_name
+        owner_name = primary_class? ? Base.name : name
+        self.connection_specification_name = owner_name
 
-        db_config = Base.configurations.resolve(config_or_env, pool_name)
-        db_config.owner_name = pool_name
-        db_config
+        db_config = Base.configurations.resolve(config_or_env)
+        [db_config, owner_name]
       end
 
       def with_handler(handler_key, &blk)

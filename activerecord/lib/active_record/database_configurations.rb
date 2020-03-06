@@ -133,12 +133,12 @@ module ActiveRecord
     #
     #   DatabaseConfigurations.new({}).resolve("postgresql://localhost/foo")
     #   # => DatabaseConfigurations::UrlConfig.new(config: {"adapter" => "postgresql", "host" => "localhost", "database" => "foo"})
-    def resolve(config, pool_name = nil) # :nodoc:
+    def resolve(config) # :nodoc:
       return config if DatabaseConfigurations::DatabaseConfig === config
 
       case config
       when Symbol
-        resolve_symbol_connection(config, pool_name)
+        resolve_symbol_connection(config)
       when Hash, String
         build_db_config_from_raw_config(default_env, "primary", config)
       else
@@ -184,9 +184,8 @@ module ActiveRecord
         end
       end
 
-      def resolve_symbol_connection(name, pool_name)
+      def resolve_symbol_connection(name)
         if db_config = find_db_config(name)
-          db_config.owner_name = pool_name.to_s
           db_config
         else
           raise AdapterNotSpecified, <<~MSG

@@ -8,7 +8,7 @@ module ActiveRecord
       class ResolverTest < ActiveRecord::TestCase
         def resolve_db_config(pool_config, config = {})
           configs = ActiveRecord::DatabaseConfigurations.new(config)
-          configs.resolve(pool_config, pool_config)
+          configs.resolve(pool_config)
         end
 
         def test_url_invalid_adapter
@@ -38,7 +38,6 @@ module ActiveRecord
             host:     "foo",
             encoding: "utf8"
           }, pool_config.configuration_hash)
-          assert_equal "production", pool_config.owner_name
         end
 
         def test_url_sub_key
@@ -49,7 +48,6 @@ module ActiveRecord
             host:     "foo",
             encoding: "utf8"
           }, pool_config.configuration_hash)
-          assert_equal "production", pool_config.owner_name
         end
 
         def test_url_sub_key_merges_correctly
@@ -62,7 +60,6 @@ module ActiveRecord
             encoding: "utf8",
             pool:     "3"
           }, pool_config.configuration_hash)
-          assert_equal "production", pool_config.owner_name
         end
 
         def test_url_host_no_db
@@ -140,7 +137,6 @@ module ActiveRecord
             database: "foo",
             encoding: "utf8"
           }, pool_config.configuration_hash)
-          assert_equal "production", pool_config.owner_name
         end
 
         def test_pool_config_with_invalid_type
