@@ -23,7 +23,7 @@ module Rails
 
     private
 
-      class CustomAppBuilder < AppBuilder
+      class CustomAppBuilder < ::AppBuilder
         def install_shell_gemfile
           puts "*" * 300
           puts "Hit install shell gemfile"
