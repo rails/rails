@@ -13,13 +13,6 @@ require "mailers/asset_mailer"
 class BaseTest < ActiveSupport::TestCase
   include Rails::Dom::Testing::Assertions::DomAssertions
 
-  setup do
-    @original_delivery_method = ActionMailer::Base.delivery_method
-    ActionMailer::Base.delivery_method = :test
-    @original_asset_host = ActionMailer::Base.asset_host
-    @original_assets_dir = ActionMailer::Base.assets_dir
-  end
-
   teardown do
     ActionMailer::Base.asset_host = @original_asset_host
     ActionMailer::Base.assets_dir = @original_assets_dir
