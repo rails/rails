@@ -47,6 +47,7 @@ module ActiveRecord
     # The exceptions AdapterNotSpecified, AdapterNotFound and +ArgumentError+
     # may be returned on an error.
     def establish_connection(config_or_env = nil)
+      config_or_env ||= DEFAULT_ENV.call.to_sym
       db_config = resolve_config_for_connection(config_or_env)
       connection_handler.establish_connection(db_config, current_pool_key)
     end
@@ -281,7 +282,6 @@ module ActiveRecord
       def resolve_config_for_connection(config_or_env)
         raise "Anonymous class is not allowed." unless name
 
-        config_or_env ||= DEFAULT_ENV.call.to_sym
         pool_name = primary_class? ? Base.name : name
         self.connection_specification_name = pool_name
 
