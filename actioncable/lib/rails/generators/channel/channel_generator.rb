@@ -33,7 +33,7 @@ module Rails
           @_file_name ||= super.sub(/_channel\z/i, "")
         end
 
-        # FIXME: Change these files to symlinks once RubyGems 2.5.0 is required.
+        # FIXME: Change these files to symlinks once RubyGems 2.5.1 is required.
         def generate_application_cable_files
           return if behavior != :invoke
 
