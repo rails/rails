@@ -1,8 +1,13 @@
-*   Allow ActionDispatch::FileHandler to respond with brotli encoded files
+*   `ActionDispatch::Static` handles precompiled Brotli (.br) files.
 
-    Add support for Rails applications to serve brotli (.br) compressed static assets when incoming requests have the "Accept-Encoding" header set (contains "br") and the asset exists on the file system. Will prioritize brotli encoding over gzip due to the better compression ratio.
+    Adds to existing support for precompiled gzip (.gz) files.
+    Brotli files are preferred due to much better compression.
 
-    *Ryan Edward Hall*
+    When the browser requests /some.js with `Accept-Encoding: br`,
+    we check for public/some.js.br and serve that file, if present, with
+    `Content-Encoding: br` and `Vary: Accept-Encoding` headers.
+
+    *Ryan Edward Hall, Jeremy Daer*
 
 *   Add raise_on_missing_translations support for controllers.
 
