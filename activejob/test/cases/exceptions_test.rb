@@ -96,12 +96,13 @@ class ExceptionsTest < ActiveSupport::TestCase
   test "long wait job" do
     travel_to Time.now
     random_amount = 1
+    delay_for_jitter = random_amount * 3600 * ActiveJob::Base.retry_jitter
 
     Kernel.stub(:rand, random_amount) do
       RetryJob.perform_later "LongWaitError", 2, :log_scheduled_at
       assert_equal [
         "Raised LongWaitError for the 1st time",
-        "Next execution scheduled at #{(Time.now + 3600.seconds + random_amount).to_f}",
+        "Next execution scheduled at #{(Time.now + 3600.seconds + delay_for_jitter).to_f}",
         "Successfully completed job"
       ], JobBuffer.values
     end
@@ -111,19 +112,20 @@ class ExceptionsTest < ActiveSupport::TestCase
     travel_to Time.now
 
     random_amount = 2
+    delay_for_jitter = -> (delay) { random_amount * delay * ActiveJob::Base.retry_jitter }
 
     Kernel.stub(:rand, random_amount) do
       RetryJob.perform_later "ExponentialWaitTenAttemptsError", 5, :log_scheduled_at
 
       assert_equal [
         "Raised ExponentialWaitTenAttemptsError for the 1st time",
-        "Next execution scheduled at #{(Time.now + 3.seconds + random_amount).to_f}",
+        "Next execution scheduled at #{(Time.now + 3.seconds + delay_for_jitter.(1)).to_f}",
         "Raised ExponentialWaitTenAttemptsError for the 2nd time",
-        "Next execution scheduled at #{(Time.now + 18.seconds + random_amount).to_f}",
+        "Next execution scheduled at #{(Time.now + 18.seconds + delay_for_jitter.(16)).to_f}",
         "Raised ExponentialWaitTenAttemptsError for the 3rd time",
-        "Next execution scheduled at #{(Time.now + 83.seconds + random_amount).to_f}",
+        "Next execution scheduled at #{(Time.now + 83.seconds + delay_for_jitter.(81)).to_f}",
         "Raised ExponentialWaitTenAttemptsError for the 4th time",
-        "Next execution scheduled at #{(Time.now + 258.seconds + random_amount).to_f}",
+        "Next execution scheduled at #{(Time.now + 258.seconds + delay_for_jitter.(256)).to_f}",
         "Successfully completed job"
       ], JobBuffer.values
     end
@@ -135,7 +137,9 @@ class ExceptionsTest < ActiveSupport::TestCase
 
     travel_to Time.now
 
-    Kernel.stub(:rand, ->(arg) { arg }) do
+    random_amount = 1
+
+    Kernel.stub(:rand, random_amount) do
       RetryJob.perform_later "ExponentialWaitTenAttemptsError", 5, :log_scheduled_at
 
       assert_equal [
@@ -154,36 +158,83 @@ class ExceptionsTest < ActiveSupport::TestCase
     ActiveJob::Base.retry_jitter = old_jitter
   end
 
+  test "random wait time for default job when retry jitter delay multiplier value is between 1 and 2" do
+    old_jitter = ActiveJob::Base.retry_jitter
+    ActiveJob::Base.retry_jitter = 0.6
+
+    travel_to Time.now
+
+    RetryJob.perform_later "DefaultsError", 2, :log_scheduled_at
+
+    assert_not_equal [
+      "Raised DefaultsError for the 1st time",
+      "Next execution scheduled at #{(Time.now + 3.seconds).to_f}",
+      "Successfully completed job"
+    ], JobBuffer.values
+  ensure
+    ActiveJob::Base.retry_jitter = old_jitter
+  end
+
+  test "random wait time for exponentially retrying job when retry jitter delay multiplier value is between 1 and 2" do
+    old_jitter = ActiveJob::Base.retry_jitter
+    ActiveJob::Base.retry_jitter = 1.2
+
+    travel_to Time.now
+
+    RetryJob.perform_later "ExponentialWaitTenAttemptsError", 2, :log_scheduled_at
+
+    assert_not_equal [
+      "Raised ExponentialWaitTenAttemptsError for the 1st time",
+      "Next execution scheduled at #{(Time.now + 3.seconds).to_f}",
+      "Successfully completed job"
+    ], JobBuffer.values
+  ensure
+    ActiveJob::Base.retry_jitter = old_jitter
+  end
+
+  test "random wait time for negative jitter value" do
+    old_jitter = ActiveJob::Base.retry_jitter
+    ActiveJob::Base.retry_jitter = -1.2
+
+    travel_to Time.now
+
+    RetryJob.perform_later "ExponentialWaitTenAttemptsError", 2, :log_scheduled_at
+
+    assert_not_equal [
+      "Raised ExponentialWaitTenAttemptsError for the 1st time",
+      "Next execution scheduled at #{(Time.now + 3.seconds).to_f}",
+      "Successfully completed job"
+    ], JobBuffer.values
+  ensure
+    ActiveJob::Base.retry_jitter = old_jitter
+  end
+
   test "retry jitter disabled with nil" do
     travel_to Time.now
 
-    Kernel.stub(:rand, ->(arg) { arg }) do
-      RetryJob.perform_later "DisabledJitterError", 3, :log_scheduled_at
+    RetryJob.perform_later "DisabledJitterError", 3, :log_scheduled_at
 
-      assert_equal [
-        "Raised DisabledJitterError for the 1st time",
-        "Next execution scheduled at #{(Time.now + 3.seconds).to_f}",
-        "Raised DisabledJitterError for the 2nd time",
-        "Next execution scheduled at #{(Time.now + 3.seconds).to_f}",
-        "Successfully completed job"
-      ], JobBuffer.values
-    end
+    assert_equal [
+      "Raised DisabledJitterError for the 1st time",
+      "Next execution scheduled at #{(Time.now + 3.seconds).to_f}",
+      "Raised DisabledJitterError for the 2nd time",
+      "Next execution scheduled at #{(Time.now + 3.seconds).to_f}",
+      "Successfully completed job"
+    ], JobBuffer.values
   end
 
   test "retry jitter disabled with zero" do
     travel_to Time.now
 
-    Kernel.stub(:rand, ->(arg) { arg }) do
-      RetryJob.perform_later "ZeroJitterError", 3, :log_scheduled_at
+    RetryJob.perform_later "ZeroJitterError", 3, :log_scheduled_at
 
-      assert_equal [
-        "Raised ZeroJitterError for the 1st time",
-        "Next execution scheduled at #{(Time.now + 3.seconds).to_f}",
-        "Raised ZeroJitterError for the 2nd time",
-        "Next execution scheduled at #{(Time.now + 3.seconds).to_f}",
-        "Successfully completed job"
-      ], JobBuffer.values
-    end
+    assert_equal [
+      "Raised ZeroJitterError for the 1st time",
+      "Next execution scheduled at #{(Time.now + 3.seconds).to_f}",
+      "Raised ZeroJitterError for the 2nd time",
+      "Next execution scheduled at #{(Time.now + 3.seconds).to_f}",
+      "Successfully completed job"
+    ], JobBuffer.values
   end
 
   test "custom wait retrying job" do
@@ -214,13 +265,15 @@ class ExceptionsTest < ActiveSupport::TestCase
     Kernel.stub(:rand, random_amount) do
       RetryJob.perform_later exceptions_to_raise, 5, :log_scheduled_at
 
+      delay_for_jitter = -> (delay) { random_amount * delay * ActiveJob::Base.retry_jitter }
+
       assert_equal [
         "Raised ExponentialWaitTenAttemptsError for the 1st time",
-        "Next execution scheduled at #{(Time.now + 3.seconds + random_amount).to_f}",
+        "Next execution scheduled at #{(Time.now + 3.seconds + delay_for_jitter.(1)).to_f}",
         "Raised CustomWaitTenAttemptsError for the 2nd time",
         "Next execution scheduled at #{(Time.now + 2.seconds).to_f}",
         "Raised ExponentialWaitTenAttemptsError for the 3rd time",
-        "Next execution scheduled at #{(Time.now + 18.seconds + random_amount).to_f}",
+        "Next execution scheduled at #{(Time.now + 18.seconds + delay_for_jitter.(16)).to_f}",
         "Raised CustomWaitTenAttemptsError for the 4th time",
         "Next execution scheduled at #{(Time.now + 4.seconds).to_f}",
         "Successfully completed job"

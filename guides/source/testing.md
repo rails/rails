@@ -545,6 +545,32 @@ to be able to easily change the number of workers a test run should use:
 PARALLEL_WORKERS=15 rails test
 ```
 
+### Testing Parallel Transactions
+
+Rails automatically wraps any test case in a database transaction that is rolled
+back after the test completes.  This makes test cases independent of each other
+and changes to the database are only visible within a single test.
+
+When you want to test code that runs parallel transactions in threads,
+transactions can block each other because they are already nested under the test
+transaction.
+
+You can disable transactions in a test case class by setting
+`self.use_transactional_tests = false`:
+
+```ruby
+class WorkerTest < ActiveSupport::TestCase
+  self.use_transactional_tests = false
+  
+  test "parallel transactions" do
+    # start some threads that create transactions
+  end
+end
+```
+
+NOTE: With disabled transactional tests, you have to clean up any data tests
+create as changes are not automatically rolled back after the test completes.
+
 The Test Database
 -----------------
 

@@ -154,6 +154,44 @@ module ApplicationTests
         end
       end
 
+      def db_migrate_name_dumps_the_schema(name, schema_format)
+        add_to_config "config.active_record.schema_format = :#{schema_format}"
+        require "#{app_path}/config/environment"
+
+        Dir.chdir(app_path) do
+          generate_models_for_animals
+
+          assert_not(File.exist?("db/schema.rb"))
+          assert_not(File.exist?("db/animals_schema.rb"))
+          assert_not(File.exist?("db/structure.sql"))
+          assert_not(File.exist?("db/animals_structure.sql"))
+
+          rails("db:migrate:#{name}")
+
+          if schema_format == "ruby"
+            if name == "primary"
+              schema_dump = File.read("db/schema.rb")
+              assert_not(File.exist?("db/animals_schema.rb"))
+              assert_match(/create_table \"books\"/, schema_dump)
+            else
+              assert_not(File.exist?("db/schema.rb"))
+              schema_dump_animals = File.read("db/animals_schema.rb")
+              assert_match(/create_table \"dogs\"/, schema_dump_animals)
+            end
+          else
+            if name == "primary"
+              schema_dump = File.read("db/structure.sql")
+              assert_not(File.exist?("db/animals_structure.sql"))
+              assert_match(/CREATE TABLE (?:IF NOT EXISTS )?\"books\"/, schema_dump)
+            else
+              assert_not(File.exist?("db/structure.sql"))
+              schema_dump_animals = File.read("db/animals_structure.sql")
+              assert_match(/CREATE TABLE (?:IF NOT EXISTS )?\"dogs\"/, schema_dump_animals)
+            end
+          end
+        end
+      end
+
       def db_test_prepare_name(name, schema_format)
         add_to_config "config.active_record.schema_format = :#{schema_format}"
         require "#{app_path}/config/environment"
@@ -325,6 +363,25 @@ module ApplicationTests
         end
       end
 
+      test "db:migrate:name sets the connection back to its original state" do
+        Dir.chdir(app_path) do
+          dummy_task = <<~RUBY
+            task foo: :environment do
+              Book.first
+            end
+          RUBY
+          app_file("Rakefile", dummy_task, "a+")
+
+          generate_models_for_animals
+
+          rails("db:migrate:primary")
+
+          assert_nothing_raised do
+            rails("db:migrate:animals", "foo")
+          end
+        end
+      end
+
       test "db:migrate and db:schema:dump and db:schema:load works on all databases" do
         require "#{app_path}/config/environment"
         db_migrate_and_schema_dump_and_load "schema"
@@ -333,6 +390,23 @@ module ApplicationTests
       test "db:migrate and db:structure:dump and db:structure:load works on all databases" do
         require "#{app_path}/config/environment"
         db_migrate_and_schema_dump_and_load "structure"
+      end
+
+
+      test "db:migrate:name dumps the schema for the primary database" do
+        db_migrate_name_dumps_the_schema("primary", "ruby")
+      end
+
+      test "db:migrate:name dumps the schema for the animals database" do
+        db_migrate_name_dumps_the_schema("animals", "ruby")
+      end
+
+      test "db:migrate:name dumps the structure for the primary database" do
+        db_migrate_name_dumps_the_schema("primary", "sql")
+      end
+
+      test "db:migrate:name dumps the structure for the animals database" do
+        db_migrate_name_dumps_the_schema("animals", "sql")
       end
 
       test "db:migrate:name and db:schema:dump:name and db:schema:load:name works for the primary database" do
@@ -516,6 +590,114 @@ module ApplicationTests
       ensure
         ENV["RAILS_ENV"] = @old_rails_env
         ENV["RACK_ENV"] = @old_rack_env
+      end
+
+      test "db:create and db:drop don't raise errors when loading YAML with multiline ERB" do
+        app_file "config/database.yml", <<-YAML
+          development:
+            primary:
+              database: <%=
+                Rails.application.config.database
+              %>
+              adapter: sqlite3
+            animals:
+              database: db/develoment_animals.sqlite3
+              adapter: sqlite3
+        YAML
+
+        app_file "config/environments/development.rb", <<-RUBY
+          Rails.application.configure do
+            config.database = "db/development.sqlite3"
+          end
+        RUBY
+
+        db_create_and_drop_namespace("primary", "db/development.sqlite3")
+      end
+
+      test "db:create and db:drop don't raise errors when loading YAML containing conditional statements in ERB" do
+        app_file "config/database.yml", <<-YAML
+          development:
+            primary:
+            <% if Rails.application.config.database %>
+              database: <%= Rails.application.config.database %>
+            <% else %>
+              database: db/default.sqlite3
+            <% end %>
+              adapter: sqlite3
+            animals:
+              database: db/develoment_animals.sqlite3
+              adapter: sqlite3
+
+        YAML
+
+        app_file "config/environments/development.rb", <<-RUBY
+          Rails.application.configure do
+            config.database = "db/development.sqlite3"
+          end
+        RUBY
+
+        db_create_and_drop_namespace("primary", "db/development.sqlite3")
+      end
+
+      test "db:create and db:drop don't raise errors when loading YAML containing multiple ERB statements on the same line" do
+        app_file "config/database.yml", <<-YAML
+          development:
+            primary:
+              database: <% if Rails.application.config.database %><%= Rails.application.config.database %><% else %>db/default.sqlite3<% end %>
+              adapter: sqlite3
+            animals:
+              database: db/develoment_animals.sqlite3
+              adapter: sqlite3
+        YAML
+
+        app_file "config/environments/development.rb", <<-RUBY
+          Rails.application.configure do
+            config.database = "db/development.sqlite3"
+          end
+        RUBY
+
+        db_create_and_drop_namespace("primary", "db/development.sqlite3")
+      end
+
+      test "db:create and db:drop dont raise errors when loading YAML with single-line ERB" do
+        app_file "config/database.yml", <<-YAML
+          development:
+            primary:
+              <%= Rails.application.config.database ? 'database: db/development.sqlite3' : 'database: db/development.sqlite3' %>
+              adapter: sqlite3
+            animals:
+              database: db/develoment_animals.sqlite3
+              adapter: sqlite3
+        YAML
+
+        app_file "config/environments/development.rb", <<-RUBY
+          Rails.application.configure do
+            config.database = "db/development.sqlite3"
+          end
+        RUBY
+
+        db_create_and_drop_namespace("primary", "db/development.sqlite3")
+      end
+
+      test "db:create and db:drop don't raise errors when loading YAML which contains a key's value as an ERB statement" do
+        app_file "config/database.yml", <<-YAML
+          development:
+            primary:
+              database: <%= Rails.application.config.database ? 'db/development.sqlite3' : 'db/development.sqlite3' %>
+              custom_option: <%= ENV['CUSTOM_OPTION'] %>
+              adapter: sqlite3
+            animals:
+              database: db/develoment_animals.sqlite3
+              adapter: sqlite3
+        YAML
+
+        app_file "config/environments/development.rb", <<-RUBY
+          Rails.application.configure do
+            config.database = "db/development.sqlite3"
+          end
+        RUBY
+
+        db_create_and_drop_namespace("primary", "db/development.sqlite3")
       end
     end
   end

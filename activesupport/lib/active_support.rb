@@ -70,6 +70,7 @@ module ActiveSupport
     autoload :OrderedHash
     autoload :OrderedOptions
     autoload :StringInquirer
+    autoload :EnvironmentInquirer
     autoload :TaggedLogging
     autoload :XmlMini
     autoload :ArrayInquirer
