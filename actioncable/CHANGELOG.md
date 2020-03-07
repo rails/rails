@@ -1,3 +1,7 @@
+*   Add `ActionCable::Channel#stream_or_reject_for` to stream if record is present, otherwise reject the connection
+
+    *Atul Bhosale*
+
 *   Add `ActionCable::Channel#stop_stream_from` and `#stop_stream_for` to unsubscribe from a specific stream.
 
     *Zhang Kang*

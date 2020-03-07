@@ -124,6 +124,18 @@ module ActionCable
         end.clear
       end
 
+      # Calls stream_for if record is present, otherwise calls reject.
+      # This method is intended to be called when you're looking
+      # for a record based on a parameter, if its found it will start
+      # streaming. If the record is nil then it will reject the connection.
+      def stream_or_reject_for(record)
+        if record
+          stream_for record
+        else
+          reject
+        end
+      end
+
       private
         delegate :pubsub, to: :connection
 
