@@ -28,20 +28,6 @@ module ActiveRecord
         ENV["RACK_ENV"]  = original_rack_env
       end
 
-      def test_establish_connection_uses_config_hash_with_name
-        old_config = ActiveRecord::Base.configurations
-        config = { "readonly" => { "adapter" => "sqlite3", "pool" => "5" } }
-        ActiveRecord::Base.configurations = config
-        db_config = ActiveRecord::Base.configurations.resolve(config["readonly"], "readonly")
-        db_config.owner_name = "readonly"
-        @handler.establish_connection(db_config)
-
-        assert_not_nil @handler.retrieve_connection_pool("readonly")
-      ensure
-        ActiveRecord::Base.configurations = old_config
-        @handler.remove_connection_pool("readonly")
-      end
-
       def test_establish_connection_using_3_levels_config
         previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
 
