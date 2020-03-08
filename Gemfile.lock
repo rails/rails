@@ -292,10 +292,9 @@ GEM
       mustache
       nokogiri
     libxml-ruby (3.1.0)
-    listen (3.1.5)
-      rb-fsevent (~> 0.9, >= 0.9.4)
-      rb-inotify (~> 0.9, >= 0.9.7)
-      ruby_dep (~> 1.2)
+    listen (3.2.0)
+      rb-fsevent (~> 0.10, >= 0.10.3)
+      rb-inotify (~> 0.9, >= 0.9.10)
     loofah (2.4.0)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
@@ -420,7 +419,6 @@ GEM
     ruby-progressbar (1.10.1)
     ruby-vips (2.0.16)
       ffi (~> 1.9)
-    ruby_dep (1.5.0)
     rubyzip (2.0.0)
     rufus-scheduler (3.6.0)
       fugit (~> 1.1, >= 1.1.6)
@@ -560,7 +558,7 @@ DEPENDENCIES
   json (>= 2.0.0)
   kindlerb (~> 1.2.0)
   libxml-ruby
-  listen (>= 3.0.5, < 3.2)
+  listen (~> 3.2)
   minitest-bisect
   minitest-reporters
   minitest-retry
