@@ -134,6 +134,7 @@ def step_for(subdirectory, rake_task, ruby: nil, service: "default")
 
   hash = {
     "label" => label,
+    "depends_on" => "docker-image-#{ruby}",
     "command" => command,
     "group" => group,
     "plugins" => [
@@ -271,13 +272,13 @@ groups = STEPS.group_by { |s| s.delete("group") }.map do |group, steps|
 end
 
 puts YAML.dump("steps" => [
-  "wait",
   {
     "group" => "build",
     "steps" => [
       *RUBIES.map do |ruby|
         {
           "label" => ":docker: #{ruby}",
+          "key" => "docker-image-#{ruby}",
           "plugins" => [
             {
               ARTIFACTS_PLUGIN => {
@@ -319,6 +320,5 @@ puts YAML.dump("steps" => [
       end,
     ],
   },
-  "wait",
   *groups,
 ])
