@@ -64,16 +64,24 @@ available_tags_for_image("ruby").
 
   image = "ruby:#{v}"
 
-  RUBIES << image
-  SOFT_FAIL << image if MAX_RUBY && v > MAX_RUBY && !(MAX_RUBY.approximate_recommendation === v)
+  if MAX_RUBY && v > MAX_RUBY && !(MAX_RUBY.approximate_recommendation === v)
+    SOFT_FAIL << image
+  else
+    RUBIES << image
+  end
 end
 
-ONE_RUBY = (RUBIES - SOFT_FAIL).last || RUBIES.last
+ONE_RUBY = RUBIES.last || SOFT_FAIL.last
 
 MASTER_RUBY = "rubylang/ruby:master-nightly-bionic"
-RUBIES << MASTER_RUBY
 SOFT_FAIL << MASTER_RUBY
 
+# Run steps for newer Rubies first.
+RUBIES.reverse!
+SOFT_FAIL.reverse!
+
+# Run soft-failing Ruby steps last.
+RUBIES.concat SOFT_FAIL
 
 STEPS = []
 
