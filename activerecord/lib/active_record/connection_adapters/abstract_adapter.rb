@@ -130,19 +130,17 @@ module ActiveRecord
       def schema_migration # :nodoc:
         @schema_migration ||= begin
                                 conn = self
-                                name = conn.pool.db_config.name
-                                schema_migration_name = "#{name}::SchemaMigration"
+                                spec_name = conn.pool.pool_config.connection_specification_name
+
+                                return ActiveRecord::SchemaMigration if spec_name == "ActiveRecord::Base"
+
+                                schema_migration_name = "#{spec_name}::SchemaMigration"
 
                                 Class.new(ActiveRecord::SchemaMigration) do
                                   define_singleton_method(:name) { schema_migration_name }
                                   define_singleton_method(:to_s) { schema_migration_name }
 
-                                  connection_handler.connection_pool_names.each do |pool_name|
-                                    if conn.pool == connection_handler.retrieve_connection_pool(pool_name)
-                                      self.connection_specification_name = pool_name
-                                      break
-                                    end
-                                  end
+                                  self.connection_specification_name = spec_name
                                 end
                               end
       end
