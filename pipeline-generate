@@ -134,7 +134,7 @@ def step_for(subdirectory, rake_task, ruby: nil, service: "default")
 
   hash = {
     "label" => label,
-    "depends_on" => "docker-image-#{ruby}",
+    "depends_on" => "docker-image-#{ruby.gsub(/\W/, "-")}",
     "command" => command,
     "group" => group,
     "plugins" => [
@@ -278,7 +278,7 @@ puts YAML.dump("steps" => [
       *RUBIES.map do |ruby|
         {
           "label" => ":docker: #{ruby}",
-          "key" => "docker-image-#{ruby}",
+          "key" => "docker-image-#{ruby.gsub(/\W/, "-")}",
           "plugins" => [
             {
               ARTIFACTS_PLUGIN => {
