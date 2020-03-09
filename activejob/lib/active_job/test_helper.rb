@@ -602,7 +602,7 @@ module ActiveJob
       def jobs_with(jobs, only: nil, except: nil, queue: nil, at: nil)
         validate_option(only: only, except: except)
 
-        jobs.count do |job|
+        jobs.dup.count do |job|
           job_class = job.fetch(:job)
 
           if only
