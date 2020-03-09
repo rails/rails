@@ -909,6 +909,16 @@ class PerformedJobsTest < ActiveJob::TestCase
     assert_performed_jobs 0
   end
 
+  def test_perform_enqueued_jobs_properly_count_job_that_raises
+    RaisingJob.perform_later("NotImplementedError")
+
+    assert_raises(NotImplementedError) do
+      perform_enqueued_jobs(only: RaisingJob)
+    end
+
+    assert_equal(1, performed_jobs.size)
+  end
+
   def test_assert_performed_jobs
     assert_nothing_raised do
       assert_performed_jobs 1 do
