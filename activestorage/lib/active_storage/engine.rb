@@ -38,6 +38,7 @@ module ActiveStorage
       image/bmp
       image/vnd.adobe.photoshop
       image/vnd.microsoft.icon
+      image/webp
     )
 
     config.active_storage.content_types_to_serve_as_binary = %w(
