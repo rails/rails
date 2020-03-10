@@ -379,6 +379,16 @@ $ cd actionmailer
 $ SEED=15002 bundle exec ruby -w -Itest test/mail_layout_test.rb
 ```
 
+#### Running Tests in Serial
+
+Action Pack and Action View unit tests run in parallel by default. If you are experiencing random
+test failures you can set the randomization seed and let these unit tests run in serial by setting `PARALLEL_WORKERS=1`
+
+```bash
+$ cd actionview
+$ PARALLEL_WORKERS=1 SEED=53708 bundle exec ruby -w -Itest test/template/test_case_test.rb
+```
+
 #### Testing Active Record
 
 First, create the databases you'll need. You can find a list of the required
