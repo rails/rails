@@ -51,11 +51,8 @@ module Arel
     when Arel::Nodes::Between, Arel::Nodes::In, Arel::Nodes::NotIn, Arel::Nodes::Equality,
          Arel::Nodes::NotEqual, Arel::Nodes::LessThan, Arel::Nodes::LessThanOrEqual,
          Arel::Nodes::GreaterThan, Arel::Nodes::GreaterThanOrEqual
-      if value.left.is_a?(Arel::Attributes::Attribute)
-        yield value.left
-      elsif value.right.is_a?(Arel::Attributes::Attribute)
-        yield value.right
-      end
+      attribute_value = value.detect_attribute
+      yield attribute_value if attribute_value
     when Arel::Nodes::Or
       fetch_attribute(value.left, &block) && fetch_attribute(value.right, &block)
     when Arel::Nodes::Grouping
