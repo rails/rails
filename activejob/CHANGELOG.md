@@ -1,3 +1,13 @@
+*   `ActiveJob::TestCase#perform_enqueued_jobs` will no longer perform retries:
+
+    When calling `perform_enqueued_jobs` without a block, the adapter will
+    now perform jobs that are **already** in the queue. Jobs that will end up in
+    the queue afterwards won't be performed.
+
+    This change only affects `perform_enqueued_jobs` when no block is given.
+
+    *Edouard Chin*
+
 *   Add queue name support to Que adapter
 
     *Brad Nauta*, *Wojciech Wnętrzak*

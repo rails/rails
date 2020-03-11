@@ -909,6 +909,27 @@ class PerformedJobsTest < ActiveJob::TestCase
     assert_performed_jobs 0
   end
 
+  def test_perform_enqueued_jobs_properly_count_job_that_raises
+    RaisingJob.perform_later("NotImplementedError")
+
+    assert_raises(NotImplementedError) do
+      perform_enqueued_jobs(only: RaisingJob)
+    end
+
+    assert_equal(1, performed_jobs.size)
+  end
+
+  def test_perform_enqueued_jobs_dont_perform_retries
+    RaisingJob.perform_later
+
+    assert_nothing_raised do
+      perform_enqueued_jobs(only: RaisingJob)
+    end
+
+    assert_equal(1, performed_jobs.size)
+    assert_equal(2, enqueued_jobs.size)
+  end
+
   def test_assert_performed_jobs
     assert_nothing_raised do
       assert_performed_jobs 1 do
@@ -1867,13 +1888,13 @@ class PerformedJobsTest < ActiveJob::TestCase
   end
 
   test "TestAdapter respect max attempts" do
-    RaisingJob.perform_later
-
-    assert_raises(RaisingJob::MyError) do
-      perform_enqueued_jobs
+    perform_enqueued_jobs(only: RaisingJob) do
+      assert_raises(RaisingJob::MyError) do
+        RaisingJob.perform_later
+      end
     end
 
-    assert_equal 2, queue_adapter.enqueued_jobs.count
+    assert_equal 2, queue_adapter.performed_jobs.count
   end
 end
 
