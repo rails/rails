@@ -8,15 +8,17 @@ module ActiveStorage
 
     def preview(**options)
       download_blob_to_tempfile do |input|
-        draw_relevant_frame_from input do |output|
+        blob.analyze unless blob.metadata["analyzed"]
+        seconds = blob.metadata["duration"] ? ([(blob.metadata["duration"] * 0.1).ceil, blob.metadata["duration"]].min).floor : 0
+        draw_relevant_frame_from input, seconds do |output|
           yield io: output, filename: "#{blob.filename.base}.jpg", content_type: "image/jpeg", **options
         end
       end
     end
 
     private
-      def draw_relevant_frame_from(file, &block)
-        draw ffmpeg_path, "-i", file.path, "-y", "-vframes", "1", "-f", "image2", "-", &block
+      def draw_relevant_frame_from(file, seconds, &block)
+        draw ffmpeg_path, "-ss", seconds.to_s, "-i", file.path, "-y", "-vframes", "1", "-f", "image2", "-", &block
       end
 
       def ffmpeg_path

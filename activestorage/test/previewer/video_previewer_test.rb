@@ -21,4 +21,20 @@ class ActiveStorage::Previewer::VideoPreviewerTest < ActiveSupport::TestCase
       assert_equal "image/jpeg", image.mime_type
     end
   end
+
+  test "previewing an MP4 video that seeks for some time" do
+    # Add metadata to the blob
+    metadata = extract_metadata_from(@blob)
+    @blob.update(metadata: metadata)
+
+    ActiveStorage::Previewer::VideoPreviewer.new(@blob).preview do |attachable|
+      assert_equal "image/jpeg", attachable[:content_type]
+      assert_equal "video.jpg", attachable[:filename]
+
+      image = MiniMagick::Image.read(attachable[:io])
+      assert_equal 640, image.width
+      assert_equal 480, image.height
+      assert_equal "image/jpeg", image.mime_type
+    end
+  end
 end
