@@ -33,7 +33,7 @@ module ActionView
       super
     end
 
-    # Overwrite process to setup I18n proxy.
+    # Overwrite process to set up I18n proxy.
     def process(*) #:nodoc:
       old_config, I18n.config = I18n.config, I18nProxy.new(I18n.config, lookup_context)
       super

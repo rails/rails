@@ -653,7 +653,7 @@ module ApplicationTests
       create_test_file :models, "account"
       create_test_file :models, "post", pass: false
       # This specifically verifies TEST for backwards compatibility with rake test
-      # as `rails test` already supports running tests from a single file more cleanly.
+      # as `bin/rails test` already supports running tests from a single file more cleanly.
       output = Dir.chdir(app_path) { `bin/rake test TEST=test/models/post_test.rb` }
 
       assert_match "PostTest", output, "passing TEST= should run selected test"
@@ -966,8 +966,8 @@ module ApplicationTests
 
           class EnvironmentTest < ActiveSupport::TestCase
             def test_environment
-              test_db = ActiveRecord::Base.configurations[#{env.dump}][:database]
-              db_file = ActiveRecord::Base.connection_config[:database]
+              test_db = ActiveRecord::Base.configurations.configs_for(env_name: #{env.dump}, name: "primary").database
+              db_file = ActiveRecord::Base.connection_db_config.database
               assert_match(test_db, db_file)
               assert_equal #{env.dump}, ENV["RAILS_ENV"]
             end

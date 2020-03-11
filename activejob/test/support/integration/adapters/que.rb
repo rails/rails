@@ -25,7 +25,7 @@ module QueJobsManager
 
     @thread = Thread.new do
       loop do
-        Que::Job.work
+        Que::Job.work("integration_tests")
         sleep 0.5
       end
     end

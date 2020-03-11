@@ -325,6 +325,10 @@ module RenderTestCases
     assert_equal "NilClass", @view.render(partial: "test/klass", object: nil)
   end
 
+  def test_render_object_different_name
+    assert_equal "Hello: t.lo", @view.render(partial: "test/template_not_named_customer", object: Customer.new("t.lo"), as: "customer").chomp
+  end
+
   def test_render_object_with_array
     assert_equal "[1, 2, 3]", @view.render(partial: "test/object_inspector", object: [1, 2, 3])
   end
@@ -680,14 +684,6 @@ module RenderTestCases
       %(<span title="my title">Hello, World! (Inline render)</span>),
       @view.render(TestComponent.new(title: "my title")) { "Hello, World!" }.strip
     )
-  end
-
-  def test_render_component_with_validation_error
-    error = assert_raises(ActiveModel::ValidationError) do
-      @view.render(TestComponent.new(title: "my title")).strip
-    end
-
-    assert_match "Content can't be blank", error.message
   end
 end
 

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/enumerable"
 require "active_support/core_ext/hash/indifferent_access"
 require "active_support/core_ext/string/filters"
 require "active_support/parameter_filter"
@@ -43,9 +44,9 @@ module ActiveRecord
       #
       #   #<ActiveRecord::DatabaseConfigurations:0x00007fd1acbdf800 @configurations=[
       #     #<ActiveRecord::DatabaseConfigurations::HashConfig:0x00007fd1acbded10 @env_name="development",
-      #       @spec_name="primary", @config={adapter: "sqlite3", database: "db/development.sqlite3"}>,
+      #       @name="primary", @config={adapter: "sqlite3", database: "db/development.sqlite3"}>,
       #     #<ActiveRecord::DatabaseConfigurations::HashConfig:0x00007fd1acbdea90 @env_name="production",
-      #       @spec_name="primary", @config={adapter: "sqlite3", database: "db/production.sqlite3"}>
+      #       @name="primary", @config={adapter: "sqlite3", database: "db/production.sqlite3"}>
       #   ]>
       def self.configurations=(config)
         @@configurations = ActiveRecord::DatabaseConfigurations.new(config)
@@ -120,7 +121,7 @@ module ActiveRecord
 
       mattr_accessor :maintain_test_schema, instance_accessor: false
 
-      mattr_accessor :belongs_to_required_by_default, instance_accessor: false
+      class_attribute :belongs_to_required_by_default, instance_accessor: false
 
       mattr_accessor :connection_handlers, instance_accessor: false, default: {}
 
@@ -132,6 +133,8 @@ module ActiveRecord
 
       class_attribute :default_connection_handler, instance_writer: false
 
+      class_attribute :default_pool_key, instance_writer: false
+
       self.filter_attributes = []
 
       def self.connection_handler
@@ -142,7 +145,16 @@ module ActiveRecord
         Thread.current.thread_variable_set(:ar_connection_handler, handler)
       end
 
+      def self.current_pool_key
+        Thread.current.thread_variable_get(:ar_pool_key) || default_pool_key
+      end
+
+      def self.current_pool_key=(pool_key)
+        Thread.current.thread_variable_set(:ar_pool_key, pool_key)
+      end
+
       self.default_connection_handler = ConnectionAdapters::ConnectionHandler.new
+      self.default_pool_key = :default
     end
 
     module ClassMethods
@@ -197,9 +209,7 @@ module ActiveRecord
         keys = hash.keys
 
         statement = cached_find_by_statement(keys) { |params|
-          wheres = keys.each_with_object({}) { |param, o|
-            o[param] = params.bind
-          }
+          wheres = keys.index_with { params.bind }
           where(wheres).limit(1)
         }
         begin
@@ -491,6 +501,14 @@ module ActiveRecord
       @readonly
     end
 
+    def strict_loading?
+      @strict_loading
+    end
+
+    def strict_loading!
+      @strict_loading = true
+    end
+
     # Marks this record as read only.
     def readonly!
       @readonly = true
@@ -575,6 +593,7 @@ module ActiveRecord
         @destroyed_by_association = nil
         @_start_transaction_state = nil
         @transaction_state        = nil
+        @strict_loading           = false
 
         self.class.define_attribute_methods
       end

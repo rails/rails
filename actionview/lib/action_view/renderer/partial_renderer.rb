@@ -370,7 +370,7 @@ module ActionView
       #
       # If +options[:partial]+ is a string, then the <tt>@path</tt> instance variable is
       # set to that string. Otherwise, the +options[:partial]+ object must
-      # respond to +to_partial_path+ in order to setup the path.
+      # respond to +to_partial_path+ in order to set up the path.
       def setup(context, options, as, block)
         @options = options
         @block   = block

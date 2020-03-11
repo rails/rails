@@ -792,6 +792,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_web_console_with_master_option
+    run_generator [destination_root, "--master"]
+
+    assert_file "Gemfile" do |content|
+      assert_match(/gem 'web-console',\s+github: 'rails\/web-console'/, content)
+      assert_no_match(/\Agem 'web-console', '>= 3\.3\.0'\z/, content)
+    end
+  end
+
   def test_generation_runs_bundle_install
     generator([destination_root], skip_webpack_install: true)
 
@@ -831,11 +840,20 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["']$}
   end
 
+
+  def test_master_option
+    generator([destination_root], master: true, skip_webpack_install: true)
+
+    assert_bundler_command_called("install")
+    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']master["']$}
+  end
+
   def test_spring
     run_generator
     assert_gem "spring"
     assert_file("config/environments/test.rb") do |contents|
       assert_match("config.cache_classes = false", contents)
+      assert_match("config.action_view.cache_template_loading = true", contents)
     end
   end
 
@@ -1022,7 +1040,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
       lib/tasks
       lib/assets
       log
-      test/fixtures
       test/fixtures/files
       test/controllers
       test/mailers
@@ -1132,7 +1149,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     def assert_listen_related_configuration
       assert_gem "listen"
-      assert_gem "spring-watcher-listen"
 
       assert_file "config/environments/development.rb" do |content|
         assert_match(/^\s*config\.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)

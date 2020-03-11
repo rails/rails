@@ -1,0 +1,15 @@
+# frozen_string_literal: true
+
+require_relative "../../config/environment"
+
+# Any benchmarking setup goes here...
+
+
+
+Benchmark.ips do |x|
+<%- reports.each do |report| -%>
+  x.report("<%= report %>") { }
+<%- end -%>
+
+  x.compare!
+end

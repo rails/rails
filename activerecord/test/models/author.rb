@@ -160,6 +160,9 @@ class Author < ActiveRecord::Base
   has_many :posts_with_signature, ->(record) { where("posts.title LIKE ?", "%by #{record.name.downcase}%") }, class_name: "Post"
   has_many :posts_mentioning_author, ->(record = nil) { where("posts.body LIKE ?", "%#{record&.name&.downcase}%") }, class_name: "Post"
 
+  has_one :recent_post, -> { order(id: :desc) }, class_name: "Post"
+  has_one :recent_response, through: :recent_post, source: :comments
+
   has_many :posts_with_extension, -> { order(:title) }, class_name: "Post" do
     def extension_method; end
   end

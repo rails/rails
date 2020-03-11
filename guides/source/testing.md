@@ -65,12 +65,12 @@ NOTE: Your tests are run under `RAILS_ENV=test`.
 
 ### Rails meets Minitest
 
-If you remember, we used the `rails generate model` command in the
+If you remember, we used the `bin/rails generate model` command in the
 [Getting Started with Rails](getting_started.html) guide. We created our first
 model, and among other things it created test stubs in the `test` directory:
 
 ```bash
-$ rails generate model article title:string body:text
+$ bin/rails generate model article title:string body:text
 ...
 create  app/models/article.rb
 create  test/models/article_test.rb
@@ -156,7 +156,7 @@ end
 Let us run this newly added test (where `6` is the number of line where the test is defined).
 
 ```bash
-$ rails test test/models/article_test.rb:6
+$ bin/rails test test/models/article_test.rb:6
 Run options: --seed 44656
 
 # Running:
@@ -206,7 +206,7 @@ end
 Now the test should pass. Let us verify by running the test again:
 
 ```bash
-$ rails test test/models/article_test.rb:6
+$ bin/rails test test/models/article_test.rb:6
 Run options: --seed 31252
 
 # Running:
@@ -224,7 +224,7 @@ we ensured that our test passes. This approach to software development is
 referred to as
 [_Test-Driven Development_ (TDD)](http://c2.com/cgi/wiki?TestDrivenDevelopment).
 
-#### What an error looks like
+#### What an Error Looks Like
 
 To see how an error gets reported, here's a test containing an error:
 
@@ -239,7 +239,7 @@ end
 Now you can see even more output in the console from running the tests:
 
 ```bash
-$ rails test test/models/article_test.rb
+$ bin/rails test test/models/article_test.rb
 Run options: --seed 1808
 
 # Running:
@@ -276,7 +276,7 @@ code. However there are situations when you want to see the full
 backtrace. Set the `-b` (or `--backtrace`) argument to enable this behavior:
 
 ```bash
-$ rails test -b test/models/article_test.rb
+$ bin/rails test -b test/models/article_test.rb
 ```
 
 If we want this test to pass we can modify it to use `assert_raises` like so:
@@ -381,12 +381,12 @@ documentation](http://docs.seattlerb.org/minitest).
 
 ### The Rails Test Runner
 
-We can run all of our tests at once by using the `rails test` command.
+We can run all of our tests at once by using the `bin/rails test` command.
 
-Or we can run a single test file by passing the `rails test` command the filename containing the test cases.
+Or we can run a single test file by passing the `bin/rails test` command the filename containing the test cases.
 
 ```bash
-$ rails test test/models/article_test.rb
+$ bin/rails test test/models/article_test.rb
 Run options: --seed 1559
 
 # Running:
@@ -404,7 +404,7 @@ You can also run a particular test method from the test case by providing the
 `-n` or `--name` flag and the test's method name.
 
 ```bash
-$ rails test test/models/article_test.rb -n test_the_truth
+$ bin/rails test test/models/article_test.rb -n test_the_truth
 Run options: -n test_the_truth --seed 43583
 
 # Running:
@@ -419,20 +419,20 @@ Finished tests in 0.009064s, 110.3266 tests/s, 110.3266 assertions/s.
 You can also run a test at a specific line by providing the line number.
 
 ```bash
-$ rails test test/models/article_test.rb:6 # run specific test and line
+$ bin/rails test test/models/article_test.rb:6 # run specific test and line
 ```
 
 You can also run an entire directory of tests by providing the path to the directory.
 
 ```bash
-$ rails test test/controllers # run all tests from specific directory
+$ bin/rails test test/controllers # run all tests from specific directory
 ```
 
 The test runner also provides a lot of other features like failing fast, deferring test output
 at the end of test run and so on. Check the documentation of the test runner as follows:
 
 ```bash
-$ rails test -h
+$ bin/rails test -h
 Usage: rails test [options] [files or directories]
 
 You can run a single test by appending a line number to a filename:
@@ -470,7 +470,7 @@ Parallel testing allows you to parallelize your test suite. While forking proces
 default method, threading is supported as well. Running tests in parallel reduces the time it
 takes your entire test suite to run.
 
-### Parallel testing with processes
+### Parallel Testing with Processes
 
 The default parallelization method is to fork processes using Ruby's DRb system. The processes
 are forked based on the number of workers provided. The default number is the actual core count
@@ -522,7 +522,7 @@ end
 
 These methods are not needed or available when using parallel testing with threads.
 
-### Parallel testing with threads
+### Parallel Testing with Threads
 
 If you prefer using threads or are using JRuby, a threaded parallelization option is provided. The threaded
 parallelizer is backed by Minitest's `Parallel::Executor`.
@@ -545,6 +545,32 @@ to be able to easily change the number of workers a test run should use:
 PARALLEL_WORKERS=15 rails test
 ```
 
+### Testing Parallel Transactions
+
+Rails automatically wraps any test case in a database transaction that is rolled
+back after the test completes.  This makes test cases independent of each other
+and changes to the database are only visible within a single test.
+
+When you want to test code that runs parallel transactions in threads,
+transactions can block each other because they are already nested under the test
+transaction.
+
+You can disable transactions in a test case class by setting
+`self.use_transactional_tests = false`:
+
+```ruby
+class WorkerTest < ActiveSupport::TestCase
+  self.use_transactional_tests = false
+  
+  test "parallel transactions" do
+    # start some threads that create transactions
+  end
+end
+```
+
+NOTE: With disabled transactional tests, you have to clean up any data tests
+create as changes are not automatically rolled back after the test completes.
+
 The Test Database
 -----------------
 
@@ -562,11 +588,11 @@ structure. The test helper checks whether your test database has any pending
 migrations. It will try to load your `db/schema.rb` or `db/structure.sql`
 into the test database. If migrations are still pending, an error will be
 raised. Usually this indicates that your schema is not fully migrated. Running
-the migrations against the development database (`rails db:migrate`) will
+the migrations against the development database (`bin/rails db:migrate`) will
 bring the schema up to date.
 
 NOTE: If there were modifications to existing migrations, the test database needs to
-be rebuilt. This can be done by executing `rails db:test:prepare`.
+be rebuilt. This can be done by executing `bin/rails db:test:prepare`.
 
 ### The Low-Down on Fixtures
 
@@ -574,13 +600,13 @@ For good tests, you'll need to give some thought to setting up test data.
 In Rails, you can handle this by defining and customizing fixtures.
 You can find comprehensive documentation in the [Fixtures API documentation](https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html).
 
-#### What Are Fixtures?
+#### What are Fixtures?
 
 _Fixtures_ is a fancy word for sample data. Fixtures allow you to populate your testing database with predefined data before your tests run. Fixtures are database independent and written in YAML. There is one file per model.
 
 NOTE: Fixtures are not designed to create every object that your tests need, and are best managed when only used for default data that can be applied to the common case.
 
-You'll find fixtures under your `test/fixtures` directory. When you run `rails generate model` to create a new model, Rails automatically creates fixture stubs in this directory.
+You'll find fixtures under your `test/fixtures` directory. When you run `bin/rails generate model` to create a new model, Rails automatically creates fixture stubs in this directory.
 
 #### YAML
 
@@ -679,7 +705,7 @@ Rails model tests are stored under the `test/models` directory. Rails provides
 a generator to create a model test skeleton for you.
 
 ```bash
-$ rails generate test_unit:model article title:string body:text
+$ bin/rails generate test_unit:model article title:string body:text
 create  test/models/article_test.rb
 create  test/fixtures/articles.yml
 ```
@@ -696,7 +722,7 @@ For creating Rails system tests, you use the `test/system` directory in your
 application. Rails provides a generator to create a system test skeleton for you.
 
 ```bash
-$ rails generate system_test users
+$ bin/rails generate system_test users
       invoke test_unit
       create test/system/users_test.rb
 ```
@@ -787,7 +813,7 @@ Rails.
 The `take_screenshot` helper method can be included anywhere in your tests to
 take a screenshot of the browser.
 
-### Implementing a system test
+### Implementing a System Test
 
 Now we're going to add a system test to our blog application. We'll demonstrate
 writing a system test by visiting the index page and creating a new blog article.
@@ -797,7 +823,7 @@ created for you. If you didn't use the scaffold generator, start by creating a
 system test skeleton.
 
 ```bash
-$ rails generate system_test articles
+$ bin/rails generate system_test articles
 ```
 
 It should have created a test file placeholder for us. With the output of the
@@ -829,10 +855,10 @@ Run the system tests.
 rails test:system
 ```
 
-NOTE: By default, running `rails test` won't run your system tests.
-Make sure to run `rails test:system` to actually run them.
+NOTE: By default, running `bin/rails test` won't run your system tests.
+Make sure to run `bin/rails test:system` to actually run them.
 
-#### Creating articles system test
+#### Creating Articles System Test
 
 Now let's test the flow for creating a new article in our blog.
 
@@ -909,7 +935,7 @@ Integration tests are used to test how various parts of your application interac
 For creating Rails integration tests, we use the `test/integration` directory for our application. Rails provides a generator to create an integration test skeleton for us.
 
 ```bash
-$ rails generate integration_test user_flows
+$ bin/rails generate integration_test user_flows
       exists  test/integration/
       create  test/integration/user_flows_test.rb
 ```
@@ -945,7 +971,7 @@ Let's add an integration test to our blog application. We'll start with a basic 
 We'll start by generating our integration test skeleton:
 
 ```bash
-$ rails generate integration_test blog_flow
+$ bin/rails generate integration_test blog_flow
 ```
 
 It should have created a test file placeholder for us. With the output of the
@@ -1033,7 +1059,7 @@ You should test for things such as:
 The easiest way to see functional tests in action is to generate a controller using the scaffold generator:
 
 ```bash
-$ rails generate scaffold_controller article title:string body:text
+$ bin/rails generate scaffold_controller article title:string body:text
 ...
 create  app/controllers/articles_controller.rb
 ...
@@ -1049,7 +1075,7 @@ If you already have a controller and just want to generate the test scaffold cod
 each of the seven default actions, you can use the following command:
 
 ```bash
-$ rails generate test_unit:scaffold article
+$ bin/rails generate test_unit:scaffold article
 ...
 invoke  test_unit
 create    test/controllers/articles_controller_test.rb
@@ -1223,7 +1249,7 @@ end
 If we run our test now, we should see a failure:
 
 ```bash
-$ rails test test/controllers/articles_controller_test.rb -n test_should_create_article
+$ bin/rails test test/controllers/articles_controller_test.rb -n test_should_create_article
 Run options: -n test_should_create_article --seed 32266
 
 # Running:
@@ -1261,7 +1287,7 @@ end
 Now if we run our tests, we should see it pass:
 
 ```bash
-$ rails test test/controllers/articles_controller_test.rb -n test_should_create_article
+$ bin/rails test test/controllers/articles_controller_test.rb -n test_should_create_article
 Run options: -n test_should_create_article --seed 18981
 
 # Running:
@@ -1399,10 +1425,11 @@ end
 
 #### Using Separate Files
 
-If you find your helpers are cluttering `test_helper.rb`, you can extract them into separate files. One good place to store them is `lib/test`.
+If you find your helpers are cluttering `test_helper.rb`, you can extract them into separate files.
+One good place to store them is `test/lib` or `test/test_helpers`.
 
 ```ruby
-# lib/test/multiple_assertions.rb
+# test/test_helpers/multiple_assertions.rb
 module MultipleAssertions
   def assert_multiple_of_forty_two(number)
     assert (number % 42 == 0), 'expected #{number} to be a multiple of 42'
@@ -1414,7 +1441,7 @@ These helpers can then be explicitly required as needed and included as needed
 
 ```ruby
 require 'test_helper'
-require 'test/multiple_assertions'
+require 'test_helpers/multiple_assertions'
 
 class NumberTest < ActiveSupport::TestCase
   include MultipleAssertions
@@ -1429,7 +1456,7 @@ or they can continue to be included directly into the relevant parent classes
 
 ```ruby
 # test/test_helper.rb
-require 'test/sign_in_helper'
+require 'test_helpers/sign_in_helper'
 
 class ActionDispatch::IntegrationTest
   include SignInHelper
@@ -1442,7 +1469,7 @@ You may find it convenient to eagerly require helpers in `test_helper.rb` so you
 
 ```ruby
 # test/test_helper.rb
-Dir[Rails.root.join('lib', 'test', '**', '*.rb')].each { |file| require file }
+Dir[Rails.root.join('test', 'test_helpers', '**', '*.rb')].each { |file| require file }
 ```
 
 This has the downside of increasing the boot-up time, as opposed to manually requiring only the necessary files in your individual tests.
@@ -1710,7 +1737,7 @@ your jobs are performed inline. It will also ensure that all previously performe
 and enqueued jobs are cleared before any test run so you can safely assume that
 no jobs have already been executed in the scope of each test.
 
-### Custom Assertions And Testing Jobs Inside Other Components
+### Custom Assertions and Testing Jobs inside Other Components
 
 Active Job ships with a bunch of custom assertions that can be used to lessen the verbosity of tests. For a full list of available assertions, see the API documentation for [`ActiveJob::TestHelper`](https://api.rubyonrails.org/classes/ActiveJob/TestHelper.html).
 

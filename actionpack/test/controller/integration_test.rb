@@ -138,6 +138,14 @@ class IntegrationTestTest < ActiveSupport::TestCase
     assert_not session1.equal?(session2)
   end
 
+  def test_child_session_assertions_bubble_up_to_root
+    assertions_before = @test.assertions
+    @test.open_session.assert(true)
+    assertions_after = @test.assertions
+
+    assert_equal 1, assertions_after - assertions_before
+  end
+
   # RSpec mixes Matchers (which has a #method_missing) into
   # IntegrationTest's superclass.  Make sure IntegrationTest does not
   # try to delegate these methods to the session object.
@@ -162,9 +170,10 @@ end
 class IntegrationTestUsesCorrectClass < ActionDispatch::IntegrationTest
   def test_integration_methods_called
     reset!
+    headers = { "Origin" => "*" }
 
-    %w( get post head patch put delete ).each do |verb|
-      assert_nothing_raised { __send__(verb, "/") }
+    %w( get post head patch put delete options ).each do |verb|
+      assert_nothing_raised { __send__(verb, "/", headers: headers) }
     end
   end
 end
@@ -696,6 +705,12 @@ class MetalIntegrationTest < ActionDispatch::IntegrationTest
 end
 
 class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
+  class MetalController < ActionController::Metal
+    def new
+      self.status = 200
+    end
+  end
+
   class TestController < ActionController::Base
     def index
       render plain: "index"
@@ -725,6 +740,8 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
 
   routes.draw do
     get "",    to: "application_integration_test/test#index", as: :empty_string
+
+    get "metal", to: "application_integration_test/metal#new", as: :new_metal
 
     get "foo", to: "application_integration_test/test#index", as: :foo
     get "bar", to: "application_integration_test/test#index", as: :bar
@@ -763,6 +780,11 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
 
     get "/bar"
     assert_equal "/bar", bar_path
+  end
+
+  test "route helpers after metal controller access" do
+    get "/metal"
+    assert_equal "/foo?q=solution", foo_path(q: "solution")
   end
 
   test "missing route helper before controller access" do

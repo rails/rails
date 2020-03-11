@@ -35,6 +35,30 @@ require "models/tuning_peg"
 require "models/reply"
 
 class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
+  def test_autosave_works_even_when_other_callbacks_update_the_parent_model
+    reference = Class.new(ActiveRecord::Base) do
+      self.table_name = "references"
+      def self.name; "Reference"; end
+    end
+
+    person = Class.new(ActiveRecord::Base) do
+      self.table_name = "people"
+      def self.name; "Person"; end
+
+      # It is necessary that the after_create is before the has_many _and_ that it updates the model.
+      # This replicates a bug found in https://github.com/rails/rails/issues/38120
+      after_create { update(first_name: "first name") }
+      has_many :references, autosave: true, anonymous_class: reference
+    end
+
+    reference_instance = reference.create!
+    person_instance = person.create!(first_name: "foo", references: [reference_instance])
+
+    reference_instance.reload
+    assert_equal person_instance.id, reference_instance.person_id
+    assert_equal "first name", person_instance.first_name # Make sure the after_create is actually called
+  end
+
   def test_autosave_does_not_pass_through_non_custom_validation_contexts
     person = Class.new(ActiveRecord::Base) {
       self.table_name = "people"

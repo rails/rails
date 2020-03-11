@@ -8,6 +8,7 @@ require "rails/command"
 
 require "active_support/core_ext/kernel/singleton_class"
 require "active_support/core_ext/array/extract_options"
+require "active_support/core_ext/enumerable"
 require "active_support/core_ext/hash/deep_merge"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/string/indent"
@@ -161,7 +162,8 @@ module Rails
             "#{css}:assets",
             "css:assets",
             "css:scaffold",
-            "action_text:install"
+            "action_text:install",
+            "action_mailbox:install"
           ]
         end
       end
@@ -251,7 +253,7 @@ module Rails
 
         lookup(lookups)
 
-        namespaces = Hash[subclasses.map { |klass| [klass.namespace, klass] }]
+        namespaces = subclasses.index_by(&:namespace)
         lookups.each do |namespace|
           klass = namespaces[namespace]
           return klass if klass
@@ -275,7 +277,7 @@ module Rails
 
           puts <<~MSG
             Could not find generator '#{namespace}'. #{suggestion_msg}
-            Run `rails generate --help` for more options.
+            Run `bin/rails generate --help` for more options.
           MSG
         end
       end

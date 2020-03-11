@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../abstract_unit"
 require "active_support/inflector"
 require "active_support/time"
 require "active_support/json"
-require "time_zone_test_helpers"
+require_relative "../time_zone_test_helpers"
 require "yaml"
 
 class DurationTest < ActiveSupport::TestCase
@@ -573,6 +573,9 @@ class DurationTest < ActiveSupport::TestCase
     expectations = [
       ["P1Y",           1.year                           ],
       ["P1W",           1.week                           ],
+      ["P4W",           4.week                           ],
+      ["P1Y7D",         1.year + 1.week                  ],
+      ["P1Y1M21D",      1.year + 1.month + 3.week        ],
       ["P1Y1M",         1.year + 1.month                 ],
       ["P1Y1M1D",       1.year + 1.month + 1.day         ],
       ["-P1Y1D",        -1.year - 1.day                  ],

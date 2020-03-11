@@ -19,7 +19,7 @@ module ActiveRecord
             end
           else
             # Custom preload scope is used and
-            # the association can not be marked as loaded
+            # the association cannot be marked as loaded
             # Loading into a Hash instead
             records_by_owner
           end
@@ -27,22 +27,41 @@ module ActiveRecord
         end
 
         def records_by_owner
-          # owners can be duplicated when a relation has a collection association join
-          # #compare_by_identity makes such owners different hash keys
-          @records_by_owner ||= preloaded_records.each_with_object({}.compare_by_identity) do |record, result|
-            owners_by_key[convert_key(record[association_key_name])].each do |owner|
-              (result[owner] ||= []) << record
-            end
-          end
+          load_records unless defined?(@records_by_owner)
+
+          @records_by_owner
         end
 
         def preloaded_records
-          return @preloaded_records if defined?(@preloaded_records)
-          @preloaded_records = owner_keys.empty? ? [] : records_for(owner_keys)
+          load_records unless defined?(@preloaded_records)
+
+          @preloaded_records
         end
 
         private
           attr_reader :owners, :reflection, :preload_scope, :model, :klass
+
+          def load_records
+            # owners can be duplicated when a relation has a collection association join
+            # #compare_by_identity makes such owners different hash keys
+            @records_by_owner = {}.compare_by_identity
+            raw_records = owner_keys.empty? ? [] : records_for(owner_keys)
+
+            @preloaded_records = raw_records.select do |record|
+              assignments = false
+
+              owners_by_key[convert_key(record[association_key_name])].each do |owner|
+                entries = (@records_by_owner[owner] ||= [])
+
+                if reflection.collection? || entries.empty?
+                  entries << record
+                  assignments = true
+                end
+              end
+
+              assignments
+            end
+          end
 
           # The name of the key on the associated records
           def association_key_name
@@ -124,8 +143,16 @@ module ActiveRecord
             end
 
             scope.merge!(reflection_scope) if reflection.scope
-            scope.merge!(preload_scope) if preload_scope
-            scope
+
+            if preload_scope && !preload_scope.empty_scope?
+              scope.merge!(preload_scope)
+            end
+
+            if preload_scope && preload_scope.strict_loading_value
+              scope.strict_loading
+            else
+              scope
+            end
           end
       end
     end

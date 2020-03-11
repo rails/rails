@@ -13,14 +13,14 @@ module ActiveRecord
     # Becomes:
     #
     #   #<ActiveRecord::DatabaseConfigurations::UrlConfig:0x00007fdc3238f340
-    #     @env_name="default_env", @spec_name="primary",
+    #     @env_name="default_env", @name="primary",
     #     @config={adapter: "postgresql", database: "foo", host: "localhost"},
     #     @url="postgres://localhost/foo">
     #
     # ==== Options
     #
     # * <tt>:env_name</tt> - The Rails environment, ie "development".
-    # * <tt>:spec_name</tt> - The specification name. In a standard two-tier
+    # * <tt>:name</tt> - The db config name. In a standard two-tier
     #   database configuration this will default to "primary". In a multiple
     #   database three-tier database configuration this corresponds to the name
     #   used in the second tier, for example "primary_readonly".
@@ -31,8 +31,8 @@ module ActiveRecord
     class UrlConfig < HashConfig
       attr_reader :url
 
-      def initialize(env_name, spec_name, url, config = {})
-        super(env_name, spec_name, config)
+      def initialize(env_name, name, url, config = {})
+        super(env_name, name, config)
 
         @url = url
         @config.merge!(build_url_hash)

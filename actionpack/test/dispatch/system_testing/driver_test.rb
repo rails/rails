@@ -64,7 +64,13 @@ class DriverTest < ActiveSupport::TestCase
     driver.use
     browser_options = driver.__send__(:browser_options)
 
-    expected = { "goog:chromeOptions" => { args: ["start-maximized"], mobileEmulation: { deviceName: "iphone 6" }, prefs: { detach: true } } }
+    expected = {
+      "goog:chromeOptions" => {
+        "args" => ["start-maximized"],
+        "mobileEmulation" => { "deviceName" => "iphone 6" },
+        "prefs" => { "detach" => true }
+      }
+    }
     assert_equal expected, browser_options[:options].as_json
   end
 
@@ -77,7 +83,13 @@ class DriverTest < ActiveSupport::TestCase
     driver.use
     browser_options = driver.__send__(:browser_options)
 
-    expected = { "goog:chromeOptions" => { args: ["--headless", "start-maximized"], mobileEmulation: { deviceName: "iphone 6" }, prefs: { detach: true } } }
+    expected = {
+      "goog:chromeOptions" => {
+        "args" => ["--headless", "start-maximized"],
+        "mobileEmulation" => { "deviceName" => "iphone 6" },
+        "prefs" => { "detach" => true }
+      }
+    }
     assert_equal expected, browser_options[:options].as_json
   end
 
@@ -89,7 +101,12 @@ class DriverTest < ActiveSupport::TestCase
     driver.use
     browser_options = driver.__send__(:browser_options)
 
-    expected = { "moz:firefoxOptions" => { args: ["--host=127.0.0.1"], prefs: { "browser.startup.homepage" => "http://www.seleniumhq.com/" } } }
+    expected = {
+      "moz:firefoxOptions" => {
+        "args" => ["--host=127.0.0.1"],
+        "prefs" => { "browser.startup.homepage" => "http://www.seleniumhq.com/" }
+      }
+    }
     assert_equal expected, browser_options[:options].as_json
   end
 
@@ -101,7 +118,12 @@ class DriverTest < ActiveSupport::TestCase
     driver.use
     browser_options = driver.__send__(:browser_options)
 
-    expected = { "moz:firefoxOptions" => { args: ["-headless", "--host=127.0.0.1"], prefs: { "browser.startup.homepage" => "http://www.seleniumhq.com/" } } }
+    expected = {
+      "moz:firefoxOptions" => {
+        "args" => ["-headless", "--host=127.0.0.1"],
+        "prefs" => { "browser.startup.homepage" => "http://www.seleniumhq.com/" }
+      }
+    }
     assert_equal expected, browser_options[:options].as_json
   end
 

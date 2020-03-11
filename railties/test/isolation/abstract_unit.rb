@@ -177,7 +177,7 @@ module TestHelpers
               <<: *default
               database: db/production_animals.sqlite3
               migrations_paths: db/animals_migrate
-              readonly: true
+              replica: true
           YAML
         end
       else

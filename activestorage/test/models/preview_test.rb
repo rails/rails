@@ -45,4 +45,18 @@ class ActiveStorage::PreviewTest < ActiveSupport::TestCase
     assert_equal preview.url(:redirect), Rails.application.routes.url_helpers.route_for(:rails_blob_representation, blob.signed_id, preview.variation.key, blob.filename, only_path: true)
     assert_equal preview.url(:proxy), Rails.application.routes.url_helpers.route_for(:rails_blob_representation_proxy, blob.signed_id, preview.variation.key, blob.filename, only_path: true)
   end
+
+  test "preview of PDF is created on the same service" do
+    blob = create_file_blob(filename: "report.pdf", content_type: "application/pdf", service_name: "local_public")
+    preview = blob.preview(resize: "640x280").processed
+
+    assert_equal "local_public", preview.image.blob.service_name
+  end
+
+  test "preview of MP4 video is created on the same service" do
+    blob = create_file_blob(filename: "video.mp4", content_type: "video/mp4", service_name: "local_public")
+    preview = blob.preview(resize: "640x280").processed
+
+    assert_equal "local_public", preview.image.blob.service_name
+  end
 end

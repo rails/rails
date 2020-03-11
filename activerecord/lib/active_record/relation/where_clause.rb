@@ -83,11 +83,18 @@ module ActiveRecord
       end
 
       def self.empty
-        @empty ||= new([])
+        @empty ||= new([]).tap(&:referenced_columns).freeze
       end
 
       def contradiction?
-        predicates.any? { |x| Arel::Nodes::In === x && Array === x.right && x.right.empty? }
+        predicates.any? do |x|
+          case x
+          when Arel::Nodes::In
+            Array === x.right && x.right.empty?
+          when Arel::Nodes::Equality
+            x.right.respond_to?(:unboundable?) && x.right.unboundable?
+          end
+        end
       end
 
       protected
@@ -130,18 +137,10 @@ module ActiveRecord
           case node
           when NilClass
             raise ArgumentError, "Invalid argument for .where.not(), got nil."
-          when Arel::Nodes::In
-            Arel::Nodes::NotIn.new(node.left, node.right)
-          when Arel::Nodes::IsNotDistinctFrom
-            Arel::Nodes::IsDistinctFrom.new(node.left, node.right)
-          when Arel::Nodes::IsDistinctFrom
-            Arel::Nodes::IsNotDistinctFrom.new(node.left, node.right)
-          when Arel::Nodes::Equality
-            Arel::Nodes::NotEqual.new(node.left, node.right)
           when String
             Arel::Nodes::Not.new(Arel::Nodes::SqlLiteral.new(node))
           else
-            Arel::Nodes::Not.new(node)
+            node.invert
           end
         end
 

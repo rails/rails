@@ -36,7 +36,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
     end
 
     def get_session_id
-      render plain: "id: #{request.session.id}"
+      render plain: "id: #{request.session.id&.public_id}"
     end
 
     def get_class_after_reset_session
@@ -300,7 +300,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       time = Time.local(2008, 4, 24)
 
       Time.stub :now, time do
-        expected_expiry = (time + 5.hours).gmtime.strftime("%a, %d %b %Y %H:%M:%S -0000")
+        expected_expiry = (time + 5.hours).gmtime.strftime("%a, %d %b %Y %H:%M:%S GMT")
 
         get "/set_session_value"
 
@@ -311,7 +311,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       # Second request does not access the session
       time = time + 3.hours
       Time.stub :now, time do
-        expected_expiry = (time + 5.hours).gmtime.strftime("%a, %d %b %Y %H:%M:%S -0000")
+        expected_expiry = (time + 5.hours).gmtime.strftime("%a, %d %b %Y %H:%M:%S GMT")
 
         get "/no_session_access"
 
@@ -327,7 +327,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       time = Time.local(2017, 11, 12)
 
       Time.stub :now, time do
-        expected_expiry = (time + 5.hours).gmtime.strftime("%a, %d %b %Y %H:%M:%S -0000")
+        expected_expiry = (time + 5.hours).gmtime.strftime("%a, %d %b %Y %H:%M:%S GMT")
 
         get "/set_session_value"
         get "/get_session_value"

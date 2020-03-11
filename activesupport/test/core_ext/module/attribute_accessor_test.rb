@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../../abstract_unit"
 require "active_support/core_ext/module/attribute_accessors"
 
 class ModuleAttributeAccessorTest < ActiveSupport::TestCase
@@ -133,5 +133,18 @@ class ModuleAttributeAccessorTest < ActiveSupport::TestCase
 
     assert_equal 1, @module.defn1
     assert_equal 2, @module.defn2
+  end
+
+  def test_declaring_attributes_on_singleton_errors
+    klass = Class.new
+
+    ex = assert_raises TypeError do
+      class << klass
+        mattr_accessor :my_attr
+      end
+    end
+    assert_equal "module attributes should be defined directly on class, not singleton", ex.message
+
+    assert_not_includes Module.class_variables, :@@my_attr
   end
 end

@@ -53,7 +53,7 @@ module ActiveJob
       #      # Might raise Net::OpenTimeout or Timeout::Error when the remote service is down
       #    end
       #  end
-      def retry_on(*exceptions, wait: 3.seconds, attempts: 5, queue: nil, priority: nil, jitter: nil)
+      def retry_on(*exceptions, wait: 3.seconds, attempts: 5, queue: nil, priority: nil, jitter: JITTER_DEFAULT)
         rescue_from(*exceptions) do |error|
           executions = executions_for(exceptions)
           if executions < attempts
@@ -126,23 +126,32 @@ module ActiveJob
     end
 
     private
-      def determine_delay(seconds_or_duration_or_algorithm:, executions:, jitter: nil)
-        jitter ||= self.class.retry_jitter
+      JITTER_DEFAULT = Object.new
+      private_constant :JITTER_DEFAULT
+
+      def determine_delay(seconds_or_duration_or_algorithm:, executions:, jitter: JITTER_DEFAULT)
+        jitter = jitter == JITTER_DEFAULT ? self.class.retry_jitter : (jitter || 0.0)
+
         case seconds_or_duration_or_algorithm
         when :exponentially_longer
-          ((executions**4) + (Kernel.rand((executions**4) * jitter))) + 2
-        when ActiveSupport::Duration
-          duration = seconds_or_duration_or_algorithm.to_i
-          duration + Kernel.rand(duration * jitter)
-        when Integer
-          seconds = seconds_or_duration_or_algorithm
-          seconds + (Kernel.rand(seconds * jitter).ceil)
+          delay = executions**4
+          delay_jitter = determine_jitter_for_delay(delay, jitter)
+          delay + delay_jitter + 2
+        when ActiveSupport::Duration, Integer
+          delay = seconds_or_duration_or_algorithm.to_i
+          delay_jitter = determine_jitter_for_delay(delay, jitter)
+          delay + delay_jitter
         when Proc
           algorithm = seconds_or_duration_or_algorithm
           algorithm.call(executions)
         else
           raise "Couldn't determine a delay based on #{seconds_or_duration_or_algorithm.inspect}"
         end
+      end
+
+      def determine_jitter_for_delay(delay, jitter)
+        return 0.0 if jitter.zero?
+        Kernel.rand * delay * jitter
       end
 
       def executions_for(exceptions)

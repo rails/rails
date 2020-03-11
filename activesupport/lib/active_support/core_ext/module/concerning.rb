@@ -104,10 +104,16 @@ class Module
   # * grok the behavior of our class in one glance,
   # * clean up monolithic junk-drawer classes by separating their concerns, and
   # * stop leaning on protected/private for crude "this is internal stuff" modularity.
+  #
+  # === Prepending `concerning`
+  #
+  # `concerning` supports a `prepend: true` argument which will `prepend` the
+  # concern instead of using `include` for it.
   module Concerning
     # Define a new concern and mix it in.
-    def concerning(topic, &block)
-      include concern(topic, &block)
+    def concerning(topic, prepend: false, &block)
+      method = prepend ? :prepend : :include
+      __send__(method, concern(topic, &block))
     end
 
     # A low-cruft shortcut to define a concern.

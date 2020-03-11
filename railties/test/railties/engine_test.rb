@@ -1029,15 +1029,15 @@ en:
 
       boot_rails
 
-      app_generators = Rails.application.config.generators.options[:rails]
-      assert_equal :mongoid, app_generators[:orm]
-      assert_equal :liquid, app_generators[:template_engine]
-      assert_equal :test_unit, app_generators[:test_framework]
+      app_generators = Rails.application.config.generators
+      assert_equal :mongoid, app_generators.orm
+      assert_equal :liquid, app_generators.template_engine
+      assert_equal :test_unit, app_generators.test_framework
 
-      generators = Bukkits::Engine.config.generators.options[:rails]
-      assert_equal :data_mapper, generators[:orm]
-      assert_equal :haml, generators[:template_engine]
-      assert_equal :rspec, generators[:test_framework]
+      generators = Bukkits::Engine.config.generators
+      assert_equal :data_mapper, generators.orm
+      assert_equal :haml, generators.template_engine
+      assert_equal :rspec, generators.test_framework
     end
 
     test "engine should get default generators with ability to overwrite them" do
@@ -1051,12 +1051,12 @@ en:
 
       boot_rails
 
-      generators = Bukkits::Engine.config.generators.options[:rails]
-      assert_equal :active_record, generators[:orm]
-      assert_equal :rspec, generators[:test_framework]
+      generators = Bukkits::Engine.config.generators
+      assert_equal :active_record, generators.orm
+      assert_equal :rspec, generators.test_framework
 
-      app_generators = Rails.application.config.generators.options[:rails]
-      assert_equal :test_unit, app_generators[:test_framework]
+      app_generators = Rails.application.config.generators
+      assert_equal :test_unit, app_generators.test_framework
     end
 
     test "do not create table_name_prefix method if it already exists" do

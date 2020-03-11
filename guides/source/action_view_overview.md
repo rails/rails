@@ -29,7 +29,7 @@ For each controller there is an associated directory in the `app/views` director
 Let's take a look at what Rails does by default when creating a new resource using the scaffold generator:
 
 ```bash
-$ rails generate scaffold article
+$ bin/rails generate scaffold article
       [...]
       invoke  scaffold_controller
       create    app/controllers/articles_controller.rb
@@ -1556,7 +1556,7 @@ with the value of the `name`.
 
 would roughly output something like:
 
-```
+```html
 <form method="post" action="/sessions" class="button_to">
   <input type="submit" value="Sign in" />
 </form>

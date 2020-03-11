@@ -38,8 +38,8 @@ files.
 Active Storage uses two tables in your application’s database named
 `active_storage_blobs` and `active_storage_attachments`. After creating a new
 application (or upgrading your application to Rails 5.2), run
-`rails active_storage:install` to generate a migration that creates these
-tables. Use `rails db:migrate` to run the migration.
+`bin/rails active_storage:install` to generate a migration that creates these
+tables. Use `bin/rails db:migrate` to run the migration.
 
 WARNING: `active_storage_attachments` is a polymorphic join table that stores your model's class name. If your model's class name changes, you will need to run a migration on this table to update the underlying `record_type` to your model's new class name.
 
@@ -447,7 +447,7 @@ available configuration options in [Configuring Rails Applications](configuring.
 If you need to create a link from outside of controller/view context (Background
 jobs, Cronjobs, etc.), you can access the rails_blob_path like this:
 
-```
+```ruby
 Rails.application.routes.url_helpers.rails_blob_path(user.avatar, only_path: true)
 ```
 
@@ -473,40 +473,8 @@ message.video.open do |file|
 end
 ```
 
-File Delivery Methods
------------------
+It's important to know that the file are not yet available in the `after_create` callback but in the `after_create_commit` only.
 
-The delivery method can be configured to meet the needs of your application. There are 2 included options for delivery:
-
-1. Redirect
-    
-    This is the default delivery method. This will redirect your users to a temporary service URL.
-
-2. Proxy
-
-    Proxy files from the service through your application. Useful for CDNs or HTML caching.
-
-### Changing delivery method
-The delivery method can be changed globally by setting `config.active_storage.default_delivery_method = :proxy`. You can also change the delivery method in the model `has_one_attached :avatar, delivery_method: :proxy` and view `user.avatar.variant(resize: "100x100").deliver(:proxy)`.
-
-### Changing delivery host
-When delivering assets via proxy you can set the host to point your assets to your CDN domain.
-```ruby
-config.active_storage.delivery_methods = {
-  proxy: ActiveStorage::DeliveryMethod::Proxy.new(host: 'cdn.domain.com')
-}
-```
-
-### Custom delivery methods
-You can setup custom instances of the built in proxy class. This is useful if you have multiple CDNs.
-```ruby
-config.active_storage.delivery_methods = {
-  img_cdn: ActiveStorage::DeliveryMethod::Proxy.new(host: 'image_cdn.domain.com'),
-  video_cdn: ActiveStorage::DeliveryMethod::Proxy.new(host: 'video_cdn.domain.com')
-}
-```
-
-It's also possible to create your own delivery methods by implementing the interface ActiveStorage::DeliveryMethod.
 Analyzing Files
 ---------------
 
@@ -696,9 +664,10 @@ addEventListener("direct-upload:initialize", event => {
   target.insertAdjacentHTML("beforebegin", `
     <div id="direct-upload-${id}" class="direct-upload direct-upload--pending">
       <div id="direct-upload-progress-${id}" class="direct-upload__progress" style="width: 0%"></div>
-      <span class="direct-upload__filename">${file.name}</span>
+      <span class="direct-upload__filename"></span>
     </div>
   `)
+  target.previousElementSibling.querySelector(`.direct-upload__filename`).textContent = file.name
 })
 
 addEventListener("direct-upload:start", event => {

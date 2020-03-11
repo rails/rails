@@ -405,7 +405,7 @@ The comments resource here will have the following routes generated for it:
 | PATCH/PUT | /comments/:id(.:format)                      | comments#update   | sekret_comment_path         |
 | DELETE    | /comments/:id(.:format)                      | comments#destroy  | sekret_comment_path         |
 
-### Routing concerns
+### Routing Concerns
 
 Routing concerns allow you to declare common routes that can be reused inside other resources and routes. To define a concern:
 
@@ -448,7 +448,7 @@ namespace :articles do
 end
 ```
 
-### Creating Paths and URLs From Objects
+### Creating Paths and URLs from Objects
 
 In addition to using the routing helpers, Rails can also create paths and URLs from an array of parameters. For example, suppose you have this set of routes:
 
@@ -868,7 +868,7 @@ end
 root to: "home#index"
 ```
 
-### Unicode character routes
+### Unicode Character Routes
 
 You can specify unicode character routes directly. For example:
 
@@ -876,7 +876,7 @@ You can specify unicode character routes directly. For example:
 get 'こんにちは', to: 'welcome#index'
 ```
 
-### Direct routes
+### Direct Routes
 
 You can create custom URL helpers directly. For example:
 
@@ -1209,7 +1209,7 @@ Rails offers facilities for inspecting and testing your routes.
 
 ### Listing Existing Routes
 
-To get a complete list of the available routes in your application, visit `http://localhost:3000/rails/info/routes` in your browser while your server is running in the **development** environment. You can also execute the `rails routes` command in your terminal to produce the same output.
+To get a complete list of the available routes in your application, visit `http://localhost:3000/rails/info/routes` in your browser while your server is running in the **development** environment. You can also execute the `bin/rails routes` command in your terminal to produce the same output.
 
 Both methods will list all of your routes, in the same order that they appear in `config/routes.rb`. For each route, you'll see:
 
@@ -1218,7 +1218,7 @@ Both methods will list all of your routes, in the same order that they appear in
 * The URL pattern to match
 * The routing parameters for the route
 
-For example, here's a small section of the `rails routes` output for a RESTful route:
+For example, here's a small section of the `bin/rails routes` output for a RESTful route:
 
 ```
     users GET    /users(.:format)          users#index
@@ -1257,21 +1257,21 @@ Controller#Action | users#edit
 You can search through your routes with the grep option: -g. This outputs any routes that partially match the URL helper method name, the HTTP verb, or the URL path.
 
 ```
-$ rails routes -g new_comment
-$ rails routes -g POST
-$ rails routes -g admin
+$ bin/rails routes -g new_comment
+$ bin/rails routes -g POST
+$ bin/rails routes -g admin
 ```
 
 If you only want to see the routes that map to a specific controller, there's the -c option.
 
 ```
-$ rails routes -c users
-$ rails routes -c admin/users
-$ rails routes -c Comments
-$ rails routes -c Articles::CommentsController
+$ bin/rails routes -c users
+$ bin/rails routes -c admin/users
+$ bin/rails routes -c Comments
+$ bin/rails routes -c Articles::CommentsController
 ```
 
-TIP: You'll find that the output from `rails routes` is much more readable if you widen your terminal window until the output lines don't wrap.
+TIP: You'll find that the output from `bin/rails routes` is much more readable if you widen your terminal window until the output lines don't wrap.
 
 ### Testing Routes
 

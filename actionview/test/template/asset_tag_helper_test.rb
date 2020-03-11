@@ -3,6 +3,9 @@
 require "abstract_unit"
 require "active_support/ordered_options"
 
+require "action_dispatch"
+ActionView::Template::Types.delegate_to Mime
+
 class AssetTagHelperTest < ActionView::TestCase
   tests ActionView::Helpers::AssetTagHelper
 

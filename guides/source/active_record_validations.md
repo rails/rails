@@ -83,10 +83,10 @@ class Person < ApplicationRecord
 end
 ```
 
-We can see how it works by looking at some `rails console` output:
+We can see how it works by looking at some `bin/rails console` output:
 
 ```ruby
-$ rails console
+$ bin/rails console
 >> p = Person.new(name: "John Doe")
 => #<Person id: nil, name: "John Doe", created_at: nil, updated_at: nil>
 >> p.new_record?
@@ -487,7 +487,7 @@ If you set `:only_integer` to `true`, then it will use the
 ```
 
 regular expression to validate the attribute's value. Otherwise, it will try to
-convert the value to a number using `Float`.
+convert the value to a number using `Float`. `Float`s are casted to `BigDecimal` using the column's precision value or 15.
 
 ```ruby
 class Player < ApplicationRecord
@@ -1283,7 +1283,7 @@ Furthermore, if you use the Rails form helpers to generate your forms, when
 a validation error occurs on a field, it will generate an extra `<div>` around
 the entry.
 
-```
+```html
 <div class="field_with_errors">
  <input id="article_title" name="article[title]" size="30" type="text" value="">
 </div>
@@ -1292,7 +1292,7 @@ the entry.
 You can then style this div however you'd like. The default scaffold that
 Rails generates, for example, adds this CSS rule:
 
-```
+```css
 .field_with_errors {
   padding: 2px;
   background-color: red;

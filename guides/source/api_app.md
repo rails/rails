@@ -199,6 +199,7 @@ Choosing Middleware
 
 An API application comes with the following middleware by default:
 
+- `ActionDispatch::HostAuthorization`
 - `Rack::Sendfile`
 - `ActionDispatch::Static`
 - `ActionDispatch::Executor`
@@ -209,6 +210,7 @@ An API application comes with the following middleware by default:
 - `Rails::Rack::Logger`
 - `ActionDispatch::ShowExceptions`
 - `ActionDispatch::DebugExceptions`
+- `ActionDispatch::ActionableExceptions`
 - `ActionDispatch::Reloader`
 - `ActionDispatch::Callbacks`
 - `ActiveRecord::Migration::CheckPending`
@@ -226,7 +228,7 @@ building, and make sense in an API-only Rails application.
 You can get a list of all middleware in your application via:
 
 ```bash
-$ rails middleware
+$ bin/rails middleware
 ```
 
 ### Using the Cache Middleware
@@ -331,6 +333,28 @@ will be:
 { :person => { :firstName => "Yehuda", :lastName => "Katz" } }
 ```
 
+### Using Session Middlewares
+
+The following middlewares, used for session management, are excluded from API apps since they normally don't need sessions.  If one of your API clients is a browser, you might want to add one of these back in:
+
+- `ActionDispatch::Session::CacheStore`
+- `ActionDispatch::Session::CookieStore`
+- `ActionDispatch::Session::MemCacheStore`
+
+The trick to adding these back in is that, by default, they are passed `session_options`
+when added (including the session key), so you can't just add a `session_store.rb` initializer, add
+`use ActionDispatch::Session::CookieStore` and have sessions functioning as usual.  (To be clear: sessions
+may work, but your session options will be ignored - i.e the session key will default to `_session_id`)
+
+Instead of the initializer, you'll have to set the relevant options somewhere before your middleware is
+built (like `config/application.rb`) and pass them to your preferred middleware, like this:
+
+```ruby
+config.session_store :cookie_store, key: '_interslice_session' # <-- this also configures session_options for use below
+config.middleware.use ActionDispatch::Cookies # Required for all session management (regardless of session_store)
+config.middleware.use config.session_store, config.session_options
+```
+
 ### Other Middleware
 
 Rails ships with a number of other middleware that you might want to use in an
@@ -339,10 +363,6 @@ API application, especially if one of your API clients is the browser:
 - `Rack::MethodOverride`
 - `ActionDispatch::Cookies`
 - `ActionDispatch::Flash`
-- For session management
-    * `ActionDispatch::Session::CacheStore`
-    * `ActionDispatch::Session::CookieStore`
-    * `ActionDispatch::Session::MemCacheStore`
 
 Any of these middleware can be added via:
 
@@ -391,7 +411,7 @@ Other plugins may add additional modules. You can get a list of all modules
 included into `ActionController::API` in the rails console:
 
 ```bash
-$ rails c
+$ bin/rails c
 >> ActionController::API.ancestors - ActionController::Metal.ancestors
 => [ActionController::API,
     ActiveRecord::Railties::ControllerRuntime,

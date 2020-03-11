@@ -332,6 +332,20 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
           assert_not @connection.foreign_key_exists?(:astronauts, name: "other_fancy_named_fk")
         end
 
+        def test_foreign_key_exists_in_change_table
+          @connection.change_table(:astronauts) do |t|
+            t.foreign_key :rockets, column: "rocket_id", name: "fancy_named_fk"
+
+            assert t.foreign_key_exists?(column: "rocket_id")
+            assert_not t.foreign_key_exists?(column: "star_id")
+
+            unless current_adapter?(:SQLite3Adapter)
+              assert t.foreign_key_exists?(name: "fancy_named_fk")
+              assert_not t.foreign_key_exists?(name: "other_fancy_named_fk")
+            end
+          end
+        end
+
         def test_remove_foreign_key_inferes_column
           @connection.add_foreign_key :astronauts, :rockets
 

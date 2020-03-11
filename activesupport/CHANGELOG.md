@@ -1,3 +1,107 @@
+*   [Breaking change] `ActiveSupport::Callbacks#halted_callback_hook` now receive a 2nd argument:
+
+    `ActiveSupport::Callbacks#halted_callback_hook` now receive the name of the callback
+    being halted as second argument.
+    This change will allow you to differentiate which callbacks halted the chain
+    and act accordingly.
+
+    ```ruby
+      class Book < ApplicationRecord
+        before_save { throw(:abort) }
+        before_create { throw(:abort) }
+
+        def halted_callback_hook(filter, callback_name)
+          Rails.logger.info("Book couldn't be #{callback_name}d")
+        end
+
+        Book.create # => "Book couldn't be created"
+        book.save # => "Book couldn't be saved"
+      end
+    ```
+
+    *Edouard Chin*
+
+*   Support `prepend` with `ActiveSupport::Concern`.
+
+    Allows a module with `extend ActiveSupport::Concern` to be prepended.
+
+        module Imposter
+          extend ActiveSupport::Concern
+
+          # Same as `included`, except only run when prepended.
+          prepended do
+          end
+        end
+
+        class Person
+          prepend Imposter
+        end
+
+    Class methods are prepended to the base class, concerning is also
+    updated: `concerning :Imposter, prepend: true do`.
+
+    *Jason Karns*, *Elia Schito*
+
+*   Deprecate using `Range#include?` method to check the inclusion of a value
+    in a date time range. It is recommended to use `Range#cover?` method
+    instead of `Range#include?` to check the inclusion of a value
+    in a date time range.
+
+    *Vishal Telangre*
+
+*   Support added for a `round_mode` parameter, in all number helpers. (See: `BigDecimal::mode`.)
+
+    ```ruby
+    number_to_currency(1234567890.50, precision: 0, round_mode: :half_down) # => "$1,234,567,890"
+    number_to_percentage(302.24398923423, precision: 5, round_mode: :down) # => "302.24398%"
+    number_to_rounded(389.32314, precision: 0, round_mode: :ceil) # => "390"
+    number_to_human_size(483989, precision: 2, round_mode: :up) # => "480 KB"
+    number_to_human(489939, precision: 2, round_mode: :floor) # => "480 Thousand"
+
+    485000.to_s(:human, precision: 2, round_mode: :half_even) # => "480 Thousand"
+    ```
+
+    *Tom Lord*
+
+*   `Array#to_sentence` no longer returns a frozen string.
+
+    Before:
+
+        ['one', 'two'].to_sentence.frozen?
+        # => true
+
+    After:
+
+        ['one', 'two'].to_sentence.frozen?
+        # => false
+
+    *Nicolas Dular*
+
+*   When an instance of `ActiveSupport::Duration` is converted to an `iso8601` duration string, if `weeks` are mixed with `date` parts, the `week` part will be converted to days.
+    This keeps the parser and serializer on the same page.
+
+    ```ruby
+    duration = ActiveSupport::Duration.build(1000000)
+    # 1 week, 4 days, 13 hours, 46 minutes, and 40.0 seconds
+
+    duration_iso = duration.iso8601
+    # P11DT13H46M40S
+
+    ActiveSupport::Duration.parse(duration_iso)
+    # 11 days, 13 hours, 46 minutes, and 40 seconds
+
+    duration = ActiveSupport::Duration.build(604800)
+    # 1 week
+
+    duration_iso = duration.iso8601
+    # P1W
+
+    ActiveSupport::Duration.parse(duration_iso)
+    # 1 week
+    ```
+
+    *Abhishek Sarkar*
+
 *   Add block support to `ActiveSupport::Testing::TimeHelpers#travel_back`.
 
     *Tim Masliuchenko*

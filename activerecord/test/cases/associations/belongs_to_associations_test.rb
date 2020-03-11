@@ -84,6 +84,33 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_optional_relation_can_be_set_per_model
+    model1 = Class.new(ActiveRecord::Base) do
+      self.table_name = "accounts"
+      self.belongs_to_required_by_default = false
+
+      belongs_to :company
+
+      def self.name
+        "FirstModel"
+      end
+    end.new
+
+    model2 = Class.new(ActiveRecord::Base) do
+      self.table_name = "accounts"
+      self.belongs_to_required_by_default = true
+
+      belongs_to :company
+
+      def self.name
+        "SecondModel"
+      end
+    end.new
+
+    assert_predicate model1, :valid?
+    assert_not_predicate model2, :valid?
+  end
+
   def test_optional_relation
     original_value = ActiveRecord::Base.belongs_to_required_by_default
     ActiveRecord::Base.belongs_to_required_by_default = true
@@ -215,7 +242,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_nil defined?(Region), "This test requires that there is no top-level Region class"
 
     ActiveRecord::Base.connection.instance_eval do
-      create_table(:admin_regions) { |t| t.string :name }
+      create_table(:admin_regions, force: true) { |t| t.string :name }
       add_column :admin_users, :region_id, :integer
     end
     Admin.const_set "RegionalUser", Class.new(Admin::User) { belongs_to(:region) }

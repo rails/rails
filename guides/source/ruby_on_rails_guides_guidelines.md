@@ -40,6 +40,7 @@ Section
 When writing headings, capitalize all words except for prepositions, conjunctions, internal articles, and forms of the verb "to be":
 
 ```
+#### Assertions and Testing Jobs inside Components
 #### Middleware Stack is an Array
 #### When are Objects Saved?
 ```

@@ -58,7 +58,7 @@ module ActionView
       end
 
       def inspect
-        "#<#{self.class.name}:0x#{(object_id << 1).to_s(16)} keys=#{@data.size} queries=#{@query_cache.size}>"
+        "#{to_s[0..-2]} keys=#{@data.size} queries=#{@query_cache.size}>"
       end
 
       # Cache the templates returned by the block
@@ -204,9 +204,13 @@ module ActionView
         end
       end
 
+      def source_for_template(template)
+        Template::Sources::File.new(template)
+      end
+
       def build_unbound_template(template, virtual_path)
         handler, format, variant = extract_handler_and_format_and_variant(template)
-        source = Template::Sources::File.new(template)
+        source = source_for_template(template)
 
         UnboundTemplate.new(
           source,
@@ -316,14 +320,22 @@ module ActionView
     end
 
     private
-      def find_template_paths_from_details(path, details)
+      def find_candidate_template_paths(path)
         # Instead of checking for every possible path, as our other globs would
         # do, scan the directory for files with the right prefix.
         query = "#{escape_entry(File.join(@path, path))}*"
 
+        Dir[query].reject do |filename|
+          File.directory?(filename)
+        end
+      end
+
+      def find_template_paths_from_details(path, details)
+        candidates = find_candidate_template_paths(path)
+
         regex = build_regex(path, details)
 
-        Dir[query].uniq.reject do |filename|
+        candidates.uniq.reject do |filename|
           # This regex match does double duty of finding only files which match
           # details (instead of just matching the prefix) and also filtering for
           # case-insensitive file systems.
@@ -335,7 +347,7 @@ module ActionView
           # We can use the matches found by the regex and sort by their index in
           # details.
           match = filename.match(regex)
-          EXTENSIONS.keys.reverse.map do |ext|
+          EXTENSIONS.keys.map do |ext|
             if ext == :variants && details[ext] == :any
               match[ext].nil? ? 0 : 1
             elsif match[ext].nil?

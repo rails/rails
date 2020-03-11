@@ -20,7 +20,7 @@ module ActiveRecord
         end
 
         READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp(
-          :begin, :commit, :explain, :select, :set, :show, :release, :savepoint, :rollback, :describe, :desc, :with
+          :desc, :describe, :set, :show, :use
         ) # :nodoc:
         private_constant :READ_QUERY
 
@@ -97,39 +97,27 @@ module ActiveRecord
             @connection.last_id
           end
 
-          def supports_set_server_option?
-            @connection.respond_to?(:set_server_option)
-          end
+          def multi_statements_enabled?
+            flags = @config[:flags]
 
-          def multi_statements_enabled?(flags)
             if flags.is_a?(Array)
               flags.include?("MULTI_STATEMENTS")
             else
-              (flags & Mysql2::Client::MULTI_STATEMENTS) != 0
+              flags.anybits?(Mysql2::Client::MULTI_STATEMENTS)
             end
           end
 
           def with_multi_statements
-            previous_flags = @config[:flags]
+            multi_statements_was = multi_statements_enabled?
 
-            unless multi_statements_enabled?(previous_flags)
-              if supports_set_server_option?
-                @connection.set_server_option(Mysql2::Client::OPTION_MULTI_STATEMENTS_ON)
-              else
-                @config[:flags] = Mysql2::Client::MULTI_STATEMENTS
-                reconnect!
-              end
+            unless multi_statements_was
+              @connection.set_server_option(Mysql2::Client::OPTION_MULTI_STATEMENTS_ON)
             end
 
             yield
           ensure
-            unless multi_statements_enabled?(previous_flags)
-              if supports_set_server_option?
-                @connection.set_server_option(Mysql2::Client::OPTION_MULTI_STATEMENTS_OFF)
-              else
-                @config[:flags] = previous_flags
-                reconnect!
-              end
+            unless multi_statements_was
+              @connection.set_server_option(Mysql2::Client::OPTION_MULTI_STATEMENTS_OFF)
             end
           end
 

@@ -68,7 +68,7 @@ module ActiveRecord
         end
 
         READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp(
-          :begin, :commit, :explain, :select, :set, :show, :release, :savepoint, :rollback, :with
+          :close, :declare, :fetch, :move, :set, :show
         ) # :nodoc:
         private_constant :READ_QUERY
 

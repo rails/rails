@@ -10,7 +10,7 @@ require "ostruct"
 # of the file, so you must add <tt>gem "image_processing"</tt> to your Gemfile if you wish to use variants. By
 # default, images will be processed with {ImageMagick}[http://imagemagick.org] using the
 # {MiniMagick}[https://github.com/minimagick/minimagick] gem, but you can also switch to the
-# {libvips}[http://jcupitt.github.io/libvips/] processor operated by the {ruby-vips}[https://github.com/jcupitt/ruby-vips]
+# {libvips}[http://libvips.github.io/libvips/] processor operated by the {ruby-vips}[https://github.com/libvips/ruby-vips]
 # gem).
 #
 #   Rails.application.config.active_storage.variant_processor

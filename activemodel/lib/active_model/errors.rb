@@ -567,6 +567,12 @@ module ActiveModel
       __setobj__ prepare_content
     end
 
+    def delete(attribute)
+      ActiveSupport::Deprecation.warn("Calling `delete` to an ActiveModel::Errors messages hash is deprecated. Please call `ActiveModel::Errors#delete` instead.")
+
+      @errors.delete(attribute)
+    end
+
     private
       def prepare_content
         content = @errors.to_hash
@@ -596,6 +602,12 @@ module ActiveModel
       @errors.add(@attribute, message)
       __setobj__ @errors.messages_for(@attribute)
       self
+    end
+
+    def clear
+      ActiveSupport::Deprecation.warn("Calling `clear` to an ActiveModel::Errors message array in order to delete all errors is deprecated. Please call `ActiveModel::Errors#delete` instead.")
+
+      @errors.delete(@attribute)
     end
   end
 

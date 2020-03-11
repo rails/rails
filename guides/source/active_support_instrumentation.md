@@ -349,7 +349,6 @@ Active Record
 | -------------------- | ---------------------------------------- |
 | `:sql`               | SQL statement                            |
 | `:name`              | Name of the operation                    |
-| `:connection_id`     | Object ID of the connection object       |
 | `:connection`        | Connection object                        |
 | `:binds`             | Bind parameters                          |
 | `:type_casted_binds` | Typecasted bind parameters               |
@@ -362,7 +361,6 @@ INFO. The adapters will add their own data as well.
 {
   sql: "SELECT \"posts\".* FROM \"posts\" ",
   name: "Post Load",
-  connection_id: 70307250813140,
   connection: #<ActiveRecord::ConnectionAdapters::SQLite3Adapter:0x00007f9f7a838850>,
   binds: [#<ActiveModel::Attribute::WithCastValue:0x00007fe19d15dc00>],
   type_casted_binds: [11],

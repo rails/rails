@@ -471,7 +471,8 @@ module Rails
     end
 
     def eager_load!
-      # Already done by Zeitwerk::Loader.eager_load_all in the finisher.
+      # Already done by Zeitwerk::Loader.eager_load_all. We need this guard to
+      # easily provide a compatible API for both zeitwerk and classic modes.
       return if Rails.autoloaders.zeitwerk_enabled?
 
       config.eager_load_paths.each do |load_path|

@@ -53,7 +53,7 @@ module ActionDispatch
 
     ##
     # This class is just used for displaying route information when someone
-    # executes `rails routes` or looks at the RoutingError page.
+    # executes `bin/rails routes` or looks at the RoutingError page.
     # People should not use this class.
     class RoutesInspector # :nodoc:
       def initialize(routes)
@@ -200,7 +200,7 @@ module ActionDispatch
       end
 
       class Expanded < Base
-        def initialize(width: IO.console_size.second)
+        def initialize(width: IO.console_size[1])
           @width = width
           super()
         end

@@ -3,6 +3,7 @@
 require "ipaddr"
 require "active_support/core_ext/kernel/reporting"
 require "active_support/file_update_checker"
+require "active_support/configuration_file"
 require "rails/engine/configuration"
 require "rails/source_annotation_extractor"
 
@@ -19,7 +20,8 @@ module Rails
                     :beginning_of_week, :filter_redirect, :x, :enable_dependency_loading,
                     :read_encrypted_secrets, :log_level, :content_security_policy_report_only,
                     :content_security_policy_nonce_generator, :content_security_policy_nonce_directives,
-                    :require_master_key, :credentials, :disable_sandbox, :add_autoload_paths_to_load_path
+                    :require_master_key, :credentials, :disable_sandbox, :add_autoload_paths_to_load_path,
+                    :rake_eager_load
 
       attr_reader :encoding, :api_only, :loaded_config_version, :autoloader
 
@@ -31,7 +33,7 @@ module Rails
         @filter_parameters                       = []
         @filter_redirect                         = []
         @helpers_paths                           = []
-        @hosts                                   = Array(([IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0"), ".localhost"] if Rails.env.development?))
+        @hosts                                   = Array(([".localhost", IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0")] if Rails.env.development?))
         @public_file_server                      = ActiveSupport::OrderedOptions.new
         @public_file_server.enabled              = true
         @public_file_server.index_name           = "index"
@@ -70,6 +72,7 @@ module Rails
         @disable_sandbox                         = false
         @add_autoload_paths_to_load_path         = true
         @feature_policy                          = nil
+        @rake_eager_load                         = false
       end
 
       # Loads default configurations. See {the result of the method for each version}[https://guides.rubyonrails.org/configuring.html#results-of-config-load-defaults].
@@ -245,12 +248,9 @@ module Rails
         path = paths["config/database"].existent.first
         yaml = Pathname.new(path) if path
 
-        config = if yaml && yaml.exist?
-          require "yaml"
-          require "erb"
-          loaded_yaml = YAML.load(ERB.new(yaml.read).result) || {}
-          shared = loaded_yaml.delete("shared")
-          if shared
+        config = if yaml&.exist?
+          loaded_yaml = ActiveSupport::ConfigurationFile.parse(yaml)
+          if (shared = loaded_yaml.delete("shared"))
             loaded_yaml.each do |_k, values|
               values.reverse_merge!(shared)
             end
@@ -265,10 +265,6 @@ module Rails
         end
 
         config
-      rescue Psych::SyntaxError => e
-        raise "YAML syntax error occurred while parsing #{paths["config/database"].first}. " \
-              "Please note that YAML must be consistently indented using spaces. Tabs are not allowed. " \
-              "Error: #{e.message}"
       rescue => e
         raise e, "Cannot load database configuration:\n#{e.message}", e.backtrace
       end

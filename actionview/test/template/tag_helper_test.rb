@@ -88,13 +88,13 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_tag_options_converts_boolean_option
-    assert_dom_equal '<p disabled="disabled" itemscope="itemscope" multiple="multiple" readonly="readonly" allowfullscreen="allowfullscreen" seamless="seamless" typemustmatch="typemustmatch" sortable="sortable" default="default" inert="inert" truespeed="truespeed" />',
-      tag("p", disabled: true, itemscope: true, multiple: true, readonly: true, allowfullscreen: true, seamless: true, typemustmatch: true, sortable: true, default: true, inert: true, truespeed: true)
+    assert_dom_equal '<p disabled="disabled" itemscope="itemscope" multiple="multiple" readonly="readonly" allowfullscreen="allowfullscreen" seamless="seamless" typemustmatch="typemustmatch" sortable="sortable" default="default" inert="inert" truespeed="truespeed" allowpaymentrequest="allowpaymentrequest" nomodule="nomodule" playsinline="playsinline" />',
+      tag("p", disabled: true, itemscope: true, multiple: true, readonly: true, allowfullscreen: true, seamless: true, typemustmatch: true, sortable: true, default: true, inert: true, truespeed: true, allowpaymentrequest: true, nomodule: true, playsinline: true)
   end
 
   def test_tag_builder_options_converts_boolean_option
-    assert_dom_equal '<p disabled="disabled" itemscope="itemscope" multiple="multiple" readonly="readonly" allowfullscreen="allowfullscreen" seamless="seamless" typemustmatch="typemustmatch" sortable="sortable" default="default" inert="inert" truespeed="truespeed" />',
-      tag.p(disabled: true, itemscope: true, multiple: true, readonly: true, allowfullscreen: true, seamless: true, typemustmatch: true, sortable: true, default: true, inert: true, truespeed: true)
+    assert_dom_equal '<p disabled="disabled" itemscope="itemscope" multiple="multiple" readonly="readonly" allowfullscreen="allowfullscreen" seamless="seamless" typemustmatch="typemustmatch" sortable="sortable" default="default" inert="inert" truespeed="truespeed" allowpaymentrequest="allowpaymentrequest" nomodule="nomodule" playsinline="playsinline" />',
+      tag.p(disabled: true, itemscope: true, multiple: true, readonly: true, allowfullscreen: true, seamless: true, typemustmatch: true, sortable: true, default: true, inert: true, truespeed: true, allowpaymentrequest: true, nomodule: true, playsinline: true)
   end
 
   def test_tag_builder_do_not_modify_html_safe_options
@@ -347,6 +347,7 @@ class TagHelperTest < ActionView::TestCase
     assert_equal "song", class_names(["song", { foo: false }])
     assert_equal "song play", class_names({ "song": true, "play": true })
     assert_equal "", class_names({ "song": false, "play": false })
+    assert_equal "123", class_names(nil, "", false, 123, { "song": false, "play": false })
   end
 
   def test_content_tag_with_data_attributes

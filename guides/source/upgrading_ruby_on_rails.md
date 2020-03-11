@@ -51,7 +51,7 @@ This will help you with the creation of new files and changes of old files in an
 interactive session.
 
 ```bash
-$ rails app:update
+$ bin/rails app:update
    identical  config/boot.rb
        exist  config
     conflict  config/routes.rb
@@ -127,6 +127,25 @@ which formats your action accepts, i.e.
   format.any(:xml, :json) { render request.format.to_sym => @people }
 ```
 
+### `ActiveSupport::Callbacks#halted_callback_hook` now receive a second argument
+
+Active Support allows you to override the `halted_callback_hook` whenever a callback
+halts the chain. This method now receive a second argument which is the name of the callback being halted.
+If you have classes that override this method, make sure it accepts two arguments. Note that this is a breaking
+change without a prior deprecation cycle (for performance reasons).
+
+Example:
+
+```ruby
+  class Book < ApplicationRecord
+    before_save { throw(:abort) }
+    before_create { throw(:abort) }
+
+    def halted_callback_hook(filter, callback_name) # => This method now accepts 2 arguments instead of 1
+      Rails.logger.info("Book couldn't be #{callback_name}d")
+    end
+  end
+```
 
 Upgrading from Rails 5.2 to Rails 6.0
 -------------------------------------
@@ -724,7 +743,7 @@ it.
 Rails 5 adds the ability to run tasks and tests through `bin/rails` instead of rake. Generally
 these changes are in parallel with rake, but some were ported over altogether. As the `rails`
 command already looks for and runs `bin/rails`, we recommend you to use the shorter `rails`
-over `bin/rails.
+over `bin/rails`.
 
 To use the new test runner simply type `rails test`.
 
@@ -844,6 +863,26 @@ This default will be automatically configured in new applications. If existing a
 want to add this feature it will need to be turned on in an initializer.
 
     config.active_record.belongs_to_required_by_default = true
+
+The configuration is by default global for all your models, but you can
+override it on a per model basis. This should help you migrate all your models to have their
+associations required by default.
+
+```ruby
+class Book < ApplicationRecord
+  # model is not yet ready to have its association required by default
+
+  self.belongs_to_required_by_default = false
+  belongs_to(:author)
+end
+
+class Car < ApplicationRecord
+  # model is ready to have its association required by default
+
+  self.belongs_to_required_by_default = true
+  belongs_to(:pilot)
+end
+```
 
 #### Per-form CSRF Tokens
 
