@@ -69,9 +69,9 @@
 
     *Vlado Cingel*
 
-*   Add jitter to :exponentially_longer.
+*   Add jitter to `ActiveJob::Exceptions.retry_on`.
 
-    ActiveJob::Exceptions.retry_on with :exponentially_longer now uses a random amount of jitter in order to
+    `ActiveJob::Exceptions.retry_on` now uses a random amount of jitter in order to
     prevent the [thundering herd effect](https://en.wikipedia.org/wiki/Thundering_herd_problem). Defaults to
     15% (represented as 0.15) but overridable via the `:jitter` option when using `retry_on`.
     Jitter is applied when an `Integer`, `ActiveSupport::Duration` or `:exponentially_longer`, is passed to the `wait` argument in `retry_on`.
