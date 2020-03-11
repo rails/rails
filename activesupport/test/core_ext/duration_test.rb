@@ -46,6 +46,36 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal "1", 1.second.to_s
   end
 
+  def test_to_minutes
+    assert_in_delta 1440.0, 1.day.to_minutes
+    assert_in_delta 0.5, 30.seconds.to_minutes
+  end
+
+  def test_to_hours
+    assert_in_delta 24.0, 1.day.to_hours
+    assert_in_delta 336.0, 2.weeks.to_hours
+  end
+
+  def test_to_days
+    assert_in_delta 0.5, 12.hours.to_days
+    assert_in_delta 30.437, 1.month.to_days
+  end
+
+  def test_to_weeks
+    assert_in_delta 8.696, 2.months.to_weeks
+    assert_in_delta 52.178, 1.year.to_weeks
+  end
+
+  def test_to_months
+    assert_in_delta 2.07, 9.weeks.to_months
+    assert_in_delta 12.0, 1.year.to_months
+  end
+
+  def test_to_years
+    assert_in_delta 0.082, 30.days.to_years
+    assert_in_delta 1.0, 365.days.to_years
+  end
+
   def test_eql
     rubinius_skip "Rubinius' #eql? definition relies on #instance_of? " \
                   "which behaves oddly for the sake of backward-compatibility."
