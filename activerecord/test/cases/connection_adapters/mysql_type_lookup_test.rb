@@ -21,6 +21,8 @@ if current_adapter?(:Mysql2Adapter)
           emulate_booleans(true) do
             assert_lookup_type :boolean, "tinyint(1)"
             assert_lookup_type :boolean, "TINYINT(1)"
+            assert_lookup_type :boolean, "tinyint"
+            assert_lookup_type :boolean, "TINYINT"
           end
         end
 
@@ -52,6 +54,8 @@ if current_adapter?(:Mysql2Adapter)
           emulate_booleans(false) do
             assert_lookup_type :integer, "tinyint(1)"
             assert_lookup_type :integer, "TINYINT(1)"
+            assert_lookup_type :integer, "tinyint"
+            assert_lookup_type :integer, "TINYINT"
             assert_lookup_type :integer, "year"
             assert_lookup_type :integer, "YEAR"
           end

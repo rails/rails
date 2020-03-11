@@ -1,3 +1,7 @@
+*   Fixed an issue where tinyint could not be mapped to boolean in MySQL 8.0.19.
+
+    *Seiya Ouchi*
+
 *   Dump the schema or structure of a database when calling db:migrate:name
 
     In previous versions of Rails, `rails db:migrate` would dump the schema of the database. In Rails 6, that holds true (`rails db:migrate` dumps all databases' schemas), but `rails db:migrate:name` does not share that behavior.

@@ -76,7 +76,6 @@ unless current_adapter?(:PostgreSQLAdapter) # PostgreSQL does not use type strin
         def test_integer_types
           assert_lookup_type :integer, "integer"
           assert_lookup_type :integer, "INTEGER"
-          assert_lookup_type :integer, "tinyint"
           assert_lookup_type :integer, "smallint"
           assert_lookup_type :integer, "bigint"
         end
