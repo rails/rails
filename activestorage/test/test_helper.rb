@@ -122,6 +122,22 @@ class User < ActiveRecord::Base
 
   has_many_attached :highlights
   has_many_attached :vlogs, dependent: false, service: :local
+
+  has_one \
+    :custom_special_attachment,
+    -> { where(name: :special) },
+    class_name: "ActiveStorage::Attachment",
+    as: :record,
+    inverse_of: :record,
+    dependent: :destroy
+
+  has_many \
+    :custom_attachments,
+    -> { where(name: :custom) },
+    class_name: "ActiveStorage::Attachment",
+    as: :record,
+    inverse_of: :record,
+    dependent: :destroy
 end
 
 class Group < ActiveRecord::Base

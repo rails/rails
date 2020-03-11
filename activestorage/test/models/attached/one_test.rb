@@ -511,6 +511,22 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     end
   end
 
+  test "destroying dependent custom attachment on destroy" do
+    create_blob(filename: "funky.jpg").tap do |blob|
+      attachment = ActiveStorage::Attachment.create!(
+        name: "special",
+        record: @user,
+        blob: blob
+      )
+
+      perform_enqueued_jobs do
+        @user.destroy!
+      end
+
+      assert_not ActiveStorage::Attachment.exists?(attachment.id)
+    end
+  end
+
   test "not purging independent attachment on destroy" do
     create_blob(filename: "funky.jpg").tap do |blob|
       @user.cover_photo.attach blob

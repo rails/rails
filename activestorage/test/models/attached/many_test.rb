@@ -542,6 +542,30 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     end
   end
 
+  test "destroying dependent custom attachment on destroy" do
+    [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
+      attachments = [
+        ActiveStorage::Attachment.create!(
+          name: "custom",
+          record: @user,
+          blob: blobs.first
+        ),
+        ActiveStorage::Attachment.create!(
+          name: "custom",
+          record: @user,
+          blob: blobs.second
+        )
+      ]
+
+      perform_enqueued_jobs do
+        @user.destroy!
+      end
+
+      assert_not ActiveStorage::Attachment.exists?(attachments.first.id)
+      assert_not ActiveStorage::Attachment.exists?(attachments.second.id)
+    end
+  end
+
   test "not purging independent attachment on destroy" do
     [ create_blob(filename: "funky.mp4"), create_blob(filename: "town.mp4") ].tap do |blobs|
       @user.vlogs.attach blobs
