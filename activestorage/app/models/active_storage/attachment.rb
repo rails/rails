@@ -49,7 +49,7 @@ class ActiveStorage::Attachment < ActiveRecord::Base
 
 
     def dependent
-      record.attachment_reflections[name]&.options[:dependent]
+      record.attachment_reflections[name]&.options&.[](:dependent)
     end
 end
 
