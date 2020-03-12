@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "active_support/duration"
-require "active_support/core_ext/numeric/time"
 
 class Integer
   # Returns a Duration instance matching the number of months provided.
