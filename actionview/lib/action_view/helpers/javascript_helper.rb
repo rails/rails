@@ -12,7 +12,9 @@ module ActionView
         "\n"    => '\n',
         "\r"    => '\n',
         '"'     => '\\"',
-        "'"     => "\\'"
+        "'"     => "\\'",
+        "`"     => "\\`",
+        "$"     => "\\$"
       }
 
       JS_ESCAPE_MAP[(+"\342\200\250").force_encoding(Encoding::UTF_8).encode!] = "&#x2028;"
@@ -29,7 +31,7 @@ module ActionView
         if javascript.empty?
           result = ""
         else
-          result = javascript.gsub(/(\\|<\/|\r\n|\342\200\250|\342\200\251|[\n\r"'])/u) { |match| JS_ESCAPE_MAP[match] }
+          result = javascript.gsub(/(\\|<\/|\r\n|\342\200\250|\342\200\251|[\n\r"']|[`]|[$])/u) { |match| JS_ESCAPE_MAP[match] }
         end
         javascript.html_safe? ? result.html_safe : result
       end
