@@ -11,6 +11,14 @@ module Arel # :nodoc: all
         @right = right
       end
 
+      def detect_attribute
+        if self.left.is_a?(Arel::Attributes::Attribute)
+          self.left
+        elsif self.right.is_a?(Arel::Attributes::Attribute)
+          self.right
+        end
+      end
+
       def initialize_copy(other)
         super
         @left  = @left.clone if @left
