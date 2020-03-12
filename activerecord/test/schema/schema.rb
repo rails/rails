@@ -1116,6 +1116,14 @@ ActiveRecord::Schema.define do
   create_table :non_primary_keys, force: true, id: false do |t|
     t.integer :id
   end
+
+  create_table :houses, force: true
+
+  create_table :lounges, force: true do |t|
+    t.integer :house_id
+    t.string :colour
+    t.integer :size
+  end
 end
 
 Course.connection.create_table :courses, force: true do |t|

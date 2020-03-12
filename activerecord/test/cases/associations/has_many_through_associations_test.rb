@@ -36,12 +36,14 @@ require "models/family_tree"
 require "models/section"
 require "models/seminar"
 require "models/session"
+require "models/house"
+require "models/lounge"
 
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :readers, :people, :comments, :authors, :categories, :taggings, :tags,
            :owners, :pets, :toys, :jobs, :references, :companies, :members, :author_addresses,
            :subscribers, :books, :subscriptions, :developers, :categorizations, :essays,
-           :categories_posts, :clubs, :memberships, :organizations
+           :categories_posts, :clubs, :memberships, :organizations, :houses
 
   # Dummies to force column loads so query counts are clean.
   def setup
@@ -1510,6 +1512,11 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     fall.save!
     fall.reload
     assert_equal sections, fall.sections.sort_by(&:id)
+  end
+
+  def test_unscoped_in_before_validation_does_not_leak_existing_scopes
+    houses(:mansion).lounges.large.create(colour: "purple")
+    assert_not_includes Lounge::last_before_validation_query, Lounge::LARGE_CLAUSE
   end
 
   private
