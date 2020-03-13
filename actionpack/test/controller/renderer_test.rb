@@ -70,8 +70,8 @@ class RendererTest < ActiveSupport::TestCase
     renderer = ApplicationController.renderer
 
     assert_equal(
-      %(<span title="my title">(Inline render)</span>),
-      renderer.render(TestComponent.new(title: "my title")).strip
+      %(Hello, World!),
+      renderer.render(TestComponent.new)
     )
   end
 

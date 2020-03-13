@@ -681,8 +681,8 @@ module RenderTestCases
 
   def test_render_component
     assert_equal(
-      %(<span title="my title">Hello, World! (Inline render)</span>),
-      @view.render(TestComponent.new(title: "my title")) { "Hello, World!" }.strip
+      %(Hello, World!),
+      @view.render(TestComponent.new)
     )
   end
 end
