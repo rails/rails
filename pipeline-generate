@@ -142,7 +142,7 @@ def step_for(subdirectory, rake_task, ruby: nil, service: "default")
 
   hash = {
     "label" => label,
-    "depends_on" => "docker-image-#{ruby&.gsub(/\W/, "-") || ONE_RUBY}",
+    "depends_on" => "docker-image-#{(ruby || ONE_RUBY).gsub(/\W/, "-")}",
     "command" => command,
     "group" => group,
     "plugins" => [
