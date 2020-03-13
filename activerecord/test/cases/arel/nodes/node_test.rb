@@ -5,7 +5,7 @@ require_relative "../helper"
 module Arel
   class TestNode < Arel::Test
     def test_includes_factory_methods
-      assert Node.new.respond_to?(:create_join)
+      assert Arel::Nodes::Node.new.respond_to?(:create_join)
     end
 
     def test_all_nodes_are_nodes

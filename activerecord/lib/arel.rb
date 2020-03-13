@@ -43,7 +43,7 @@ module Arel
   end
 
   def self.arel_node?(value) # :nodoc:
-    value.is_a?(Arel::Node) || value.is_a?(Arel::Attribute) || value.is_a?(Arel::Nodes::SqlLiteral)
+    value.is_a?(Arel::Nodes::Node) || value.is_a?(Arel::Attribute) || value.is_a?(Arel::Nodes::SqlLiteral)
   end
 
   def self.fetch_attribute(value, &block) # :nodoc:
@@ -59,7 +59,4 @@ module Arel
       fetch_attribute(value.expr, &block)
     end
   end
-
-  ## Convenience Alias
-  Node = Arel::Nodes::Node # :nodoc:
 end
