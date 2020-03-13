@@ -640,6 +640,16 @@ class MigrationTest < ActiveRecord::TestCase
     assert_equal "bar", ActiveRecord::InternalMetadata[:foo]
   end
 
+  def test_internal_metadata_not_used_when_not_enabled
+    ActiveRecord::InternalMetadata.stub(:enabled?, false) do
+      migrations_path = MIGRATIONS_ROOT + "/valid"
+
+      migrator = ActiveRecord::MigrationContext.new(migrations_path, @schema_migration)
+      migrator.up
+      assert_not ActiveRecord::InternalMetadata[:environment]
+    end
+  end
+
   def test_proper_table_name_on_migration
     reminder_class = new_isolated_reminder_class
     migration = ActiveRecord::Migration.new
