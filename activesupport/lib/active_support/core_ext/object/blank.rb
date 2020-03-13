@@ -127,6 +127,9 @@ class String
         BLANK_RE.match?(self)
       rescue Encoding::CompatibilityError
         ENCODED_BLANKS[self.encoding].match?(self)
+      rescue ArgumentError => e
+        return false if e.message.match?("invalid byte sequence in UTF-8")
+        raise
       end
   end
 end
