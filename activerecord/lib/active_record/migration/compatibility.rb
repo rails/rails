@@ -16,6 +16,57 @@ module ActiveRecord
       V6_1 = Current
 
       class V6_0 < V6_1
+        class ReferenceDefinition < ConnectionAdapters::ReferenceDefinition
+          def index_options(table_name)
+            as_options(index)
+          end
+        end
+
+        module TableDefinition
+          def references(*args, **options)
+            args.each do |ref_name|
+              ReferenceDefinition.new(ref_name, **options).add_to(self)
+            end
+          end
+          alias :belongs_to :references
+        end
+
+        def create_table(table_name, **options)
+          if block_given?
+            super { |t| yield compatible_table_definition(t) }
+          else
+            super
+          end
+        end
+
+        def change_table(table_name, **options)
+          if block_given?
+            super { |t| yield compatible_table_definition(t) }
+          else
+            super
+          end
+        end
+
+        def create_join_table(table_1, table_2, **options)
+          if block_given?
+            super { |t| yield compatible_table_definition(t) }
+          else
+            super
+          end
+        end
+
+        def add_reference(table_name, ref_name, **options)
+          ReferenceDefinition.new(ref_name, **options).add_to(update_table_definition(table_name, self))
+        end
+        alias :add_belongs_to :add_reference
+
+        private
+          def compatible_table_definition(t)
+            class << t
+              prepend TableDefinition
+            end
+            t
+          end
       end
 
       class V5_2 < V6_0

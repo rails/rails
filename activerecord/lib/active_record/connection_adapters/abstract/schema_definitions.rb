@@ -169,7 +169,7 @@ module ActiveRecord
         end
 
         if index
-          table.index(column_names, **index_options)
+          table.index(column_names, **index_options(table.name))
         end
 
         if foreign_key
@@ -188,8 +188,14 @@ module ActiveRecord
           as_options(polymorphic).merge(options.slice(:null, :first, :after))
         end
 
-        def index_options
-          as_options(index)
+        def polymorphic_index_name(table_name)
+          "index_#{table_name}_on_#{name}"
+        end
+
+        def index_options(table_name)
+          index_options = as_options(index)
+          index_options[:name] ||= polymorphic_index_name(table_name) if polymorphic
+          index_options
         end
 
         def foreign_key_options
