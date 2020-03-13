@@ -33,6 +33,7 @@ module ApplicationTests
         "ActiveSupport::Cache::Strategy::LocalCache",
         "Rack::Runtime",
         "Rack::MethodOverride",
+        "ActionDispatch::CurrentRackEnv",
         "ActionDispatch::RequestId",
         "ActionDispatch::RemoteIp",
         "Rails::Rack::Logger",
@@ -67,6 +68,7 @@ module ApplicationTests
         "ActionDispatch::Executor",
         "ActiveSupport::Cache::Strategy::LocalCache",
         "Rack::Runtime",
+        "ActionDispatch::CurrentRackEnv",
         "ActionDispatch::RequestId",
         "ActionDispatch::RemoteIp",
         "Rails::Rack::Logger",
@@ -96,6 +98,9 @@ module ApplicationTests
         # Serving public/ doesn't invoke user code, so it should skip
         # locks etc
         %w(ActionDispatch::Executor ActionDispatch::Static),
+
+        # ActionDispatch::Current must be reset
+        %w(ActionDispatch::CurrentRackEnv ActionDispatch::Executor),
 
         # Errors during reload must be reported
         %w(ActionDispatch::Reloader ActionDispatch::ShowExceptions ActionDispatch::DebugExceptions),

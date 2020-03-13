@@ -49,6 +49,15 @@ module ActionController
       new(controller, env, defaults)
     end
 
+    # Create a renderer using this controller and the current request.
+    def current
+      if env = ActionDispatch::Current.rack_env
+        new env
+      else
+        self
+      end
+    end
+
     # Create a new renderer for the same controller but with a new env.
     def new(env = {})
       self.class.new controller, env, defaults

@@ -57,6 +57,7 @@ module ActionDispatch
     autoload :RequestId
     autoload :Callbacks
     autoload :Cookies
+    autoload :CurrentRackEnv
     autoload :ActionableExceptions
     autoload :DebugExceptions
     autoload :DebugLocks
@@ -72,6 +73,7 @@ module ActionDispatch
     autoload :Static
   end
 
+  autoload :Current
   autoload :Journey
   autoload :MiddlewareStack, "action_dispatch/middleware/stack"
   autoload :Routing

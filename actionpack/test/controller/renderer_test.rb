@@ -46,6 +46,15 @@ class RendererTest < ActiveSupport::TestCase
     assert_equal "Hello world!", content
   end
 
+  test "rendering with a current renderer" do
+    ActionDispatch::Current.rack_env = { key: "value" }
+
+    renderer = ApplicationController.renderer.current
+    content  = renderer.render inline: "<%= request.env['key'] %>"
+
+    assert_equal "value", content
+  end
+
   test "rendering with a controller class" do
     assert_equal "Hello world!", ApplicationController.render("test/hello_world")
   end

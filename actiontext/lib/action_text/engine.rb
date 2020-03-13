@@ -49,10 +49,6 @@ module ActionText
       ActiveSupport.on_load(:action_text_content) do
         self.renderer = ApplicationController.renderer
       end
-
-      ActiveSupport.on_load(:action_controller_base) do
-        before_action { ActionText::Content.renderer = ApplicationController.renderer.new(request.env) }
-      end
     end
 
     initializer "action_text.system_test_helper" do
