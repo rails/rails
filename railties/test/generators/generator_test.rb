@@ -16,7 +16,6 @@ module Rails
             def gemfile_entries; super; end
             def invoke_all; super; self; end
             def add_gem_entry_filter; super; end
-            def gemfile_entry(*args); super; end
           })
         end
       end
@@ -24,40 +23,6 @@ module Rails
       def test_construction
         klass = make_builder_class
         assert klass.start(["new", "blah"])
-      end
-
-      def test_add_gem
-        klass = make_builder_class
-        generator = klass.start(["new", "blah"])
-        generator.gemfile_entry "tenderlove"
-        assert_includes generator.gemfile_entries.map(&:name), "tenderlove"
-      end
-
-      def test_add_gem_with_version
-        klass = make_builder_class
-        generator = klass.start(["new", "blah"])
-        generator.gemfile_entry "tenderlove", "2.0.0"
-        assert generator.gemfile_entries.find { |gfe|
-          gfe.name == "tenderlove" && gfe.version == "2.0.0"
-        }
-      end
-
-      def test_add_github_gem
-        klass = make_builder_class
-        generator = klass.start(["new", "blah"])
-        generator.gemfile_entry "tenderlove", github: "hello world"
-        assert generator.gemfile_entries.find { |gfe|
-          gfe.name == "tenderlove" && gfe.options[:github] == "hello world"
-        }
-      end
-
-      def test_add_path_gem
-        klass = make_builder_class
-        generator = klass.start(["new", "blah"])
-        generator.gemfile_entry "tenderlove", path: "hello world"
-        assert generator.gemfile_entries.find { |gfe|
-          gfe.name == "tenderlove" && gfe.options[:path] == "hello world"
-        }
       end
 
       def test_filter
