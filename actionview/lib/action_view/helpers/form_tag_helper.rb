@@ -155,7 +155,7 @@ module ActionView
           option_tags = content_tag("option", prompt, value: "").safe_concat(option_tags)
         end
 
-        content_tag "select", option_tags, { "name" => html_name, "id" => sanitize_to_id(name) }.update(options.stringify_keys)
+        content_tag "select", option_tags, { "name" => html_name, "id" => process_html_id(name, options) }.update(options.stringify_keys)
       end
 
       # Creates a standard text field; use these text fields to input smaller chunks of text like a username
@@ -195,7 +195,7 @@ module ActionView
       #   text_field_tag 'ip', '0.0.0.0', maxlength: 15, size: 20, class: "ip-input"
       #   # => <input class="ip-input" id="ip" maxlength="15" name="ip" size="20" type="text" value="0.0.0.0" />
       def text_field_tag(name, value = nil, options = {})
-        tag :input, { "type" => "text", "name" => name, "id" => sanitize_to_id(name), "value" => value }.update(options.stringify_keys)
+        tag :input, { "type" => "text", "name" => name, "id" => process_html_id(name, options), "value" => value }.update(options.stringify_keys)
       end
 
       # Creates a label element. Accepts a block.
@@ -354,7 +354,7 @@ module ActionView
         escape = options.delete("escape") { true }
         content = ERB::Util.html_escape(content) if escape
 
-        content_tag :textarea, content.to_s.html_safe, { "name" => name, "id" => sanitize_to_id(name) }.update(options)
+        content_tag :textarea, content.to_s.html_safe, { "name" => name, "id" => process_html_id(name, options) }.update(options)
       end
 
       # Creates a check box form input tag.
@@ -379,7 +379,7 @@ module ActionView
       #   check_box_tag 'eula', 'accepted', false, disabled: true
       #   # => <input disabled="disabled" id="eula" name="eula" type="checkbox" value="accepted" />
       def check_box_tag(name, value = "1", checked = false, options = {})
-        html_options = { "type" => "checkbox", "name" => name, "id" => sanitize_to_id(name), "value" => value }.update(options.stringify_keys)
+        html_options = { "type" => "checkbox", "name" => name, "id" => process_html_id(name, options), "value" => value }.update(options.stringify_keys)
         html_options["checked"] = "checked" if checked
         tag :input, html_options
       end
@@ -404,7 +404,8 @@ module ActionView
       #   radio_button_tag 'color', "green", true, class: "color_input"
       #   # => <input checked="checked" class="color_input" id="color_green" name="color" type="radio" value="green" />
       def radio_button_tag(name, value, checked = false, options = {})
-        html_options = { "type" => "radio", "name" => name, "id" => "#{sanitize_to_id(name)}_#{sanitize_to_id(value)}", "value" => value }.update(options.stringify_keys)
+        html_id = process_html_id("#{sanitize_to_id(name)}_#{sanitize_to_id(value)}", options)
+        html_options = { "type" => "radio", "name" => name, "id" => html_id, "value" => value }.update(options.stringify_keys)
         html_options["checked"] = "checked" if checked
         tag :input, html_options
       end
@@ -893,6 +894,22 @@ module ActionView
         # see http://www.w3.org/TR/html4/types.html#type-name
         def sanitize_to_id(name)
           name.to_s.delete("]").tr("^-a-zA-Z0-9:.", "_")
+        end
+        alias_method :sanitize_to_html4_id, :sanitize_to_id
+
+        # see https://www.w3.org/TR/2011/WD-html5-20110525/elements.html#the-id-attribute
+        def sanitize_to_html5_id(id)
+          id.to_s.strip.tr(" ", "-")
+        end
+
+        def process_html_id(name = nil, html_options = {})
+          html_options = html_options.stringify_keys
+
+          if html_id = html_options["id"]
+            sanitize_to_html5_id(html_id)
+          else
+            sanitize_to_html4_id(name) unless name.blank?
+          end
         end
 
         def set_default_disable_with(value, tag_options)

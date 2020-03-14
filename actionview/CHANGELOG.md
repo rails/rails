@@ -1,3 +1,8 @@
+*   Allows ID to be passed into `ActionView::Helpers::FormTagHelper` helpers as
+    an option so it gets formatted according to HTML5 IDs' specification.
+
+    *Santiago Fernandez*
+
 *   Deprecate template names with `.`
 
     *John Hawthorn*

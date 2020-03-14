@@ -68,7 +68,8 @@ class FormTagHelperTest < ActionView::TestCase
     end
   end
 
-  VALID_HTML_ID = /^[A-Za-z][-_:.A-Za-z0-9]*$/ # see http://www.w3.org/TR/html4/types.html#type-name
+  VALID_HTML5_ID = /^\S+$/ # see https://www.w3.org/TR/2011/WD-html5-20110525/elements.html#the-id-attribute
+  VALID_HTML4_ID = /^[A-Za-z][-_:.A-Za-z0-9]*$/ # see http://www.w3.org/TR/html4/types.html#type-name
 
   def test_check_box_tag
     actual = check_box_tag "admin"
@@ -88,9 +89,18 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_check_box_tag_with_id_option
+    actual = check_box_tag("admin", "1", false, { "id" => "id-different-from-name" })
+    expected = %(<input type="checkbox" name="admin" id="id-different-from-name" value="1" />)
+    assert_dom_equal expected, actual
+  end
+
   def test_check_box_tag_id_sanitized
+    checkbox_elem = root_elem(check_box_tag("admin", "1", false, { "id" => "id-different-from-name" }))
+    assert_match VALID_HTML5_ID, checkbox_elem["id"]
+
     label_elem = root_elem(check_box_tag("project[2][admin]"))
-    assert_match VALID_HTML_ID, label_elem["id"]
+    assert_match VALID_HTML4_ID, label_elem["id"]
   end
 
   def test_form_tag
@@ -193,9 +203,18 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_hidden_field_tag_with_id_option
+    actual = hidden_field_tag "item[][title]", "An item title", { "id" => "item_id" }
+    expected = %(<input type="hidden" name="item[][title]" id="item_id" value="An item title" />)
+    assert_dom_equal expected, actual
+  end
+
   def test_hidden_field_tag_id_sanitized
+    input_elem = root_elem(hidden_field_tag "item[][title]", "An item title", { "id" => "item_id" })
+    assert_match VALID_HTML5_ID, input_elem["id"]
+
     input_elem = root_elem(hidden_field_tag("item[][title]"))
-    assert_match VALID_HTML_ID, input_elem["id"]
+    assert_match VALID_HTML4_ID, input_elem["id"]
   end
 
   def test_file_field_tag
@@ -272,6 +291,12 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_radio_button_tag_with_id_option
+    actual = radio_button_tag("person[gender]", "m", false, id: "gender-m")
+    expected = %(<input type="radio" name="person[gender]" id="gender-m" value="m" />)
+    assert_dom_equal expected, actual
+  end
+
   def test_select_tag
     actual = select_tag "people", raw("<option>david</option>")
     expected = %(<select id="people" name="people"><option>david</option></select>)
@@ -290,9 +315,18 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_select_tag_id_with_id_option
+    actual = select_tag "countries", raw("<option>France</option><option>Canada</option>"), { "id" => "country-select" }
+    expected = %(<select name="countries" id="country-select"><option>France</option><option>Canada</option></select>)
+    assert_dom_equal expected, actual
+  end
+
   def test_select_tag_id_sanitized
     input_elem = root_elem(select_tag("project[1]people", "<option>david</option>"))
-    assert_match VALID_HTML_ID, input_elem["id"]
+    assert_match VALID_HTML4_ID, input_elem["id"]
+
+    input_elem = root_elem(select_tag("project[1]people", "<option>david</option>", { "id" => "project[1]people" }))
+    assert_match VALID_HTML5_ID, input_elem["id"]
   end
 
   def test_select_tag_with_include_blank
@@ -368,9 +402,18 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_text_area_tag_with_id_option
+    actual = text_area_tag "body", "hello world", size: 20, id: "text-area-id"
+    expected = %(<textarea id="text-area-id" name="body">\nhello world</textarea>)
+    assert_dom_equal expected, actual
+  end
+
   def test_text_area_tag_id_sanitized
     input_elem = root_elem(text_area_tag("item[][description]"))
-    assert_match VALID_HTML_ID, input_elem["id"]
+    assert_match VALID_HTML4_ID, input_elem["id"]
+
+    input_elem = root_elem(text_area_tag("item[][descrition]", nil, id: "item-description"))
+    assert_match VALID_HTML5_ID, input_elem["id"]
   end
 
   def test_text_area_tag_escape_content
@@ -451,9 +494,18 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_text_field_tag_with_id_option
+    actual = text_field_tag("summary", nil, id: "item-summary")
+    expected = %(<input id="item-summary" name="summary" type="text" />)
+    assert_dom_equal expected, actual
+  end
+
   def test_text_field_tag_id_sanitized
     input_elem = root_elem(text_field_tag("item[][title]"))
-    assert_match VALID_HTML_ID, input_elem["id"]
+    assert_match VALID_HTML4_ID, input_elem["id"]
+
+    input_elem = root_elem(text_field_tag("item[][title]", nil, id: "item[][title]"))
+    assert_match VALID_HTML5_ID, input_elem["id"]
   end
 
   def test_label_tag_without_text
@@ -480,9 +532,18 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_label_tag_with_id_option
+    actual = label_tag("title", "My Title", id: "label")
+    expected = %(<label for="title" id="label">My Title</label>)
+    assert_dom_equal expected, actual
+  end
+
   def test_label_tag_id_sanitized
     label_elem = root_elem(label_tag("item[title]"))
-    assert_match VALID_HTML_ID, label_elem["for"]
+    assert_match VALID_HTML4_ID, label_elem["for"]
+
+    label_elem = root_elem(label_tag("item[title]", nil, id: "item-title"))
+    assert_match VALID_HTML5_ID, label_elem["id"]
   end
 
   def test_label_tag_with_block
@@ -800,6 +861,17 @@ class FormTagHelperTest < ActionView::TestCase
 
   def protect_against_forgery?
     false
+  end
+
+  def test_id_sanitizing_with_id_option
+    result = process_html_id(nil, id: "expected valid html5 id")
+    assert_equal(result, "expected-valid-html5-id")
+  end
+
+  def test_id_sanitizing_with_name
+    name = "name[]"
+    result = process_html_id(name)
+    assert_equal(result, "name_")
   end
 
   private
