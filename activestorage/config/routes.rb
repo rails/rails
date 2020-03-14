@@ -3,7 +3,7 @@
 Rails.application.routes.draw do
   scope ActiveStorage.routes_prefix do
     get "/blobs/redirect/:signed_id/*filename" => "active_storage/blobs/redirection#show", as: :rails_service_blob
-    get "/blobs/proxy/:signed_id/*filename" => "active_storage/blobs/proxy#show", as: :rails_blob_proxy
+    get "/blobs/proxy/:signed_id/*filename" => "active_storage/blobs/proxy#show", as: :rails_service_blob_proxy
 
     get "/representations/redirect/:signed_blob_id/:variation_key/*filename" => "active_storage/representations/redirection#show", as: :rails_blob_representation
     get "/representations/proxy/:signed_blob_id/:variation_key/*filename" => "active_storage/representations/proxy#show", as: :rails_blob_representation_proxy
@@ -21,13 +21,24 @@ Rails.application.routes.draw do
     route_for(:rails_blob_representation, signed_blob_id, variation_key, filename, options)
   end
 
+  direct :rails_representation_proxy do |representation, options|
+    signed_blob_id = representation.blob.signed_id
+    variation_key  = representation.variation.key
+    filename       = representation.blob.filename
+
+    route_for(:rails_blob_representation_proxy, signed_blob_id, variation_key, filename, options)
+  end
+
   resolve("ActiveStorage::Variant") { |variant, options| route_for(:rails_representation, variant, options) }
   resolve("ActiveStorage::VariantWithRecord") { |variant, options| route_for(:rails_representation, variant, options) }
   resolve("ActiveStorage::Preview") { |preview, options| route_for(:rails_representation, preview, options) }
 
-
   direct :rails_blob do |blob, options|
     route_for(:rails_service_blob, blob.signed_id, blob.filename, options)
+  end
+
+  direct :rails_blob_proxy do |blob, options|
+    route_for(:rails_service_blob_proxy, blob.signed_id, blob.filename, options)
   end
 
   resolve("ActiveStorage::Blob")       { |blob, options| route_for(:rails_blob, blob, options) }
