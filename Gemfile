@@ -33,7 +33,7 @@ gem "rubocop-performance", require: false
 gem "rubocop-rails", require: false
 
 group :doc do
-  gem "sdoc", "~> 1.0"
+  gem "sdoc", "~> 1.1"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
   gem "w3c_validators"
   gem "kindlerb", "~> 1.2.0"
