@@ -255,7 +255,8 @@ body {
   left: 0;
   background: #FFF;
   padding: 1em 1.5em 1em 1.25em;
-  width: 20em;
+  width: 17em;
+  overflow: scroll;
   font-size: 0.9285em;
   line-height: 1.3846em;
   margin-left: 1em;
@@ -282,7 +283,7 @@ body {
 }
 
 #header .wrapper, #topNav .wrapper, #feature .wrapper {padding-right: 1em; max-width: 960px;}
-#feature .wrapper {max-width: 720px; padding-left: 23em; position: relative; z-index: 0;}
+#feature .wrapper {max-width: 640px; overflow: scroll; padding-left: 23em; position: relative; z-index: 0;}
 
 @media screen and (max-width: 960px) {
   #container .wrapper { padding-left: 23em; }
