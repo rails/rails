@@ -1,3 +1,17 @@
+*   `ActiveJob::TestCase#perform_enqueued_jobs` will no longer perform retries:
+
+    When calling `perform_enqueued_jobs` without a block, the adapter will
+    now perform jobs that are **already** in the queue. Jobs that will end up in
+    the queue afterwards won't be performed.
+
+    This change only affects `perform_enqueued_jobs` when no block is given.
+
+    *Edouard Chin*
+
+*   Add queue name support to Que adapter
+
+    *Brad Nauta*, *Wojciech Wnętrzak*
+
 *   Don't run `after_enqueue` and `after_perform` callbacks if the callback chain is halted.
 
         class MyJob < ApplicationJob
@@ -21,7 +35,7 @@
         before_enqueue { throw(:abort) }
       end
 
-      MyJob.perform_later # Will no longer log "Enqueud MyJob" since job wasn't even enqueued through adapter.
+      MyJob.perform_later # Will no longer log "Enqueued MyJob" since job wasn't even enqueued through adapter.
     ```
 
     A new message will be logged in case a job couldn't be enqueued, either because the callback chain was halted or
@@ -65,14 +79,16 @@
 
     *Vlado Cingel*
 
-*   Add jitter to :exponentially_longer
+*   Add jitter to `ActiveJob::Exceptions.retry_on`.
 
-    ActiveJob::Exceptions.retry_on with :exponentially_longer now uses a random amount of jitter in order to
-    prevent the [thundering herd effect.](https://en.wikipedia.org/wiki/Thundering_herd_problem).  Defaults to
+    `ActiveJob::Exceptions.retry_on` now uses a random amount of jitter in order to
+    prevent the [thundering herd effect](https://en.wikipedia.org/wiki/Thundering_herd_problem). Defaults to
     15% (represented as 0.15) but overridable via the `:jitter` option when using `retry_on`.
-    Jitter is applied when an `Integer`, `ActiveSupport::Duration` or `exponentially_longer`, is passed to the `wait` argument in `retry_on`.
+    Jitter is applied when an `Integer`, `ActiveSupport::Duration` or `:exponentially_longer`, is passed to the `wait` argument in `retry_on`.
 
+    ```ruby
     retry_on(MyError, wait: :exponentially_longer, jitter: 0.30)
+    ```
 
     *Anthony Ross*
 

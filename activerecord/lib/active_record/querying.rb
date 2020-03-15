@@ -16,7 +16,7 @@ module ActiveRecord
       :where, :rewhere, :preload, :extract_associated, :eager_load, :includes, :from, :lock, :readonly, :extending, :or,
       :having, :create_with, :distinct, :references, :none, :unscope, :optimizer_hints, :merge, :except, :only,
       :count, :average, :minimum, :maximum, :sum, :calculate, :annotate,
-      :pluck, :pick, :ids
+      :pluck, :pick, :ids, :strict_loading
     ].freeze # :nodoc:
     delegate(*QUERYING_METHODS, to: :all)
 
@@ -36,7 +36,7 @@ module ActiveRecord
     #
     #   # A simple SQL query spanning multiple tables
     #   Post.find_by_sql "SELECT p.title, c.author FROM posts p, comments c WHERE p.id = c.post_id"
-    #   # => [#<Post:0x36bff9c @attributes={"title"=>"Ruby Meetup", "first_name"=>"Quentin"}>, ...]
+    #   # => [#<Post:0x36bff9c @attributes={"title"=>"Ruby Meetup", "author"=>"Quentin"}>, ...]
     #
     # You can use the same string replacement techniques as you can with <tt>ActiveRecord::QueryMethods#where</tt>:
     #

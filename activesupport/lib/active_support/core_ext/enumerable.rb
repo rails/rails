@@ -44,7 +44,8 @@ module Enumerable
     end
   end
 
-  # Convert an enumerable to a hash keying it by the block return value.
+  # Convert an enumerable to a hash, using the block result as the key and the
+  # element as the value.
   #
   #   people.index_by(&:login)
   #   # => { "nextangle" => <Person ...>, "chade-" => <Person ...>, ...}
@@ -61,12 +62,19 @@ module Enumerable
     end
   end
 
-  # Convert an enumerable to a hash keying it with the enumerable items and with the values returned in the block.
+  # Convert an enumerable to a hash, using the element as the key and the block
+  # result as the value.
   #
   #   post = Post.new(title: "hey there", body: "what's up?")
   #
   #   %i( title body ).index_with { |attr_name| post.public_send(attr_name) }
   #   # => { title: "hey there", body: "what's up?" }
+  #
+  # If an argument is passed instead of a block, it will be used as the value
+  # for all elements:
+  #
+  #   %i( created_at updated_at ).index_with(Time.now)
+  #   # => { created_at: 2020-03-09 22:31:47, updated_at: 2020-03-09 22:31:47 }
   def index_with(default = INDEX_WITH_DEFAULT)
     if block_given?
       result = {}

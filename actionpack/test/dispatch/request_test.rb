@@ -77,6 +77,10 @@ class RequestIP < BaseRequestTest
                            "HTTP_X_FORWARDED_FOR" => "3.4.5.6"
     assert_equal "3.4.5.6", request.remote_ip
 
+    request = stub_request "REMOTE_ADDR" => "127.0.0.1",
+                           "HTTP_X_FORWARDED_FOR" => "172.31.4.4, 10.0.0.1"
+    assert_equal "172.31.4.4", request.remote_ip
+
     request = stub_request "HTTP_X_FORWARDED_FOR" => "3.4.5.6,unknown"
     assert_equal "3.4.5.6", request.remote_ip
 
@@ -89,6 +93,9 @@ class RequestIP < BaseRequestTest
     request = stub_request "HTTP_X_FORWARDED_FOR" => "3.4.5.6,10.0.0.1"
     assert_equal "3.4.5.6", request.remote_ip
 
+    request = stub_request "HTTP_X_FORWARDED_FOR" => "172.31.4.4, 10.0.0.1"
+    assert_equal "172.31.4.4", request.remote_ip
+
     request = stub_request "HTTP_X_FORWARDED_FOR" => "3.4.5.6, 10.0.0.1, 10.0.0.1"
     assert_equal "3.4.5.6", request.remote_ip
 
@@ -96,7 +103,7 @@ class RequestIP < BaseRequestTest
     assert_equal "3.4.5.6", request.remote_ip
 
     request = stub_request "HTTP_X_FORWARDED_FOR" => "unknown,192.168.0.1"
-    assert_nil request.remote_ip
+    assert_equal "192.168.0.1", request.remote_ip
 
     request = stub_request "HTTP_X_FORWARDED_FOR" => "9.9.9.9, 3.4.5.6, 172.31.4.4, 10.0.0.1"
     assert_equal "3.4.5.6", request.remote_ip
@@ -161,7 +168,7 @@ class RequestIP < BaseRequestTest
     assert_equal "fe80:0000:0000:0000:0202:b3ff:fe1e:8329", request.remote_ip
 
     request = stub_request "HTTP_X_FORWARDED_FOR" => "unknown,::1"
-    assert_nil request.remote_ip
+    assert_equal "::1", request.remote_ip
 
     request = stub_request "HTTP_X_FORWARDED_FOR" => "2001:0db8:85a3:0000:0000:8a2e:0370:7334, fe80:0000:0000:0000:0202:b3ff:fe1e:8329, ::1, fc00::, fc01::, fdff"
     assert_equal "fe80:0000:0000:0000:0202:b3ff:fe1e:8329", request.remote_ip
@@ -207,7 +214,7 @@ class RequestIP < BaseRequestTest
     assert_equal "3.4.5.6", request.remote_ip
 
     request = stub_request "HTTP_X_FORWARDED_FOR" => "67.205.106.73,unknown"
-    assert_nil request.remote_ip
+    assert_equal "67.205.106.73", request.remote_ip # change
 
     request = stub_request "HTTP_X_FORWARDED_FOR" => "9.9.9.9, 3.4.5.6, 10.0.0.1, 67.205.106.73"
     assert_equal "3.4.5.6", request.remote_ip
@@ -226,10 +233,10 @@ class RequestIP < BaseRequestTest
 
     request = stub_request "REMOTE_ADDR" => "fe80:0000:0000:0000:0202:b3ff:fe1e:8329,::1",
                            "HTTP_X_FORWARDED_FOR" => "fe80:0000:0000:0000:0202:b3ff:fe1e:8329"
-    assert_equal "::1", request.remote_ip
+    assert_equal "fe80:0000:0000:0000:0202:b3ff:fe1e:8329", request.remote_ip
 
     request = stub_request "HTTP_X_FORWARDED_FOR" => "unknown,fe80:0000:0000:0000:0202:b3ff:fe1e:8329"
-    assert_nil request.remote_ip
+    assert_equal "fe80:0000:0000:0000:0202:b3ff:fe1e:8329", request.remote_ip
 
     request = stub_request "HTTP_X_FORWARDED_FOR" => "fe80:0000:0000:0000:0202:b3ff:fe1e:8329,2001:0db8:85a3:0000:0000:8a2e:0370:7334"
     assert_equal "2001:0db8:85a3:0000:0000:8a2e:0370:7334", request.remote_ip
@@ -584,12 +591,6 @@ class RequestCookie < BaseRequestTest
   test "cookie syntax resilience" do
     request = stub_request("HTTP_COOKIE" => "_session_id=c84ace84796670c052c6ceb2451fb0f2; is_admin=yes")
     assert_equal "c84ace84796670c052c6ceb2451fb0f2", request.cookies["_session_id"], request.cookies.inspect
-    assert_equal "yes", request.cookies["is_admin"], request.cookies.inspect
-
-    # some Nokia phone browsers omit the space after the semicolon separator.
-    # some developers have grown accustomed to using comma in cookie values.
-    request = stub_request("HTTP_COOKIE" => "_session_id=c84ace847,96670c052c6ceb2451fb0f2;is_admin=yes")
-    assert_equal "c84ace847", request.cookies["_session_id"], request.cookies.inspect
     assert_equal "yes", request.cookies["is_admin"], request.cookies.inspect
   end
 end

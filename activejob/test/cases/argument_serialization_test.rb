@@ -170,7 +170,7 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
   end
 
   test "allows for keyword arguments" do
-    KwargsJob.perform_later(argument: 2)
+    KwargsJob.perform_now(argument: 2)
 
     assert_equal "Job with argument: 2", JobBuffer.last_value
   end

@@ -57,22 +57,19 @@ module AbstractController
       # ==== Parameters
       # * <tt>method[, method]</tt> - A name or names of a method on the controller
       #   to be made available on the view.
-      def helper_method(*meths)
-        meths.flatten!
-        self._helper_methods += meths
+      def helper_method(*methods)
+        methods.flatten!
+        self._helper_methods += methods
 
         location = caller_locations(1, 1).first
         file, line = location.path, location.lineno
 
-        meths.each do |meth|
+        methods.each do |method|
           _helpers.class_eval <<-ruby_eval, file, line
-            def #{meth}(*args, **kwargs, &blk)                      # def current_user(*args, **kwargs, &blk)
-              if kwargs.empty?                                      #   if kwargs.empty?
-                controller.send(%(#{meth}), *args, &blk)            #     controller.send(:current_user, *args, &blk)
-              else                                                  #   else
-                controller.send(%(#{meth}), *args, **kwargs, &blk)  #     controller.send(:current_user, *args, **kwargs, &blk)
-              end                                                   #   end
-            end                                                     # end
+            def #{method}(*args, &block)                    # def current_user(*args, &block)
+              controller.send(:'#{method}', *args, &block)  #   controller.send(:'current_user', *args, &block)
+            end                                             # end
+            ruby2_keywords(:'#{method}') if respond_to?(:ruby2_keywords, true)
           ruby_eval
         end
       end
@@ -113,7 +110,7 @@ module AbstractController
       #
       def helper(*args, &block)
         modules_for_helpers(args).each do |mod|
-          add_template_helper(mod)
+          _helpers.include(mod)
         end
 
         _helpers.module_eval(&block) if block_given?
@@ -186,16 +183,6 @@ module AbstractController
           klass.const_set(:HelperMethods, mod)
           mod.include(helpers) if helpers
           mod
-        end
-
-        # Makes all the (instance) methods in the helper module available to templates
-        # rendered through this controller.
-        #
-        # ==== Parameters
-        # * <tt>module</tt> - The module to include into the current helper module
-        #   for the class
-        def add_template_helper(mod)
-          _helpers.module_eval { include mod }
         end
 
         def default_helper_module!

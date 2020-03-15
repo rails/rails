@@ -27,6 +27,7 @@ require "models/bird"
 require "models/car"
 require "models/bulb"
 require "concurrent/atomic/count_down_latch"
+require "active_support/core_ext/enumerable"
 
 class FirstAbstractClass < ActiveRecord::Base
   self.abstract_class = true
@@ -732,9 +733,9 @@ class BasicsTest < ActiveRecord::TestCase
   def test_attributes
     category = Category.new(name: "Ruby")
 
-    expected_attributes = category.attribute_names.map do |attribute_name|
-      [attribute_name, category.public_send(attribute_name)]
-    end.to_h
+    expected_attributes = category.attribute_names.index_with do |attribute_name|
+      category.public_send(attribute_name)
+    end
 
     assert_instance_of Hash, category.attributes
     assert_equal expected_attributes, category.attributes
@@ -1170,7 +1171,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_current_scope_is_reset
     Object.const_set :UnloadablePost, Class.new(ActiveRecord::Base)
-    UnloadablePost.send(:current_scope=, UnloadablePost.all)
+    UnloadablePost.current_scope = UnloadablePost.all
 
     UnloadablePost.unloadable
     klass = UnloadablePost
@@ -1589,6 +1590,14 @@ class BasicsTest < ActiveRecord::TestCase
         end
       end
     end
+  end
+
+  test "cannot call connected_to on subclasses of ActiveRecord::Base" do
+    error = assert_raises(NotImplementedError) do
+      Bird.connected_to(role: :reading) { }
+    end
+
+    assert_equal "connected_to can only be called on ActiveRecord::Base", error.message
   end
 
   test "preventing writes applies to all connections on a handler" do

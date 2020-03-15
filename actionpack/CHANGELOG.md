@@ -1,3 +1,10 @@
+*   `ActionDispatch::Request.remote_ip` has ip address even when all sites are trusted.
+
+    Before, if all `X-Forwarded-For` sites were trusted, the `remote_ip` would default to `127.0.0.1`.
+    Now, the furthest proxy site is used. e.g.: It now gives an ip address when using curl from the load balancer.
+
+    *Keenan Brock*
+
 *   Fix possible information leak / session hijacking vulnerability.
 
     The `ActionDispatch::Session::MemcacheStore` is still vulnerable given it requires the
@@ -5,7 +12,7 @@
 
     CVE-2019-16782.
 
-*   Include child session assertion count in ActionDispatch::IntegrationTest
+*   Include child session assertion count in ActionDispatch::IntegrationTest.
 
     `IntegrationTest#open_session` uses `dup` to create the new session, which
     meant it had its own copy of `@assertions`. This prevented the assertions
@@ -14,7 +21,7 @@
     Child sessions now have their `attr_accessor` overridden to delegate to the
     root session.
 
-    Fixes #32142
+    Fixes #32142.
 
     *Sam Bostock*
 
@@ -135,7 +142,7 @@
 
     *Tom Fakes*
 
-*   Add `Vary: Accept` header when using `Accept` header for response
+*   Add `Vary: Accept` header when using `Accept` header for response.
 
     For some requests like `/users/1`, Rails uses requests' `Accept`
     header to determine what to return. And if we don't add `Vary`

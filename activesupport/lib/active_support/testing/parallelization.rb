@@ -101,8 +101,14 @@ module ActiveSupport
               begin
                 queue.record(reporter, result)
               rescue DRb::DRbConnError
-                result.failures.each do |failure|
-                  failure.exception = DRb::DRbRemoteError.new(failure.exception)
+                result.failures.map! do |failure|
+                  if failure.respond_to?(:error)
+                    # minitest >5.14.0
+                    error = DRb::DRbRemoteError.new(failure.error)
+                  else
+                    error = DRb::DRbRemoteError.new(failure.exception)
+                  end
+                  Minitest::UnexpectedError.new(error)
                 end
                 queue.record(reporter, result)
               end

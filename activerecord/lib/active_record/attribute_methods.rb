@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "mutex_m"
+require "active_support/core_ext/enumerable"
 
 module ActiveRecord
   # = Active Record Attribute Methods
@@ -375,8 +376,8 @@ module ActiveRecord
       end
 
       def attributes_with_values(attribute_names)
-        attribute_names.each_with_object({}) do |name, attrs|
-          attrs[name] = _read_attribute(name)
+        attribute_names.index_with do |name|
+          _read_attribute(name)
         end
       end
 

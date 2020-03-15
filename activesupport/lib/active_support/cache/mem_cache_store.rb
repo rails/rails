@@ -7,6 +7,7 @@ rescue LoadError => e
   raise e
 end
 
+require "active_support/core_ext/enumerable"
 require "active_support/core_ext/marshal"
 require "active_support/core_ext/array/extract_options"
 
@@ -162,7 +163,7 @@ module ActiveSupport
 
         # Reads multiple entries from the cache implementation.
         def read_multi_entries(names, **options)
-          keys_to_names = Hash[names.map { |name| [normalize_key(name, options), name] }]
+          keys_to_names = names.index_by { |name| normalize_key(name, options) }
 
           raw_values = @data.with { |c| c.get_multi(keys_to_names.keys) }
           values = {}

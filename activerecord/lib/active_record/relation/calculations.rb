@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/enumerable"
+
 module ActiveRecord
   module Calculations
     # Count the records.
@@ -190,7 +192,13 @@ module ActiveRecord
         klass.disallow_raw_sql!(column_names)
         relation = spawn
         relation.select_values = column_names
-        result = skip_query_cache_if_necessary { klass.connection.select_all(relation.arel, nil) }
+        result = skip_query_cache_if_necessary do
+          if where_clause.contradiction?
+            ActiveRecord::Result.new([], [])
+          else
+            klass.connection.select_all(relation.arel, nil)
+          end
+        end
         result.cast_values(klass.attribute_types)
       end
     end
@@ -348,7 +356,7 @@ module ActiveRecord
         if association
           key_ids     = calculated_data.collect { |row| row[group_aliases.first] }
           key_records = association.klass.base_class.where(association.klass.base_class.primary_key => key_ids)
-          key_records = Hash[key_records.map { |r| [r.id, r] }]
+          key_records = key_records.index_by(&:id)
         end
 
         Hash[calculated_data.map do |row|

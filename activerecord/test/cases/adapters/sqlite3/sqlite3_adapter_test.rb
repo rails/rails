@@ -35,10 +35,10 @@ module ActiveRecord
           "expected non_extant_db to not exist"
       end
 
-      def test_database_exists_returns_true_when_databae_exists
-        config = ActiveRecord::Base.configurations["arunit"]
-        assert SQLite3Adapter.database_exists?(config),
-          "expected #{config[:database]} to exist"
+      def test_database_exists_returns_true_when_database_exists
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        assert SQLite3Adapter.database_exists?(db_config.configuration_hash),
+          "expected #{db_config.database} to exist"
       end
 
       unless in_memory_db?
@@ -324,6 +324,14 @@ module ActiveRecord
         end
       end
 
+      def test_add_column_with_not_null
+        with_example_table "id integer PRIMARY KEY AUTOINCREMENT, number integer not null" do
+          assert_nothing_raised { @conn.add_column :ex, :name, :string, null: false }
+          column = @conn.columns("ex").find { |x| x.name == "name" }
+          assert_not column.null, "column should not be null"
+        end
+      end
+
       def test_indexes_logs
         with_example_table do
           assert_logged [["PRAGMA index_list(\"ex\")", "SCHEMA", []]] do
@@ -537,7 +545,9 @@ module ActiveRecord
       end
 
       def test_statement_closed
-        db = ::SQLite3::Database.new(ActiveRecord::Base.configurations["arunit"][:database])
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        db = ::SQLite3::Database.new(db_config.database)
+
         statement = ::SQLite3::Statement.new(db,
                                            "CREATE TABLE statement_test (number integer not null)")
         statement.stub(:step, -> { raise ::SQLite3::BusyException.new("busy") }) do

@@ -40,9 +40,6 @@ module ActiveModel
     end
 
     def []=(key, value)
-      if frozen?
-        raise RuntimeError, "Can't modify frozen hash"
-      end
       delegate_hash[key] = value
     end
 

@@ -154,7 +154,8 @@ if current_adapter?(:Mysql2Adapter)
 
     def using_strict(strict)
       connection = ActiveRecord::Base.remove_connection
-      ActiveRecord::Base.establish_connection connection.merge(strict: strict)
+      conn_hash = connection.configuration_hash
+      ActiveRecord::Base.establish_connection conn_hash.merge(strict: strict)
       yield
     ensure
       ActiveRecord::Base.remove_connection

@@ -33,7 +33,7 @@ gem "rubocop-performance", require: false
 gem "rubocop-rails", require: false
 
 group :doc do
-  gem "sdoc", "~> 1.0"
+  gem "sdoc", "~> 1.1"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
   gem "w3c_validators"
   gem "kindlerb", "~> 1.2.0"
@@ -44,6 +44,7 @@ gem "dalli"
 gem "listen", "~> 3.2", require: false
 gem "libxml-ruby", platforms: :ruby
 gem "connection_pool", require: false
+gem "rexml", require: false
 
 # for railties app_generator_test
 gem "bootsnap", ">= 1.4.4", require: false

@@ -7,7 +7,7 @@ class Rails::Command::DevTest < ActiveSupport::TestCase
   setup :build_app
   teardown :teardown_app
 
-  test "`rails dev:cache` creates both caching and restart file when restart file doesn't exist and dev caching is currently off" do
+  test "`bin/rails dev:cache` creates both caching and restart file when restart file doesn't exist and dev caching is currently off" do
     Dir.chdir(app_path) do
       assert_not File.exist?("tmp/caching-dev.txt")
       assert_not File.exist?("tmp/restart.txt")
@@ -21,7 +21,7 @@ class Rails::Command::DevTest < ActiveSupport::TestCase
     end
   end
 
-  test "`rails dev:cache` creates caching file and touches restart file when dev caching is currently off" do
+  test "`bin/rails dev:cache` creates caching file and touches restart file when dev caching is currently off" do
     Dir.chdir(app_path) do
       app_file("tmp/restart.txt", "")
 
@@ -39,7 +39,7 @@ class Rails::Command::DevTest < ActiveSupport::TestCase
     end
   end
 
-  test "`rails dev:cache` removes caching file and touches restart file when dev caching is currently on" do
+  test "`bin/rails dev:cache` removes caching file and touches restart file when dev caching is currently on" do
     Dir.chdir(app_path) do
       app_file("tmp/caching-dev.txt", "")
       app_file("tmp/restart.txt", "")

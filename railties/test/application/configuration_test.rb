@@ -2441,7 +2441,7 @@ module ApplicationTests
       RUBY
 
       output = rails("routes", "-g", "active_storage")
-      assert_match <<~MESSAGE, output
+      assert_equal <<~MESSAGE, output
                            Prefix Verb URI Pattern                                                               Controller#Action
                rails_service_blob GET  /files/blobs/:signed_id/*filename(.:format)                               active_storage/blobs#show
         rails_blob_representation GET  /files/representations/:signed_blob_id/:variation_key/*filename(.:format) active_storage/representations#show

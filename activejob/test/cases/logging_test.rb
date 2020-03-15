@@ -150,6 +150,35 @@ class LoggingTest < ActiveSupport::TestCase
     assert_match(/Error performing AbortBeforeEnqueueJob.* a before_perform callback halted/, @logger.messages)
   end
 
+  def test_perform_job_doesnt_log_error_when_job_returns_falsy_value
+    job = Class.new(ActiveJob::Base) do
+      def perform
+        nil
+      end
+    end
+
+    subscribed { job.perform_now }
+    assert_no_match(/Error performing AbortBeforeEnqueueJob.* a before_perform callback halted/, @logger.messages)
+  end
+
+  def test_perform_job_doesnt_log_error_when_job_is_performed_multiple_times_and_fail_the_first_time
+    job = Class.new(ActiveJob::Base) do
+      before_perform do
+        throw(:abort) if arguments[0].pop == :abort
+      end
+
+      def perform(_)
+      end
+    end.new([:dont_abort, :abort])
+
+    subscribed do
+      job.perform_now
+      job.perform_now
+    end
+
+    assert_equal(1, @logger.messages.scan(/a before_perform callback halted the job execution/).size)
+  end
+
   def test_perform_disabled_job_logging
     perform_enqueued_jobs do
       DisableLogJob.perform_later "Dummy"

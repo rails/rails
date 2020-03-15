@@ -130,19 +130,17 @@ module ActiveRecord
       def schema_migration # :nodoc:
         @schema_migration ||= begin
                                 conn = self
-                                spec_name = conn.pool.db_config.spec_name
-                                name = "#{spec_name}::SchemaMigration"
+                                spec_name = conn.pool.pool_config.connection_specification_name
+
+                                return ActiveRecord::SchemaMigration if spec_name == "ActiveRecord::Base"
+
+                                schema_migration_name = "#{spec_name}::SchemaMigration"
 
                                 Class.new(ActiveRecord::SchemaMigration) do
-                                  define_singleton_method(:name) { name }
-                                  define_singleton_method(:to_s) { name }
+                                  define_singleton_method(:name) { schema_migration_name }
+                                  define_singleton_method(:to_s) { schema_migration_name }
 
-                                  connection_handler.connection_pool_names.each do |pool_name|
-                                    if conn.pool == connection_handler.retrieve_connection_pool(pool_name)
-                                      self.connection_specification_name = pool_name
-                                      break
-                                    end
-                                  end
+                                  self.connection_specification_name = spec_name
                                 end
                               end
       end
@@ -280,6 +278,10 @@ module ActiveRecord
       # sequence before the insert statement? If true, next_sequence_value
       # is called before each insert to set the record's primary key.
       def prefetch_primary_key?(table_name = nil)
+        false
+      end
+
+      def supports_partitioned_indexes?
         false
       end
 
@@ -735,6 +737,10 @@ module ActiveRecord
         end
 
         def build_statement_pool
+        end
+
+        def build_result(columns, rows, column_types = {})
+          ActiveRecord::Result.new(columns, rows, column_types)
         end
     end
   end

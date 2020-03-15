@@ -62,8 +62,6 @@ module I18n
       reloader = app.config.file_watcher.new(I18n.load_path.dup, directories) do
         I18n.load_path.keep_if { |p| File.exist?(p) }
         I18n.load_path |= reloadable_paths.flat_map(&:existent)
-
-        I18n.reload!
       end
 
       app.reloaders << reloader

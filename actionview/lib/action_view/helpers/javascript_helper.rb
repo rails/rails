@@ -49,10 +49,10 @@ module ActionView
       # +html_options+ may be a hash of attributes for the <tt>\<script></tt>
       # tag.
       #
-      #   javascript_tag "alert('All is good')", defer: 'defer'
+      #   javascript_tag "alert('All is good')", type: 'application/javascript'
       #
       # Returns:
-      #   <script defer="defer">
+      #   <script type="application/javascript">
       #   //<![CDATA[
       #   alert('All is good')
       #   //]]>
@@ -61,7 +61,7 @@ module ActionView
       # Instead of passing the content as an argument, you can also use a block
       # in which case, you pass your +html_options+ as the first parameter.
       #
-      #   <%= javascript_tag defer: 'defer' do -%>
+      #   <%= javascript_tag type: 'application/javascript' do -%>
       #     alert('All is good')
       #   <% end -%>
       #

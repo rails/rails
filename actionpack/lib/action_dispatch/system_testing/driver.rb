@@ -41,7 +41,7 @@ module ActionDispatch
         end
 
         def register_selenium(app)
-          Capybara::Selenium::Driver.new(app, { browser: @browser.type }.merge(browser_options)).tap do |driver|
+          Capybara::Selenium::Driver.new(app, **{ browser: @browser.type }.merge(browser_options)).tap do |driver|
             driver.browser.manage.window.size = Selenium::WebDriver::Dimension.new(*@screen_size)
           end
         end

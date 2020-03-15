@@ -101,6 +101,19 @@ module ActiveJob
       #     end
       #   end
       #
+      # You can access the return value of the job only if the execution wasn't halted.
+      #
+      #   class VideoProcessJob < ActiveJob::Base
+      #     around_perform do |job, block|
+      #       value = block.call
+      #       puts value # => "Hello World!"
+      #     end
+      #
+      #     def perform
+      #       "Hello World!"
+      #     end
+      #   end
+      #
       def around_perform(*filters, &blk)
         set_callback(:perform, :around, *filters, &blk)
       end
@@ -166,7 +179,10 @@ module ActiveJob
     end
 
     private
-      def warn_against_after_callbacks_execution_deprecation(callbacks) # :nodoc:
+      def halted_callback_hook(_filter, name) # :nodoc:
+        return super unless %i(enqueue perform).include?(name.to_sym)
+        callbacks = public_send("_#{name}_callbacks")
+
         if !self.class.skip_after_callbacks_if_terminated && callbacks.any? { |c| c.kind == :after }
           ActiveSupport::Deprecation.warn(<<~EOM)
             In Rails 6.2, `after_enqueue`/`after_perform` callbacks no longer run if `before_enqueue`/`before_perform` respectively halts with `throw :abort`.
@@ -174,6 +190,8 @@ module ActiveJob
             in the new 6.1 framework defaults initializer.
           EOM
         end
+
+        super
       end
   end
 end

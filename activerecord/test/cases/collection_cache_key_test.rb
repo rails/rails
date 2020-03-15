@@ -113,6 +113,13 @@ module ActiveRecord
       assert_no_queries { developers.cache_key }
     end
 
+    test "it doesn't trigger any query if collection_cache_versioning is enabled" do
+      with_collection_cache_versioning do
+        developers = Developer.where(name: "David")
+        assert_no_queries { developers.cache_key }
+      end
+    end
+
     test "relation cache_key changes when the sql query changes" do
       developers = Developer.where(name: "David")
       other_relation = Developer.where(name: "David").where("1 = 1")
@@ -195,6 +202,16 @@ module ActiveRecord
 
         assert_equal developers.count.to_s, $1
         assert_equal last_developer_timestamp.to_s(ActiveRecord::Base.cache_timestamp_format), $2
+      end
+    end
+
+    test "cache_key_with_version contains key and version regardless of collection_cache_versioning setting" do
+      key_with_version_1 = Developer.all.cache_key_with_version
+      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, key_with_version_1)
+
+      with_collection_cache_versioning do
+        key_with_version_2 = Developer.all.cache_key_with_version
+        assert_equal(key_with_version_1, key_with_version_2)
       end
     end
 
