@@ -21,14 +21,6 @@ Rails.application.routes.draw do
     route_for(:rails_blob_representation, signed_blob_id, variation_key, filename, options)
   end
 
-  direct :rails_representation_proxy do |representation, options|
-    signed_blob_id = representation.blob.signed_id
-    variation_key  = representation.variation.key
-    filename       = representation.blob.filename
-
-    route_for(:rails_blob_representation_proxy, signed_blob_id, variation_key, filename, options)
-  end
-
   resolve("ActiveStorage::Variant") { |variant, options| route_for(:rails_representation, variant, options) }
   resolve("ActiveStorage::VariantWithRecord") { |variant, options| route_for(:rails_representation, variant, options) }
   resolve("ActiveStorage::Preview") { |preview, options| route_for(:rails_representation, preview, options) }
@@ -37,10 +29,28 @@ Rails.application.routes.draw do
     route_for(:rails_service_blob, blob.signed_id, blob.filename, options)
   end
 
-  direct :rails_blob_proxy do |blob, options|
-    route_for(:rails_service_blob_proxy, blob.signed_id, blob.filename, options)
-  end
-
   resolve("ActiveStorage::Blob")       { |blob, options| route_for(:rails_blob, blob, options) }
   resolve("ActiveStorage::Attachment") { |attachment, options| route_for(:rails_blob, attachment.blob, options) }
+
+  direct :rails_storage do |model, options|
+    if model.respond_to?(:signed_id)
+      route_for(
+        options[:deliver_by] == :proxy ? :rails_service_blob_proxy : :rails_service_blob,
+        model.signed_id,
+        model.filename,
+        options
+      )
+    else
+      signed_blob_id = model.blob.signed_id
+      variation_key  = model.variation.key
+      filename       = model.blob.filename
+
+      route_for(
+        options[:deliver_by] == :proxy ? :rails_blob_representation_proxy : :rails_blob_representation,
+        signed_blob_id, variation_key,
+        filename,
+        options
+      )
+    end
+  end
 end if ActiveStorage.draw_routes
