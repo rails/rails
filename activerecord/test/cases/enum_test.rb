@@ -59,6 +59,7 @@ class EnumTest < ActiveRecord::TestCase
     assert_not_equal @book, Book.where(status: [written]).first
     assert_not_equal @book, Book.where("status <> ?", published).first
     assert_equal @book, Book.where("status <> ?", written).first
+    assert_empty Book.where(status: nil)
   end
 
   test "find via where with symbols" do
@@ -69,6 +70,8 @@ class EnumTest < ActiveRecord::TestCase
     assert_not_equal @book, Book.where.not(status: :published).first
     assert_equal @book, Book.where.not(status: :written).first
     assert_equal books(:ddd), Book.where(read_status: :forgotten).first
+    exception = assert_raises(ArgumentError) { Book.where(status: :not_defined).first }
+    assert_match(/'not_defined' is not a valid status/, exception.message)
   end
 
   test "find via where with strings" do
@@ -79,6 +82,8 @@ class EnumTest < ActiveRecord::TestCase
     assert_not_equal @book, Book.where.not(status: "published").first
     assert_equal @book, Book.where.not(status: "written").first
     assert_equal books(:ddd), Book.where(read_status: "forgotten").first
+    exception = assert_raises(ArgumentError) { Book.where(status: "not_defined").first }
+    assert_match(/'not_defined' is not a valid status/, exception.message)
   end
 
   test "build from scope" do

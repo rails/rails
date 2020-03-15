@@ -1,3 +1,16 @@
+* Raise error when non-existent enum used in query
+  
+  This change will raise an error when a non-existent enum is passed to a query. Previously
+  with MySQL this would return an unrelated record. Fixes #38687.
+    ```ruby
+    class User < ActiveRecord::Base
+      enum status: { active: 0, non_active: 1 }
+    end
+    User.where(status: :non_existing_status)
+    => ArgumentError ('non_existing_status' is not a valid status)
+    ```
+  *Atul Kanswal *
+
 *   Dump the schema or structure of a database when calling db:migrate:name
 
     In previous versions of Rails, `rails db:migrate` would dump the schema of the database. In Rails 6, that holds true (`rails db:migrate` dumps all databases' schemas), but `rails db:migrate:name` does not share that behavior.
