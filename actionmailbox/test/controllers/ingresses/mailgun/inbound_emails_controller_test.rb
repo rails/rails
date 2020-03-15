@@ -42,7 +42,7 @@ class ActionMailbox::Ingresses::Mailgun::InboundEmailsControllerTest < ActionDis
 
     inbound_email = ActionMailbox::InboundEmail.last
     mail = Mail.from_source(inbound_email.raw_email.download)
-    assert_equal "replies@example.com", mail.header['X-Original-To'].decoded
+    assert_equal "replies@example.com", mail.header["X-Original-To"].decoded
   end
 
   test "rejecting a delayed inbound email from Mailgun" do

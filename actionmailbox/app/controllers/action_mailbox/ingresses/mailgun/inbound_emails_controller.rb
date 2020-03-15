@@ -52,7 +52,7 @@ module ActionMailbox
     private
       def mail
         mail = Mail.from_source(params.require("body-mime"))
-        mail.header['X-Original-To'] = params.require(:recipient) unless params.require(:recipient).blank?
+        mail.header["X-Original-To"] = params.require(:recipient) unless params.require(:recipient).blank?
         mail.to_s
       end
 
