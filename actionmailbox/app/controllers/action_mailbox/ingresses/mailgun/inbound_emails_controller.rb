@@ -46,10 +46,16 @@ module ActionMailbox
     before_action :authenticate
 
     def create
-      ActionMailbox::InboundEmail.create_and_extract_message_id! params.require("body-mime")
+      ActionMailbox::InboundEmail.create_and_extract_message_id! mail
     end
 
     private
+      def mail
+        mail = Mail.from_source(params.require("body-mime"))
+        mail.header['X-Original-To'] = params.require(:recipient) unless params.require(:recipient).blank?
+        mail.to_s
+      end
+
       def authenticate
         head :unauthorized unless authenticated?
       end
