@@ -719,16 +719,31 @@ module ActiveRecord
             "ALTER COLUMN #{quote_column_name(column_name)} #{null ? 'DROP' : 'SET'} NOT NULL"
           end
 
-          def add_index_opclass(quoted_columns, **options)
-            opclasses = options_for_index_columns(options[:opclass])
-            quoted_columns.each do |name, column|
-              column << " #{opclasses[name]}" if opclasses[name].present?
+          def quoted_columns_for_index(column_names, **options)
+            if column_names.is_a?(String)
+              column_names_with_opclass = add_index_opclass_for_string(column_names, options)
+              [column_names_with_opclass]
+            else
+              super
             end
           end
 
           def add_options_for_index_columns(quoted_columns, **options)
             quoted_columns = add_index_opclass(quoted_columns, **options)
             super
+          end
+
+          def add_index_opclass_for_string(column_names, **options)
+            opclass = options[:opclass]
+            raise ArgumentError, "Multiple opclasses for expression or jsonb field indices is not supported" if opclass.is_a?(Hash)
+            opclass.present? ? "#{column_names} #{opclass}" : column_names
+          end
+
+          def add_index_opclass(quoted_columns, **options)
+            opclasses = options_for_index_columns(options[:opclass])
+            quoted_columns.each do |name, column|
+              column << " #{opclasses[name]}" if opclasses[name].present?
+            end
           end
 
           def data_source_sql(name = nil, type: nil)

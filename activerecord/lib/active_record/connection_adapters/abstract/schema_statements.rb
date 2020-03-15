@@ -1284,6 +1284,8 @@ module ActiveRecord
           quoted_columns
         end
 
+        # Overridden by the PostgreSQL adapter for supporting operator classes
+        # in expressions and jsonb fields
         def quoted_columns_for_index(column_names, **options)
           return [column_names] if column_names.is_a?(String)
 

@@ -61,11 +61,21 @@ class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
     expected = %(CREATE  INDEX  "index_people_on_last_name" ON "people" USING gist ("last_name" bpchar_pattern_ops))
     assert_equal expected, add_index(:people, :last_name, using: :gist, opclass: { last_name: :bpchar_pattern_ops })
 
+    expected = %(CREATE  INDEX  "index_people_on_people_jsonb_name" ON "people" USING gist ((people_jsonb->'name') jsonb_path_ops))
+    assert_equal expected, add_index(:people, "(people_jsonb->'name')", using: :gist, opclass: :jsonb_path_ops)
+
+    expected = %(CREATE  INDEX  "index_people_on_lower_last_name" ON "people"  (lower(last_name) bpchar_pattern_ops))
+    assert_equal expected, add_index(:people, "lower(last_name)", opclass: :bpchar_pattern_ops)
+
     expected = %(CREATE  INDEX  "index_people_on_last_name_and_first_name" ON "people"  ("last_name" DESC NULLS LAST, "first_name" ASC))
     assert_equal expected, add_index(:people, [:last_name, :first_name], order: { last_name: "DESC NULLS LAST", first_name: :asc })
 
     expected = %(CREATE  INDEX  "index_people_on_last_name" ON "people"  ("last_name" NULLS FIRST))
     assert_equal expected, add_index(:people, :last_name, order: "NULLS FIRST")
+
+    assert_raise ArgumentError do
+      assert_equal expected, add_index(:people, "lower(last_name)", opclass: { "lower(last_name)" => :bpchar_pattern_ops })
+    end
 
     assert_raise ArgumentError do
       add_index(:people, :last_name, algorithm: :copy)
