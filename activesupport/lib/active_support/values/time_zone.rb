@@ -302,11 +302,7 @@ module ActiveSupport
 
     # Returns the offset of this time zone from UTC in seconds.
     def utc_offset
-      @utc_offset ||
-        tzinfo&.current_period&.yield_self do |period|
-          ActiveSupport.use_tzinfo2_format ?
-            period.base_utc_offset : period.observed_utc_offset
-        end
+      @utc_offset || tzinfo&.current_period&.base_utc_offset
     end
 
     # Returns a formatted string of the offset from UTC, or an alternative

@@ -61,12 +61,7 @@ class TimeZoneTest < ActiveSupport::TestCase
 
     define_method("test_utc_offset_for_#{name}") do
       period = zone.tzinfo.current_period
-      with_tzinfo2_format false do
-        assert_equal period.observed_utc_offset, zone.utc_offset
-      end
-      with_tzinfo2_format true do
-        assert_equal period.base_utc_offset, zone.utc_offset
-      end
+      assert_equal period.base_utc_offset, zone.utc_offset
     end
   end
 
