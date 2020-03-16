@@ -221,7 +221,7 @@ GEM
     event_emitter (0.2.6)
     eventmachine (1.2.7)
     execjs (2.7.0)
-    faraday (0.17.1)
+    faraday (0.17.3)
       multipart-post (>= 1.2, < 3)
     faraday_middleware (0.14.0)
       faraday (>= 0.7.4, < 1.0)
