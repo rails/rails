@@ -1,9 +1,18 @@
+*   Used instance attributes for inspection and pretty print.
+
+    When aliasing is done and we inspect for the object, then only
+    the class level objects are used for query and inspection and
+    aliased columns skips from the representation. Marked changes in
+    inspection and pretty print to include this. Fixes #38727
+
+    *Yash Ladha*
+
 *   Fix insert_all with enum values
 
     Fixes #38716.
 
     *Joel Blum*
-    
+
 *   Add support for `db:rollback:name` for multiple database applications.
 
     Multiple database applications will now raise if `db:rollback` is call and recommend using the `db:rollback:[NAME]` to rollback migrations.

@@ -18,7 +18,12 @@ class CoreTest < ActiveRecord::TestCase
 
   def test_inspect_instance
     topic = topics(:first)
-    assert_equal %(#<Topic id: 1, title: "The First Topic", author_name: "David", author_email_address: "david@loudthinking.com", written_on: "#{topic.written_on.to_s(:db)}", bonus_time: "#{topic.bonus_time.to_s(:db)}", last_read: "#{topic.last_read.to_s(:db)}", content: "Have a nice day", important: nil, approved: false, replies_count: 1, unique_replies_count: 0, parent_id: nil, parent_title: nil, type: nil, group: nil, created_at: "#{topic.created_at.to_s(:db)}", updated_at: "#{topic.updated_at.to_s(:db)}">), topic.inspect
+    assert_equal %(#<Topic written_on: "#{topic.written_on.to_s(:db)}", bonus_time: "#{topic.bonus_time.to_s(:db)}", last_read: "#{topic.last_read.to_s(:db)}", created_at: "#{topic.created_at.to_s(:db)}", updated_at: "#{topic.updated_at.to_s(:db)}", id: 1, title: "The First Topic", author_name: "David", author_email_address: "david@loudthinking.com", content: "Have a nice day", important: nil, approved: false, replies_count: 1, unique_replies_count: 0, parent_id: nil, parent_title: nil, type: nil, group: nil>), topic.inspect
+  end
+
+  def test_inspect_aliased_column_names
+    topic = Topic.select("author_name AS name").take
+    assert_equal %(#<Topic name: "David", id: nil>), topic.inspect
   end
 
   def test_inspect_new_instance
@@ -66,6 +71,16 @@ class CoreTest < ActiveRecord::TestCase
     PRETTY
     assert actual.start_with?(expected.split("XXXXXX").first)
     assert actual.end_with?(expected.split("XXXXXX").last)
+  end
+
+  def test_pretty_print_aliased_column
+    topic = Topic.select("author_name AS name").take
+    actual = +""
+    PP.pp(topic, StringIO.new(actual))
+    expected = <<~PRETTY
+      #<Topic:0x\\w+ name: "David", id: nil>
+    PRETTY
+    assert_match(/\A#{expected}\z/, actual)
   end
 
   def test_pretty_print_persisted

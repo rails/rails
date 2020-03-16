@@ -523,7 +523,7 @@ module ActiveRecord
       # We check defined?(@attributes) not to issue warnings if the object is
       # allocated but not initialized.
       inspection = if defined?(@attributes) && @attributes
-        self.class.attribute_names.collect do |name|
+        self.attribute_names.collect do |name|
           if has_attribute?(name)
             attr = _read_attribute(name)
             value = if attr.nil?
@@ -548,7 +548,7 @@ module ActiveRecord
       return super if custom_inspect_method_defined?
       pp.object_address_group(self) do
         if defined?(@attributes) && @attributes
-          attr_names = self.class.attribute_names.select { |name| has_attribute?(name) }
+          attr_names = self.attribute_names.select { |name| has_attribute?(name) }
           pp.seplist(attr_names, proc { pp.text "," }) do |attr_name|
             pp.breakable " "
             pp.group(1) do
