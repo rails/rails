@@ -103,7 +103,7 @@ module ActiveRecord
               fmod  = result.fmod i
               types[fname] = get_oid_type(ftype, fmod, fname)
             end
-            build_result(fields, result.values, types)
+            build_result(columns: fields, rows: result.values, column_types: types)
           end
         end
 
