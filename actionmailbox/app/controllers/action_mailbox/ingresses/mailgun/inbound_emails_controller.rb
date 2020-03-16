@@ -51,9 +51,9 @@ module ActionMailbox
 
     private
       def mail
-        mail = Mail.from_source(params.require("body-mime"))
-        mail.header["X-Original-To"] = params.require(:recipient) unless params.require(:recipient).blank?
-        mail.to_s
+        params.require("body-mime").tap do |raw_email|
+          raw_email.prepend("X-Original-To: ", params.require(:recipient), "\n") if params.key?(:recipient)
+        end
       end
 
       def authenticate
