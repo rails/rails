@@ -641,6 +641,7 @@ module ActiveJob
 
       def flush_enqueued_jobs(only: nil, except: nil, queue: nil, at: nil)
         enqueued_jobs_with(only: only, except: except, queue: queue, at: at) do |payload|
+          queue_adapter.enqueued_jobs.delete(payload)
           queue_adapter.performed_jobs << payload
           instantiate_job(payload).perform_now
         end

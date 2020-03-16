@@ -927,7 +927,24 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
 
     assert_equal(1, performed_jobs.size)
-    assert_equal(2, enqueued_jobs.size)
+    assert_equal(1, enqueued_jobs.size)
+  end
+
+  def test_perform_enqueued_jobs_without_block_removes_from_enqueued_jobs
+    HelloJob.perform_later("rafael")
+    assert_equal(0, performed_jobs.size)
+    assert_equal(1, enqueued_jobs.size)
+    perform_enqueued_jobs
+    assert_equal(1, performed_jobs.size)
+    assert_equal(0, enqueued_jobs.size)
+  end
+
+  def test_perform_enqueued_jobs_without_block_only_performs_once
+    JobBuffer.clear
+    RescueJob.perform_later("no exception")
+    perform_enqueued_jobs
+    perform_enqueued_jobs
+    assert_equal(1, JobBuffer.values.size)
   end
 
   def test_assert_performed_jobs
@@ -1881,11 +1898,11 @@ class PerformedJobsTest < ActiveJob::TestCase
     perform_enqueued_jobs
     assert_performed_with(job: HelloJob)
 
-    perform_enqueued_jobs
     HelloJob.perform_later
+    perform_enqueued_jobs
     assert_performed_with(job: HelloJob)
 
-    assert_equal 2, queue_adapter.enqueued_jobs.count
+    assert_equal 0, queue_adapter.enqueued_jobs.count
     assert_equal 2, queue_adapter.performed_jobs.count
   end
 

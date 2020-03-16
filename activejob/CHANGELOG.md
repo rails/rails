@@ -1,3 +1,16 @@
+*   `ActiveJob::TestCase#perform_enqueued_jobs` without a block removes performed jobs from the queue.
+
+    That way the helper can be called multiple times and not perform a job invocation multiple times.
+
+    ```ruby
+    def test_jobs
+      HelloJob.perform_later("rafael")
+      perform_enqueued_jobs
+      HelloJob.perform_later("david")
+      perform_enqueued_jobs # only runs with "david"
+    end
+    ```
+
 *   `ActiveJob::TestCase#perform_enqueued_jobs` will no longer perform retries:
 
     When calling `perform_enqueued_jobs` without a block, the adapter will
