@@ -1872,6 +1872,7 @@ class PerformedJobsTest < ActiveJob::TestCase
       HelloJob.perform_later
     end
 
+    assert_equal 0, queue_adapter.enqueued_jobs.count
     assert_equal 2, queue_adapter.performed_jobs.count
   end
 
@@ -1884,6 +1885,7 @@ class PerformedJobsTest < ActiveJob::TestCase
     HelloJob.perform_later
     assert_performed_with(job: HelloJob)
 
+    assert_equal 2, queue_adapter.enqueued_jobs.count
     assert_equal 2, queue_adapter.performed_jobs.count
   end
 
