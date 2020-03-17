@@ -924,6 +924,30 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal cool_first.color, Minivan.pick(:color)
   end
 
+  def test_pick_loaded_relation
+    companies = Company.order(:id).limit(3).load
+
+    assert_no_queries do
+      assert_equal "37signals", companies.pick(:name)
+    end
+  end
+
+  def test_pick_loaded_relation_multiple_columns
+    companies = Company.order(:id).limit(3).load
+
+    assert_no_queries do
+      assert_equal [1, "37signals"], companies.pick(:id, :name)
+    end
+  end
+
+  def test_pick_loaded_relation_sql_fragment
+    companies = Company.order(:name).limit(3).load
+
+    assert_queries 1 do
+      assert_equal "37signals", companies.pick(Arel.sql("DISTINCT name"))
+    end
+  end
+
   def test_grouped_calculation_with_polymorphic_relation
     part = ShipPart.create!(name: "has trinket")
     part.trinkets.create!
