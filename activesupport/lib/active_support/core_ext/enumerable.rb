@@ -142,7 +142,7 @@ module Enumerable
     excluding(*elements)
   end
 
-  # Convert an enumerable to an array based on the given key.
+  # Extract the given key from each element in the enumerable.
   #
   #   [{ name: "David" }, { name: "Rafael" }, { name: "Aaron" }].pluck(:name)
   #   # => ["David", "Rafael", "Aaron"]
@@ -154,6 +154,23 @@ module Enumerable
       map { |element| keys.map { |key| element[key] } }
     else
       map { |element| element[keys.first] }
+    end
+  end
+
+  # Extract the given key from the first element in the enumerable.
+  #
+  #   [{ name: "David" }, { name: "Rafael" }, { name: "Aaron" }].pick(:name)
+  #   # => "David"
+  #
+  #   [{ id: 1, name: "David" }, { id: 2, name: "Rafael" }].pick(:id, :name)
+  #   # => [1, "David"]
+  def pick(*keys)
+    return if none?
+
+    if keys.many?
+      keys.map { |key| first[key] }
+    else
+      first[keys.first]
     end
   end
 
