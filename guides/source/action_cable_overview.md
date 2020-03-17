@@ -500,7 +500,7 @@ consumer.subscriptions.create("AppearanceChannel", {
   },
 
   update() {
-    this.documentIsActive ? this.appear() : this.away()
+    this.documentIsActive() ? this.appear() : this.away()
   },
 
   appear() {
@@ -527,7 +527,7 @@ consumer.subscriptions.create("AppearanceChannel", {
     document.removeEventListener("visibilitychange", this.update)
   },
 
-  get documentIsActive() {
+  documentIsActive() {
     return document.visibilityState == "visible" && document.hasFocus()
   },
 
