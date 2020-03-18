@@ -1,3 +1,15 @@
+*   Add predicate methods for previous and next day checks:
+
+    This adds the predicate helpers that complements `today?`
+
+    Following methods are added
+
+    * `tomorrow?` / `next_day?`  -  Checks if the date/time is of next day (tomorrow)
+    * `yesterday?` /  `prev_day?` -  Checks if the date/time is of previous day (yesterday)
+
+
+    *Jatin Dhankhar*
+
 *   [Breaking change] `ActiveSupport::Callbacks#halted_callback_hook` now receive a 2nd argument:
 
     `ActiveSupport::Callbacks#halted_callback_hook` now receive the name of the callback
