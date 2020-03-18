@@ -9,7 +9,7 @@ module Rails
     def initialize(generator=nil)
       # if generator.options[:master]
       # else
-      if generator&.options[:edge]
+      if generator && generator&.options[:edge]
         @generator = generator
         @options   = generator.options
       else
