@@ -7,13 +7,15 @@ module Rails
     attr_reader :options
 
     def initialize(generator=nil)
-      puts '== Generating new rails app based off of rails/rails master branch =='
-      MasterGemfileGenerator.new
       # if generator.options[:master]
       # else
-      #   @generator = generator
-      #   @options   = generator.options
-      # end
+      if generator.options[:edge]
+        @generator = generator
+        @options   = generator.options
+      else
+        puts '== Generating new rails app based off of rails/rails master branch =='
+        MasterGemfileGenerator.new
+      end
     end
 
     private
