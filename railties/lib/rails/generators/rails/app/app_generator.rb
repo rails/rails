@@ -9,7 +9,7 @@ module Rails
     def initialize(generator)
       if generator.options[:master]
         puts '== Generating new rails app based off of rails/rails master branch =='
-        ::GemfileGenerator.new
+        MasterGemfileGenerator.new
       else
         @generator = generator
         @options   = generator.options
@@ -17,20 +17,6 @@ module Rails
     end
 
     private
-      module ::Rails
-        module Generators
-          class GemfileGenerator
-            def install_shell_gemfile
-              template "GemfileMasterRailsInstaller", "Gemfile"
-              run 'bundle install'
-            end
-
-            def generate_edge_rails_app
-              run 'bundle exec rails new . --edge'
-            end
-          end
-        end
-      end
 
       %w(template copy_file directory empty_directory inside
          empty_directory_with_keep_file create_file chmod shebang).each do |method|
@@ -260,6 +246,17 @@ module Rails
 
     def config_target_version
       defined?(@config_target_version) ? @config_target_version : Rails::VERSION::STRING.to_f
+    end
+  end
+
+  class MasterGemfileGenerator < AppBuilder # :nodoc:
+    def install_shell_gemfile
+      template "GemfileMasterRailsInstaller", "Gemfile"
+      run 'bundle install'
+    end
+
+    def generate_edge_rails_app
+      run 'bundle exec rails new . --edge'
     end
   end
 
