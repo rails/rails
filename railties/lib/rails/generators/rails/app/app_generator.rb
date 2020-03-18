@@ -6,15 +6,13 @@ module Rails
   module ActionMethods # :nodoc:
     attr_reader :options
 
-    def initialize(generator=nil)
-      # if generator.options[:master]
-      # else
-      if generator && generator&.options[:edge]
-        @generator = generator
-        @options   = generator.options
-      else
+    def initialize(generator)
+      if generator.options[:master]
         puts '== Generating new rails app based off of rails/rails master branch =='
         MasterGemfileGenerator.new
+      else
+        @generator = generator
+        @options   = generator.options
       end
     end
 
