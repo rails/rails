@@ -55,7 +55,7 @@ class PostgresqlDataTypeTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_update_oid
-    new_value = 567890
+    new_value = 2147483648
     @first_oid.obj_id = new_value
     assert @first_oid.save
     assert @first_oid.reload

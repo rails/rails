@@ -89,7 +89,7 @@ screenshots.
 Rails now allows management of application secrets in a secure way,
 inspired by the [sekrets](https://github.com/ahoward/sekrets) gem.
 
-Run `bin/rails secrets:setup` to setup a new encrypted secrets file. This will
+Run `bin/rails secrets:setup` to set up a new encrypted secrets file. This will
 also generate a master key, which must be stored outside of the repository. The
 secrets themselves can then be safely checked into the revision control system,
 in an encrypted form.

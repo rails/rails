@@ -1,18 +1,25 @@
-*   Support cookie migration in distributed settings.
+*   Support rolling deploys for cookie serialization/encryption changes.
 
     In a distributed configuration like rolling update, users may observe
-    both old and new instances during deployment.
-    Users may be served by a new instance and then by an old instance.
+    both old and new instances during deployment. Users may be served by a
+    new instance and then by an old instance.
 
-    That means, when the server changed `cookies_serializer` from `:marshal`
-    to `:hybrid` or the server changed `use_authenticated_cookie_encryption`
-    from `false` to `true`, users may lose their sessions if they
-    access the server during deployment.
+    That means when the server changes `cookies_serializer` from `:marshal`
+    to `:hybrid` or the server changes `use_authenticated_cookie_encryption`
+    from `false` to `true`, users may lose their sessions if they access the
+    server during deployment.
 
-    We added fallbacks to properly downgrade the cookie format when necessary
-    during deployment.
+    We added fallbacks to downgrade the cookie format when necessary during
+    deployment, ensuring compatibility on both old and new instances.
 
     *Masaki Hara*
+
+*   `ActionDispatch::Request.remote_ip` has ip address even when all sites are trusted.
+
+    Before, if all `X-Forwarded-For` sites were trusted, the `remote_ip` would default to `127.0.0.1`.
+    Now, the furthest proxy site is used. e.g.: It now gives an ip address when using curl from the load balancer.
+
+    *Keenan Brock*
 
 *   Fix possible information leak / session hijacking vulnerability.
 
@@ -21,7 +28,7 @@
 
     CVE-2019-16782.
 
-*   Include child session assertion count in ActionDispatch::IntegrationTest
+*   Include child session assertion count in ActionDispatch::IntegrationTest.
 
     `IntegrationTest#open_session` uses `dup` to create the new session, which
     meant it had its own copy of `@assertions`. This prevented the assertions
@@ -30,7 +37,7 @@
     Child sessions now have their `attr_accessor` overridden to delegate to the
     root session.
 
-    Fixes #32142
+    Fixes #32142.
 
     *Sam Bostock*
 
@@ -151,7 +158,7 @@
 
     *Tom Fakes*
 
-*   Add `Vary: Accept` header when using `Accept` header for response
+*   Add `Vary: Accept` header when using `Accept` header for response.
 
     For some requests like `/users/1`, Rails uses requests' `Accept`
     header to determine what to return. And if we don't add `Vary`

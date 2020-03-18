@@ -1,3 +1,13 @@
+*   `ActionView::Helpers::TranslationHelper#translate` returns nil when
+    passed `default: nil` without a translation matching `I18n#translate`.
+
+    *Stefan Wrobel*
+
+*   `OptimizedFileSystemResolver` prefers template details in order of locale,
+    formats, variants, handlers.
+
+    *Iago Pimenta*
+
 *   Added `class_names` helper to create a CSS class value with conditional classes.
 
     *Joel Hawksley*, *Aaron Patterson*

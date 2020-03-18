@@ -16,8 +16,8 @@ After reading this guide, you will know:
 --------------------------------------------------------------------------------
 
 
-Introduction
-------------
+What is Active Job?
+-------------------
 
 Active Job is a framework for declaring jobs and making them run on a variety
 of queuing backends. These jobs can be everything from regularly scheduled
@@ -50,7 +50,7 @@ Active Job provides a Rails generator to create jobs. The following will create 
 job in `app/jobs` (with an attached test case under `test/jobs`):
 
 ```bash
-$ rails generate job guests_cleanup
+$ bin/rails generate job guests_cleanup
 invoke  test_unit
 create    test/jobs/guests_cleanup_job_test.rb
 create  app/jobs/guests_cleanup_job.rb
@@ -59,7 +59,7 @@ create  app/jobs/guests_cleanup_job.rb
 You can also create a job that will run on a specific queue:
 
 ```bash
-$ rails generate job guests_cleanup --queue urgent
+$ bin/rails generate job guests_cleanup --queue urgent
 ```
 
 If you don't want to use a generator, you could create your own file inside of
@@ -166,6 +166,7 @@ Here is a noncomprehensive list of documentation:
 - [Sucker Punch](https://github.com/brandonhilkert/sucker_punch#active-job)
 - [Queue Classic](https://github.com/QueueClassic/queue_classic#active-job)
 - [Delayed Job](https://github.com/collectiveidea/delayed_job#active-job)
+- [Que](https://github.com/que-rb/que#additional-rails-specific-setup)
 
 Queues
 ------

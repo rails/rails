@@ -83,10 +83,10 @@ class Person < ApplicationRecord
 end
 ```
 
-We can see how it works by looking at some `rails console` output:
+We can see how it works by looking at some `bin/rails console` output:
 
 ```ruby
-$ rails console
+$ bin/rails console
 >> p = Person.new(name: "John Doe")
 => #<Person id: nil, name: "John Doe", created_at: nil, updated_at: nil>
 >> p.new_record?
@@ -487,7 +487,7 @@ If you set `:only_integer` to `true`, then it will use the
 ```
 
 regular expression to validate the attribute's value. Otherwise, it will try to
-convert the value to a number using `Float`.
+convert the value to a number using `Float`. `Float`s are casted to `BigDecimal` using the column's precision value or 15.
 
 ```ruby
 class Player < ApplicationRecord

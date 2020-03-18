@@ -44,7 +44,7 @@ module ActiveRecord
       end
 
       name = colorize_payload_name(name, payload[:name])
-      sql  = color(sql, sql_color(sql), true)
+      sql  = color(sql, sql_color(sql), true) if colorize_logging
 
       debug "  #{name}  #{sql}#{binds}"
     end

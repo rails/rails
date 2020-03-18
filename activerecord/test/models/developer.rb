@@ -18,6 +18,7 @@ class Developer < ActiveRecord::Base
   end
 
   belongs_to :mentor
+  belongs_to :strict_loading_mentor, strict_loading: true, foreign_key: :mentor_id, class_name: "Mentor"
 
   accepts_nested_attributes_for :projects
 
@@ -45,6 +46,12 @@ class Developer < ActiveRecord::Base
         end
       end
 
+  has_and_belongs_to_many :strict_loading_projects,
+                          join_table: :developers_projects,
+                          association_foreign_key: :project_id,
+                          class_name: "Project",
+                          strict_loading: true
+
   has_and_belongs_to_many :special_projects, join_table: "developers_projects", association_foreign_key: "project_id"
   has_and_belongs_to_many :sym_special_projects,
                           join_table: :developers_projects,
@@ -52,11 +59,15 @@ class Developer < ActiveRecord::Base
                           class_name: "SpecialProject"
 
   has_many :audit_logs
+  has_many :strict_loading_audit_logs, -> { strict_loading }, class_name: "AuditLog"
+  has_many :strict_loading_opt_audit_logs, strict_loading: true, class_name: "AuditLog"
   has_many :contracts
   has_many :firms, through: :contracts, source: :firm
   has_many :comments, ->(developer) { where(body: "I'm #{developer.name}") }
   has_many :ratings, through: :comments
+
   has_one :ship, dependent: :nullify
+  has_one :strict_loading_ship, strict_loading: true, class_name: "Ship"
 
   belongs_to :firm
   has_many :contracted_projects, class_name: "Project"
@@ -70,8 +81,7 @@ class Developer < ActiveRecord::Base
     developer.audit_logs.build message: "Computer created"
   end
 
-  attr_accessor :last_name
-  define_attribute_method "last_name"
+  attribute :last_name
 
   def log=(message)
     audit_logs.build message: message
@@ -94,8 +104,7 @@ class SymbolIgnoredDeveloper < ActiveRecord::Base
   self.table_name = "developers"
   self.ignored_columns = [:first_name, :last_name]
 
-  attr_accessor :last_name
-  define_attribute_method "last_name"
+  attribute :last_name
 end
 
 class AuditLog < ActiveRecord::Base

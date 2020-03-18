@@ -15,7 +15,6 @@ module ActionCable
       # Overwrite this factory method for Redis connections if you want to use a different Redis library than the redis gem.
       # This is needed, for example, when using Makara proxies for distributed Redis.
       cattr_accessor :redis_connector, default: ->(config) do
-        config[:id] ||= "ActionCable-PID-#{$$}"
         ::Redis.new(config.except(:adapter, :channel_prefix))
       end
 
@@ -57,7 +56,7 @@ module ActionCable
         end
 
         def redis_connection
-          self.class.redis_connector.call(@server.config.cable)
+          self.class.redis_connector.call(@server.config.cable.merge(id: identifier))
         end
 
         class Listener < SubscriberMap

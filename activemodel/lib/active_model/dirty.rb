@@ -83,6 +83,7 @@ module ActiveModel
   #
   #   person.previous_changes         # => {"name" => [nil, "Bill"]}
   #   person.name_previously_changed? # => true
+  #   person.name_previously_changed?(from: nil, to: "Bill") # => true
   #   person.name_previous_change     # => [nil, "Bill"]
   #   person.name_previously_was      # => nil
   #   person.reload!
@@ -177,8 +178,8 @@ module ActiveModel
     end
 
     # Dispatch target for <tt>*_previously_changed?</tt> attribute methods.
-    def attribute_previously_changed?(attr_name) # :nodoc:
-      mutations_before_last_save.changed?(attr_name.to_s)
+    def attribute_previously_changed?(attr_name, **options) # :nodoc:
+      mutations_before_last_save.changed?(attr_name.to_s, **options)
     end
 
     # Dispatch target for <tt>*_previously_was</tt> attribute methods.

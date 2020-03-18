@@ -33,9 +33,13 @@ module ActiveRecord
       end
 
       def test_unknown_commands_delegate
-        recorder = Struct.new(:foo)
-        recorder = CommandRecorder.new(recorder.new("bar"))
-        assert_equal "bar", recorder.foo
+        recorder = Class.new do
+          def foo(kw:)
+            kw
+          end
+        end
+        recorder = CommandRecorder.new(recorder.new)
+        assert_equal "bar", recorder.foo(kw: "bar")
       end
 
       def test_inverse_of_raise_exception_on_unknown_commands
@@ -94,15 +98,16 @@ module ActiveRecord
             t.rename :kind, :cultivar
           end
         end
-        if RUBY_VERSION < "2.7"
+
+        if RUBY_VERSION >= "2.8"
           assert_equal [
             [:rename_column, [:fruits, :cultivar, :kind]],
-            [:remove_column, [:fruits, :name, :string, {}], nil],
+            [:remove_column, [:fruits, :name, :string], nil],
           ], @recorder.commands
         else
           assert_equal [
             [:rename_column, [:fruits, :cultivar, :kind]],
-            [:remove_column, [:fruits, :name, :string], nil],
+            [:remove_column, [:fruits, :name, :string, {}], nil],
           ], @recorder.commands
         end
 
@@ -342,7 +347,7 @@ module ActiveRecord
 
       def test_invert_add_foreign_key
         enable = @recorder.inverse_of :add_foreign_key, [:dogs, :people]
-        assert_equal [:remove_foreign_key, [:dogs, :people]], enable
+        assert_equal [:remove_foreign_key, [:dogs, :people], nil], enable
       end
 
       def test_invert_remove_foreign_key
@@ -352,7 +357,7 @@ module ActiveRecord
 
       def test_invert_add_foreign_key_with_column
         enable = @recorder.inverse_of :add_foreign_key, [:dogs, :people, column: "owner_id"]
-        assert_equal [:remove_foreign_key, [:dogs, column: "owner_id"]], enable
+        assert_equal [:remove_foreign_key, [:dogs, :people, column: "owner_id"], nil], enable
       end
 
       def test_invert_remove_foreign_key_with_column
@@ -362,7 +367,7 @@ module ActiveRecord
 
       def test_invert_add_foreign_key_with_column_and_name
         enable = @recorder.inverse_of :add_foreign_key, [:dogs, :people, column: "owner_id", name: "fk"]
-        assert_equal [:remove_foreign_key, [:dogs, name: "fk"]], enable
+        assert_equal [:remove_foreign_key, [:dogs, :people, column: "owner_id", name: "fk"], nil], enable
       end
 
       def test_invert_remove_foreign_key_with_column_and_name

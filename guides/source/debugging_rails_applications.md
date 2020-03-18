@@ -217,7 +217,7 @@ irb(main):001:0> Article.pamplemousse
 => #<Comment id: 2, author: "1", body: "Well, actually...", article_id: 1, created_at: "2018-10-19 00:56:10", updated_at: "2018-10-19 00:56:10">
 ```
 
-After running `ActiveRecord::Base.verbose_query_logs = true` in the `rails console` session to enable verbose query logs and running the method again, it becomes obvious what single line of code is generating all these discrete database calls:
+After running `ActiveRecord::Base.verbose_query_logs = true` in the `bin/rails console` session to enable verbose query logs and running the method again, it becomes obvious what single line of code is generating all these discrete database calls:
 
 ```
 irb(main):003:0> Article.pamplemousse
@@ -252,12 +252,13 @@ logger.tagged("BCX") { logger.tagged("Jason") { logger.info "Stuff" } } # Logs "
 ```
 
 ### Impact of Logs on Performance
+
 Logging will always have a small impact on the performance of your Rails app,
-        particularly when logging to disk. Additionally, there are a few subtleties:
+particularly when logging to disk. Additionally, there are a few subtleties:
 
 Using the `:debug` level will have a greater performance penalty than `:fatal`,
-      as a far greater number of strings are being evaluated and written to the
-      log output (e.g. disk).
+as a far greater number of strings are being evaluated and written to the
+log output (e.g. disk).
 
 Another potential pitfall is too many calls to `Logger` in your code:
 
@@ -269,6 +270,7 @@ In the above example, there will be a performance impact even if the allowed
 output level doesn't include debug. The reason is that Ruby has to evaluate
 these strings, which includes instantiating the somewhat heavy `String` object
 and interpolating the variables.
+
 Therefore, it's recommended to pass blocks to the logger methods, as these are
 only evaluated if the output level is the same as — or included in — the allowed level
 (i.e. lazy loading). The same code rewritten would be:
@@ -280,6 +282,9 @@ logger.debug {"Person attributes hash: #{@person.attributes.inspect}"}
 The contents of the block, and therefore the string interpolation, are only
 evaluated if debug is enabled. This performance savings are only really
 noticeable with large amounts of logging, but it's a good practice to employ.
+
+INFO: This section was written by [Jon Cairns at a StackOverflow answer](https://stackoverflow.com/questions/16546730/logging-in-rails-is-there-any-performance-hit/16546935#16546935)
+and it is licensed under [cc by-sa 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
 
 Debugging with the `byebug` gem
 ---------------------------------
@@ -351,7 +356,7 @@ For example:
 ```bash
 => Booting Puma
 => Rails 6.0.0 application starting in development
-=> Run `rails server --help` for more startup options
+=> Run `bin/rails server --help` for more startup options
 Puma starting in single mode...
 * Version 3.12.1 (ruby 2.5.7-p206), codename: Llamas in Pajamas
 * Min threads: 5, max threads: 5
@@ -633,7 +638,7 @@ You can also inspect for an object method this way:
 
 ```
 (byebug) var instance Article.new
-@_start_transaction_state = {}
+@_start_transaction_state = nil
 @aggregation_cache = {}
 @association_cache = {}
 @attributes = #<ActiveRecord::AttributeSet:0x007fd0682a9b18 @attributes={"id"=>#<ActiveRecord::Attribute::FromDatabase:0x007fd0682a9a00 @name="id", @value_be...
@@ -956,7 +961,7 @@ For further information on how to install Valgrind and use with Ruby, refer to
 [Valgrind and Ruby](https://blog.evanweaver.com/2008/02/05/valgrind-and-ruby/)
 by Evan Weaver.
 
-### Find a memory leak
+### Find a Memory Leak
 There is an excellent article about detecting and fixing memory leaks at Derailed, [which you can read here](https://github.com/schneems/derailed_benchmarks#is-my-app-leaking-memory).
 
 

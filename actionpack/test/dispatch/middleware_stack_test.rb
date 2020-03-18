@@ -93,6 +93,60 @@ class MiddlewareStackTest < ActiveSupport::TestCase
     assert_equal FooMiddleware, @stack[0].klass
   end
 
+  test "move moves middleware at the integer index" do
+    @stack.move(0, BarMiddleware)
+    assert_equal BarMiddleware, @stack[0].klass
+    assert_equal FooMiddleware, @stack[1].klass
+  end
+
+  test "move requires the moved middleware to be in the stack" do
+    assert_raises RuntimeError do
+      @stack.move(0, BazMiddleware)
+    end
+  end
+
+  test "move preserves the arguments of the moved middleware" do
+    @stack.use BazMiddleware, true, foo: "bar"
+    @stack.move_before(FooMiddleware, BazMiddleware)
+
+    assert_equal [true, foo: "bar"], @stack.first.args
+  end
+
+  test "move_before moves middleware before another middleware class" do
+    @stack.move_before(FooMiddleware, BarMiddleware)
+    assert_equal BarMiddleware, @stack[0].klass
+    assert_equal FooMiddleware, @stack[1].klass
+  end
+
+  test "move_after requires the moved middleware to be in the stack" do
+    assert_raises RuntimeError do
+      @stack.move_after(BarMiddleware, BazMiddleware)
+    end
+  end
+
+  test "move_after moves middleware after the integer index" do
+    @stack.insert_after(BarMiddleware, BazMiddleware)
+    @stack.move_after(0, BazMiddleware)
+    assert_equal FooMiddleware, @stack[0].klass
+    assert_equal BazMiddleware, @stack[1].klass
+    assert_equal BarMiddleware, @stack[2].klass
+  end
+
+  test "move_after moves middleware after another middleware class" do
+    @stack.insert_after(BarMiddleware, BazMiddleware)
+    @stack.move_after(BarMiddleware, FooMiddleware)
+    assert_equal BarMiddleware, @stack[0].klass
+    assert_equal FooMiddleware, @stack[1].klass
+    assert_equal BazMiddleware, @stack[2].klass
+  end
+
+  test "move_afters preserves the arguments of the moved middleware" do
+    @stack.use BazMiddleware, true, foo: "bar"
+    @stack.move_after(FooMiddleware, BazMiddleware)
+
+    assert_equal [true, foo: "bar"], @stack[1].args
+  end
+
   test "unshift adds a new middleware at the beginning of the stack" do
     @stack.unshift MiddlewareStackTest::BazMiddleware
     assert_equal BazMiddleware, @stack.first.klass

@@ -218,10 +218,10 @@ The full set of methods that can be used in this block are as follows:
 * `integration_tool` defines which integration tool to use to generate integration tests. Defaults to `:test_unit`.
 * `system_tests` defines which integration tool to use to generate system tests. Defaults to `:test_unit`.
 * `orm` defines which orm to use. Defaults to `false` and will use Active Record by default.
-* `resource_controller` defines which generator to use for generating a controller when using `rails generate resource`. Defaults to `:controller`.
+* `resource_controller` defines which generator to use for generating a controller when using `bin/rails generate resource`. Defaults to `:controller`.
 * `resource_route` defines whether a resource route definition should be generated
   or not. Defaults to `true`.
-* `scaffold_controller` different from `resource_controller`, defines which generator to use for generating a _scaffolded_ controller when using `rails generate scaffold`. Defaults to `:scaffold_controller`.
+* `scaffold_controller` different from `resource_controller`, defines which generator to use for generating a _scaffolded_ controller when using `bin/rails generate scaffold`. Defaults to `:scaffold_controller`.
 * `stylesheets` turns on the hook for stylesheets in generators. Used in Rails for when the `scaffold` generator is run, but this hook can be used in other generates as well. Defaults to `true`.
 * `stylesheet_engine` configures the stylesheet engine (for e.g. sass) to be used when generating assets. Defaults to `:css`.
 * `scaffold_stylesheet` creates `scaffold.css` when generating a scaffolded resource. Defaults to `true`.
@@ -231,6 +231,44 @@ The full set of methods that can be used in this block are as follows:
 ### Configuring Middleware
 
 Every Rails application comes with a standard set of middleware which it uses in this order in the development environment:
+
+* `ActionDispatch::HostAuthorization` prevents against DNS rebinding and other `Host` header attacks.
+   It is included in the development environment by default with the following configuration:
+
+   ```ruby
+   Rails.application.config.hosts = [
+     IPAddr.new("0.0.0.0/0"), # All IPv4 addresses.
+     IPAddr.new("::/0"),      # All IPv6 addresses.
+     "localhost"              # The localhost reserved domain.
+   ]
+   ```
+
+   In other environments `Rails.application.config.hosts` is empty and no
+   `Host` header checks will be done. If you want to guard against header
+   attacks on production, you have to manually permit the allowed hosts
+   with:
+
+   ```ruby
+   Rails.application.config.hosts << "product.com"
+   ```
+
+   The host of a request is checked against the `hosts` entries with the case
+   operator (`#===`), which lets `hosts` support entries of type `Regexp`,
+   `Proc` and `IPAddr` to name a few. Here is an example with a regexp.
+
+   ```ruby
+   # Allow requests from subdomains like `www.product.com` and
+   # `beta1.product.com`.
+   Rails.application.config.hosts << /.*\.product\.com/
+   ```
+
+   A special case is supported that allows you to permit all sub-domains:
+
+   ```ruby
+   # Allow requests from subdomains like `www.product.com` and
+   # `beta1.product.com`.
+   Rails.application.config.hosts << ".product.com"
+   ```
 
 * `ActionDispatch::SSL` forces every request to be served using HTTPS. Enabled if `config.force_ssl` is set to `true`. Options passed to this can be configured by setting `config.ssl_options`.
 * `ActionDispatch::Static` is used to serve static assets. Disabled if `config.public_file_server.enabled` is `false`. Set `config.public_file_server.index_name` if you need to serve a static directory index file that is not named `index`. For example, to serve `main.html` instead of `index.html` for directory requests, set `config.public_file_server.index_name` to `"main"`.
@@ -277,6 +315,19 @@ Middlewares can also be completely swapped out and replaced with others:
 
 ```ruby
 config.middleware.swap ActionController::Failsafe, Lifo::Failsafe
+```
+
+Middlewares can be moved from one place to another:
+
+```ruby
+config.middleware.move_before ActionDispatch::Flash, Magical::Unicorns
+```
+
+This will move the `Magical::Unicorns` middleware before
+`ActionDispatch::Flash`. You can also move it after:
+
+```ruby
+config.middleware.move_after ActionDispatch::Flash, Magical::Unicorns
 ```
 
 They can also be removed from the stack completely:
@@ -746,6 +797,10 @@ There are a few configuration options available in Active Support:
 
 * `ActiveSupport::Deprecation.behavior` alternative setter to `config.active_support.deprecation` which configures the behavior of deprecation warnings for Rails.
 
+* `ActiveSupport::Deprecation.disallowed_behavior` alternative setter to `config.active_support.disallowed_deprecation` which configures the behavior of disallowed deprecation warnings for Rails.
+
+* `ActiveSupport::Deprecation.disallowed_warnings` alternative setter to `config.active_support.disallowed_deprecation_warnings` which configures deprecation warnings that the Application considers disallowed. This allows, for example, specific deprecations to be treated as hard failures.
+
 * `ActiveSupport::Deprecation.silence` takes a block in which all deprecation warnings are silenced.
 
 * `ActiveSupport::Deprecation.silenced` sets whether or not to display deprecation warnings. The default is `false`.
@@ -845,7 +900,7 @@ You can find more detailed configuration options in the
    config.active_storage.paths[:ffprobe] = '/usr/local/bin/ffprobe'
    ```
 
-* `config.active_storage.variable_content_types` accepts an array of strings indicating the content types that Active Storage can transform through ImageMagick. The default is `%w(image/png image/gif image/jpg image/jpeg image/pjpeg image/tiff image/bmp image/vnd.adobe.photoshop image/vnd.microsoft.icon)`.
+* `config.active_storage.variable_content_types` accepts an array of strings indicating the content types that Active Storage can transform through ImageMagick. The default is `%w(image/png image/gif image/jpg image/jpeg image/pjpeg image/tiff image/bmp image/vnd.adobe.photoshop image/vnd.microsoft.icon image/webp)`.
 
 * `config.active_storage.content_types_to_serve_as_binary` accepts an array of strings indicating the content types that Active Storage will always serve as an attachment, rather than inline. The default is `%w(text/html
 text/javascript image/svg+xml application/postscript application/x-shockwave-flash text/xml application/xml application/xhtml+xml application/mathml+xml text/cache-manifest)`.
@@ -1019,10 +1074,10 @@ development:
 $ echo $DATABASE_URL
 postgresql://localhost/my_database
 
-$ rails runner 'puts ActiveRecord::Base.configurations'
+$ bin/rails runner 'puts ActiveRecord::Base.configurations'
 #<ActiveRecord::DatabaseConfigurations:0x00007fd50e209a28>
 
-$ rails runner 'puts ActiveRecord::Base.configurations.inspect'
+$ bin/rails runner 'puts ActiveRecord::Base.configurations.inspect'
 #<ActiveRecord::DatabaseConfigurations:0x00007fc8eab02880 @configurations=[
   #<ActiveRecord::DatabaseConfigurations::UrlConfig:0x00007fc8eab020b0
     @env_name="development", @spec_name="primary",
@@ -1044,10 +1099,10 @@ development:
 $ echo $DATABASE_URL
 postgresql://localhost/my_database
 
-$ rails runner 'puts ActiveRecord::Base.configurations'
+$ bin/rails runner 'puts ActiveRecord::Base.configurations'
 #<ActiveRecord::DatabaseConfigurations:0x00007fd50e209a28>
 
-$ rails runner 'puts ActiveRecord::Base.configurations.inspect'
+$ bin/rails runner 'puts ActiveRecord::Base.configurations.inspect'
 #<ActiveRecord::DatabaseConfigurations:0x00007fc8eab02880 @configurations=[
   #<ActiveRecord::DatabaseConfigurations::UrlConfig:0x00007fc8eab020b0
     @env_name="development", @spec_name="primary",
@@ -1068,10 +1123,10 @@ development:
 $ echo $DATABASE_URL
 postgresql://localhost/my_database
 
-$ rails runner 'puts ActiveRecord::Base.configurations'
+$ bin/rails runner 'puts ActiveRecord::Base.configurations'
 #<ActiveRecord::DatabaseConfigurations:0x00007fd50e209a28>
 
-$ rails runner 'puts ActiveRecord::Base.configurations.inspect'
+$ bin/rails runner 'puts ActiveRecord::Base.configurations.inspect'
 #<ActiveRecord::DatabaseConfigurations:0x00007fc8eab02880 @configurations=[
   #<ActiveRecord::DatabaseConfigurations::UrlConfig:0x00007fc8eab020b0
     @env_name="development", @spec_name="primary",
@@ -1212,7 +1267,7 @@ Imagine you have a server which mirrors the production environment but is only u
 That environment is no different than the default ones, start a server with `rails server -e staging`, a console with `rails console -e staging`, `Rails.env.staging?` works, etc.
 
 
-### Deploy to a subdirectory (relative URL root)
+### Deploy to a Subdirectory (relative URL root)
 
 By default Rails expects that your application is running at the root
 (e.g. `/`). This section explains how to run your application inside a directory.
@@ -1374,7 +1429,7 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 
 * `i18n.callbacks`: In the development environment, sets up a `to_prepare` callback which will call `I18n.reload!` if any of the locales have changed since the last request. In production mode this callback will only run on the first request.
 
-* `active_support.deprecation_behavior`: Sets up deprecation reporting for environments, defaulting to `:log` for development, `:notify` for production, and `:stderr` for test. If a value isn't set for `config.active_support.deprecation` then this initializer will prompt the user to configure this line in the current environment's `config/environments` file. Can be set to an array of values.
+* `active_support.deprecation_behavior`: Sets up deprecation reporting for environments, defaulting to `:log` for development, `:notify` for production, and `:stderr` for test. If a value isn't set for `config.active_support.deprecation` then this initializer will prompt the user to configure this line in the current environment's `config/environments` file. Can be set to an array of values. This initializer also sets up behaviors for disallowed deprecations, defaulting to `:raise` for development and test and `:log` for production. Disallowed deprecation warnings default to an empty array.
 
 * `active_support.initialize_time_zone`: Sets the default time zone for the application based on the `config.time_zone` setting, which defaults to "UTC".
 

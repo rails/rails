@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/enumerable"
+
 module ActionView
   module CollectionCaching # :nodoc:
     extend ActiveSupport::Concern
@@ -88,16 +90,15 @@ module ActionView
       # If the partial is not already cached it will also be
       # written back to the underlying cache store.
       def fetch_or_cache_partial(cached_partials, template, order_by:)
-        order_by.each_with_object({}) do |cache_key, hash|
-            hash[cache_key] =
-              if content = cached_partials[cache_key]
-                build_rendered_template(content, template)
-              else
-                yield.tap do |rendered_partial|
-                  collection_cache.write(cache_key, rendered_partial.body)
-                end
-              end
+        order_by.index_with do |cache_key|
+          if content = cached_partials[cache_key]
+            build_rendered_template(content, template)
+          else
+            yield.tap do |rendered_partial|
+              collection_cache.write(cache_key, rendered_partial.body)
+            end
           end
+        end
       end
   end
 end

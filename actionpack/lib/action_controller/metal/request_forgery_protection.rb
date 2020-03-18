@@ -381,7 +381,7 @@ module ActionController #:nodoc:
         if per_form_csrf_tokens
           correct_token = per_form_csrf_token(
             session,
-            normalize_action_path(request.fullpath),
+            request.path.chomp("/"),
             request.request_method
           )
 

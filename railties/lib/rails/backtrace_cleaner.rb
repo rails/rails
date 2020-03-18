@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/backtrace_cleaner"
+require "active_support/core_ext/string/access"
 
 module Rails
   class BacktraceCleaner < ActiveSupport::BacktraceCleaner

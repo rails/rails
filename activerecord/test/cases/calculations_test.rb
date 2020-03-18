@@ -678,6 +678,13 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [1, 2, 3, 4, 5], Topic.order(:id).pluck(:id)
   end
 
+  def test_pluck_with_empty_in
+    Topic.send(:load_schema)
+    assert_no_queries do
+      assert_equal [], Topic.where(id: []).pluck(:id)
+    end
+  end
+
   def test_pluck_without_column_names
     if current_adapter?(:OracleAdapter)
       assert_equal [[1, "Firm", 1, nil, "37signals", nil, 1, nil, nil]], Company.order(:id).limit(1).pluck
@@ -827,7 +834,7 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_pluck_with_multiple_columns_and_selection_clause
     assert_equal [[1, 50], [2, 50], [3, 50], [4, 60], [5, 55], [6, 53]],
-      Account.pluck("id, credit_limit")
+      Account.order(:id).pluck("id, credit_limit")
   end
 
   def test_pluck_with_multiple_columns_and_includes
@@ -898,14 +905,18 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_pick_one
     assert_equal "The First Topic", Topic.order(:id).pick(:heading)
-    assert_nil Topic.none.pick(:heading)
-    assert_nil Topic.where(id: 9999999999999999999).pick(:heading)
+    assert_no_queries do
+      assert_nil Topic.none.pick(:heading)
+      assert_nil Topic.where(id: 9999999999999999999).pick(:heading)
+    end
   end
 
   def test_pick_two
     assert_equal ["David", "david@loudthinking.com"], Topic.order(:id).pick(:author_name, :author_email_address)
-    assert_nil Topic.none.pick(:author_name, :author_email_address)
-    assert_nil Topic.where(id: 9999999999999999999).pick(:author_name, :author_email_address)
+    assert_no_queries do
+      assert_nil Topic.none.pick(:author_name, :author_email_address)
+      assert_nil Topic.where(id: 9999999999999999999).pick(:author_name, :author_email_address)
+    end
   end
 
   def test_pick_delegate_to_all

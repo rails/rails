@@ -68,6 +68,13 @@ class ToSentenceTest < ActiveSupport::TestCase
     assert_instance_of String, [ActiveSupport::SafeBuffer.new("one"), "two"].to_sentence
     assert_instance_of String, [ActiveSupport::SafeBuffer.new("one"), "two", "three"].to_sentence
   end
+
+  def test_returns_no_frozen_string
+    assert_not [].to_sentence.frozen?
+    assert_not ["one"].to_sentence.frozen?
+    assert_not ["one", "two"].to_sentence.frozen?
+    assert_not ["one", "two", "three"].to_sentence.frozen?
+  end
 end
 
 class ToSTest < ActiveSupport::TestCase

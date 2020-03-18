@@ -9,7 +9,7 @@ module ActionText
       source_root File.expand_path("templates", __dir__)
 
       def install_javascript_dependencies
-        rails_command "app:update:bin"
+        rails_command "app:update:bin", inline: true
 
         say "Installing JavaScript dependencies", :green
         run "yarn add #{js_dependencies.map { |name, version| "#{name}@#{version}" }.join(" ")}",
@@ -49,7 +49,7 @@ module ActionText
       end
 
       def create_migrations
-        rails_command "railties:install:migrations FROM=active_storage,action_text"
+        rails_command "railties:install:migrations FROM=active_storage,action_text", inline: true
       end
 
       hook_for :test_framework

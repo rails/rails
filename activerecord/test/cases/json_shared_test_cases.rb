@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "support/schema_dumping_helper"
+require "pp"
 
 module JSONSharedTestCases
   include SchemaDumpingHelper
@@ -247,6 +248,25 @@ module JSONSharedTestCases
     record.save!
 
     assert_equal({ "three" => "four" }, record.reload.settings.to_hash)
+  end
+
+  class JsonDataTypeWithFilter < ActiveRecord::Base
+    self.table_name = "json_data_type"
+
+    attribute :payload, :json
+
+    def self.filter_attributes
+      # Rails.application.config.filter_parameters += [:password]
+      super + [:password]
+    end
+  end
+
+  def test_pretty_print
+    x = JsonDataTypeWithFilter.create!(payload: {})
+    x.payload[11] = "foo"
+    io = StringIO.new
+    PP.pp(x, io)
+    assert io.string
   end
 
   private

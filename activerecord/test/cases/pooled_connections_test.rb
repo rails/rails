@@ -9,7 +9,7 @@ class PooledConnectionsTest < ActiveRecord::TestCase
 
   def setup
     @per_test_teardown = []
-    @connection = ActiveRecord::Base.remove_connection
+    @connection = ActiveRecord::Base.remove_connection.configuration_hash
   end
 
   teardown do

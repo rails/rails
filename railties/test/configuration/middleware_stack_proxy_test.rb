@@ -18,6 +18,11 @@ module Rails
         assert_playback :insert_before, :foo
       end
 
+      def test_playback_insert
+        @stack.insert :foo
+        assert_playback :insert_before, :foo
+      end
+
       def test_playback_insert_after
         @stack.insert_after :foo
         assert_playback :insert_after, :foo
@@ -36,6 +41,21 @@ module Rails
       def test_playback_delete
         @stack.delete :foo
         assert_playback :delete, :foo
+      end
+
+      def test_playback_move_before
+        @stack.move_before :foo
+        assert_playback :move_before, :foo
+      end
+
+      def test_playback_move
+        @stack.move :foo
+        assert_playback :move_before, :foo
+      end
+
+      def test_playback_move_after
+        @stack.move_after :foo
+        assert_playback :move_after, :foo
       end
 
       def test_order

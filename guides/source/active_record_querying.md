@@ -431,7 +431,41 @@ internally to iterate.
 
 ##### Options for `find_in_batches`
 
-The `find_in_batches` method accepts the same options as `find_each`.
+The `find_in_batches` method accepts the same options as `find_each`:
+
+**`:batch_size`**
+
+Just like for `find_each`, `batch_size` establishes how many records will be retrieved in each group. For example, retrieving batches of 2500 records can be specified as:
+
+```ruby
+Invoice.find_in_batches(batch_size: 2500) do |invoices|
+  export.add_invoices(invoices)
+end
+```
+
+**`:start`**
+
+The `start` option allows specifying the beginning ID from where records will be selected. As mentioned before, by default records are fetched in ascending order of the primary key. For example, to retrieve invoices starting on ID: 5000 in batches of 2500 records, the following code can be used:
+
+```ruby
+Invoice.find_in_batches(batch_size: 2500, start: 5000) do |invoices|
+  export.add_invoices(invoices)
+end
+```
+
+**`:finish`**
+
+The `finish` option allows specifying the ending ID of the records to be retrieved. The code below shows the case of retrieving invoices in batches, up to the invoice with ID: 7000:
+
+```ruby
+Invoice.find_in_batches(finish: 7000) do |invoices|
+  export.add_invoices(invoices)
+end
+```
+
+**`:error_on_ignore`**
+
+The `error_on_ignore` option overrides the application config to specify if an error should be raised when a specific order is present in the relation.
 
 Conditions
 ----------

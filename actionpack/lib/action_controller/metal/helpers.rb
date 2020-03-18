@@ -11,7 +11,12 @@ module ActionController
   #
   # In previous versions of \Rails the controller will include a helper which
   # matches the name of the controller, e.g., <tt>MyController</tt> will automatically
-  # include <tt>MyHelper</tt>. To return old behavior set +config.action_controller.include_all_helpers+ to +false+.
+  # include <tt>MyHelper</tt>. You can revert to the old behavior with the following:
+  #
+  #    # config/application.rb
+  #    class Application < Rails::Application
+  #      config.action_controller.include_all_helpers = false
+  #    end
   #
   # Additional helpers can be specified using the +helper+ class method in ActionController::Base or any
   # controller which inherits from it.
