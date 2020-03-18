@@ -1,3 +1,9 @@
+*   Fix insert_all with enum values
+
+    Fixes #38716.
+
+    *Joel Blum*
+    
 *   Add support for `db:rollback:name` for multiple database applications.
 
     Multiple database applications will now raise if `db:rollback` is call and recommend using the `db:rollback:[NAME]` to rollback migrations.
