@@ -200,7 +200,9 @@ module RenderTestCases
   def test_render_outside_path
     assert File.exist?(File.expand_path("../../test/abstract_unit.rb", __dir__))
     assert_raises ActionView::MissingTemplate do
-      @view.render(template: "../\\../test/abstract_unit.rb")
+      assert_deprecated do
+        @view.render(template: "../\\../test/abstract_unit.rb")
+      end
     end
   end
 
@@ -338,8 +340,10 @@ module RenderTestCases
   end
 
   def test_render_partial_collection_with_partial_name_containing_dot
-    assert_equal "Hello: davidHello: mary",
-      @view.render(partial: "test/customer.mobile", collection: [ Customer.new("david"), Customer.new("mary") ])
+    assert_deprecated do
+      assert_equal "Hello: davidHello: mary",
+        @view.render(partial: "test/customer.mobile", collection: [ Customer.new("david"), Customer.new("mary") ])
+    end
   end
 
   def test_render_partial_collection_as_by_string
@@ -579,7 +583,11 @@ module RenderTestCases
   def test_render_ignores_templates_with_malformed_template_handlers
     %w(malformed malformed.erb malformed.html.erb malformed.en.html.erb).each do |name|
       assert File.exist?(File.expand_path("#{FIXTURE_LOAD_PATH}/test/malformed/#{name}~")), "Malformed file (#{name}~) which should be ignored does not exists"
-      assert_raises(ActionView::MissingTemplate) { @view.render(template: "test/malformed/#{name}") }
+      assert_raises(ActionView::MissingTemplate) do
+        ActiveSupport::Deprecation.silence do
+          @view.render(template: "test/malformed/#{name}")
+        end
+      end
     end
   end
 
