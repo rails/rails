@@ -1,3 +1,7 @@
+*   Deprecate using `return`, `break` or `throw` to exit a transaction block
+
+    *Dylan Thacker-Smith*
+
 *   Raise error when non-existent enum used in query.
 
     This change will raise an error when a non-existent enum is passed to a query.
