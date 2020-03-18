@@ -2119,10 +2119,22 @@ NOTE: Defined in `active_support/core_ext/enumerable.rb`.
 
 ### `pluck`
 
-The method `pluck` returns an array based on the given key:
+The method `pluck` extracts the given key from each element:
 
 ```ruby
 [{ name: "David" }, { name: "Rafael" }, { name: "Aaron" }].pluck(:name) # => ["David", "Rafael", "Aaron"]
+[{ id: 1, name: "David" }, { id: 2, name: "Rafael" }].pluck(:id, :name) # => [[1, "David"], [2, "Rafael"]]
+```
+
+NOTE: Defined in `active_support/core_ext/enumerable.rb`.
+
+### `pick`
+
+The method `pick` extracts the given key from the first element:
+
+```ruby
+[{ name: "David" }, { name: "Rafael" }, { name: "Aaron" }].pick(:name) # => "David"
+[{ id: 1, name: "David" }, { id: 2, name: "Rafael" }].pick(:id, :name) # => [1, "David"]
 ```
 
 NOTE: Defined in `active_support/core_ext/enumerable.rb`.

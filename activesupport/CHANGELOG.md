@@ -1,3 +1,7 @@
+*   Add `Enumerable#pick` to complement `ActiveRecord::Relation#pick`.
+
+    *Eugene Kenny*
+
 *   [Breaking change] `ActiveSupport::Callbacks#halted_callback_hook` now receive a 2nd argument:
 
     `ActiveSupport::Callbacks#halted_callback_hook` now receive the name of the callback

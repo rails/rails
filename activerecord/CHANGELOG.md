@@ -1,3 +1,7 @@
+*   `Relation#pick` now uses already loaded results instead of making another query.
+
+    *Eugene Kenny*
+
 *   Deprecate using `return`, `break` or `throw` to exit a transaction block
 
     *Dylan Thacker-Smith*
