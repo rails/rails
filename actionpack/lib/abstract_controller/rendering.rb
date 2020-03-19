@@ -64,12 +64,12 @@ module AbstractController
     # You can overwrite this configuration per controller.
     def view_assigns
       protected_vars = _protected_ivars
-      variables      = instance_variables
 
-      variables.reject! { |s| protected_vars.include? s }
-      variables.each_with_object({}) { |name, hash|
-        hash[name.slice(1, name.length)] = instance_variable_get(name)
-      }
+      instance_variables.each_with_object({}) do |name, hash|
+        unless protected_vars.include?(name)
+          hash[name[1..-1]] = instance_variable_get(name)
+        end
+      end
     end
 
   private
