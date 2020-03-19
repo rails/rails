@@ -230,6 +230,7 @@ module StiPreload
       def preload_sti
         types_in_db = \
           base_class.
+            unscoped.
             select(inheritance_column).
             distinct.
             pluck(inheritance_column).
