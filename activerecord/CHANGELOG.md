@@ -1,3 +1,9 @@
+*   Add support for `db:rollback:name` for multiple database applications.
+
+    Multiple database applications will now raise if `db:rollback` is call and recommend using the `db:rollback:[NAME]` to rollback migrations.
+
+    *Eileen M. Uchitelle*
+
 *   `Relation#pick` now uses already loaded results instead of making another query.
 
     *Eugene Kenny*
