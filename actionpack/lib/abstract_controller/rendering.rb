@@ -67,7 +67,7 @@ module AbstractController
 
       instance_variables.each_with_object({}) do |name, hash|
         unless protected_vars.include?(name)
-          hash[name[1..-1]] = instance_variable_get(name)
+          hash[name.slice(1, name.length)] = instance_variable_get(name)
         end
       end
     end
