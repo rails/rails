@@ -35,7 +35,7 @@ module DateAndTime
     def tomorrow?
       to_date == ::Date.current.tomorrow
     end
-    alias_method :next_day?, :tomorrow?
+    alias :next_day :tomorrow?
 
     # Returns true if the date/time is yesterday.
     def yesterday?
