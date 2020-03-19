@@ -41,7 +41,7 @@ module DateAndTime
     def yesterday?
       to_date == ::Date.current.yesterday
     end
-    alias_method :prev_day?, :yesterday?
+    alias :prev_day? :yesterday?
 
     # Returns true if the date/time is in the past.
     def past?

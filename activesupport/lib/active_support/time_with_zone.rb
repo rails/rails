@@ -250,14 +250,14 @@ module ActiveSupport
     def tomorrow?
       time.tomorrow?
     end
-    alias_method :next_day?, :tomorrow?
+    alias :next_day? :tomorrow?
 
     # Returns true if the current object's time falls within
     # the previous day (yesterday).
     def yesterday?
       time.yesterday?
     end
-    alias_method :prev_day?, :yesterday?
+    alias :prev_day? :yesterday?
 
     # Returns true if the current object's time is in the future.
     def future?
