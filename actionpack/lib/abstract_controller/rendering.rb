@@ -56,19 +56,15 @@ module AbstractController
       Mime[:text]
     end
 
-    DEFAULT_PROTECTED_INSTANCE_VARIABLES = Set.new %i(
-      @_action_name @_response_body @_formats @_prefixes
-    )
+    DEFAULT_PROTECTED_INSTANCE_VARIABLES = %i(@_action_name @_response_body @_formats @_prefixes)
 
     # This method should return a hash with assigns.
     # You can overwrite this configuration per controller.
     def view_assigns
-      protected_vars = _protected_ivars
+      variables = instance_variables - _protected_ivars
 
-      instance_variables.each_with_object({}) do |name, hash|
-        unless protected_vars.include?(name)
-          hash[name.slice(1, name.length)] = instance_variable_get(name)
-        end
+      variables.each_with_object({}) do |name, hash|
+        hash[name.slice(1, name.length)] = instance_variable_get(name)
       end
     end
 
