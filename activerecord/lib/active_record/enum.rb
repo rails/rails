@@ -140,6 +140,7 @@ module ActiveRecord
       end
 
       def serialize(value)
+        assert_valid_value(value)
         mapping.fetch(value, value)
       end
 

@@ -54,17 +54,17 @@ module ActiveRecord
           if without_prepared_statement?(binds)
             execute_and_free(sql, name) do |result|
               if result
-                build_result(result.fields, result.to_a)
+                build_result(columns: result.fields, rows: result.to_a)
               else
-                build_result([], [])
+                build_result(columns: [], rows: [])
               end
             end
           else
             exec_stmt_and_free(sql, name, binds, cache_stmt: prepare) do |_, result|
               if result
-                build_result(result.fields, result.to_a)
+                build_result(columns: result.fields, rows: result.to_a)
               else
-                build_result([], [])
+                build_result(columns: [], rows: [])
               end
             end
           end

@@ -1,4 +1,28 @@
-*   Dump the schema or structure of a database when calling db:migrate:name
+*   `Relation#pick` now uses already loaded results instead of making another query.
+
+    *Eugene Kenny*
+
+*   Deprecate using `return`, `break` or `throw` to exit a transaction block
+
+    *Dylan Thacker-Smith*
+
+*   Raise error when non-existent enum used in query.
+
+    This change will raise an error when a non-existent enum is passed to a query.
+    Previously with MySQL this would return an unrelated record. Fixes #38687.
+
+    ```ruby
+    class User < ActiveRecord::Base
+      enum status: { active: 0, non_active: 1 }
+    end
+
+    User.where(status: :non_existing_status)
+    => ArgumentError ('non_existing_status' is not a valid status)
+    ```
+
+    *Atul Kanswal*
+
+*   Dump the schema or structure of a database when calling `db:migrate:name`.
 
     In previous versions of Rails, `rails db:migrate` would dump the schema of the database. In Rails 6, that holds true (`rails db:migrate` dumps all databases' schemas), but `rails db:migrate:name` does not share that behavior.
 
@@ -6,7 +30,7 @@
 
     *Kyle Thompson*
 
-*   Reset the `ActiveRecord::Base` connection after `rails db:migrate:name`
+*   Reset the `ActiveRecord::Base` connection after `rails db:migrate:name`.
 
     When `rails db:migrate` has finished, it ensures the `ActiveRecord::Base` connection is reset to its original configuration. Going forward, `rails db:migrate:name` will have the same behavior.
 
