@@ -688,8 +688,8 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
 
   def test_yesterday_with_time_local
     Date.stub(:current, Date.new(2000, 1, 1)) do
-      assert_equal true, Time.local(1999, 12, 31, 23, 59, 59).yesterday?
-      assert_equal false,  Time.local(2000, 1, 1, 0).yesterday?
+      assert_equal true,  Time.local(1999, 12, 31, 23, 59, 59).yesterday?
+      assert_equal false, Time.local(2000, 1, 1, 0).yesterday?
       assert_equal true,  Time.local(1999, 12, 31).yesterday?
       assert_equal false, Time.local(2000, 1, 2, 0).yesterday?
     end
@@ -697,8 +697,8 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
 
   def test_yesterday_with_time_utc
     Date.stub(:current, Date.new(2000, 1, 1)) do
-      assert_equal true, Time.utc(1999, 12, 31, 23, 59, 59).yesterday?
-      assert_equal false,  Time.utc(2000, 1, 1, 0).yesterday?
+      assert_equal true,  Time.utc(1999, 12, 31, 23, 59, 59).yesterday?
+      assert_equal false, Time.utc(2000, 1, 1, 0).yesterday?
       assert_equal true,  Time.utc(1999, 12, 31).yesterday?
       assert_equal false, Time.utc(2000, 1, 2, 0).yesterday?
     end
@@ -706,8 +706,8 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
 
   def test_prev_day_with_time_local
     Date.stub(:current, Date.new(2000, 1, 1)) do
-      assert_equal true, Time.local(1999, 12, 31, 23, 59, 59).prev_day?
-      assert_equal false,  Time.local(2000, 1, 1, 0).prev_day?
+      assert_equal true,  Time.local(1999, 12, 31, 23, 59, 59).prev_day?
+      assert_equal false, Time.local(2000, 1, 1, 0).prev_day?
       assert_equal true,  Time.local(1999, 12, 31).prev_day?
       assert_equal false, Time.local(2000, 1, 2, 0).prev_day?
     end
@@ -715,8 +715,8 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
 
   def test_prev_day_with_time_utc
     Date.stub(:current, Date.new(2000, 1, 1)) do
-      assert_equal true, Time.utc(1999, 12, 31, 23, 59, 59).prev_day?
-      assert_equal false,  Time.utc(2000, 1, 1, 0).prev_day?
+      assert_equal true,  Time.utc(1999, 12, 31, 23, 59, 59).prev_day?
+      assert_equal false, Time.utc(2000, 1, 1, 0).prev_day?
       assert_equal true,  Time.utc(1999, 12, 31).prev_day?
       assert_equal false, Time.utc(2000, 1, 2, 0).prev_day?
     end

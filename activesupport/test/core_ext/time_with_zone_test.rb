@@ -253,18 +253,18 @@ class TimeWithZoneTest < ActiveSupport::TestCase
 
   def test_yesterday?
     Date.stub(:current, Date.new(2000, 1, 1)) do
-      assert_equal true, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(1999, 12, 31, 23, 59, 59)).yesterday?
+      assert_equal true,  ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(1999, 12, 31, 23, 59, 59)).yesterday?
       assert_equal false, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2000, 1, 1, 0)).yesterday?
-      assert_equal true, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(1999, 12, 31)).yesterday?
+      assert_equal true,  ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(1999, 12, 31)).yesterday?
       assert_equal false, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2000, 1, 2, 0)).yesterday?
     end
   end
 
   def test_prev_day?
     Date.stub(:current, Date.new(2000, 1, 1)) do
-      assert_equal true, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(1999, 12, 31, 23, 59, 59)).prev_day?
+      assert_equal true,  ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(1999, 12, 31, 23, 59, 59)).prev_day?
       assert_equal false, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2000, 1, 1, 0)).prev_day?
-      assert_equal true, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(1999, 12, 31)).prev_day?
+      assert_equal true,  ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(1999, 12, 31)).prev_day?
       assert_equal false, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2000, 1, 2, 0)).prev_day?
     end
   end
@@ -272,7 +272,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   def test_tomorrow?
     Date.stub(:current, Date.new(2000, 1, 1)) do
       assert_equal false, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(1999, 12, 31, 23, 59, 59)).tomorrow?
-      assert_equal true, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2000, 1, 2, 0)).tomorrow?
+      assert_equal true,  ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2000, 1, 2, 0)).tomorrow?
       assert_equal false, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2000, 1, 1, 23, 59, 59)).tomorrow?
       assert_equal false, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(1999, 12, 31, 0)).tomorrow?
     end
@@ -281,7 +281,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   def test_next_day?
     Date.stub(:current, Date.new(2000, 1, 1)) do
       assert_equal false, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(1999, 12, 31, 23, 59, 59)).next_day?
-      assert_equal true, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2000, 1, 2, 0)).next_day?
+      assert_equal true,  ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2000, 1, 2, 0)).next_day?
       assert_equal false, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2000, 1, 1, 23, 59, 59)).next_day?
       assert_equal false, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(1999, 12, 31, 0)).next_day?
     end
