@@ -31,7 +31,7 @@ module DateAndTime
       to_date == ::Date.current
     end
 
-    # Returns true if the date/time is of next day (tomorrow)
+    # Returns true if the date/time is tomorrow.
     def tomorrow?
       to_date == ::Date.current.tomorrow
     end
