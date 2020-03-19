@@ -1,12 +1,6 @@
-*   Add predicate methods for previous and next day checks:
+*   Add Date and Time `#yesterday?` and `#tomorrow?` alongside `#today?`.
 
-    This adds the predicate helpers that complements `today?`
-
-    Following methods are added
-
-    * `tomorrow?` / `next_day?`  -  Checks if the date/time is of next day (tomorrow)
-    * `yesterday?` /  `prev_day?` -  Checks if the date/time is of previous day (yesterday)
-
+    Aliased to `#prev_day?` and `#next_day?` to match the existing `#prev/next_day` methods.
 
     *Jatin Dhankhar*
 
