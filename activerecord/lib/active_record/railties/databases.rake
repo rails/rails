@@ -243,10 +243,28 @@ db_namespace = namespace :db do
     end
   end
 
+  namespace :rollback do
+    ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
+      task name => :load_config do
+        step = ENV["STEP"] ? ENV["STEP"].to_i : 1
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: name)
+
+        ActiveRecord::Base.establish_connection(db_config)
+        ActiveRecord::Base.connection.migration_context.rollback(step)
+
+        db_namespace["_dump"].invoke
+      end
+    end
+  end
+
   desc "Rolls the schema back to the previous version (specify steps w/ STEP=n)."
   task rollback: :load_config do
+    ActiveRecord::Tasks::DatabaseTasks.raise_for_multi_db(command: "db:migrate:rollback")
+
     step = ENV["STEP"] ? ENV["STEP"].to_i : 1
+
     ActiveRecord::Base.connection.migration_context.rollback(step)
+
     db_namespace["_dump"].invoke
   end
 

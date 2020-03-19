@@ -281,6 +281,31 @@ module ApplicationTests
         end
       end
 
+      def db_migrate_and_rollback(namespace = nil)
+        Dir.chdir(app_path) do
+          generate_models_for_animals
+          rails("db:migrate")
+
+          if namespace
+            rollback_output = rails("db:rollback:#{namespace}")
+          else
+            assert_raises RuntimeError, /You're using a multiple database application/ do
+              rollback_output = rails("db:rollback")
+            end
+          end
+
+          case namespace
+          when "primary"
+            assert_no_match(/OneMigration: reverted/, rollback_output)
+            assert_match(/CreateBooks: reverted/, rollback_output)
+          when nil
+          else
+            assert_no_match(/TwoMigration: reverted/, rollback_output)
+            assert_match(/CreateDogs: reverted/, rollback_output)
+          end
+        end
+      end
+
       def db_prepare
         Dir.chdir(app_path) do
           generate_models_for_animals
@@ -478,6 +503,34 @@ module ApplicationTests
 
         db_up_and_down "01", "primary"
         db_up_and_down "02", "animals"
+      end
+
+      test "db:rollback raises on a multi-db application" do
+        require "#{app_path}/config/environment"
+
+        app_file "db/migrate/01_one_migration.rb", <<-MIGRATION
+          class OneMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        db_migrate_and_rollback
+      end
+
+      test "db:rollback:namespace works" do
+        require "#{app_path}/config/environment"
+
+        app_file "db/migrate/01_one_migration.rb", <<-MIGRATION
+          class OneMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        app_file "db/animals_migrate/02_two_migration.rb", <<-MIGRATION
+          class TwoMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        db_migrate_and_rollback "primary"
+        db_migrate_and_rollback "animals"
       end
 
       test "db:migrate:status works on all databases" do
