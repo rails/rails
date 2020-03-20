@@ -297,6 +297,8 @@ module ActionView
       #    # => "foo bar"
       #   class_names({ foo: true, bar: false })
       #    # => "foo"
+      #   class_names(foo_bar: true)
+      #    # => "foo-bar"
       #   class_names(nil, false, 123, "", "foo", { bar: true })
       #    # => "123 foo bar"
       def class_names(*args)
@@ -340,7 +342,7 @@ module ActionView
             case tag_value
             when Hash
               tag_value.each do |key, val|
-                tag_values << key.to_s if val && key.present?
+                tag_values << key.to_s.dasherize if val && key.present?
               end
             when Array
               tag_values.concat build_tag_values(*tag_value)

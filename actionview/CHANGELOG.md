@@ -1,3 +1,7 @@
+*   `class_names` helper dasherizes hash keys.
+
+    *Justin Kenyon*, *Joel Hawksley*
+
 *   `ActionView::Helpers::TranslationHelper#translate` returns nil when
     passed `default: nil` without a translation matching `I18n#translate`.
 

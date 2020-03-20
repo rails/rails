@@ -348,6 +348,7 @@ class TagHelperTest < ActionView::TestCase
     assert_equal "song play", class_names({ "song": true, "play": true })
     assert_equal "", class_names({ "song": false, "play": false })
     assert_equal "123", class_names(nil, "", false, 123, { "song": false, "play": false })
+    assert_equal "song-play", class_names(song_play: true)
   end
 
   def test_content_tag_with_data_attributes
