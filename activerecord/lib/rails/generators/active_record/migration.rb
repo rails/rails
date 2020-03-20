@@ -18,6 +18,8 @@ module ActiveRecord
 
       private
         def primary_key_type
+          return ", id: false" unless options[:primary_key]
+
           key_type = options[:primary_key_type]
           ", id: :#{key_type}" if key_type
         end

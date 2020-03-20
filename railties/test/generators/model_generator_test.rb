@@ -391,6 +391,15 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_create_table_migration_primary_key_are_skipped
+    run_generator ["account", "--no-primary_key"]
+    assert_migration "db/migrate/create_accounts.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/create_table :accounts, id: false/, change)
+      end
+    end
+  end
+
   def test_add_uuid_to_create_table_migration
     run_generator ["account", "--primary_key_type=uuid"]
     assert_migration "db/migrate/create_accounts.rb" do |content|
