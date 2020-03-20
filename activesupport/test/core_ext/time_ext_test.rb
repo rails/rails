@@ -686,6 +686,78 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_yesterday_with_time_local
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal true,  Time.local(1999, 12, 31, 23, 59, 59).yesterday?
+      assert_equal false, Time.local(2000, 1, 1, 0).yesterday?
+      assert_equal true,  Time.local(1999, 12, 31).yesterday?
+      assert_equal false, Time.local(2000, 1, 2, 0).yesterday?
+    end
+  end
+
+  def test_yesterday_with_time_utc
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal true,  Time.utc(1999, 12, 31, 23, 59, 59).yesterday?
+      assert_equal false, Time.utc(2000, 1, 1, 0).yesterday?
+      assert_equal true,  Time.utc(1999, 12, 31).yesterday?
+      assert_equal false, Time.utc(2000, 1, 2, 0).yesterday?
+    end
+  end
+
+  def test_prev_day_with_time_local
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal true,  Time.local(1999, 12, 31, 23, 59, 59).prev_day?
+      assert_equal false, Time.local(2000, 1, 1, 0).prev_day?
+      assert_equal true,  Time.local(1999, 12, 31).prev_day?
+      assert_equal false, Time.local(2000, 1, 2, 0).prev_day?
+    end
+  end
+
+  def test_prev_day_with_time_utc
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal true,  Time.utc(1999, 12, 31, 23, 59, 59).prev_day?
+      assert_equal false, Time.utc(2000, 1, 1, 0).prev_day?
+      assert_equal true,  Time.utc(1999, 12, 31).prev_day?
+      assert_equal false, Time.utc(2000, 1, 2, 0).prev_day?
+    end
+  end
+
+  def test_tomorrow_with_time_local
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal false, Time.local(1999, 12, 31, 23, 59, 59).tomorrow?
+      assert_equal true,  Time.local(2000, 1, 2, 0).tomorrow?
+      assert_equal true,  Time.local(2000, 1, 2, 23, 59, 59).tomorrow?
+      assert_equal false, Time.local(2000, 1, 1, 0).tomorrow?
+    end
+  end
+
+  def test_tomorrow_with_time_utc
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal false, Time.utc(1999, 12, 31, 23, 59, 59).tomorrow?
+      assert_equal true,  Time.utc(2000, 1, 2, 0).tomorrow?
+      assert_equal true,  Time.utc(2000, 1, 2, 23, 59, 59).tomorrow?
+      assert_equal false, Time.utc(2000, 1, 1, 0).tomorrow?
+    end
+  end
+
+  def test_next_day_with_time_local
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal false, Time.local(1999, 12, 31, 23, 59, 59).next_day?
+      assert_equal true,  Time.local(2000, 1, 2, 0).next_day?
+      assert_equal true,  Time.local(2000, 1, 2, 23, 59, 59).next_day?
+      assert_equal false, Time.local(2000, 1, 1, 0).next_day?
+    end
+  end
+
+  def test_next_day_with_time_utc
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal false, Time.utc(1999, 12, 31, 23, 59, 59).next_day?
+      assert_equal true,  Time.utc(2000, 1, 2, 0).next_day?
+      assert_equal true,  Time.utc(2000, 1, 2, 23, 59, 59).next_day?
+      assert_equal false, Time.utc(2000, 1, 1, 0).next_day?
+    end
+  end
+
   def test_past_with_time_current_as_time_local
     with_env_tz "US/Eastern" do
       Time.stub(:current, Time.local(2005, 2, 10, 15, 30, 45)) do

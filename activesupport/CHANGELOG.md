@@ -1,3 +1,9 @@
+*   Add Date and Time `#yesterday?` and `#tomorrow?` alongside `#today?`.
+
+    Aliased to `#prev_day?` and `#next_day?` to match the existing `#prev/next_day` methods.
+
+    *Jatin Dhankhar*
+
 *   Add `Enumerable#pick` to complement `ActiveRecord::Relation#pick`.
 
     *Eugene Kenny*
