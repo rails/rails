@@ -961,6 +961,19 @@ class PerformedJobsTest < ActiveJob::TestCase
     assert_equal(0, enqueued_jobs.size)
   end
 
+  def test_perform_enqueued_jobs_without_block_works_with_other_helpers
+    NestedJob.perform_later
+    assert_equal(0, performed_jobs.size)
+    assert_equal(1, enqueued_jobs.size)
+    assert_enqueued_jobs(1) do
+      assert_enqueued_with(job: LoggingJob) do
+        perform_enqueued_jobs
+      end
+    end
+    assert_equal(1, performed_jobs.size)
+    assert_equal(1, enqueued_jobs.size)
+  end
+
   def test_perform_enqueued_jobs_without_block_only_performs_once
     JobBuffer.clear
     RescueJob.perform_later("no exception")
