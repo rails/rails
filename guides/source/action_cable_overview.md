@@ -128,6 +128,27 @@ can use this approach:
 verified_user = User.find_by(id: cookies.encrypted['_session']['user_id'])
 ```
 
+#### Exception Handling
+
+By default, unhandled exceptions are caught and logged to Rails' logger. If you would like to
+globally intercept these exceptions and report them to an external bug tracking service, for
+example, you can do so with `rescue_with`.
+
+```ruby
+# app/channels/application_cable/connection.rb
+module ApplicationCable
+  class Connection < ActionCable::Connection::Base
+    rescue_from StandardError, with: :report_error
+
+    private
+
+    def report_error(e)
+      SomeExternalBugtrackingService.notify(e)
+    end
+  end
+end
+```
+
 ### Channels
 
 A *channel* encapsulates a logical unit of work, similar to what a controller does in a
@@ -171,6 +192,25 @@ class ChatChannel < ApplicationCable::Channel
   # Called when the consumer has successfully
   # become a subscriber to this channel.
   def subscribed
+  end
+end
+```
+
+#### Exception Handling
+
+As with `ActionCable::Connection::Base`, you can also use
+[`rescue_with`](https://api.rubyonrails.org/classes/ActiveSupport/Rescuable/ClassMethods.html)
+on a specific channel to handle raised exceptions:
+
+```ruby
+# app/channels/chat_channel.rb
+class ChatChannel < ApplicationCable::Channel
+  rescue_from 'MyError', with: :deliver_error_message
+
+  private
+
+  def deliver_error_message(e)
+    broadcast_to(...)
   end
 end
 ```

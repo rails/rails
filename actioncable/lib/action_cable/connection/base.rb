@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "action_dispatch"
+require "active_support/rescuable"
 
 module ActionCable
   module Connection
@@ -46,6 +47,7 @@ module ActionCable
       include Identification
       include InternalChannel
       include Authorization
+      include ActiveSupport::Rescuable
 
       attr_reader :server, :env, :subscriptions, :logger, :worker_pool, :protocol
       delegate :event_loop, :pubsub, to: :server
