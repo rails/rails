@@ -172,7 +172,7 @@ module ActiveRecord
     #   # SELECT people.id FROM people WHERE people.age = 21 LIMIT 5
     #   # => [2, 3]
     #
-    #   Person.pluck('DATEDIFF(updated_at, created_at)')
+    #   Person.pluck(Arel.sql('DATEDIFF(updated_at, created_at)'))
     #   # SELECT DATEDIFF(updated_at, created_at) FROM people
     #   # => ['0', '27761', '173']
     #
