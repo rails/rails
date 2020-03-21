@@ -1,3 +1,9 @@
+*   Fix insert_all with enum values
+
+    Fixes #38716.
+
+    *Joel Blum*
+
 *   Regexp-escape table name for MS SQL
 
     Add `Regexp.escape` to one method in ActiveRecord, so that table names with regular expression characters in them work as expected. Since MS SQL Server uses "[" and "]" to quote table and column names, and those characters are regular expression characters, methods like `pluck` and `select` fail in certain cases when used with the MS SQL Server adapter.
