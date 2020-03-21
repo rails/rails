@@ -34,7 +34,7 @@ $ rails new appname --skip-sprockets
 ```
 
 Rails automatically adds the `sass-rails` gem to your `Gemfile`, which is used
-by Sprockets for asset compression:
+by Sprockets for Sass compilation:
 
 ```ruby
 gem 'sass-rails'
