@@ -132,7 +132,8 @@ verified_user = User.find_by(id: cookies.encrypted['_session']['user_id'])
 
 By default, unhandled exceptions are caught and logged to Rails' logger. If you would like to
 globally intercept these exceptions and report them to an external bug tracking service, for
-example, you can do so with `rescue_with`.
+example, you can do so with
+[`rescue_from`](https://api.rubyonrails.org/classes/ActiveSupport/Rescuable/ClassMethods.html#method-i-rescue_from).
 
 ```ruby
 # app/channels/application_cable/connection.rb
@@ -198,9 +199,8 @@ end
 
 #### Exception Handling
 
-As with `ActionCable::Connection::Base`, you can also use
-[`rescue_with`](https://api.rubyonrails.org/classes/ActiveSupport/Rescuable/ClassMethods.html)
-on a specific channel to handle raised exceptions:
+As with `ActionCable::Connection::Base`, you can also use `rescue_from` on a
+specific channel to handle raised exceptions:
 
 ```ruby
 # app/channels/chat_channel.rb
