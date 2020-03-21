@@ -33,11 +33,11 @@ Rails on Rack
 application. Any Rack compliant web server should be using
 `Rails.application` object to serve a Rails application.
 
-### `rails server`
+### `bin/rails server`
 
-`rails server` does the basic job of creating a `Rack::Server` object and starting the web server.
+`bin/rails server` does the basic job of creating a `Rack::Server` object and starting the web server.
 
-Here's how `rails server` creates an instance of `Rack::Server`
+Here's how `bin/rails server` creates an instance of `Rack::Server`
 
 ```ruby
 Rails::Server.new.tap do |server|
@@ -60,7 +60,7 @@ end
 
 ### `rackup`
 
-To use `rackup` instead of Rails' `rails server`, you can put the following inside `config.ru` of your Rails application's root directory:
+To use `rackup` instead of Rails' `bin/rails server`, you can put the following inside `config.ru` of your Rails application's root directory:
 
 ```ruby
 # Rails.root/config.ru

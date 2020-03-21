@@ -1175,7 +1175,7 @@ It is beyond the scope of this guide to inform you on how to secure your applica
 
 Rails stores secrets in `config/credentials.yml.enc`, which is encrypted and hence cannot be edited directly. Rails uses `config/master.key` or alternatively looks for environment variable `ENV["RAILS_MASTER_KEY"]` to encrypt the credentials file. The credentials file can be stored in version control, as long as master key is kept safe.
 
-To add new secret to credentials, first run `rails secret` to get a new secret. Then run `rails credentials:edit` to edit credentials, and add the secret. Running `credentials:edit` creates new credentials file and master key, if they did not already exist.
+To add new secret to credentials, first run `bin/rails secret` to get a new secret. Then run `bin/rails credentials:edit` to edit credentials, and add the secret. Running `credentials:edit` creates new credentials file and master key, if they did not already exist.
 
 By default, this file contains the application's
 `secret_key_base`, but it could also be used to store other credentials such as access keys for external APIs.
@@ -1198,7 +1198,7 @@ Rails.application.credentials.some_api_key! # => raises KeyError: :some_api_key 
 ```
 
 
-TIP: Learn more about credentials with `rails credentials:help`.
+TIP: Learn more about credentials with `bin/rails credentials:help`.
 
 WARNING: Keep your master key safe. Do not commit your master key.
 
