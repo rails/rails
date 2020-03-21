@@ -1,3 +1,10 @@
+[![Gem Version][gem-version-img]][gem-url]
+[![Gem Downloads][gem-downloads-img]][gem-downloads-img]
+[![Build status][build-status-img]][build-status-url]
+[![Code Triage Badge][codetriage-img]][codetriage-url]
+[![Average time to resolve an issue][is-maintained-resolution-img]][is-maintained-url]
+[![Percentage of issues still open][is-maintained-open-img]][is-maintained-url]
+
 # Welcome to Rails
 
 ## What's Rails?
@@ -83,7 +90,7 @@ and may also be used independently outside Rails.
 
 ## Contributing
 
-[![Code Triage Badge](https://www.codetriage.com/rails/rails/badges/users.svg)](https://www.codetriage.com/rails/rails)
+[![Code Triage Badge][codetriage-img]][codetriage-url]
 
 We encourage you to contribute to Ruby on Rails! Please check out the
 [Contributing to Ruby on Rails guide](https://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html) for guidelines about how to proceed. [Join us!](https://contributors.rubyonrails.org)
@@ -96,8 +103,22 @@ Everyone interacting in Rails and its sub-projects' codebases, issue trackers, c
 
 ## Code Status
 
-[![Build Status](https://badge.buildkite.com/ab1152b6a1f6a61d3ea4ec5b3eece8d4c2b830998459c75352.svg?branch=master)](https://buildkite.com/rails/rails)
+[![Build Status][build-status-img]][build-status-url]
 
 ## License
 
 Ruby on Rails is released under the [MIT License](https://opensource.org/licenses/MIT).
+
+[build-status-img]: https://badge.buildkite.com/ab1152b6a1f6a61d3ea4ec5b3eece8d4c2b830998459c75352.svg?branch=master
+[build-status-url]: https://buildkite.com/rails/rails
+
+[codetriage-img]: https://www.codetriage.com/rails/rails/badges/users.svg
+[codetriage-url]: https://www.codetriage.com/rails/rails
+
+[gem-downloads-img]: https://ruby-gem-downloads-badge.herokuapp.com/rails?type=total
+[gem-version-img]: https://badge.fury.io/rb/rails.svg
+[gem-url]: https://rubygems.org/gems/rails
+
+[is-maintained-open-img]: https://isitmaintained.com/badge/open/rails/rails.svg
+[is-maintained-resolution-img]: https://isitmaintained.com/badge/resolution/rails/rails.svg
+[is-maintained-url]: https://isitmaintained.com/project/rails/rails
