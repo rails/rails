@@ -33,8 +33,9 @@ passing the `--skip-sprockets` option.
 $ rails new appname --skip-sprockets
 ```
 
-Rails automatically adds the `sass-rails` gem to your `Gemfile`, which is used
-by Sprockets for Sass compilation:
+Rails automatically adds the [`sass-rails`](https://github.com/rails/sass-rails)
+gem to your `Gemfile`, which is used by Sprockets for
+[Sass](https://sass-lang.com) compilation:
 
 ```ruby
 gem 'sass-rails'
