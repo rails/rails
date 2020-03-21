@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/monads/many"
+
 module Enumerable
   INDEX_WITH_DEFAULT = Object.new
   private_constant :INDEX_WITH_DEFAULT
@@ -189,6 +191,22 @@ module Enumerable
   #    #=> { b: 1, f: true }
   def compact_blank
     reject(&:blank?)
+  end
+
+  # Converts an enumerable to +Many+ monad.
+  # +with_many+ eases the mapping over the collection and traversing
+  # the association or the property of the object.
+  #
+  #   [{ name: "David" }, { name: "Rafael" }].with_many
+  #   # => #<Monads::Many @values=[{:name=>"David"}, {:name=>"Rafael"}]>
+  #
+  # +with_many+ when called on a ActiveRecord::Relation collection
+  # returns a monad with values.
+  #
+  #   blogs.with_many.categories.posts.comments
+  #   # => #<Monads::Many: @values=[#<Comment id: 1, body: "This is awesome new feature">]>
+  def with_many
+    Monads::Many.new(self)
   end
 end
 

@@ -284,4 +284,13 @@ class EnumerableTests < ActiveSupport::TestCase
     values.compact_blank!
     assert_equal({ b: 1, f: true }, values)
   end
+
+  def test_with_many
+    empty_array = []
+    assert_equal empty_array, empty_array.with_many.values
+
+    payments = [ Payment.new(5), Payment.new(15) ]
+    assert_equal 20, payments.with_many.price.values.sum
+    assert_equal 40, payments.with_many.price.values.sum { |p| p * 2 }
+  end
 end

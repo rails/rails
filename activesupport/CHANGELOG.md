@@ -1,3 +1,36 @@
+*   Adds `Enumerable#with_many` which creates Many monad from a collection.
+
+    Mapping over a collection and traverse the association or property
+    of a collection using `flat_map` or `map` adds chaining. Addition of monad
+    eases the chaining in a better way.
+
+    Example:
+    ```ruby
+        class Blog < ApplicationRecord
+            has_many :categories
+        end
+
+        class Category < ApplicationRecord
+            has_many :posts
+        end
+
+        class Post < ApplicationRecord
+            has_many :comments
+        end
+    ```
+
+    Let say, we want to fetch all the comments for blogs added by DHH user. The query would be as follows:
+    ```ruby
+        # Before
+        blogs = Blog.where(author: { name: "DHH" })
+        blogs.flat_map(:categories).flat_map(:posts).flat_map(:comments)
+
+        # After this addition
+        blogs.with_many.categories.posts.comments
+    ```
+
+    *Abhay Nikam*
+
 *   Add Date and Time `#yesterday?` and `#tomorrow?` alongside `#today?`.
 
     Aliased to `#prev_day?` and `#next_day?` to match the existing `#prev/next_day` methods.
