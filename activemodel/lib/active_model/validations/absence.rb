@@ -11,7 +11,7 @@ module ActiveModel
 
     module HelperMethods
       # Validates that the specified attributes are blank (as defined by
-      # Object#blank?). Happens by default on save.
+      # Object#present?). Happens by default on save.
       #
       #   class Person < ActiveRecord::Base
       #     validates_absence_of :first_name
