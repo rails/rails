@@ -446,6 +446,7 @@ GEM
     selenium-webdriver (3.142.7)
       childprocess (>= 0.5, < 4.0)
       rubyzip (>= 1.2.2)
+    semantic_range (2.3.0)
     sequel (5.27.0)
     serverengine (2.0.7)
       sigdump (~> 0.2.2)
@@ -517,10 +518,11 @@ GEM
       addressable (>= 2.3.6)
       crack (>= 0.3.2)
       hashdiff (>= 0.4.0, < 2.0.0)
-    webpacker (4.2.2)
-      activesupport (>= 4.2)
+    webpacker (5.0.0)
+      activesupport (>= 5.2)
       rack-proxy (>= 0.6.1)
-      railties (>= 4.2)
+      railties (>= 5.2)
+      semantic_range (>= 2.3.0)
     websocket (1.2.8)
     websocket-driver (0.7.1)
       websocket-extensions (>= 0.1.0)
@@ -604,7 +606,7 @@ DEPENDENCIES
   wdm (>= 0.1.0)
   webdrivers
   webmock
-  webpacker (~> 4.0)
+  webpacker (~> 5.0)
   websocket-client-simple!
 
 BUNDLED WITH
