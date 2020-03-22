@@ -135,6 +135,14 @@ module ActiveRecord
 
       class_attribute :default_pool_key, instance_writer: false
 
+      ##
+      # :singleton-method:
+      # Specifies whether select clause builder should use explicit column names instead of the star.
+      # This reduces the risk of PreparedStatementCacheExpired exception being raised from
+      # transactions happening during migration adding column(s) with PostgreSQL.
+      # Can be overriden in individual models.
+      class_attribute :explicit_columns_select, default: false, instance_accessor: false
+
       self.filter_attributes = []
 
       def self.connection_handler

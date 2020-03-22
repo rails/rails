@@ -1508,6 +1508,26 @@ class BasicsTest < ActiveRecord::TestCase
     assert query.include?("name")
   end
 
+  test "explicit_columns_select flag modifies default behavior of select" do
+    explicit_select_query =
+      %{select "birds"."id", "birds"."name", "birds"."color", "birds"."pirate_id" from "birds"}
+    star_query = %{select "birds".* from "birds"}
+
+    ActiveRecord::Base.explicit_columns_select = true
+    assert_equal explicit_select_query, Bird.all.to_sql.downcase
+
+    Bird.explicit_columns_select = false
+    assert_equal star_query, Bird.all.to_sql.downcase
+
+    ActiveRecord::Base.explicit_columns_select = false
+    assert_equal star_query, Bird.all.to_sql.downcase
+
+    Bird.explicit_columns_select = true
+    assert_equal explicit_select_query, Bird.all.to_sql.downcase
+
+    Bird.explicit_columns_select = false
+  end
+
   test "column names are quoted when using #from clause and model has ignored columns" do
     assert_not_empty Developer.ignored_columns
     query = Developer.from("developers").to_sql
