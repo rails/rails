@@ -1,3 +1,7 @@
+*   Update Mandrill inbound email route to respond appropriately to HEAD requests for URL health checks from Mandrill.
+
+    *Bill Cromie*
+
 *   Add way to deliver emails via source instead of filling out a form through the conductor interface.
 
     *DHH*
