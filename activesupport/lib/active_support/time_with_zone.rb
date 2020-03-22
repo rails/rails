@@ -139,7 +139,7 @@ module ActiveSupport
     #
     #   Time.zone.now.inspect # => "Thu, 04 Dec 2014 11:00:25 EST -05:00"
     def inspect
-      "#{time.strftime('%a, %d %b %Y %H:%M:%S')} #{zone} #{formatted_offset}"
+      "#{time.strftime('%a, %d %b %Y %H:%M:%S')}#{formatted_subsec_with_delimiter} #{zone} #{formatted_offset}"
     end
 
     # Returns a string of the object's date and time in the ISO 8601 standard
@@ -579,6 +579,27 @@ module ActiveSupport
           wrap_with_time_zone(time.begin)..wrap_with_time_zone(time.end)
         else
           time
+        end
+      end
+
+      def formatted_subsec
+        return "" if subsec.zero?
+
+        if (1_000_000_000 % subsec.denominator).zero?
+          format("%09d", subsec * 1_000_000_000).sub(/0+$/, "")
+        else
+          subsec.to_s
+        end
+      end
+
+      def formatted_subsec_with_delimiter
+        subsec = formatted_subsec
+        if subsec.empty?
+          subsec
+        elsif subsec.include?("/")
+          " #{subsec}"
+        else
+          ".#{subsec}"
         end
       end
   end

@@ -1,3 +1,26 @@
+*   Add subsec to `ActiveSupport::TimeWithZone#inspect`.
+
+    Before:
+
+        Time.at(1498099140).in_time_zone.inspect
+        # => "Thu, 22 Jun 2017 02:39:00 UTC +00:00"
+        Time.at(1498099140, 123456780, :nsec).in_time_zone.inspect
+        # => "Thu, 22 Jun 2017 02:39:00 UTC +00:00"
+        Time.at(1498099140 + Rational("1/3")).in_time_zone.inspect
+        # => "Thu, 22 Jun 2017 02:39:00 UTC +00:00"
+
+    After:
+
+        Time.at(1498099140).in_time_zone.inspect
+        # => "Thu, 22 Jun 2017 02:39:00 UTC +00:00"
+        Time.at(1498099140, 123456780, :nsec).in_time_zone.inspect
+        # => "Thu, 22 Jun 2017 02:39:00.12345678 UTC +00:00"
+        Time.at(1498099140 + Rational("1/3")).in_time_zone.inspect
+        # => "Thu, 22 Jun 2017 02:39:00 1/3 UTC +00:00"
+
+
+    *akinomaeni*
+
 *   Calling `ActiveSupport::TaggedLogging#tagged` without a block now returns a tagged logger.
 
     ```ruby
