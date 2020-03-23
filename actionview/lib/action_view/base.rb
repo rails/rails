@@ -195,7 +195,7 @@ module ActionView #:nodoc:
       end
     end
 
-    attr_reader :view_renderer, :lookup_context
+    attr_reader :view_renderer, :lookup_context, :current_template
     attr_internal :config, :assigns
 
     delegate :formats, :formats=, :locale, :locale=, :view_paths, :view_paths=, to: :lookup_context

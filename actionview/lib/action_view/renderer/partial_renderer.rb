@@ -374,7 +374,7 @@ module ActionView
       def setup(context, options, as, block)
         @options = options
         @block   = block
-
+        @current_template = context.current_template
         @locals  = options[:locals] || {}
         @details = extract_details(options)
 
@@ -425,8 +425,20 @@ module ActionView
       end
 
       def find_template(path, locals)
-        prefixes = path.include?(?/) ? [] : @lookup_context.prefixes
-        @lookup_context.find_template(path, prefixes, true, locals, @details)
+        filename, prefixes = parse_path(path)
+
+        @lookup_context.find_template(filename, prefixes, true, locals, @details)
+      end
+
+      def parse_path(path)
+        if !path.include?("/")
+          [path, @lookup_context.prefixes]
+        elsif !path.start_with?(".")
+          [path, []]
+        else
+          dirname, basename = @current_template.build_relative_path_to(path).split
+          [basename, [dirname]]
+        end
       end
 
       def collection_with_template(view, template)
