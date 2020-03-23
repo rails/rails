@@ -83,7 +83,9 @@ module ActiveRecord
           end
 
           def time_since_last_write_ok?
-            Time.now - context.last_write_timestamp >= send_to_replica_delay
+            return true unless context.last_write_timestamp
+
+            Concurrent.monotonic_time - context.last_write_timestamp >= send_to_replica_delay
           end
       end
     end

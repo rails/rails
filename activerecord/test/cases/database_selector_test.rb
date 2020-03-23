@@ -16,7 +16,7 @@ module ActiveRecord
     end
 
     def test_empty_session
-      assert_equal Time.at(0), @session.last_write_timestamp
+      assert_nil @session.last_write_timestamp
     end
 
     def test_writing_the_session_timestamps
@@ -37,7 +37,7 @@ module ActiveRecord
     end
 
     def test_read_from_replicas
-      @session_store[:last_write] = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session.convert_time_to_timestamp(Time.now - 5.seconds)
+      @session_store[:last_write] = Concurrent.monotonic_time - 5.seconds
 
       resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver.new(@session)
 
@@ -51,7 +51,7 @@ module ActiveRecord
 
     unless in_memory_db?
       def test_can_write_while_reading_from_replicas_if_explicit
-        @session_store[:last_write] = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session.convert_time_to_timestamp(Time.now - 5.seconds)
+        @session_store[:last_write] = Concurrent.monotonic_time - 5.seconds
 
         resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver.new(@session)
 
@@ -77,7 +77,7 @@ module ActiveRecord
     end
 
     def test_read_from_primary
-      @session_store[:last_write] = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session.convert_time_to_timestamp(Time.now)
+      @session_store[:last_write] = Concurrent.monotonic_time
 
       resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver.new(@session)
 
