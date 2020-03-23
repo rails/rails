@@ -516,10 +516,10 @@ was a controller called "projects", which generated an
 `app/assets/stylesheets/projects.scss` file.
 
 In development mode, or if the asset pipeline is disabled, when this file is
-requested it is processed by the processor provided by the `sass` gem and then
-sent back to the browser as CSS. When asset pipelining is enabled, this file is
-preprocessed and placed in the `public/assets` directory for serving by either
-the Rails app or web server.
+requested it is processed by the processor provided by the `sass-rails` gem and
+then sent back to the browser as CSS. When asset pipelining is enabled, this
+file is preprocessed and placed in the `public/assets` directory for serving by
+either the Rails app or web server.
 
 Additional layers of preprocessing can be requested by adding other extensions,
 where each extension is processed in a right-to-left manner. These should be
