@@ -55,7 +55,10 @@ class ConcernTest < ActiveSupport::TestCase
   end
 
   module Qux
-    module ClassMethods
+    extend ActiveSupport::Concern
+
+    class_methods do
+      # This will create an empty ClassMethods module
     end
   end
 
@@ -88,10 +91,8 @@ class ConcernTest < ActiveSupport::TestCase
   end
 
   def test_class_methods_are_extended_only_on_expected_objects
-    ::Object.include(Qux)
-    Object.extend(Qux::ClassMethods)
-    # module needs to be created after Qux is included in Object or bug won't
-    # be triggered
+    Object.include(Qux)
+
     test_module = Module.new do
       extend ActiveSupport::Concern
 
@@ -100,8 +101,13 @@ class ConcernTest < ActiveSupport::TestCase
         end
       end
     end
+
     @klass.include test_module
+
+    assert_not_equal @klass::ClassMethods, Object::ClassMethods
+    assert_respond_to @klass, :test
     assert_not_respond_to Object, :test
+  ensure
     Qux.class_eval do
       remove_const :ClassMethods
     end
