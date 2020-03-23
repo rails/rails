@@ -10,7 +10,8 @@ module MailExt
         to: "david@basecamp.com",
         cc: "jason@basecamp.com",
         bcc: "andrea@basecamp.com",
-        x_original_to: "ryan@basecamp.com"
+        x_original_to: "ryan@basecamp.com",
+        delivered_to: "jeremy@basecamp.com"
     end
 
     test "from address uses address object" do
@@ -39,6 +40,10 @@ module MailExt
 
     test "x_original_to addresses use address objects" do
       assert_equal "basecamp.com", @mail.x_original_to_addresses.first.domain
+    end
+
+    test "delivered_to addresses use address objects" do
+      assert_equal "basecamp.com", @mail.delivered_to_addresses.first.domain
     end
   end
 end

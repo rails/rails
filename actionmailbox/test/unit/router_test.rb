@@ -60,6 +60,15 @@ module ActionMailbox
       assert_equal inbound_email.mail, $processed_mail
     end
 
+    test "single string routing on delivered-to" do
+      @router.add_routes("first@example.com" => :first)
+
+      inbound_email = create_inbound_email_from_mail(to: "someone@example.com", delivered_to: "first@example.com", subject: "This is a reply")
+      @router.route inbound_email
+      assert_equal "FirstMailbox", $processed_by
+      assert_equal inbound_email.mail, $processed_mail
+    end
+
     test "single string routing case-insensitively" do
       @router.add_routes("first@example.com" => :first)
 
