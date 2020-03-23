@@ -1509,9 +1509,13 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   test "explicit_columns_select flag modifies default behavior of select" do
+    tn = Bird.quoted_table_name
+    id, name, color, pirate_id =
+      *%w[id name color pirate_id].map { |column| Bird.connection.quote_column_name(column) }
+
     explicit_select_query =
-      %{select "birds"."id", "birds"."name", "birds"."color", "birds"."pirate_id" from "birds"}
-    star_query = %{select "birds".* from "birds"}
+      %{select #{tn}.#{id}, #{tn}.#{name}, #{tn}.#{color}, #{tn}.#{pirate_id} from #{tn}}
+    star_query = %{select #{tn}.* from #{tn}}
 
     ActiveRecord::Base.explicit_columns_select = true
     assert_equal explicit_select_query, Bird.all.to_sql.downcase
@@ -1524,7 +1528,8 @@ class BasicsTest < ActiveRecord::TestCase
 
     Bird.explicit_columns_select = true
     assert_equal explicit_select_query, Bird.all.to_sql.downcase
-
+  ensure
+    ActiveRecord::Base.explicit_columns_select = false
     Bird.explicit_columns_select = false
   end
 
