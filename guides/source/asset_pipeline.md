@@ -42,8 +42,8 @@ gem 'sass-rails'
 ```
 
 Using the `--skip-sprockets` option will prevent Rails from adding
-this to your `Gemfile`, so if you later want to enable
-the asset pipeline you will have to add that gem to your `Gemfile`. Also,
+this gem, so if you later want to enable the asset pipeline
+you will have to add it to your `Gemfile` manually. Also,
 creating an application with the `--skip-sprockets` option will generate
 a slightly different `config/application.rb` file, with a require statement
 for the sprockets railtie that is commented-out. You will have to remove
