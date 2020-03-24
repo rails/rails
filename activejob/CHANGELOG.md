@@ -3,6 +3,11 @@
     *Brad Nauta*, *Wojciech Wnętrzak*
 
 
+## Rails 6.0.2.2 (March 19, 2020) ##
+
+*   No changes.
+
+
 ## Rails 6.0.2.1 (December 18, 2019) ##
 
 *   No changes.

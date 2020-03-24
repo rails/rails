@@ -8,6 +8,15 @@
     *Guilherme Mansur*, *Gannon McGibbon*
 
 
+## Rails 6.0.2.2 (March 19, 2020) ##
+
+*   Fix possible XSS vector in escape_javascript helper
+
+    CVE-2020-5267
+
+    *Aaron Patterson*
+
+
 ## Rails 6.0.2.1 (December 18, 2019) ##
 
 *   No changes.
