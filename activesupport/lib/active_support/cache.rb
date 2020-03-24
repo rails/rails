@@ -59,6 +59,8 @@ module ActiveSupport
         when Symbol
           options = parameters.extract_options!
           retrieve_store_class(store).new(*parameters, **options)
+        when Array
+          lookup_store(*store)
         when nil
           ActiveSupport::Cache::MemoryStore.new
         else
