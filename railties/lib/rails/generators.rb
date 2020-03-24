@@ -39,7 +39,7 @@ module Rails
         resource_controller: "-c",
         scaffold_controller: "-c",
         stylesheets: "-y",
-        stylesheet_engine: "-se",
+        stylesheet_engine: "--se",
         scaffold_stylesheet: "-ss",
         template_engine: "-e",
         test_framework: "-t"

@@ -425,6 +425,18 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     assert_no_file "app/assets/stylesheets/posts.css"
   end
 
+  def test_scaffold_generator_alias_css_stylesheets_engine
+    run_generator [ "posts", "--se=css" ]
+    assert_file "app/assets/stylesheets/posts.css"
+    assert_no_file "app/assets/stylesheets/posts.scss"
+  end
+
+  def test_scaffold_generator_alias_nocss_stylesheets_engine
+    output = run_generator [ "posts", "--se=NOCSS" ]
+    assert_no_file "app/assets/stylesheets/posts.css"
+    assert_match(/NOCSS \[not found\]/, output)
+  end
+
   def test_scaffold_generator_outputs_error_message_on_missing_attribute_type
     run_generator ["post", "title", "body:text", "author"]
 
