@@ -1,3 +1,8 @@
+## Rails 5.2.4.2 (March 19, 2020) ##
+
+*   No changes.
+
+
 ## Rails 5.2.4.1 (December 18, 2019) ##
 
 *   Fix possible information leak / session hijacking vulnerability.
