@@ -1,3 +1,7 @@
+*   Mailgun ingress now passes through the envelope recipient as `X-Original-To`.
+
+    *Rikki Pitt*
+
 *   Deprecate `Rails.application.credentials.action_mailbox.api_key` and `MAILGUN_INGRESS_API_KEY` in favor of `Rails.application.credentials.action_mailbox.signing_key` and `MAILGUN_INGRESS_SIGNING_KEY`.
 
     *Matthijs Vos*
