@@ -33,16 +33,8 @@ module ActionView
         instrumentation_payload[:cache_hits] = cached_partials.size
 
         # Extract the items for the keys that are not found
-        # Set the uncached values to instance variable @collection
-        # which is used by the caller
         collection = keyed_collection.reject { |key, _| cached_partials.key?(key) }.values
 
-        # If all elements are already in cache then
-        # rendered partials will be an empty array
-        #
-        # If the cache is missing elements then
-        # the block will be called against the remaining items
-        # in the @collection.
         rendered_partials = collection.empty? ? [] : yield(collection_iterator.from_collection(collection))
 
         index = 0
