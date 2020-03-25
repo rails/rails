@@ -477,10 +477,10 @@ personalized message or call `presence` prior to `length`.
 
 This helper validates that your attributes have only numeric values. By
 default, it will match an optional sign followed by an integral or floating
-point number. To specify that only integral numbers are allowed set
-`:only_integer` to true.
+point number.
 
-If you set `:only_integer` to `true`, then it will use the
+To specify that only integral numbers are allowed,
+set `:only_integer` to true. Then it will use the
 
 ```ruby
 /\A[+-]?\d+\z/
@@ -495,6 +495,8 @@ class Player < ApplicationRecord
   validates :games_played, numericality: { only_integer: true }
 end
 ```
+
+The default error message for `:only_integer` is _"must be an integer"_.
 
 Besides `:only_integer`, this helper also accepts the following options to add
 constraints to acceptable values:
@@ -521,7 +523,7 @@ constraints to acceptable values:
 
 NOTE: By default, `numericality` doesn't allow `nil` values. You can use `allow_nil: true` option to permit it.
 
-The default error message is _"is not a number"_.
+The default error message when no options are specified is _"is not a number"_.
 
 ### `presence`
 
