@@ -7,8 +7,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     def self.valid_options(options)
-      valid = super
-      valid.push(:counter_cache, :join_table, :index_errors)
+      valid = super + [:counter_cache, :join_table, :index_errors]
       valid.push(:as, :foreign_type) if options[:as]
       valid.push(:through, :source, :source_type) if options[:through]
       valid
