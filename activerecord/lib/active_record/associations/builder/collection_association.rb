@@ -33,7 +33,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
       # TODO : why do i need method_defined? I think its because of the inheritance chain
       model.class_attribute full_callback_name unless model.method_defined?(full_callback_name)
       callbacks = Array(options[callback_name.to_sym]).map do |callback|
-        call_callback_method(callback)
+        self.call_callback_method(callback)
       end
       model.send "#{full_callback_name}=", callbacks
     end
@@ -59,7 +59,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
       CODE
     end
 
-    def call_callback_method(callback)
+    def self.call_callback_method(callback)
       case callback
       when Symbol
         ->(method, owner, record) { owner.send(callback, record) }
