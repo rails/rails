@@ -310,6 +310,16 @@ module ApplicationTests
       end
     end
 
+    def test_run_relative_path_with_trailing_slash
+      create_test_file :models, "account"
+      create_test_file :controllers, "accounts_controller"
+
+      run_test_command("test/models/").tap do |output|
+        assert_match "AccountTest", output
+        assert_match "1 runs, 1 assertions, 0 failures, 0 errors, 0 skips", output
+      end
+    end
+
     def test_run_with_ruby_command
       app_file "test/models/post_test.rb", <<-RUBY
         require 'test_helper'

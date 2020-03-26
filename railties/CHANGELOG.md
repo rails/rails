@@ -1,3 +1,7 @@
+*   Allow relative paths with trailing slashes to be passed to `rails test`.
+
+    *Eugene Kenny*
+
 *   Add `rack-mini-profiler` gem to the default `Gemfile`.
 
     `rack-mini-profiler` displays performance information such as SQL time and flame graphs.
