@@ -144,6 +144,12 @@ module ActiveRecord
       end
 
       def serialize(value)
+        unless serializable?(value)
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            '#{value}' is not a valid #{name}. Passing a non-existent enum
+            value in a query is deprecated and will raise an error in Rails 6.2.
+          MSG
+        end
         mapping.fetch(value, value)
       end
 

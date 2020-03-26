@@ -69,6 +69,7 @@ class EnumTest < ActiveRecord::TestCase
     assert_not_equal @book, Book.where.not(status: :published).first
     assert_equal @book, Book.where.not(status: :written).first
     assert_equal books(:ddd), Book.where(last_read: :forgotten).first
+    assert_deprecated { Book.where(status: :not_defined).first } if ActiveRecord::Base.connection.adapter_name == "Mysql2"
   end
 
   test "find via where with strings" do
@@ -79,6 +80,7 @@ class EnumTest < ActiveRecord::TestCase
     assert_not_equal @book, Book.where.not(status: "published").first
     assert_equal @book, Book.where.not(status: "written").first
     assert_equal books(:ddd), Book.where(last_read: "forgotten").first
+    assert_deprecated { Book.where(status: "not_defined").first } if ActiveRecord::Base.connection.adapter_name == "Mysql2"
   end
 
   test "build from scope" do

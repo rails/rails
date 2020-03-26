@@ -1,3 +1,7 @@
+*   Deprecate use of non-existent enum in query.
+
+    *Atul Kanswal*
+
 *   Build predicate conditions with objects that delegate `#id` and primary key:
 
     ```ruby
