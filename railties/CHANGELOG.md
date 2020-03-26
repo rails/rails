@@ -1,3 +1,7 @@
+*   Allow relative paths with trailing slashes to be passed to `rails test`.
+
+    *Eugene Kenny*
+
 *   Return a 405 Method Not Allowed response when a request uses an unknown HTTP method.
 
     Fixes #38998.
