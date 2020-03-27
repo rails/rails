@@ -297,8 +297,8 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_create_table_migration_primary_key_are_skipped
-    run_generator ["create_books", "--no-primary_key"]
+  def test_create_table_migration_primary_key_type_is_false
+    run_generator ["create_books", "--primary_key_type=false"]
     assert_migration "db/migrate/create_books.rb" do |content|
       assert_method :change, content do |change|
         assert_match(/create_table :books, id: false/, change)

@@ -18,10 +18,10 @@ module ActiveRecord
 
       private
         def primary_key_type
-          return ", id: false" unless options[:primary_key]
-
+          return unless options.key?(:primary_key_type)
           key_type = options[:primary_key_type]
-          ", id: :#{key_type}" if key_type
+          key_type.prepend(":") if key_type != "false"
+          ", id: #{key_type}"
         end
 
         def foreign_key_type
