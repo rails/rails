@@ -1,3 +1,9 @@
+*   Allow `ActionDispatch::HostAuthorization` to exclude specific requests.
+
+    Host Authorization checks can be skipped for specific requests. This allows for health check requests to be permitted for requests with missing or non-matching host headers.
+
+    *Chris Bisnett*
+
 *   Add `config.action_dispatch.request_id_header` to allow changing the name of
     the unique X-Request-Id header
 
