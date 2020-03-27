@@ -731,7 +731,7 @@ module ActiveSupport
           entry
         end
 
-        def get_entry_value(entry, name, options)
+        def get_entry_value(entry, name, **options)
           instrument(:fetch_hit, name, options) { }
           entry.value
         end
