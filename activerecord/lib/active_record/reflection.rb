@@ -306,6 +306,10 @@ module ActiveRecord
         active_record_primary_key
       end
 
+      def strict_loading?
+        options[:strict_loading]
+      end
+
       protected
         def actual_source_reflection # FIXME: this is a horrible name
           self
@@ -590,7 +594,6 @@ module ActiveRecord
       end
 
       private
-
         def calculate_constructable(macro, options)
           true
         end
@@ -620,7 +623,7 @@ module ActiveRecord
             end
 
             if valid_inverse_reflection?(reflection)
-              return inverse_name
+              inverse_name
             end
           end
         end
@@ -704,7 +707,6 @@ module ActiveRecord
       end
 
       private
-
         def calculate_constructable(macro, options)
           !options[:through]
         end
@@ -766,7 +768,17 @@ module ActiveRecord
       end
 
       def klass
-        @klass ||= delegate_reflection.compute_class(class_name)
+        @klass ||= delegate_reflection.compute_class(class_name).tap do |klass|
+          if !parent_reflection.is_a?(HasAndBelongsToManyReflection) &&
+             !(klass.reflections.key?(options[:through].to_s) ||
+               klass.reflections.key?(options[:through].to_s.pluralize)) &&
+             active_record.type_for_attribute(active_record.primary_key).type != :integer
+            raise NotImplementedError, <<~MSG.squish
+              In order to correctly type cast #{active_record}.#{active_record.primary_key},
+              #{klass} needs to define a :#{options[:through]} association.
+            MSG
+          end
+        end
       end
 
       # Returns the source of the through reflection. It checks both a singularized

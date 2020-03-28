@@ -32,7 +32,8 @@ module ActiveRecord
           name.to_s,
           options[:default],
           fetch_type_metadata(sql_type),
-          options[:null])
+          options[:null],
+        )
       end
 
       def columns(table_name)

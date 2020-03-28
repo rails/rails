@@ -2,6 +2,8 @@
 
 require "abstract_unit"
 require "controller/fake_models"
+require "test_component"
+require "active_model/validations"
 
 class TestController < ActionController::Base
 end
@@ -19,6 +21,8 @@ module RenderTestCases
     end.with_view_paths(paths, @assigns)
 
     controller = TestController.new
+    controller.perform_caching = true
+    @view.controller = controller
 
     @controller_view = controller.view_context_class.with_empty_template_cache.new(
       controller.lookup_context,
@@ -261,14 +265,14 @@ module RenderTestCases
   end
 
   def test_render_partial_with_invalid_option_as
-    e = assert_raises(ArgumentError) { @view.render(partial: "test/partial_only", as: "a-in") }
+    e = assert_raises(ArgumentError) { @view.render(partial: "test/partial_only", as: "a-in", object: nil) }
     assert_equal "The value (a-in) of the option `as` is not a valid Ruby identifier; " \
       "make sure it starts with lowercase letter, " \
       "and is followed by any combination of letters, numbers and underscores.", e.message
   end
 
   def test_render_partial_with_hyphen_and_invalid_option_as
-    e = assert_raises(ArgumentError) { @view.render(partial: "test/a-in", as: "a-in") }
+    e = assert_raises(ArgumentError) { @view.render(partial: "test/a-in", as: "a-in", object: nil) }
     assert_equal "The value (a-in) of the option `as` is not a valid Ruby identifier; " \
       "make sure it starts with lowercase letter, " \
       "and is followed by any combination of letters, numbers and underscores.", e.message
@@ -319,6 +323,10 @@ module RenderTestCases
     assert_equal "Hello: david", @view.render(partial: "test/customer", object: Customer.new("david"))
     assert_equal "FalseClass", @view.render(partial: "test/klass", object: false)
     assert_equal "NilClass", @view.render(partial: "test/klass", object: nil)
+  end
+
+  def test_render_object_different_name
+    assert_equal "Hello: t.lo", @view.render(partial: "test/template_not_named_customer", object: Customer.new("t.lo"), as: "customer").chomp
   end
 
   def test_render_object_with_array
@@ -670,6 +678,13 @@ module RenderTestCases
   def test_render_throws_exception_when_no_extensions_passed_to_register_template_handler_function_call
     assert_raises(ArgumentError) { ActionView::Template.register_template_handler CustomHandler }
   end
+
+  def test_render_component
+    assert_equal(
+      %(Hello, World!),
+      @view.render(TestComponent.new)
+    )
+  end
 end
 
 class CachedViewRenderTest < ActiveSupport::TestCase
@@ -769,6 +784,30 @@ class CachedCollectionViewRenderTest < ActiveSupport::TestCase
 
     assert_not_equal "Cached",
       @view.render(partial: "test/customer", collection: [customer])
+  end
+
+  test "collection caching does not cache if controller doesn't respond to perform_caching" do
+    @view.controller = nil
+
+    customer = Customer.new("david", 1)
+    key = cache_key(customer, "test/_customer")
+
+    ActionView::PartialRenderer.collection_cache.write(key, "Cached")
+
+    assert_not_equal "Cached",
+      @view.render(partial: "test/customer", collection: [customer], cached: true)
+  end
+
+  test "collection caching does not cache if perform_caching is disabled" do
+    @view.controller.perform_caching = false
+
+    customer = Customer.new("david", 1)
+    key = cache_key(customer, "test/_customer")
+
+    ActionView::PartialRenderer.collection_cache.write(key, "Cached")
+
+    assert_not_equal "Cached",
+      @view.render(partial: "test/customer", collection: [customer], cached: true)
   end
 
   test "collection caching with partial that doesn't use fragment caching" do

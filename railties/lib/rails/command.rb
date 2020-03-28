@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "active_support"
-require "active_support/dependencies/autoload"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/object/blank"
 
@@ -41,12 +40,19 @@ module Rails
         command_name, namespace = "help", "help" if command_name.blank? || HELP_MAPPINGS.include?(command_name)
         command_name, namespace = "version", "version" if %w( -v --version ).include?(command_name)
 
+        # isolate ARGV to ensure that commands depend only on the args they are given
+        args = args.dup # args might *be* ARGV so dup before clearing
+        old_argv = ARGV.dup
+        ARGV.clear
+
         command = find_by_namespace(namespace, command_name)
         if command && command.all_commands[command_name]
           command.perform(command_name, args, config)
         else
           find_by_namespace("rake").perform(full_namespace, args, config)
         end
+      ensure
+        ARGV.replace(old_argv)
       end
 
       # Rails finds namespaces similar to Thor, it only adds one rule:

@@ -44,7 +44,8 @@ module Enumerable
     end
   end
 
-  # Convert an enumerable to a hash keying it by the block return value.
+  # Convert an enumerable to a hash, using the block result as the key and the
+  # element as the value.
   #
   #   people.index_by(&:login)
   #   # => { "nextangle" => <Person ...>, "chade-" => <Person ...>, ...}
@@ -61,12 +62,19 @@ module Enumerable
     end
   end
 
-  # Convert an enumerable to a hash keying it with the enumerable items and with the values returned in the block.
+  # Convert an enumerable to a hash, using the element as the key and the block
+  # result as the value.
   #
   #   post = Post.new(title: "hey there", body: "what's up?")
   #
   #   %i( title body ).index_with { |attr_name| post.public_send(attr_name) }
   #   # => { title: "hey there", body: "what's up?" }
+  #
+  # If an argument is passed instead of a block, it will be used as the value
+  # for all elements:
+  #
+  #   %i( created_at updated_at ).index_with(Time.now)
+  #   # => { created_at: 2020-03-09 22:31:47, updated_at: 2020-03-09 22:31:47 }
   def index_with(default = INDEX_WITH_DEFAULT)
     if block_given?
       result = {}
@@ -134,7 +142,7 @@ module Enumerable
     excluding(*elements)
   end
 
-  # Convert an enumerable to an array based on the given key.
+  # Extract the given key from each element in the enumerable.
   #
   #   [{ name: "David" }, { name: "Rafael" }, { name: "Aaron" }].pluck(:name)
   #   # => ["David", "Rafael", "Aaron"]
@@ -147,6 +155,58 @@ module Enumerable
     else
       map { |element| element[keys.first] }
     end
+  end
+
+  # Extract the given key from the first element in the enumerable.
+  #
+  #   [{ name: "David" }, { name: "Rafael" }, { name: "Aaron" }].pick(:name)
+  #   # => "David"
+  #
+  #   [{ id: 1, name: "David" }, { id: 2, name: "Rafael" }].pick(:id, :name)
+  #   # => [1, "David"]
+  def pick(*keys)
+    return if none?
+
+    if keys.many?
+      keys.map { |key| first[key] }
+    else
+      first[keys.first]
+    end
+  end
+
+  # Returns a new +Array+ without the blank items.
+  # Uses Object#blank? for determining if an item is blank.
+  #
+  #    [1, "", nil, 2, " ", [], {}, false, true].compact_blank
+  #    # =>  [1, 2, true]
+  #
+  #    Set.new([nil, "", 1, 2])
+  #    # => [2, 1] (or [1, 2])
+  #
+  # When called on a +Hash+, returns a new +Hash+ without the blank values.
+  #
+  #    { a: "", b: 1, c: nil, d: [], e: false, f: true }.compact_blank
+  #    #=> { b: 1, f: true }
+  def compact_blank
+    reject(&:blank?)
+  end
+end
+
+class Hash
+  # Hash#reject has its own definition, so this needs one too.
+  def compact_blank #:nodoc:
+    reject { |_k, v| v.blank? }
+  end
+
+  # Removes all blank values from the +Hash+ in place and returns self.
+  # Uses Object#blank? for determining if a value is blank.
+  #
+  #    h = { a: "", b: 1, c: nil, d: [], e: false, f: true }
+  #    h.compact_blank!
+  #    # => { b: 1, f: true }
+  def compact_blank!
+    # use delete_if rather than reject! because it always returns self even if nothing changed
+    delete_if { |_k, v| v.blank? }
   end
 end
 
@@ -184,5 +244,16 @@ class Array #:nodoc:
     else
       super
     end
+  end
+
+  # Removes all blank elements from the +Array+ in place and returns self.
+  # Uses Object#blank? for determining if an item is blank.
+  #
+  #    a = [1, "", nil, 2, " ", [], {}, false, true]
+  #    a.compact_blank!
+  #    # =>  [1, 2, true]
+  def compact_blank!
+    # use delete_if rather than reject! because it always returns self even if nothing changed
+    delete_if(&:blank?)
   end
 end

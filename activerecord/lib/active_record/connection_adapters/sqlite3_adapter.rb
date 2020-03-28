@@ -26,7 +26,7 @@ module ActiveRecord
       # Allow database path relative to Rails.root, but only if the database
       # path is not the special path that tells sqlite to build a database only
       # in memory.
-      if ":memory:" != config[:database]
+      if ":memory:" != config[:database] && !config[:database].to_s.starts_with?("file:")
         config[:database] = File.expand_path(config[:database], Rails.root) if defined?(Rails.root)
         dirname = File.dirname(config[:database])
         Dir.mkdir(dirname) unless File.directory?(dirname)
@@ -98,11 +98,25 @@ module ActiveRecord
         configure_connection
       end
 
+      def self.database_exists?(config)
+        config = config.symbolize_keys
+        if config[:database] == ":memory:"
+          true
+        else
+          database_file = defined?(Rails.root) ? File.expand_path(config[:database], Rails.root) : config[:database]
+          File.exist?(database_file)
+        end
+      end
+
       def supports_ddl_transactions?
         true
       end
 
       def supports_savepoints?
+        true
+      end
+
+      def supports_transaction_isolation?
         true
       end
 
@@ -132,6 +146,10 @@ module ActiveRecord
 
       def supports_json?
         true
+      end
+
+      def supports_common_table_expressions?
+        database_version >= "3.8.3"
       end
 
       def supports_insert_on_conflict?
@@ -201,14 +219,6 @@ module ActiveRecord
         end
       end
 
-      #--
-      # DATABASE STATEMENTS ======================================
-      #++
-      def explain(arel, binds = [])
-        sql = "EXPLAIN QUERY PLAN #{to_sql(arel, binds)}"
-        SQLite3::ExplainPrettyPrinter.new.pp(exec_query(sql, "EXPLAIN", []))
-      end
-
       # SCHEMA STATEMENTS ========================================
 
       def primary_keys(table_name) # :nodoc:
@@ -216,8 +226,8 @@ module ActiveRecord
         pks.sort_by { |f| f["pk"] }.map { |f| f["name"] }
       end
 
-      def remove_index(table_name, options = {}) #:nodoc:
-        index_name = index_name_for_remove(table_name, options)
+      def remove_index(table_name, column_name, options = {}) #:nodoc:
+        index_name = index_name_for_remove(table_name, column_name, options)
         exec_query "DROP INDEX #{quote_column_name(index_name)}"
       end
 
@@ -226,21 +236,23 @@ module ActiveRecord
       # Example:
       #   rename_table('octopuses', 'octopi')
       def rename_table(table_name, new_name)
+        schema_cache.clear_data_source_cache!(table_name.to_s)
+        schema_cache.clear_data_source_cache!(new_name.to_s)
         exec_query "ALTER TABLE #{quote_table_name(table_name)} RENAME TO #{quote_table_name(new_name)}"
         rename_table_indexes(table_name, new_name)
       end
 
-      def add_column(table_name, column_name, type, options = {}) #:nodoc:
+      def add_column(table_name, column_name, type, **options) #:nodoc:
         if invalid_alter_table_type?(type, options)
           alter_table(table_name) do |definition|
-            definition.column(column_name, type, options)
+            definition.column(column_name, type, **options)
           end
         else
           super
         end
       end
 
-      def remove_column(table_name, column_name, type = nil, options = {}) #:nodoc:
+      def remove_column(table_name, column_name, type = nil, **options) #:nodoc:
         alter_table(table_name) do |definition|
           definition.remove_column column_name
           definition.foreign_keys.delete_if do |_, fk_options|
@@ -311,10 +323,15 @@ module ActiveRecord
           sql << " ON CONFLICT #{insert.conflict_target} DO NOTHING"
         elsif insert.update_duplicates?
           sql << " ON CONFLICT #{insert.conflict_target} DO UPDATE SET "
+          sql << insert.touch_model_timestamps_unless { |column| "#{column} IS excluded.#{column}" }
           sql << insert.updatable_columns.map { |column| "#{column}=excluded.#{column}" }.join(",")
         end
 
         sql
+      end
+
+      def shared_cache? # :nodoc:
+        @config.fetch(:flags, 0).anybits?(::SQLite3::Constants::Open::SHAREDCACHE)
       end
 
       def get_database_version # :nodoc:
@@ -349,7 +366,8 @@ module ActiveRecord
         # See: https://www.sqlite.org/lang_altertable.html
         # SQLite has an additional restriction on the ALTER TABLE statement
         def invalid_alter_table_type?(type, options)
-          type.to_sym == :primary_key || options[:primary_key]
+          type.to_sym == :primary_key || options[:primary_key] ||
+            options[:null] == false && options[:default].nil?
         end
 
         def alter_table(table_name, foreign_keys = foreign_keys(table_name), **options)
@@ -362,7 +380,7 @@ module ActiveRecord
                 fk.options[:column] = column
               end
               to_table = strip_table_name_prefix_and_suffix(fk.to_table)
-              definition.foreign_key(to_table, fk.options)
+              definition.foreign_key(to_table, **fk.options)
             end
 
             yield definition if block_given?
@@ -384,11 +402,12 @@ module ActiveRecord
         def copy_table(from, to, options = {})
           from_primary_key = primary_key(from)
           options[:id] = false
-          create_table(to, options) do |definition|
+          create_table(to, **options) do |definition|
             @definition = definition
             if from_primary_key.is_a?(Array)
               @definition.primary_keys from_primary_key
             end
+
             columns(from).each do |column|
               column_name = options[:rename] ?
                 (options[:rename][column.name] ||
@@ -485,9 +504,9 @@ module ActiveRecord
           result = exec_query(sql, "SCHEMA").first
 
           if result
-            # Splitting with left parentheses and picking up last will return all
+            # Splitting with left parentheses and discarding the first part will return all
             # columns separated with comma(,).
-            columns_string = result["sql"].split("(").last
+            columns_string = result["sql"].split("(", 2).last
 
             columns_string.split(",").each do |column_string|
               # This regex will match the column name and collation type and will save

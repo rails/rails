@@ -22,7 +22,8 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
 
   def test_bad_connection
     assert_raise ActiveRecord::NoDatabaseError do
-      configuration = ActiveRecord::Base.configurations["arunit"].merge(database: "inexistent_activerecord_unittest")
+      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+      configuration = db_config.configuration_hash.merge(database: "inexistent_activerecord_unittest")
       connection = ActiveRecord::Base.mysql2_connection(configuration)
       connection.drop_table "ex", if_exists: true
     end
@@ -197,7 +198,6 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   end
 
   private
-
     def test_lock_free(lock_name)
       @connection.select_value("SELECT IS_FREE_LOCK(#{@connection.quote(lock_name)})") == 1
     end

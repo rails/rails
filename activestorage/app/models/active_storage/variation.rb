@@ -58,6 +58,10 @@ class ActiveStorage::Variation
     self.class.encode(transformations)
   end
 
+  def digest
+    Digest::SHA1.base64digest Marshal.dump(transformations)
+  end
+
   private
     def transformer
       if ActiveStorage.variant_processor

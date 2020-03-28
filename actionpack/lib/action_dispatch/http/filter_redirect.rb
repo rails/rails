@@ -14,7 +14,6 @@ module ActionDispatch
       end
 
     private
-
       def location_filters
         if request
           request.get_header("action_dispatch.redirect_filter") || []
@@ -28,7 +27,7 @@ module ActionDispatch
           if String === filter
             location.include?(filter)
           elsif Regexp === filter
-            location =~ filter
+            location.match?(filter)
           end
         end
       end

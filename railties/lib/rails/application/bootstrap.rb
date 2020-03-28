@@ -34,20 +34,12 @@ module Rails
       # Initialize the logger early in the stack in case we need to log some deprecation.
       initializer :initialize_logger, group: :all do
         Rails.logger ||= config.logger || begin
-          path = config.paths["log"].first
-          unless File.exist? File.dirname path
-            FileUtils.mkdir_p File.dirname path
-          end
-
-          f = File.open path, "a"
-          f.binmode
-          f.sync = config.autoflush_log # if true make sure every write flushes
-
-          logger = ActiveSupport::Logger.new f
+          logger = ActiveSupport::Logger.new(config.default_log_file)
           logger.formatter = config.log_formatter
           logger = ActiveSupport::TaggedLogging.new(logger)
           logger
         rescue StandardError
+          path = config.paths["log"].first
           logger = ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(STDERR))
           logger.level = ActiveSupport::Logger::WARN
           logger.warn(
@@ -64,7 +56,7 @@ module Rails
       # Initialize cache early in the stack so railties can make use of it.
       initializer :initialize_cache, group: :all do
         unless Rails.cache
-          Rails.cache = ActiveSupport::Cache.lookup_store(config.cache_store)
+          Rails.cache = ActiveSupport::Cache.lookup_store(*config.cache_store)
 
           if Rails.cache.respond_to?(:middleware)
             config.middleware.insert_before(::Rack::Runtime, Rails.cache.middleware)

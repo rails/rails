@@ -247,7 +247,8 @@ module ActiveRecord
         super
         attributes_to_define_after_schema_loads.each do |name, (type, options)|
           if type.is_a?(Symbol)
-            type = ActiveRecord::Type.lookup(type, **options.except(:default))
+            adapter_name = ActiveRecord::Type.adapter_name_from(self)
+            type = ActiveRecord::Type.lookup(type, **options.except(:default), adapter: adapter_name)
           end
 
           define_attribute(name, type, **options.slice(:default))
@@ -255,7 +256,6 @@ module ActiveRecord
       end
 
       private
-
         NO_DEFAULT_PROVIDED = Object.new # :nodoc:
         private_constant :NO_DEFAULT_PROVIDED
 

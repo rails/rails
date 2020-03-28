@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../abstract_unit"
 require "active_support/deprecation"
 
 class MethodWrappersTest < ActiveSupport::TestCase
@@ -10,12 +10,10 @@ class MethodWrappersTest < ActiveSupport::TestCase
       alias_method :old_method, :new_method
 
       protected
-
         def new_protected_method; "abc" end
         alias_method :old_protected_method, :new_protected_method
 
       private
-
         def new_private_method; "abc" end
         alias_method :old_private_method, :new_private_method
     end

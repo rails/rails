@@ -445,7 +445,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_default_scope_select_ignored_by_grouped_aggregations
-    assert_equal Hash[Developer.all.group_by(&:salary).map { |s, d| [s, d.count] }],
+    assert_equal Developer.all.group_by(&:salary).transform_values(&:count),
                  DeveloperWithSelect.group(:salary).count
   end
 
@@ -523,13 +523,8 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_with_abstract_class_scope_should_be_executed_in_correct_context
-    vegetarian_pattern, gender_pattern = if current_adapter?(:Mysql2Adapter)
-      [/`lions`.`is_vegetarian`/, /`lions`.`gender`/]
-    elsif current_adapter?(:OracleAdapter)
-      [/"LIONS"."IS_VEGETARIAN"/, /"LIONS"."GENDER"/]
-    else
-      [/"lions"."is_vegetarian"/, /"lions"."gender"/]
-    end
+    vegetarian_pattern = /#{Regexp.escape(Lion.connection.quote_table_name("lions.is_vegetarian"))}/i
+    gender_pattern     = /#{Regexp.escape(Lion.connection.quote_table_name("lions.gender"))}/i
 
     assert_match vegetarian_pattern, Lion.all.to_sql
     assert_match gender_pattern, Lion.female.to_sql

@@ -11,14 +11,8 @@ end
 
 class DummyCompiler < ERB::Compiler # :nodoc:
   def compile_content(stag, out)
-    case stag
-    when "<%="
-      content = out.instance_variable_get(:@compiler).instance_variable_get(:@content)
-      if content.include?("?") && content.include?(":")
-        out.push "_erbout << 'dummy_key: dummy_value'"
-      else
-        out.push "_erbout << 'dummy_value'"
-      end
+    if stag == "<%="
+      out.push "_erbout << ''"
     end
   end
 end

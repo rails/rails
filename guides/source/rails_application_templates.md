@@ -25,8 +25,8 @@ $ rails new blog -m http://example.com/template.rb
 You can use the `app:template` rails command to apply templates to an existing Rails application. The location of the template needs to be passed in via the LOCATION environment variable. Again, this can either be path to a file or a URL.
 
 ```bash
-$ rails app:template LOCATION=~/template.rb
-$ rails app:template LOCATION=http://example.com/template.rb
+$ bin/rails app:template LOCATION=~/template.rb
+$ bin/rails app:template LOCATION=http://example.com/template.rb
 ```
 
 Template API
@@ -82,10 +82,10 @@ end
 
 Adds the given source to the generated application's `Gemfile`.
 
-For example, if you need to source a gem from `"http://code.whytheluckystiff.net"`:
+For example, if you need to source a gem from `"http://gems.github.com"`:
 
 ```ruby
-add_source "http://code.whytheluckystiff.net"
+add_source "http://gems.github.com"
 ```
 
 If block is given, gem entries in block are wrapped into the source group.
@@ -235,10 +235,10 @@ CODE
 
 ### yes?(question) or no?(question)
 
-These methods let you ask questions from templates and decide the flow based on the user's answer. Let's say you want to Freeze Rails only if the user wants to:
+These methods let you ask questions from templates and decide the flow based on the user's answer. Let's say you want to prompt the user to run migrations:
 
 ```ruby
-rails_command("rails:freeze:gems") if yes?("Freeze rails gems?")
+rails_command("db:migrate") if yes?("Run database migrations?")
 # no?(question) acts just the opposite.
 ```
 

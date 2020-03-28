@@ -28,6 +28,7 @@ module AbstractController
       else
         _set_rendered_content_type rendered_format
       end
+      _set_vary_header
       self.response_body = rendered_body
     end
 
@@ -55,20 +56,16 @@ module AbstractController
       Mime[:text]
     end
 
-    DEFAULT_PROTECTED_INSTANCE_VARIABLES = Set.new %i(
-      @_action_name @_response_body @_formats @_prefixes
-    )
+    DEFAULT_PROTECTED_INSTANCE_VARIABLES = %i(@_action_name @_response_body @_formats @_prefixes)
 
     # This method should return a hash with assigns.
     # You can overwrite this configuration per controller.
     def view_assigns
-      protected_vars = _protected_ivars
-      variables      = instance_variables
+      variables = instance_variables - _protected_ivars
 
-      variables.reject! { |s| protected_vars.include? s }
-      variables.each_with_object({}) { |name, hash|
+      variables.each_with_object({}) do |name, hash|
         hash[name.slice(1, name.length)] = instance_variable_get(name)
-      }
+      end
     end
 
   private
@@ -107,6 +104,9 @@ module AbstractController
     end
 
     def _set_html_content_type # :nodoc:
+    end
+
+    def _set_vary_header # :nodoc:
     end
 
     def _set_rendered_content_type(format) # :nodoc:

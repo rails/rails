@@ -41,13 +41,15 @@ module ActiveRecord
             case column.sql_type
             when /\Atimestamp\b/
               :timestamp
+            when /\A(?:enum|set)\b/
+              column.sql_type
             else
               super
             end
           end
 
           def schema_limit(column)
-            super unless /\A(?:tiny|medium|long)?(?:text|blob)/.match?(column.sql_type)
+            super unless /\A(?:enum|set|(?:tiny|medium|long)?(?:text|blob))\b/.match?(column.sql_type)
           end
 
           def schema_precision(column)

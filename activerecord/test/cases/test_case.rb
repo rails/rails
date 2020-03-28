@@ -34,7 +34,7 @@ module ActiveRecord
       ActiveRecord::Base.connection.materialize_transactions
       SQLCounter.clear_log
       yield
-      SQLCounter.log_all.dup
+      SQLCounter.log.dup
     end
 
     def assert_sql(*patterns_to_match)
@@ -78,6 +78,28 @@ module ActiveRecord
     def has_column?(model, column_name)
       model.reset_column_information
       model.column_names.include?(column_name.to_s)
+    end
+
+    def with_has_many_inversing
+      old = ActiveRecord::Base.has_many_inversing
+      ActiveRecord::Base.has_many_inversing = true
+      yield
+    ensure
+      ActiveRecord::Base.has_many_inversing = old
+    end
+
+    def reset_callbacks(klass, kind)
+      old_callbacks = {}
+      old_callbacks[klass] = klass.send("_#{kind}_callbacks").dup
+      klass.subclasses.each do |subclass|
+        old_callbacks[subclass] = subclass.send("_#{kind}_callbacks").dup
+      end
+      yield
+    ensure
+      klass.send("_#{kind}_callbacks=", old_callbacks[klass])
+      klass.subclasses.each do |subclass|
+        subclass.send("_#{kind}_callbacks=", old_callbacks[subclass])
+      end
     end
   end
 

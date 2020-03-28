@@ -2,7 +2,6 @@
 
 require "active_support/core_ext/hash/except"
 require "active_support/core_ext/module/redefine_method"
-require "active_support/core_ext/object/try"
 require "active_support/core_ext/hash/indifferent_access"
 
 module ActiveRecord
@@ -289,7 +288,7 @@ module ActiveRecord
       # [:allow_destroy]
       #   If true, destroys any members from the attributes hash with a
       #   <tt>_destroy</tt> key and a value that evaluates to +true+
-      #   (eg. 1, '1', true, or 'true'). This option is off by default.
+      #   (e.g. 1, '1', true, or 'true'). This option is off by default.
       # [:reject_if]
       #   Allows you to specify a Proc or a Symbol pointing to a method
       #   that checks whether a record should be built for a certain attribute
@@ -354,7 +353,6 @@ module ActiveRecord
       end
 
       private
-
         # Generates a writer method for this association. Serves as a point for
         # accessing the objects in the association. For example, this method
         # could generate the following:
@@ -386,7 +384,6 @@ module ActiveRecord
     end
 
     private
-
       # Attribute hash keys that should not be assigned as normal attributes.
       # These hash keys are nested attributes implementation details.
       UNASSIGNABLE_KEYS = %w( id _destroy )
@@ -512,7 +509,7 @@ module ActiveRecord
               if target_record
                 existing_record = target_record
               else
-                association.add_to_target(existing_record, :skip_callbacks)
+                association.add_to_target(existing_record, skip_callbacks: true)
               end
 
               assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])

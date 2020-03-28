@@ -43,13 +43,13 @@ module ActionView
         end
       end
 
-      # preallocate all the default blocks for performance/memory consumption reasons
+      # Preallocate all the default blocks for performance/memory consumption reasons
       PARTIAL_BLOCK = lambda { |cache, partial| cache[partial] = SmallCache.new }
       PREFIX_BLOCK  = lambda { |cache, prefix|  cache[prefix]  = SmallCache.new(&PARTIAL_BLOCK) }
       NAME_BLOCK    = lambda { |cache, name|    cache[name]    = SmallCache.new(&PREFIX_BLOCK) }
       KEY_BLOCK     = lambda { |cache, key|     cache[key]     = SmallCache.new(&NAME_BLOCK) }
 
-      # usually a majority of template look ups return nothing, use this canonical preallocated array to save memory
+      # Usually a majority of template look ups return nothing, use this canonical preallocated array to save memory
       NO_TEMPLATES = [].freeze
 
       def initialize
@@ -58,7 +58,7 @@ module ActionView
       end
 
       def inspect
-        "#<#{self.class.name}:0x#{(object_id << 1).to_s(16)} keys=#{@data.size} queries=#{@query_cache.size}>"
+        "#{to_s[0..-2]} keys=#{@data.size} queries=#{@query_cache.size}>"
       end
 
       # Cache the templates returned by the block
@@ -75,7 +75,7 @@ module ActionView
         @query_cache.clear
       end
 
-      # Get the cache size.  Do not call this
+      # Get the cache size. Do not call this
       # method. This method is not guaranteed to be here ever.
       def size # :nodoc:
         size = 0
@@ -93,7 +93,6 @@ module ActionView
       end
 
       private
-
         def canonical_no_templates(templates)
           templates.empty? ? NO_TEMPLATES : templates
         end
@@ -130,7 +129,6 @@ module ActionView
     end
 
   private
-
     def _find_all(name, prefix, partial, details, key, locals)
       find_templates(name, prefix, partial, details, locals)
     end
@@ -183,7 +181,6 @@ module ActionView
     end
 
     private
-
       def _find_all(name, prefix, partial, details, key, locals)
         path = Path.build(name, prefix, partial)
         query(path, details, details[:formats], locals, cache: !!key)
@@ -207,9 +204,13 @@ module ActionView
         end
       end
 
+      def source_for_template(template)
+        Template::Sources::File.new(template)
+      end
+
       def build_unbound_template(template, virtual_path)
         handler, format, variant = extract_handler_and_format_and_variant(template)
-        source = Template::Sources::File.new(template)
+        source = source_for_template(template)
 
         UnboundTemplate.new(
           source,
@@ -252,7 +253,7 @@ module ActionView
         query.gsub!(/:prefix(\/)?/, prefix)
 
         partial = escape_entry(path.partial? ? "_#{path.name}" : path.name)
-        query.gsub!(/:action/, partial)
+        query.gsub!(":action", partial)
 
         details.each do |ext, candidates|
           if ext == :variants && candidates == :any
@@ -282,12 +283,8 @@ module ActionView
         format, variant = pieces.last.split(EXTENSIONS[:variants], 2) if pieces.last
         format = if format
           Template::Types[format]&.ref
-        else
-          if handler.respond_to?(:default_format) # default_format can return nil
-            handler.default_format
-          else
-            nil
-          end
+        elsif handler.respond_to?(:default_format) # default_format can return nil
+          handler.default_format
         end
 
         # Template::Types[format] and handler.default_format can return nil
@@ -323,15 +320,22 @@ module ActionView
     end
 
     private
-
-      def find_template_paths_from_details(path, details)
+      def find_candidate_template_paths(path)
         # Instead of checking for every possible path, as our other globs would
         # do, scan the directory for files with the right prefix.
         query = "#{escape_entry(File.join(@path, path))}*"
 
+        Dir[query].reject do |filename|
+          File.directory?(filename)
+        end
+      end
+
+      def find_template_paths_from_details(path, details)
+        candidates = find_candidate_template_paths(path)
+
         regex = build_regex(path, details)
 
-        Dir[query].uniq.reject do |filename|
+        candidates.uniq.reject do |filename|
           # This regex match does double duty of finding only files which match
           # details (instead of just matching the prefix) and also filtering for
           # case-insensitive file systems.
@@ -343,7 +347,7 @@ module ActionView
           # We can use the matches found by the regex and sort by their index in
           # details.
           match = filename.match(regex)
-          EXTENSIONS.keys.reverse.map do |ext|
+          EXTENSIONS.keys.map do |ext|
             if ext == :variants && details[ext] == :any
               match[ext].nil? ? 0 : 1
             elsif match[ext].nil?
@@ -358,13 +362,16 @@ module ActionView
       end
 
       def build_regex(path, details)
-        query = escape_entry(File.join(@path, path))
+        query = Regexp.escape(File.join(@path, path))
         exts = EXTENSIONS.map do |ext, prefix|
           match =
             if ext == :variants && details[ext] == :any
               ".*?"
             else
-              details[ext].compact.uniq.map { |e| Regexp.escape(e) }.join("|")
+              arr = details[ext].compact
+              arr.uniq!
+              arr.map! { |e| Regexp.escape(e) }
+              arr.join("|")
             end
           prefix = Regexp.escape(prefix)
           "(#{prefix}(?<#{ext}>#{match}))?"

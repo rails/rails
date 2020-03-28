@@ -17,10 +17,14 @@ module ActiveRecord
       end
 
       private
-
         def primary_key_type
           key_type = options[:primary_key_type]
           ", id: :#{key_type}" if key_type
+        end
+
+        def foreign_key_type
+          key_type = options[:primary_key_type]
+          ", type: :#{key_type}" if key_type
         end
 
         def db_migrate_path
@@ -39,7 +43,7 @@ module ActiveRecord
           return unless database = options[:database]
           config = ActiveRecord::Base.configurations.configs_for(
             env_name: Rails.env,
-            spec_name: database,
+            name: database
           )
           config&.migrations_paths
         end

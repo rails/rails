@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 
 class BacktraceCleanerFilterTest < ActiveSupport::TestCase
   def setup

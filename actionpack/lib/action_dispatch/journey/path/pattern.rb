@@ -165,6 +165,10 @@ module ActionDispatch
         end
         alias :=~ :match
 
+        def match?(other)
+          to_regexp.match?(other)
+        end
+
         def source
           to_regexp.source
         end
@@ -173,8 +177,13 @@ module ActionDispatch
           @re ||= regexp_visitor.new(@separators, @requirements).accept spec
         end
 
-        private
+        def requirements_for_missing_keys_check
+          @requirements_for_missing_keys_check ||= requirements.transform_values do |regex|
+            /\A#{regex}\Z/
+          end
+        end
 
+        private
           def regexp_visitor
             @anchored ? AnchoredRegexp : UnanchoredRegexp
           end

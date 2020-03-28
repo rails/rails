@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/callbacks"
+require "active_support/core_ext/enumerable"
 
 module ActiveSupport
   # Abstract super class that provides a thread-isolated attributes singleton, which resets automatically
@@ -91,7 +92,7 @@ module ActiveSupport
     class << self
       # Returns singleton instance for this class in this thread. If none exists, one is created.
       def instance
-        current_instances[name] ||= new
+        current_instances[current_instances_key] ||= new
       end
 
       # Declares one or more attributes that will be given both class and instance accessor methods.
@@ -150,6 +151,10 @@ module ActiveSupport
           Thread.current[:current_attributes_instances] ||= {}
         end
 
+        def current_instances_key
+          @current_instances_key ||= name.to_sym
+        end
+
         def method_missing(name, *args, &block)
           # Caches the method definition as a singleton method of the receiver.
           #
@@ -197,7 +202,7 @@ module ActiveSupport
       end
 
       def compute_attributes(keys)
-        keys.collect { |key| [ key, public_send(key) ] }.to_h
+        keys.index_with { |key| public_send(key) }
       end
   end
 end

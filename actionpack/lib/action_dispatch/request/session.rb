@@ -90,7 +90,13 @@ module ActionDispatch
       # +nil+ if the given key is not found in the session.
       def [](key)
         load_for_read!
-        @delegate[key.to_s]
+        key = key.to_s
+
+        if key == "session_id"
+          id&.public_id
+        else
+          @delegate[key]
+        end
       end
 
       # Returns the nested value specified by the sequence of keys, returning
@@ -152,7 +158,7 @@ module ActionDispatch
       #   # => {"session_id"=>"e29b9ea315edf98aad94cc78c34cc9b2", "foo" => "bar"}
       def update(hash)
         load_for_write!
-        @delegate.update stringify_keys(hash)
+        @delegate.update hash.stringify_keys
       end
 
       # Deletes given key from the session.
@@ -216,7 +222,6 @@ module ActionDispatch
       end
 
       private
-
         def load_for_read!
           load! if !loaded? && exists?
         end
@@ -228,14 +233,8 @@ module ActionDispatch
         def load!
           id, session = @by.load_session @req
           options[:id] = id
-          @delegate.replace(stringify_keys(session))
+          @delegate.replace(session.stringify_keys)
           @loaded = true
-        end
-
-        def stringify_keys(other)
-          other.each_with_object({}) { |(key, value), hash|
-            hash[key.to_s] = value
-          }
         end
     end
   end

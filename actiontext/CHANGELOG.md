@@ -1,21 +1,25 @@
-*  The `fill_in_rich_text_area` system test helper locates a Trix editor and fills it in with the given HTML:
+*   Add method to confirm rich text content existence by adding `?` after content name.
 
-   ```ruby
-   # <trix-editor id="message_content" ...></trix-editor>
-   fill_in_rich_text_area "message_content", with: "Hello <em>world!</em>"
+    *Kyohei Toyoda*
 
-   # <trix-editor placeholder="Your message here" ...></trix-editor>
-   fill_in_rich_text_area "Your message here", with: "Hello <em>world!</em>"
+*   The `fill_in_rich_text_area` system test helper locates a Trix editor and fills it in with the given HTML:
 
-   # <trix-editor aria-label="Message content" ...></trix-editor>
-   fill_in_rich_text_area "Message content", with: "Hello <em>world!</em>"
+    ```ruby
+    # <trix-editor id="message_content" ...></trix-editor>
+    fill_in_rich_text_area "message_content", with: "Hello <em>world!</em>"
 
-   # <input id="trix_input_1" name="message[content]" type="hidden">
-   # <trix-editor input="trix_input_1"></trix-editor>
-   fill_in_rich_text_area "message[content]", with: "Hello <em>world!</em>"
-   ```
+    # <trix-editor placeholder="Your message here" ...></trix-editor>
+    fill_in_rich_text_area "Your message here", with: "Hello <em>world!</em>"
 
-   *George Claghorn*
+    # <trix-editor aria-label="Message content" ...></trix-editor>
+    fill_in_rich_text_area "Message content", with: "Hello <em>world!</em>"
+
+    # <input id="trix_input_1" name="message[content]" type="hidden">
+    # <trix-editor input="trix_input_1"></trix-editor>
+    fill_in_rich_text_area "message[content]", with: "Hello <em>world!</em>"
+    ```
+
+    *George Claghorn*
 
 
 Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/actiontext/CHANGELOG.md) for previous changes.

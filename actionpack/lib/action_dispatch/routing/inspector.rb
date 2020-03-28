@@ -53,7 +53,7 @@ module ActionDispatch
 
     ##
     # This class is just used for displaying route information when someone
-    # executes `rails routes` or looks at the RoutingError page.
+    # executes `bin/rails routes` or looks at the RoutingError page.
     # People should not use this class.
     class RoutesInspector # :nodoc:
       def initialize(routes)
@@ -94,7 +94,7 @@ module ActionDispatch
           if filter
             @routes.select do |route|
               route_wrapper = RouteWrapper.new(route)
-              filter.any? { |default, value| route_wrapper.send(default) =~ value }
+              filter.any? { |default, value| value.match?(route_wrapper.send(default)) }
             end
           else
             @routes
@@ -177,7 +177,6 @@ module ActionDispatch
         end
 
         private
-
           def draw_section(routes)
             header_lengths = ["Prefix", "Verb", "URI Pattern"].map(&:length)
             name_width, verb_width, path_width = widths(routes).zip(header_lengths).map(&:max)
@@ -201,6 +200,11 @@ module ActionDispatch
       end
 
       class Expanded < Base
+        def initialize(width: IO.console_size[1])
+          @width = width
+          super()
+        end
+
         def section_title(title)
           @buffer << "\n#{"[ #{title} ]"}"
         end
@@ -210,7 +214,6 @@ module ActionDispatch
         end
 
         private
-
           def draw_expanded_section(routes)
             routes.map.each_with_index do |r, i|
               <<~MESSAGE.chomp
@@ -224,11 +227,7 @@ module ActionDispatch
           end
 
           def route_header(index:)
-            console_width = IO.console_size.second
-            header_prefix = "--[ Route #{index} ]"
-            dash_remainder = [console_width - header_prefix.size, 0].max
-
-            "#{header_prefix}#{'-' * dash_remainder}"
+            "--[ Route #{index} ]".ljust(@width, "-")
           end
       end
     end

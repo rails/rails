@@ -34,7 +34,7 @@ module RailtiesTest
 
     def migrations
       migration_root = File.expand_path(ActiveRecord::Migrator.migrations_paths.first, app_path)
-      ActiveRecord::MigrationContext.new(migration_root).migrations
+      ActiveRecord::MigrationContext.new(migration_root, ActiveRecord::SchemaMigration).migrations
     end
 
     test "serving sprocket's assets" do
@@ -110,7 +110,7 @@ module RailtiesTest
 
         assert_no_match(/\d+_create_users/, output.join("\n"))
 
-        bukkits_migration_order = output.index(output.detect { |o| /NOTE: Migration \d+_create_sessions\.rb from bukkits has been skipped/ =~ o })
+        bukkits_migration_order = output.index(output.detect { |o| /NOTE: Migration \d+_create_sessions\.rb from bukkits has been skipped/.match?(o) })
         assert_not_nil bukkits_migration_order, "Expected migration to be skipped"
       end
     end
@@ -398,18 +398,18 @@ module RailtiesTest
       app_file "app/locales/en.yml", <<-YAML
 en:
   bar: "1"
-YAML
+      YAML
 
       app_file "config/locales/en.yml", <<-YAML
 en:
   foo: "2"
   bar: "2"
-YAML
+      YAML
 
       @plugin.write "config/locales/en.yml", <<-YAML
 en:
   foo: "3"
-YAML
+      YAML
 
       boot_rails
 
@@ -1029,15 +1029,15 @@ YAML
 
       boot_rails
 
-      app_generators = Rails.application.config.generators.options[:rails]
-      assert_equal :mongoid, app_generators[:orm]
-      assert_equal :liquid, app_generators[:template_engine]
-      assert_equal :test_unit, app_generators[:test_framework]
+      app_generators = Rails.application.config.generators
+      assert_equal :mongoid, app_generators.orm
+      assert_equal :liquid, app_generators.template_engine
+      assert_equal :test_unit, app_generators.test_framework
 
-      generators = Bukkits::Engine.config.generators.options[:rails]
-      assert_equal :data_mapper, generators[:orm]
-      assert_equal :haml, generators[:template_engine]
-      assert_equal :rspec, generators[:test_framework]
+      generators = Bukkits::Engine.config.generators
+      assert_equal :data_mapper, generators.orm
+      assert_equal :haml, generators.template_engine
+      assert_equal :rspec, generators.test_framework
     end
 
     test "engine should get default generators with ability to overwrite them" do
@@ -1051,12 +1051,12 @@ YAML
 
       boot_rails
 
-      generators = Bukkits::Engine.config.generators.options[:rails]
-      assert_equal :active_record, generators[:orm]
-      assert_equal :rspec, generators[:test_framework]
+      generators = Bukkits::Engine.config.generators
+      assert_equal :active_record, generators.orm
+      assert_equal :rspec, generators.test_framework
 
-      app_generators = Rails.application.config.generators.options[:rails]
-      assert_equal :test_unit, app_generators[:test_framework]
+      app_generators = Rails.application.config.generators
+      assert_equal :test_unit, app_generators.test_framework
     end
 
     test "do not create table_name_prefix method if it already exists" do

@@ -19,7 +19,6 @@ module Arel # :nodoc: all
       end
 
       private
-
         def visit_Arel_Nodes_DeleteStatement(o, collector)
           o = prepare_delete_statement(o)
 
@@ -52,10 +51,14 @@ module Arel # :nodoc: all
         def visit_Arel_Nodes_InsertStatement(o, collector)
           collector << "INSERT INTO "
           collector = visit o.relation, collector
-          if o.columns.any?
-            collector << " (#{o.columns.map { |x|
-              quote_column_name x.name
-            }.join ', '})"
+
+          unless o.columns.empty?
+            collector << " ("
+            o.columns.each_with_index do |x, i|
+              collector << ", " unless i == 0
+              collector << quote_column_name(x.name)
+            end
+            collector << ")"
           end
 
           if o.values
@@ -97,22 +100,20 @@ module Arel # :nodoc: all
         def visit_Arel_Nodes_ValuesList(o, collector)
           collector << "VALUES "
 
-          len = o.rows.length - 1
-          o.rows.each_with_index { |row, i|
+          o.rows.each_with_index do |row, i|
+            collector << ", " unless i == 0
             collector << "("
-            row_len = row.length - 1
             row.each_with_index do |value, k|
+              collector << ", " unless k == 0
               case value
               when Nodes::SqlLiteral, Nodes::BindParam
                 collector = visit(value, collector)
               else
                 collector << quote(value).to_s
               end
-              collector << ", " unless k == row_len
             end
             collector << ")"
-            collector << ", " unless i == len
-          }
+          end
           collector
         end
 
@@ -128,11 +129,10 @@ module Arel # :nodoc: all
 
           unless o.orders.empty?
             collector << " ORDER BY "
-            len = o.orders.length - 1
-            o.orders.each_with_index { |x, i|
+            o.orders.each_with_index do |x, i|
+              collector << ", " unless i == 0
               collector = visit(x, collector)
-              collector << ", " unless len == i
-            }
+            end
           end
 
           visit_Arel_Nodes_SelectOptions(o, collector)
@@ -506,7 +506,7 @@ module Arel # :nodoc: all
 
         def visit_Arel_Table(o, collector)
           if o.table_alias
-            collector << "#{quote_table_name o.name} #{quote_table_name o.table_alias}"
+            collector << quote_table_name(o.name) << " " << quote_table_name(o.table_alias)
           else
             collector << quote_table_name(o.name)
           end
@@ -682,20 +682,13 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_UnqualifiedColumn(o, collector)
-          collector << "#{quote_column_name o.name}"
-          collector
+          collector << quote_column_name(o.name)
         end
 
         def visit_Arel_Attributes_Attribute(o, collector)
           join_name = o.relation.table_alias || o.relation.name
-          collector << "#{quote_table_name join_name}.#{quote_column_name o.name}"
+          collector << quote_table_name(join_name) << "." << quote_column_name(o.name)
         end
-        alias :visit_Arel_Attributes_Integer :visit_Arel_Attributes_Attribute
-        alias :visit_Arel_Attributes_Float :visit_Arel_Attributes_Attribute
-        alias :visit_Arel_Attributes_Decimal :visit_Arel_Attributes_Attribute
-        alias :visit_Arel_Attributes_String :visit_Arel_Attributes_Attribute
-        alias :visit_Arel_Attributes_Time :visit_Arel_Attributes_Attribute
-        alias :visit_Arel_Attributes_Boolean :visit_Arel_Attributes_Attribute
 
         def literal(o, collector); collector << o.to_s; end
 
@@ -785,14 +778,11 @@ module Arel # :nodoc: all
         end
 
         def inject_join(list, collector, join_str)
-          len = list.length - 1
-          list.each_with_index.inject(collector) { |c, (x, i)|
-            if i == len
-              visit x, c
-            else
-              visit(x, c) << join_str
-            end
-          }
+          list.each_with_index do |x, i|
+            collector << join_str unless i == 0
+            collector = visit(x, collector)
+          end
+          collector
         end
 
         def unboundable?(value)

@@ -36,7 +36,9 @@ module ActiveRecord
           [sql.freeze, binds]
         else
           visitor.preparable = false if prepared_statements
-          [arel_or_sql_string.dup.freeze, binds]
+
+          arel_or_sql_string = arel_or_sql_string.dup.freeze unless arel_or_sql_string.frozen?
+          [arel_or_sql_string, binds]
         end
       end
       private :to_sql_and_binds
@@ -149,6 +151,10 @@ module ActiveRecord
         exec_query(sql, name, binds)
       end
 
+      def exec_insert_all(sql, name) # :nodoc:
+        exec_query(sql, name)
+      end
+
       # Executes an INSERT query and returns the new record's ID
       #
       # +id_value+ will be returned unless the value is +nil+, in
@@ -178,17 +184,18 @@ module ActiveRecord
 
       # Executes the truncate statement.
       def truncate(table_name, name = nil)
-        execute(build_truncate_statements(table_name), name)
+        execute(build_truncate_statement(table_name), name)
       end
 
       def truncate_tables(*table_names) # :nodoc:
+        table_names -= [schema_migration.table_name, InternalMetadata.table_name]
+
         return if table_names.empty?
 
         with_multi_statements do
           disable_referential_integrity do
-            Array(build_truncate_statements(*table_names)).each do |sql|
-              execute_batch(sql, "Truncate Tables")
-            end
+            statements = build_truncate_statements(table_names)
+            execute_batch(statements, "Truncate Tables")
           end
         end
       end
@@ -198,13 +205,30 @@ module ActiveRecord
       #
       # == Nested transactions support
       #
+      # #transaction calls can be nested. By default, this makes all database
+      # statements in the nested transaction block become part of the parent
+      # transaction. For example, the following behavior may be surprising:
+      #
+      #   ActiveRecord::Base.transaction do
+      #     Post.create(title: 'first')
+      #     ActiveRecord::Base.transaction do
+      #       Post.create(title: 'second')
+      #       raise ActiveRecord::Rollback
+      #     end
+      #   end
+      #
+      # This creates both "first" and "second" posts. Reason is the
+      # ActiveRecord::Rollback exception in the nested block does not issue a
+      # ROLLBACK. Since these exceptions are captured in transaction blocks,
+      # the parent block does not see it and the real transaction is committed.
+      #
       # Most databases don't support true nested transactions. At the time of
       # writing, the only database that supports true nested transactions that
       # we're aware of, is MS-SQL.
       #
       # In order to get around this problem, #transaction will emulate the effect
       # of nested transactions, by using savepoints:
-      # https://dev.mysql.com/doc/refman/5.7/en/savepoint.html
+      # https://dev.mysql.com/doc/refman/en/savepoint.html.
       #
       # It is safe to call this method if a database transaction is already open,
       # i.e. if #transaction is called within another #transaction block. In case
@@ -215,6 +239,24 @@ module ActiveRecord
       #   open database transaction.
       # - However, if +:requires_new+ is set, the block will be wrapped in a
       #   database savepoint acting as a sub-transaction.
+      #
+      # In order to get a ROLLBACK for the nested transaction you may ask for a
+      # real sub-transaction by passing <tt>requires_new: true</tt>.
+      # If anything goes wrong, the database rolls back to the beginning of
+      # the sub-transaction without rolling back the parent transaction.
+      # If we add it to the previous example:
+      #
+      #   ActiveRecord::Base.transaction do
+      #     Post.create(title: 'first')
+      #     ActiveRecord::Base.transaction(requires_new: true) do
+      #       Post.create(title: 'second')
+      #       raise ActiveRecord::Rollback
+      #     end
+      #   end
+      #
+      # only post with title "first" is created.
+      #
+      # See ActiveRecord::Transactions to learn more.
       #
       # === Caveats
       #
@@ -255,7 +297,7 @@ module ActiveRecord
       # semantics of these different levels:
       #
       # * https://www.postgresql.org/docs/current/static/transaction-iso.html
-      # * https://dev.mysql.com/doc/refman/5.7/en/set-transaction.html
+      # * https://dev.mysql.com/doc/refman/en/set-transaction.html
       #
       # An ActiveRecord::TransactionIsolationError will be raised if:
       #
@@ -346,7 +388,7 @@ module ActiveRecord
       end
 
       # Inserts the given fixture into the table. Overridden in adapters that require
-      # something beyond a simple insert (eg. Oracle).
+      # something beyond a simple insert (e.g. Oracle).
       # Most of adapters should implement `insert_fixtures_set` that leverages bulk SQL insert.
       # We keep this method to provide fallback
       # for databases like sqlite that do not support bulk inserts.
@@ -357,14 +399,12 @@ module ActiveRecord
       def insert_fixtures_set(fixture_set, tables_to_delete = [])
         fixture_inserts = build_fixture_statements(fixture_set)
         table_deletes = tables_to_delete.map { |table| "DELETE FROM #{quote_table_name(table)}" }
-        total_sql = Array(combine_multi_statements(table_deletes + fixture_inserts))
+        statements = table_deletes + fixture_inserts
 
         with_multi_statements do
           disable_referential_integrity do
             transaction(requires_new: true) do
-              total_sql.each do |sql|
-                execute_batch(sql, "Fixtures Load")
-              end
+              execute_batch(statements, "Fixtures Load")
             end
           end
         end
@@ -400,8 +440,10 @@ module ActiveRecord
       end
 
       private
-        def execute_batch(sql, name = nil)
-          execute(sql, name)
+        def execute_batch(statements, name = nil)
+          statements.each do |statement|
+            execute(statement, name)
+          end
         end
 
         DEFAULT_INSERT_VALUE = Arel.sql("DEFAULT").freeze
@@ -461,11 +503,14 @@ module ActiveRecord
           end.compact
         end
 
-        def build_truncate_statements(*table_names)
-          truncate_tables = table_names.map do |table_name|
-            "TRUNCATE TABLE #{quote_table_name(table_name)}"
+        def build_truncate_statement(table_name)
+          "TRUNCATE TABLE #{quote_table_name(table_name)}"
+        end
+
+        def build_truncate_statements(table_names)
+          table_names.map do |table_name|
+            build_truncate_statement(table_name)
           end
-          combine_multi_statements(truncate_tables)
         end
 
         def with_multi_statements

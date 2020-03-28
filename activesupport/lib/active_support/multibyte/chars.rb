@@ -48,7 +48,7 @@ module ActiveSupport #:nodoc:
       alias to_s wrapped_string
       alias to_str wrapped_string
 
-      delegate :<=>, :=~, :acts_like_string?, to: :wrapped_string
+      delegate :<=>, :=~, :match?, :acts_like_string?, to: :wrapped_string
 
       # Creates a new Chars instance by wrapping _string_.
       def initialize(string)
@@ -122,7 +122,7 @@ module ActiveSupport #:nodoc:
       #
       #   'こんにちは'.mb_chars.limit(7).to_s # => "こん"
       def limit(limit)
-        truncate_bytes(limit, omission: nil)
+        chars(@wrapped_string.truncate_bytes(limit, omission: nil))
       end
 
       # Capitalizes the first letter of every word, when possible.
@@ -207,7 +207,6 @@ module ActiveSupport #:nodoc:
       end
 
       private
-
         def chars(string)
           self.class.new(string)
         end

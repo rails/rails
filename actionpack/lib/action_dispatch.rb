@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #--
-# Copyright (c) 2004-2019 David Heinemeier Hansson
+# Copyright (c) 2004-2020 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -40,9 +40,13 @@ module ActionDispatch
   class IllegalStateError < StandardError
   end
 
+  class MissingController < NameError
+  end
+
   eager_autoload do
     autoload_under "http" do
       autoload :ContentSecurityPolicy
+      autoload :FeaturePolicy
       autoload :Request
       autoload :Response
     end
@@ -80,16 +84,16 @@ module ActionDispatch
     autoload :MimeNegotiation
     autoload :Parameters
     autoload :ParameterFilter
-    autoload :Upload
     autoload :UploadedFile, "action_dispatch/http/upload"
     autoload :URL
   end
 
   module Session
-    autoload :AbstractStore,     "action_dispatch/middleware/session/abstract_store"
-    autoload :CookieStore,       "action_dispatch/middleware/session/cookie_store"
-    autoload :MemCacheStore,     "action_dispatch/middleware/session/mem_cache_store"
-    autoload :CacheStore,        "action_dispatch/middleware/session/cache_store"
+    autoload :AbstractStore,       "action_dispatch/middleware/session/abstract_store"
+    autoload :AbstractSecureStore, "action_dispatch/middleware/session/abstract_store"
+    autoload :CookieStore,         "action_dispatch/middleware/session/cookie_store"
+    autoload :MemCacheStore,       "action_dispatch/middleware/session/mem_cache_store"
+    autoload :CacheStore,          "action_dispatch/middleware/session/cache_store"
   end
 
   mattr_accessor :test_app

@@ -352,11 +352,7 @@ module ActiveModel
 
         def attribute_method_matchers_matching(method_name)
           attribute_method_matchers_cache.compute_if_absent(method_name) do
-            # Bump plain matcher to last place so that only methods that do not
-            # match any other pattern match the actual attribute name.
-            # This is currently only needed to support legacy usage.
-            matchers = attribute_method_matchers.partition(&:plain?).reverse.flatten(1)
-            matchers.map { |matcher| matcher.match(method_name) }.compact
+            attribute_method_matchers.map { |matcher| matcher.match(method_name) }.compact
           end
         end
 
@@ -379,9 +375,11 @@ module ActiveModel
           end
 
           mod.module_eval <<-RUBY, __FILE__, __LINE__ + 1
+            # frozen_string_literal: true
             #{defn}
               #{body}
             end
+            ruby2_keywords(:'#{name}') if respond_to?(:ruby2_keywords, true)
           RUBY
         end
 
@@ -406,10 +404,6 @@ module ActiveModel
           def method_name(attr_name)
             @method_name % attr_name
           end
-
-          def plain?
-            prefix.empty? && suffix.empty?
-          end
         end
     end
 
@@ -431,6 +425,7 @@ module ActiveModel
         match ? attribute_missing(match, *args, &block) : super
       end
     end
+    ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
 
     # +attribute_missing+ is like +method_missing+, but for attributes. When
     # +method_missing+ is called we check to see if there is a matching
@@ -500,7 +495,7 @@ module ActiveModel
         def self.define_attribute_accessor_method(mod, attr_name, writer: false)
           method_name = "#{attr_name}#{'=' if writer}"
           if attr_name.ascii_only? && DEF_SAFE_NAME.match?(attr_name)
-            yield method_name, "'#{attr_name}'.freeze"
+            yield method_name, "'#{attr_name}'"
           else
             safe_name = attr_name.unpack1("h*")
             const_name = "ATTR_#{safe_name}"

@@ -25,7 +25,7 @@ sure the code samples in his book
 all work. These are valuable system tests
 for Rails. You can check the status of these tests here:
 
-[http://intertwingly.net/projects/dashboard.html](http://intertwingly.net/projects/dashboard.html)
+[https://intertwingly.net/projects/dashboard.html](https://intertwingly.net/projects/dashboard.html)
 
 Do not release with Red AWDwR tests.
 

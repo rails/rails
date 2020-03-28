@@ -58,6 +58,14 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal preloaded, Marshal.load(Marshal.dump(preloaded))
   end
 
+  def test_through_association_with_joins
+    assert_equal [comments(:eager_other_comment1)], authors(:mary).comments.merge(Post.joins(:comments))
+  end
+
+  def test_through_association_with_left_joins
+    assert_equal [comments(:eager_other_comment1)], authors(:mary).comments.merge(Post.left_joins(:comments))
+  end
+
   def test_preload_with_nested_association
     posts = Post.preload(:author, :author_favorites_with_scope).to_a
 
@@ -299,10 +307,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_queries(1) { posts(:thinking) }
     new_person = nil # so block binding catches it
 
-    # Load schema information so we don't query below if running just this test.
-    Person.define_attribute_methods
-
-    assert_no_queries do
+    assert_queries(0) do
       new_person = Person.new first_name: "bob"
     end
 
@@ -322,10 +327,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_associate_new_by_building
     assert_queries(1) { posts(:thinking) }
 
-    # Load schema information so we don't query below if running just this test.
-    Person.define_attribute_methods
-
-    assert_no_queries do
+    assert_queries(0) do
       posts(:thinking).people.build(first_name: "Bob")
       posts(:thinking).people.new(first_name: "Ted")
     end
@@ -686,8 +688,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_through_record_is_built_when_created_with_where
     assert_difference("posts(:thinking).readers.count", 1) do
-      posts(:thinking).people.where(first_name: "Jeb").create
+      posts(:thinking).people.where(readers: { skimmer: true }).create(first_name: "Jeb")
     end
+    reader = posts(:thinking).readers.last
+    assert_equal true, reader.skimmer
   end
 
   def test_associate_with_create_and_no_options

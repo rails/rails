@@ -44,6 +44,14 @@ class ErrorsTest < ActiveModel::TestCase
     assert_includes errors, "foo", "errors should include 'foo' as :foo"
   end
 
+  def test_each_when_arity_is_negative
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:name, :blank)
+    errors.add(:gender, :blank)
+
+    assert_equal([:name, :gender], errors.map(&:attribute))
+  end
+
   def test_any?
     errors = ActiveModel::Errors.new(Person.new)
     errors.add(:name)
@@ -92,6 +100,15 @@ class ErrorsTest < ActiveModel::TestCase
 
     assert_equal 1, person.errors.count
     person.errors.clear
+    assert_empty person.errors
+  end
+
+  test "clear errors by key" do
+    person = Person.new
+    person.validate!
+
+    assert_equal 1, person.errors.count
+    assert_deprecated { person.errors[:name].clear }
     assert_empty person.errors
   end
 
@@ -274,6 +291,28 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal [msg], person.errors[:name]
   end
 
+  test "added? when attribute was added through a collection" do
+    person = Person.new
+    person.errors.add(:"family_members.name", :too_long, count: 25)
+    assert person.errors.added?(:"family_members.name", :too_long, count: 25)
+    assert_not person.errors.added?(:"family_members.name", :too_long)
+    assert_not person.errors.added?(:"family_members.name", :too_long, name: "hello")
+  end
+
+  test "added? ignores callback option" do
+    person = Person.new
+
+    person.errors.add(:name, :too_long, if: -> { true })
+    assert person.errors.added?(:name, :too_long)
+  end
+
+  test "added? ignores message option" do
+    person = Person.new
+
+    person.errors.add(:name, :too_long, message: proc { "foo" })
+    assert person.errors.added?(:name, :too_long)
+  end
+
   test "added? detects indifferent if a specific error was added to the object" do
     person = Person.new
     person.errors.add(:name, "cannot be blank")
@@ -444,6 +483,17 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal ["name cannot be blank", "name cannot be nil"], person.errors.to_a
   end
 
+  test "to_h is deprecated" do
+    person = Person.new
+    person.errors.add(:name, "cannot be blank")
+    person.errors.add(:name, "too long")
+
+    expected_deprecation = "ActiveModel::Errors#to_h is deprecated"
+    assert_deprecated(expected_deprecation) do
+      assert_equal({ name: "too long" }, person.errors.to_h)
+    end
+  end
+
   test "to_hash returns the error messages hash" do
     person = Person.new
     person.errors.add(:name, "cannot be blank")
@@ -458,6 +508,27 @@ class ErrorsTest < ActiveModel::TestCase
   test "as_json returns a hash without default proc" do
     person = Person.new
     assert_nil person.errors.as_json.default_proc
+  end
+
+  test "full_messages doesn't require the base object to respond to `:errors" do
+    model = Class.new do
+      def initialize
+        @errors = ActiveModel::Errors.new(self)
+        @errors.add(:name, "bar")
+      end
+
+      def self.human_attribute_name(attr, options = {})
+        "foo"
+      end
+
+      def call
+        error_wrapper = Struct.new(:model_errors)
+
+        error_wrapper.new(@errors)
+      end
+    end
+
+    assert_equal(["foo bar"], model.new.call.model_errors.full_messages)
   end
 
   test "full_messages creates a list of error messages with the attribute name included" do
@@ -557,6 +628,15 @@ class ErrorsTest < ActiveModel::TestCase
     )
   end
 
+  test "messages delete (deprecated)" do
+    person = Person.new
+    person.validate!
+
+    assert_equal 1, person.errors.count
+    assert_deprecated { person.errors.messages.delete(:name) }
+    assert_empty person.errors
+  end
+
   test "group_by_attribute" do
     person = Person.new
     error = person.errors.add(:name, :invalid, message: "is bad")
@@ -571,6 +651,12 @@ class ErrorsTest < ActiveModel::TestCase
     errors_dup = errors.dup
     errors_dup.add(:name, :taken)
     assert_not_equal errors_dup.details, errors.details
+  end
+
+  test "delete returns nil when no errors were deleted" do
+    errors = ActiveModel::Errors.new(Person.new)
+
+    assert_nil(errors.delete(:name))
   end
 
   test "delete removes details on given attribute" do

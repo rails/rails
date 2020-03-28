@@ -6,7 +6,7 @@ class Arel::Nodes::CountTest < Arel::Spec
   describe "as" do
     it "should alias the count" do
       table = Arel::Table.new :users
-      table[:id].count.as("foo").to_sql.must_be_like %{
+      _(table[:id].count.as("foo").to_sql).must_be_like %{
         COUNT("users"."id") AS foo
       }
     end
@@ -15,7 +15,7 @@ class Arel::Nodes::CountTest < Arel::Spec
   describe "eq" do
     it "should compare the count" do
       table = Arel::Table.new :users
-      table[:id].count.eq(2).to_sql.must_be_like %{
+      _(table[:id].count.eq(2).to_sql).must_be_like %{
         COUNT("users"."id") = 2
       }
     end

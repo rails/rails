@@ -23,7 +23,7 @@ module ActiveRecord
   # You can set custom coder to encode/decode your serialized attributes to/from different formats.
   # JSON, YAML, Marshal are supported out of the box. Generally it can be any wrapper that provides +load+ and +dump+.
   #
-  # NOTE: If you are using structured database data types (eg. PostgreSQL +hstore+/+json+, or MySQL 5.7+
+  # NOTE: If you are using structured database data types (e.g. PostgreSQL +hstore+/+json+, or MySQL 5.7+
   # +json+) there is no need for the serialization provided by {.store}[rdoc-ref:rdoc-ref:ClassMethods#store].
   # Simply use {.store_accessor}[rdoc-ref:ClassMethods#store_accessor] instead to generate
   # the accessor methods. Be aware that these columns use a string keyed hash and do not allow access
@@ -103,7 +103,7 @@ module ActiveRecord
     module ClassMethods
       def store(store_attribute, options = {})
         serialize store_attribute, IndifferentCoder.new(store_attribute, options[:coder])
-        store_accessor(store_attribute, options[:accessors], options.slice(:prefix, :suffix)) if options.has_key? :accessors
+        store_accessor(store_attribute, options[:accessors], **options.slice(:prefix, :suffix)) if options.has_key? :accessors
       end
 
       def store_accessor(store_attribute, *keys, prefix: nil, suffix: nil)

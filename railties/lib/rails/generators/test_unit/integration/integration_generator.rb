@@ -12,7 +12,6 @@ module TestUnit # :nodoc:
       end
 
       private
-
         def file_name
           @_file_name ||= super.sub(/_test\z/i, "")
         end

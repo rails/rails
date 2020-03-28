@@ -13,14 +13,28 @@ module ActiveRecord
 
       def setup
         @connection = ActiveRecord::Base.connection
+        @connection_handler = ActiveRecord::Base.connection_handler
       end
 
       def test_bad_connection
         assert_raise ActiveRecord::NoDatabaseError do
-          configuration = ActiveRecord::Base.configurations["arunit"].merge(database: "should_not_exist-cinco-dog-db")
+          db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+          configuration = db_config.configuration_hash.merge(database: "should_not_exist-cinco-dog-db")
           connection = ActiveRecord::Base.postgresql_connection(configuration)
           connection.exec_query("SELECT 1")
         end
+      end
+
+      def test_database_exists_returns_false_when_the_database_does_not_exist
+        config = { database: "non_extant_database", adapter: "postgresql" }
+        assert_not ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.database_exists?(config),
+          "expected database #{config[:database]} to not exist"
+      end
+
+      def test_database_exists_returns_true_when_the_database_exists
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        assert ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.database_exists?(db_config.configuration_hash),
+          "expected database #{db_config.database} to exist"
       end
 
       def test_primary_key
@@ -240,9 +254,11 @@ module ActiveRecord
 
       def test_expression_index
         with_example_table do
-          @connection.add_index "ex", "mod(id, 10), abs(number)", name: "expression"
+          expr = "mod(id, 10), abs(number)"
+          @connection.add_index "ex", expr, name: "expression"
           index = @connection.indexes("ex").find { |idx| idx.name == "expression" }
-          assert_equal "mod(id, 10), abs(number)", index.columns
+          assert_equal expr, index.columns
+          assert_equal true, @connection.index_exists?("ex", expr, name: "expression")
         end
       end
 
@@ -379,7 +395,7 @@ module ActiveRecord
       def test_errors_when_an_insert_query_is_called_while_preventing_writes
         with_example_table do
           assert_raises(ActiveRecord::ReadOnlyError) do
-            @connection.while_preventing_writes do
+            @connection_handler.while_preventing_writes do
               @connection.execute("INSERT INTO ex (data) VALUES ('138853948594')")
             end
           end
@@ -391,7 +407,7 @@ module ActiveRecord
           @connection.execute("INSERT INTO ex (data) VALUES ('138853948594')")
 
           assert_raises(ActiveRecord::ReadOnlyError) do
-            @connection.while_preventing_writes do
+            @connection_handler.while_preventing_writes do
               @connection.execute("UPDATE ex SET data = '9989' WHERE data = '138853948594'")
             end
           end
@@ -403,7 +419,7 @@ module ActiveRecord
           @connection.execute("INSERT INTO ex (data) VALUES ('138853948594')")
 
           assert_raises(ActiveRecord::ReadOnlyError) do
-            @connection.while_preventing_writes do
+            @connection_handler.while_preventing_writes do
               @connection.execute("DELETE FROM ex where data = '138853948594'")
             end
           end
@@ -414,20 +430,20 @@ module ActiveRecord
         with_example_table do
           @connection.execute("INSERT INTO ex (data) VALUES ('138853948594')")
 
-          @connection.while_preventing_writes do
+          @connection_handler.while_preventing_writes do
             assert_equal 1, @connection.execute("SELECT * FROM ex WHERE data = '138853948594'").entries.count
           end
         end
       end
 
       def test_doesnt_error_when_a_show_query_is_called_while_preventing_writes
-        @connection.while_preventing_writes do
+        @connection_handler.while_preventing_writes do
           assert_equal 1, @connection.execute("SHOW TIME ZONE").entries.count
         end
       end
 
       def test_doesnt_error_when_a_set_query_is_called_while_preventing_writes
-        @connection.while_preventing_writes do
+        @connection_handler.while_preventing_writes do
           assert_equal [], @connection.execute("SET standard_conforming_strings = on").entries
         end
       end
@@ -436,20 +452,33 @@ module ActiveRecord
         with_example_table do
           @connection.execute("INSERT INTO ex (data) VALUES ('138853948594')")
 
-          @connection.while_preventing_writes do
+          @connection_handler.while_preventing_writes do
             assert_equal 1, @connection.execute("(\n( SELECT * FROM ex WHERE data = '138853948594' ) )").entries.count
           end
         end
       end
 
-      private
+      def test_doesnt_error_when_a_read_query_with_cursors_is_called_while_preventing_writes
+        with_example_table do
+          @connection_handler.while_preventing_writes do
+            @connection.transaction do
+              assert_equal [], @connection.execute("DECLARE cur_ex CURSOR FOR SELECT * FROM ex").entries
+              assert_equal [], @connection.execute("FETCH cur_ex").entries
+              assert_equal [], @connection.execute("MOVE cur_ex").entries
+              assert_equal [], @connection.execute("CLOSE cur_ex").entries
+            end
+          end
+        end
+      end
 
+      private
         def with_example_table(definition = "id serial primary key, number integer, data character varying(255)", &block)
           super(@connection, "ex", definition, &block)
         end
 
         def connection_without_insert_returning
-          ActiveRecord::Base.postgresql_connection(ActiveRecord::Base.configurations["arunit"].merge(insert_returning: false))
+          db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+          ActiveRecord::Base.postgresql_connection(db_config.configuration_hash.merge(insert_returning: false))
         end
     end
   end

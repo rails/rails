@@ -4,8 +4,9 @@ module ActiveRecord
   class TableMetadata # :nodoc:
     delegate :foreign_type, :foreign_key, :join_primary_key, :join_foreign_key, to: :association, prefix: true
 
-    def initialize(klass, arel_table, association = nil)
+    def initialize(klass, arel_table, association = nil, types = klass)
       @klass = klass
+      @types = types
       @arel_table = arel_table
       @association = association
     end
@@ -29,11 +30,7 @@ module ActiveRecord
     end
 
     def type(column_name)
-      if klass
-        klass.type_for_attribute(column_name)
-      else
-        Type.default_value
-      end
+      types.type_for_attribute(column_name)
     end
 
     def has_column?(column_name)
@@ -48,17 +45,20 @@ module ActiveRecord
       association = klass._reflect_on_association(table_name) || klass._reflect_on_association(table_name.to_s.singularize)
 
       if !association && table_name == arel_table.name
-        return self
+        self
       elsif association && !association.polymorphic?
         association_klass = association.klass
         arel_table = association_klass.arel_table.alias(table_name)
+        TableMetadata.new(association_klass, arel_table, association)
       else
         type_caster = TypeCaster::Connection.new(klass, table_name)
-        association_klass = nil
         arel_table = Arel::Table.new(table_name, type_caster: type_caster)
+        TableMetadata.new(nil, arel_table, association, type_caster)
       end
+    end
 
-      TableMetadata.new(association_klass, arel_table, association)
+    def associated_predicate_builder(table_name)
+      associated_table(table_name).predicate_builder
     end
 
     def polymorphic_association?
@@ -73,7 +73,18 @@ module ActiveRecord
       klass.reflect_on_aggregation(aggregation_name)
     end
 
+    protected
+      def predicate_builder
+        if klass
+          predicate_builder = klass.predicate_builder.dup
+          predicate_builder.instance_variable_set(:@table, self)
+          predicate_builder
+        else
+          PredicateBuilder.new(self)
+        end
+      end
+
     private
-      attr_reader :klass, :arel_table, :association
+      attr_reader :klass, :types, :arel_table, :association
   end
 end

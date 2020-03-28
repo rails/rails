@@ -4,7 +4,6 @@ module Arel # :nodoc: all
   module Visitors
     class SQLite < Arel::Visitors::ToSql
       private
-
         # Locks are not supported in SQLite
         def visit_Arel_Nodes_Lock(o, collector)
           collector

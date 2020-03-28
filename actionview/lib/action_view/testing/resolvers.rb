@@ -7,10 +7,15 @@ module ActionView #:nodoc:
   # file system. This is used internally by Rails' own test suite, and is
   # useful for testing extensions that have no way of knowing what the file
   # system will look like at runtime.
-  class FixtureResolver < PathResolver
+  class FixtureResolver < OptimizedFileSystemResolver
     def initialize(hash = {}, pattern = nil)
-      super(pattern)
+      super("")
+      if pattern
+        ActiveSupport::Deprecation.warn "Specifying a custom path for #{self.class} is deprecated. Implement a custom Resolver subclass instead."
+        @pattern = pattern
+      end
       @hash = hash
+      @path = ""
     end
 
     def data
@@ -22,27 +27,16 @@ module ActionView #:nodoc:
     end
 
     private
-
-      def query(path, exts, _, locals, cache:)
-        query = +""
-        EXTENSIONS.each do |ext, prefix|
-          query << "(" << exts[ext].map { |e| e && Regexp.escape("#{prefix}#{e}") }.join("|") << "|)"
+      def find_candidate_template_paths(path)
+        @hash.keys.select do |fixture|
+          fixture.start_with?(path.virtual)
+        end.map do |fixture|
+          "/#{fixture}"
         end
-        query = /^(#{Regexp.escape(path)})#{query}$/
+      end
 
-        templates = []
-        @hash.each do |_path, source|
-          next unless query.match?(_path)
-          handler, format, variant = extract_handler_and_format_and_variant(_path)
-          templates << Template.new(source, _path, handler,
-            virtual_path: path.virtual,
-            format: format,
-            variant: variant,
-            locals: locals
-          )
-        end
-
-        templates.sort_by { |t| -t.identifier.match(/^#{query}$/).captures.reject(&:blank?).size }
+      def source_for_template(template)
+        @hash[template[1..template.size]]
       end
   end
 

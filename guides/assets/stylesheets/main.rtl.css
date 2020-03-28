@@ -100,7 +100,7 @@ body {
   text-align: center;
   font-family: Helvetica, Arial, sans-serif;
   font-size: 87.5%;
-  line-height: 1.5em;
+  line-height: 1.5;
   background: #fff;
   color: #999;
   direction: rtl;
@@ -255,9 +255,9 @@ body {
   left: 0;
   background: #FFF;
   padding: 1em 1.5em 1em 1.25em;
-  width: 17em;
+  width: 20em;
   font-size: 0.9285em;
-  line-height: 1.3846em;
+  line-height: 1.3846;
   margin-left: 1em;
 }
 
@@ -282,7 +282,7 @@ body {
 }
 
 #header .wrapper, #topNav .wrapper, #feature .wrapper {padding-right: 1em; max-width: 960px;}
-#feature .wrapper {max-width: 640px; padding-left: 23em; position: relative; z-index: 0;}
+#feature .wrapper {max-width: 720px; padding-left: 23em; position: relative; z-index: 0;}
 
 @media screen and (max-width: 960px) {
   #container .wrapper { padding-left: 23em; }
@@ -470,14 +470,14 @@ a, a:link, a:visited {
 
 h1 {
   font-size: 2.5em;
-  line-height: 1em;
+  line-height: 1;
   margin: 0.6em 0 .2em;
   font-weight: bold;
 }
 
 h2 {
   font-size: 2.1428em;
-  line-height: 1em;
+  line-height: 1;
   margin: 0.7em 0 .2333em;
   font-weight: bold;
 }
@@ -490,7 +490,7 @@ h2 {
 
 h3 {
   font-size: 1.7142em;
-  line-height: 1.286em;
+  line-height: 1.286;
   margin: 0.875em 0 0.2916em;
   font-weight: bold;
 }
@@ -503,21 +503,21 @@ h3 {
 
 h4 {
   font-size: 1.2857em;
-  line-height: 1.2em;
+  line-height: 1.2;
   margin: 1.6667em 0 .3887em;
   font-weight: bold;
 }
 
 h5 {
   font-size: 1em;
-  line-height: 1.5em;
+  line-height: 1.5;
   margin: 1em 0 .5em;
   font-weight: bold;
 }
 
 h6 {
   font-size: 1em;
-  line-height: 1.5em;
+  line-height: 1.5;
   margin: 1em 0 .5em;
   font-weight: normal;
 }
@@ -693,7 +693,7 @@ div.code_container {
 
 #subCol .content {
   font-size: 0.7857em;
-  line-height: 1.5em;
+  line-height: 1.5;
 }
 
 #subCol .content li {

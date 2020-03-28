@@ -19,7 +19,7 @@ installed. Older versions are not supported.
 
 To get started with PostgreSQL have a look at the
 [configuring Rails guide](configuring.html#configuring-a-postgresql-database).
-It describes how to properly setup Active Record for PostgreSQL.
+It describes how to properly set up Active Record for PostgreSQL.
 
 Datatypes
 ---------
@@ -150,7 +150,7 @@ Event.where("payload->>'kind' = ?", "user_renamed")
 * [type definition](https://www.postgresql.org/docs/current/static/rangetypes.html)
 * [functions and operators](https://www.postgresql.org/docs/current/static/functions-range.html)
 
-This type is mapped to Ruby [`Range`](https://ruby-doc.org/core-2.2.2/Range.html) objects.
+This type is mapped to Ruby [`Range`](https://ruby-doc.org/core-2.5.0/Range.html) objects.
 
 ```ruby
 # db/migrate/20130923065404_create_events.rb
@@ -276,7 +276,7 @@ end
 
 NOTE: ENUM values can't be dropped currently. You can read why [here](https://www.postgresql.org/message-id/29F36C7C98AB09499B1A209D48EAA615B7653DBC8A@mail2a.alliedtesting.com).
 
-Hint: to show all the values of the all enums you have, you should call this query in `rails db` or `psql` console:
+Hint: to show all the values of the all enums you have, you should call this query in `bin/rails db` or `psql` console:
 
 ```sql
 SELECT n.nspname AS enum_schema,
@@ -290,7 +290,7 @@ SELECT n.nspname AS enum_schema,
 ### UUID
 
 * [type definition](https://www.postgresql.org/docs/current/static/datatype-uuid.html)
-* [pgcrypto generator function](https://www.postgresql.org/docs/current/static/pgcrypto.html#id-1.11.7.35.7)
+* [pgcrypto generator function](https://www.postgresql.org/docs/current/static/pgcrypto.html)
 * [uuid-ossp generator functions](https://www.postgresql.org/docs/current/static/uuid-ossp.html)
 
 NOTE: You need to enable the `pgcrypto` (only PostgreSQL >= 9.4) or `uuid-ossp`
@@ -367,7 +367,7 @@ user.save!
 * [type definition](https://www.postgresql.org/docs/current/static/datatype-net-types.html)
 
 The types `inet` and `cidr` are mapped to Ruby
-[`IPAddr`](https://ruby-doc.org/stdlib-2.2.2/libdoc/ipaddr/rdoc/IPAddr.html)
+[`IPAddr`](https://ruby-doc.org/stdlib-2.5.0/libdoc/ipaddr/rdoc/IPAddr.html)
 objects. The `macaddr` type is mapped to normal text.
 
 ```ruby

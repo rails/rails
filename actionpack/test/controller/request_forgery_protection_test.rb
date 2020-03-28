@@ -112,7 +112,6 @@ class PrependProtectForgeryBaseController < ActionController::Base
   end
 
   private
-
     def add_called_callback(name)
       @called_callbacks ||= []
       @called_callbacks << name
@@ -592,6 +591,15 @@ module RequestForgeryProtectionTests
     end
   end
 
+  def test_should_not_trigger_content_type_deprecation
+    original = ActionDispatch::Response.return_only_media_type_on_content_type
+    ActionDispatch::Response.return_only_media_type_on_content_type = true
+
+    assert_not_deprecated { get :same_origin_js, xhr: true }
+  ensure
+    ActionDispatch::Response.return_only_media_type_on_content_type = original
+  end
+
   def test_should_not_raise_error_if_token_is_not_a_string
     assert_blocked do
       patch :index, params: { custom_authenticity_token: { foo: "bar" } }
@@ -605,8 +613,8 @@ module RequestForgeryProtectionTests
     assert_response :success
   end
 
-  def assert_not_blocked
-    assert_nothing_raised { yield }
+  def assert_not_blocked(&block)
+    assert_nothing_raised(&block)
     assert_response :success
   end
 
@@ -827,6 +835,32 @@ class PerFormTokensControllerTest < ActionController::TestCase
     assert_response :success
   end
 
+  def test_accepts_token_with_path_with_query_params
+    get :index
+    form_token = assert_presence_and_fetch_form_csrf_token
+    assert_matches_session_token_on_server form_token
+
+    @request.env["PATH_INFO"] = "/per_form_tokens/post_one"
+    @request.env["QUERY_STRING"] = "key=value"
+    assert_nothing_raised do
+      post :post_one, params: { custom_authenticity_token: form_token }
+    end
+  end
+
+  def test_rejects_garbage_path
+    get :index
+
+    form_token = assert_presence_and_fetch_form_csrf_token
+
+    assert_matches_session_token_on_server form_token
+
+    # Set invalid URI in PATH_INFO
+    @request.env["PATH_INFO"] = "/foo/bar<"
+    assert_raise ActionController::InvalidAuthenticityToken do
+      post :post_one, params: { custom_authenticity_token: form_token }
+    end
+  end
+
   def test_rejects_token_for_incorrect_path
     get :index
 
@@ -912,7 +946,7 @@ class PerFormTokensControllerTest < ActionController::TestCase
     assert_response :success
   end
 
-  def test_ignores_params
+  def test_chomps_slashes
     get :index, params: { form_path: "/per_form_tokens/post_one?foo=bar" }
 
     form_token = assert_presence_and_fetch_form_csrf_token
@@ -920,7 +954,7 @@ class PerFormTokensControllerTest < ActionController::TestCase
     assert_matches_session_token_on_server form_token
 
     # This is required because PATH_INFO isn't reset between requests.
-    @request.env["PATH_INFO"] = "/per_form_tokens/post_one?foo=baz"
+    @request.env["PATH_INFO"] = "/per_form_tokens/post_one/"
     assert_nothing_raised do
       post :post_one, params: { custom_authenticity_token: form_token, baz: "foo" }
     end
@@ -1011,8 +1045,8 @@ class SkipProtectionControllerTest < ActionController::TestCase
     end
   end
 
-  def assert_not_blocked
-    assert_nothing_raised { yield }
+  def assert_not_blocked(&block)
+    assert_nothing_raised(&block)
     assert_response :success
   end
 end

@@ -58,7 +58,6 @@ class FormHelperActiveRecordTest < ActionView::TestCase
   end
 
   private
-
     def hidden_fields(method = nil)
       txt = +%{<input name="utf8" type="hidden" value="&#x2713;" />}
 

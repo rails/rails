@@ -44,7 +44,7 @@ module ActiveRecord
 
       def decrement_counters_before_last_save
         if reflection.polymorphic?
-          model_was = owner.attribute_before_last_save(reflection.foreign_type).try(:constantize)
+          model_was = owner.attribute_before_last_save(reflection.foreign_type)&.constantize
         else
           model_was = klass
         end
@@ -108,11 +108,9 @@ module ActiveRecord
           owner._read_attribute(reflection.foreign_key)
         end
 
-        # NOTE - for now, we're only supporting inverse setting from belongs_to back onto
-        # has_one associations.
         def invertible_for?(record)
           inverse = inverse_reflection_for(record)
-          inverse && inverse.has_one?
+          inverse && (inverse.has_one? || ActiveRecord::Base.has_many_inversing)
         end
 
         def stale_state

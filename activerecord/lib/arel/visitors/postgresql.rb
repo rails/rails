@@ -4,7 +4,6 @@ module Arel # :nodoc: all
   module Visitors
     class PostgreSQL < Arel::Visitors::ToSql
       private
-
         def visit_Arel_Nodes_Matches(o, collector)
           op = o.case_sensitive ? " LIKE " : " ILIKE "
           collector = infix_value o, collector, op
@@ -81,6 +80,16 @@ module Arel # :nodoc: all
           collector = visit o.left, collector
           collector << " IS DISTINCT FROM "
           visit o.right, collector
+        end
+
+        def visit_Arel_Nodes_NullsFirst(o, collector)
+          visit o.expr, collector
+          collector << " NULLS FIRST"
+        end
+
+        def visit_Arel_Nodes_NullsLast(o, collector)
+          visit o.expr, collector
+          collector << " NULLS LAST"
         end
 
         # Used by Lateral visitor to enclose select queries in parentheses

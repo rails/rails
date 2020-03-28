@@ -545,13 +545,6 @@ class InverseHasManyTests < ActiveRecord::TestCase
       assert_predicate Man.joins(:interests).includes(:interests).first.interests, :any?
     end
   end
-
-  def reset_callbacks(target, type)
-    old_callbacks = target.send(:get_callbacks, type).deep_dup
-    yield
-  ensure
-    target.send(:set_callbacks, type, old_callbacks) if old_callbacks
-  end
 end
 
 class InverseBelongsToTests < ActiveRecord::TestCase
@@ -620,6 +613,28 @@ class InverseBelongsToTests < ActiveRecord::TestCase
     assert_not_equal i.topic, iz.topic, "Interest topics should not be the same after changes to parent-owned instance"
   end
 
+  def test_with_has_many_inversing_should_try_to_set_inverse_instances_when_the_inverse_is_a_has_many
+    with_has_many_inversing do
+      i = interests(:trainspotting)
+      m = i.man
+      assert_not_nil m.interests
+      iz = m.interests.detect { |_iz| _iz.id == i.id }
+      assert_not_nil iz
+      assert_equal i.topic, iz.topic, "Interest topics should be the same before changes to child"
+      i.topic = "Eating cheese with a spoon"
+      assert_equal i.topic, iz.topic, "Interest topics should be the same after changes to child"
+      iz.topic = "Cow tipping"
+      assert_equal i.topic, iz.topic, "Interest topics should be the same after changes to parent-owned instance"
+    end
+  end
+
+  def test_with_has_many_inversing_does_not_trigger_association_callbacks_on_set_when_the_inverse_is_a_has_many
+    with_has_many_inversing do
+      man = interests(:trainspotting).man_with_callbacks
+      assert_not_predicate man, :add_callback_called?
+    end
+  end
+
   def test_child_instance_should_be_shared_with_replaced_via_accessor_parent
     f = Face.first
     m = Man.new(name: "Charles")
@@ -634,6 +649,16 @@ class InverseBelongsToTests < ActiveRecord::TestCase
 
   def test_trying_to_use_inverses_that_dont_exist_should_raise_an_error
     assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Face.first.horrible_man }
+  end
+
+  def test_building_has_many_parent_association_inverses_one_record
+    with_has_many_inversing do
+      interest = Interest.new
+      interest.build_man
+      assert_equal 1, interest.man.interests.size
+      interest.save!
+      assert_equal 1, interest.man.interests.size
+    end
   end
 end
 
@@ -715,6 +740,28 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
     assert_not_equal i.topic, iz.topic, "Interest topics should not be the same after changes to child"
     iz.topic = "Cow tipping"
     assert_not_equal i.topic, iz.topic, "Interest topics should not be the same after changes to parent-owned instance"
+  end
+
+  def test_with_has_many_inversing_should_try_to_set_inverse_instances_when_the_inverse_is_a_has_many
+    with_has_many_inversing do
+      i = interests(:llama_wrangling)
+      m = i.polymorphic_man
+      assert_not_nil m.polymorphic_interests
+      iz = m.polymorphic_interests.detect { |_iz| _iz.id == i.id }
+      assert_not_nil iz
+      assert_equal i.topic, iz.topic, "Interest topics should be the same before changes to child"
+      i.topic = "Eating cheese with a spoon"
+      assert_equal i.topic, iz.topic, "Interest topics should be the same after changes to child"
+      iz.topic = "Cow tipping"
+      assert_equal i.topic, iz.topic, "Interest topics should be the same after changes to parent-owned instance"
+    end
+  end
+
+  def test_with_has_many_inversing_does_not_trigger_association_callbacks_on_set_when_the_inverse_is_a_has_many
+    with_has_many_inversing do
+      man = interests(:llama_wrangling).polymorphic_man_with_callbacks
+      assert_not_predicate man, :add_callback_called?
+    end
   end
 
   def test_trying_to_access_inverses_that_dont_exist_shouldnt_raise_an_error

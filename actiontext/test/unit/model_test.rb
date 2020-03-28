@@ -18,6 +18,7 @@ class ActionText::ModelTest < ActiveSupport::TestCase
     assert message.content.nil?
     assert message.content.blank?
     assert message.content.empty?
+    assert_not message.content?
     assert_not message.content.present?
   end
 
@@ -26,6 +27,7 @@ class ActionText::ModelTest < ActiveSupport::TestCase
     assert_not message.content.nil?
     assert message.content.blank?
     assert message.content.empty?
+    assert_not message.content?
     assert_not message.content.present?
   end
 
@@ -42,6 +44,15 @@ class ActionText::ModelTest < ActiveSupport::TestCase
     message = Message.create!(subject: "Greetings", content: content)
     assert_equal [ActionText::Attachables::RemoteImage, ActiveStorage::Blob], message.content.body.attachables.map(&:class)
     assert_equal [ActiveStorage::Attachment], message.content.embeds.map(&:class)
+  end
+
+  test "embed extraction deduplicates file attachments" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpg")
+    content = ActionText::Content.new("Hello world").append_attachables([ blob, blob ])
+
+    assert_nothing_raised do
+      Message.create!(subject: "Greetings", content: content)
+    end
   end
 
   test "saving content" do

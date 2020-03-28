@@ -12,6 +12,8 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
   arguments %w(User name:string age:integer)
 
+  setup :copy_routes
+
   def test_controller_skeleton_is_created
     run_generator
 
@@ -95,6 +97,22 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     assert_file "app/controllers/messages_controller.rb" do |content|
       assert_match(/def message_params/, content)
       assert_match(/params\.require\(:message\)\.permit\(photos: \[\]\)/, content)
+    end
+  end
+
+  def test_controller_route_are_added
+    run_generator ["Message", "photos:attachments"]
+
+    assert_file "config/routes.rb" do |route|
+      assert_match(/resources :messages$/, route)
+    end
+  end
+
+  def test_controller_route_are_skipped
+    run_generator ["Message", "photos:attachments", "--skip-routes"]
+
+    assert_file "config/routes.rb" do |route|
+      assert_no_match(/resources :messages$/, route)
     end
   end
 
@@ -302,5 +320,13 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       assert_match(/def message_params/, content)
       assert_match(/params\.require\(:message\)\.permit\(:video, photos: \[\]\)/, content)
     end
+  end
+
+  def test_check_class_collision
+    Object.send :const_set, :UsersController, Class.new
+    content = capture(:stderr) { run_generator }
+    assert_match(/The name 'UsersController' is either already used in your application or reserved/, content)
+  ensure
+    Object.send :remove_const, :UsersController
   end
 end

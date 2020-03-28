@@ -11,7 +11,7 @@ module ActiveRecord
 
       def setup
         @connection = ActiveRecord::Base.connection
-        db          = Post.connection_pool.spec.config[:database]
+        db          = Post.connection_pool.db_config.database
         table       = Post.table_name
         @db_name    = db
 

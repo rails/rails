@@ -194,7 +194,7 @@ module ActionCable
       end
 
       private
-        # Called once a consumer has become a subscriber of the channel. Usually the place to setup any streams
+        # Called once a consumer has become a subscriber of the channel. Usually the place to set up any streams
         # you want this channel to be sending to the subscriber.
         def subscribed # :doc:
           # Override in subclasses
@@ -283,7 +283,7 @@ module ActionCable
 
         def transmit_subscription_confirmation
           unless subscription_confirmation_sent?
-            logger.info "#{self.class.name} is transmitting the subscription confirmation"
+            logger.debug "#{self.class.name} is transmitting the subscription confirmation"
 
             ActiveSupport::Notifications.instrument("transmit_subscription_confirmation.action_cable", channel_class: self.class.name) do
               connection.transmit identifier: @identifier, type: ActionCable::INTERNAL[:message_types][:confirmation]
@@ -298,7 +298,7 @@ module ActionCable
         end
 
         def transmit_subscription_rejection
-          logger.info "#{self.class.name} is transmitting the subscription rejection"
+          logger.debug "#{self.class.name} is transmitting the subscription rejection"
 
           ActiveSupport::Notifications.instrument("transmit_subscription_rejection.action_cable", channel_class: self.class.name) do
             connection.transmit identifier: @identifier, type: ActionCable::INTERNAL[:message_types][:rejection]

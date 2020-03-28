@@ -172,20 +172,19 @@ module ApplicationTests
       assert File.exist?(File.join(rails_root, "app/views/notifier_mailer/foo.html.erb"))
     end
 
-    test "ARGV is mutated as expected" do
+    test "ARGV is populated" do
       require "#{app_path}/config/environment"
-      require "rails/command"
-      Rails::Command.const_set("APP_PATH", "rails/all")
+      Rails.application.load_generators
 
-      FileUtils.cd(rails_root) do
-        ARGV = ["mailer", "notifier", "foo"]
-        Rails::Command.const_set("ARGV", ARGV)
-        quietly { Rails::Command.invoke :generate, ARGV }
-
-        assert_equal ["notifier", "foo"], ARGV
+      class Rails::Generators::CheckArgvGenerator < Rails::Generators::Base
+        def check_expected
+          raise "ARGV.first is not expected" unless ARGV.first == "expected"
+        end
       end
 
-      Rails::Command.send(:remove_const, "APP_PATH")
+      quietly do
+        Rails::Command.invoke(:generate, ["check_argv", "expected"]) # should not raise
+      end
     end
 
     test "help does not show hidden namespaces and hidden commands" do
@@ -197,6 +196,26 @@ module ApplicationTests
         output = rails("destroy", "--help")
         assert_no_match "active_record:migration", output
       end
+    end
+
+    test "skip collision check" do
+      rails("generate", "model", "post", "title:string")
+
+      output = rails("generate", "model", "post", "title:string", "body:string")
+      assert_match(/The name 'Post' is either already used in your application or reserved/, output)
+
+      output = rails("generate", "model", "post", "title:string", "body:string", "--skip-collision-check")
+      assert_no_match(/The name 'Post' is either already used in your application or reserved/, output)
+    end
+
+    test "force" do
+      rails("generate", "model", "post", "title:string")
+
+      output = rails("generate", "model", "post", "title:string", "body:string")
+      assert_match(/The name 'Post' is either already used in your application or reserved/, output)
+
+      output = rails("generate", "model", "post", "title:string", "body:string", "--force")
+      assert_no_match(/The name 'Post' is either already used in your application or reserved/, output)
     end
   end
 end

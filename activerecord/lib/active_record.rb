@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #--
-# Copyright (c) 2004-2019 David Heinemeier Hansson
+# Copyright (c) 2004-2020 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -31,10 +31,12 @@ require "yaml"
 
 require "active_record/version"
 require "active_model/attribute_set"
+require "active_record/errors"
 
 module ActiveRecord
   extend ActiveSupport::Autoload
 
+  autoload :AdvisoryLockBase
   autoload :Base
   autoload :Callbacks
   autoload :Core
@@ -76,9 +78,7 @@ module ActiveRecord
   autoload :DatabaseSelector, "active_record/middleware/database_selector"
 
   eager_autoload do
-    autoload :ActiveRecordError, "active_record/errors"
-    autoload :ConnectionNotEstablished, "active_record/errors"
-    autoload :ConnectionAdapters, "active_record/connection_adapters/abstract_adapter"
+    autoload :ConnectionAdapters
 
     autoload :Aggregations
     autoload :Associations
@@ -133,14 +133,6 @@ module ActiveRecord
     eager_autoload do
       autoload :Optimistic
       autoload :Pessimistic
-    end
-  end
-
-  module ConnectionAdapters
-    extend ActiveSupport::Autoload
-
-    eager_autoload do
-      autoload :AbstractAdapter
     end
   end
 

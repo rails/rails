@@ -16,10 +16,11 @@ module ActionController
 
     attr_internal :view_runtime
 
-    def process_action(*args)
+    def process_action(*)
       raw_payload = {
         controller: self.class.name,
         action: action_name,
+        request: request,
         params: request.filtered_parameters,
         headers: request.headers,
         format: request.format.ref,
@@ -27,18 +28,19 @@ module ActionController
         path: request.fullpath
       }
 
-      ActiveSupport::Notifications.instrument("start_processing.action_controller", raw_payload.dup)
+      ActiveSupport::Notifications.instrument("start_processing.action_controller", raw_payload)
 
       ActiveSupport::Notifications.instrument("process_action.action_controller", raw_payload) do |payload|
-        super.tap do
-          payload[:status] = response.status
-        end
+        result = super
+        payload[:response] = response
+        payload[:status]   = response.status
+        result
       ensure
         append_info_to_payload(payload)
       end
     end
 
-    def render(*args)
+    def render(*)
       render_output = nil
       self.view_runtime = cleanup_view_runtime do
         Benchmark.ms { render_output = super }
@@ -59,8 +61,8 @@ module ActionController
       end
     end
 
-    def redirect_to(*args)
-      ActiveSupport::Notifications.instrument("redirect_to.action_controller") do |payload|
+    def redirect_to(*)
+      ActiveSupport::Notifications.instrument("redirect_to.action_controller", request: request) do |payload|
         result = super
         payload[:status]   = response.status
         payload[:location] = response.filtered_location
@@ -69,9 +71,8 @@ module ActionController
     end
 
   private
-
     # A hook invoked every time a before callback is halted.
-    def halted_callback_hook(filter)
+    def halted_callback_hook(filter, _)
       ActiveSupport::Notifications.instrument("halted_callback.action_controller", filter: filter)
     end
 

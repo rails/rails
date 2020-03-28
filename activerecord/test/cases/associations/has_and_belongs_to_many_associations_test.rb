@@ -313,10 +313,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_build
     devel = Developer.find(1)
 
-    # Load schema information so we don't query below if running just this test.
-    Project.define_attribute_methods
-
-    proj = assert_no_queries { devel.projects.build("name" => "Projekt") }
+    proj = assert_queries(0) { devel.projects.build("name" => "Projekt") }
     assert_not_predicate devel.projects, :loaded?
 
     assert_equal devel.projects.last, proj
@@ -332,10 +329,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_new_aliased_to_build
     devel = Developer.find(1)
 
-    # Load schema information so we don't query below if running just this test.
-    Project.define_attribute_methods
-
-    proj = assert_no_queries { devel.projects.new("name" => "Projekt") }
+    proj = assert_queries(0) { devel.projects.new("name" => "Projekt") }
     assert_not_predicate devel.projects, :loaded?
 
     assert_equal devel.projects.last, proj
@@ -556,7 +550,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
     developer = project.developers.first
 
-    assert_no_queries do
+    assert_queries(0) do
       assert_predicate project.developers, :loaded?
       assert_includes project.developers, developer
     end
@@ -706,10 +700,17 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_equal ["id"], developers(:david).projects.select(:id).first.attributes.keys
   end
 
+  def test_join_middle_table_alias
+    assert_equal(
+      2,
+      Project.includes(:developers_projects).where.not("developers_projects.joined_on": nil).to_a.size
+    )
+  end
+
   def test_join_table_alias
     assert_equal(
       3,
-      Developer.includes(projects: :developers).where.not("projects_developers_projects_join.joined_on": nil).to_a.size
+      Developer.includes(projects: :developers).where.not("developers_projects_projects_join.joined_on": nil).to_a.size
     )
   end
 
@@ -722,7 +723,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
     assert_equal(
       3,
-      Developer.includes(projects: :developers).where.not("projects_developers_projects_join.joined_on": nil).group(group.join(",")).to_a.size
+      Developer.includes(projects: :developers).where.not("developers_projects_projects_join.joined_on": nil).group(group.join(",")).to_a.size
     )
   end
 
@@ -751,7 +752,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_get_ids_for_loaded_associations
     developer = developers(:david)
     developer.projects.reload
-    assert_no_queries do
+    assert_queries(0) do
       developer.project_ids
       developer.project_ids
     end
@@ -879,7 +880,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
   def test_has_and_belongs_to_many_associations_on_new_records_use_null_relations
     projects = Developer.new.projects
-    assert_no_queries do
+    assert_queries(0) do
       assert_equal [], projects
       assert_equal [], projects.where(title: "omg")
       assert_equal [], projects.pluck(:title)

@@ -86,6 +86,7 @@ module ActiveJob
       @executions = 0
       @exception_executions = {}
     end
+    ruby2_keywords(:initialize) if respond_to?(:ruby2_keywords, true)
 
     # Returns a hash with the job data that can safely be passed to the
     # queuing adapter.
@@ -100,7 +101,7 @@ module ActiveJob
         "executions" => executions,
         "exception_executions" => exception_executions,
         "locale"     => I18n.locale.to_s,
-        "timezone"   => Time.zone.try(:name),
+        "timezone"   => Time.zone&.name,
         "enqueued_at" => Time.now.utc.iso8601
       }
     end
@@ -140,7 +141,7 @@ module ActiveJob
       self.executions           = job_data["executions"]
       self.exception_executions = job_data["exception_executions"]
       self.locale               = job_data["locale"] || I18n.locale.to_s
-      self.timezone             = job_data["timezone"] || Time.zone.try(:name)
+      self.timezone             = job_data["timezone"] || Time.zone&.name
       self.enqueued_at          = job_data["enqueued_at"]
     end
 

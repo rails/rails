@@ -23,7 +23,7 @@ module ActionView
     end
 
     def render_partial(event)
-      info do
+      debug do
         message = +"  Rendered #{from_rails_root(event.payload[:identifier])}"
         message << " within #{from_rails_root(event.payload[:layout])}" if event.payload[:layout]
         message << " (Duration: #{event.duration.round(1)}ms | Allocations: #{event.allocations})"
@@ -35,7 +35,7 @@ module ActionView
     def render_collection(event)
       identifier = event.payload[:identifier] || "templates"
 
-      info do
+      debug do
         "  Rendered collection of #{from_rails_root(identifier)}" \
         " #{render_count(event.payload)} (Duration: #{event.duration.round(1)}ms | Allocations: #{event.allocations})"
       end
@@ -54,7 +54,6 @@ module ActionView
     end
 
   private
-
     EMPTY = ""
     def from_rails_root(string) # :doc:
       string = string.sub(rails_root, EMPTY)
@@ -84,7 +83,7 @@ module ActionView
     end
 
     def log_rendering_start(payload)
-      info do
+      debug do
         message = +"  Rendering #{from_rails_root(payload[:identifier])}"
         message << " within #{from_rails_root(payload[:layout])}" if payload[:layout]
         message

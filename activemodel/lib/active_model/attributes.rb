@@ -42,12 +42,12 @@ module ActiveModel
       end
 
       private
-
         def define_method_attribute=(name)
           ActiveModel::AttributeMethods::AttrNames.define_attribute_accessor_method(
             generated_attribute_methods, name, writer: true,
           ) do |temp_method_name, attr_name_expr|
             generated_attribute_methods.module_eval <<-RUBY, __FILE__, __LINE__ + 1
+              # frozen_string_literal: true
               def #{temp_method_name}(value)
                 name = #{attr_name_expr}
                 write_attribute(name, value)
@@ -83,7 +83,6 @@ module ActiveModel
     # Returns a hash of all the attributes with their names as keys and the values of the attributes as values.
     #
     #   class Person
-    #     include ActiveModel::Model
     #     include ActiveModel::Attributes
     #
     #     attribute :name, :string
@@ -113,8 +112,12 @@ module ActiveModel
       @attributes.keys
     end
 
-    private
+    def freeze
+      @attributes = @attributes.clone.freeze
+      super
+    end
 
+    private
       def write_attribute(attr_name, value)
         name = attr_name.to_s
         name = self.class.attribute_aliases[name] || name

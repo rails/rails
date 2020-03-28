@@ -310,6 +310,16 @@ module ApplicationTests
       end
     end
 
+    def test_run_relative_path_with_trailing_slash
+      create_test_file :models, "account"
+      create_test_file :controllers, "accounts_controller"
+
+      run_test_command("test/models/").tap do |output|
+        assert_match "AccountTest", output
+        assert_match "1 runs, 1 assertions, 0 failures, 0 errors, 0 skips", output
+      end
+    end
+
     def test_run_with_ruby_command
       app_file "test/models/post_test.rb", <<-RUBY
         require 'test_helper'
@@ -564,6 +574,24 @@ module ApplicationTests
       assert_no_match "create_table(:users)", output
     end
 
+    def test_run_in_parallel_with_process_worker_crash
+      exercise_parallelization_regardless_of_machine_core_count(with: :processes)
+
+      file_name = app_file("test/models/parallel_test.rb", <<-RUBY)
+        require 'test_helper'
+
+        class ParallelTest < ActiveSupport::TestCase
+          def test_crash
+            Kernel.exit 1
+          end
+        end
+      RUBY
+
+      output = run_test_command(file_name)
+
+      assert_match %r{Queue not empty, but all workers have finished. This probably means that a worker crashed and 1 tests were missed.}, output
+    end
+
     def test_run_in_parallel_with_threads
       exercise_parallelization_regardless_of_machine_core_count(with: :threads)
 
@@ -635,7 +663,7 @@ module ApplicationTests
       create_test_file :models, "account"
       create_test_file :models, "post", pass: false
       # This specifically verifies TEST for backwards compatibility with rake test
-      # as `rails test` already supports running tests from a single file more cleanly.
+      # as `bin/rails test` already supports running tests from a single file more cleanly.
       output = Dir.chdir(app_path) { `bin/rake test TEST=test/models/post_test.rb` }
 
       assert_match "PostTest", output, "passing TEST= should run selected test"
@@ -948,8 +976,8 @@ module ApplicationTests
 
           class EnvironmentTest < ActiveSupport::TestCase
             def test_environment
-              test_db = ActiveRecord::Base.configurations[#{env.dump}]["database"]
-              db_file = ActiveRecord::Base.connection_config[:database]
+              test_db = ActiveRecord::Base.configurations.configs_for(env_name: #{env.dump}, name: "primary").database
+              db_file = ActiveRecord::Base.connection_db_config.database
               assert_match(test_db, db_file)
               assert_equal #{env.dump}, ENV["RAILS_ENV"]
             end

@@ -1,25 +1,25 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 require "active_support/encrypted_file"
 
 class EncryptedFileTest < ActiveSupport::TestCase
   setup do
     @content = "One little fox jumped over the hedge"
 
-    @content_path = File.join(Dir.tmpdir, "content.txt.enc")
+    @tmpdir = Dir.mktmpdir("encrypted-file-test-")
+    @content_path = File.join(@tmpdir, "content.txt.enc")
 
-    @key_path = File.join(Dir.tmpdir, "content.txt.key")
+    @key_path = File.join(@tmpdir, "content.txt.key")
     File.write(@key_path, ActiveSupport::EncryptedFile.generate_key)
 
-    @encrypted_file = ActiveSupport::EncryptedFile.new(
-      content_path: @content_path, key_path: @key_path, env_key: "CONTENT_KEY", raise_if_missing_key: true
-    )
+    @encrypted_file = encrypted_file(@content_path)
   end
 
   teardown do
     FileUtils.rm_rf @content_path
     FileUtils.rm_rf @key_path
+    FileUtils.rm_rf @tmpdir
   end
 
   test "reading content by env key" do
@@ -50,10 +50,40 @@ class EncryptedFileTest < ActiveSupport::TestCase
   end
 
   test "raise MissingKeyError when key is missing" do
-    assert_raise(ActiveSupport::EncryptedFile::MissingKeyError) do
-      ActiveSupport::EncryptedFile.new(
-        content_path: @content_path, key_path: "", env_key: "", raise_if_missing_key: true
-      ).read
+    assert_raise ActiveSupport::EncryptedFile::MissingKeyError do
+      encrypted_file(@content_path, key_path: "", env_key: "").read
     end
   end
+
+  test "respects existing content_path symlink" do
+    @encrypted_file.write(@content)
+
+    symlink_path = File.join(@tmpdir, "content_symlink.txt.enc")
+    File.symlink(@encrypted_file.content_path, symlink_path)
+
+    encrypted_file(symlink_path).write(@content)
+
+    assert File.symlink?(symlink_path)
+    assert_equal @content, @encrypted_file.read
+  ensure
+    FileUtils.rm_rf symlink_path
+  end
+
+  test "creates new content_path symlink if it's dead" do
+    symlink_path = File.join(@tmpdir, "content_symlink.txt.enc")
+    File.symlink(@content_path, symlink_path)
+
+    encrypted_file(symlink_path).write(@content)
+
+    assert File.exist?(@content_path)
+    assert_equal @content, @encrypted_file.read
+  ensure
+    FileUtils.rm_rf symlink_path
+  end
+
+  private
+    def encrypted_file(content_path, key_path: @key_path, env_key: "CONTENT_KEY")
+      ActiveSupport::EncryptedFile.new(content_path: @content_path, key_path: key_path,
+        env_key: env_key, raise_if_missing_key: true)
+    end
 end

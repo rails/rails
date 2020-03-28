@@ -81,18 +81,18 @@ module ActiveSupport
         attr_reader :subscriber, :notifier, :namespace
 
         def add_event_subscriber(event) # :doc:
-          return if invalid_event?(event.to_s)
+          return if invalid_event?(event)
 
           pattern = prepare_pattern(event)
 
-          # Don't add multiple subscribers (eg. if methods are redefined).
+          # Don't add multiple subscribers (e.g. if methods are redefined).
           return if pattern_subscribed?(pattern)
 
           subscriber.patterns[pattern] = notifier.subscribe(pattern, subscriber)
         end
 
         def remove_event_subscriber(event) # :doc:
-          return if invalid_event?(event.to_s)
+          return if invalid_event?(event)
 
           pattern = prepare_pattern(event)
 
@@ -107,7 +107,7 @@ module ActiveSupport
         end
 
         def invalid_event?(event)
-          %w{ start finish }.include?(event.to_s)
+          %i{ start finish }.include?(event.to_sym)
         end
 
         def prepare_pattern(event)

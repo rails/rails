@@ -7,7 +7,7 @@ module AbstractController
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :_helpers, default: Module.new
+      class_attribute :_helpers, default: define_helpers_module(self)
       class_attribute :_helper_methods, default: Array.new
     end
 
@@ -31,7 +31,7 @@ module AbstractController
       # independently of the child class's.
       def inherited(klass)
         helpers = _helpers
-        klass._helpers = Module.new { include helpers }
+        klass._helpers = define_helpers_module(klass, helpers)
         klass.class_eval { default_helper_module! } unless klass.anonymous?
         super
       end
@@ -57,15 +57,19 @@ module AbstractController
       # ==== Parameters
       # * <tt>method[, method]</tt> - A name or names of a method on the controller
       #   to be made available on the view.
-      def helper_method(*meths)
-        meths.flatten!
-        self._helper_methods += meths
+      def helper_method(*methods)
+        methods.flatten!
+        self._helper_methods += methods
 
-        meths.each do |meth|
-          _helpers.class_eval <<-ruby_eval, __FILE__, __LINE__ + 1
-            def #{meth}(*args, &blk)                               # def current_user(*args, &blk)
-              controller.send(%(#{meth}), *args, &blk)             #   controller.send(:current_user, *args, &blk)
-            end                                                    # end
+        location = caller_locations(1, 1).first
+        file, line = location.path, location.lineno
+
+        methods.each do |method|
+          _helpers.class_eval <<-ruby_eval, file, line
+            def #{method}(*args, &block)                    # def current_user(*args, &block)
+              controller.send(:'#{method}', *args, &block)  #   controller.send(:'current_user', *args, &block)
+            end                                             # end
+            ruby2_keywords(:'#{method}') if respond_to?(:ruby2_keywords, true)
           ruby_eval
         end
       end
@@ -106,7 +110,7 @@ module AbstractController
       #
       def helper(*args, &block)
         modules_for_helpers(args).each do |mod|
-          add_template_helper(mod)
+          _helpers.include(mod)
         end
 
         _helpers.module_eval(&block) if block_given?
@@ -170,14 +174,15 @@ module AbstractController
       end
 
       private
-        # Makes all the (instance) methods in the helper module available to templates
-        # rendered through this controller.
-        #
-        # ==== Parameters
-        # * <tt>module</tt> - The module to include into the current helper module
-        #   for the class
-        def add_template_helper(mod)
-          _helpers.module_eval { include mod }
+        def define_helpers_module(klass, helpers = nil)
+          # In some tests inherited is called explicitly. In that case, just
+          # return the module from the first time it was defined
+          return klass.const_get(:HelperMethods) if klass.const_defined?(:HelperMethods, false)
+
+          mod = Module.new
+          klass.const_set(:HelperMethods, mod)
+          mod.include(helpers) if helpers
+          mod
         end
 
         def default_helper_module!

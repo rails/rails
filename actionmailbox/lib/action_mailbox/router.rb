@@ -31,7 +31,7 @@ module ActionMailbox
     end
 
     def mailbox_for(inbound_email)
-      routes.detect { |route| route.match?(inbound_email) }.try(:mailbox_class)
+      routes.detect { |route| route.match?(inbound_email) }&.mailbox_class
     end
 
     private

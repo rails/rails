@@ -13,6 +13,12 @@ class RespondToController < ActionController::Base
     end
   }
 
+  def my_html_fragment
+    respond_to do |type|
+      type.html_fragment { render body: "neat" }
+    end
+  end
+
   def html_xml_or_rss
     respond_to do |type|
       type.html { render body: "HTML"    }
@@ -148,6 +154,13 @@ class RespondToController < ActionController::Base
     respond_to do |type|
       type.html { render body: "HTML" }
       type.any(:js, :xml) { render body: "Either JS or XML" }
+    end
+  end
+
+  def handle_any_doesnt_set_request_content_type
+    respond_to do |type|
+      type.html { render body: "HTML" }
+      type.any { render json: { foo: "bar" } }
     end
   end
 
@@ -321,6 +334,7 @@ class RespondToControllerTest < ActionController::TestCase
     Mime::Type.register_alias("text/html", :iphone)
     Mime::Type.register("text/x-mobile", :mobile)
     Mime::Type.register("application/fancy-xml", :fancy_xml)
+    Mime::Type.register("text/html; fragment", :html_fragment)
   end
 
   def teardown
@@ -328,6 +342,14 @@ class RespondToControllerTest < ActionController::TestCase
     Mime::Type.unregister(:iphone)
     Mime::Type.unregister(:mobile)
     Mime::Type.unregister(:fancy_xml)
+    Mime::Type.unregister(:html_fragment)
+  end
+
+  def test_html_fragment
+    @request.accept = "text/html; fragment"
+    get :my_html_fragment
+    assert_equal "text/html; fragment; charset=utf-8", @response.headers["Content-Type"]
+    assert_equal "neat", @response.body
   end
 
   def test_html
@@ -423,12 +445,12 @@ class RespondToControllerTest < ActionController::TestCase
   def test_using_defaults
     @request.accept = "*/*"
     get :using_defaults
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
     assert_equal "Hello world!", @response.body
 
     @request.accept = "application/xml"
     get :using_defaults
-    assert_equal "application/xml", @response.content_type
+    assert_equal "application/xml", @response.media_type
     assert_equal "<p>Hello world!</p>\n", @response.body
   end
 
@@ -449,12 +471,12 @@ class RespondToControllerTest < ActionController::TestCase
   def test_using_defaults_with_type_list
     @request.accept = "*/*"
     get :using_defaults_with_type_list
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
     assert_equal "Hello world!", @response.body
 
     @request.accept = "application/xml"
     get :using_defaults_with_type_list
-    assert_equal "application/xml", @response.content_type
+    assert_equal "application/xml", @response.media_type
     assert_equal "<p>Hello world!</p>\n", @response.body
   end
 
@@ -468,7 +490,7 @@ class RespondToControllerTest < ActionController::TestCase
   def test_using_non_conflicting_nested_js_then_js
     @request.accept = "*/*"
     get :using_non_conflicting_nested_js_then_js
-    assert_equal "text/javascript", @response.content_type
+    assert_equal "text/javascript", @response.media_type
     assert_equal "JS", @response.body
   end
 
@@ -499,12 +521,12 @@ class RespondToControllerTest < ActionController::TestCase
   def test_custom_types
     @request.accept = "application/fancy-xml"
     get :custom_type_handling
-    assert_equal "application/fancy-xml", @response.content_type
+    assert_equal "application/fancy-xml", @response.media_type
     assert_equal "Fancy XML", @response.body
 
     @request.accept = "text/html"
     get :custom_type_handling
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
     assert_equal "HTML", @response.body
   end
 
@@ -532,6 +554,12 @@ class RespondToControllerTest < ActionController::TestCase
     @request.accept = "text/xml"
     get :handle_any
     assert_equal "Either JS or XML", @response.body
+  end
+
+  def test_handle_any_doesnt_set_request_content_type
+    @request.accept = "text/csv"
+    get :handle_any_doesnt_set_request_content_type
+    assert_equal "application/json", @response.media_type
   end
 
   def test_handle_any_any
@@ -595,7 +623,7 @@ class RespondToControllerTest < ActionController::TestCase
     @request.accept = "application/json"
     get :json_with_callback
     assert_equal "/**/alert(JS)", @response.body
-    assert_equal "text/javascript", @response.content_type
+    assert_equal "text/javascript", @response.media_type
   end
 
   def test_xhr
@@ -605,13 +633,13 @@ class RespondToControllerTest < ActionController::TestCase
 
   def test_custom_constant
     get :custom_constant_handling, format: "mobile"
-    assert_equal "text/x-mobile", @response.content_type
+    assert_equal "text/x-mobile", @response.media_type
     assert_equal "Mobile", @response.body
   end
 
   def test_custom_constant_handling_without_block
     get :custom_constant_handling_without_block, format: "mobile"
-    assert_equal "text/x-mobile", @response.content_type
+    assert_equal "text/x-mobile", @response.media_type
     assert_equal "Mobile", @response.body
   end
 
@@ -664,7 +692,7 @@ class RespondToControllerTest < ActionController::TestCase
     assert_equal '<html><div id="html">Hello future from Firefox!</div></html>', @response.body
 
     get :iphone_with_html_response_type, format: "iphone"
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
     assert_equal '<html><div id="iphone">Hello iPhone future from iPhone!</div></html>', @response.body
   end
 
@@ -672,7 +700,7 @@ class RespondToControllerTest < ActionController::TestCase
     @request.accept = "text/iphone"
     get :iphone_with_html_response_type
     assert_equal '<html><div id="iphone">Hello iPhone future from iPhone!</div></html>', @response.body
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
   end
 
   def test_invalid_format
@@ -702,7 +730,7 @@ class RespondToControllerTest < ActionController::TestCase
 
   def test_variant_with_implicit_template_rendering
     get :variant_with_implicit_template_rendering, params: { v: :mobile }
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
     assert_equal "mobile", @response.body
   end
 
@@ -756,137 +784,137 @@ class RespondToControllerTest < ActionController::TestCase
 
   def test_variant_with_format_and_custom_render
     get :variant_with_format_and_custom_render, params: { v: :phone }
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
     assert_equal "mobile", @response.body
   end
 
   def test_multiple_variants_for_format
     get :multiple_variants_for_format, params: { v: :tablet }
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
     assert_equal "tablet", @response.body
   end
 
   def test_no_variant_in_variant_setup
     get :variant_plus_none_for_format
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
     assert_equal "none", @response.body
   end
 
   def test_variant_inline_syntax
     get :variant_inline_syntax
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
     assert_equal "none", @response.body
 
     get :variant_inline_syntax, params: { v: :phone }
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
     assert_equal "phone", @response.body
   end
 
   def test_variant_inline_syntax_with_format
     get :variant_inline_syntax, format: :js
-    assert_equal "text/javascript", @response.content_type
+    assert_equal "text/javascript", @response.media_type
     assert_equal "js", @response.body
   end
 
   def test_variant_inline_syntax_without_block
     get :variant_inline_syntax_without_block, params: { v: :phone }
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
     assert_equal "phone", @response.body
   end
 
   def test_variant_any
     get :variant_any, params: { v: :phone }
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
     assert_equal "phone", @response.body
 
     get :variant_any, params: { v: :tablet }
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
     assert_equal "any", @response.body
 
     get :variant_any, params: { v: :phablet }
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
     assert_equal "any", @response.body
   end
 
   def test_variant_any_any
     get :variant_any_any
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
     assert_equal "any", @response.body
 
     get :variant_any_any, params: { v: :phone }
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
     assert_equal "phone", @response.body
 
     get :variant_any_any, params: { v: :yolo }
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
     assert_equal "any", @response.body
   end
 
   def test_variant_inline_any
     get :variant_any, params: { v: :phone }
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
     assert_equal "phone", @response.body
 
     get :variant_inline_any, params: { v: :tablet }
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
     assert_equal "any", @response.body
 
     get :variant_inline_any, params: { v: :phablet }
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
     assert_equal "any", @response.body
   end
 
   def test_variant_inline_any_any
     get :variant_inline_any_any, params: { v: :phone }
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
     assert_equal "phone", @response.body
 
     get :variant_inline_any_any, params: { v: :yolo }
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
     assert_equal "any", @response.body
   end
 
   def test_variant_any_implicit_render
     get :variant_any_implicit_render, params: { v: :tablet }
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
     assert_equal "tablet", @response.body
 
     get :variant_any_implicit_render, params: { v: :phablet }
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
     assert_equal "phablet", @response.body
   end
 
   def test_variant_any_with_none
     get :variant_any_with_none
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
     assert_equal "none or phone", @response.body
 
     get :variant_any_with_none, params: { v: :phone }
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
     assert_equal "none or phone", @response.body
   end
 
   def test_format_any_variant_any
     get :format_any_variant_any, format: :js, params: { v: :tablet }
-    assert_equal "text/javascript", @response.content_type
+    assert_equal "text/javascript", @response.media_type
     assert_equal "tablet", @response.body
   end
 
   def test_variant_negotiation_inline_syntax
     get :variant_inline_syntax_without_block, params: { v: [:tablet, :phone] }
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
     assert_equal "phone", @response.body
   end
 
   def test_variant_negotiation_block_syntax
     get :variant_plus_none_for_format, params: { v: [:tablet, :phone] }
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
     assert_equal "phone", @response.body
   end
 
   def test_variant_negotiation_without_block
     get :variant_inline_syntax_without_block, params: { v: [:tablet, :phone] }
-    assert_equal "text/html", @response.content_type
+    assert_equal "text/html", @response.media_type
     assert_equal "phone", @response.body
   end
 end

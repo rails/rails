@@ -15,6 +15,8 @@ module Rails
       class_option :api, type: :boolean,
                          desc: "Generates API controller"
 
+      class_option :skip_routes, type: :boolean, desc: "Don't add routes to config/routes.rb."
+
       argument :attributes, type: :array, default: [], banner: "field:type field:type"
 
       def create_controller_files
@@ -26,6 +28,10 @@ module Rails
         invoke template_engine unless options.api?
       end
 
+      hook_for :resource_route, required: true do |route|
+        invoke route unless options.skip_routes?
+      end
+
       hook_for :test_framework, as: :scaffold
 
       # Invoke the helper using the controller name (pluralized)
@@ -34,7 +40,6 @@ module Rails
       end
 
       private
-
         def permitted_params
           attachments, others = attributes_names.partition { |name| attachments?(name) }
           params = others.map { |name| ":#{name}" }

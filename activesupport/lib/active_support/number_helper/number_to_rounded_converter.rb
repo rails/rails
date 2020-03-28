@@ -20,14 +20,14 @@ module ActiveSupport
           end
 
           formatted_string =
-            if BigDecimal === rounded_number && rounded_number.finite?
+            if rounded_number.nan? || rounded_number.infinite? || rounded_number == rounded_number.to_i
+              "%00.#{precision}f" % rounded_number
+            else
               s = rounded_number.to_s("F")
               s << "0" * precision
               a, b = s.split(".", 2)
               a << "."
               a << b[0, precision]
-            else
-              "%00.#{precision}f" % rounded_number
             end
         else
           formatted_string = rounded_number
@@ -38,7 +38,6 @@ module ActiveSupport
       end
 
       private
-
         def strip_insignificant_zeros
           options[:strip_insignificant_zeros]
         end

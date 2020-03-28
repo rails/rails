@@ -98,6 +98,15 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert_nil deps.safe_constantize("Admin")
   end
 
+  test "autoloaded? and overridden class names" do
+    invalid_constant_name = Module.new do
+      def self.name
+        "MyModule::SchemaMigration"
+      end
+    end
+    assert_not deps.autoloaded?(invalid_constant_name)
+  end
+
   test "unloadable constants (main)" do
     app_file "app/models/user.rb", "class User; end"
     app_file "app/models/post.rb", "class Post; end"
@@ -141,6 +150,35 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert_empty deps.autoloaded_constants
   end
 
+  [true, false].each do |add_aps_to_lp|
+    test "require_dependency looks autoload paths up (#{add_aps_to_lp})" do
+      add_to_config "config.add_autoload_paths_to_load_path = #{add_aps_to_lp}"
+      app_file "app/models/user.rb", "class User; end"
+      boot
+
+      assert require_dependency("user")
+    end
+
+    test "require_dependency handles absolute paths correctly (#{add_aps_to_lp})" do
+      add_to_config "config.add_autoload_paths_to_load_path = #{add_aps_to_lp}"
+      app_file "app/models/user.rb", "class User; end"
+      boot
+
+      assert require_dependency("#{app_path}/app/models/user.rb")
+    end
+
+    test "require_dependency supports arguments that repond to to_path (#{add_aps_to_lp})" do
+      add_to_config "config.add_autoload_paths_to_load_path = #{add_aps_to_lp}"
+      app_file "app/models/user.rb", "class User; end"
+      boot
+
+      user = Object.new
+      def user.to_path; "user"; end
+
+      assert require_dependency(user)
+    end
+  end
+
   test "eager loading loads the application code" do
     $zeitwerk_integration_test_user = false
     $zeitwerk_integration_test_post = false
@@ -150,6 +188,26 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
 
     boot("production")
 
+    assert $zeitwerk_integration_test_user
+    assert $zeitwerk_integration_test_post
+  end
+
+  test "eager loading loads the application code if invoked manually too (regression test)" do
+    $zeitwerk_integration_test_user = false
+    $zeitwerk_integration_test_post = false
+
+    app_file "app/models/user.rb", "class User; end; $zeitwerk_integration_test_user = true"
+    app_file "app/models/post.rb", "class Post; end; $zeitwerk_integration_test_post = true"
+
+    boot
+
+    # Preconditions.
+    assert_not $zeitwerk_integration_test_user
+    assert_not $zeitwerk_integration_test_post
+
+    Rails.application.eager_load!
+
+    # Postconditions.
     assert $zeitwerk_integration_test_user
     assert $zeitwerk_integration_test_post
   end
@@ -346,5 +404,17 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     Rails.autoloaders.each do |autoloader|
       assert_nil autoloader.logger
     end
+  end
+
+  test "autoloaders.log!" do
+    app_file "extras/utils.rb", "module Utils; end"
+
+    add_to_config %(config.autoload_once_paths << "\#{Rails.root}/extras")
+    add_to_config "Rails.autoloaders.log!"
+
+    out, _err = capture_io { boot }
+
+    assert_match %r/^Zeitwerk@rails.main: autoload set for ApplicationRecord/, out
+    assert_match %r/^Zeitwerk@rails.once: autoload set for Utils/, out
   end
 end

@@ -3,6 +3,7 @@
 require "cases/helper"
 require "models/author"
 require "models/book"
+require "active_support/log_subscriber/test_helper"
 
 class EnumTest < ActiveRecord::TestCase
   fixtures :books, :authors, :author_addresses
@@ -230,9 +231,24 @@ class EnumTest < ActiveRecord::TestCase
     assert_nil @book.status
   end
 
+  test "assign nil value to enum which defines nil value to hash" do
+    @book.read_status = nil
+    assert_equal "forgotten", @book.read_status
+  end
+
   test "assign empty string value" do
     @book.status = ""
     assert_nil @book.status
+  end
+
+  test "assign false value to a field defined as not boolean" do
+    @book.status = false
+    assert_nil @book.status
+  end
+
+  test "assign false value to a field defined as boolean" do
+    @book.boolean_status = false
+    assert_equal "disabled", @book.boolean_status
   end
 
   test "assign long empty string value" do
@@ -564,5 +580,28 @@ class EnumTest < ActiveRecord::TestCase
     end
 
     assert_raises(NoMethodError) { klass.proposed }
+  end
+
+  test "enums with a negative condition log a warning" do
+    old_logger = ActiveRecord::Base.logger
+    logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
+
+    ActiveRecord::Base.logger = logger
+
+    expected_message = "An enum element in Book uses the prefix 'not_'."\
+      " This will cause a conflict with auto generated negative scopes."
+
+    Class.new(ActiveRecord::Base) do
+      def self.name
+        "Book"
+      end
+      silence_warnings do
+        enum status: [:sent, :not_sent]
+      end
+    end
+
+    assert_match(expected_message, logger.logged(:warn).first)
+  ensure
+    ActiveRecord::Base.logger = old_logger
   end
 end

@@ -142,7 +142,7 @@ module ActionController #:nodoc:
     #
     # You can set the variant in a +before_action+:
     #
-    #   request.variant = :tablet if request.user_agent =~ /iPad/
+    #   request.variant = :tablet if /iPad/.match?(request.user_agent)
     #
     # Respond to variants in the action just like you respond to formats:
     #
@@ -205,11 +205,11 @@ module ActionController #:nodoc:
       yield collector if block_given?
 
       if format = collector.negotiate_format(request)
-        if content_type && content_type != format
+        if media_type && media_type != format
           raise ActionController::RespondToMismatchError
         end
         _process_format(format)
-        _set_rendered_content_type format
+        _set_rendered_content_type(format) unless collector.any_response?
         response = collector.response
         response.call if response
       else
@@ -266,6 +266,10 @@ module ActionController #:nodoc:
         else
           VariantCollector.new(@variant)
         end
+      end
+
+      def any_response?
+        !@responses.fetch(format, false) && @responses[Mime::ALL]
       end
 
       def response

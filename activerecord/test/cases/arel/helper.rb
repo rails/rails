@@ -6,9 +6,9 @@ require "arel"
 
 require_relative "support/fake_record"
 
-class Object
+Minitest::Expectation.class_eval do
   def must_be_like(other)
-    gsub(/\s+/, " ").strip.must_equal other.gsub(/\s+/, " ").strip
+    self.class.new(target.gsub(/\s+/, " ").strip, ctx).must_equal other.gsub(/\s+/, " ").strip
   end
 end
 

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 require "active_support/core_ext/string/inflections"
 require "yaml"
 
@@ -273,5 +273,10 @@ class SafeBufferTest < ActiveSupport::TestCase
     b.gsub!(/([a-z]+)([0-9]+)/) { $2 + $1 }
     assert_equal "123foo 456bar", b
     assert_not_predicate b, :html_safe?
+  end
+
+  test "Should support Enumerator" do
+    a = "aaa".html_safe.gsub!(/a/).with_index { |m, i| i }
+    assert_equal "012", a
   end
 end

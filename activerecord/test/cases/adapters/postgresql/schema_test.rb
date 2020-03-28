@@ -45,6 +45,8 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
   PK_TABLE_NAME = "table_with_pk"
   UNMATCHED_SEQUENCE_NAME = "unmatched_primary_key_default_value_seq"
   UNMATCHED_PK_TABLE_NAME = "table_with_unmatched_sequence_for_pk"
+  PARTITIONED_TABLE = "measurements"
+  PARTITIONED_TABLE_INDEX = "index_measurements_on_logdate_and_city_id"
 
   class Thing1 < ActiveRecord::Base
     self.table_name = "test_schema.things"
@@ -104,7 +106,11 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_schema_names
-    assert_equal ["public", "test_schema", "test_schema2"], @connection.schema_names
+    schema_names = @connection.schema_names
+    assert_includes schema_names, "public"
+    assert_includes schema_names, "test_schema"
+    assert_includes schema_names, "test_schema2"
+    assert_includes schema_names, "hint_plan" if @connection.supports_optimizer_hints?
   end
 
   def test_create_schema
@@ -307,6 +313,12 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
       assert @connection.index_name_exists?(TABLE_NAME, INDEX_E_NAME)
       assert @connection.index_name_exists?(TABLE_NAME, INDEX_E_NAME)
       assert_not @connection.index_name_exists?(TABLE_NAME, "missing_index")
+
+      if supports_partitioned_indexes?
+        create_partitioned_table
+        create_partitioned_table_index
+        assert @connection.index_name_exists?(PARTITIONED_TABLE, PARTITIONED_TABLE_INDEX)
+      end
     end
   end
 
@@ -325,6 +337,13 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
   def test_dump_indexes_for_table_with_scheme_specified_in_name
     indexes = @connection.indexes("#{SCHEMA_NAME}.#{TABLE_NAME}")
     assert_equal 5, indexes.size
+
+    if supports_partitioned_indexes?
+      create_partitioned_table
+      create_partitioned_table_index
+      indexes = @connection.indexes("#{SCHEMA_NAME}.#{PARTITIONED_TABLE}")
+      assert_equal 1, indexes.size
+    end
   end
 
   def test_with_uppercase_index_name
@@ -332,6 +351,15 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
 
     with_schema_search_path SCHEMA_NAME do
       assert_nothing_raised { @connection.remove_index "things", name: "things_Index" }
+    end
+
+    if supports_partitioned_indexes?
+      create_partitioned_table
+      @connection.execute "CREATE INDEX \"#{PARTITIONED_TABLE}_Index\" ON #{SCHEMA_NAME}.#{PARTITIONED_TABLE} (logdate, city_id)"
+
+      with_schema_search_path SCHEMA_NAME do
+        assert_nothing_raised { @connection.remove_index PARTITIONED_TABLE, name: "#{PARTITIONED_TABLE}_Index" }
+      end
     end
   end
 
@@ -347,6 +375,22 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
 
     @connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
     assert_raises(ArgumentError) { @connection.remove_index "#{SCHEMA2_NAME}.things", name: "#{SCHEMA_NAME}.things_Index" }
+
+    if supports_partitioned_indexes?
+      create_partitioned_table
+
+      @connection.execute "CREATE INDEX \"#{PARTITIONED_TABLE}_Index\" ON #{SCHEMA_NAME}.#{PARTITIONED_TABLE} (logdate, city_id)"
+      assert_nothing_raised { @connection.remove_index PARTITIONED_TABLE, name: "#{SCHEMA_NAME}.#{PARTITIONED_TABLE}_Index" }
+
+      @connection.execute "CREATE INDEX \"#{PARTITIONED_TABLE}_Index\" ON #{SCHEMA_NAME}.#{PARTITIONED_TABLE} (logdate, city_id)"
+      assert_nothing_raised { @connection.remove_index "#{SCHEMA_NAME}.#{PARTITIONED_TABLE}", name: "#{PARTITIONED_TABLE}_Index" }
+
+      @connection.execute "CREATE INDEX \"#{PARTITIONED_TABLE}_Index\" ON #{SCHEMA_NAME}.#{PARTITIONED_TABLE} (logdate, city_id)"
+      assert_nothing_raised { @connection.remove_index "#{SCHEMA_NAME}.#{PARTITIONED_TABLE}", name: "#{SCHEMA_NAME}.#{PARTITIONED_TABLE}_Index" }
+
+      @connection.execute "CREATE INDEX \"#{PARTITIONED_TABLE}_Index\" ON #{SCHEMA_NAME}.#{PARTITIONED_TABLE} (logdate, city_id)"
+      assert_raises(ArgumentError) { @connection.remove_index "#{SCHEMA2_NAME}.#{PARTITIONED_TABLE}", name: "#{SCHEMA_NAME}.#{PARTITIONED_TABLE}_Index" }
+    end
   end
 
   def test_primary_key_with_schema_specified
@@ -468,6 +512,14 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
 
     def bind_param(value)
       ActiveRecord::Relation::QueryAttribute.new(nil, value, ActiveRecord::Type::Value.new)
+    end
+
+    def create_partitioned_table
+      @connection.execute "CREATE TABLE #{SCHEMA_NAME}.\"#{PARTITIONED_TABLE}\" (city_id integer not null, logdate date not null) PARTITION BY LIST (city_id)"
+    end
+
+    def create_partitioned_table_index
+      @connection.execute "CREATE INDEX #{PARTITIONED_TABLE_INDEX} ON #{SCHEMA_NAME}.#{PARTITIONED_TABLE} (logdate, city_id)"
     end
 end
 

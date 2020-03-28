@@ -9,7 +9,8 @@ module ActiveSupport
         @signed, @encrypted = [], []
       end
 
-      def rotate(kind, *args)
+      def rotate(kind, *args, **options)
+        args << options unless options.empty?
         case kind
         when :signed
           @signed << args

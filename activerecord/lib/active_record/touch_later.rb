@@ -36,7 +36,6 @@ module ActiveRecord
     end
 
     private
-
       def surreptitiously_touch(attrs)
         attrs.each { |attr| write_attribute attr, @_touch_time }
         clear_attribute_changes attrs

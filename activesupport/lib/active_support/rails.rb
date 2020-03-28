@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# This is private interface.
+# This is a private interface.
 #
 # Rails components cherry pick from Active Support as needed, but there are a
 # few features that are used for sure in some way or another and it is not worth
@@ -12,9 +12,6 @@
 
 # Defines Object#blank? and Object#present?.
 require "active_support/core_ext/object/blank"
-
-# Rails own autoload, eager_load, etc.
-require "active_support/dependencies/autoload"
 
 # Support for ClassMethods and the included macro.
 require "active_support/concern"

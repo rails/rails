@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 
 class AssertionsTest < ActiveSupport::TestCase
   def setup
@@ -192,7 +192,7 @@ class AssertionsTest < ActiveSupport::TestCase
         @object.increment
       end
     end
-    assert_equal "\"@object.num\" isn't nil", error.message
+    assert_equal "Expected change from nil", error.message
   end
 
   def test_assert_changes_with_to_option
@@ -208,7 +208,7 @@ class AssertionsTest < ActiveSupport::TestCase
       end
     end
 
-    assert_equal "\"@object.num\" didn't change. It was already 0", error.message
+    assert_equal "\"@object.num\" didn't change. It was already 0.\nExpected 0 to not be equal to 0.", error.message
   end
 
   def test_assert_changes_with_wrong_to_option
@@ -272,12 +272,12 @@ class AssertionsTest < ActiveSupport::TestCase
 
   def test_assert_changes_with_message
     error = assert_raises Minitest::Assertion do
-      assert_changes "@object.num", "@object.num should 1", to: 1 do
+      assert_changes "@object.num", "@object.num should be 1", to: 1 do
         @object.decrement
       end
     end
 
-    assert_equal "@object.num should 1.\n\"@object.num\" didn't change to as expected\nExpected: 1\n  Actual: -1", error.message
+    assert_equal "@object.num should be 1.\nExpected change to 1\n", error.message
   end
 
   def test_assert_no_changes_pass
@@ -293,7 +293,29 @@ class AssertionsTest < ActiveSupport::TestCase
       end
     end
 
-    assert_equal "@object.num should not change.\n\"@object.num\" did change to 1", error.message
+    assert_equal "@object.num should not change.\n\"@object.num\" changed.\nExpected: 0\n  Actual: 1", error.message
+  end
+
+  def test_assert_no_changes_with_long_string_wont_output_everything
+    lines = "HEY\n" * 12
+
+    error = assert_raises Minitest::Assertion do
+      assert_no_changes "lines" do
+        lines += "HEY ALSO\n"
+      end
+    end
+
+    assert_match <<~output, error.message
+      "lines" changed.
+      --- expected
+      +++ actual
+      @@ -10,4 +10,5 @@
+       HEY
+       HEY
+       HEY
+      +HEY ALSO
+       "
+    output
   end
 end
 
@@ -315,7 +337,6 @@ class SetupAndTeardownTest < ActiveSupport::TestCase
   end
 
   private
-
     def reset_callback_record
       @called_back = []
     end

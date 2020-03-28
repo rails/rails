@@ -3,6 +3,7 @@
 require "ipaddr"
 require "active_support/core_ext/kernel/reporting"
 require "active_support/file_update_checker"
+require "active_support/configuration_file"
 require "rails/engine/configuration"
 require "rails/source_annotation_extractor"
 
@@ -18,8 +19,9 @@ module Rails
                     :session_options, :time_zone, :reload_classes_only_on_change,
                     :beginning_of_week, :filter_redirect, :x, :enable_dependency_loading,
                     :read_encrypted_secrets, :log_level, :content_security_policy_report_only,
-                    :content_security_policy_nonce_generator, :require_master_key, :credentials,
-                    :disable_sandbox, :add_autoload_paths_to_load_path
+                    :content_security_policy_nonce_generator, :content_security_policy_nonce_directives,
+                    :require_master_key, :credentials, :disable_sandbox, :add_autoload_paths_to_load_path,
+                    :rake_eager_load
 
       attr_reader :encoding, :api_only, :loaded_config_version, :autoloader
 
@@ -31,7 +33,7 @@ module Rails
         @filter_parameters                       = []
         @filter_redirect                         = []
         @helpers_paths                           = []
-        @hosts                                   = Array(([IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0"), ".localhost"] if Rails.env.development?))
+        @hosts                                   = Array(([".localhost", IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0")] if Rails.env.development?))
         @public_file_server                      = ActiveSupport::OrderedOptions.new
         @public_file_server.enabled              = true
         @public_file_server.index_name           = "index"
@@ -60,6 +62,7 @@ module Rails
         @content_security_policy                 = nil
         @content_security_policy_report_only     = false
         @content_security_policy_nonce_generator = nil
+        @content_security_policy_nonce_directives = nil
         @require_master_key                      = false
         @loaded_config_version                   = nil
         @credentials                             = ActiveSupport::OrderedOptions.new
@@ -68,8 +71,11 @@ module Rails
         @autoloader                              = :classic
         @disable_sandbox                         = false
         @add_autoload_paths_to_load_path         = true
+        @feature_policy                          = nil
+        @rake_eager_load                         = false
       end
 
+      # Loads default configurations. See {the result of the method for each version}[https://guides.rubyonrails.org/configuring.html#results-of-config-load-defaults].
       def load_defaults(target_version)
         case target_version.to_s
         when "5.0"
@@ -129,6 +135,7 @@ module Rails
 
           if respond_to?(:action_dispatch)
             action_dispatch.use_cookies_with_metadata = true
+            action_dispatch.return_only_media_type_on_content_type = false
           end
 
           if respond_to?(:action_mailer)
@@ -142,6 +149,8 @@ module Rails
           if respond_to?(:active_storage)
             active_storage.queues.analysis = :active_storage_analysis
             active_storage.queues.purge    = :active_storage_purge
+
+            active_storage.replace_on_assign_to_many = true
           end
 
           if respond_to?(:active_record)
@@ -149,6 +158,26 @@ module Rails
           end
         when "6.1"
           load_defaults "6.0"
+
+          if respond_to?(:active_job)
+            active_job.retry_jitter = 0.15
+          end
+
+          if respond_to?(:active_record)
+            active_record.has_many_inversing = true
+          end
+
+          if respond_to?(:active_storage)
+            active_storage.track_variants = true
+          end
+
+          if respond_to?(:active_job)
+            active_job.skip_after_callbacks_if_terminated = true
+          end
+
+          if respond_to?(:action_dispatch)
+            action_dispatch.cookies_same_site_protection = :lax
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
@@ -207,7 +236,7 @@ module Rails
           yaml = Pathname.new(path)
           erb = DummyERB.new(yaml.read)
 
-          YAML.load(erb.result)
+          YAML.load(erb.result) || {}
         else
           {}
         end
@@ -219,12 +248,9 @@ module Rails
         path = paths["config/database"].existent.first
         yaml = Pathname.new(path) if path
 
-        config = if yaml && yaml.exist?
-          require "yaml"
-          require "erb"
-          loaded_yaml = YAML.load(ERB.new(yaml.read).result) || {}
-          shared = loaded_yaml.delete("shared")
-          if shared
+        config = if yaml&.exist?
+          loaded_yaml = ActiveSupport::ConfigurationFile.parse(yaml)
+          if (shared = loaded_yaml.delete("shared"))
             loaded_yaml.each do |_k, values|
               values.reverse_merge!(shared)
             end
@@ -239,10 +265,6 @@ module Rails
         end
 
         config
-      rescue Psych::SyntaxError => e
-        raise "YAML syntax error occurred while parsing #{paths["config/database"].first}. " \
-              "Please note that YAML must be consistently indented using spaces. Tabs are not allowed. " \
-              "Error: #{e.message}"
       rescue => e
         raise e, "Cannot load database configuration:\n#{e.message}", e.backtrace
       end
@@ -299,6 +321,14 @@ module Rails
         end
       end
 
+      def feature_policy(&block)
+        if block_given?
+          @feature_policy = ActionDispatch::FeaturePolicy.new(&block)
+        else
+          @feature_policy
+        end
+      end
+
       def autoloader=(autoloader)
         case autoloader
         when :classic
@@ -309,6 +339,18 @@ module Rails
         else
           raise ArgumentError, "config.autoloader may be :classic or :zeitwerk, got #{autoloader.inspect} instead"
         end
+      end
+
+      def default_log_file
+        path = paths["log"].first
+        unless File.exist? File.dirname path
+          FileUtils.mkdir_p File.dirname path
+        end
+
+        f = File.open path, "a"
+        f.binmode
+        f.sync = autoflush_log # if true make sure every write flushes
+        f
       end
 
       class Custom #:nodoc:

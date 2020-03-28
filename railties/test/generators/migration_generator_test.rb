@@ -2,6 +2,7 @@
 
 require "generators/generators_test_helper"
 require "rails/generators/rails/migration/migration_generator"
+require "active_record/migration"
 
 class MigrationGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -128,6 +129,17 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
         assert_match(/remove_reference :books, :author,.*\sforeign_key: true/, change)
         assert_match(/remove_reference :books, :distributor/, change) # sanity check
         assert_no_match(/remove_reference :books, :distributor,.*\sforeign_key: true/, change)
+      end
+    end
+  end
+
+  def test_remove_migration_with_references_removes_foreign_keys_when_primary_key_uuid
+    migration = "remove_references_from_books"
+    run_generator [migration, "author:belongs_to", "--primary_key_type=uuid"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/remove_reference :books, :author,.*\sforeign_key: true, type: :uuid/, change)
       end
     end
   end
@@ -294,6 +306,16 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_add_migration_with_references_options_when_primary_key_uuid
+    migration = "add_references_to_books"
+    run_generator [migration, "author:belongs_to", "--primary_key_type=uuid"]
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/add_reference :books, :author,.*\sforeign_key: true, type: :uuid/, change)
+      end
+    end
+  end
+
   def test_database_puts_migrations_in_configured_folder
     with_secondary_database_configuration do
       run_generator ["create_books", "--database=secondary"]
@@ -445,7 +467,6 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   end
 
   private
-
     def with_singular_table_name
       old_state = ActiveRecord::Base.pluralize_table_names
       ActiveRecord::Base.pluralize_table_names = false

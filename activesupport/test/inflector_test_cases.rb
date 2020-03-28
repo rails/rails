@@ -162,7 +162,8 @@ module InflectorTestCases
 
   ClassNameToTableName = {
     "PrimarySpokesman" => "primary_spokesmen",
-    "NodeChild"        => "node_children"
+    "NodeChild"        => "node_children",
+    "Calculu"          => "calculus" # Singular names are not handled correctly
   }
 
   StringToParameterized = {
@@ -289,6 +290,9 @@ module InflectorTestCases
     "Fred’s"                => "Fred’s",
     "Fred`s"                => "Fred`s",
     "this was 'fake news'"  => "This Was 'Fake News'",
+    "new name(s)"           => "New Name(s)",
+    "new (names)"           => "New (Names)",
+    "their (mis)deeds"      => "Their (Mis)deeds",
     ActiveSupport::SafeBuffer.new("confirmation num") => "Confirmation Num"
   }
 

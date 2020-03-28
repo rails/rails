@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/array/wrap"
-
 module ActiveRecord
   module Associations
     # = Active Record Associations
@@ -43,6 +41,7 @@ module ActiveRecord
         reflection.check_validity!
 
         @owner, @reflection = owner, reflection
+        @_scope = nil
 
         reset
         reset_scope
@@ -54,6 +53,10 @@ module ActiveRecord
         @target = nil
         @stale_state = nil
         @inversed = false
+      end
+
+      def reset_negative_cache # :nodoc:
+        reset if loaded? && target.nil?
       end
 
       # Reloads the \target and returns +self+ on success.
@@ -95,7 +98,7 @@ module ActiveRecord
       end
 
       def scope
-        target_scope.merge!(association_scope)
+        @_scope&.spawn || target_scope.merge!(association_scope)
       end
 
       def reset_scope
@@ -187,16 +190,31 @@ module ActiveRecord
         set_inverse_instance(record)
       end
 
-      def create(attributes = {}, &block)
+      def create(attributes = nil, &block)
         _create_record(attributes, &block)
       end
 
-      def create!(attributes = {}, &block)
+      def create!(attributes = nil, &block)
         _create_record(attributes, true, &block)
+      end
+
+      def scoping(relation, &block)
+        @_scope = relation
+        relation.scoping(&block)
+      ensure
+        @_scope = nil
       end
 
       private
         def find_target
+          if owner.strict_loading?
+            raise StrictLoadingViolationError, "#{owner.class} is marked as strict_loading and #{klass} cannot be lazily loaded."
+          end
+
+          if reflection.strict_loading?
+            raise StrictLoadingViolationError, "The #{reflection.name} association is marked as strict_loading and cannot be lazily loaded."
+          end
+
           scope = self.scope
           return scope.to_a if skip_statement_cache?(scope)
 

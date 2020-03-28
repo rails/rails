@@ -91,11 +91,47 @@ class AcceptanceValidationTest < ActiveModel::TestCase
     assert_predicate klass.new(terms_of_service: true), :valid?
   end
 
-  private
+  def test_lazy_attribute_module_included_only_once
+    klass = define_test_class(Topic)
+    assert_difference -> { klass.ancestors.count }, 2 do
+      2.times do
+        klass.validates_acceptance_of(:something_to_accept)
+        assert klass.new.respond_to?(:something_to_accept)
+      end
+      2.times do
+        klass.validates_acceptance_of(:something_else_to_accept)
+        assert klass.new.respond_to?(:something_else_to_accept)
+      end
+    end
+  end
 
-    # Acceptance validator includes anonymous module into class, which cannot
-    # be cleared, so to avoid multiple inclusions we use a named subclass which
-    # we can remove in teardown.
+  def test_lazy_attributes_module_included_again_if_needed
+    klass = define_test_class(Topic)
+    assert_difference -> { klass.ancestors.count }, 1 do
+      klass.validates_acceptance_of(:something_to_accept)
+    end
+    topic = klass.new
+    topic.something_to_accept
+    assert_difference -> { klass.ancestors.count }, 1 do
+      klass.validates_acceptance_of(:something_else_to_accept)
+    end
+    assert topic.respond_to?(:something_else_to_accept)
+  end
+
+  def test_lazy_attributes_respond_to?
+    klass = define_test_class(Topic)
+    klass.validates_acceptance_of(:terms_of_service)
+    topic = klass.new
+    threads = []
+    2.times do
+      threads << Thread.new do
+        assert topic.respond_to?(:terms_of_service)
+      end
+    end
+    threads.each(&:join)
+  end
+
+  private
     def define_test_class(parent)
       self.class.const_set(:TestClass, Class.new(parent))
     end

@@ -39,7 +39,6 @@ module Rails
         end
 
         private
-
           # parse possible attribute options like :limit for string/text/binary/integer, :precision/:scale for decimals or :polymorphic for references/belongs_to
           # when declaring options curly brackets should be used
           def parse_type_and_options(type)
@@ -132,7 +131,7 @@ module Rails
       end
 
       def foreign_key?
-        !!(name =~ /_id$/)
+        /_id$/.match?(name)
       end
 
       def reference?

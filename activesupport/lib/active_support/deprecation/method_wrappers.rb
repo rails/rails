@@ -56,17 +56,24 @@ module ActiveSupport
         mod = nil
 
         method_names.each do |method_name|
+          message = options[method_name]
           if target_module.method_defined?(method_name) || target_module.private_method_defined?(method_name)
             method = target_module.instance_method(method_name)
-            target_module.redefine_method(method_name) do |*args, &block|
-              deprecator.deprecation_warning(method_name, options[method_name])
-              method.bind(self).call(*args, &block)
+            target_module.module_eval do
+              redefine_method(method_name) do |*args, &block|
+                deprecator.deprecation_warning(method_name, message)
+                method.bind(self).call(*args, &block)
+              end
+              ruby2_keywords(method_name) if respond_to?(:ruby2_keywords, true)
             end
           else
             mod ||= Module.new
-            mod.define_method(method_name) do |*args, &block|
-              deprecator.deprecation_warning(method_name, options[method_name])
-              super(*args, &block)
+            mod.module_eval do
+              define_method(method_name) do |*args, &block|
+                deprecator.deprecation_warning(method_name, message)
+                super(*args, &block)
+              end
+              ruby2_keywords(method_name) if respond_to?(:ruby2_keywords, true)
             end
           end
         end

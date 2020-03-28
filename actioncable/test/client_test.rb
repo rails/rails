@@ -40,16 +40,16 @@ class ClientTest < ActionCable::TestCase
     end
 
     def ding(data)
-      transmit(dong: data["message"])
+      transmit({ dong: data["message"] })
     end
 
     def delay(data)
       sleep 1
-      transmit(dong: data["message"])
+      transmit({ dong: data["message"] })
     end
 
     def bulk(data)
-      ActionCable.server.broadcast "global", wide: data["message"]
+      ActionCable.server.broadcast "global", { wide: data["message"] }
     end
   end
 
@@ -91,7 +91,7 @@ class ClientTest < ActionCable::TestCase
 
       rescue RuntimeError => ex
         # Work around https://bugs.ruby-lang.org/issues/13239
-        raise unless ex.message =~ /can't modify frozen IOError/
+        raise unless ex.message.match?(/can't modify frozen IOError/)
 
         # Handle this as if it were the IOError: do the same as above.
         server.binder.close

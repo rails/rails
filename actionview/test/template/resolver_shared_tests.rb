@@ -79,6 +79,16 @@ module ResolverSharedTests
     assert_kind_of ActionView::Template::Handlers::ERB, templates[0].handler
   end
 
+  def test_can_find_when_special_chars_in_path
+    dir = "test +()[]{}"
+    with_file "#{dir}/hello_world", "Hello funky path!"
+
+    templates = resolver.find_all("hello_world", dir, false, locale: [:en], formats: [:html], variants: [:phone], handlers: [:erb])
+    assert_equal 1, templates.size
+    assert_equal "Hello funky path!", templates[0].source
+    assert_equal "#{dir}/hello_world", templates[0].virtual_path
+  end
+
   def test_doesnt_find_template_with_wrong_details
     with_file "test/hello_world.html.erb", "Hello plain text!"
 
@@ -134,6 +144,26 @@ module ResolverSharedTests
     assert_equal "Generic plain text!", fr[1].source
 
     assert_same en[0], fr[1]
+  end
+
+  def test_templates_sort_by_formats_json_first
+    with_file "test/hello_world.html.erb", "Hello HTML!"
+    with_file "test/hello_world.json.jbuilder", "Hello JSON!"
+
+    templates = resolver.find_all("hello_world", "test", false, locale: [], formats: [:json, :html], variants: :any, handlers: [:erb, :jbuilder])
+
+    assert_equal 2, templates.size
+    assert_equal "Hello JSON!", templates[0].source
+  end
+
+  def test_templates_sort_by_formats_html_first
+    with_file "test/hello_world.html.erb", "Hello HTML!"
+    with_file "test/hello_world.json.jbuilder", "Hello JSON!"
+
+    templates = resolver.find_all("hello_world", "test", false, locale: [], formats: [:html, :json], variants: :any, handlers: [:erb, :jbuilder])
+
+    assert_equal 2, templates.size
+    assert_equal "Hello HTML!", templates[0].source
   end
 
   def test_virtual_path_is_preserved_with_dot
