@@ -799,6 +799,18 @@ class TransactionTest < ActiveRecord::TestCase
     assert_not_predicate topic, :new_record?
   end
 
+  def test_restore_previously_new_record_after_double_save
+    topic = Topic.create!
+
+    Topic.transaction do
+      topic.save!
+      topic.save!
+      raise ActiveRecord::Rollback
+    end
+
+    assert_predicate topic, :previously_new_record?
+  end
+
   def test_restore_id_after_rollback
     topic = Topic.new
 
