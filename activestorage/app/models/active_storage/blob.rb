@@ -121,7 +121,11 @@ class ActiveStorage::Blob < ActiveRecord::Base
   # Returns a signed ID for this blob that's suitable for reference on the client-side without fear of tampering.
   # It uses the framework-wide verifier on <tt>ActiveStorage.verifier</tt>, but with a dedicated purpose.
   def signed_id
-    ActiveStorage.verifier.generate(id, purpose: :blob_id)
+    ActiveStorage.verifier.generate(
+      id,
+      purpose: :blob_id,
+      expires_in: ActiveStorage.urls_expire_in
+    )
   end
 
   # Returns the key pointing to the file on the service that's associated with this blob. The key is the
@@ -164,7 +168,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
   # short-lived URL for private files. Private files are signed, and not for public use. Instead,
   # the URL should only be exposed as a redirect from a stable, possibly authenticated URL. Hiding the
   # URL behind a redirect also allows you to change services without updating all URLs.
-  def url(expires_in: ActiveStorage.service_urls_expire_in, disposition: :inline, filename: nil, **options)
+  def url(expires_in: ActiveStorage.urls_expire_in, disposition: :inline, filename: nil, **options)
     filename = ActiveStorage::Filename.wrap(filename || self.filename)
 
     service.url key, expires_in: expires_in, filename: filename, content_type: content_type_for_service_url,
@@ -176,7 +180,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
 
   # Returns a URL that can be used to directly upload a file for this blob on the service. This URL is intended to be
   # short-lived for security and only generated on-demand by the client-side JavaScript responsible for doing the uploading.
-  def service_url_for_direct_upload(expires_in: ActiveStorage.service_urls_expire_in)
+  def service_url_for_direct_upload(expires_in: ActiveStorage.urls_expire_in)
     service.url_for_direct_upload key, expires_in: expires_in, content_type: content_type, content_length: byte_size, checksum: checksum
   end
 

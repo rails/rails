@@ -1,3 +1,11 @@
+*   Add support for ActiveStorage expiring URLs and enable it by default.
+
+    `config.active_storage.service_urls_expire_in` is deprecated in favor of
+    `config.active_storage.urls_expire_in`.
+    This setting controls both the URL expiry and the redirection expiry.
+
+    *Sébastien Dubois*
+
 *   Add support for creating variants of `WebP` images out of the box.
 
     *Dino Maric*

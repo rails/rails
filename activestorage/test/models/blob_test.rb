@@ -210,7 +210,7 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
 
     arguments = [
       blob.key,
-      expires_in: ActiveStorage.service_urls_expire_in,
+      expires_in: ActiveStorage.urls_expire_in,
       disposition: :attachment,
       content_type: blob.content_type,
       filename: blob.filename,

@@ -31,9 +31,10 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
 
   test "attaching an existing blob from a signed ID passes record" do
     blob = create_blob(filename: "funky.jpg")
-    arguments = [blob.signed_id, record: @user]
+    signed_id = blob.signed_id
+    arguments = [signed_id, record: @user]
     assert_called_with(ActiveStorage::Blob, :find_signed, arguments, returns: blob) do
-      @user.avatar.attach blob.signed_id
+      @user.avatar.attach signed_id
     end
   end
 
