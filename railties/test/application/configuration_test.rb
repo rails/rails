@@ -116,7 +116,7 @@ module ApplicationTests
         end
       RUBY
       add_to_top_of_config <<-RUBY
-        require 'my_logger'
+        require "my_logger"
         config.logger = MyLogger.new STDOUT
       RUBY
 

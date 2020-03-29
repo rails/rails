@@ -136,7 +136,7 @@ module ActionController
     #
     # === Simple \Digest example
     #
-    #   require 'digest/md5'
+    #   require "digest/md5"
     #   class PostsController < ApplicationController
     #     REALM = "SuperSecret"
     #     USERS = {"dhh" => "secret", #plain text password

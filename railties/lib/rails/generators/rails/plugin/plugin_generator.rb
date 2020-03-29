@@ -401,7 +401,7 @@ task default: :test
 
       def rakefile_test_tasks
         <<-RUBY
-require 'rake/testtask'
+require "rake/testtask"
 
 Rake::TestTask.new(:test) do |t|
   t.libs << 'test'
