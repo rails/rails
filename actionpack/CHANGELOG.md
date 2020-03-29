@@ -1,3 +1,16 @@
+*   Accept and default to base64_urlsafe CSRF tokens.
+
+    Base64 strict-encoded CSRF tokens are not inherently websafe, which makes
+    them difficult to deal with. For example, the common practice of sending
+    the CSRF token to a browser in a client-readable cookie does not work properly
+    out of the box: the value has to be url-encoded and decoded to survive transport.
+
+    Now, we generate Base64 urlsafe-encoded CSRF tokens, which are inherently safe
+    to transport.  Validation accepts both urlsafe tokens, and strict-encoded tokens
+    for backwards compatibility.
+
+    *Scott Blum*
+
 *   Signed and encrypted cookies can now store `false` as their value when
     `action_dispatch.use_cookies_with_metadata` is enabled.
 
