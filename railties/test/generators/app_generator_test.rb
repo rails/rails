@@ -187,17 +187,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_app_update_generates_correct_session_key
-    app_root = File.join(destination_root, "myapp")
-    run_generator [app_root]
-
-    stub_rails_application(app_root) do
-      generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
-      generator.send(:app_const)
-      quietly { generator.send(:update_config_files) }
-    end
-  end
-
   def test_new_application_use_json_serializer
     run_generator
 
