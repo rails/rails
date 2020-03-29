@@ -14,7 +14,7 @@ consumer.subscriptions.create("<%= class_name %>Channel", {
   }<%= actions.any? ? ",\n" : '' %>
 <% actions.each do |action| -%>
   <%=action %>: function() {
-    return this.perform('<%= action %>');
+    return this.perform('<%= action %>')
   }<%= action == actions[-1] ? '' : ",\n" %>
 <% end -%>
-});
+})
