@@ -193,7 +193,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     post2 = Post.includes(:categories).first
 
     assert_operator post.categories.length, :>, 0
-    assert_equal post2.categories, post.categories
+    assert_equal post2.categories.sort_by(&:id), post.categories.sort_by(&:id)
   end
 
   def test_include?
