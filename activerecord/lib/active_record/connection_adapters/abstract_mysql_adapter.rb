@@ -360,7 +360,9 @@ module ActiveRecord
       end
 
       def add_index(table_name, column_name, options = {}) #:nodoc:
-        index_name, index_type, index_columns, _, index_algorithm, index_using, comment = add_index_options(table_name, column_name, **options)
+        return if options[:if_not_exists] && index_exists?(table_name, column_name, options)
+
+        index_name, index_type, index_columns, _, _, index_algorithm, index_using, comment = add_index_options(table_name, column_name, **options)
         sql = +"CREATE #{index_type} INDEX #{quote_column_name(index_name)} #{index_using} ON #{quote_table_name(table_name)} (#{index_columns}) #{index_algorithm}"
         execute add_sql_comment!(sql, comment)
       end
@@ -673,7 +675,7 @@ module ActiveRecord
         end
 
         def add_index_for_alter(table_name, column_name, options = {})
-          index_name, index_type, index_columns, _, index_algorithm, index_using = add_index_options(table_name, column_name, **options)
+          index_name, index_type, index_columns, _, _, index_algorithm, index_using = add_index_options(table_name, column_name, **options)
           index_algorithm[0, 0] = ", " if index_algorithm.present?
           "ADD #{index_type} INDEX #{quote_column_name(index_name)} #{index_using} (#{index_columns})#{index_algorithm}"
         end

@@ -72,6 +72,14 @@ module ActiveRecord
         connection.add_index(table_name, "foo", name: good_index_name)
       end
 
+      def test_add_index_which_already_exists_does_not_raise_error
+        connection.add_index(table_name, "foo", if_not_exists: true)
+
+        assert_nothing_raised do
+          connection.add_index(table_name, "foo", if_not_exists: true)
+        end
+      end
+
       def test_internal_index_with_name_matching_database_limit
         good_index_name = "x" * connection.index_name_length
         connection.add_index(table_name, "foo", name: good_index_name, internal: true)

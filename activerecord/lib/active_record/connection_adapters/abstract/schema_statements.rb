@@ -317,7 +317,7 @@ module ActiveRecord
 
         unless supports_indexes_in_create?
           td.indexes.each do |column_name, index_options|
-            add_index(table_name, column_name, index_options)
+            add_index(table_name, column_name, index_options.merge!(if_not_exists: td.if_not_exists))
           end
         end
 
@@ -706,6 +706,16 @@ module ActiveRecord
       #
       #   CREATE INDEX suppliers_name_index ON suppliers(name)
       #
+      # ====== Creating a index which already exists
+      #
+      #   add_index(:suppliers, :name, if_not_exists: true)
+      #
+      # generates:
+      #
+      #   CREATE INDEX IF NOT EXISTS suppliers_name_index ON suppliers(name)
+      #
+      # Note: Not supported by MySQL.
+      #
       # ====== Creating a unique index
       #
       #   add_index(:accounts, [:branch_id, :party_id], unique: true)
@@ -805,8 +815,8 @@ module ActiveRecord
       #
       # For more information see the {"Transactional Migrations" section}[rdoc-ref:Migration].
       def add_index(table_name, column_name, options = {})
-        index_name, index_type, index_columns, index_options = add_index_options(table_name, column_name, **options)
-        execute "CREATE #{index_type} INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} (#{index_columns})#{index_options}"
+        index_name, index_type, index_columns, index_if_not_exists_clause, index_options = add_index_options(table_name, column_name, **options)
+        execute "CREATE #{index_type} #{index_if_not_exists_clause} #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} (#{index_columns})#{index_options}"
       end
 
       # Removes the given index from the table.
@@ -1200,7 +1210,7 @@ module ActiveRecord
       def add_index_options(table_name, column_name, comment: nil, **options) # :nodoc:
         column_names = index_column_names(column_name)
 
-        options.assert_valid_keys(:unique, :order, :name, :where, :length, :internal, :using, :algorithm, :type, :opclass)
+        options.assert_valid_keys(:unique, :order, :name, :where, :length, :internal, :using, :algorithm, :type, :opclass, :if_not_exists)
 
         index_type = options[:type].to_s if options.key?(:type)
         index_type ||= options[:unique] ? "UNIQUE" : ""
@@ -1219,11 +1229,13 @@ module ActiveRecord
           index_options = options[:where] ? " WHERE #{options[:where]}" : ""
         end
 
+        if_not_exists_index_clause = options[:if_not_exists] ? "INDEX IF NOT EXISTS" : "INDEX"
+
         validate_index_length!(table_name, index_name, options.fetch(:internal, false))
 
         index_columns = quoted_columns_for_index(column_names, **options).join(", ")
 
-        [index_name, index_type, index_columns, index_options, algorithm, using, comment]
+        [index_name, index_type, index_columns, if_not_exists_index_clause, index_options, algorithm, using, comment]
       end
 
       def options_include_default?(options)
