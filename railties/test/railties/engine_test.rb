@@ -1555,8 +1555,8 @@ en:
 
     # Restrict frameworks to load in order to avoid engine frameworks affect tests.
     def restrict_frameworks
-      remove_from_config("require "rails/all"")
-      remove_from_config("require_relative "boot"")
+      remove_from_config('require "rails/all"')
+      remove_from_config('require_relative "boot"')
       remove_from_env_config("development", "config.active_storage.*")
       frameworks = <<~RUBY
         require "rails"
