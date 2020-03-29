@@ -26,7 +26,7 @@ In order to have a near-zero default footprint, Active Support does not load any
 Thus, after a simple require like:
 
 ```ruby
-require 'active_support'
+require "active_support"
 ```
 
 objects do not even respond to `blank?`. Let's see how to load its definition.
@@ -42,8 +42,8 @@ NOTE: Defined in `active_support/core_ext/object/blank.rb`.
 That means that you can require it like this:
 
 ```ruby
-require 'active_support'
-require 'active_support/core_ext/object/blank'
+require "active_support"
+require "active_support/core_ext/object/blank"
 ```
 
 Active Support has been carefully revised so that cherry-picking a file loads only strictly needed dependencies, if any.
@@ -55,8 +55,8 @@ The next level is to simply load all extensions to `Object`. As a rule of thumb,
 Thus, to load all extensions to `Object` (including `blank?`):
 
 ```ruby
-require 'active_support'
-require 'active_support/core_ext/object'
+require "active_support"
+require "active_support/core_ext/object"
 ```
 
 #### Loading All Core Extensions
@@ -64,8 +64,8 @@ require 'active_support/core_ext/object'
 You may prefer just to load all core extensions, there is a file for that:
 
 ```ruby
-require 'active_support'
-require 'active_support/core_ext'
+require "active_support"
+require "active_support/core_ext"
 ```
 
 #### Loading All Active Support
@@ -73,7 +73,7 @@ require 'active_support/core_ext'
 And finally, if you want to have all Active Support available just issue:
 
 ```ruby
-require 'active_support/all'
+require "active_support/all"
 ```
 
 That does not even put the entire Active Support in memory upfront indeed, some stuff is configured via `autoload`, so it is only loaded if used.

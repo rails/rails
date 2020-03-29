@@ -75,8 +75,8 @@ This file is as follows:
 ```ruby
 #!/usr/bin/env ruby
 APP_PATH = File.expand_path('../config/application', __dir__)
-require_relative '../config/boot'
-require 'rails/commands'
+require_relative "../config/boot"
+require "rails/commands"
 ```
 
 The `APP_PATH` constant will be used later in `rails/commands`. The `config/boot` file referenced here is the `config/boot.rb` file in our application which is responsible for loading Bundler and setting it up.
@@ -88,7 +88,7 @@ The `APP_PATH` constant will be used later in `rails/commands`. The `config/boot
 ```ruby
 ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../Gemfile', __dir__)
 
-require 'bundler/setup' # Set up gems listed in the Gemfile.
+require "bundler/setup" # Set up gems listed in the Gemfile.
 ```
 
 In a standard Rails application, there's a `Gemfile` which declares all
@@ -410,7 +410,7 @@ module Rack
 
       if options[:debug]
         $DEBUG = true
-        require 'pp'
+        require "pp"
         p options[:server]
         pp wrapped_app
         pp app
@@ -490,7 +490,7 @@ The `options[:config]` value defaults to `config.ru` which contains this:
 ```ruby
 # This file is used by Rack-based servers to start the application.
 
-require_relative 'config/environment'
+require_relative "config/environment"
 
 run Rails.application
 ```
@@ -522,7 +522,7 @@ This is where the majority of the initialization process of Rails happens.
 The `require` line for `config/environment.rb` in `config.ru` is the first to run:
 
 ```ruby
-require_relative 'config/environment'
+require_relative "config/environment"
 ```
 
 ### `config/environment.rb`
@@ -532,7 +532,7 @@ This file is the common file required by `config.ru` (`rails server`) and Passen
 This file begins with requiring `config/application.rb`:
 
 ```ruby
-require_relative 'application'
+require_relative "application"
 ```
 
 ### `config/application.rb`
@@ -540,7 +540,7 @@ require_relative 'application'
 This file requires `config/boot.rb`:
 
 ```ruby
-require_relative 'boot'
+require_relative "boot"
 ```
 
 But only if it hasn't been required before, which would be the case in `rails server`
@@ -554,7 +554,7 @@ Loading Rails
 The next line in `config/application.rb` is:
 
 ```ruby
-require 'rails/all'
+require "rails/all"
 ```
 
 ### `railties/lib/rails/all.rb`

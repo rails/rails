@@ -1417,8 +1417,8 @@ required, you should require them before the engine's initialization. For
 example:
 
 ```ruby
-require 'other_engine/engine'
-require 'yet_another_engine/engine'
+require "other_engine/engine"
+require "yet_another_engine/engine"
 
 module MyEngine
   class Engine < ::Rails::Engine

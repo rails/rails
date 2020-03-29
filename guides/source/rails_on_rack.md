@@ -64,7 +64,7 @@ To use `rackup` instead of Rails' `rails server`, you can put the following insi
 
 ```ruby
 # Rails.root/config.ru
-require_relative 'config/environment'
+require_relative "config/environment"
 run Rails.application
 ```
 

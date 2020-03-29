@@ -365,7 +365,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       quietly { generator.send(:update_config_files) }
 
       assert_file "#{app_root}/config/boot.rb" do |content|
-        assert_no_match(/require 'bootsnap\/setup'/, content)
+        assert_no_match(/require "bootsnap\/setup"/, content)
       end
     end
   end
@@ -968,12 +968,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
     unless defined?(JRUBY_VERSION)
       assert_gem "bootsnap"
       assert_file "config/boot.rb" do |content|
-        assert_match(/require 'bootsnap\/setup'/, content)
+        assert_match(/require "bootsnap\/setup"/, content)
       end
     else
       assert_no_gem "bootsnap"
       assert_file "config/boot.rb" do |content|
-        assert_no_match(/require 'bootsnap\/setup'/, content)
+        assert_no_match(/require "bootsnap\/setup"/, content)
       end
     end
   end
@@ -983,7 +983,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_no_gem "bootsnap"
     assert_file "config/boot.rb" do |content|
-      assert_no_match(/require 'bootsnap\/setup'/, content)
+      assert_no_match(/require "bootsnap\/setup"/, content)
     end
   end
 
@@ -992,7 +992,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_no_gem "bootsnap"
     assert_file "config/boot.rb" do |content|
-      assert_no_match(/require 'bootsnap\/setup'/, content)
+      assert_no_match(/require "bootsnap\/setup"/, content)
     end
   end
 

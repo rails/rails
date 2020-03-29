@@ -414,8 +414,8 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "bin/rails", /ENGINE_PATH = File\.expand_path\('\.\.\/lib\/bukkits\/engine', __dir__\)/
     assert_file "bin/rails", /ENGINE_ROOT = File\.expand_path\('\.\.', __dir__\)/
     assert_file "bin/rails", %r|APP_PATH = File\.expand_path\('\.\./test/dummy/config/application', __dir__\)|
-    assert_file "bin/rails", /require 'rails\/all'/
-    assert_file "bin/rails", /require 'rails\/engine\/commands'/
+    assert_file "bin/rails", /require "rails\/all"/
+    assert_file "bin/rails", /require "rails\/engine\/commands"/
   end
 
   def test_shebang
