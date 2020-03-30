@@ -7,11 +7,11 @@ module ActiveRecord
   module Attributes
     extend ActiveSupport::Concern
 
-    included do
-      class_attribute :attributes_to_define_after_schema_loads, instance_accessor: false, default: {} # :internal:
-    end
-
     module ClassMethods
+      def deferred_attribute_definitions # :nodoc:
+        @deferred_attribute_definitions ||= {}
+      end
+
       # Defines an attribute with a type on this model. It will override the
       # type of existing attributes if needed. This allows control over how
       # values are converted to and from SQL when assigned to a model. It also
@@ -206,13 +206,8 @@ module ActiveRecord
       # will be called from ActiveModel::Dirty. See the documentation for those
       # methods in ActiveModel::Type::Value for more details.
       def attribute(name, cast_type = Type::Value.new, **options)
-        name = name.to_s
         reload_schema_from_cache
-
-        self.attributes_to_define_after_schema_loads =
-          attributes_to_define_after_schema_loads.merge(
-            name => [cast_type, options]
-          )
+        deferred_attribute_definitions[name.to_s] = [cast_type, options]
       end
 
       # This is the low level API which sits beneath +attribute+. It only
@@ -245,7 +240,10 @@ module ActiveRecord
 
       def load_schema! # :nodoc:
         super
-        attributes_to_define_after_schema_loads.each do |name, (type, options)|
+
+        deferred = ancestors.map { |klass| klass.try(:deferred_attribute_definitions) }.compact.reduce(&:reverse_merge)
+
+        deferred.each do |name, (type, options)|
           if type.is_a?(Symbol)
             adapter_name = ActiveRecord::Type.adapter_name_from(self)
             type = ActiveRecord::Type.lookup(type, **options.except(:default), adapter: adapter_name)

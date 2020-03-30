@@ -222,6 +222,20 @@ module ActiveRecord
       end
     end
 
+    test "attributes added after subclass attributes added are inherited" do
+      parent = Class.new(ActiveRecord::Base) do
+        self.table_name = "topics"
+      end
+
+      child = Class.new(parent) do
+        attribute :qux, Type::Value.new
+      end
+
+      parent.attribute(:foo, Type::Value.new)
+
+      assert_equal(:bar, child.new(foo: :bar).foo)
+    end
+
     test "attributes added after subclasses load are inherited" do
       parent = Class.new(ActiveRecord::Base) do
         self.table_name = "topics"
