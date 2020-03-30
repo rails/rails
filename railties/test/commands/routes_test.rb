@@ -178,6 +178,8 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
                                             PATCH  /rails/conductor/action_mailbox/inbound_emails/:id(.:format)                             rails/conductor/action_mailbox/inbound_emails#update
                                             PUT    /rails/conductor/action_mailbox/inbound_emails/:id(.:format)                             rails/conductor/action_mailbox/inbound_emails#update
                                             DELETE /rails/conductor/action_mailbox/inbound_emails/:id(.:format)                             rails/conductor/action_mailbox/inbound_emails#destroy
+   new_rails_conductor_inbound_email_source GET    /rails/conductor/action_mailbox/inbound_emails/sources/new(.:format)                     rails/conductor/action_mailbox/inbound_emails/sources#new
+      rails_conductor_inbound_email_sources POST   /rails/conductor/action_mailbox/inbound_emails/sources(.:format)                         rails/conductor/action_mailbox/inbound_emails/sources#create
       rails_conductor_inbound_email_reroute POST   /rails/conductor/action_mailbox/:inbound_email_id/reroute(.:format)                      rails/conductor/action_mailbox/reroutes#create
                          rails_service_blob GET    /rails/active_storage/blobs/:signed_id/*filename(.:format)                               active_storage/blobs#show
                   rails_blob_representation GET    /rails/active_storage/representations/:signed_blob_id/:variation_key/*filename(.:format) active_storage/representations#show
@@ -236,7 +238,7 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
       URI               | /rails/conductor/action_mailbox/inbound_emails(.:format)
       Controller#Action | rails/conductor/action_mailbox/inbound_emails#index
       --[ Route 8 ]--------------
-      Prefix            | 
+      Prefix            |
       Verb              | POST
       URI               | /rails/conductor/action_mailbox/inbound_emails(.:format)
       Controller#Action | rails/conductor/action_mailbox/inbound_emails#create
@@ -256,46 +258,56 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
       URI               | /rails/conductor/action_mailbox/inbound_emails/:id(.:format)
       Controller#Action | rails/conductor/action_mailbox/inbound_emails#show
       --[ Route 12 ]-------------
-      Prefix            | 
+      Prefix            |
       Verb              | PATCH
       URI               | /rails/conductor/action_mailbox/inbound_emails/:id(.:format)
       Controller#Action | rails/conductor/action_mailbox/inbound_emails#update
       --[ Route 13 ]-------------
-      Prefix            | 
+      Prefix            |
       Verb              | PUT
       URI               | /rails/conductor/action_mailbox/inbound_emails/:id(.:format)
       Controller#Action | rails/conductor/action_mailbox/inbound_emails#update
       --[ Route 14 ]-------------
-      Prefix            | 
+      Prefix            |
       Verb              | DELETE
       URI               | /rails/conductor/action_mailbox/inbound_emails/:id(.:format)
       Controller#Action | rails/conductor/action_mailbox/inbound_emails#destroy
       --[ Route 15 ]-------------
+      Prefix            | new_rails_conductor_inbound_email_source
+      Verb              | GET
+      URI               | /rails/conductor/action_mailbox/inbound_emails/sources/new(.:format)
+      Controller#Action | rails/conductor/action_mailbox/inbound_emails/sources#new
+      --[ Route 16 ]-------------
+      Prefix            | rails_conductor_inbound_email_sources
+      Verb              | POST
+      URI               | /rails/conductor/action_mailbox/inbound_emails/sources(.:format)
+      Controller#Action | rails/conductor/action_mailbox/inbound_emails/sources#create
+      --[ Route 17 ]-------------
       Prefix            | rails_conductor_inbound_email_reroute
       Verb              | POST
       URI               | /rails/conductor/action_mailbox/:inbound_email_id/reroute(.:format)
       Controller#Action | rails/conductor/action_mailbox/reroutes#create
-      --[ Route 16 ]-------------
+      --[ Route 18 ]-------------
       Prefix            | rails_service_blob
       Verb              | GET
       URI               | /rails/active_storage/blobs/:signed_id/*filename(.:format)
       Controller#Action | active_storage/blobs#show
-      --[ Route 17 ]-------------
+      --[ Route 19 ]-------------
       Prefix            | rails_blob_representation
       Verb              | GET
       URI               | /rails/active_storage/representations/:signed_blob_id/:variation_key/*filename(.:format)
       Controller#Action | active_storage/representations#show
-      --[ Route 18 ]-------------
+      --[ Route 20 ]-------------
       Prefix            | rails_disk_service
       Verb              | GET
       URI               | /rails/active_storage/disk/:encoded_key/*filename(.:format)
       Controller#Action | active_storage/disk#show
-      --[ Route 19 ]-------------
+      --[ Route 21 ]-------------
       Prefix            | update_rails_disk_service
       Verb              | PUT
       URI               | /rails/active_storage/disk/:encoded_token(.:format)
       Controller#Action | active_storage/disk#update
-      --[ Route 20 ]-------------
+      --[ Route 22 ]-------------
       Prefix            | rails_direct_uploads
       Verb              | POST
       URI               | /rails/active_storage/direct_uploads(.:format)
