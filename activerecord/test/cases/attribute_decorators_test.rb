@@ -31,7 +31,7 @@ module ActiveRecord
     teardown do
       return unless @connection
       @connection.drop_table "attribute_decorators_model", if_exists: true
-      Model.attribute_type_decorations.clear
+      Model.deferred_attribute_type_decorations.clear
       Model.reset_column_information
     end
 
@@ -101,6 +101,17 @@ module ActiveRecord
       assert_equal "whatever", model.another_string
       assert_equal "Hello! decorated! decorated!", child.a_string
       assert_equal "whatever decorated!", child.another_string
+    end
+
+    test "decorations added after subclass decorations added are inherited" do
+      Model.attribute :another_string, :string
+      child_class = Class.new(Model)
+      child_class.decorate_attribute_type(:another_string, :test) { |t| StringDecorator.new(t) }
+      Model.decorate_attribute_type(:a_string, :test) { |t| StringDecorator.new(t) }
+
+      child = child_class.new(a_string: "Hello!")
+
+      assert_equal "Hello! decorated!", child.a_string
     end
 
     class Multiplier < SimpleDelegator
