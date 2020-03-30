@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "monitor"
-
 module ActiveRecord
   module ModelSchema
     extend ActiveSupport::Concern
@@ -142,8 +140,6 @@ module ActiveRecord
       self.ignored_columns = [].freeze
 
       delegate :type_for_attribute, to: :class
-
-      initialize_load_schema_monitor
     end
 
     # Derives the join table name for +first_table+ and +second_table+. The
@@ -298,7 +294,7 @@ module ActiveRecord
       # Sets the columns names the model should ignore. Ignored columns won't have attribute
       # accessors defined, and won't be referenced in SQL queries.
       def ignored_columns=(columns)
-        reload_schema_from_cache
+        reset_attributes
         @ignored_columns = columns.map(&:to_s).freeze
       end
 
@@ -360,18 +356,16 @@ module ActiveRecord
       end
 
       def columns_hash # :nodoc:
-        load_schema
-        @columns_hash
+        @columns_hash ||= begin
+          unless table_name
+            raise ActiveRecord::TableNotSpecified, "#{self} has no table configured. Set one with #{self}.table_name="
+          end
+          connection.schema_cache.columns_hash(table_name).except(*ignored_columns).freeze
+        end
       end
 
       def columns
-        load_schema
         @columns ||= columns_hash.values.freeze
-      end
-
-      def attribute_types # :nodoc:
-        load_schema
-        @attribute_types ||= Hash.new(Type.default_value)
       end
 
       def yaml_encoder # :nodoc:
@@ -403,13 +397,7 @@ module ActiveRecord
       # Returns a hash where the keys are column names and the values are
       # default values when instantiating the Active Record object for this table.
       def column_defaults
-        load_schema
         @column_defaults ||= _default_attributes.deep_dup.to_hash.freeze
-      end
-
-      def _default_attributes # :nodoc:
-        load_schema
-        @default_attributes ||= ActiveModel::AttributeSet.new({})
       end
 
       # Returns an array of column names as strings.
@@ -463,66 +451,25 @@ module ActiveRecord
         ([self] + descendants).each(&:undefine_attribute_methods)
         connection.schema_cache.clear_data_source_cache!(table_name)
 
-        reload_schema_from_cache
+        reset_attributes
         initialize_find_by_cache
       end
 
-      protected
-        def initialize_load_schema_monitor
-          @load_schema_monitor = Monitor.new
-        end
-
       private
-        def inherited(child_class)
+        def add_deferred_to_attribute_set(attribute_set)
+          attribute_set = columns_hash.reduce(attribute_set) do |set, (name, column)|
+            type = _convert_type_from_options(connection.lookup_cast_type_from_column(column))
+            add_attribute_to_attribute_set(set, name, type, default: column.default, from_user: false)
+          end
+          super(attribute_set)
+        end
+
+        def reset_attributes
           super
-          child_class.initialize_load_schema_monitor
-        end
-
-        def schema_loaded?
-          defined?(@schema_loaded) && @schema_loaded
-        end
-
-        def load_schema
-          return if schema_loaded?
-          @load_schema_monitor.synchronize do
-            return if defined?(@columns_hash) && @columns_hash
-
-            load_schema!
-
-            @schema_loaded = true
-          rescue
-            reload_schema_from_cache # If the schema loading failed half way through, we must reset the state.
-            raise
-          end
-        end
-
-        def load_schema!
-          unless table_name
-            raise ActiveRecord::TableNotSpecified, "#{self} has no table configured. Set one with #{self}.table_name="
-          end
-
-          columns_hash = connection.schema_cache.columns_hash(table_name)
-          columns_hash = columns_hash.except(*ignored_columns) unless ignored_columns.empty?
-          @columns_hash = columns_hash.freeze
-          @columns_hash.each do |name, column|
-            type = connection.lookup_cast_type_from_column(column)
-            type = _convert_type_from_options(type)
-            define_attribute(
-              name,
-              type,
-              default: column.default,
-              user_provided_default: false
-            )
-          end
-        end
-
-        def reload_schema_from_cache
           @arel_table = nil
           @column_names = nil
           @symbol_column_to_string_name_hash = nil
-          @attribute_types = nil
           @content_columns = nil
-          @default_attributes = nil
           @column_defaults = nil
           @inheritance_column = nil unless defined?(@explicit_inheritance_column) && @explicit_inheritance_column
           @attributes_builder = nil
@@ -531,9 +478,10 @@ module ActiveRecord
           @schema_loaded = false
           @attribute_names = nil
           @yaml_encoder = nil
-          direct_descendants.each do |descendant|
-            descendant.send(:reload_schema_from_cache)
-          end
+        end
+
+        def load_schema
+          _default_attributes
         end
 
         # Guesses the table name, but does not decorate it with prefix and suffix information.

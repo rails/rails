@@ -283,6 +283,8 @@ module ActiveRecord #:nodoc:
     include Core
     include Persistence
     include ReadonlyAttributes
+    include Attributes
+    include AttributeDecorators
     include ModelSchema
     include Inheritance
     include Scoping
@@ -292,8 +294,6 @@ module ActiveRecord #:nodoc:
     include Integration
     include Validations
     include CounterCache
-    include Attributes
-    include AttributeDecorators
     include Locking::Optimistic
     include Locking::Pessimistic
     include AttributeMethods

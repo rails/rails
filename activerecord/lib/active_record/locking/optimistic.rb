@@ -143,7 +143,7 @@ module ActiveRecord
 
           # Set the column to use for optimistic locking. Defaults to +lock_version+.
           def locking_column=(value)
-            reload_schema_from_cache
+            reset_attributes
             @locking_column = value.to_s
           end
 

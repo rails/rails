@@ -87,11 +87,11 @@ module ActiveRecord
           ["updated_at", "updated_on"].map! { |name| attribute_aliases[name] || name }
         end
 
-        def reload_schema_from_cache
+        def reset_attributes
+          super
           @timestamp_attributes_for_create_in_model = nil
           @timestamp_attributes_for_update_in_model = nil
           @all_timestamp_attributes_in_model = nil
-          super
         end
     end
 

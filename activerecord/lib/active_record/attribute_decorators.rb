@@ -38,7 +38,7 @@ module ActiveRecord
       # will replace the previous decorator, not decorate twice. This can be
       # used to ensure that class macros are idempotent.
       def decorate_matching_attribute_types(matcher, decorator_name, &block)
-        reload_schema_from_cache
+        reset_attributes
         decorator_name = decorator_name.to_s
 
         # Create new hashes so we don't modify parent classes
@@ -46,12 +46,9 @@ module ActiveRecord
       end
 
       private
-        def load_schema!
-          super
-          attribute_types.each do |name, type|
-            decorated_type = attribute_type_decorations.apply(name, type)
-            define_attribute(name, decorated_type)
-          end
+        def add_attribute_to_attribute_set(attribute_set, name, type, **options)
+          decorated_type = attribute_type_decorations.apply(name, type)
+          super(super, name, decorated_type)
         end
     end
 

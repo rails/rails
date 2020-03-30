@@ -3,15 +3,23 @@
 require "active_model/attribute/user_provided_default"
 
 module ActiveRecord
-  # See ActiveRecord::Attributes::ClassMethods for documentation
   module Attributes
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :attributes_to_define_after_schema_loads, instance_accessor: false, default: {} # :internal:
+      class_attribute :deferred_attribute_definitions, instance_accessor: false, default: {} # :internal:
     end
 
     module ClassMethods
+      def _default_attributes # :nodoc:
+        @default_attributes ||= add_deferred_to_attribute_set(ActiveModel::AttributeSet.new)
+      end
+
+      def attribute_types # :nodoc:
+        @attribute_types ||= _default_attributes.each.to_h.transform_values(&:type).
+          tap { |hash| hash.default = Type.default_value }
+      end
+
       # Defines an attribute with a type on this model. It will override the
       # type of existing attributes if needed. This allows control over how
       # values are converted to and from SQL when assigned to a model. It also
@@ -207,10 +215,10 @@ module ActiveRecord
       # methods in ActiveModel::Type::Value for more details.
       def attribute(name, cast_type = nil, **options, &block)
         name = name.to_s
-        reload_schema_from_cache
+        reset_attributes
 
-        self.attributes_to_define_after_schema_loads =
-          attributes_to_define_after_schema_loads.merge(
+        self.deferred_attribute_definitions =
+          deferred_attribute_definitions.merge(
             name => [cast_type || block, options]
           )
       end
@@ -233,51 +241,48 @@ module ActiveRecord
       #
       # +user_provided_default+ Whether the default value should be cast using
       # +cast+ or +deserialize+.
-      def define_attribute(
-        name,
-        cast_type,
-        default: NO_DEFAULT_PROVIDED,
-        user_provided_default: true
-      )
-        attribute_types[name] = cast_type
-        define_default_attribute(name, default, cast_type, from_user: user_provided_default)
-      end
-
-      def load_schema! # :nodoc:
-        super
-        attributes_to_define_after_schema_loads.each do |name, (type, options)|
-          case type
-          when Symbol
-            adapter_name = ActiveRecord::Type.adapter_name_from(self)
-            type = ActiveRecord::Type.lookup(type, **options.except(:default), adapter: adapter_name)
-          when Proc
-            type = type[type_for_attribute(name)]
-          else
-            type ||= type_for_attribute(name)
-          end
-
-          define_attribute(name, type, **options.slice(:default))
-        end
+      def define_attribute(name, cast_type, default: NO_DEFAULT_PROVIDED, user_provided_default: true)
+        @default_attributes = add_attribute_to_attribute_set(@default_attributes || ActiveModel::AttributeSet.new,
+          name, cast_type, default: default, from_user: user_provided_default)
+        @attribute_types = nil
       end
 
       private
         NO_DEFAULT_PROVIDED = Object.new # :nodoc:
         private_constant :NO_DEFAULT_PROVIDED
 
-        def define_default_attribute(name, value, type, from_user:)
-          if value == NO_DEFAULT_PROVIDED
-            default_attribute = _default_attributes[name].with_type(type)
-          elsif from_user
-            default_attribute = ActiveModel::Attribute::UserProvidedDefault.new(
-              name,
-              value,
-              type,
-              _default_attributes.fetch(name.to_s) { nil },
-            )
-          else
-            default_attribute = ActiveModel::Attribute.from_database(name, value, type)
+        def add_attribute_to_attribute_set(attribute_set, name, type, default: NO_DEFAULT_PROVIDED, from_user: true)
+          attribute_set[name] =
+            if default == NO_DEFAULT_PROVIDED
+              attribute_set[name].with_type(type)
+            elsif from_user
+              ActiveModel::Attribute::UserProvidedDefault.new(name, default, type, attribute_set.fetch(name) { nil })
+            else
+              ActiveModel::Attribute.from_database(name, default, type)
+            end
+          attribute_set
+        end
+
+        def add_deferred_to_attribute_set(attribute_set)
+          deferred_attribute_definitions.reduce(attribute_set) do |set, (name, (type, options))|
+            case type
+            when Symbol
+              adapter_name = ActiveRecord::Type.adapter_name_from(self)
+              type = ActiveRecord::Type.lookup(type, **options.except(:default), adapter: adapter_name)
+            when Proc
+              type = type[attribute_set[name].type]
+            else
+              type ||= attribute_set[name].type
+            end
+
+            add_attribute_to_attribute_set(set, name, type, **options.slice(:default))
           end
-          _default_attributes[name] = default_attribute
+        end
+
+        def reset_attributes
+          @default_attributes = nil
+          @attribute_types = nil
+          direct_descendants.each { |descendant| descendant.send(__method__) }
         end
     end
   end
