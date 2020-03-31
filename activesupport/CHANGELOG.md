@@ -1,3 +1,11 @@
+*   Calling `ActiveSupport::TaggedLogging#tagged` without a block now returns a tagged logger.
+
+    ```ruby
+    logger.tagged("BCX").info("Funky time!") # => [BCX] Funky time!
+    ```
+
+    *Eugene Kenny*
+
 *   Align `Range#cover?` extension behavior with Ruby behavior for backwards ranges.
 
     `(1..10).cover?(5..3)` now returns `false`, as it does in plain Ruby.
