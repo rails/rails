@@ -2729,17 +2729,18 @@ In case of key collision, the value will be the one most recently inserted into 
 # => {:a=>2}
 ```
 
-This method may be useful for example to easily accept both symbols and strings as options. For instance `ActionController::UrlRewriter` defines
+This method may be useful for example to easily accept both symbols and strings as options. For instance `ActionText::TagHelper` defines
 
 ```ruby
-def rewrite_path(options)
+def rich_text_area_tag(name, value = nil, options = {})
   options = options.symbolize_keys
-  options.update(options[:params].symbolize_keys) if options[:params]
+
+  options[:input] ||= "trix_input_#{ActionText::TagHelper.id += 1}
   ...
 end
 ```
 
-The second line can safely access the `:params` key, and let the user to pass either `:params` or "params".
+The third line can safely access the `:input` key, and let the user to pass either `:input` or "input".
 
 There's also the bang variant `symbolize_keys!` that symbolizes keys in the very receiver.
 
