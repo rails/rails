@@ -92,6 +92,52 @@ You can precompile the assets in `app/assets` using `bin/rails assets:precompile
 
 ### `bin/rails cache_digests:nested_dependencies`
 
+### `bin/rails console`
+
+The `console` command lets you interact with your Rails application from the command line. On the underside, `bin/rails console` uses IRB, so if you've ever used it, you'll be right at home. This is useful for testing out quick ideas with code and changing data server-side without touching the website.
+
+INFO: You can also use the alias "c" to invoke the console: `bin/rails c`.
+
+You can specify the environment in which the `console` command should operate.
+
+```bash
+$ bin/rails console -e staging
+```
+
+If you wish to test out some code without changing any data, you can do that by invoking `bin/rails console --sandbox`.
+
+```bash
+$ bin/rails console --sandbox
+Loading development environment in sandbox (Rails 5.1.0)
+Any modifications you make will be rolled back on exit
+irb(main):001:0>
+```
+
+#### The app and helper objects
+
+Inside the `rails console` you have access to the `app` and `helper` instances.
+
+With the `app` method you can access named route helpers, as well as do requests.
+
+```bash
+>> app.root_path
+=> "/"
+
+>> app.get _
+Started GET "/" for 127.0.0.1 at 2014-06-19 10:41:57 -0300
+...
+```
+
+With the `helper` method it is possible to access Rails and your application's helpers.
+
+```bash
+>> helper.time_ago_in_words 30.days.ago
+=> "about 1 month"
+
+>> helper.my_custom_helper
+=> "my custom helper"
+```
+
 ### `bin/rails db:create`
 
 ### `bin/rails db:drop`
@@ -133,6 +179,32 @@ You can precompile the assets in `app/assets` using `bin/rails assets:precompile
 ### `bin/rails middleware`
 
 ### `bin/rails restart`
+
+### `bin/rails routes`
+
+`bin/rails routes` will list all of your defined routes, which is useful for tracking down routing problems in your app, or giving you a good overview of the URLs in an app you're trying to get familiar with.
+
+### `rails runner`
+
+`runner` runs Ruby code in the context of Rails non-interactively. For instance:
+
+```bash
+$ bin/rails runner "Model.long_running_method"
+```
+
+INFO: You can also use the alias "r" to invoke the runner: `rails r`.
+
+You can specify the environment in which the `runner` command should operate using the `-e` switch.
+
+```bash
+$ bin/rails runner -e staging "Model.long_running_method"
+```
+
+You can even execute ruby code written in a file with runner.
+
+```bash
+$ bin/rails runner lib/code_to_be_run.rb
+```
 
 ### `bin/rails secret`
 
@@ -470,79 +542,11 @@ $ bin/rails server
 
 Go to your browser and open [http://localhost:3000/high_scores](http://localhost:3000/high_scores), now we can create new high scores (55,160 on Space Invaders!)
 
-### `rails console`
-
-The `console` command lets you interact with your Rails application from the command line. On the underside, `rails console` uses IRB, so if you've ever used it, you'll be right at home. This is useful for testing out quick ideas with code and changing data server-side without touching the website.
-
-INFO: You can also use the alias "c" to invoke the console: `rails c`.
-
-You can specify the environment in which the `console` command should operate.
-
-```bash
-$ bin/rails console -e staging
-```
-
-If you wish to test out some code without changing any data, you can do that by invoking `rails console --sandbox`.
-
-```bash
-$ bin/rails console --sandbox
-Loading development environment in sandbox (Rails 5.1.0)
-Any modifications you make will be rolled back on exit
-irb(main):001:0>
-```
-
-#### The app and helper objects
-
-Inside the `rails console` you have access to the `app` and `helper` instances.
-
-With the `app` method you can access named route helpers, as well as do requests.
-
-```bash
->> app.root_path
-=> "/"
-
->> app.get _
-Started GET "/" for 127.0.0.1 at 2014-06-19 10:41:57 -0300
-...
-```
-
-With the `helper` method it is possible to access Rails and your application's helpers.
-
-```bash
->> helper.time_ago_in_words 30.days.ago
-=> "about 1 month"
-
->> helper.my_custom_helper
-=> "my custom helper"
-```
-
 ### `rails dbconsole`
 
 `rails dbconsole` figures out which database you're using and drops you into whichever command line interface you would use with it (and figures out the command line parameters to give to it, too!). It supports MySQL (including MariaDB), PostgreSQL, and SQLite3.
 
 INFO: You can also use the alias "db" to invoke the dbconsole: `bin/rails db`.
-
-### `rails runner`
-
-`runner` runs Ruby code in the context of Rails non-interactively. For instance:
-
-```bash
-$ bin/rails runner "Model.long_running_method"
-```
-
-INFO: You can also use the alias "r" to invoke the runner: `rails r`.
-
-You can specify the environment in which the `runner` command should operate using the `-e` switch.
-
-```bash
-$ bin/rails runner -e staging "Model.long_running_method"
-```
-
-You can even execute ruby code written in a file with runner.
-
-```bash
-$ bin/rails runner lib/code_to_be_run.rb
-```
 
 ### `rails destroy`
 
@@ -678,10 +682,6 @@ spec/models/user_spec.rb:
 vendor/tools.rb:
   * [ 56] [TODO] Get rid of this dependency
 ```
-
-### `rails routes`
-
-`rails routes` will list all of your defined routes, which is useful for tracking down routing problems in your app, or giving you a good overview of the URLs in an app you're trying to get familiar with.
 
 ### `rails test`
 
