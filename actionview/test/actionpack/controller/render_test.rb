@@ -1453,4 +1453,22 @@ class RenderTest < ActionController::TestCase
     get :render_call_to_partial_with_layout_in_main_layout_and_within_content_for_layout
     assert_equal "Before (Anthony)\nInside from partial (Anthony)\nAfter\nBefore (David)\nInside from partial (David)\nAfter\nBefore (Ramm)\nInside from partial (Ramm)\nAfter", @response.body
   end
+
+  def test_template_annotations
+    ActionView::Base.annotate_template_file_names = true
+
+    get :render_with_explicit_template_with_locals
+
+    lines = @response.body.split("\n")
+
+    assert_includes lines.first, "<!-- BEGIN"
+    assert_includes lines.first, "test/fixtures/actionpack/test/render_file_with_locals.erb -->"
+
+    assert_includes lines[1], "The secret is area51"
+
+    assert_includes lines.last, "<!-- END"
+    assert_includes lines.last, "test/fixtures/actionpack/test/render_file_with_locals.erb -->"
+  ensure
+    ActionView::Base.annotate_template_file_names = false
+  end
 end

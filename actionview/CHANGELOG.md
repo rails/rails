@@ -1,3 +1,7 @@
+*   `ActionView::Base.annotate_template_file_names` annotates HTML output with template file names.
+
+    *Joel Hawksley*, *Aaron Patterson*
+
 *   `ActionView::Helpers::TranslationHelper#translate` returns nil when
     passed `default: nil` without a translation matching `I18n#translate`.
 
