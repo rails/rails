@@ -422,7 +422,7 @@ create something with a bit more substance.
 In the Blog application, you will now create a new _resource_. A resource is the
 term used for a collection of similar objects, such as articles, people, or
 animals.
-You can create, read, update, and destroy items for a resource and these
+You can create, read, update, and destroy items in a resource and these
 operations are referred to as _CRUD_ operations.
 
 Rails provides a `resources` method which can be used to declare a standard REST
