@@ -1,3 +1,7 @@
+*   Add way to deliver emails via source instead of filling out a form through the conductor interface.
+
+    *DHH*
+
 *   Mailgun ingress now passes through the envelope recipient as `X-Original-To`.
 
     *Rikki Pitt*
