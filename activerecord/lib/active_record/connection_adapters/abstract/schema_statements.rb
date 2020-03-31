@@ -421,6 +421,12 @@ module ActiveRecord
       #     t.column :name, :string, limit: 60
       #   end
       #
+      # ====== Change type of a column
+      #
+      #   change_table(:suppliers) do |t|
+      #     t.change :metadata, :json
+      #   end
+      #
       # ====== Add 2 integer columns
       #
       #   change_table(:suppliers) do |t|
