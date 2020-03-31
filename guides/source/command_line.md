@@ -5,31 +5,16 @@ The Rails Command Line
 
 After reading this guide, you will know:
 
-* How to create a Rails application.
-* How to generate models, controllers, database migrations, and unit tests.
-* How to start a development server.
-* How to experiment with objects through an interactive shell.
+* All the rails commands that are available to you
 
 --------------------------------------------------------------------------------
 
 NOTE: This tutorial assumes you have basic Rails knowledge from reading the [Getting Started with Rails Guide](getting_started.html).
 
-Command Line Basics
+Command Line A-Z
 -------------------
 
-There are a few commands that are absolutely critical to your everyday usage of Rails. In the order of how much you'll probably use them are:
-
-* `bin/rails console`
-* `bin/rails server`
-* `bin/rails test`
-* `bin/rails generate`
-* `bin/rails db:migrate`
-* `bin/rails db:create`
-* `bin/rails routes`
-* `bin/rails dbconsole`
-* `rails new app_name`
-
-You can get a list of rails commands available to you, which will often depend on your current directory, by typing `rails --help`. Each command has a description, and should help you find the thing you need.
+You can get a list of rails commands available to you, by typing `bin/rails --help`. Each command has a description, and should help you find the thing you need.
 
 ```bash
 $ rails --help
@@ -50,24 +35,166 @@ In addition to those commands, there are:
  assets:environment                  Load asset compile environment
  assets:precompile                   Compile all the assets ...
  ...
- db:fixtures:load                    Loads fixtures into the ...
- db:migrate                          Migrate the database ...
- db:migrate:status                   Display status of migrations
- db:rollback                         Rolls the schema back to ...
- db:schema:cache:clear               Clears a db/schema_cache.yml file
- db:schema:cache:dump                Creates a db/schema_cache.yml file
- db:schema:dump                      Creates a db/schema.rb file ...
- db:schema:load                      Loads a schema.rb file ...
- db:seed                             Loads the seed data ...
- db:structure:dump                   Dumps the database structure ...
- db:structure:load                   Recreates the databases ...
- db:version                          Retrieves the current schema ...
- ...
- restart                             Restart app by touching ...
- tmp:create                          Creates tmp directories ...
 ```
 
-Let's create a simple Rails application to step through each of these commands in context.
+### `bin/rails about`
+
+`bin/rails about` gives information about version numbers for Ruby, RubyGems, Rails, the Rails subcomponents, your application's folder, the current Rails environment name, your app's database adapter, and schema version. It is useful when you need to ask for help, check if a security patch might affect you, or when you need some stats for an existing Rails installation.
+
+```bash
+$ bin/rails about
+About your application's environment
+Rails version             6.0.0
+Ruby version              2.5.0 (x86_64-linux)
+RubyGems version          2.7.3
+Rack version              2.0.4
+JavaScript Runtime        Node.js (V8)
+Middleware:               Rack::Sendfile, ActionDispatch::Static, ActionDispatch::Executor, ActiveSupport::Cache::Strategy::LocalCache::Middleware, Rack::Runtime, Rack::MethodOverride, ActionDispatch::RequestId, ActionDispatch::RemoteIp, Sprockets::Rails::QuietAssets, Rails::Rack::Logger, ActionDispatch::ShowExceptions, WebConsole::Middleware, ActionDispatch::DebugExceptions, ActionDispatch::Reloader, ActionDispatch::Callbacks, ActiveRecord::Migration::CheckPending, ActionDispatch::Cookies, ActionDispatch::Session::CookieStore, ActionDispatch::Flash, Rack::Head, Rack::ConditionalGet, Rack::ETag
+Application root          /home/foobar/commandsapp
+Environment               development
+Database adapter          sqlite3
+Database schema version   20180205173523
+```
+
+### `bin/rails action_mailbox:ingress:exim`
+
+### `bin/rails action_mailbox:ingress:postfix`
+
+### `bin/rails action_mailbox:ingress:qmail`
+
+### `bin/rails action_mailbox:install`
+
+### `bin/rails action_text:install`
+
+### `bin/rails active_storage:install`
+
+### `bin/rails app:template`
+
+### `bin/rails app:update`
+
+### `bin/rails assets:clean`
+
+You can remove older compiled assets using `bin/rails assets:clean`. This command allows for rolling deploys that may still be linking to an old asset while the new assets are being built.
+
+### `bin/rails assets:clobber`
+
+If you want to clear `public/assets` completely, you can use `bin/rails assets:clobber`.
+
+### `bin/rails assets:environment`
+
+### `bin/rails assets:precompile`
+
+You can precompile the assets in `app/assets` using `bin/rails assets:precompile`.
+
+### `bin/rails autoprefixer:info`
+
+### `bin/rails cache_digests:dependencies`
+
+### `bin/rails cache_digests:nested_dependencies`
+
+### `bin/rails db:create`
+
+### `bin/rails db:drop`
+
+### `bin/rails db:environment:set`
+
+### `bin/rails db:fixtures:load`
+
+### `bin/rails db:migrate`
+
+### `bin/rails db:migrate:status`
+
+### `bin/rails db:prepare`
+
+### `bin/rails db:rollback`
+
+### `bin/rails db:schema:cache:clear`
+
+### `bin/rails db:schema:cache:dump`
+
+### `bin/rails db:schema:dump`
+
+### `bin/rails db:schema:load`
+
+### `bin/rails db:seed`
+
+### `bin/rails db:seed:replant`
+
+### `bin/rails db:setup`
+
+### `bin/rails db:structure:dump`
+
+### `bin/rails db:structure:load`
+
+### `bin/rails db:version`
+
+### `bin/rails log:clear`
+
+### `bin/rails middleware`
+
+### `bin/rails restart`
+
+### `bin/rails secret`
+
+### `bin/rails stats`
+
+### `bin/rails test`
+
+### `bin/rails test:db`
+
+### `bin/rails test:system`
+
+### `bin/rails time:zones[country_or_offset]`
+
+### `bin/rails tmp:clear`
+
+### `bin/rails tmp:create`
+
+### `bin/rails webpacker`
+
+### `bin/rails webpacker:binstubs`
+
+### `bin/rails webpacker:check_binstubs`
+
+### `bin/rails webpacker:check_node`
+
+### `bin/rails webpacker:check_yarn`
+
+### `bin/rails webpacker:clean[keep,age]`
+
+### `bin/rails webpacker:clobber`
+
+### `bin/rails webpacker:compile`
+
+### `bin/rails webpacker:info`
+
+### `bin/rails webpacker:install`
+
+### `bin/rails webpacker:install:angular`
+
+### `bin/rails webpacker:install:coffee`
+
+### `bin/rails webpacker:install:elm`
+
+### `bin/rails webpacker:install:erb`
+
+### `bin/rails webpacker:install:react`
+
+### `bin/rails webpacker:install:stimulus`
+
+### `bin/rails webpacker:install:svelte`
+
+### `bin/rails webpacker:install:typescript`
+
+### `bin/rails webpacker:install:vue`
+
+### `bin/rails webpacker:verify_install`
+
+### `bin/rails webpacker:yarn_install`
+
+### `bin/rails yarn:install`
+
+### `bin/rails zeitwerk:check `
 
 ### `rails new`
 
@@ -441,31 +568,6 @@ $ bin/rails destroy model Oops
       remove      test/models/oops_test.rb
       remove      test/fixtures/oops.yml
 ```
-
-### `rails about`
-
-`rails about` gives information about version numbers for Ruby, RubyGems, Rails, the Rails subcomponents, your application's folder, the current Rails environment name, your app's database adapter, and schema version. It is useful when you need to ask for help, check if a security patch might affect you, or when you need some stats for an existing Rails installation.
-
-```bash
-$ bin/rails about
-About your application's environment
-Rails version             6.0.0
-Ruby version              2.5.0 (x86_64-linux)
-RubyGems version          2.7.3
-Rack version              2.0.4
-JavaScript Runtime        Node.js (V8)
-Middleware:               Rack::Sendfile, ActionDispatch::Static, ActionDispatch::Executor, ActiveSupport::Cache::Strategy::LocalCache::Middleware, Rack::Runtime, Rack::MethodOverride, ActionDispatch::RequestId, ActionDispatch::RemoteIp, Sprockets::Rails::QuietAssets, Rails::Rack::Logger, ActionDispatch::ShowExceptions, WebConsole::Middleware, ActionDispatch::DebugExceptions, ActionDispatch::Reloader, ActionDispatch::Callbacks, ActiveRecord::Migration::CheckPending, ActionDispatch::Cookies, ActionDispatch::Session::CookieStore, ActionDispatch::Flash, Rack::Head, Rack::ConditionalGet, Rack::ETag
-Application root          /home/foobar/commandsapp
-Environment               development
-Database adapter          sqlite3
-Database schema version   20180205173523
-```
-
-### `rails assets:`
-
-You can precompile the assets in `app/assets` using `rails assets:precompile`, and remove older compiled assets using `rails assets:clean`. The `assets:clean` command allows for rolling deploys that may still be linking to an old asset while the new assets are being built.
-
-If you want to clear `public/assets` completely, you can use `rails assets:clobber`.
 
 ### `rails db:`
 
