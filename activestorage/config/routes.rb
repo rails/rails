@@ -32,10 +32,10 @@ Rails.application.routes.draw do
   resolve("ActiveStorage::Blob")       { |blob, options| route_for(:rails_blob, blob, options) }
   resolve("ActiveStorage::Attachment") { |attachment, options| route_for(:rails_blob, attachment.blob, options) }
 
-  direct :rails_storage do |model, options|
+  direct :rails_storage_proxy do |model, options|
     if model.respond_to?(:signed_id)
       route_for(
-        options[:deliver_by] == :proxy ? :rails_service_blob_proxy : :rails_service_blob,
+        :rails_service_blob_proxy,
         model.signed_id,
         model.filename,
         options
@@ -46,8 +46,32 @@ Rails.application.routes.draw do
       filename       = model.blob.filename
 
       route_for(
-        options[:deliver_by] == :proxy ? :rails_blob_representation_proxy : :rails_blob_representation,
-        signed_blob_id, variation_key,
+        :rails_blob_representation_proxy,
+        signed_blob_id,
+        variation_key,
+        filename,
+        options
+      )
+    end
+  end
+
+  direct :rails_storage_redirect do |model, options|
+    if model.respond_to?(:signed_id)
+      route_for(
+        :rails_service_blob,
+        model.signed_id,
+        model.filename,
+        options
+      )
+    else
+      signed_blob_id = model.blob.signed_id
+      variation_key  = model.variation.key
+      filename       = model.blob.filename
+
+      route_for(
+        :rails_blob_representation,
+        signed_blob_id,
+        variation_key,
         filename,
         options
       )
