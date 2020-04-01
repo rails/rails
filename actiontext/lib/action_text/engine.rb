@@ -40,6 +40,11 @@ module ActionText
       ActiveSupport.on_load(:action_controller_base) do
         helper ActionText::Engine.helpers
       end
+
+      ActiveSupport.on_load(:action_view) do
+        include ActionText::ContentHelper
+        include ActionText::TagHelper
+      end
     end
 
     initializer "action_text.renderer" do |app|
