@@ -24,4 +24,4 @@
 
 # Specify whether `ActiveSupport::TimeZone.utc_to_local` returns a time with an
 # UTC offset or a UTC time.
-# Rails.application.config.active_support.utc_to_local_returns_utc_offset_times = true
+# ActiveSupport.utc_to_local_returns_utc_offset_times = true
