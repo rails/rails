@@ -187,17 +187,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_app_update_generates_correct_session_key
-    app_root = File.join(destination_root, "myapp")
-    run_generator [app_root]
-
-    stub_rails_application(app_root) do
-      generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
-      generator.send(:app_const)
-      quietly { generator.send(:update_config_files) }
-    end
-  end
-
   def test_new_application_use_json_serializer
     run_generator
 
@@ -376,7 +365,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       quietly { generator.send(:update_config_files) }
 
       assert_file "#{app_root}/config/boot.rb" do |content|
-        assert_no_match(/require 'bootsnap\/setup'/, content)
+        assert_no_match(/require "bootsnap\/setup"/, content)
       end
     end
   end
@@ -979,12 +968,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
     unless defined?(JRUBY_VERSION)
       assert_gem "bootsnap"
       assert_file "config/boot.rb" do |content|
-        assert_match(/require 'bootsnap\/setup'/, content)
+        assert_match(/require "bootsnap\/setup"/, content)
       end
     else
       assert_no_gem "bootsnap"
       assert_file "config/boot.rb" do |content|
-        assert_no_match(/require 'bootsnap\/setup'/, content)
+        assert_no_match(/require "bootsnap\/setup"/, content)
       end
     end
   end
@@ -994,7 +983,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_no_gem "bootsnap"
     assert_file "config/boot.rb" do |content|
-      assert_no_match(/require 'bootsnap\/setup'/, content)
+      assert_no_match(/require "bootsnap\/setup"/, content)
     end
   end
 
@@ -1003,7 +992,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_no_gem "bootsnap"
     assert_file "config/boot.rb" do |content|
-      assert_no_match(/require 'bootsnap\/setup'/, content)
+      assert_no_match(/require "bootsnap\/setup"/, content)
     end
   end
 

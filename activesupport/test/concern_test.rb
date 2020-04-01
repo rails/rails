@@ -8,24 +8,10 @@ class ConcernTest < ActiveSupport::TestCase
     extend ActiveSupport::Concern
 
     class_methods do
+      attr_accessor :included_ran, :prepended_ran
+
       def baz
         "baz"
-      end
-
-      def included_ran=(value)
-        @included_ran = value
-      end
-
-      def included_ran
-        @included_ran
-      end
-
-      def prepended_ran=(value)
-        @prepended_ran = value
-      end
-
-      def prepended_ran
-        @prepended_ran
       end
     end
 

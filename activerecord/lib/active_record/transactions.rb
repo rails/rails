@@ -391,6 +391,7 @@ module ActiveRecord
         @_start_transaction_state ||= {
           id: id,
           new_record: @new_record,
+          previously_new_record: @previously_new_record,
           destroyed: @destroyed,
           attributes: @attributes,
           frozen?: frozen?,
@@ -423,6 +424,7 @@ module ActiveRecord
         if restore_state = @_start_transaction_state
           if force_restore_state || restore_state[:level] <= 1
             @new_record = restore_state[:new_record]
+            @previously_new_record = restore_state[:previously_new_record]
             @destroyed  = restore_state[:destroyed]
             @attributes = restore_state[:attributes].map do |attr|
               value = @attributes.fetch_value(attr.name)

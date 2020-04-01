@@ -41,6 +41,9 @@ module Arel # :nodoc: all
         collector = engine.connection.visitor.accept self, collector
         collector.value
       end
+
+      def fetch_attribute
+      end
     end
   end
 end

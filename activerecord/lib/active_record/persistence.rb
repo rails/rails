@@ -428,6 +428,14 @@ module ActiveRecord
       @new_record
     end
 
+    # Returns true if this object was just created -- that is, prior to the last
+    # save, the object didn't exist in the database and new_record? would have
+    # returned true.
+    def previously_new_record?
+      sync_with_transaction_state if @transaction_state&.finalized?
+      @previously_new_record
+    end
+
     # Returns true if this object has been destroyed, otherwise returns false.
     def destroyed?
       sync_with_transaction_state if @transaction_state&.finalized?
@@ -811,6 +819,7 @@ module ActiveRecord
 
       @attributes = fresh_object.instance_variable_get(:@attributes)
       @new_record = false
+      @previously_new_record = false
       self
     end
 
@@ -914,6 +923,8 @@ module ActiveRecord
         @_trigger_update_callback = affected_rows == 1
       end
 
+      @previously_new_record = false
+
       yield(self) if block_given?
 
       affected_rows
@@ -931,6 +942,7 @@ module ActiveRecord
       self.id ||= new_id if @primary_key
 
       @new_record = false
+      @previously_new_record = true
 
       yield(self) if block_given?
 

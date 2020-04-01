@@ -444,11 +444,11 @@ module ActiveSupport
 
         # Truncate keys that exceed 1kB.
         def normalize_key(key, options)
-          truncate_key super.b
+          truncate_key super&.b
         end
 
         def truncate_key(key)
-          if key.bytesize > max_key_bytesize
+          if key && key.bytesize > max_key_bytesize
             suffix = ":sha2:#{::Digest::SHA2.hexdigest(key)}"
             truncate_at = max_key_bytesize - suffix.bytesize
             "#{key.byteslice(0, truncate_at)}#{suffix}"

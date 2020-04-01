@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-gem "azure-storage-blob", "~> 1.1"
+gem "azure-storage-blob", ">= 1.1"
 
 require "active_support/core_ext/numeric/bytes"
 require "azure/storage/blob"

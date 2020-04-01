@@ -155,6 +155,23 @@ class MigrationTest < ActiveRecord::TestCase
     connection.drop_table :testings, if_exists: true
   end
 
+  def test_create_table_with_indexes_and_if_not_exists_true
+    connection = Person.connection
+    connection.create_table :testings, force: true do |t|
+      t.references :people
+      t.string :foo
+    end
+
+    assert_nothing_raised do
+      connection.create_table :testings, if_not_exists: true do |t|
+        t.references :people
+        t.string :foo
+      end
+    end
+  ensure
+    connection.drop_table :testings, if_exists: true
+  end
+
   def test_create_table_with_force_true_does_not_drop_nonexisting_table
     # using a copy as we need the drop_table method to
     # continue to work for the ensure block of the test

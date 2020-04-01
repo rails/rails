@@ -1,4 +1,61 @@
-*   Dump the schema or structure of a database when calling db:migrate:name
+*   Add support for `if_not_exists` option for adding index.
+
+    The `add_index` method respects `if_not_exists` option. If it is set to true
+    index won't be added.
+
+    Usage:
+
+    ```
+      add_index :users, :account_id, if_not_exists: true
+    ```
+
+    The `if_not_exists` option passed to `create_table` also gets propogated to indexes
+    created within that migration so that if table and its indexes exist then there is no
+    attempt to create them again.
+
+    *Prathamesh Sonpatki*
+
+*   Add `ActiveRecord::Base#previously_new_record?` to show if a record was new before the last save.
+
+    *Tom Ward*
+
+*   Support descending order for `find_each`, `find_in_batches` and `in_batches`.
+
+    Batch processing methods allow you to work with the records in batches, greatly reducing memory consumption, but records are always batched from oldest id to newest.
+
+    This change allows reversing the order, batching from newest to oldest. This is useful when you need to process newer batches of records first.
+
+    Pass `order: :desc` to yield batches in descending order. The default remains `order: :asc`.
+
+    ```ruby
+    Person.find_each(order: :desc) do |person|
+      person.party_all_night!
+    end
+    ```
+
+    *Alexey Vasiliev*
+
+*   Fix insert_all with enum values
+
+    Fixes #38716.
+
+    *Joel Blum*
+
+*   Add support for `db:rollback:name` for multiple database applications.
+
+    Multiple database applications will now raise if `db:rollback` is call and recommend using the `db:rollback:[NAME]` to rollback migrations.
+
+    *Eileen M. Uchitelle*
+
+*   `Relation#pick` now uses already loaded results instead of making another query.
+
+    *Eugene Kenny*
+
+*   Deprecate using `return`, `break` or `throw` to exit a transaction block
+
+    *Dylan Thacker-Smith*
+
+*   Dump the schema or structure of a database when calling `db:migrate:name`.
 
     In previous versions of Rails, `rails db:migrate` would dump the schema of the database. In Rails 6, that holds true (`rails db:migrate` dumps all databases' schemas), but `rails db:migrate:name` does not share that behavior.
 
@@ -6,7 +63,7 @@
 
     *Kyle Thompson*
 
-*   Reset the `ActiveRecord::Base` connection after `rails db:migrate:name`
+*   Reset the `ActiveRecord::Base` connection after `rails db:migrate:name`.
 
     When `rails db:migrate` has finished, it ensures the `ActiveRecord::Base` connection is reset to its original configuration. Going forward, `rails db:migrate:name` will have the same behavior.
 
@@ -505,6 +562,5 @@
 *   Allow generated `create_table` migrations to include or skip timestamps.
 
     *Michael Duchemin*
-
 
 Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/activerecord/CHANGELOG.md) for previous changes.

@@ -58,7 +58,8 @@ module ActionView
           self.class.erb_implementation.new(
             erb,
             escape: (self.class.escape_ignore_list.include? template.type),
-            trim: (self.class.erb_trim_mode == "-")
+            trim: (self.class.erb_trim_mode == "-"),
+            short_identifier: template.short_identifier
           ).src
         end
 

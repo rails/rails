@@ -72,7 +72,7 @@ module ActiveJob
   # Yes: Allows the priority to be set on the job object, at the queue level or
   # as default configuration option.
   #
-  # No: Does not allow the priority of jobs to be configured.
+  # No: The adapter does not allow the priority of jobs to be configured.
   #
   # N/A: The adapter does not support queuing, and therefore sorting them.
   #
@@ -86,6 +86,8 @@ module ActiveJob
   #
   # Global: The adapter is configured that all jobs have a maximum run time.
   #
+  # No: The adapter does not allow the timeout of jobs to be configured.
+  #
   # N/A: This adapter does not run in a separate process, and therefore timeout
   # is unsupported.
   #
@@ -98,6 +100,8 @@ module ActiveJob
   # that can be restarted.
   #
   # Global: The adapter has a global number of retries.
+  #
+  # No: The adapter does not allow the number of retries to be configured.
   #
   # N/A: The adapter does not run in a separate process, and therefore doesn't
   # support retries.

@@ -25,7 +25,7 @@ Rails offers four standard spots to place initialization code:
 Running Code Before Rails
 -------------------------
 
-In the rare event that your application needs to run some code before Rails itself is loaded, put it above the call to `require 'rails/all'` in `config/application.rb`.
+In the rare event that your application needs to run some code before Rails itself is loaded, put it above the call to `require "rails/all"` in `config/application.rb`.
 
 Configuring Rails Components
 ----------------------------

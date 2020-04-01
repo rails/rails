@@ -1,5 +1,5 @@
-require 'bundler/setup'
-require 'rdoc/task'
+require "bundler/setup"
+require "rdoc/task"
 
 RDoc::Task.new(:rdoc) do |rdoc|
   rdoc.rdoc_dir = 'rdoc'
@@ -11,13 +11,13 @@ end
 <% if engine? && !options[:skip_active_record] && with_dummy_app? -%>
 
 APP_RAKEFILE = File.expand_path("<%= dummy_path -%>/Rakefile", __dir__)
-load 'rails/tasks/engine.rake'
+load "rails/tasks/engine.rake"
 <% end -%>
 <% if engine? -%>
 
-load 'rails/tasks/statistics.rake'
+load "rails/tasks/statistics.rake"
 <% end -%>
 <% unless options[:skip_gemspec] -%>
 
-require 'bundler/gem_tasks'
+require "bundler/gem_tasks"
 <% end -%>

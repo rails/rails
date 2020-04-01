@@ -116,7 +116,7 @@ module ApplicationTests
         end
       RUBY
       add_to_top_of_config <<-RUBY
-        require 'my_logger'
+        require "my_logger"
         config.logger = MyLogger.new STDOUT
       RUBY
 
@@ -2293,6 +2293,15 @@ module ApplicationTests
       app "development"
 
       assert_equal :lax, Rails.application.config.action_dispatch.cookies_same_site_protection
+    end
+
+    test "enables utc_to_local_returns_utc_offset_times by default" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.1"'
+
+      app "development"
+
+      assert_equal true, Rails.application.config.active_support.utc_to_local_returns_utc_offset_times
     end
 
     test "ActiveStorage.queues[:analysis] is :active_storage_analysis by default" do

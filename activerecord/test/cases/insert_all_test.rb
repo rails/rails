@@ -335,6 +335,12 @@ class InsertAllTest < ActiveRecord::TestCase
                  Measurement.where(city_id: 2).pluck(:logdate, :peaktemp, :unitsales)
   end
 
+  def test_insert_all_with_enum_values
+    Book.insert_all! [{ status: :published, isbn: "1234566", name: "Rework", author_id: 1 },
+                      { status: :proposed, isbn: "1234567", name: "Remote", author_id: 2 }]
+    assert_equal ["published", "proposed"], Book.where(isbn: ["1234566", "1234567"]).order(:id).pluck(:status)
+  end
+
   private
     def capture_log_output
       output = StringIO.new

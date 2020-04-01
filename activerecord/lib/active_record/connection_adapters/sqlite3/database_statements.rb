@@ -63,7 +63,7 @@ module ActiveRecord
                 records = stmt.to_a
               end
 
-              ActiveRecord::Result.new(cols, records)
+              build_result(columns: cols, rows: records)
             end
           end
         end

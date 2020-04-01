@@ -124,9 +124,8 @@ module Rails
           template_engine: nil
         )
 
-        if ARGV.first == "mailer"
-          options[:rails][:template_engine] = :erb
-        end
+        options[:mailer] ||= {}
+        options[:mailer][:template_engine] ||= :erb
       end
 
       # Returns an array of generator namespaces that are hidden.

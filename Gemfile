@@ -15,7 +15,7 @@ gem "selenium-webdriver", ">= 3.141.592"
 gem "rack-cache", "~> 1.2"
 gem "sass-rails"
 gem "turbolinks", "~> 5"
-gem "webpacker", "~> 4.0", require: ENV["SKIP_REQUIRE_WEBPACKER"] != "true"
+gem "webpacker", "~> 5.0", require: ENV["SKIP_REQUIRE_WEBPACKER"] != "true"
 # require: false so bcrypt is loaded only when has_secure_password is used.
 # This is to avoid Active Model (and by extension the entire framework)
 # being dependent on a binary library.
@@ -28,12 +28,14 @@ gem "uglifier", ">= 1.3.0", require: false
 # Explicitly avoid 1.x that doesn't support Ruby 2.4+
 gem "json", ">= 2.0.0"
 
-gem "rubocop", ">= 0.47", require: false
-gem "rubocop-performance", require: false
-gem "rubocop-rails", require: false
+group :rubocop do
+  gem "rubocop", ">= 0.47", require: false
+  gem "rubocop-performance", require: false
+  gem "rubocop-rails", require: false
+end
 
 group :doc do
-  gem "sdoc", "~> 1.0"
+  gem "sdoc", "~> 1.1"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
   gem "w3c_validators"
   gem "kindlerb", "~> 1.2.0"

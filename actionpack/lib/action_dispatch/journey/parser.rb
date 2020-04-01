@@ -4,7 +4,7 @@
 # from Racc grammar file "".
 #
 
-require 'racc/parser.rb'
+require "racc/parser.rb"
 
 # :stopdoc:
 

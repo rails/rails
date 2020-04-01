@@ -691,7 +691,7 @@ module ActiveRecord
     # Or equivalently, if +TenderloveMigration+ is defined as in the
     # documentation for Migration:
     #
-    #   require_relative '20121212123456_tenderlove_migration'
+    #   require_relative "20121212123456_tenderlove_migration"
     #
     #   class FixupTLMigration < ActiveRecord::Migration[6.0]
     #     def change

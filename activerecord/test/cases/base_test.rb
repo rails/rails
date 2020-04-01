@@ -746,6 +746,12 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal true, Topic.find(1).persisted?
   end
 
+  def test_previously_new_record_returns_boolean
+    assert_equal false, Topic.new.previously_new_record?
+    assert_equal true, Topic.create.previously_new_record?
+    assert_equal false, Topic.find(1).previously_new_record?
+  end
+
   def test_dup
     topic = Topic.find(1)
     duped_topic = nil

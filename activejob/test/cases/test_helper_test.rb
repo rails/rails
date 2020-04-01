@@ -909,6 +909,44 @@ class PerformedJobsTest < ActiveJob::TestCase
     assert_performed_jobs 0
   end
 
+  def test_perform_enqueued_jobs_properly_count_job_that_raises
+    RaisingJob.perform_later("NotImplementedError")
+
+    assert_raises(NotImplementedError) do
+      perform_enqueued_jobs(only: RaisingJob)
+    end
+
+    assert_equal(1, performed_jobs.size)
+  end
+
+  def test_perform_enqueued_jobs_dont_perform_retries
+    RaisingJob.perform_later
+
+    assert_nothing_raised do
+      perform_enqueued_jobs(only: RaisingJob)
+    end
+
+    assert_equal(1, performed_jobs.size)
+    assert_equal(1, enqueued_jobs.size)
+  end
+
+  def test_perform_enqueued_jobs_without_block_removes_from_enqueued_jobs
+    HelloJob.perform_later("rafael")
+    assert_equal(0, performed_jobs.size)
+    assert_equal(1, enqueued_jobs.size)
+    perform_enqueued_jobs
+    assert_equal(1, performed_jobs.size)
+    assert_equal(0, enqueued_jobs.size)
+  end
+
+  def test_perform_enqueued_jobs_without_block_only_performs_once
+    JobBuffer.clear
+    RescueJob.perform_later("no exception")
+    perform_enqueued_jobs
+    perform_enqueued_jobs
+    assert_equal(1, JobBuffer.values.size)
+  end
+
   def test_assert_performed_jobs
     assert_nothing_raised do
       assert_performed_jobs 1 do
@@ -1851,6 +1889,7 @@ class PerformedJobsTest < ActiveJob::TestCase
       HelloJob.perform_later
     end
 
+    assert_equal 0, queue_adapter.enqueued_jobs.count
     assert_equal 2, queue_adapter.performed_jobs.count
   end
 
@@ -1859,21 +1898,22 @@ class PerformedJobsTest < ActiveJob::TestCase
     perform_enqueued_jobs
     assert_performed_with(job: HelloJob)
 
-    perform_enqueued_jobs
     HelloJob.perform_later
+    perform_enqueued_jobs
     assert_performed_with(job: HelloJob)
 
+    assert_equal 0, queue_adapter.enqueued_jobs.count
     assert_equal 2, queue_adapter.performed_jobs.count
   end
 
   test "TestAdapter respect max attempts" do
-    RaisingJob.perform_later
-
-    assert_raises(RaisingJob::MyError) do
-      perform_enqueued_jobs
+    perform_enqueued_jobs(only: RaisingJob) do
+      assert_raises(RaisingJob::MyError) do
+        RaisingJob.perform_later
+      end
     end
 
-    assert_equal 2, queue_adapter.enqueued_jobs.count
+    assert_equal 2, queue_adapter.performed_jobs.count
   end
 end
 

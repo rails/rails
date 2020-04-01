@@ -265,14 +265,14 @@ module RenderTestCases
   end
 
   def test_render_partial_with_invalid_option_as
-    e = assert_raises(ArgumentError) { @view.render(partial: "test/partial_only", as: "a-in") }
+    e = assert_raises(ArgumentError) { @view.render(partial: "test/partial_only", as: "a-in", object: nil) }
     assert_equal "The value (a-in) of the option `as` is not a valid Ruby identifier; " \
       "make sure it starts with lowercase letter, " \
       "and is followed by any combination of letters, numbers and underscores.", e.message
   end
 
   def test_render_partial_with_hyphen_and_invalid_option_as
-    e = assert_raises(ArgumentError) { @view.render(partial: "test/a-in", as: "a-in") }
+    e = assert_raises(ArgumentError) { @view.render(partial: "test/a-in", as: "a-in", object: nil) }
     assert_equal "The value (a-in) of the option `as` is not a valid Ruby identifier; " \
       "make sure it starts with lowercase letter, " \
       "and is followed by any combination of letters, numbers and underscores.", e.message
@@ -681,8 +681,8 @@ module RenderTestCases
 
   def test_render_component
     assert_equal(
-      %(<span title="my title">Hello, World! (Inline render)</span>),
-      @view.render(TestComponent.new(title: "my title")) { "Hello, World!" }.strip
+      %(Hello, World!),
+      @view.render(TestComponent.new)
     )
   end
 end

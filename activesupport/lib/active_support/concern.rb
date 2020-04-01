@@ -19,7 +19,7 @@ module ActiveSupport
   # By using <tt>ActiveSupport::Concern</tt> the above module could instead be
   # written as:
   #
-  #   require 'active_support/concern'
+  #   require "active_support/concern"
   #
   #   module M
   #     extend ActiveSupport::Concern
@@ -76,7 +76,7 @@ module ActiveSupport
   # is the +Bar+ module, not the +Host+ class. With <tt>ActiveSupport::Concern</tt>,
   # module dependencies are properly resolved:
   #
-  #   require 'active_support/concern'
+  #   require "active_support/concern"
   #
   #   module Foo
   #     extend ActiveSupport::Concern

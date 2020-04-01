@@ -81,7 +81,7 @@ create  test/fixtures/articles.yml
 The default test stub in `test/models/article_test.rb` looks like this:
 
 ```ruby
-require 'test_helper'
+require "test_helper"
 
 class ArticleTest < ActiveSupport::TestCase
   # test "the truth" do
@@ -93,7 +93,7 @@ end
 A line by line examination of this file will help get you oriented to Rails testing code and terminology.
 
 ```ruby
-require 'test_helper'
+require "test_helper"
 ```
 
 By requiring this file, `test_helper.rb` the default configuration to run our tests is loaded. We will include this with all the tests we write, so any methods added to this file are available to all our tests.
@@ -943,7 +943,7 @@ $ bin/rails generate integration_test user_flows
 Here's what a freshly generated integration test looks like:
 
 ```ruby
-require 'test_helper'
+require "test_helper"
 
 class UserFlowsTest < ActionDispatch::IntegrationTest
   # test "the truth" do
@@ -985,7 +985,7 @@ previous command we should see:
 Now let's open that file and write our first assertion:
 
 ```ruby
-require 'test_helper'
+require "test_helper"
 
 class BlogFlowTest < ActionDispatch::IntegrationTest
   test "can see the welcome page" do
@@ -1348,7 +1348,7 @@ Notice we're starting to see some duplication in these three tests, they both ac
 Our test should now look something as what follows. Disregard the other tests for now, we're leaving them out for brevity.
 
 ```ruby
-require 'test_helper'
+require "test_helper"
 
 class ArticlesControllerTest < ActionDispatch::IntegrationTest
   # called before every single test
@@ -1409,7 +1409,7 @@ end
 ```
 
 ```ruby
-require 'test_helper'
+require "test_helper"
 
 class ProfileControllerTest < ActionDispatch::IntegrationTest
 
@@ -1440,8 +1440,8 @@ end
 These helpers can then be explicitly required as needed and included as needed
 
 ```ruby
-require 'test_helper'
-require 'test_helpers/multiple_assertions'
+require "test_helper"
+require "test_helpers/multiple_assertions"
 
 class NumberTest < ActiveSupport::TestCase
   include MultipleAssertions
@@ -1456,7 +1456,7 @@ or they can continue to be included directly into the relevant parent classes
 
 ```ruby
 # test/test_helper.rb
-require 'test_helpers/sign_in_helper'
+require "test_helpers/sign_in_helper"
 
 class ActionDispatch::IntegrationTest
   include SignInHelper
@@ -1616,7 +1616,7 @@ If you generated your mailer, the generator does not create stub fixtures for th
 Here's a unit test to test a mailer named `UserMailer` whose action `invite` is used to send an invitation to a friend. It is an adapted version of the base test created by the generator for an `invite` action.
 
 ```ruby
-require 'test_helper'
+require "test_helper"
 
 class UserMailerTest < ActionMailer::TestCase
   test "invite" do
@@ -1675,7 +1675,7 @@ Unit testing allows us to test the attributes of the email while functional and 
 
 ```ruby
 # Integration Test
-require 'test_helper'
+require "test_helper"
 
 class UsersControllerTest < ActionDispatch::IntegrationTest
   test "invite friend" do
@@ -1689,7 +1689,7 @@ end
 
 ```ruby
 # System Test
-require 'test_helper'
+require "test_helper"
 
 class UsersTest < ActionDispatch::SystemTestCase
   driven_by :selenium, using: :headless_chrome
@@ -1719,7 +1719,7 @@ By default, when you generate a job, an associated test will be generated as wel
 under the `test/jobs` directory. Here's an example test with a billing job:
 
 ```ruby
-require 'test_helper'
+require "test_helper"
 
 class BillingJobTest < ActiveJob::TestCase
   test 'that account is charged' do
@@ -1747,7 +1747,7 @@ the custom assertions provided by Active Job are pretty useful. For instance,
 within a model:
 
 ```ruby
-require 'test_helper'
+require "test_helper"
 
 class ProductTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
@@ -1765,7 +1765,7 @@ end
 When serializing job arguments, `Time`, `DateTime`, and `ActiveSupport::TimeWithZone` lose microsecond precision. This means comparing deserialized time with actual time doesn't always work. To compensate for the loss of precision, `assert_enqueued_with` and `assert_performed_with` will remove microseconds from time objects in argument assertions.
 
 ```ruby
-require 'test_helper'
+require "test_helper"
 
 class ProductTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
@@ -1874,7 +1874,7 @@ the custom assertions provided by Action Cable are pretty useful. For instance,
 within a model:
 
 ```ruby
-require 'test_helper'
+require "test_helper"
 
 class ProductTest < ActionCable::TestCase
   test "broadcast status after charge" do
@@ -1897,7 +1897,7 @@ class ChatRelayJob < ApplicationJob
 end
 
 # test/jobs/chat_relay_job_test.rb
-require 'test_helper'
+require "test_helper"
 
 class ChatRelayJobTest < ActiveJob::TestCase
   include ActionCable::TestHelper

@@ -412,6 +412,7 @@ module ActiveRecord
       _run_initialize_callbacks
 
       @new_record               = true
+      @previously_new_record    = false
       @destroyed                = false
       @_start_transaction_state = nil
       @transaction_state        = nil
@@ -588,6 +589,7 @@ module ActiveRecord
       def init_internals
         @primary_key              = self.class.primary_key
         @readonly                 = false
+        @previously_new_record    = false
         @destroyed                = false
         @marked_for_destruction   = false
         @destroyed_by_association = nil

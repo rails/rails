@@ -602,7 +602,7 @@ module ActiveJob
       def jobs_with(jobs, only: nil, except: nil, queue: nil, at: nil)
         validate_option(only: only, except: except)
 
-        jobs.count do |job|
+        jobs.dup.count do |job|
           job_class = job.fetch(:job)
 
           if only
@@ -641,8 +641,9 @@ module ActiveJob
 
       def flush_enqueued_jobs(only: nil, except: nil, queue: nil, at: nil)
         enqueued_jobs_with(only: only, except: except, queue: queue, at: at) do |payload|
-          instantiate_job(payload).perform_now
+          queue_adapter.enqueued_jobs.delete(payload)
           queue_adapter.performed_jobs << payload
+          instantiate_job(payload).perform_now
         end
       end
 

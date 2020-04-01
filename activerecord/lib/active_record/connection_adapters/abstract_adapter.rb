@@ -738,6 +738,14 @@ module ActiveRecord
 
         def build_statement_pool
         end
+
+        # Builds the result object.
+        #
+        # This is an internal hook to make possible connection adapters to build
+        # custom result objects with connection-specific data.
+        def build_result(columns:, rows:, column_types: {})
+          ActiveRecord::Result.new(columns, rows, column_types)
+        end
     end
   end
 end
