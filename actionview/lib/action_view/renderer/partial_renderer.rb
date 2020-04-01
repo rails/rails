@@ -277,7 +277,10 @@ module ActionView
       end
 
       def render_partial_template(view, locals, template, layout, block)
-        instrument(:partial, identifier: template.identifier) do |payload|
+        ActiveSupport::Notifications.instrument(
+          "render_partial.action_view",
+          identifier: template.identifier
+        ) do |payload|
           content = template.render(view, locals) do |*name|
             view._layout_for(*name, &block)
           end
