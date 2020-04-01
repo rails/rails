@@ -20,10 +20,10 @@ class ActiveStorage::BlobsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "max-age=300, private", @response.headers["Cache-Control"]
   end
 
-  test "proxying defaults to long public cache time" do
-    get @blob.delivery_method_url(:proxy)
+  test "proxying responds with long max-age" do
+    get rails_storage_proxy_url(@blob)
 
     assert_response(:success)
-    assert_equal "max-age=31536000, public", @response.headers["Cache-Control"]
+    assert_equal "max-age=31556952, public", @response.headers["Cache-Control"]
   end
 end

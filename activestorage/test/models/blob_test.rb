@@ -260,13 +260,6 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_equal ["is invalid"], blob.errors[:service_name]
   end
 
-  test "change delivery on instance" do
-    blob = create_file_blob filename: "racecar.jpg"
-
-    assert_equal blob.delivery_method_url(:redirect), Rails.application.routes.url_helpers.route_for(:rails_service_blob, blob.signed_id, blob.filename, only_path: true)
-    assert_equal blob.delivery_method_url(:proxy), Rails.application.routes.url_helpers.route_for(:rails_blob_proxy, blob.signed_id, blob.filename, only_path: true)
-  end
-
   private
     def expected_url_for(blob, disposition: :attachment, filename: nil, content_type: nil, service_name: :local)
       filename ||= blob.filename
