@@ -65,8 +65,6 @@ module ActiveStorage
   mattr_accessor :replace_on_assign_to_many, default: false
   mattr_accessor :track_variants, default: false
 
-  mattr_accessor :proxy_urls_expire_in, default: 365.days
-
   module Transformers
     extend ActiveSupport::Autoload
 

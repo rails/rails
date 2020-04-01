@@ -5,7 +5,7 @@ module ActiveStorage::SetHeaders #:nodoc:
 
   private
     def set_headers(blob)
-      expires_in ActiveStorage.proxy_urls_expire_in, public: true
+      expires_in 1.year, public: true
 
       response.headers["Content-Type"] = blob.content_type
       response.headers["Content-Disposition"] = ActionDispatch::Http::ContentDisposition.format(
