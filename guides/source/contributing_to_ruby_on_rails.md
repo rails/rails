@@ -73,7 +73,7 @@ submissions! They just won't get backported to maintenance branches.
 
 If you'd like feedback on an idea for a feature before doing the work to make
 a patch, please send an email to the [rails-core mailing
-list](https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core). You
+list](https://discuss.rubyonrails.org/c/rubyonrails-core). You
 might get no response, which means that everyone is indifferent. You might find
 someone who's also interested in building that feature. You might get a "This
 won't be accepted." But it's the proper place to discuss new ideas. GitHub
@@ -587,7 +587,7 @@ is the open source life.
 
 If it's been over a week, and you haven't heard anything, you might want to try
 and nudge things along. You can use the [rubyonrails-core mailing
-list](https://groups.google.com/forum/#!forum/rubyonrails-core) for this. You can also
+list](https://discuss.rubyonrails.org/c/rubyonrails-core) for this. You can also
 leave another comment on the pull request.
 
 While you're waiting for feedback on your pull request, open up a few other
