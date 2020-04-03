@@ -190,10 +190,11 @@ module ActiveRecord
     end
   end
 
-  class EnvironmentStorageError < ActiveRecordError #:nodoc:
+  class EnvironmentStorageError < ActiveRecordError # :nodoc:
     def initialize
       msg = +"You are attempting to store the environment in a database where metadata is disabled.\n"
-      msg << "Check your database configuration to see if this is inteded."
+      msg << "Check your database configuration to see if this is intended."
+      super(msg)
     end
   end
 
