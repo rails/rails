@@ -18,7 +18,7 @@
 
     This changes the output of `ActiveSupport::TimeZone.utc_to_local`, but
     can be controlled with the
-    `Rails.application.config.active_support.utc_to_local_returns_utc_offset_times` config.
+    `ActiveSupport.utc_to_local_returns_utc_offset_times` config.
 
     New Rails 6.1 apps have it enabled by default, existing apps can upgrade
     via the config in config/initializers/new_framework_defaults_6_1.rb
