@@ -98,7 +98,9 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
     end
 
     assert_includes error.message, <<~MSG.squish
-      Column `old_car_id` on table `engines` does not allow NULL values, but `on_delete` action is set to `nullify`. To resolve this issue, remove NULL constraint from `old_car_id` column on `engines` or change `on_delete` action.
+      Column `old_car_id` on table `engines` does not allow NULL values, but `on_delete` action
+      is set to `nullify`. To resolve this issue, remove NULL constraint from `old_car_id`
+      column on `engines` or change `on_delete` action.
     MSG
     assert_not_nil error.cause
   ensure
