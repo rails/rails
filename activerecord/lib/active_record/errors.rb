@@ -136,18 +136,30 @@ module ActiveRecord
       binds: nil,
       table: nil,
       foreign_key: nil,
+      foreign_key_column: nil,
       target_table: nil,
       primary_key: nil,
-      primary_key_column: nil
+      primary_key_column: nil,
+      on_delete_nullify: nil
     )
       if table
         type = primary_key_column.bigint? ? :bigint : primary_key_column.type
-        msg = <<~EOM.squish
-          Column `#{foreign_key}` on table `#{table}` does not match column `#{primary_key}` on `#{target_table}`,
-          which has type `#{primary_key_column.sql_type}`.
-          To resolve this issue, change the type of the `#{foreign_key}` column on `#{table}` to be :#{type}.
-          (For example `t.#{type} :#{foreign_key}`).
-        EOM
+
+        if foreign_key_column && foreign_key_column.null == false && on_delete_nullify
+          msg = <<~EOM.squish
+            Column `#{foreign_key}` on table `#{table}` does not allow NULL values, but `on_delete` action is
+            set to `nullify`.
+            To resolve this issue, remove NULL constraint from `#{foreign_key}` column on `#{table}` or
+            change `on_delete` action.
+          EOM
+        else
+          msg = <<~EOM.squish
+            Column `#{foreign_key}` on table `#{table}` does not match column `#{primary_key}` on `#{target_table}`,
+            which has type `#{primary_key_column.sql_type}`.
+            To resolve this issue, change the type of the `#{foreign_key}` column on `#{table}` to be :#{type}.
+            (For example `t.#{type} :#{foreign_key}`).
+          EOM
+        end
       else
         msg = <<~EOM.squish
           There is a mismatch between the foreign key and primary key column types.

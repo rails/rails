@@ -91,6 +91,20 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
     @conn.execute("ALTER TABLE engines DROP COLUMN old_car_id") rescue nil
   end
 
+  def test_errors_for_fks_with_delete_constraint
+    error = assert_raises(ActiveRecord::MismatchedForeignKey) do
+      @conn.add_reference :engines, :old_car, null: false
+      @conn.add_foreign_key :engines, :old_cars, on_delete: :nullify
+    end
+
+    assert_includes error.message, <<~MSG.squish
+      Column `old_car_id` on table `engines` does not allow NULL values, but `on_delete` action is set to `nullify`. To resolve this issue, remove NULL constraint from `old_car_id` column on `engines` or change `on_delete` action.
+    MSG
+    assert_not_nil error.cause
+  ensure
+    @conn.execute("ALTER TABLE engines DROP COLUMN old_car_id") rescue nil
+  end
+
   def test_errors_for_bigint_fks_on_integer_pk_table_in_create_table
     # table old_cars has primary key of integer
 

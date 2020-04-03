@@ -765,6 +765,7 @@ module ActiveRecord
             (?:CREATE|ALTER)\s+TABLE\s*(?:`?\w+`?\.)?`?(?<table>\w+)`?.+?
             FOREIGN\s+KEY\s*\(`?(?<foreign_key>\w+)`?\)\s*
             REFERENCES\s*(`?(?<target_table>\w+)`?)\s*\(`?(?<primary_key>\w+)`?\)
+            (?<on_delete_nullify>\s+ON\s+DELETE\s+SET\s+NULL$)?
           /xmi.match(sql)
 
           options = {
@@ -779,6 +780,12 @@ module ActiveRecord
             options[:target_table] = match[:target_table]
             options[:primary_key] = match[:primary_key]
             options[:primary_key_column] = column_for(match[:target_table], match[:primary_key])
+            options[:on_delete_nullify] = match[:on_delete_nullify]
+
+            begin
+              options[:foreign_key_column] = column_for(match[:table], match[:foreign_key])
+            rescue ActiveRecordError
+            end
           end
 
           MismatchedForeignKey.new(**options)
