@@ -1363,8 +1363,8 @@ module ApplicationTests
 
       app "development"
 
-      force_lazy_load_hooks { ActionController::Base }
-      force_lazy_load_hooks { ActionController::API }
+      require "action_controller/base"
+      require "action_controller/api"
 
       assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
 
@@ -1375,8 +1375,8 @@ module ApplicationTests
     test "config.action_controller.always_permitted_parameters are: controller, action by default" do
       app "development"
 
-      force_lazy_load_hooks { ActionController::Base }
-      force_lazy_load_hooks { ActionController::API }
+      require "action_controller/base"
+      require "action_controller/api"
 
       assert_equal %w(controller action), ActionController::Parameters.always_permitted_parameters
     end
@@ -1388,8 +1388,8 @@ module ApplicationTests
 
       app "development"
 
-      force_lazy_load_hooks { ActionController::Base }
-      force_lazy_load_hooks { ActionController::API }
+      require "action_controller/base"
+      require "action_controller/api"
 
       assert_equal %w( controller action format ), ActionController::Parameters.always_permitted_parameters
     end
@@ -1413,8 +1413,8 @@ module ApplicationTests
 
       app "development"
 
-      force_lazy_load_hooks { ActionController::Base }
-      force_lazy_load_hooks { ActionController::API }
+      require "action_controller/base"
+      require "action_controller/api"
 
       assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
 
@@ -1425,8 +1425,8 @@ module ApplicationTests
     test "config.action_controller.action_on_unpermitted_parameters is :log by default in development" do
       app "development"
 
-      force_lazy_load_hooks { ActionController::Base }
-      force_lazy_load_hooks { ActionController::API }
+      require "action_controller/base"
+      require "action_controller/api"
 
       assert_equal :log, ActionController::Parameters.action_on_unpermitted_parameters
     end
@@ -1434,8 +1434,8 @@ module ApplicationTests
     test "config.action_controller.action_on_unpermitted_parameters is :log by default in test" do
       app "test"
 
-      force_lazy_load_hooks { ActionController::Base }
-      force_lazy_load_hooks { ActionController::API }
+      require "action_controller/base"
+      require "action_controller/api"
 
       assert_equal :log, ActionController::Parameters.action_on_unpermitted_parameters
     end
@@ -1443,8 +1443,8 @@ module ApplicationTests
     test "config.action_controller.action_on_unpermitted_parameters is false by default in production" do
       app "production"
 
-      force_lazy_load_hooks { ActionController::Base }
-      force_lazy_load_hooks { ActionController::API }
+      require "action_controller/base"
+      require "action_controller/api"
 
       assert_equal false, ActionController::Parameters.action_on_unpermitted_parameters
     end
@@ -1463,8 +1463,9 @@ module ApplicationTests
 
       app "development"
 
-      force_lazy_load_hooks { ActionController::Base }
-      force_lazy_load_hooks { ActionController::API }
+      require "action_controller/base"
+      require "action_controller/api"
+
       assert_equal true, ActionController::Parameters.permit_all_parameters
     end
 
@@ -1475,8 +1476,9 @@ module ApplicationTests
 
       app "development"
 
-      force_lazy_load_hooks { ActionController::Base }
-      force_lazy_load_hooks { ActionController::API }
+      require "action_controller/base"
+      require "action_controller/api"
+
       assert_equal [], ActionController::Parameters.always_permitted_parameters
     end
 
@@ -1487,8 +1489,9 @@ module ApplicationTests
 
       app "development"
 
-      force_lazy_load_hooks { ActionController::Base }
-      force_lazy_load_hooks { ActionController::API }
+      require "action_controller/base"
+      require "action_controller/api"
+
       assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
     end
 
@@ -2535,10 +2538,6 @@ module ApplicationTests
     end
 
     private
-      def force_lazy_load_hooks
-        yield # Tasty clarifying sugar, homie! We only need to reference a constant to load it.
-      end
-
       def set_custom_config(contents, config_source = "custom".inspect)
         app_file "config/custom.yml", contents
 
