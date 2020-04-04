@@ -80,7 +80,9 @@ module ActiveModel
 
     private
       def parse_as_number(raw_value, precision, scale)
-        if raw_value.is_a?(Float)
+        if raw_value.nil?
+          raw_value
+        elsif raw_value.is_a?(Float)
           parse_float(raw_value, precision, scale)
         elsif raw_value.is_a?(Numeric)
           raw_value

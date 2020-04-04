@@ -302,6 +302,16 @@ class NumericalityValidationTest < ActiveModel::TestCase
     assert_raise(ArgumentError) { Topic.validates_numericality_of :approved, equal_to: "foo" }
   end
 
+  def test_validates_numericality_with_symbol_resolves_to_nil
+    error= assert_raises(ArgumentError) do
+      Topic.define_method(:max_approved) { nil }
+      Topic.validates_numericality_of :approved, less_than_or_equal_to: :max_approved
+      valid!([4])
+    end
+    assert_match "comparison of Integer with nil failed", error.message
+    Topic.remove_method :max_approved
+  end
+
   def test_validates_numericality_equality_for_float_and_big_decimal
     Topic.validates_numericality_of :approved, equal_to: BigDecimal("65.6")
 
