@@ -1,13 +1,4 @@
 require "bundler/setup"
-require "rdoc/task"
-
-RDoc::Task.new(:rdoc) do |rdoc|
-  rdoc.rdoc_dir = 'rdoc'
-  rdoc.title    = '<%= camelized_modules %>'
-  rdoc.options << '--line-numbers'
-  rdoc.rdoc_files.include('README.md')
-  rdoc.rdoc_files.include('lib/**/*.rb')
-end
 <% if engine? && !options[:skip_active_record] && with_dummy_app? -%>
 
 APP_RAKEFILE = File.expand_path("<%= dummy_path -%>/Rakefile", __dir__)
