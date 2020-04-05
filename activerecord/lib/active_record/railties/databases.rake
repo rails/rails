@@ -245,6 +245,7 @@ db_namespace = namespace :db do
 
   namespace :rollback do
     ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
+      desc "Rollback #{name} database for current environment (specify steps w/ STEP=n)."
       task name => :load_config do
         step = ENV["STEP"] ? ENV["STEP"].to_i : 1
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: name)

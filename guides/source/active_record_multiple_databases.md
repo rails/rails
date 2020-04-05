@@ -149,6 +149,9 @@ rails db:migrate:primary                 # Migrate primary database for current 
 rails db:migrate:status                  # Display status of migrations
 rails db:migrate:status:animals          # Display status of migrations for animals database
 rails db:migrate:status:primary          # Display status of migrations for primary database
+rails db:rollback                        # Rolls the schema back to the previous version (specify steps w/ STEP=n)
+rails db:rollback:animals                # Rollback animals database for current environment (specify steps w/ STEP=n)
+rails db:rollback:primary                # Rollback primary database for current environment (specify steps w/ STEP=n)
 rails db:schema:dump                     # Creates a db/schema.rb file that is portable against any DB supported  ...
 rails db:schema:dump:animals             # Creates a db/schema.rb file that is portable against any DB supported  ...
 rails db:schema:dump:primary             # Creates a db/schema.rb file that is portable against any DB supported  ...
