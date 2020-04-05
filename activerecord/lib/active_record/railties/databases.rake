@@ -260,7 +260,7 @@ db_namespace = namespace :db do
 
   desc "Rolls the schema back to the previous version (specify steps w/ STEP=n)."
   task rollback: :load_config do
-    ActiveRecord::Tasks::DatabaseTasks.raise_for_multi_db(command: "db:migrate:rollback")
+    ActiveRecord::Tasks::DatabaseTasks.raise_for_multi_db(command: "db:rollback")
 
     step = ENV["STEP"] ? ENV["STEP"].to_i : 1
 
