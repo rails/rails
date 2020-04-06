@@ -11,4 +11,22 @@ class VersionTest < ActiveSupport::TestCase
     assert Rails.gem_version.is_a? Gem::Version
     assert_equal Rails.version, Rails.gem_version.to_s
   end
+
+  def test_version_predicates
+    assert_respond_to Rails, :v9?
+    assert_respond_to Rails, :v9_0?
+    assert_respond_to Rails, :v9_99?
+    assert_respond_to Rails, :v9_0_0?
+    assert_respond_to Rails, :v9_99_99?
+    assert_respond_to Rails, :v9_0_0_0?
+    assert_respond_to Rails, :v9_99_99_99?
+
+    assert Rails.send("v#{Rails::VERSION::MAJOR}?")
+    assert Rails.send("v#{Rails::VERSION::MAJOR}_#{Rails::VERSION::MINOR}?")
+    assert Rails.send("v#{Rails::VERSION::MAJOR}_#{Rails::VERSION::MINOR}_#{Rails::VERSION::TINY}?")
+
+    assert_not Rails.send("v#{Rails::VERSION::MAJOR - 1}?")
+    assert_not Rails.send("v#{Rails::VERSION::MAJOR}_#{Rails::VERSION::MINOR + 1}?")
+    assert_not Rails.send("v#{Rails::VERSION::MAJOR}_#{Rails::VERSION::MINOR}_#{Rails::VERSION::TINY - 1}?")
+  end
 end

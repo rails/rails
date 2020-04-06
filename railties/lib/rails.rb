@@ -112,5 +112,29 @@ module Rails
     def autoloaders
       Autoloaders
     end
+
+    # Handles method names like Rails.v6?, Rails.v6_1?, Rails.v6_1_3?, Rails.v6_1_5_2?
+    VERSION_PREDICATE_PATTERN = /\Av(\d(_\d+){0,3})\?\z/
+
+    # TODO: Is Rails.method_missing defined elsewhere?
+    def method_missing(method, *args)
+      if queried_version = VERSION_PREDICATE_PATTERN.match(method).try("[]", 1)
+        queried_version.gsub!("_", ".")
+        # TODO Document generated methods
+        if version.start_with?(queried_version)
+          singleton_class.define_method(method) { true }
+        else
+          singleton_class.define_method(method) { false }
+        end
+        send(method)
+      else
+        super
+      end
+    end
+
+    # TODO: Is Rails.respond_to_missing? defined elsewhere?
+    def respond_to_missing?(method, _)
+      method.to_s.match? VERSION_PREDICATE_PATTERN
+    end
   end
 end
