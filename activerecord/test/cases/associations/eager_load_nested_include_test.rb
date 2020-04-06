@@ -20,8 +20,17 @@ module Remembered
   end
 
   module ClassMethods
-    def remembered; @@remembered ||= []; end
-    def sample; @@remembered.sample; end
+    def remembered
+      collection_name = "@@#{name.demodulize.underscore}_remembered"
+
+      if class_variable_defined?(collection_name)
+        class_variable_get(collection_name)
+      else
+        class_variable_set(collection_name, [])
+      end
+    end
+
+    def sample; remembered.sample; end
   end
 end
 
