@@ -57,6 +57,9 @@ module ActionDispatch
       request = Request.new(env)
 
       format = request.xhr? ? "text/plain" : "text/html"
+      # SERVER_NAME is not used for authorization
+      # so display it in debug view may be misleading
+      request.set_header("SERVER_NAME", nil)
       template = DebugView.new(host: request.host)
       body = template.render(template: "rescues/blocked_host", layout: "rescues/layout")
 

@@ -135,6 +135,18 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     assert_match "Blocked host: localhost", response.body
   end
 
+  test "doesn't display SERVER_NAME in debug message" do
+    @app = ActionDispatch::HostAuthorization.new(App, "localhost")
+
+    get "/", env: {
+      "SERVER_NAME" => "www.example.com",
+      "HOST" => ""
+    }
+
+    assert_response :forbidden
+    assert_match "<h1>Blocked host: </h1>", response.body
+  end
+
   test "forwarded hosts should be permitted" do
     @app = ActionDispatch::HostAuthorization.new(App, "domain.com")
 
