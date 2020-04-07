@@ -743,19 +743,21 @@ unless in_memory_db?
       assert first.end > second.end
     end
 
-    def test_lock_on_delete_all
-      Person.transaction do
-        assert_sql(/FOR UPDATE/) do
-          Person.all.lock!.delete_all
+    unless current_adapter?(:SQLite3Adapter)
+      def test_lock_on_delete_all
+        Person.transaction do
+          assert_sql(/FOR UPDATE/) do
+            Person.all.lock!.delete_all
+          end
         end
       end
-    end
 
-    def test_lock_on_update_all
-      Person.transaction do
-        assert_sql(/FOR UPDATE/) do
-          scope = Person.all.lock!
-          scope.update_all(first_name: "David")
+      def test_lock_on_update_all
+        Person.transaction do
+          assert_sql(/FOR UPDATE/) do
+            scope = Person.all.lock!
+            scope.update_all(first_name: "David")
+          end
         end
       end
     end
