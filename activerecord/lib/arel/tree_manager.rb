@@ -4,7 +4,7 @@ module Arel # :nodoc: all
   class TreeManager
     include Arel::FactoryMethods
 
-    module StatementMethods
+    module LockMethods
       def lock(locking = Arel.sql("FOR UPDATE"))
         case locking
         when true
@@ -21,7 +21,9 @@ module Arel # :nodoc: all
       def locked
         @ast.lock
       end
+    end
 
+    module StatementMethods
       def take(limit)
         @ast.limit = Nodes::Limit.new(Nodes.build_quoted(limit)) if limit
         self

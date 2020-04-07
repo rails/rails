@@ -3,6 +3,7 @@
 module Arel # :nodoc: all
   class SelectManager < Arel::TreeManager
     include Arel::Crud
+    include TreeManager::LockMethods
 
     STRING_OR_SYMBOL_CLASS = [Symbol, String]
 
@@ -49,23 +50,6 @@ module Arel # :nodoc: all
 
     def as(other)
       create_table_alias grouping(@ast), Nodes::SqlLiteral.new(other)
-    end
-
-    def lock(locking = Arel.sql("FOR UPDATE"))
-      case locking
-      when true
-        locking = Arel.sql("FOR UPDATE")
-      when Arel::Nodes::SqlLiteral
-      when String
-        locking = Arel.sql locking
-      end
-
-      @ast.lock = Nodes::Lock.new(locking)
-      self
-    end
-
-    def locked
-      @ast.lock
     end
 
     def on(*exprs)

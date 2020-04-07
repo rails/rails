@@ -3,6 +3,7 @@
 module Arel # :nodoc: all
   class UpdateManager < Arel::TreeManager
     include TreeManager::StatementMethods
+    include TreeManager::LockMethods
 
     def initialize
       super
