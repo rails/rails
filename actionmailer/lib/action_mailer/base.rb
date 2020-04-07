@@ -455,10 +455,6 @@ module ActionMailer
 
     PROTECTED_IVARS = AbstractController::Rendering::DEFAULT_PROTECTED_INSTANCE_VARIABLES + [:@_action_has_layout]
 
-    def _protected_ivars # :nodoc:
-      PROTECTED_IVARS
-    end
-
     helper ActionMailer::MailHelper
 
     class_attribute :delivery_job, default: ::ActionMailer::DeliveryJob
@@ -1028,6 +1024,10 @@ module ActionMailer
 
       def instrument_name
         "action_mailer"
+      end
+
+      def _protected_ivars
+        PROTECTED_IVARS
       end
 
       ActiveSupport.run_load_hooks(:action_mailer, self)
