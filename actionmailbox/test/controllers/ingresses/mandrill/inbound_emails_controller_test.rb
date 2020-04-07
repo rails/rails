@@ -10,6 +10,12 @@ class ActionMailbox::Ingresses::Mandrill::InboundEmailsControllerTest < ActionDi
     @events = JSON.generate([{ event: "inbound", msg: { raw_msg: file_fixture("../files/welcome.eml").read } }])
   end
 
+  test "verifying existence of Mandrill inbound route" do
+    # Mandrill uses a HEAD request to verify if a URL exists before creating the ingress webhook
+    head rails_mandrill_inbound_health_check_url
+    assert_response :ok
+  end
+
   test "receiving an inbound email from Mandrill" do
     assert_difference -> { ActionMailbox::InboundEmail.count }, +1 do
       post rails_mandrill_inbound_emails_url,

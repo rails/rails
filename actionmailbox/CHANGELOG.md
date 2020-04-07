@@ -1,3 +1,8 @@
+*   Update Mandrill inbound email route to respond appropriately to HEAD requests for URL health checks from Mandrill.
+
+    *Bill Cromie*
+
+
 ## Rails 6.0.2.2 (March 19, 2020) ##
 
 *   No changes.
