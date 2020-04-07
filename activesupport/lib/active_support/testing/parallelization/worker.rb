@@ -1,9 +1,12 @@
+# frozen_string_literal: true
+
 module ActiveSupport
   module Testing
     class Parallelization # :nodoc:
       class Worker
-        def initialize(id, url)
-          @id = id
+        def initialize(number, url)
+          @id = SecureRandom.uuid
+          @number = number
           @url = url
           @title = "Rails test worker #{@id}"
           @setup_exception = nil
@@ -15,17 +18,19 @@ module ActiveSupport
 
             DRb.stop_service
 
+            @queue = DRbObject.new_with_uri(@url)
+            @queue.start_worker(@id)
+
             begin
               after_fork
             rescue => @setup_exception; end
-
-            @queue = DRbObject.new_with_uri(@url)
 
             work_from_queue
           ensure
             Process.setproctitle("#{@title} - (stopping)")
 
             run_cleanup
+            @queue.stop_worker(@id)
           end
         end
 
@@ -70,30 +75,14 @@ module ActiveSupport
           Process.setproctitle("#{@title} - (idle)")
         end
 
-        @@after_fork_hooks = []
-
-        def self.after_fork_hook(&blk)
-          @@after_fork_hooks << blk
-        end
-
-        cattr_reader :after_fork_hooks
-
-        @@run_cleanup_hooks = []
-
-        def self.run_cleanup_hook(&blk)
-          @@run_cleanup_hooks << blk
-        end
-
-        cattr_reader :run_cleanup_hooks
-
         def after_fork
-          self.class.after_fork_hooks.each do |cb|
+          Parallelization.after_fork_hooks.each do |cb|
             cb.call(@id)
           end
         end
 
         def run_cleanup
-          self.class.run_cleanup_hooks.each do |cb|
+          Parallelization.run_cleanup_hooks.each do |cb|
             cb.call(@id)
           end
         end
