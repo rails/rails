@@ -49,5 +49,19 @@ module Arel
         _(dm.where(table[:id].eq(10))).must_equal dm
       end
     end
+
+    describe "lock" do
+      it "adds a subquery with lock node" do
+        table = Table.new :users
+        dm = Arel::DeleteManager.new
+        dm.from table
+        dm.key = table[:id]
+
+        _(dm.lock.to_sql).must_be_like %{
+          DELETE FROM "users" WHERE "users"."id" IN
+          (SELECT "users"."id" FROM "users" FOR UPDATE)
+        }
+      end
+    end
   end
 end

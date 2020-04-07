@@ -450,6 +450,7 @@ module ActiveRecord
       stmt.table(arel.join_sources.empty? ? table : arel.source)
       stmt.key = table[primary_key]
       stmt.take(arel.limit)
+      stmt.lock(arel.locked) if arel.locked
       stmt.offset(arel.offset)
       stmt.order(*arel.orders)
       stmt.wheres = arel.constraints
@@ -592,6 +593,7 @@ module ActiveRecord
       stmt.from(arel.join_sources.empty? ? table : arel.source)
       stmt.key = table[primary_key]
       stmt.take(arel.limit)
+      stmt.lock(arel.locked) if arel.locked
       stmt.offset(arel.offset)
       stmt.order(*arel.orders)
       stmt.wheres = arel.constraints

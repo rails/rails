@@ -743,6 +743,23 @@ unless in_memory_db?
       assert first.end > second.end
     end
 
+    def test_lock_on_delete_all
+      Person.transaction do
+        assert_sql(/FOR UPDATE/) do
+          Person.all.lock!.delete_all
+        end
+      end
+    end
+
+    def test_lock_on_update_all
+      Person.transaction do
+        assert_sql(/FOR UPDATE/) do
+          scope = Person.all.lock!
+          scope.update_all(first_name: "David")
+        end
+      end
+    end
+
     private
       def duel(zzz = 5)
         t0, t1, t2, t3 = nil, nil, nil, nil

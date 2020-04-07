@@ -34,6 +34,7 @@ module Arel # :nodoc: all
           collect_nodes_for o.wheres, collector, " WHERE ", " AND "
           collect_nodes_for o.orders, collector, " ORDER BY "
           maybe_visit o.limit, collector
+          maybe_visit o.lock, collector
         end
 
         def visit_Arel_Nodes_UpdateStatement(o, collector)
@@ -46,6 +47,7 @@ module Arel # :nodoc: all
           collect_nodes_for o.wheres, collector, " WHERE ", " AND "
           collect_nodes_for o.orders, collector, " ORDER BY "
           maybe_visit o.limit, collector
+          maybe_visit o.lock, collector
         end
 
         def visit_Arel_Nodes_InsertStatement(o, collector)
@@ -789,17 +791,18 @@ module Arel # :nodoc: all
           o.relation.is_a?(Nodes::JoinSource) && !o.relation.right.empty?
         end
 
-        def has_limit_or_offset_or_orders?(o)
-          o.limit || o.offset || !o.orders.empty?
+        def has_limit_or_lock_or_offset_or_orders?(o)
+          o.limit || o.lock || o.offset || !o.orders.empty?
         end
 
         # The default strategy for an UPDATE with joins is to use a subquery. This doesn't work
         # on MySQL (even when aliasing the tables), but MySQL allows using JOIN directly in
         # an UPDATE statement, so in the MySQL visitor we redefine this to do that.
         def prepare_update_statement(o)
-          if o.key && (has_limit_or_offset_or_orders?(o) || has_join_sources?(o))
+          if o.key && (has_limit_or_lock_or_offset_or_orders?(o) || has_join_sources?(o))
             stmt = o.clone
             stmt.limit = nil
+            stmt.lock = nil
             stmt.offset = nil
             stmt.orders = []
             stmt.wheres = [Nodes::In.new(o.key, [build_subselect(o.key, o)])]
@@ -819,6 +822,7 @@ module Arel # :nodoc: all
           core.wheres      = o.wheres
           core.projections = [key]
           stmt.limit       = o.limit
+          stmt.lock        = o.lock
           stmt.offset      = o.offset
           stmt.orders      = o.orders
           stmt

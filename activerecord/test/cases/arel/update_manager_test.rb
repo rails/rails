@@ -122,5 +122,19 @@ module Arel
         _(@um.key).must_equal @table[:foo]
       end
     end
+
+    describe "lock" do
+      it "adds a subquery with lock node" do
+        table = Table.new :users
+        um = Arel::UpdateManager.new
+        um.table table
+        um.key = table[:id]
+
+        _(um.lock.to_sql).must_be_like %{
+          UPDATE "users" WHERE "users"."id" IN
+          (SELECT "users"."id" FROM "users" FOR UPDATE)
+        }
+      end
+    end
   end
 end
