@@ -1,3 +1,7 @@
+*   Deprecate template names with `.`
+
+    *John Hawthorn*
+
 *   `ActionView::Base.annotate_template_file_names` annotates HTML output with template file names.
 
     *Joel Hawksley*, *Aaron Patterson*
