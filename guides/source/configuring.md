@@ -952,40 +952,15 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
 * `config.active_storage.draw_routes` can be used to toggle Active Storage route generation. The default is `true`.
 
-* `config.active_storage.default_delivery_method` can be used to globally change how Active Storage files are delivered.
+* `config.active_storage.resolve_name` can be used to globally change how Active Storage files are delivered.
 
   ```ruby
-  config.active_storage.default_delivery_method = :proxy
+  config.active_storage.resolve_name = :rails_storage_proxy
   ```
 
-  The default is `:redirect` Can include any of these options:
-    * `:redirect` - Redirect files to temporary service URL.
-    * `:proxy` - Proxy assets from service so they can be delivered from your application.
-  
-* `config.active_storage.proxy_urls_expire_in` sets the expiration time for proxied requests.
-
-  ```ruby
-  config.active_storage.proxy_urls_expire_in = 6.months
-  ```
-
-  The default is `1.year`.
-
-* `config.active_storage.delivery_methods` Gets merged into the default delivery methods.
-
-  ```ruby
-  config.active_storage.delivery_methods = {
-    img_cdn: ActiveStorage::DeliveryMethod::Proxy.new(host: 'image_cdn.domain.com'),
-    video_cdn: ActiveStorage::DeliveryMethod::Proxy.new(host: 'video_cdn.domain.com')
-  }
-  ```
-
-  The default is
-  ```ruby
-  {
-    redirect: ActiveStorage::DeliveryMethod::Redirect.new,
-    proxy: ActiveStorage::DeliveryMethod::Proxy.new
-  }
-  ```
+  The default is `nil`. In practive will behave similar to setting `:rails_storage_redirect` Can include any of these options:
+    * `:rails_storage_redirect` - Redirect files to temporary service URL.
+    * `:rails_storage_proxy` - Proxy assets through rails.
 
 ### Results of `config.load_defaults`
 
