@@ -107,7 +107,7 @@ Variation of image attachment:
 ```
 
 ## Delivery Routes
-Active storage provides two primary ways to route the delivery of assets.
+Active storage provides two primary ways to route assets.
 
 ### Redirect (default)
 `:rails_storage_redirect` Requests for files will redirect to a temporary service URL.
