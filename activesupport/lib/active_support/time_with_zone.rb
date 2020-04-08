@@ -15,11 +15,11 @@ module ActiveSupport
   # and +in_time_zone+ on Time and DateTime instances.
   #
   #   Time.zone = 'Eastern Time (US & Canada)'        # => 'Eastern Time (US & Canada)'
-  #   Time.zone.local(2007, 2, 10, 15, 30, 45)        # => Sat, 10 Feb 2007 15:30:45 EST -05:00
-  #   Time.zone.parse('2007-02-10 15:30:45')          # => Sat, 10 Feb 2007 15:30:45 EST -05:00
-  #   Time.zone.at(1171139445)                        # => Sat, 10 Feb 2007 15:30:45 EST -05:00
+  #   Time.zone.local(2007, 2, 10, 15, 30, 45)        # => Sat, 10 Feb 2007 15:30:45.000000000 EST -05:00
+  #   Time.zone.parse('2007-02-10 15:30:45')          # => Sat, 10 Feb 2007 15:30:45.000000000 EST -05:00
+  #   Time.zone.at(1171139445)                        # => Sat, 10 Feb 2007 15:30:45.000000000 EST -05:00
   #   Time.zone.now                                   # => Sun, 18 May 2008 13:07:55.754107581 EDT -04:00
-  #   Time.utc(2007, 2, 10, 20, 30, 45).in_time_zone  # => Sat, 10 Feb 2007 15:30:45 EST -05:00
+  #   Time.utc(2007, 2, 10, 20, 30, 45).in_time_zone  # => Sat, 10 Feb 2007 15:30:45.000000000 EST -05:00
   #
   # See Time and TimeZone for further documentation of these methods.
   #
@@ -33,7 +33,7 @@ module ActiveSupport
   #   t.zone                                # => "EDT"
   #   t.to_s(:rfc822)                       # => "Sun, 18 May 2008 13:27:25 -0400"
   #   t + 1.day                             # => Mon, 19 May 2008 13:27:25.031505668 EDT -04:00
-  #   t.beginning_of_year                   # => Tue, 01 Jan 2008 00:00:00 EST -05:00
+  #   t.beginning_of_year                   # => Tue, 01 Jan 2008 00:00:00.000000000 EST -05:00
   #   t > Time.utc(1999)                    # => true
   #   t.is_a?(Time)                         # => true
   #   t.is_a?(ActiveSupport::TimeWithZone)  # => true
@@ -139,7 +139,7 @@ module ActiveSupport
     #
     #   Time.zone.now.inspect # => "Thu, 04 Dec 2014 11:00:25.624541392 EST -05:00"
     def inspect
-      "#{time.strftime('%a, %d %b %Y %H:%M:%S')}#{formatted_subsec_with_delimiter} #{zone} #{formatted_offset}"
+      "#{time.strftime('%a, %d %b %Y %H:%M:%S.%9N')} #{zone} #{formatted_offset}"
     end
 
     # Returns a string of the object's date and time in the ISO 8601 standard
@@ -579,27 +579,6 @@ module ActiveSupport
           wrap_with_time_zone(time.begin)..wrap_with_time_zone(time.end)
         else
           time
-        end
-      end
-
-      def formatted_subsec
-        return "" if subsec.zero?
-
-        if (1_000_000_000 % subsec.denominator).zero?
-          format("%09d", subsec * 1_000_000_000).sub(/0+$/, "")
-        else
-          subsec.to_s
-        end
-      end
-
-      def formatted_subsec_with_delimiter
-        subsec = formatted_subsec
-        if subsec.empty?
-          subsec
-        elsif subsec.include?("/")
-          " #{subsec}"
-        else
-          ".#{subsec}"
         end
       end
   end
