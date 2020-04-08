@@ -120,7 +120,7 @@ To make all assets cachable via a CDN you may change the default resolver for Ac
 ```ruby
 config.active_storage.resolve_name = :rails_storage_proxy
 ```
-If a more granular approach is need you may use the path or url helpers in your views:
+If a more granular approach is needed the path or url helpers may be called from your views:
 ```ruby
 <%= image_tag rails_storage_proxy_path(@user.avatar) %>
 ```
