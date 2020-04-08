@@ -51,12 +51,14 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
     RUBY
 
     assert_equal <<~MESSAGE, run_routes_command([ "-g", "show" ])
-                             Prefix Verb URI Pattern                                                                              Controller#Action
-                               cart GET  /cart(.:format)                                                                          cart#show
-      rails_conductor_inbound_email GET  /rails/conductor/action_mailbox/inbound_emails/:id(.:format)                             rails/conductor/action_mailbox/inbound_emails#show
-                 rails_service_blob GET  /rails/active_storage/blobs/:signed_id/*filename(.:format)                               active_storage/blobs#show
-          rails_blob_representation GET  /rails/active_storage/representations/:signed_blob_id/:variation_key/*filename(.:format) active_storage/representations#show
-                 rails_disk_service GET  /rails/active_storage/disk/:encoded_key/*filename(.:format)                              active_storage/disk#show
+                         Prefix Verb URI Pattern                                                                                       Controller#Action
+                           cart GET  /cart(.:format)                                                                                   cart#show
+  rails_conductor_inbound_email GET  /rails/conductor/action_mailbox/inbound_emails/:id(.:format)                                      rails/conductor/action_mailbox/inbound_emails#show
+             rails_service_blob GET  /rails/active_storage/blobs/redirect/:signed_id/*filename(.:format)                               active_storage/blobs/redirection#show
+       rails_service_blob_proxy GET  /rails/active_storage/blobs/proxy/:signed_id/*filename(.:format)                                  active_storage/blobs/proxy#show
+      rails_blob_representation GET  /rails/active_storage/representations/redirect/:signed_blob_id/:variation_key/*filename(.:format) active_storage/representations/redirection#show
+rails_blob_representation_proxy GET  /rails/active_storage/representations/proxy/:signed_blob_id/:variation_key/*filename(.:format)    active_storage/representations/proxy#show
+             rails_disk_service GET  /rails/active_storage/disk/:encoded_key/*filename(.:format)                                       active_storage/disk#show
     MESSAGE
 
     assert_equal <<~MESSAGE, run_routes_command([ "-g", "POST" ])
