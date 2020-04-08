@@ -9,7 +9,7 @@ module Rails
     def initialize(generator)
       if generator.options[:master]
         puts '== Generating new rails app based off of rails/rails master branch =='
-        MasterRails.new
+        MasterRails.new(options) # Unsure yet the best way to capture options
       else
         @generator = generator
         @options   = generator.options
@@ -250,7 +250,7 @@ module Rails
 
   class MasterRails < AppBuilder # :nodoc:
     def install_shell_gemfile
-      template "GemfileMasterRailsInstaller", "Gemfile"
+      template "Gemfile_master_rails_installer", "Gemfile"
       run 'bundle install'
     end
 
