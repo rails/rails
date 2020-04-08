@@ -106,36 +106,23 @@ Variation of image attachment:
 <%= image_tag user.avatar.variant(resize_to_limit: [100, 100]) %>
 ```
 
-## Delivery methods
-You can change the delivery method to best suit the needs of your application.
+## Delivery Routes
+Active storage provides two primary ways to route the delivery of assets.
 
 ### Redirect (default)
-Requests for files will redirect to a temporary service URL.
+`:rails_storage_redirect` Requests for files will redirect to a temporary service URL.
 
 ### Proxy
-Files are proxied through the application server so they appear as though they're being served from your server. Useful for serving images from a CDN or HTML caching.
+`:rails_storage_proxy` Files are proxied through the application server. Useful for serving assets from a CDN or HTML caching.
 
-### Changing delivery method
-globally
+### Changing the default resolver
+To make all assets cachable via a CDN you may change the default resolver for Active Storage models:
 ```ruby
-config.active_storage.default_delivery_method = :proxy
+config.active_storage.resolve_name = :rails_storage_proxy
 ```
-model
+If a more granular approach is need you may use the path or url helpers in your views:
 ```ruby
-has_one_attached :avatar, delivery_method: :proxy
-```
-view
-```ruby
-user.avatar.variant(resize: "100x100").deliver(:proxy)
-```
-
-### Changing the host of proxied urls
-When using the proxy option to deliver assets you can set the host. This is useful if your CDN is setup to operate on a different domain.
-
-```ruby
-config.active_storage.delivery_methods = {
-  proxy: ActiveStorage::DeliveryMethod::Proxy.new(host: 'cdn.domain.com')
-}
+<%= image_tag rails_storage_proxy_path(@user.avatar) %>
 ```
 
 ## Direct uploads
