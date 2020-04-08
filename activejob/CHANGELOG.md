@@ -1,3 +1,8 @@
+*   While using `perform_enqueued_jobs` test helper enqueued jobs must be stored for the later check with
+    `assert_enqueued_with`.
+
+    *Dmitry Polushkin*
+
 *   `ActiveJob::TestCase#perform_enqueued_jobs` without a block removes performed jobs from the queue.
 
     That way the helper can be called multiple times and not perform a job invocation multiple times.
@@ -104,10 +109,6 @@
     ```
 
     *Anthony Ross*
-
-*   While using `perform_enqueued_jobs` test helper enqueued jobs must be stored for the later check with `assert_enqueued_with`.
-
-    *Dmitry Polushkin*
 
 
 Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/activejob/CHANGELOG.md) for previous changes.
