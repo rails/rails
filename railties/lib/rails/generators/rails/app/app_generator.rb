@@ -9,7 +9,8 @@ module Rails
     def initialize(generator)
       if generator.options[:master]
         puts '== Generating new rails app based off of rails/rails master branch =='
-        MasterRails.new(options) # Unsure yet the best way to capture options
+        system "create_master_rails_app #{generator.options}" # Or however we need to specify the ARGS
+        # MasterRails.new(options) # Unsure yet the best way to capture options
       else
         @generator = generator
         @options   = generator.options

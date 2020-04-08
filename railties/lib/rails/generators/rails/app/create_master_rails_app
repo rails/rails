@@ -1,0 +1,9 @@
+#!/usr/bin sh
+# Script used in /app_generator.rb to launch a complete bleeding edge rails application.
+
+set -ex
+
+git clone https://github.com/rails/rails ~/.rails/rails
+
+app_name=shift
+~/.rails/rails/railties/exe/rails new $app_name --edge $@
