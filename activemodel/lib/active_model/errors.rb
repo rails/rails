@@ -263,6 +263,14 @@ module ActiveModel
       keys.freeze
     end
 
+    # Returns all error attribute names
+    #
+    #   person.errors.messages        # => {:name=>["cannot be nil", "must be specified"]}
+    #   person.errors.attribute_names # => [:name]
+    def attribute_names
+      @errors.map(&:attribute).uniq.freeze
+    end
+
     # Returns an xml formatted representation of the Errors hash.
     #
     #   person.errors.add(:name, :blank, message: "can't be blank")
