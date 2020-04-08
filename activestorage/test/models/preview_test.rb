@@ -38,6 +38,17 @@ class ActiveStorage::PreviewTest < ActiveSupport::TestCase
     end
   end
 
+  test "previewing on the writer DB" do
+    blob = create_file_blob(filename: "report.pdf", content_type: "application/pdf")
+
+    # Simulate a selector middleware switching to a read-only replica.
+    ActiveRecord::Base.connection_handler.while_preventing_writes do
+      blob.preview(resize: "640x280").processed
+    end
+
+    assert blob.reload.preview_image.attached?
+  end
+
   test "preview of PDF is created on the same service" do
     blob = create_file_blob(filename: "report.pdf", content_type: "application/pdf", service_name: "local_public")
     preview = blob.preview(resize: "640x280").processed
