@@ -633,6 +633,17 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     assert_enqueued_with(job: HelloJob, at: Date.tomorrow.noon)
   end
 
+  def test_assert_enqueued_with_wait_until_with_performed
+    assert_enqueued_with(job: LoggingJob) do
+      perform_enqueued_jobs(only: HelloJob) do
+        HelloJob.set(wait_until: Date.tomorrow.noon).perform_later("david")
+        LoggingJob.set(wait_until: Date.tomorrow.noon).perform_later("enqueue")
+      end
+    end
+    assert_enqueued_jobs 1
+    assert_performed_jobs 1
+  end
+
   def test_assert_enqueued_with_with_hash_arg
     assert_enqueued_with(job: MultipleKwargsJob, args: [{ argument1: 1, argument2: { a: 1, b: 2 } }]) do
       MultipleKwargsJob.perform_later(argument2: { b: 2, a: 1 }, argument1: 1)
@@ -691,6 +702,17 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     assert_enqueued_with(job: HelloJob)
 
     assert_equal 2, queue_adapter.enqueued_jobs.count
+  end
+
+  def test_assert_enqueued_jobs_with_performed
+    assert_enqueued_with(job: LoggingJob) do
+      perform_enqueued_jobs(only: HelloJob) do
+        HelloJob.perform_later("david")
+        LoggingJob.perform_later("enqueue")
+      end
+    end
+    assert_enqueued_jobs 1
+    assert_performed_jobs 1
   end
 end
 

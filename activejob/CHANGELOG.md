@@ -105,5 +105,9 @@
 
     *Anthony Ross*
 
+*   While using `perform_enqueued_jobs` test helper enqueued jobs must be stored for the later check with `assert_enqueued_with`.
+
+    *Dmitry Polushkin*
+
 
 Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/activejob/CHANGELOG.md) for previous changes.
