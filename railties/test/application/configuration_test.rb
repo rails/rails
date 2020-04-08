@@ -2562,14 +2562,14 @@ module ApplicationTests
 
       output = rails("routes", "-g", "active_storage")
       assert_equal <<~MESSAGE, output
-                               Prefix Verb URI Pattern                                                                     Controller#Action
-                   rails_service_blob GET  /files/blobs/:signed_id/*filename(.:format)                                     active_storage/blobs#show
-                     rails_blob_proxy GET  /files/blobs_proxy/:signed_id/*filename(.:format)                               active_storage/blobs#proxy
-            rails_blob_representation GET  /files/representations/:signed_blob_id/:variation_key/*filename(.:format)       active_storage/representations#show
-      rails_blob_representation_proxy GET  /files/representations_proxy/:signed_blob_id/:variation_key/*filename(.:format) active_storage/representations#proxy
-                   rails_disk_service GET  /files/disk/:encoded_key/*filename(.:format)                                    active_storage/disk#show
-            update_rails_disk_service PUT  /files/disk/:encoded_token(.:format)                                            active_storage/disk#update
-                 rails_direct_uploads POST /files/direct_uploads(.:format)                                                 active_storage/direct_uploads#create
+                               Prefix Verb URI Pattern                                                                        Controller#Action
+                   rails_service_blob GET  /files/blobs/redirect/:signed_id/*filename(.:format)                               active_storage/blobs/redirection#show
+             rails_service_blob_proxy GET  /files/blobs/proxy/:signed_id/*filename(.:format)                                  active_storage/blobs/proxy#show
+            rails_blob_representation GET  /files/representations/redirect/:signed_blob_id/:variation_key/*filename(.:format) active_storage/representations/redirection#show
+      rails_blob_representation_proxy GET  /files/representations/proxy/:signed_blob_id/:variation_key/*filename(.:format)    active_storage/representations/proxy#show
+                   rails_disk_service GET  /files/disk/:encoded_key/*filename(.:format)                                       active_storage/disk#show
+            update_rails_disk_service PUT  /files/disk/:encoded_token(.:format)                                               active_storage/disk#update
+                 rails_direct_uploads POST /files/direct_uploads(.:format)                                                    active_storage/direct_uploads#create
       MESSAGE
     end
 
