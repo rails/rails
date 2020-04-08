@@ -1,3 +1,8 @@
+*   While using `perform_enqueued_jobs` test helper enqueued jobs must be stored for the later check with
+    `assert_enqueued_with`.
+
+    *Dmitry Polushkin*
+
 *   Add queue name support to Que adapter
 
     *Brad Nauta*, *Wojciech Wnętrzak*
