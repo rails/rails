@@ -21,16 +21,16 @@ Rails.application.routes.draw do
     route_for(:rails_blob_representation, signed_blob_id, variation_key, filename, options)
   end
 
-  resolve("ActiveStorage::Variant") { |variant, options| route_for(:rails_representation, variant, options) }
-  resolve("ActiveStorage::VariantWithRecord") { |variant, options| route_for(:rails_representation, variant, options) }
-  resolve("ActiveStorage::Preview") { |preview, options| route_for(:rails_representation, preview, options) }
+  resolve("ActiveStorage::Variant") { |variant, options| route_for(ActiveStorage.resolve_name || :rails_representation, variant, options) }
+  resolve("ActiveStorage::VariantWithRecord") { |variant, options| route_for(ActiveStorage.resolve_name || :rails_representation, variant, options) }
+  resolve("ActiveStorage::Preview") { |preview, options| route_for(ActiveStorage.resolve_name || :rails_representation, preview, options) }
 
   direct :rails_blob do |blob, options|
     route_for(:rails_service_blob, blob.signed_id, blob.filename, options)
   end
 
-  resolve("ActiveStorage::Blob")       { |blob, options| route_for(:rails_blob, blob, options) }
-  resolve("ActiveStorage::Attachment") { |attachment, options| route_for(:rails_blob, attachment.blob, options) }
+  resolve("ActiveStorage::Blob")       { |blob, options| route_for(ActiveStorage.resolve_name || :rails_blob, blob, options) }
+  resolve("ActiveStorage::Attachment") { |attachment, options| route_for(ActiveStorage.resolve_name || :rails_blob, attachment.blob, options) }
 
   direct :rails_storage_proxy do |model, options|
     if model.respond_to?(:signed_id)
