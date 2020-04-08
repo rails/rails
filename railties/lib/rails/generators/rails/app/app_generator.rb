@@ -17,7 +17,6 @@ module Rails
     end
 
     private
-
       %w(template copy_file directory empty_directory inside
          empty_directory_with_keep_file create_file chmod shebang).each do |method|
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
