@@ -296,39 +296,34 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
       --[ Route 19 ]-------------
       Prefix            | rails_service_blob
       Verb              | GET
-      URI               | /rails/active_storage/blobs/:signed_id/*filename(.:format)
-      Controller#Action | active_storage/blobs#show
-      --[ Route 17 ]-------------
-      Prefix            | rails_blob_proxy
+      URI               | /rails/active_storage/blobs/redirect/:signed_id/*filename(.:format)
+      Controller#Action | active_storage/blobs/redirect#show
+      --[ Route 20 ]-------------
+      Prefix            | rails_service_blob_proxy
       Verb              | GET
-      URI               | /rails/active_storage/blobs_proxy/:signed_id/*filename(.:format)
-      Controller#Action | active_storage/blobs#proxy
-      --[ Route 18 ]-------------
+      URI               | /rails/active_storage/blobs/proxy/:signed_id/*filename(.:format)
+      Controller#Action | active_storage/blobs/proxy#show
+      --[ Route 21 ]-------------
       Prefix            | rails_blob_representation
       Verb              | GET
-      URI               | /rails/active_storage/representations/:signed_blob_id/:variation_key/*filename(.:format)
+      URI               | /rails/active_storage/representations/redirect/:signed_blob_id/:variation_key/*filename(.:format)
       Controller#Action | active_storage/representations#show
-      --[ Route 19 ]-------------
+      --[ Route 22 ]-------------
       Prefix            | rails_blob_representation_proxy
       Verb              | GET
-      URI               | /rails/active_storage/representations_proxy/:signed_blob_id/:variation_key/*filename(.:format)
-      Controller#Action | active_storage/representations#proxy
-      --[ Route 20 ]-------------
-      Prefix            | rails_disk_service_public
-      Verb              | GET
-      URI               | /rails/active_storage/disk/public/:key/*filename(.:format)
-      Controller#Action | active_storage/public_disk#show
-      --[ Route 21 ]-------------
+      URI               | /rails/active_storage/representations/proxy/:signed_blob_id/:variation_key/*filename(.:format)
+      Controller#Action | active_storage/representations/proxy#show
+      --[ Route 23 ]-------------
       Prefix            | rails_disk_service
       Verb              | GET
       URI               | /rails/active_storage/disk/:encoded_key/*filename(.:format)
       Controller#Action | active_storage/disk#show
-      --[ Route 22 ]-------------
+      --[ Route 24 ]-------------
       Prefix            | update_rails_disk_service
       Verb              | PUT
       URI               | /rails/active_storage/disk/:encoded_token(.:format)
       Controller#Action | active_storage/disk#update
-      --[ Route 23 ]-------------
+      --[ Route 25 ]-------------
       Prefix            | rails_direct_uploads
       Verb              | POST
       URI               | /rails/active_storage/direct_uploads(.:format)
