@@ -230,7 +230,8 @@ module ActiveModel
           parameter like this:
 
           person.errors.each do |error|
-            error.full_message
+            attribute = error.attribute
+            message = error.message
           end
 
           You are passing a block expecting two parameters,
