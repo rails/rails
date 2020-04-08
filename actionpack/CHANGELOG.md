@@ -1,3 +1,8 @@
+*   `url_for` will now use "https://" as the default protocol when
+    `Rails.application.config.force_ssl` is set to true.
+
+    *Jonathan Hefner*
+
 *   Accept and default to base64_urlsafe CSRF tokens.
 
     Base64 strict-encoded CSRF tokens are not inherently websafe, which makes

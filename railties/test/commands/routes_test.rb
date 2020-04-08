@@ -62,10 +62,10 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
     assert_equal <<~MESSAGE, run_routes_command([ "-g", "POST" ])
                                      Prefix Verb URI Pattern                                                         Controller#Action
                                             POST /cart(.:format)                                                     cart#create
-              rails_mandrill_inbound_emails POST /rails/action_mailbox/mandrill/inbound_emails(.:format)             action_mailbox/ingresses/mandrill/inbound_emails#create
               rails_postmark_inbound_emails POST /rails/action_mailbox/postmark/inbound_emails(.:format)             action_mailbox/ingresses/postmark/inbound_emails#create
                  rails_relay_inbound_emails POST /rails/action_mailbox/relay/inbound_emails(.:format)                action_mailbox/ingresses/relay/inbound_emails#create
               rails_sendgrid_inbound_emails POST /rails/action_mailbox/sendgrid/inbound_emails(.:format)             action_mailbox/ingresses/sendgrid/inbound_emails#create
+              rails_mandrill_inbound_emails POST /rails/action_mailbox/mandrill/inbound_emails(.:format)             action_mailbox/ingresses/mandrill/inbound_emails#create
                rails_mailgun_inbound_emails POST /rails/action_mailbox/mailgun/inbound_emails/mime(.:format)         action_mailbox/ingresses/mailgun/inbound_emails#create
                                             POST /rails/conductor/action_mailbox/inbound_emails(.:format)            rails/conductor/action_mailbox/inbound_emails#create
       rails_conductor_inbound_email_sources POST /rails/conductor/action_mailbox/inbound_emails/sources(.:format)    rails/conductor/action_mailbox/inbound_emails/sources#create
@@ -209,86 +209,91 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
       URI               | /cart(.:format)
       Controller#Action | cart#show
       --[ Route 2 ]--------------
-      Prefix            | rails_mandrill_inbound_emails
-      Verb              | POST
-      URI               | /rails/action_mailbox/mandrill/inbound_emails(.:format)
-      Controller#Action | action_mailbox/ingresses/mandrill/inbound_emails#create
-      --[ Route 3 ]--------------
       Prefix            | rails_postmark_inbound_emails
       Verb              | POST
       URI               | /rails/action_mailbox/postmark/inbound_emails(.:format)
       Controller#Action | action_mailbox/ingresses/postmark/inbound_emails#create
-      --[ Route 4 ]--------------
+      --[ Route 3 ]--------------
       Prefix            | rails_relay_inbound_emails
       Verb              | POST
       URI               | /rails/action_mailbox/relay/inbound_emails(.:format)
       Controller#Action | action_mailbox/ingresses/relay/inbound_emails#create
-      --[ Route 5 ]--------------
+      --[ Route 4 ]--------------
       Prefix            | rails_sendgrid_inbound_emails
       Verb              | POST
       URI               | /rails/action_mailbox/sendgrid/inbound_emails(.:format)
       Controller#Action | action_mailbox/ingresses/sendgrid/inbound_emails#create
+      --[ Route 5 ]--------------
+      Prefix            | rails_mandrill_inbound_health_check
+      Verb              | GET
+      URI               | /rails/action_mailbox/mandrill/inbound_emails(.:format)
+      Controller#Action | action_mailbox/ingresses/mandrill/inbound_emails#health_check
       --[ Route 6 ]--------------
+      Prefix            | rails_mandrill_inbound_emails
+      Verb              | POST
+      URI               | /rails/action_mailbox/mandrill/inbound_emails(.:format)
+      Controller#Action | action_mailbox/ingresses/mandrill/inbound_emails#create
+      --[ Route 7 ]--------------
       Prefix            | rails_mailgun_inbound_emails
       Verb              | POST
       URI               | /rails/action_mailbox/mailgun/inbound_emails/mime(.:format)
       Controller#Action | action_mailbox/ingresses/mailgun/inbound_emails#create
-      --[ Route 7 ]--------------
+      --[ Route 8 ]--------------
       Prefix            | rails_conductor_inbound_emails
       Verb              | GET
       URI               | /rails/conductor/action_mailbox/inbound_emails(.:format)
       Controller#Action | rails/conductor/action_mailbox/inbound_emails#index
-      --[ Route 8 ]--------------
+      --[ Route 9 ]--------------
       Prefix            | 
       Verb              | POST
       URI               | /rails/conductor/action_mailbox/inbound_emails(.:format)
       Controller#Action | rails/conductor/action_mailbox/inbound_emails#create
-      --[ Route 9 ]--------------
+      --[ Route 10 ]-------------
       Prefix            | new_rails_conductor_inbound_email
       Verb              | GET
       URI               | /rails/conductor/action_mailbox/inbound_emails/new(.:format)
       Controller#Action | rails/conductor/action_mailbox/inbound_emails#new
-      --[ Route 10 ]-------------
+      --[ Route 11 ]-------------
       Prefix            | edit_rails_conductor_inbound_email
       Verb              | GET
       URI               | /rails/conductor/action_mailbox/inbound_emails/:id/edit(.:format)
       Controller#Action | rails/conductor/action_mailbox/inbound_emails#edit
-      --[ Route 11 ]-------------
+      --[ Route 12 ]-------------
       Prefix            | rails_conductor_inbound_email
       Verb              | GET
       URI               | /rails/conductor/action_mailbox/inbound_emails/:id(.:format)
       Controller#Action | rails/conductor/action_mailbox/inbound_emails#show
-      --[ Route 12 ]-------------
+      --[ Route 13 ]-------------
       Prefix            | 
       Verb              | PATCH
       URI               | /rails/conductor/action_mailbox/inbound_emails/:id(.:format)
       Controller#Action | rails/conductor/action_mailbox/inbound_emails#update
-      --[ Route 13 ]-------------
+      --[ Route 14 ]-------------
       Prefix            | 
       Verb              | PUT
       URI               | /rails/conductor/action_mailbox/inbound_emails/:id(.:format)
       Controller#Action | rails/conductor/action_mailbox/inbound_emails#update
-      --[ Route 14 ]-------------
+      --[ Route 15 ]-------------
       Prefix            | 
       Verb              | DELETE
       URI               | /rails/conductor/action_mailbox/inbound_emails/:id(.:format)
       Controller#Action | rails/conductor/action_mailbox/inbound_emails#destroy
-      --[ Route 15 ]-------------
+      --[ Route 16 ]-------------
       Prefix            | new_rails_conductor_inbound_email_source
       Verb              | GET
       URI               | /rails/conductor/action_mailbox/inbound_emails/sources/new(.:format)
       Controller#Action | rails/conductor/action_mailbox/inbound_emails/sources#new
-      --[ Route 16 ]-------------
+      --[ Route 17 ]-------------
       Prefix            | rails_conductor_inbound_email_sources
       Verb              | POST
       URI               | /rails/conductor/action_mailbox/inbound_emails/sources(.:format)
       Controller#Action | rails/conductor/action_mailbox/inbound_emails/sources#create
-      --[ Route 17 ]-------------
+      --[ Route 18 ]-------------
       Prefix            | rails_conductor_inbound_email_reroute
       Verb              | POST
       URI               | /rails/conductor/action_mailbox/:inbound_email_id/reroute(.:format)
       Controller#Action | rails/conductor/action_mailbox/reroutes#create
-      --[ Route 18 ]-------------
+      --[ Route 19 ]-------------
       Prefix            | rails_service_blob
       Verb              | GET
       URI               | /rails/active_storage/blobs/:signed_id/*filename(.:format)

@@ -120,7 +120,7 @@ module AbstractController
       options
     end
 
-    def _protected_ivars # :nodoc:
+    def _protected_ivars
       DEFAULT_PROTECTED_INSTANCE_VARIABLES
     end
   end

@@ -133,6 +133,16 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal old_language, @book.changed_attributes[:language]
   end
 
+  test "enum value after write symbol" do
+    @book.status = :proposed
+    assert_equal "proposed", @book.status
+  end
+
+  test "enum value after write string" do
+    @book.status = "proposed"
+    assert_equal "proposed", @book.status
+  end
+
   test "enum changes" do
     old_status = @book.status
     old_language = @book.language
