@@ -1457,17 +1457,28 @@ class RenderTest < ActionController::TestCase
   def test_template_annotations
     ActionView::Base.annotate_template_file_names = true
 
-    get :render_with_explicit_template_with_locals
+    get :greeting
 
     lines = @response.body.split("\n")
 
     assert_includes lines.first, "<!-- BEGIN"
-    assert_includes lines.first, "test/fixtures/actionpack/test/render_file_with_locals.erb -->"
+    assert_includes lines.first, "test/fixtures/actionpack/test/greeting.html.erb -->"
 
-    assert_includes lines[1], "The secret is area51"
+    assert_includes lines[1], "This is grand!"
 
     assert_includes lines.last, "<!-- END"
-    assert_includes lines.last, "test/fixtures/actionpack/test/render_file_with_locals.erb -->"
+    assert_includes lines.last, "test/fixtures/actionpack/test/greeting.html.erb -->"
+  ensure
+    ActionView::Base.annotate_template_file_names = false
+  end
+
+  def test_template_annotations_do_not_render_for_non_html_format
+    ActionView::Base.annotate_template_file_names = true
+
+    get :render_with_explicit_template_with_locals
+
+    assert_not_includes @response.body, "BEGIN"
+    assert_equal @response.body.split("\n").length, 1
   ensure
     ActionView::Base.annotate_template_file_names = false
   end

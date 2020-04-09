@@ -290,7 +290,9 @@ consumer.subscriptions.create({ channel: "ChatChannel", room: "2nd Room" })
 ### Streams
 
 *Streams* provide the mechanism by which channels route published content
-(broadcasts) to their subscribers.
+(broadcasts) to their subscribers. The following example would
+subscribe to the broadcasting `chat_Best Room` if the room parameter
+is `Best Room`:
 
 ```ruby
 # app/channels/chat_channel.rb
@@ -302,8 +304,9 @@ end
 ```
 
 If you have a stream that is related to a model, then the broadcasting used
-can be generated from the model and channel. The following example would
-subscribe to a broadcasting like `comments:Z2lkOi8vVGVzdEFwcC9Qb3N0LzE`
+can be generated from the channel and model. The following example would
+subscribe to a broadcasting like `comments:Z2lkOi8vVGVzdEFwcC9Qb3N0LzE`,
+where `Z2lkOi8vVGVzdEFwcC9Qb3N0LzE` is the GlobalID of the Post model.
 
 ```ruby
 class CommentsChannel < ApplicationCable::Channel

@@ -188,7 +188,7 @@ GEM
       coffee-script-source
       execjs
     coffee-script-source (1.12.2)
-    concurrent-ruby (1.1.5)
+    concurrent-ruby (1.1.6)
     connection_pool (2.2.2)
     cookiejar (0.3.3)
     crack (0.4.3)
@@ -493,7 +493,7 @@ GEM
     turbolinks (5.2.1)
       turbolinks-source (~> 5.2)
     turbolinks-source (5.2.0)
-    tzinfo (2.0.0)
+    tzinfo (2.0.2)
       concurrent-ruby (~> 1.0)
     tzinfo-data (1.2019.3)
       tzinfo (>= 1.0.0)

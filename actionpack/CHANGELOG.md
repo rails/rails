@@ -1,3 +1,7 @@
+*   Correctly identify the entire localhost IPv4 range as trusted proxy.
+
+    *Nick Soracco*
+
 *   `url_for` will now use "https://" as the default protocol when
     `Rails.application.config.force_ssl` is set to true.
 
