@@ -389,7 +389,8 @@ module ActiveRecord
     # :method: dup
     # Duped objects have no id assigned and are treated as new records. Note
     # that this is a "shallow" copy as it copies the object's attributes
-    # only, not its associations. The extent of a "deep" copy is application
+    # only, not its associations. Furthermore the attributes of the virtual columns
+    # are not copied over. The extent of a "deep" copy is application
     # specific and is therefore left to the application to implement according
     # to its need.
     # The dup method does not preserve the timestamps (created|updated)_(at|on).
