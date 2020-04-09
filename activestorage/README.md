@@ -118,7 +118,7 @@ Active storage provides two primary ways to route assets.
 ### Changing the default resolver
 To make all assets cachable via a CDN you may change the default resolver for Active Storage models:
 ```ruby
-config.active_storage.resolve_name = :rails_storage_proxy
+config.active_storage.resolve_model_to_route = :rails_storage_proxy
 ```
 If a more granular approach is needed the path or url helpers may be called from your views:
 ```ruby
