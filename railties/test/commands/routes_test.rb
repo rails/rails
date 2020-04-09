@@ -302,7 +302,7 @@ new_rails_conductor_inbound_email_source GET    /rails/conductor/action_mailbox/
       Prefix            | rails_service_blob
       Verb              | GET
       URI               | /rails/active_storage/blobs/redirect/:signed_id/*filename(.:format)
-      Controller#Action | active_storage/blobs/redirect#show
+      Controller#Action | active_storage/blobs/redirection#show
       --[ Route 20 ]-------------
       Prefix            | rails_service_blob_proxy
       Verb              | GET
@@ -312,7 +312,7 @@ new_rails_conductor_inbound_email_source GET    /rails/conductor/action_mailbox/
       Prefix            | rails_blob_representation
       Verb              | GET
       URI               | /rails/active_storage/representations/redirect/:signed_blob_id/:variation_key/*filename(.:format)
-      Controller#Action | active_storage/representations#show
+      Controller#Action | active_storage/representations/redirection#show
       --[ Route 22 ]-------------
       Prefix            | rails_blob_representation_proxy
       Verb              | GET
