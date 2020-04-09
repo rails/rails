@@ -117,9 +117,9 @@ module Rails
           require(environment_config_path) if options[:environment] && File.exists?(environment_config_path)
           config_path = Rails.application.config.credentials[which].to_s.gsub(Rails.root.to_s + '/', '')
 
-          return config_path if (options[:environment] && config_path != env_path) && config_path != default_path
+          return config_path if options[:environment] && config_path != default_path
           return env_path if options[:environment]
-          return default_path
+          default_path
         end
 
         def extract_environment_from_path(path)
