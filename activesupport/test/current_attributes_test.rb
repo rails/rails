@@ -50,6 +50,22 @@ class CurrentAttributesTest < ActiveSupport::TestCase
     Time.zone = @original_time_zone
   end
 
+  test "attribute is local to the current thread" do
+    Current.world = "world/1"
+
+    Thread.new do
+      assert_nil Current.world
+    end.join
+  end
+
+  test "attribute is not local to current fibre" do
+    Current.world = "world/1"
+
+    Fibre.new do
+      assert_equal "world/1", Current.world
+    end.resume
+  end
+
   test "read and write attribute" do
     Current.world = "world/1"
     assert_equal "world/1", Current.world

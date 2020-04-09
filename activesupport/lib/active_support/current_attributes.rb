@@ -148,7 +148,8 @@ module ActiveSupport
         end
 
         def current_instances
-          Thread.current[:current_attributes_instances] ||= {}
+          Thread.current.thread_variable_get(:current_attributes_instances) ||
+            Thread.current.thread_variable_set(:current_attributes_instances, {})
         end
 
         def current_instances_key
