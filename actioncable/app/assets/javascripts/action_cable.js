@@ -135,7 +135,7 @@
       if (document.visibilityState === "visible") {
         setTimeout(function() {
           if (_this2.connectionIsStale() || !_this2.connection.isOpen()) {
-            logger.log("ConnectionMonitor reopening stale connection on visibilitychange. visbilityState = " + document.visibilityState);
+            logger.log("ConnectionMonitor reopening stale connection on visibilitychange. visibilityState = " + document.visibilityState);
             _this2.connection.reopen();
           }
         }, 200);

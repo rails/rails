@@ -136,7 +136,7 @@ module ActionController
     #
     # === Simple \Digest example
     #
-    #   require 'digest/md5'
+    #   require "digest/md5"
     #   class PostsController < ApplicationController
     #     REALM = "SuperSecret"
     #     USERS = {"dhh" => "secret", #plain text password
@@ -482,7 +482,7 @@ module ActionController
       def raw_params(auth)
         _raw_params = auth.sub(TOKEN_REGEX, "").split(/\s*#{AUTHN_PAIR_DELIMITERS}\s*/)
 
-        if !(%r{\A#{TOKEN_KEY}}.match?(_raw_params.first))
+        if !_raw_params.first.start_with?(TOKEN_KEY)
           _raw_params[0] = "#{TOKEN_KEY}#{_raw_params.first}"
         end
 

@@ -147,27 +147,25 @@ class FixturesTest < ActiveRecord::TestCase
           ]
         }
 
-        ActiveRecord::Base.connection.stub(:supports_set_server_option?, false) do
-          assert_nothing_raised do
-            conn = ActiveRecord::Base.connection
-            conn.execute("SELECT 1; SELECT 2;")
-            conn.raw_connection.abandon_results!
-          end
+        assert_nothing_raised do
+          conn = ActiveRecord::Base.connection
+          conn.execute("SELECT 1; SELECT 2;")
+          conn.raw_connection.abandon_results!
+        end
 
-          assert_difference "TrafficLight.count" do
-            ActiveRecord::Base.transaction do
-              conn = ActiveRecord::Base.connection
-              assert_equal 1, conn.open_transactions
-              conn.insert_fixtures_set(fixtures)
-              assert_equal 1, conn.open_transactions
-            end
-          end
-
-          assert_nothing_raised do
+        assert_difference "TrafficLight.count" do
+          ActiveRecord::Base.transaction do
             conn = ActiveRecord::Base.connection
-            conn.execute("SELECT 1; SELECT 2;")
-            conn.raw_connection.abandon_results!
+            assert_equal 1, conn.open_transactions
+            conn.insert_fixtures_set(fixtures)
+            assert_equal 1, conn.open_transactions
           end
+        end
+
+        assert_nothing_raised do
+          conn = ActiveRecord::Base.connection
+          conn.execute("SELECT 1; SELECT 2;")
+          conn.raw_connection.abandon_results!
         end
       end
     end
@@ -184,23 +182,21 @@ class FixturesTest < ActiveRecord::TestCase
           ]
         }
 
-        ActiveRecord::Base.connection.stub(:supports_set_server_option?, false) do
-          assert_raises(ActiveRecord::StatementInvalid) do
-            conn = ActiveRecord::Base.connection
-            conn.execute("SELECT 1; SELECT 2;")
-            conn.raw_connection.abandon_results!
-          end
+        assert_raises(ActiveRecord::StatementInvalid) do
+          conn = ActiveRecord::Base.connection
+          conn.execute("SELECT 1; SELECT 2;")
+          conn.raw_connection.abandon_results!
+        end
 
-          assert_difference "TrafficLight.count" do
-            conn = ActiveRecord::Base.connection
-            conn.insert_fixtures_set(fixtures)
-          end
+        assert_difference "TrafficLight.count" do
+          conn = ActiveRecord::Base.connection
+          conn.insert_fixtures_set(fixtures)
+        end
 
-          assert_raises(ActiveRecord::StatementInvalid) do
-            conn = ActiveRecord::Base.connection
-            conn.execute("SELECT 1; SELECT 2;")
-            conn.raw_connection.abandon_results!
-          end
+        assert_raises(ActiveRecord::StatementInvalid) do
+          conn = ActiveRecord::Base.connection
+          conn.execute("SELECT 1; SELECT 2;")
+          conn.raw_connection.abandon_results!
         end
       end
     end
@@ -954,7 +950,6 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
         payload = {
           spec_name: "book",
           config: nil,
-          connection_id: connection.object_id
         }
 
         message_bus.instrument("!connection.active_record", payload) { }
@@ -1399,13 +1394,6 @@ class MultipleDatabaseFixturesTest < ActiveRecord::TestCase
       rw_conn = ActiveRecord::Base.connection
       ro_conn = ActiveRecord::Base.connection_handlers[:reading].connection_pool_list.first.connection
 
-      assert_not_equal rw_conn, ro_conn
-
-      enlist_fixture_connections
-
-      rw_conn = ActiveRecord::Base.connection
-      ro_conn = ActiveRecord::Base.connection_handlers[:reading].connection_pool_list.first.connection
-
       assert_equal rw_conn, ro_conn
     end
   ensure
@@ -1414,7 +1402,7 @@ class MultipleDatabaseFixturesTest < ActiveRecord::TestCase
 
   private
     def with_temporary_connection_pool
-      pool_config = ActiveRecord::Base.connection_handler.send(:owner_to_pool_manager).fetch("primary").get_pool_config(:default)
+      pool_config = ActiveRecord::Base.connection_handler.send(:owner_to_pool_manager).fetch("ActiveRecord::Base").get_pool_config(:default)
       new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(pool_config)
 
       pool_config.stub(:pool, new_pool) do

@@ -65,6 +65,12 @@ module ActiveRecord
           @readonly = reflection.scope && reflection.scope_for(base_klass.unscoped).readonly_value
         end
 
+        def strict_loading?
+          return @strict_loading if defined?(@strict_loading)
+
+          @strict_loading = reflection.scope && reflection.scope_for(base_klass.unscoped).strict_loading_value
+        end
+
         private
           def append_constraints(join, constraints)
             if join.is_a?(Arel::Nodes::StringJoin)

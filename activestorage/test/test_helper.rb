@@ -8,6 +8,7 @@ require "active_support"
 require "active_support/test_case"
 require "active_support/core_ext/object/try"
 require "active_support/testing/autorun"
+require "active_support/configuration_file"
 require "active_storage/service/mirror_service"
 require "image_processing/mini_magick"
 
@@ -23,11 +24,8 @@ ActiveJob::Base.logger = ActiveSupport::Logger.new(nil)
 # Filter out the backtrace from minitest while preserving the one from other libraries.
 Minitest.backtrace_filter = Minitest::BacktraceFilter.new
 
-require "yaml"
 SERVICE_CONFIGURATIONS = begin
-  erb = ERB.new(Pathname.new(File.expand_path("service/configurations.yml", __dir__)).read)
-  configuration = YAML.load(erb.result) || {}
-  configuration.deep_symbolize_keys
+  ActiveSupport::ConfigurationFile.parse(File.expand_path("service/configurations.yml", __dir__)).deep_symbolize_keys
 rescue Errno::ENOENT
   puts "Missing service configuration file in test/service/configurations.yml"
   {}
@@ -67,8 +65,8 @@ class ActiveSupport::TestCase
       ActiveStorage::Blob.create_and_upload! key: key, io: StringIO.new(data), filename: filename, content_type: content_type, identify: identify, service_name: service_name, record: record
     end
 
-    def create_file_blob(key: nil, filename: "racecar.jpg", content_type: "image/jpeg", metadata: nil, record: nil)
-      ActiveStorage::Blob.create_and_upload! io: file_fixture(filename).open, filename: filename, content_type: content_type, metadata: metadata, record: record
+    def create_file_blob(key: nil, filename: "racecar.jpg", content_type: "image/jpeg", metadata: nil, service_name: nil, record: nil)
+      ActiveStorage::Blob.create_and_upload! io: file_fixture(filename).open, filename: filename, content_type: content_type, metadata: metadata, service_name: service_name, record: record
     end
 
     def create_blob_before_direct_upload(key: nil, filename: "hello.txt", byte_size:, checksum:, content_type: "text/plain", record: nil)

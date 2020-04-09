@@ -16,6 +16,7 @@ module Rails
 
     def start
       ENV["RAILS_ENV"] ||= @options[:environment] || environment
+      config = db_config.configuration_hash
 
       case db_config.adapter
       when /^(jdbc)?mysql/
@@ -92,6 +93,7 @@ module Rails
     def config
       db_config.configuration_hash
     end
+    deprecate config: "please use db_config.configuration_hash"
 
     def db_config
       return @db_config if defined?(@db_config)
@@ -100,7 +102,7 @@ module Rails
       # first time around to show a consistent error message to people
       # relying on 2-level database configuration.
 
-      @db_config = configurations.configs_for(env_name: environment, spec_name: database)
+      @db_config = configurations.configs_for(env_name: environment, name: database)
 
       unless @db_config
         raise ActiveRecord::AdapterNotSpecified,

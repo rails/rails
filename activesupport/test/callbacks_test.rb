@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 
 module CallbacksTest
   class Record
@@ -609,7 +609,7 @@ module CallbacksTest
       set_callback :save, :after, :third
     end
 
-    attr_reader :history, :saved, :halted
+    attr_reader :history, :saved, :halted, :callback_name
     def initialize
       @history = []
     end
@@ -639,8 +639,9 @@ module CallbacksTest
       end
     end
 
-    def halted_callback_hook(filter)
+    def halted_callback_hook(filter, name)
       @halted = filter
+      @callback_name = name
     end
   end
 
@@ -823,6 +824,7 @@ module CallbacksTest
       terminator = CallbackTerminator.new
       terminator.save
       assert_equal :second, terminator.halted
+      assert_equal :save, terminator.callback_name
     end
 
     def test_block_never_called_if_terminated

@@ -334,7 +334,7 @@ module ActionDispatch
 
       attr_accessor :formatter, :set, :named_routes, :default_scope, :router
       attr_accessor :disable_clear_and_finalize, :resources_path_names
-      attr_accessor :default_url_options
+      attr_accessor :default_url_options, :draw_paths
       attr_reader :env_key, :polymorphic_mappings
 
       alias :routes :set
@@ -366,6 +366,7 @@ module ActionDispatch
         self.named_routes = NamedRouteCollection.new
         self.resources_path_names = self.class.default_resources_path_names
         self.default_url_options = {}
+        self.draw_paths = []
 
         @config                     = config
         @append                     = []
@@ -476,6 +477,14 @@ module ActionDispatch
       end
 
       def url_helpers(supports_path = true)
+        if supports_path
+          @url_helpers_with_paths ||= generate_url_helpers(true)
+        else
+          @url_helpers_without_paths ||= generate_url_helpers(false)
+        end
+      end
+
+      def generate_url_helpers(supports_path)
         routes = self
 
         Module.new do

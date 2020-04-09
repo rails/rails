@@ -17,8 +17,8 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-Introduction
-------------
+What is Active Model?
+---------------------
 
 Active Model is a library containing various modules used in developing
 classes that need some features present on Active Record.
@@ -425,7 +425,7 @@ the Active Model API.
 * `test/models/person_test.rb`
 
     ```ruby
-    require 'test_helper'
+    require "test_helper"
 
     class PersonTest < ActiveSupport::TestCase
       include ActiveModel::Lint::Tests
@@ -437,7 +437,7 @@ the Active Model API.
     ```
 
 ```bash
-$ rails test
+$ bin/rails test
 
 Run options: --seed 14596
 

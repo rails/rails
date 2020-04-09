@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../../abstract_unit"
 require "active_support/cache"
 require "active_support/cache/redis_cache_store"
 require_relative "../behaviors"
@@ -14,7 +14,7 @@ Redis::Connection.drivers.append(driver)
 # Emulates a latency on Redis's back-end for the key latency to facilitate
 # connection pool testing.
 class SlowRedis < Redis
-  def get(key, options = {})
+  def get(key)
     if /latency/.match?(key)
       sleep 3
     else
@@ -109,7 +109,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
 
   class StoreTest < ActiveSupport::TestCase
     setup do
-      @namespace = "namespace"
+      @namespace = "test-#{SecureRandom.hex}"
 
       @cache = ActiveSupport::Cache::RedisCacheStore.new(timeout: 0.1, namespace: @namespace, expires_in: 60, driver: DRIVER)
       # @cache.logger = Logger.new($stdout)  # For test debugging
@@ -131,6 +131,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     include CacheIncrementDecrementBehavior
     include CacheInstrumentationBehavior
     include AutoloadingCacheBehavior
+    include EncodedKeyCacheBehavior
 
     def test_fetch_multi_uses_redis_mget
       assert_called(@cache.redis, :mget, returns: []) do
@@ -213,17 +214,6 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       end
   end
 
-  # Separate test class so we can omit the namespace which causes expected,
-  # appropriate complaints about incompatible string encodings.
-  class KeyEncodingSafetyTest < StoreTest
-    include EncodedKeyCacheBehavior
-
-    setup do
-      @cache = ActiveSupport::Cache::RedisCacheStore.new(timeout: 0.1, driver: DRIVER)
-      @cache.logger = nil
-    end
-  end
-
   class StoreAPITest < StoreTest
   end
 
@@ -247,7 +237,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
         old_client = Redis.send(:remove_const, :Client)
         Redis.const_set(:Client, UnavailableRedisClient)
 
-        yield ActiveSupport::Cache::RedisCacheStore.new
+        yield ActiveSupport::Cache::RedisCacheStore.new(namespace: @namespace)
       ensure
         Redis.send(:remove_const, :Client)
         Redis.const_set(:Client, old_client)
@@ -300,6 +290,17 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       @cache.clear
       assert_not @cache.exist?("foo")
       assert @cache.redis.exists("fu")
+    end
+
+    test "clear all cache key with Redis::Distributed" do
+      cache = ActiveSupport::Cache::RedisCacheStore.new(
+        url: %w[redis://localhost:6379/0, redis://localhost:6379/1],
+        timeout: 0.1, namespace: @namespace, expires_in: 60, driver: DRIVER)
+      cache.write("foo", "bar")
+      cache.write("fu", "baz")
+      cache.clear
+      assert_not cache.exist?("foo")
+      assert_not cache.exist?("fu")
     end
   end
 end

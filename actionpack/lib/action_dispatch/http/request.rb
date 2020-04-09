@@ -45,10 +45,13 @@ module ActionDispatch
         SERVER_ADDR
         ].freeze
 
+    # TODO: Remove SERVER_ADDR when we remove support to Rack 2.1.
+    # See https://github.com/rack/rack/commit/c173b188d81ee437b588c1e046a1c9f031dea550
     ENV_METHODS.each do |env|
       class_eval <<-METHOD, __FILE__, __LINE__ + 1
+        # frozen_string_literal: true
         def #{env.sub(/^HTTP_/n, '').downcase}  # def accept_charset
-          get_header "#{env}".freeze            #   get_header "HTTP_ACCEPT_CHARSET".freeze
+          get_header "#{env}"                   #   get_header "HTTP_ACCEPT_CHARSET"
         end                                     # end
       METHOD
     end
@@ -86,7 +89,15 @@ module ActionDispatch
       if name
         controller_param = name.underscore
         const_name = controller_param.camelize << "Controller"
-        ActiveSupport::Dependencies.constantize(const_name)
+        begin
+          ActiveSupport::Dependencies.constantize(const_name)
+        rescue NameError => error
+          if error.missing_name == const_name || const_name.start_with?("#{error.missing_name}::")
+            raise MissingController.new(error.message, error.name)
+          else
+            raise
+          end
+        end
       else
         PASS_NOT_FOUND
       end
@@ -265,8 +276,7 @@ module ActionDispatch
     # (case-insensitive), which may need to be manually added depending on the
     # choice of JavaScript libraries and frameworks.
     def xml_http_request?
-      header = get_header("HTTP_X_REQUESTED_WITH")
-      header && /XMLHttpRequest/i.match?(header)
+      /XMLHttpRequest/i.match?(get_header("HTTP_X_REQUESTED_WITH"))
     end
     alias :xhr? :xml_http_request?
 

@@ -20,20 +20,20 @@ module ActionController
       raw_payload = {
         controller: self.class.name,
         action: action_name,
+        request: request,
         params: request.filtered_parameters,
         headers: request.headers,
         format: request.format.ref,
         method: request.request_method,
-        path: request.fullpath,
-        request: request
+        path: request.fullpath
       }
 
       ActiveSupport::Notifications.instrument("start_processing.action_controller", raw_payload)
 
       ActiveSupport::Notifications.instrument("process_action.action_controller", raw_payload) do |payload|
         result = super
+        payload[:response] = response
         payload[:status]   = response.status
-        payload[:location] = response.filtered_location
         result
       ensure
         append_info_to_payload(payload)
@@ -62,7 +62,7 @@ module ActionController
     end
 
     def redirect_to(*)
-      ActiveSupport::Notifications.instrument("redirect_to.action_controller") do |payload|
+      ActiveSupport::Notifications.instrument("redirect_to.action_controller", request: request) do |payload|
         result = super
         payload[:status]   = response.status
         payload[:location] = response.filtered_location
@@ -72,7 +72,7 @@ module ActionController
 
   private
     # A hook invoked every time a before callback is halted.
-    def halted_callback_hook(filter)
+    def halted_callback_hook(filter, _)
       ActiveSupport::Notifications.instrument("halted_callback.action_controller", filter: filter)
     end
 

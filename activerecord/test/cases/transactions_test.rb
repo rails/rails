@@ -139,7 +139,9 @@ class TransactionTest < ActiveRecord::TestCase
     end
 
     assert_not_called(@first, :committed!) do
-      transaction_with_return
+      assert_deprecated do
+        transaction_with_return
+      end
     end
     assert committed
 
@@ -150,6 +152,21 @@ class TransactionTest < ActiveRecord::TestCase
       remove_method :commit_db_transaction
       alias :commit_db_transaction :real_commit_db_transaction rescue nil
     end
+  end
+
+  def test_deprecation_on_ruby_timeout
+    assert_deprecated do
+      catch do |timeout|
+        Topic.transaction do
+          @first.approved = true
+          @first.save!
+
+          throw timeout
+        end
+      end
+    end
+
+    assert Topic.find(1).approved?, "First should have been approved"
   end
 
   def test_number_of_transactions_in_commit
@@ -782,6 +799,18 @@ class TransactionTest < ActiveRecord::TestCase
     assert_not_predicate topic, :new_record?
   end
 
+  def test_restore_previously_new_record_after_double_save
+    topic = Topic.create!
+
+    Topic.transaction do
+      topic.save!
+      topic.save!
+      raise ActiveRecord::Rollback
+    end
+
+    assert_predicate topic, :previously_new_record?
+  end
+
   def test_restore_id_after_rollback
     topic = Topic.new
 
@@ -1127,7 +1156,7 @@ class TransactionsWithTransactionalFixturesTest < ActiveRecord::TestCase
   end
 end if Topic.connection.supports_savepoints?
 
-if ActiveRecord::Base.connection.supports_transaction_isolation?
+if ActiveRecord::Base.connection.supports_transaction_isolation? && !current_adapter?(:SQLite3Adapter)
   class ConcurrentTransactionTest < TransactionTest
     # This will cause transactions to overlap and fail unless they are performed on
     # separate database connections.

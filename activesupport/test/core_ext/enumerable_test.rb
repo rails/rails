@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../abstract_unit"
 require "active_support/core_ext/array"
 require "active_support/core_ext/enumerable"
 
@@ -241,6 +241,24 @@ class EnumerableTests < ActiveSupport::TestCase
       ExpandedPayment.new(10, 50)
     ])
     assert_equal [[5, 99], [15, 0], [10, 50]], payments.pluck(:dollars, :cents)
+
+    assert_equal [], [].pluck(:price)
+    assert_equal [], [].pluck(:dollars, :cents)
+  end
+
+  def test_pick
+    payments = GenericEnumerable.new([ Payment.new(5), Payment.new(15), Payment.new(10) ])
+    assert_equal 5, payments.pick(:price)
+
+    payments = GenericEnumerable.new([
+      ExpandedPayment.new(5, 99),
+      ExpandedPayment.new(15, 0),
+      ExpandedPayment.new(10, 50)
+    ])
+    assert_equal [5, 99], payments.pick(:dollars, :cents)
+
+    assert_nil [].pick(:price)
+    assert_nil [].pick(:dollars, :cents)
   end
 
   def test_compact_blank

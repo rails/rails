@@ -11,10 +11,7 @@ module ActiveRecord
       fixtures :people
 
       def setup
-        @handlers = { writing: ConnectionHandler.new }
-        @rw_handler = @handlers[:writing]
-        @spec_name = "primary"
-        @writing_handler = ActiveRecord::Base.connection_handlers[:writing]
+        @writing_handler = ConnectionHandler.new
       end
 
       def teardown
@@ -27,7 +24,7 @@ module ActiveRecord
 
           config = {
             "default_env" => {
-              "primary" => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" }
+              "primary" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" }
             }
           }
 
@@ -55,7 +52,7 @@ module ActiveRecord
 
           config = {
             "default_env" => {
-              "primary" => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" }
+              "primary" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" }
             }
           }
 
@@ -65,7 +62,7 @@ module ActiveRecord
           @writing_handler.establish_connection(:primary, :pool_config_two)
 
           # remove default
-          @writing_handler.remove_connection("primary")
+          @writing_handler.remove_connection_pool("primary")
 
           assert_nil @writing_handler.retrieve_connection_pool("primary")
           assert_not_nil @writing_handler.retrieve_connection_pool("primary", :pool_config_two)
@@ -80,7 +77,7 @@ module ActiveRecord
 
           config = {
             "default_env" => {
-              "primary" => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" }
+              "primary" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" }
             }
           }
 
@@ -99,7 +96,6 @@ module ActiveRecord
           ActiveRecord::Base.configurations = @prev_configs
           ActiveRecord::Base.establish_connection(:arunit)
           ENV["RAILS_ENV"] = previous_env
-          FileUtils.rm_rf "db"
         end
       end
     end

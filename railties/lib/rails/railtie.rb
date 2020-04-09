@@ -42,7 +42,7 @@ module Rails
   #   end
   #
   #   # lib/my_gem.rb
-  #   require 'my_gem/railtie' if defined?(Rails::Railtie)
+  #   require "my_gem/railtie" if defined?(Rails::Railtie)
   #
   # == Initializers
   #
@@ -91,7 +91,7 @@ module Rails
   #
   #   class MyRailtie < Rails::Railtie
   #     rake_tasks do
-  #       load 'path/to/my_railtie.tasks'
+  #       load "path/to/my_railtie.tasks"
   #     end
   #   end
   #
@@ -101,7 +101,7 @@ module Rails
   #
   #   class MyRailtie < Rails::Railtie
   #     generators do
-  #       require 'path/to/my_railtie_generator'
+  #       require "path/to/my_railtie_generator"
   #     end
   #   end
   #
@@ -192,6 +192,7 @@ module Rails
             super
           end
         end
+        ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
 
         # receives an instance variable identifier, set the variable value if is
         # blank and append given block to value, which will be used later in

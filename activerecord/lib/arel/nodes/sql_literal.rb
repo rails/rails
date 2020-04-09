@@ -11,6 +11,9 @@ module Arel # :nodoc: all
       def encode_with(coder)
         coder.scalar = self.to_s
       end
+
+      def fetch_attribute
+      end
     end
   end
 end

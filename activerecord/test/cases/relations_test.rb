@@ -2050,6 +2050,27 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 1, posts.unscope(where: :body).count
   end
 
+  def test_unscope_with_arel_sql
+    posts = Post.where(Arel.sql("'Welcome to the weblog'").eq(Post.arel_attribute(:title)))
+
+    assert_equal 1, posts.count
+    assert_equal Post.count, posts.unscope(where: :title).count
+
+    posts = Post.where(Arel.sql("posts.title").eq("Welcome to the weblog"))
+
+    assert_equal 1, posts.count
+    assert_equal 1, posts.unscope(where: :title).count
+  end
+
+  def test_unscope_grouped_where
+    posts = Post.where(
+      title: ["Welcome to the weblog", "So I was thinking", nil]
+    )
+
+    assert_equal 2, posts.count
+    assert_equal Post.count, posts.unscope(where: :title).count
+  end
+
   def test_locked_should_not_build_arel
     posts = Post.locked
     assert_predicate posts, :locked?

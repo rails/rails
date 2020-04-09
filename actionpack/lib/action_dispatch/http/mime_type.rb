@@ -5,11 +5,13 @@ require "active_support/core_ext/string/starts_ends_with"
 
 module Mime
   class Mimes
+    attr_reader :symbols
+
     include Enumerable
 
     def initialize
       @mimes = []
-      @symbols = nil
+      @symbols = []
     end
 
     def each
@@ -18,15 +20,16 @@ module Mime
 
     def <<(type)
       @mimes << type
-      @symbols = nil
+      @symbols << type.to_sym
     end
 
     def delete_if
-      @mimes.delete_if { |x| yield x }.tap { @symbols = nil }
-    end
-
-    def symbols
-      @symbols ||= map(&:to_sym)
+      @mimes.delete_if do |x|
+        if yield x
+          @symbols.delete(x.to_sym)
+          true
+        end
+      end
     end
   end
 
@@ -225,13 +228,13 @@ module Mime
     MIME_NAME = "[a-zA-Z0-9][a-zA-Z0-9#{Regexp.escape('!#$&-^_.+')}]{0,126}"
     MIME_PARAMETER_KEY = "[a-zA-Z0-9][a-zA-Z0-9#{Regexp.escape('!#$&-^_.+')}]{0,126}"
     MIME_PARAMETER_VALUE = "#{Regexp.escape('"')}?[a-zA-Z0-9][a-zA-Z0-9#{Regexp.escape('!#$&-^_.+')}]{0,126}#{Regexp.escape('"')}?"
-    MIME_PARAMETER = "\s*\;\s+#{MIME_PARAMETER_KEY}(?:\=#{MIME_PARAMETER_VALUE})?"
+    MIME_PARAMETER = "\s*\;\s*#{MIME_PARAMETER_KEY}(?:\=#{MIME_PARAMETER_VALUE})?"
     MIME_REGEXP = /\A(?:\*\/\*|#{MIME_NAME}\/(?:\*|#{MIME_NAME})(?:\s*#{MIME_PARAMETER}\s*)*)\z/
 
     class InvalidMimeType < StandardError; end
 
     def initialize(string, symbol = nil, synonyms = [])
-      if string.nil? || ! MIME_REGEXP.match?(string)
+      unless MIME_REGEXP.match?(string)
         raise InvalidMimeType, "#{string.inspect} is not a valid MIME type"
       end
       @symbol, @synonyms = symbol, synonyms
@@ -336,6 +339,10 @@ module Mime
 
     def nil?
       true
+    end
+
+    def to_s
+      ""
     end
 
     def ref; end

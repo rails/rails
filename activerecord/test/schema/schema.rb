@@ -117,8 +117,13 @@ ActiveRecord::Schema.define do
     t.column :cover, :string, default: "hard"
     t.string :isbn, **case_sensitive_options
     t.datetime :published_on
+    t.boolean :boolean_status
     t.index [:author_id, :name], unique: true
     t.index :isbn, where: "published_on IS NOT NULL", unique: true
+
+    t.datetime :created_at
+    t.datetime :updated_at
+    t.date :updated_on
   end
 
   create_table :booleans, force: true do |t|
@@ -579,10 +584,13 @@ ActiveRecord::Schema.define do
   create_table :numeric_data, force: true do |t|
     t.decimal :bank_balance, precision: 10, scale: 2
     t.decimal :big_bank_balance, precision: 15, scale: 2
+    t.decimal :unscaled_bank_balance, precision: 10
     t.decimal :world_population, precision: 20, scale: 0
     t.decimal :my_house_population, precision: 2, scale: 0
+    t.decimal :decimal_number
     t.decimal :decimal_number_with_default, precision: 3, scale: 2, default: 2.78
     t.float   :temperature
+    t.decimal :decimal_number_big_precision, precision: 20
     # Oracle/SQLServer supports precision up to 38
     if current_adapter?(:OracleAdapter, :SQLServerAdapter)
       t.decimal :atoms_in_universe, precision: 38, scale: 0

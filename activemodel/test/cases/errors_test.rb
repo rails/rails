@@ -103,6 +103,15 @@ class ErrorsTest < ActiveModel::TestCase
     assert_empty person.errors
   end
 
+  test "clear errors by key" do
+    person = Person.new
+    person.validate!
+
+    assert_equal 1, person.errors.count
+    assert_deprecated { person.errors[:name].clear }
+    assert_empty person.errors
+  end
+
   test "error access is indifferent" do
     errors = ActiveModel::Errors.new(Person.new)
     errors.add(:name, "omg")
@@ -156,6 +165,30 @@ class ErrorsTest < ActiveModel::TestCase
     assert_deprecated do
       assert_equal [], errors.keys
     end
+  end
+
+  test "attribute_names returns the error attributes" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:foo, "omg")
+    errors.add(:baz, "zomg")
+
+    assert_equal [:foo, :baz], errors.attribute_names
+  end
+
+  test "attribute_names only returns unique attribute names" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:foo, "omg")
+    errors.add(:foo, "zomg")
+
+    assert_equal [:foo], errors.attribute_names
+  end
+
+  test "attribute_names returns an empty array after try to get a message only" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.messages[:foo]
+    errors.messages[:baz]
+
+    assert_equal [], errors.attribute_names
   end
 
   test "detecting whether there are errors with empty?, blank?, include?" do
@@ -617,6 +650,15 @@ class ErrorsTest < ActiveModel::TestCase
       },
       errors.details
     )
+  end
+
+  test "messages delete (deprecated)" do
+    person = Person.new
+    person.validate!
+
+    assert_equal 1, person.errors.count
+    assert_deprecated { person.errors.messages.delete(:name) }
+    assert_empty person.errors
   end
 
   test "group_by_attribute" do

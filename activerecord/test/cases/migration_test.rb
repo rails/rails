@@ -155,6 +155,23 @@ class MigrationTest < ActiveRecord::TestCase
     connection.drop_table :testings, if_exists: true
   end
 
+  def test_create_table_with_indexes_and_if_not_exists_true
+    connection = Person.connection
+    connection.create_table :testings, force: true do |t|
+      t.references :people
+      t.string :foo
+    end
+
+    assert_nothing_raised do
+      connection.create_table :testings, if_not_exists: true do |t|
+        t.references :people
+        t.string :foo
+      end
+    end
+  ensure
+    connection.drop_table :testings, if_exists: true
+  end
+
   def test_create_table_with_force_true_does_not_drop_nonexisting_table
     # using a copy as we need the drop_table method to
     # continue to work for the ensure block of the test
@@ -167,6 +184,180 @@ class MigrationTest < ActiveRecord::TestCase
     end
   ensure
     Person.connection.drop_table :testings2, if_exists: true
+  end
+
+  def test_remove_column_with_if_not_exists_not_set
+    migration_a = Class.new(ActiveRecord::Migration::Current) {
+      def version; 100 end
+      def migrate(x)
+        add_column "people", "last_name", :string
+      end
+    }.new
+
+    migration_b = Class.new(ActiveRecord::Migration::Current) {
+      def version; 101 end
+      def migrate(x)
+        remove_column "people", "last_name"
+      end
+    }.new
+
+    migration_c = Class.new(ActiveRecord::Migration::Current) {
+      def version; 102 end
+      def migrate(x)
+        remove_column "people", "last_name"
+      end
+    }.new
+
+    ActiveRecord::Migrator.new(:up, [migration_a], @schema_migration, 100).migrate
+    assert_column Person, :last_name, "migration_a should have added the last_name column on people"
+
+    ActiveRecord::Migrator.new(:up, [migration_b], @schema_migration, 101).migrate
+    assert_no_column Person, :last_name, "migration_b should have dropped the last_name column on people"
+
+    migrator = ActiveRecord::Migrator.new(:up, [migration_c], @schema_migration, 102)
+
+    if current_adapter?(:SQLite3Adapter)
+      assert_nothing_raised do
+        migrator.migrate
+      end
+    else
+      error = assert_raises do
+        migrator.migrate
+      end
+
+      if current_adapter?(:Mysql2Adapter)
+        if ActiveRecord::Base.connection.mariadb?
+          assert_match(/Can't DROP COLUMN `last_name`; check that it exists/, error.message)
+        else
+          assert_match(/check that column\/key exists/, error.message)
+        end
+      elsif current_adapter?(:PostgreSQLAdapter)
+        assert_match(/column \"last_name\" of relation \"people\" does not exist/, error.message)
+      end
+    end
+  ensure
+    Person.reset_column_information
+  end
+
+  def test_remove_column_with_if_exists_set
+    migration_a = Class.new(ActiveRecord::Migration::Current) {
+      def version; 100 end
+      def migrate(x)
+        add_column "people", "last_name", :string
+      end
+    }.new
+
+    migration_b = Class.new(ActiveRecord::Migration::Current) {
+      def version; 101 end
+      def migrate(x)
+        remove_column "people", "last_name"
+      end
+    }.new
+
+    migration_c = Class.new(ActiveRecord::Migration::Current) {
+      def version; 102 end
+      def migrate(x)
+        remove_column "people", "last_name", if_exists: true
+      end
+    }.new
+
+    ActiveRecord::Migrator.new(:up, [migration_a], @schema_migration, 100).migrate
+    assert_column Person, :last_name, "migration_a should have added the last_name column on people"
+
+    ActiveRecord::Migrator.new(:up, [migration_b], @schema_migration, 101).migrate
+    assert_no_column Person, :last_name, "migration_b should have dropped the last_name column on people"
+
+    migrator = ActiveRecord::Migrator.new(:up, [migration_c], @schema_migration, 102)
+
+    assert_nothing_raised do
+      migrator.migrate
+    end
+  ensure
+    Person.reset_column_information
+  end
+
+  def test_add_column_with_if_not_exists_not_set
+    migration_a = Class.new(ActiveRecord::Migration::Current) {
+      def version; 100 end
+      def migrate(x)
+        add_column "people", "last_name", :string
+      end
+    }.new
+
+    migration_b = Class.new(ActiveRecord::Migration::Current) {
+      def version; 101 end
+      def migrate(x)
+        add_column "people", "last_name", :string
+      end
+    }.new
+
+    ActiveRecord::Migrator.new(:up, [migration_a], @schema_migration, 100).migrate
+    assert_column Person, :last_name, "migration_a should have created the last_name column on people"
+
+    assert_raises do
+      ActiveRecord::Migrator.new(:up, [migration_b], @schema_migration, 101).migrate
+    end
+  ensure
+    Person.reset_column_information
+    if Person.column_names.include?("last_name")
+      Person.connection.remove_column("people", "last_name")
+    end
+  end
+
+  def test_add_column_with_if_not_exists_set_to_true
+    migration_a = Class.new(ActiveRecord::Migration::Current) {
+      def version; 100 end
+      def migrate(x)
+        add_column "people", "last_name", :string
+      end
+    }.new
+
+    migration_b = Class.new(ActiveRecord::Migration::Current) {
+      def version; 101 end
+      def migrate(x)
+        add_column "people", "last_name", :string, if_not_exists: true
+      end
+    }.new
+
+    ActiveRecord::Migrator.new(:up, [migration_a], @schema_migration, 100).migrate
+    assert_column Person, :last_name, "migration_a should have created the last_name column on people"
+
+    assert_nothing_raised do
+      ActiveRecord::Migrator.new(:up, [migration_b], @schema_migration, 101).migrate
+    end
+  ensure
+    Person.reset_column_information
+    if Person.column_names.include?("last_name")
+      Person.connection.remove_column("people", "last_name")
+    end
+  end
+
+  def test_add_column_with_if_not_exists_set_to_true_still_raises_if_type_is_different
+    migration_a = Class.new(ActiveRecord::Migration::Current) {
+      def version; 100 end
+      def migrate(x)
+        add_column "people", "last_name", :string
+      end
+    }.new
+
+    migration_b = Class.new(ActiveRecord::Migration::Current) {
+      def version; 101 end
+      def migrate(x)
+        add_column "people", "last_name", :boolean, if_not_exists: true
+      end
+    }.new
+
+    ActiveRecord::Migrator.new(:up, [migration_a], @schema_migration, 100).migrate
+    assert_column Person, :last_name, "migration_a should have created the last_name column on people"
+
+    assert_raises do
+      ActiveRecord::Migrator.new(:up, [migration_b], @schema_migration, 101).migrate
+    end
+  ensure
+    Person.reset_column_information
+    if Person.column_names.include?("last_name")
+      Person.connection.remove_column("people", "last_name")
+    end
   end
 
   def test_migration_instance_has_connection
@@ -708,6 +899,17 @@ class MigrationTest < ActiveRecord::TestCase
         "without an advisory lock, the Migrator should not make any changes, but it did."
     end
 
+    def test_with_advisory_lock_doesnt_release_closed_connections
+      migration = Class.new(ActiveRecord::Migration::Current).new
+      migrator = ActiveRecord::Migrator.new(:up, [migration], @schema_migration, 100)
+
+      silence_stream($stderr) do
+        migrator.send(:with_advisory_lock) do
+          ActiveRecord::Base.establish_connection :arunit
+        end
+      end
+    end
+
     def test_with_advisory_lock_raises_the_right_error_when_it_fails_to_release_lock
       migration = Class.new(ActiveRecord::Migration::Current).new
       migrator = ActiveRecord::Migrator.new(:up, [migration], @schema_migration, 100)
@@ -716,7 +918,7 @@ class MigrationTest < ActiveRecord::TestCase
       e = assert_raises(ActiveRecord::ConcurrentMigrationError) do
         silence_stream($stderr) do
           migrator.send(:with_advisory_lock) do
-            ActiveRecord::Base.connection.release_advisory_lock(lock_id)
+            ActiveRecord::AdvisoryLockBase.connection.release_advisory_lock(lock_id)
           end
         end
       end

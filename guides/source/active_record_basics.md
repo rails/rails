@@ -133,8 +133,7 @@ NOTE: While these column names are optional, they are in fact reserved by Active
 Creating Active Record Models
 -----------------------------
 
-It is very easy to create Active Record models. All you have to do is to
-subclass the `ApplicationRecord` class and you're good to go:
+To create Active Record models, subclass the `ApplicationRecord` class and you're good to go:
 
 ```ruby
 class Product < ApplicationRecord
@@ -367,7 +366,7 @@ database that Active Record supports using `rake`. Here's a migration that
 creates a table:
 
 ```ruby
-class CreatePublications < ActiveRecord::Migration[5.0]
+class CreatePublications < ActiveRecord::Migration[6.0]
   def change
     create_table :publications do |t|
       t.string :title
@@ -385,8 +384,8 @@ end
 ```
 
 Rails keeps track of which files have been committed to the database and
-provides rollback features. To actually create the table, you'd run `rails db:migrate`
-and to roll it back, `rails db:rollback`.
+provides rollback features. To actually create the table, you'd run `bin/rails db:migrate`
+and to roll it back, `bin/rails db:rollback`.
 
 Note that the above code is database-agnostic: it will run in MySQL,
 PostgreSQL, Oracle, and others. You can learn more about migrations in the

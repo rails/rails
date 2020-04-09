@@ -38,8 +38,8 @@ files.
 Active Storage uses two tables in your application’s database named
 `active_storage_blobs` and `active_storage_attachments`. After creating a new
 application (or upgrading your application to Rails 5.2), run
-`rails active_storage:install` to generate a migration that creates these
-tables. Use `rails db:migrate` to run the migration.
+`bin/rails active_storage:install` to generate a migration that creates these
+tables. Use `bin/rails db:migrate` to run the migration.
 
 WARNING: `active_storage_attachments` is a polymorphic join table that stores your model's class name. If your model's class name changes, you will need to run a migration on this table to update the underlying `record_type` to your model's new class name.
 
@@ -118,6 +118,19 @@ amazon:
   secret_access_key: ""
   region: ""
   bucket: ""
+```
+
+Optionally provide a Hash of upload options:
+
+```yaml
+amazon:
+  service: S3
+  access_key_id: ""
+  secret_access_key: ""
+  region: ""
+  bucket: ""
+  upload: 
+    server_side_encryption: "" # 'aws:kms' or 'AES256'
 ```
 
 Add the [`aws-sdk-s3`](https://github.com/aws/aws-sdk-ruby) gem to your `Gemfile`:
@@ -447,7 +460,7 @@ available configuration options in [Configuring Rails Applications](configuring.
 If you need to create a link from outside of controller/view context (Background
 jobs, Cronjobs, etc.), you can access the rails_blob_path like this:
 
-```
+```ruby
 Rails.application.routes.url_helpers.rails_blob_path(user.avatar, only_path: true)
 ```
 
@@ -473,19 +486,27 @@ message.video.open do |file|
 end
 ```
 
+It's important to know that the file are not yet available in the `after_create` callback but in the `after_create_commit` only.
+
+Analyzing Files
+---------------
+
+Active Storage [analyzes](https://api.rubyonrails.org/classes/ActiveStorage/Blob/Analyzable.html#method-i-analyze) files once they've been uploaded by queuing a job in Active Job. Analyzed files will store additional information in the metadata hash, including `analyzed: true`. You can check whether a blob has been analyzed by calling `analyzed?` on it.
+
+Image analysis provides `width` and `height` attributes. Video analysis provides these, as well as `duration`, `angle`, and `display_aspect_ratio`.
+
+Analysis requires the `mini_magick` gem. Video analysis also requires the [FFmpeg](https://www.ffmpeg.org/) library, which you must include separately.
+
 Transforming Images
 -------------------
-
-To create a variation of the image, call `variant` on the `Blob`. You can pass
-any transformation to the method supported by the processor. The default
-processor is [MiniMagick](https://github.com/minimagick/minimagick), but you
-can also use [Vips](https://www.rubydoc.info/gems/ruby-vips/Vips/Image).
 
 To enable variants, add the `image_processing` gem to your `Gemfile`:
 
 ```ruby
-gem 'image_processing', '~> 1.2'
+gem 'image_processing'
 ```
+
+To create a variation of an image, call `variant` on the `Blob`. You can pass any transformation to the method supported by the processor. The default processor for Active Storage is MiniMagick, but you can also use [Vips](https://www.rubydoc.info/gems/ruby-vips/Vips/Image).
 
 When the browser hits the variant URL, Active Storage will lazily transform the
 original blob into the specified format and redirect to its new service
@@ -656,9 +677,10 @@ addEventListener("direct-upload:initialize", event => {
   target.insertAdjacentHTML("beforebegin", `
     <div id="direct-upload-${id}" class="direct-upload direct-upload--pending">
       <div id="direct-upload-progress-${id}" class="direct-upload__progress" style="width: 0%"></div>
-      <span class="direct-upload__filename">${file.name}</span>
+      <span class="direct-upload__filename"></span>
     </div>
   `)
+  target.previousElementSibling.querySelector(`.direct-upload__filename`).textContent = file.name
 })
 
 addEventListener("direct-upload:start", event => {

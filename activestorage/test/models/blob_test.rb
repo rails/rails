@@ -261,13 +261,12 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
   end
 
   private
-    def expected_url_for(blob, disposition: :attachment, filename: nil, content_type: nil)
+    def expected_url_for(blob, disposition: :attachment, filename: nil, content_type: nil, service_name: :local)
       filename ||= blob.filename
       content_type ||= blob.content_type
 
-      query = { disposition: ActionDispatch::Http::ContentDisposition.format(disposition: disposition, filename: filename.sanitized), content_type: content_type }
-      key_params = { key: blob.key }.merge(query)
+      key_params = { key: blob.key, disposition: ActionDispatch::Http::ContentDisposition.format(disposition: disposition, filename: filename.sanitized), content_type: content_type, service_name: service_name }
 
-      "https://example.com/rails/active_storage/disk/#{ActiveStorage.verifier.generate(key_params, expires_in: 5.minutes, purpose: :blob_key)}/#{filename}?#{query.to_param}"
+      "https://example.com/rails/active_storage/disk/#{ActiveStorage.verifier.generate(key_params, expires_in: 5.minutes, purpose: :blob_key)}/#{filename}"
     end
 end

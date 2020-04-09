@@ -16,7 +16,7 @@ A key difference to how Active Storage works compared to other attachment soluti
 
 ## Installation
 
-Run `rails active_storage:install` to copy over active_storage migrations.
+Run `bin/rails active_storage:install` to copy over active_storage migrations.
 
 NOTE: If the task cannot be found, verify that `require "active_storage/engine"` is present in `config/application.rb`.
 
@@ -159,4 +159,4 @@ Bug reports for the Ruby on Rails project can be filed here:
 
 Feature requests should be discussed on the rails-core mailing list here:
 
-* https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core
+* https://discuss.rubyonrails.org/c/rubyonrails-core

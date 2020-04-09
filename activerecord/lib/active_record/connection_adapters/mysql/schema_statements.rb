@@ -70,7 +70,7 @@ module ActiveRecord
           end
         end
 
-        def remove_column(table_name, column_name, type = nil, options = {})
+        def remove_column(table_name, column_name, type = nil, **options)
           if foreign_key_exists?(table_name, column: column_name)
             remove_foreign_key(table_name, column: column_name)
           end
@@ -162,7 +162,7 @@ module ActiveRecord
             type_metadata = fetch_type_metadata(field[:Type], field[:Extra])
             default, default_function = field[:Default], nil
 
-            if type_metadata.type == :datetime && default && /\ACURRENT_TIMESTAMP(?:\([0-6]?\))?\z/i.match?(default)
+            if type_metadata.type == :datetime && /\ACURRENT_TIMESTAMP(?:\([0-6]?\))?\z/i.match?(default)
               default, default_function = nil, default
             elsif type_metadata.extra == "DEFAULT_GENERATED"
               default = +"(#{default})" unless default.start_with?("(")

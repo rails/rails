@@ -162,6 +162,14 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     assert_not @params.key?(:address)
   end
 
+  test "member? returns true if the given key is present in the params" do
+    assert @params.member?(:person)
+  end
+
+  test "member? returns false if the given key is not present in the params" do
+    assert_not @params.member?(:address)
+  end
+
   test "keys returns an array of the keys of the params" do
     assert_equal ["person"], @params.keys
     assert_equal ["age", "name", "addresses"], @params[:person].keys

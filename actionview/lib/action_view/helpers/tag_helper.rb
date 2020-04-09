@@ -13,15 +13,15 @@ module ActionView
       include CaptureHelper
       include OutputSafetyHelper
 
-      BOOLEAN_ATTRIBUTES = %w(allowfullscreen async autofocus autoplay checked
-                              compact controls declare default defaultchecked
-                              defaultmuted defaultselected defer disabled
-                              enabled formnovalidate hidden indeterminate inert
-                              ismap itemscope loop multiple muted nohref
-                              noresize noshade novalidate nowrap open
-                              pauseonexit readonly required reversed scoped
-                              seamless selected sortable truespeed typemustmatch
-                              visible).to_set
+      BOOLEAN_ATTRIBUTES = %w(allowfullscreen allowpaymentrequest async autofocus
+                              autoplay checked compact controls declare default
+                              defaultchecked defaultmuted defaultselected defer
+                              disabled enabled formnovalidate hidden indeterminate
+                              inert ismap itemscope loop multiple muted nohref
+                              nomodule noresize noshade novalidate nowrap open
+                              pauseonexit playsinline readonly required reversed
+                              scoped seamless selected sortable truespeed
+                              typemustmatch visible).to_set
 
       BOOLEAN_ATTRIBUTES.merge(BOOLEAN_ATTRIBUTES.map(&:to_sym))
       BOOLEAN_ATTRIBUTES.freeze
@@ -92,7 +92,9 @@ module ActionView
         end
 
         def tag_option(key, value, escape)
-          if value.is_a?(Array)
+          case value
+          when Array, Hash
+            value = TagHelper.build_tag_values(value) if key.to_s == "class"
             value = escape ? safe_join(value, " ") : value.join(" ")
           else
             value = escape ? ERB::Util.unwrapped_html_escape(value) : value.to_s
@@ -240,6 +242,9 @@ module ActionView
       #
       #   tag("div", data: { name: 'Stephen', city_state: %w(Chicago IL) })
       #   # => <div data-name="Stephen" data-city-state="[&quot;Chicago&quot;,&quot;IL&quot;]" />
+      #
+      #   tag("div", class: { highlight: current_user.admin? })
+      #   # => <div class="highlight" />
       def tag(name = nil, options = nil, open = false, escape = true)
         if name.nil?
           tag_builder
@@ -267,6 +272,8 @@ module ActionView
       #    # => <div class="strong"><p>Hello world!</p></div>
       #   content_tag(:div, "Hello world!", class: ["strong", "highlight"])
       #    # => <div class="strong highlight">Hello world!</div>
+      #   content_tag(:div, "Hello world!", class: ["strong", { highlight: current_user.admin? }])
+      #    # => <div class="strong highlight">Hello world!</div>
       #   content_tag("select", options, multiple: true)
       #    # => <select multiple="multiple">...options...</select>
       #
@@ -281,6 +288,19 @@ module ActionView
         else
           tag_builder.content_tag_string(name, content_or_options_with_block, options, escape)
         end
+      end
+
+      # Returns a string of class names built from +args+.
+      #
+      # ==== Examples
+      #   class_names("foo", "bar")
+      #    # => "foo bar"
+      #   class_names({ foo: true, bar: false })
+      #    # => "foo"
+      #   class_names(nil, false, 123, "", "foo", { bar: true })
+      #    # => "123 foo bar"
+      def class_names(*args)
+        safe_join(build_tag_values(*args), " ")
       end
 
       # Returns a CDATA section with the given +content+. CDATA sections
@@ -313,6 +333,26 @@ module ActionView
       end
 
       private
+        def build_tag_values(*args)
+          tag_values = []
+
+          args.each do |tag_value|
+            case tag_value
+            when Hash
+              tag_value.each do |key, val|
+                tag_values << key.to_s if val && key.present?
+              end
+            when Array
+              tag_values.concat build_tag_values(*tag_value)
+            else
+              tag_values << tag_value.to_s if tag_value.present?
+            end
+          end
+
+          tag_values
+        end
+        module_function :build_tag_values
+
         def tag_builder
           @tag_builder ||= TagBuilder.new(self)
         end

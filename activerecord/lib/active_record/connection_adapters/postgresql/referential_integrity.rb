@@ -26,7 +26,7 @@ Rails needs superuser privileges to disable referential integrity.
 
     cause: #{original_exception&.message}
 
-              WARNING
+            WARNING
             raise e
           end
 

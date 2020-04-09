@@ -157,6 +157,10 @@ module ActiveRecord
         true
       end
 
+      def supports_partitioned_indexes?
+        database_version >= 110_000
+      end
+
       def supports_partial_index?
         true
       end
@@ -450,6 +454,7 @@ module ActiveRecord
           sql << " ON CONFLICT #{insert.conflict_target} DO NOTHING"
         elsif insert.update_duplicates?
           sql << " ON CONFLICT #{insert.conflict_target} DO UPDATE SET "
+          sql << insert.touch_model_timestamps_unless { |column| "#{insert.model.quoted_table_name}.#{column} IS NOT DISTINCT FROM excluded.#{column}" }
           sql << insert.updatable_columns.map { |column| "#{column}=excluded.#{column}" }.join(",")
         end
 
@@ -620,7 +625,7 @@ module ActiveRecord
         end
 
         def has_default_function?(default_value, default)
-          !default_value && default && %r{\w+\(.*\)|\(.*\)::\w+|CURRENT_DATE|CURRENT_TIMESTAMP}.match?(default)
+          !default_value && %r{\w+\(.*\)|\(.*\)::\w+|CURRENT_DATE|CURRENT_TIMESTAMP}.match?(default)
         end
 
         def load_additional_types(oids = nil)
@@ -633,7 +638,7 @@ module ActiveRecord
           SQL
 
           if oids
-            query += "WHERE t.oid::integer IN (%s)" % oids.join(", ")
+            query += "WHERE t.oid IN (%s)" % oids.join(", ")
           else
             query += initializer.query_conditions_for_initial_load
           end
@@ -657,8 +662,11 @@ module ActiveRecord
           else
             result = exec_cache(sql, name, binds)
           end
-          ret = yield result
-          result.clear
+          begin
+            ret = yield result
+          ensure
+            result.clear
+          end
           ret
         end
 
@@ -714,11 +722,10 @@ module ActiveRecord
         #
         # Check here for more details:
         # https://git.postgresql.org/gitweb/?p=postgresql.git;a=blob;f=src/backend/utils/cache/plancache.c#l573
-        CACHED_PLAN_HEURISTIC = "cached plan must not change result type"
         def is_cached_plan_failure?(e)
           pgerror = e.cause
-          code = pgerror.result.result_error_field(PG::PG_DIAG_SQLSTATE)
-          code == FEATURE_NOT_SUPPORTED && pgerror.message.include?(CACHED_PLAN_HEURISTIC)
+          pgerror.result.result_error_field(PG::PG_DIAG_SQLSTATE) == FEATURE_NOT_SUPPORTED &&
+            pgerror.result.result_error_field(PG::PG_DIAG_SOURCE_FUNCTION) == "RevalidateCachedQuery"
         rescue
           false
         end

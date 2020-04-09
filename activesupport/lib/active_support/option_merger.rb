@@ -5,7 +5,7 @@ require "active_support/core_ext/hash/deep_merge"
 module ActiveSupport
   class OptionMerger #:nodoc:
     instance_methods.each do |method|
-      undef_method(method) unless method.match?(/^(__|instance_eval|class|object_id)/)
+      undef_method(method) unless method.to_s.start_with?("__", "instance_eval", "class", "object_id")
     end
 
     def initialize(context, options)
@@ -24,9 +24,20 @@ module ActiveSupport
           options = @options
         end
 
-        if options
-          @context.__send__(method, *arguments, **options, &block)
-        else
+        invoke_method(method, arguments, options, &block)
+      end
+
+      if RUBY_VERSION >= "2.7"
+        def invoke_method(method, arguments, options, &block)
+          if options
+            @context.__send__(method, *arguments, **options, &block)
+          else
+            @context.__send__(method, *arguments, &block)
+          end
+        end
+      else
+        def invoke_method(method, arguments, options, &block)
+          arguments << options if options
           @context.__send__(method, *arguments, &block)
         end
       end

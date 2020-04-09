@@ -280,7 +280,7 @@ module ActionController #:nodoc:
 
       # Check for cross-origin JavaScript responses.
       def non_xhr_javascript_response? # :doc:
-        media_type && %r(\A(?:text|application)/javascript).match?(media_type) && !request.xhr?
+        %r(\A(?:text|application)/javascript).match?(media_type) && !request.xhr?
       end
 
       AUTHENTICITY_TOKEN_LENGTH = 32
@@ -328,7 +328,7 @@ module ActionController #:nodoc:
         one_time_pad = SecureRandom.random_bytes(AUTHENTICITY_TOKEN_LENGTH)
         encrypted_csrf_token = xor_byte_strings(one_time_pad, raw_token)
         masked_token = one_time_pad + encrypted_csrf_token
-        Base64.strict_encode64(masked_token)
+        Base64.urlsafe_encode64(masked_token, padding: false)
       end
 
       # Checks the client's masked token to see if it matches the
@@ -340,7 +340,7 @@ module ActionController #:nodoc:
         end
 
         begin
-          masked_token = Base64.strict_decode64(encoded_masked_token)
+          masked_token = Base64.urlsafe_decode64(encoded_masked_token)
         rescue ArgumentError # encoded_masked_token is invalid Base64
           return false
         end
@@ -381,7 +381,7 @@ module ActionController #:nodoc:
         if per_form_csrf_tokens
           correct_token = per_form_csrf_token(
             session,
-            normalize_action_path(request.fullpath),
+            request.path.chomp("/"),
             request.request_method
           )
 
@@ -392,8 +392,8 @@ module ActionController #:nodoc:
       end
 
       def real_csrf_token(session) # :doc:
-        session[:_csrf_token] ||= SecureRandom.base64(AUTHENTICITY_TOKEN_LENGTH)
-        Base64.strict_decode64(session[:_csrf_token])
+        session[:_csrf_token] ||= SecureRandom.urlsafe_base64(AUTHENTICITY_TOKEN_LENGTH, padding: false)
+        Base64.urlsafe_decode64(session[:_csrf_token])
       end
 
       def per_form_csrf_token(session, action_path, method) # :doc:

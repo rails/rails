@@ -3,8 +3,8 @@
 module ActiveSupport
   module Messages
     module Rotator # :nodoc:
-      def initialize(*, on_rotation: nil, **options)
-        super
+      def initialize(*secrets, on_rotation: nil, **options)
+        super(*secrets, **options)
 
         @options   = options
         @rotations = []

@@ -51,7 +51,7 @@ This will help you with the creation of new files and changes of old files in an
 interactive session.
 
 ```bash
-$ rails app:update
+$ bin/rails app:update
    identical  config/boot.rb
        exist  config
     conflict  config/routes.rb
@@ -72,6 +72,80 @@ The new Rails version might have different configuration defaults than the previ
 
 To allow you to upgrade to new defaults one by one, the update task has created a file `config/initializers/new_framework_defaults.rb`. Once your application is ready to run with new defaults, you can remove this file and flip the `config.load_defaults` value.
 
+Upgrading from Rails 6.0 to Rails 6.1
+-------------------------------------
+
+### `Rails.application.config_for` return value no longer supports access with String keys.
+
+Given a configuration file like this:
+
+```yaml
+# config/example.yml
+development:
+  options:
+    key: value
+```
+
+```ruby
+Rails.application.config_for(:example).options
+```
+
+This used to return a hash on which you could access values with String keys. That was deprecated in 6.0, and now doesn't work anymore.
+
+You can call `with_indifferent_access` on the return value of `config_for` if you still want to access values with String keys, e.g.:
+
+```ruby
+Rails.application.config_for(:example).with_indifferent_access.dig('options', 'key')
+```
+
+
+### Response's Content-Type when using `respond_to#any`
+
+The Content-Type header returned in the response can differ from what Rails 6.0 returned,
+more specifically if your application uses `respond_to { |format| format.any }`.
+The Content-Type will now be based on the given block rather than the request's format.
+
+Example:
+
+```ruby
+  def my_action
+    respond_to do |format|
+      format.any { render(json: { foo: 'bar' }) }
+    end
+  end
+
+  get('my_action.csv')
+```
+
+Previous behaviour was returning a `text/csv` response's Content-Type which is inaccurate since a JSON response is being rendered.
+Current behaviour correctly returns a `application/json` response's Content-Type.
+
+If your application relies on the previous incorrect behaviour, you are encouraged to specify
+which formats your action accepts, i.e.
+
+```ruby
+  format.any(:xml, :json) { render request.format.to_sym => @people }
+```
+
+### `ActiveSupport::Callbacks#halted_callback_hook` now receive a second argument
+
+Active Support allows you to override the `halted_callback_hook` whenever a callback
+halts the chain. This method now receive a second argument which is the name of the callback being halted.
+If you have classes that override this method, make sure it accepts two arguments. Note that this is a breaking
+change without a prior deprecation cycle (for performance reasons).
+
+Example:
+
+```ruby
+  class Book < ApplicationRecord
+    before_save { throw(:abort) }
+    before_create { throw(:abort) }
+
+    def halted_callback_hook(filter, callback_name) # => This method now accepts 2 arguments instead of 1
+      Rails.logger.info("Book couldn't be #{callback_name}d")
+    end
+  end
+```
 
 Upgrading from Rails 5.2 to Rails 6.0
 -------------------------------------
@@ -621,7 +695,7 @@ See [#19034](https://github.com/rails/rails/pull/19034) for more details.
 continue using these methods in your controller tests, add `gem 'rails-controller-testing'` to
 your `Gemfile`.
 
-If you are using Rspec for testing, please see the extra configuration required in the gem's
+If you are using RSpec for testing, please see the extra configuration required in the gem's
 documentation.
 
 #### New behavior when uploading files
@@ -669,7 +743,7 @@ it.
 Rails 5 adds the ability to run tasks and tests through `bin/rails` instead of rake. Generally
 these changes are in parallel with rake, but some were ported over altogether. As the `rails`
 command already looks for and runs `bin/rails`, we recommend you to use the shorter `rails`
-over `bin/rails.
+over `bin/rails`.
 
 To use the new test runner simply type `rails test`.
 
@@ -789,6 +863,26 @@ This default will be automatically configured in new applications. If existing a
 want to add this feature it will need to be turned on in an initializer.
 
     config.active_record.belongs_to_required_by_default = true
+
+The configuration is by default global for all your models, but you can
+override it on a per model basis. This should help you migrate all your models to have their
+associations required by default.
+
+```ruby
+class Book < ApplicationRecord
+  # model is not yet ready to have its association required by default
+
+  self.belongs_to_required_by_default = false
+  belongs_to(:author)
+end
+
+class Car < ApplicationRecord
+  # model is ready to have its association required by default
+
+  self.belongs_to_required_by_default = true
+  belongs_to(:pilot)
+end
+```
 
 #### Per-form CSRF Tokens
 
@@ -1140,7 +1234,7 @@ secrets, you need to:
 
 If your test helper contains a call to
 `ActiveRecord::Migration.check_pending!` this can be removed. The check
-is now done automatically when you `require 'rails/test_help'`, although
+is now done automatically when you `require "rails/test_help"`, although
 leaving this line in your helper is not harmful in any way.
 
 ### Cookies serializer

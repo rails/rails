@@ -68,7 +68,7 @@ module ActiveRecord
         end
 
         READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp(
-          :begin, :commit, :explain, :select, :set, :show, :release, :savepoint, :rollback, :with
+          :close, :declare, :fetch, :move, :set, :show
         ) # :nodoc:
         private_constant :READ_QUERY
 
@@ -103,7 +103,7 @@ module ActiveRecord
               fmod  = result.fmod i
               types[fname] = get_oid_type(ftype, fmod, fname)
             end
-            ActiveRecord::Result.new(fields, result.values, types)
+            build_result(columns: fields, rows: result.values, column_types: types)
           end
         end
 
@@ -166,8 +166,12 @@ module ActiveRecord
         end
 
         private
-          def build_truncate_statements(*table_names)
-            "TRUNCATE TABLE #{table_names.map(&method(:quote_table_name)).join(", ")}"
+          def execute_batch(statements, name = nil)
+            execute(combine_multi_statements(statements))
+          end
+
+          def build_truncate_statements(table_names)
+            ["TRUNCATE TABLE #{table_names.map(&method(:quote_table_name)).join(", ")}"]
           end
 
           # Returns the current ID of a table's sequence.

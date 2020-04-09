@@ -104,6 +104,15 @@ class ScreenshotHelperTest < ActiveSupport::TestCase
       assert_equal Rails.root.join("tmp/screenshots/0_x.png").to_s, @new_test.send(:image_path)
     end
   end
+
+  test "slashes and backslashes are replaced with dashes in paths" do
+    slash_test = DrivenBySeleniumWithChrome.new("x/y\\z")
+
+    Rails.stub :root, Pathname.getwd do
+      assert_equal Rails.root.join("tmp/screenshots/0_x-y-z.png").to_s, slash_test.send(:image_path)
+      assert_equal Rails.root.join("tmp/screenshots/0_x-y-z.html").to_s, slash_test.send(:html_path)
+    end
+  end
 end
 
 class RackTestScreenshotsTest < DrivenByRackTest

@@ -20,10 +20,7 @@ module ApplicationTests
     def precompile!(env = nil)
       with_env env.to_h do
         quietly do
-          precompile_task = "bin/rails assets:precompile --trace 2>&1"
-          output = Dir.chdir(app_path) { %x[ #{precompile_task} ] }
-          assert $?.success?, output
-          output
+          rails ["assets:precompile", "--trace"]
         end
       end
     end
@@ -37,7 +34,7 @@ module ApplicationTests
 
     def clean_assets!
       quietly do
-        assert Dir.chdir(app_path) { system("bin/rails assets:clobber") }
+        rails ["assets:clobber"]
       end
     end
 
@@ -519,7 +516,7 @@ module ApplicationTests
         Rails.application.routes.draw do
           get '/posts', :to => "posts#index"
         end
-      RUBY
+        RUBY
       end
   end
 end

@@ -6,11 +6,10 @@
   <title><%= yield(:page_title) %></title>
   <link rel="stylesheet" type="text/css" href="stylesheets/style.css" data-turbolinks-track="reload">
   <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
-  <link rel="stylesheet" type="text/css" href="stylesheets/syntaxhighlighter/shCore.css" data-turbolinks-track="reload">
-  <link rel="stylesheet" type="text/css" href="stylesheets/syntaxhighlighter/shThemeRailsGuides.css" data-turbolinks-track="reload">
-  <link rel="stylesheet" type="text/css" href="stylesheets/fixes.css" data-turbolinks-track="reload">
+  <link rel="stylesheet" type="text/css" href="stylesheets/prism/default.css" data-turbolinks-track="reload">
+  <link rel="stylesheet" type="text/css" href="stylesheets/prism/rails-guides.css" data-turbolinks-track="reload">
   <link href="images/favicon.ico" rel="shortcut icon" type="image/x-icon" />
-  <script src="javascripts/syntaxhighlighter.js" data-turbolinks-track="reload"></script>
+  <script src="javascripts/prism.js" data-turbolinks-track="reload"></script>
   <script src="javascripts/turbolinks.js" data-turbolinks-track="reload"></script>
   <script src="javascripts/guides.js" data-turbolinks-track="reload"></script>
   <script src="javascripts/responsive-tables.js" data-turbolinks-track="reload"></script>
@@ -52,7 +51,7 @@
           <a href="index.html" id="guidesMenu" class="guides-index-item nav-item">Guides Index</a>
           <div id="guides" class="clearfix" style="display: none;">
             <hr />
-            <div class="guides-section-container">
+            <dl class="guides-section-container">
               <% documents_by_section.each do |section| %>
                 <div class="guides-section">
                   <dt><%= section['name'] %></dt>
@@ -61,7 +60,7 @@
                   <% end %>
                 </div>
               <% end %>
-            </div>
+            </dl>
           </div>
         </li>
         <li><a class="nav-item" href="contributing_to_ruby_on_rails.html">Contribute</a></li>
@@ -116,7 +115,7 @@
           <%= link_to 'open an issue', 'https://github.com/rails/rails/issues' %>.
         </p>
         <p>And last but not least, any kind of discussion regarding Ruby on Rails
-          documentation is very welcome on the <%= link_to 'rubyonrails-docs mailing list', 'https://groups.google.com/forum/#!forum/rubyonrails-docs' %>.
+          documentation is very welcome on the <%= link_to 'rubyonrails-docs mailing list', 'https://discuss.rubyonrails.org/c/rubyonrails-docs' %>.
         </p>
       </div>
     </div>

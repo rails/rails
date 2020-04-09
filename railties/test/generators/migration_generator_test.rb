@@ -133,6 +133,17 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_remove_migration_with_references_removes_foreign_keys_when_primary_key_uuid
+    migration = "remove_references_from_books"
+    run_generator [migration, "author:belongs_to", "--primary_key_type=uuid"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/remove_reference :books, :author,.*\sforeign_key: true, type: :uuid/, change)
+      end
+    end
+  end
+
   def test_add_migration_with_attributes_and_indices
     migration = "add_title_with_index_and_body_to_posts"
     run_generator [migration, "title:string:index", "body:text", "user_id:integer:uniq"]
@@ -291,6 +302,16 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     assert_migration "db/migrate/create_books.rb" do |content|
       assert_method :change, content do |change|
         assert_match(/create_table :books, id: :uuid/, change)
+      end
+    end
+  end
+
+  def test_add_migration_with_references_options_when_primary_key_uuid
+    migration = "add_references_to_books"
+    run_generator [migration, "author:belongs_to", "--primary_key_type=uuid"]
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/add_reference :books, :author,.*\sforeign_key: true, type: :uuid/, change)
       end
     end
   end

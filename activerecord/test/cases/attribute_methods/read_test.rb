@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "active_support/core_ext/enumerable"
 
 module ActiveRecord
   module AttributeMethods
@@ -30,9 +31,9 @@ module ActiveRecord
           end
 
           def self.columns_hash
-            Hash[attribute_names.map { |name|
-              [name, FakeColumn.new(name)]
-            }]
+            attribute_names.index_with { |name|
+              FakeColumn.new(name)
+            }
           end
         end
       end

@@ -8,9 +8,10 @@ require "active_support/core_ext/integer/time"
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
 
-  <%-# Spring executes the reloaders when files change. %>
+  <%-# Spring executes the reloaders when files change. -%>
   <%- if spring_install? -%>
   config.cache_classes = false
+  config.action_view.cache_template_loading = true
   <%- else -%>
   config.cache_classes = true
   <%- end -%>
@@ -53,6 +54,12 @@ Rails.application.configure do
   <%- end -%>
   # Print deprecation notices to the stderr.
   config.active_support.deprecation = :stderr
+
+  # Raise exceptions for disallowed deprecations
+  config.active_support.disallowed_deprecation = :raise
+
+  # Tell ActiveSupport which deprecating messages to disallow
+  config.active_support.disallowed_deprecation_warnings = []
 
   # Raises error for missing translations.
   # config.action_view.raise_on_missing_translations = true

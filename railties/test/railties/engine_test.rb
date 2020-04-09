@@ -52,7 +52,7 @@ module RailtiesTest
 
       @plugin.write "Rakefile", <<-RUBY
         APP_RAKEFILE = '#{app_path}/Rakefile'
-        load 'rails/tasks/engine.rake'
+        load "rails/tasks/engine.rake"
         task :foo => :environment do
           puts "Task ran"
         end
@@ -200,7 +200,7 @@ module RailtiesTest
 
       @plugin.write "Rakefile", <<-RUBY
         APP_RAKEFILE = '#{app_path}/Rakefile'
-        load 'rails/tasks/engine.rake'
+        load "rails/tasks/engine.rake"
       RUBY
 
       add_to_config "ActiveRecord::Base.timestamped_migrations = false"
@@ -398,18 +398,18 @@ module RailtiesTest
       app_file "app/locales/en.yml", <<-YAML
 en:
   bar: "1"
-YAML
+      YAML
 
       app_file "config/locales/en.yml", <<-YAML
 en:
   foo: "2"
   bar: "2"
-YAML
+      YAML
 
       @plugin.write "config/locales/en.yml", <<-YAML
 en:
   foo: "3"
-YAML
+      YAML
 
       boot_rails
 
@@ -1029,15 +1029,15 @@ YAML
 
       boot_rails
 
-      app_generators = Rails.application.config.generators.options[:rails]
-      assert_equal :mongoid, app_generators[:orm]
-      assert_equal :liquid, app_generators[:template_engine]
-      assert_equal :test_unit, app_generators[:test_framework]
+      app_generators = Rails.application.config.generators
+      assert_equal :mongoid, app_generators.orm
+      assert_equal :liquid, app_generators.template_engine
+      assert_equal :test_unit, app_generators.test_framework
 
-      generators = Bukkits::Engine.config.generators.options[:rails]
-      assert_equal :data_mapper, generators[:orm]
-      assert_equal :haml, generators[:template_engine]
-      assert_equal :rspec, generators[:test_framework]
+      generators = Bukkits::Engine.config.generators
+      assert_equal :data_mapper, generators.orm
+      assert_equal :haml, generators.template_engine
+      assert_equal :rspec, generators.test_framework
     end
 
     test "engine should get default generators with ability to overwrite them" do
@@ -1051,12 +1051,12 @@ YAML
 
       boot_rails
 
-      generators = Bukkits::Engine.config.generators.options[:rails]
-      assert_equal :active_record, generators[:orm]
-      assert_equal :rspec, generators[:test_framework]
+      generators = Bukkits::Engine.config.generators
+      assert_equal :active_record, generators.orm
+      assert_equal :rspec, generators.test_framework
 
-      app_generators = Rails.application.config.generators.options[:rails]
-      assert_equal :test_unit, app_generators[:test_framework]
+      app_generators = Rails.application.config.generators
+      assert_equal :test_unit, app_generators.test_framework
     end
 
     test "do not create table_name_prefix method if it already exists" do
@@ -1532,7 +1532,7 @@ YAML
     test "active_storage:install task works within engine" do
       @plugin.write "Rakefile", <<-RUBY
         APP_RAKEFILE = '#{app_path}/Rakefile'
-        load 'rails/tasks/engine.rake'
+        load "rails/tasks/engine.rake"
       RUBY
 
       Dir.chdir(@plugin.path) do
@@ -1555,8 +1555,8 @@ YAML
 
     # Restrict frameworks to load in order to avoid engine frameworks affect tests.
     def restrict_frameworks
-      remove_from_config("require 'rails/all'")
-      remove_from_config("require_relative 'boot'")
+      remove_from_config('require "rails/all"')
+      remove_from_config('require_relative "boot"')
       remove_from_env_config("development", "config.active_storage.*")
       frameworks = <<~RUBY
         require "rails"

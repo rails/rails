@@ -20,6 +20,12 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   class Boomer
     attr_accessor :closed
 
+    class NilAnnotedSourceCodeError < StandardError
+      def annoted_source_code
+        nil
+      end
+    end
+
     def initialize(detailed = false)
       @detailed = detailed
       @closed = false
@@ -48,10 +54,14 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       end
     end
 
+    def method_that_raises_nil_annoted_source_code
+      raise NilAnnotedSourceCodeError, "nil annoted_source_code"
+    end
+
     def call(env)
       env["action_dispatch.show_detailed_exceptions"] = @detailed
       req = ActionDispatch::Request.new(env)
-      template = ActionView::Template.new(File.read(__FILE__), __FILE__, ActionView::Template::Handlers::Raw.new, format: :html, locals: [])
+      template = ActionView::Template.new(File.binread(__FILE__), __FILE__, ActionView::Template::Handlers::Raw.new, format: :html, locals: [])
 
       case req.path
       when "/pass"
@@ -106,6 +116,14 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
         raise_nested_exceptions
       when %r{/actionable_error}
         raise CustomActionableError
+      when %r{/nil_annoted_source_code_error}
+        method_that_raises_nil_annoted_source_code
+      when "/utf8_template_error"
+        begin
+          eval "“fancy string”"
+        rescue Exception
+          raise ActionView::Template::Error.new(template)
+        end
       else
         raise "puke!"
       end
@@ -661,5 +679,30 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     assert_response 400
     assert_match "ActionController::BadRequest", body
+  end
+
+  test "debug exceptions with misbehaving Exception#annoted_source_code" do
+    @app = DevelopmentApp
+
+    io = StringIO.new
+    logger = ActiveSupport::Logger.new(io)
+
+    get "/nil_annoted_source_code_error", headers: { "action_dispatch.show_exceptions" => true, "action_dispatch.logger" => logger }
+
+    assert_select "header h1", /DebugExceptionsTest::Boomer::NilAnnotedSourceCodeError/
+    assert_select "#container h2", /nil annoted_source_code/
+  end
+
+  test "debug exceptions app shows diagnostics for template errors that contain UTF-8 characters" do
+    @app = DevelopmentApp
+
+    io = StringIO.new
+    logger = ActiveSupport::Logger.new(io)
+
+    get "/utf8_template_error", headers: { "action_dispatch.logger" => logger }
+
+    assert_response 500
+    assert_select "#container p", /Showing #{__FILE__} where line #\d+ raised/
+    assert_select "#container code", /undefined local variable or method `string”'/
   end
 end

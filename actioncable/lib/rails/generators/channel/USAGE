@@ -5,7 +5,7 @@ Description:
 
 Example:
 ========
-    rails generate channel Chat speak
+    bin/rails generate channel Chat speak
 
     creates a Chat channel class, test and JavaScript asset:
         Channel:    app/channels/chat_channel.rb

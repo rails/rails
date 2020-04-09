@@ -339,7 +339,7 @@ module ActiveRecord
         _run_commit_callbacks
       end
     ensure
-      @_committed_already_called = false
+      @_committed_already_called = @_trigger_update_callback = @_trigger_destroy_callback = false
     end
 
     # Call the #after_rollback callbacks. The +force_restore_state+ argument indicates if the record
@@ -352,6 +352,7 @@ module ActiveRecord
     ensure
       restore_transaction_record_state(force_restore_state)
       clear_transaction_record_state
+      @_trigger_update_callback = @_trigger_destroy_callback = false if force_restore_state
     end
 
     # Executes +method+ within a transaction and captures its return value as a
@@ -390,6 +391,7 @@ module ActiveRecord
         @_start_transaction_state ||= {
           id: id,
           new_record: @new_record,
+          previously_new_record: @previously_new_record,
           destroyed: @destroyed,
           attributes: @attributes,
           frozen?: frozen?,
@@ -422,6 +424,7 @@ module ActiveRecord
         if restore_state = @_start_transaction_state
           if force_restore_state || restore_state[:level] <= 1
             @new_record = restore_state[:new_record]
+            @previously_new_record = restore_state[:previously_new_record]
             @destroyed  = restore_state[:destroyed]
             @attributes = restore_state[:attributes].map do |attr|
               value = @attributes.fetch_value(attr.name)

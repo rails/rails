@@ -11,7 +11,7 @@ class ActiveStorage::DiskController < ActiveStorage::BaseController
 
   def show
     if key = decode_verified_key
-      serve_file disk_service.path_for(key[:key]), content_type: key[:content_type], disposition: key[:disposition]
+      serve_file named_disk_service(key[:service_name]).path_for(key[:key]), content_type: key[:content_type], disposition: key[:disposition]
     else
       head :not_found
     end
@@ -22,7 +22,7 @@ class ActiveStorage::DiskController < ActiveStorage::BaseController
   def update
     if token = decode_verified_token
       if acceptable_content?(token)
-        disk_service.upload token[:key], request.body, checksum: token[:checksum]
+        named_disk_service(token[:service_name]).upload token[:key], request.body, checksum: token[:checksum]
       else
         head :unprocessable_entity
       end
@@ -34,10 +34,11 @@ class ActiveStorage::DiskController < ActiveStorage::BaseController
   end
 
   private
-    def disk_service
-      ActiveStorage::Blob.service
+    def named_disk_service(name)
+      ActiveStorage::Blob.services.fetch(name) do
+        ActiveStorage::Blob.service
+      end
     end
-
 
     def decode_verified_key
       ActiveStorage.verifier.verified(params[:encoded_key], purpose: :blob_key)

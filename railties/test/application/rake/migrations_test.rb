@@ -179,7 +179,7 @@ module ApplicationTests
 
       test "migration status when schema migrations table is not present" do
         output = rails("db:migrate:status", allow_failure: true)
-        assert_match "Schema migrations table does not exist yet.\n", output
+        assert_equal "Schema migrations table does not exist yet.\n", output
       end
 
       test "migration status" do

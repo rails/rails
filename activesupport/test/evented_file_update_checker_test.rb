@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 require "pathname"
-require "file_update_checker_shared_tests"
+require_relative "file_update_checker_shared_tests"
 
 class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
   include FileUpdateCheckerSharedTests

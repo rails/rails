@@ -98,8 +98,8 @@ class RedirectSSLTest < SSLTest
 end
 
 class StrictTransportSecurityTest < SSLTest
-  EXPECTED = "max-age=31536000"
-  EXPECTED_WITH_SUBDOMAINS = "max-age=31536000; includeSubDomains"
+  EXPECTED = "max-age=63072000"
+  EXPECTED_WITH_SUBDOMAINS = "max-age=63072000; includeSubDomains"
 
   def assert_hsts(expected, url: "https://example.org", hsts: { subdomains: true }, headers: {})
     self.app = build_app ssl_options: { hsts: hsts }, headers: headers
@@ -222,7 +222,7 @@ class SecureCookiesTest < SSLTest
   end
 
   def test_keeps_original_headers_behavior
-    get headers: { "Connection" => %w[close] }
+    get headers: { "Connection" => "close" }
     assert_equal "close", response.headers["Connection"]
   end
 end

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 require "active_support/core_ext/hash"
 require "active_support/parameter_filter"
 
@@ -108,5 +108,17 @@ class ParameterFilterTest < ActiveSupport::TestCase
     assert_equal mask, parameter_filter.filter_param("baz.foo", "secret vlaue")
     assert_equal mask, parameter_filter.filter_param("barbar", "secret vlaue")
     assert_equal "non secret value", parameter_filter.filter_param("baz", "non secret value")
+  end
+
+  test "process parameter filter with hash having integer keys" do
+    test_hashes = [
+      [{ 13 => "bar" }, { 13 => "[FILTERED]" }, %w'13'],
+      [{ 20 => "bar" }, { 20 => "bar" }, %w'13'],
+    ]
+
+    test_hashes.each do |before_filter, after_filter, filter_words|
+      parameter_filter = ActiveSupport::ParameterFilter.new(filter_words)
+      assert_equal after_filter, parameter_filter.filter(before_filter)
+    end
   end
 end

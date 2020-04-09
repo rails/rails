@@ -134,15 +134,13 @@ module ActiveSupport
     # * <tt>:digest</tt> - String of digest to use for signing. Default is
     #   +SHA1+. Ignored when using an AEAD cipher like 'aes-256-gcm'.
     # * <tt>:serializer</tt> - Object serializer to use. Default is +Marshal+.
-    def initialize(secret, *signature_key_or_options)
-      options = signature_key_or_options.extract_options!
-      sign_secret = signature_key_or_options.first
+    def initialize(secret, sign_secret = nil, cipher: nil, digest: nil, serializer: nil)
       @secret = secret
       @sign_secret = sign_secret
-      @cipher = options[:cipher] || self.class.default_cipher
-      @digest = options[:digest] || "SHA1" unless aead_mode?
+      @cipher = cipher || self.class.default_cipher
+      @digest = digest || "SHA1" unless aead_mode?
       @verifier = resolve_verifier
-      @serializer = options[:serializer] || Marshal
+      @serializer = serializer || Marshal
     end
 
     # Encrypt and sign a message. We need to sign the message in order to avoid

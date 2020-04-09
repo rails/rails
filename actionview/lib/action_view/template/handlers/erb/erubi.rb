@@ -13,8 +13,16 @@ module ActionView
 
             # Dup properties so that we don't modify argument
             properties = Hash[properties]
-            properties[:preamble]   = ""
-            properties[:postamble]  = "@output_buffer.to_s"
+
+            # Annotate output with template file names, if we're rendering HTML
+            if ActionView::Base.annotate_template_file_names && properties[:format] == :html
+              properties[:preamble]   = "@output_buffer.safe_append='<!-- BEGIN #{properties[:short_identifier]} -->\n';"
+              properties[:postamble]  = "@output_buffer.safe_append='<!-- END #{properties[:short_identifier]} -->\n';@output_buffer.to_s"
+            else
+              properties[:preamble]   = ""
+              properties[:postamble]  = "@output_buffer.to_s"
+            end
+
             properties[:bufvar]     = "@output_buffer"
             properties[:escapefunc] = ""
 

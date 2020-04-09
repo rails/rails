@@ -415,8 +415,7 @@ module ActiveRecord
         @content_columns ||= columns.reject do |c|
           c.name == primary_key ||
           c.name == inheritance_column ||
-          c.name.end_with?("_id") ||
-          c.name.end_with?("_count")
+          c.name.end_with?("_id", "_count")
         end
       end
 
@@ -427,7 +426,7 @@ module ActiveRecord
       # when just after creating a table you want to populate it with some default
       # values, eg:
       #
-      #  class CreateJobLevels < ActiveRecord::Migration[5.0]
+      #  class CreateJobLevels < ActiveRecord::Migration[6.0]
       #    def up
       #      create_table :job_levels do |t|
       #        t.integer :id

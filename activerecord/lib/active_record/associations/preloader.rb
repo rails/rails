@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/enumerable"
+
 module ActiveRecord
   module Associations
     # Implements the details of eager loading of Active Record associations.
@@ -58,7 +60,7 @@ module ActiveRecord
       # == Parameters
       # +records+ is an array of ActiveRecord::Base. This array needs not be flat,
       # i.e. +records+ itself may also contain arrays of records. In any case,
-      # +preload_associations+ will preload the all associations records by
+      # +preload_associations+ will preload all associations records by
       # flattening +records+.
       #
       # +associations+ specifies one or more associations that you want to
@@ -171,8 +173,8 @@ module ActiveRecord
           end
 
           def records_by_owner
-            @records_by_owner ||= owners.each_with_object({}) do |owner, result|
-              result[owner] = Array(owner.association(reflection.name).target)
+            @records_by_owner ||= owners.index_with do |owner|
+              Array(owner.association(reflection.name).target)
             end
           end
 
@@ -184,7 +186,7 @@ module ActiveRecord
         # and attach it to a relation. The class returned implements a `run` method
         # that accepts a preloader.
         def preloader_for(reflection, owners)
-          if owners.first.association(reflection.name).loaded?
+          if owners.all? { |o| o.association(reflection.name).loaded? }
             return AlreadyLoaded
           end
           reflection.check_preloadable!

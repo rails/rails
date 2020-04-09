@@ -26,7 +26,7 @@ module ActiveRecord
       # Allow database path relative to Rails.root, but only if the database
       # path is not the special path that tells sqlite to build a database only
       # in memory.
-      if ":memory:" != config[:database]
+      if ":memory:" != config[:database] && !config[:database].to_s.starts_with?("file:")
         config[:database] = File.expand_path(config[:database], Rails.root) if defined?(Rails.root)
         dirname = File.dirname(config[:database])
         Dir.mkdir(dirname) unless File.directory?(dirname)
@@ -101,7 +101,7 @@ module ActiveRecord
       def self.database_exists?(config)
         config = config.symbolize_keys
         if config[:database] == ":memory:"
-          return true
+          true
         else
           database_file = defined?(Rails.root) ? File.expand_path(config[:database], Rails.root) : config[:database]
           File.exist?(database_file)
@@ -113,6 +113,10 @@ module ActiveRecord
       end
 
       def supports_savepoints?
+        true
+      end
+
+      def supports_transaction_isolation?
         true
       end
 
@@ -248,7 +252,7 @@ module ActiveRecord
         end
       end
 
-      def remove_column(table_name, column_name, type = nil, options = {}) #:nodoc:
+      def remove_column(table_name, column_name, type = nil, **options) #:nodoc:
         alter_table(table_name) do |definition|
           definition.remove_column column_name
           definition.foreign_keys.delete_if do |_, fk_options|
@@ -319,10 +323,15 @@ module ActiveRecord
           sql << " ON CONFLICT #{insert.conflict_target} DO NOTHING"
         elsif insert.update_duplicates?
           sql << " ON CONFLICT #{insert.conflict_target} DO UPDATE SET "
+          sql << insert.touch_model_timestamps_unless { |column| "#{column} IS excluded.#{column}" }
           sql << insert.updatable_columns.map { |column| "#{column}=excluded.#{column}" }.join(",")
         end
 
         sql
+      end
+
+      def shared_cache? # :nodoc:
+        @config.fetch(:flags, 0).anybits?(::SQLite3::Constants::Open::SHAREDCACHE)
       end
 
       def get_database_version # :nodoc:
@@ -357,7 +366,8 @@ module ActiveRecord
         # See: https://www.sqlite.org/lang_altertable.html
         # SQLite has an additional restriction on the ALTER TABLE statement
         def invalid_alter_table_type?(type, options)
-          type.to_sym == :primary_key || options[:primary_key]
+          type.to_sym == :primary_key || options[:primary_key] ||
+            options[:null] == false && options[:default].nil?
         end
 
         def alter_table(table_name, foreign_keys = foreign_keys(table_name), **options)
