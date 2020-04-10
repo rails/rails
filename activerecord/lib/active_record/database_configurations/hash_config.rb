@@ -25,18 +25,15 @@ module ActiveRecord
     #   database adapter, name, and other important information for database
     #   connections.
     class HashConfig < DatabaseConfig
-      def initialize(env_name, name, config)
+      attr_reader :configuration_hash
+      def initialize(env_name, name, configuration_hash)
         super(env_name, name)
-        @config = config.symbolize_keys
+        @configuration_hash = configuration_hash.symbolize_keys.freeze
       end
 
       def config
         ActiveSupport::Deprecation.warn("DatabaseConfig#config will be removed in 6.2.0 in favor of DatabaseConfigurations#configuration_hash which returns a hash with symbol keys")
         configuration_hash.stringify_keys
-      end
-
-      def configuration_hash
-        @config.freeze
       end
 
       # Determines whether a database configuration is for a replica / readonly
@@ -62,7 +59,7 @@ module ActiveRecord
       end
 
       def _database=(database) # :nodoc:
-        @config = configuration_hash.dup.merge(database: database).freeze
+        @configuration_hash = configuration_hash.merge(database: database).freeze
       end
 
       def pool
