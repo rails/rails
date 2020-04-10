@@ -1,7 +1,15 @@
+*   Allow variants to stay in the now supported `WebP` format during processing
+
+    Allow ActiveStorage Variants to stay in the now supported `WebP` format
+    during processing, instead of being converted to the fallback PNG format.
+    Done by adding `image/webp` to the list of known web image content types.
+
+    *Jeroen van Haperen*
+
 *   Add support for creating variants of `WebP` images out of the box.
 
     *Dino Maric*
-    
+
 *   Only enqueue analysis jobs for blobs with non-null analyzer classes.
 
     *Gannon McGibbon*

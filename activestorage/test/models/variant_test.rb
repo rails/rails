@@ -180,6 +180,17 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     end
   end
 
+  test "resized variation of WEBP blob" do
+    blob = create_file_blob(filename: "racecar.webp")
+    variant = blob.variant(resize: "50x50").processed
+    assert_match(/racecar\.webp/, variant.url)
+
+    image = read_image(variant)
+    assert_equal "WEBP", image.type
+    assert_equal 50, image.width
+    assert_equal 33, image.height
+  end
+
   test "variation of invariable blob" do
     assert_raises ActiveStorage::InvariableError do
       create_file_blob(filename: "report.pdf", content_type: "application/pdf").variant(resize: "100x100")

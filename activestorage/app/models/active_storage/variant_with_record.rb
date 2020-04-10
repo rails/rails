@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class ActiveStorage::VariantWithRecord
-  WEB_IMAGE_CONTENT_TYPES = %w[ image/png image/jpeg image/jpg image/gif ]
+  WEB_IMAGE_CONTENT_TYPES = %w[ image/png image/jpeg image/jpg image/gif image/webp ]
 
   attr_reader :blob, :variation
 

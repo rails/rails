@@ -53,7 +53,7 @@ require "ostruct"
 # * {ImageProcessing::Vips}[https://github.com/janko-m/image_processing/blob/master/doc/vips.md#methods]
 # * {ruby-vips reference}[http://www.rubydoc.info/gems/ruby-vips/Vips/Image]
 class ActiveStorage::Variant
-  WEB_IMAGE_CONTENT_TYPES = %w[ image/png image/jpeg image/jpg image/gif ]
+  WEB_IMAGE_CONTENT_TYPES = %w[ image/png image/jpeg image/jpg image/gif image/webp ]
 
   attr_reader :blob, :variation
   delegate :service, to: :blob
