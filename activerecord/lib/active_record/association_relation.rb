@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActiveRecord
-  class AssociationRelation < Relation
+  class AssociationRelation < Relation # :nodoc:
     def initialize(klass, association, **)
       super(klass)
       @association = association
