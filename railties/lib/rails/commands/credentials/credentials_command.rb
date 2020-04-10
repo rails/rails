@@ -103,13 +103,13 @@ module Rails
         def content_path
           @content_path ||= determine_path(:content_path,
                                            default_path: "config/credentials.yml.enc",
-                                           env_path: "config/credentials/#{options[:environment]}.yml.enc")
+                                           env_path: "config/credentials/#{options[:environment] || 'development'}.yml.enc")
         end
 
         def key_path
           @key_path ||= determine_path(:key_path,
                                        default_path: "config/master.key",
-                                       env_path: "config/credentials/#{options[:environment]}.key")
+                                       env_path: "config/credentials/#{options[:environment] || 'development'}.key")
         end
 
         def determine_path(which, default_path:, env_path:)
@@ -119,6 +119,7 @@ module Rails
 
           return config_path if options[:environment] && config_path != default_path
           return env_path if options[:environment]
+          return config_path if config_path != env_path
           default_path
         end
 

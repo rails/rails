@@ -26,7 +26,8 @@ module Rails
       end
 
       def add_credentials_file_silently(template: credentials_template, config_path: nil, key_path: nil)
-        unless credentials(config_path, key_path).content_path.exist?
+        credentials = credentials(config_path, key_path)
+        unless credentials.content_path.exist?
           credentials.write(template)
         end
       end

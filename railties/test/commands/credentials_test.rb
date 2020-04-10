@@ -220,6 +220,34 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     end
   end
 
+  test "edit command uses application config paths" do
+    add_to_config("config.credentials.key_path = 'config/credentials/custom.key'")
+    add_to_config("config.credentials.content_path = 'config/credentials/custom.yml.enc'")
+
+    assert_match(/access_key_id: 123/, run_edit_command)
+    assert_match(/access_key_id: 123/, run_edit_command(environment: 'production'))
+    Dir.chdir(app_path) do
+      assert File.exist?("config/credentials/custom.key"), "Expected custom credentials key file to exist"
+      assert File.exist?("config/credentials/custom.yml.enc"), "Expected custom credentials content file to exist"
+      refute File.exist?("config/credentials/development.yml.enc"), "Expected custom credentials content file to exist"
+      refute File.exist?("config/credentials/production.yml.enc"), "Expected custom credentials content file to exist"
+    end
+  end
+
+  test "edit command uses application config paths when dev credentials exist" do
+    write_credentials_override('development')
+    add_to_config("config.credentials.key_path = 'config/credentials/custom.key'")
+    add_to_config("config.credentials.content_path = 'config/credentials/custom.yml.enc'")
+
+    assert_match(/access_key_id: 123/, run_edit_command)
+    assert_match(/access_key_id: 123/, run_edit_command(environment: 'production'))
+    Dir.chdir(app_path) do
+      assert File.exist?("config/credentials/custom.key"), "Expected custom credentials key file to exist"
+      assert File.exist?("config/credentials/custom.yml.enc"), "Expected custom credentials content file to exist"
+      refute File.exist?("config/credentials/production.yml.enc"), "Expected custom credentials content file to exist"
+    end
+  end
+
   private
     def run_edit_command(editor: "cat", environment: nil, **options)
       switch_env("EDITOR", editor) do
