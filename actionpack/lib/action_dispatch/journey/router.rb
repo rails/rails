@@ -106,8 +106,9 @@ module ActionDispatch
         end
 
         def find_routes(req)
-          routes = filter_routes(req.path_info).concat custom_routes.find_all { |r|
-            r.path.match?(req.path_info)
+          path_info = req.path_info
+          routes = filter_routes(path_info).concat custom_routes.find_all { |r|
+            r.path.match?(path_info)
           }
 
           if req.head?
@@ -119,7 +120,7 @@ module ActionDispatch
           routes.sort_by!(&:precedence)
 
           routes.map! { |r|
-            match_data = r.path.match(req.path_info)
+            match_data = r.path.match(path_info)
             path_parameters = {}
             match_data.names.each_with_index { |name, i|
               val = match_data[i + 1]
