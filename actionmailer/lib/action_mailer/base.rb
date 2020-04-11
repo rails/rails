@@ -930,7 +930,7 @@ module ActionMailer
 
         headers_with_defaults = headers.reverse_merge(default_values)
         headers_with_defaults[:subject] ||= default_i18n_subject
-        headers_with_defaults
+        apply_sender_host(headers_with_defaults)
       end
 
       def compute_default(value)
@@ -941,6 +941,18 @@ module ActionMailer
         else
           instance_exec(&value)
         end
+      end
+
+      def apply_sender_host(headers)
+        sender_host = headers.delete(:sender_host)
+
+        [:from, :reply_to].each do |key|
+          if sender_host && headers[key].present? && !headers[key].include?("@")
+            headers[key] += "@#{sender_host}"
+          end
+        end
+
+        headers
       end
 
       def assign_headers_to_message(message, headers)

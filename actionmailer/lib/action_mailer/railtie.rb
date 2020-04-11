@@ -28,6 +28,10 @@ module ActionMailer
         options.preview_path ||= defined?(Rails.root) ? "#{Rails.root}/test/mailers/previews" : nil
       end
 
+      default_url_host = options.dig(:default_url_options, :host) || app.default_url_options[:host]
+      options.default_options ||= {}
+      options.default_options[:sender_host] ||= default_url_host if default_url_host
+
       # make sure readers methods get compiled
       options.asset_host          ||= app.config.asset_host
       options.relative_url_root   ||= app.config.relative_url_root
