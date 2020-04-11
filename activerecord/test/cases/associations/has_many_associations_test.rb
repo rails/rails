@@ -224,6 +224,18 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_build_and_create_from_association_should_respect_passed_attributes_over_default_scope
     car = Car.create(name: "honda")
 
+    bulb = car.bulbs.where(name: "exotic").build
+    assert_equal "exotic", bulb.name
+    assert_nil bulb.count_after_create
+
+    bulb = car.bulbs.where(name: "exotic").create
+    assert_equal "exotic", bulb.name
+    assert_equal 1, bulb.count_after_create
+
+    bulb = car.bulbs.where(name: "exotic").create!
+    assert_equal "exotic", bulb.name
+    assert_equal 2, bulb.count_after_create
+
     bulb = car.bulbs.build(name: "exotic")
     assert_equal "exotic", bulb.name
 

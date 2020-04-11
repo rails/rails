@@ -41,7 +41,6 @@ module ActiveRecord
         reflection.check_validity!
 
         @owner, @reflection = owner, reflection
-        @_scope = nil
 
         reset
         reset_scope
@@ -98,7 +97,11 @@ module ActiveRecord
       end
 
       def scope
-        @_scope&.spawn || target_scope.merge!(association_scope)
+        if (scope = klass.current_scope) && scope.try(:proxy_association) == self
+          scope.spawn
+        else
+          target_scope.merge!(association_scope)
+        end
       end
 
       def reset_scope
@@ -196,13 +199,6 @@ module ActiveRecord
 
       def create!(attributes = nil, &block)
         _create_record(attributes, true, &block)
-      end
-
-      def scoping(relation, &block)
-        @_scope = relation
-        relation.scoping(&block)
-      ensure
-        @_scope = nil
       end
 
       private
