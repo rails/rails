@@ -565,8 +565,6 @@ module ActiveRecord
       #   but the maximum supported <tt>:precision</tt> is 16. No default.
       # * Oracle: <tt>:precision</tt> [1..38], <tt>:scale</tt> [-84..127].
       #   Default is (38,0).
-      # * DB2: <tt>:precision</tt> [1..63], <tt>:scale</tt> [0..62].
-      #   Default unknown.
       # * SqlServer: <tt>:precision</tt> [1..38], <tt>:scale</tt> [0..38].
       #   Default (38,0).
       #

@@ -372,11 +372,6 @@ module ActiveRecord
   # If any of the migrations throw an <tt>ActiveRecord::IrreversibleMigration</tt> exception,
   # that step will fail and you'll have some manual work to do.
   #
-  # == Database support
-  #
-  # Migrations are currently supported in MySQL, PostgreSQL, SQLite,
-  # SQL Server, and Oracle (all supported databases except DB2).
-  #
   # == More examples
   #
   # Not all migrations change the schema. Some just fix the data:
