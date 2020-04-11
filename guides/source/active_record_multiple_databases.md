@@ -240,18 +240,6 @@ The "role" in the `connected_to` call looks up the connections that are connecte
 connection handler (or role). The `reading` connection handler will hold all the connections
 that were connected via `connects_to` with the role name of `reading`.
 
-There also may be a case where you have a database that you don't always want to connect to
-on application boot but may need for a slow query or analytics. After defining that database
-in the `database.yml` you can connect by passing a database argument to `connected_to`
-
-```ruby
-ActiveRecord::Base.connected_to(database: { reading_slow: :animals_slow_replica }) do
-  # do something while connected to the slow replica
-end
-```
-
-The `database` argument for `connected_to` will take a symbol or a config hash.
-
 Note that `connected_to` with a role will look up an existing connection and switch
 using the connection specification name. This means that if you pass an unknown role
 like `connected_to(role: :nonexistent)` you will get an error that says

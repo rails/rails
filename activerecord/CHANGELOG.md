@@ -1,3 +1,9 @@
+*   Recommend applications don't use the `database` kwarg in `connected_to`
+
+    The database kwarg in `connected_to` was meant to be used for one-off scripts but is often used in requests. This is really dangerous because it re-establishes a connection every time. It's deprecated in 6.1 and will be removed in 6.2 without replacement. This change soft deprecates it in 6.0 by removing documentation.
+
+    *Eileen M. Uchitelle*
+
 *   Fix support for PostgreSQL 11+ partitioned indexes.
 
     *Sebastián Palma*
