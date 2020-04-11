@@ -15,25 +15,25 @@ module ActiveSupport
   # and +in_time_zone+ on Time and DateTime instances.
   #
   #   Time.zone = 'Eastern Time (US & Canada)'        # => 'Eastern Time (US & Canada)'
-  #   Time.zone.local(2007, 2, 10, 15, 30, 45)        # => Sat, 10 Feb 2007 15:30:45 EST -05:00
-  #   Time.zone.parse('2007-02-10 15:30:45')          # => Sat, 10 Feb 2007 15:30:45 EST -05:00
-  #   Time.zone.at(1171139445)                        # => Sat, 10 Feb 2007 15:30:45 EST -05:00
-  #   Time.zone.now                                   # => Sun, 18 May 2008 13:07:55 EDT -04:00
-  #   Time.utc(2007, 2, 10, 20, 30, 45).in_time_zone  # => Sat, 10 Feb 2007 15:30:45 EST -05:00
+  #   Time.zone.local(2007, 2, 10, 15, 30, 45)        # => Sat, 10 Feb 2007 15:30:45.000000000 EST -05:00
+  #   Time.zone.parse('2007-02-10 15:30:45')          # => Sat, 10 Feb 2007 15:30:45.000000000 EST -05:00
+  #   Time.zone.at(1171139445)                        # => Sat, 10 Feb 2007 15:30:45.000000000 EST -05:00
+  #   Time.zone.now                                   # => Sun, 18 May 2008 13:07:55.754107581 EDT -04:00
+  #   Time.utc(2007, 2, 10, 20, 30, 45).in_time_zone  # => Sat, 10 Feb 2007 15:30:45.000000000 EST -05:00
   #
   # See Time and TimeZone for further documentation of these methods.
   #
   # TimeWithZone instances implement the same API as Ruby Time instances, so
   # that Time and TimeWithZone instances are interchangeable.
   #
-  #   t = Time.zone.now                     # => Sun, 18 May 2008 13:27:25 EDT -04:00
+  #   t = Time.zone.now                     # => Sun, 18 May 2008 13:27:25.031505668 EDT -04:00
   #   t.hour                                # => 13
   #   t.dst?                                # => true
   #   t.utc_offset                          # => -14400
   #   t.zone                                # => "EDT"
   #   t.to_s(:rfc822)                       # => "Sun, 18 May 2008 13:27:25 -0400"
-  #   t + 1.day                             # => Mon, 19 May 2008 13:27:25 EDT -04:00
-  #   t.beginning_of_year                   # => Tue, 01 Jan 2008 00:00:00 EST -05:00
+  #   t + 1.day                             # => Mon, 19 May 2008 13:27:25.031505668 EDT -04:00
+  #   t.beginning_of_year                   # => Tue, 01 Jan 2008 00:00:00.000000000 EST -05:00
   #   t > Time.utc(1999)                    # => true
   #   t.is_a?(Time)                         # => true
   #   t.is_a?(ActiveSupport::TimeWithZone)  # => true
@@ -137,9 +137,9 @@ module ActiveSupport
 
     # Returns a string of the object's date, time, zone, and offset from UTC.
     #
-    #   Time.zone.now.inspect # => "Thu, 04 Dec 2014 11:00:25 EST -05:00"
+    #   Time.zone.now.inspect # => "Thu, 04 Dec 2014 11:00:25.624541392 EST -05:00"
     def inspect
-      "#{time.strftime('%a, %d %b %Y %H:%M:%S')} #{zone} #{formatted_offset}"
+      "#{time.strftime('%a, %d %b %Y %H:%M:%S.%9N')} #{zone} #{formatted_offset}"
     end
 
     # Returns a string of the object's date and time in the ISO 8601 standard
@@ -277,8 +277,8 @@ module ActiveSupport
     # value as a new TimeWithZone object.
     #
     #   Time.zone = 'Eastern Time (US & Canada)' # => 'Eastern Time (US & Canada)'
-    #   now = Time.zone.now # => Sun, 02 Nov 2014 01:26:28 EDT -04:00
-    #   now + 1000          # => Sun, 02 Nov 2014 01:43:08 EDT -04:00
+    #   now = Time.zone.now # => Sun, 02 Nov 2014 01:26:28.725182881 EDT -04:00
+    #   now + 1000          # => Sun, 02 Nov 2014 01:43:08.725182881 EDT -04:00
     #
     # If we're adding a Duration of variable length (i.e., years, months, days),
     # move forward from #time, otherwise move forward from #utc, for accuracy
@@ -287,8 +287,8 @@ module ActiveSupport
     # For instance, a time + 24.hours will advance exactly 24 hours, while a
     # time + 1.day will advance 23-25 hours, depending on the day.
     #
-    #   now + 24.hours      # => Mon, 03 Nov 2014 00:26:28 EST -05:00
-    #   now + 1.day         # => Mon, 03 Nov 2014 01:26:28 EST -05:00
+    #   now + 24.hours      # => Mon, 03 Nov 2014 00:26:28.725182881 EST -05:00
+    #   now + 1.day         # => Mon, 03 Nov 2014 01:26:28.725182881 EST -05:00
     def +(other)
       if duration_of_variable_length?(other)
         method_missing(:+, other)
@@ -306,8 +306,8 @@ module ActiveSupport
     # object's time and the +other+ time.
     #
     #   Time.zone = 'Eastern Time (US & Canada)' # => 'Eastern Time (US & Canada)'
-    #   now = Time.zone.now # => Mon, 03 Nov 2014 00:26:28 EST -05:00
-    #   now - 1000          # => Mon, 03 Nov 2014 00:09:48 EST -05:00
+    #   now = Time.zone.now # => Mon, 03 Nov 2014 00:26:28.725182881 EST -05:00
+    #   now - 1000          # => Mon, 03 Nov 2014 00:09:48.725182881 EST -05:00
     #
     # If subtracting a Duration of variable length (i.e., years, months, days),
     # move backward from #time, otherwise move backward from #utc, for accuracy
@@ -316,8 +316,8 @@ module ActiveSupport
     # For instance, a time - 24.hours will go subtract exactly 24 hours, while a
     # time - 1.day will subtract 23-25 hours, depending on the day.
     #
-    #   now - 24.hours      # => Sun, 02 Nov 2014 01:26:28 EDT -04:00
-    #   now - 1.day         # => Sun, 02 Nov 2014 00:26:28 EDT -04:00
+    #   now - 24.hours      # => Sun, 02 Nov 2014 01:26:28.725182881 EDT -04:00
+    #   now - 1.day         # => Sun, 02 Nov 2014 00:26:28.725182881 EDT -04:00
     #
     # If both the TimeWithZone object and the other value act like Time, a Float
     # will be returned.
@@ -339,8 +339,8 @@ module ActiveSupport
     # the result as a new TimeWithZone object.
     #
     #   Time.zone = 'Eastern Time (US & Canada)' # => 'Eastern Time (US & Canada)'
-    #   now = Time.zone.now # => Mon, 03 Nov 2014 00:26:28 EST -05:00
-    #   now.ago(1000)       # => Mon, 03 Nov 2014 00:09:48 EST -05:00
+    #   now = Time.zone.now # => Mon, 03 Nov 2014 00:26:28.725182881 EST -05:00
+    #   now.ago(1000)       # => Mon, 03 Nov 2014 00:09:48.725182881 EST -05:00
     #
     # If we're subtracting a Duration of variable length (i.e., years, months,
     # days), move backward from #time, otherwise move backward from #utc, for
@@ -350,8 +350,8 @@ module ActiveSupport
     # while <tt>time.ago(1.day)</tt> will move back 23-25 hours, depending on
     # the day.
     #
-    #   now.ago(24.hours)   # => Sun, 02 Nov 2014 01:26:28 EDT -04:00
-    #   now.ago(1.day)      # => Sun, 02 Nov 2014 00:26:28 EDT -04:00
+    #   now.ago(24.hours)   # => Sun, 02 Nov 2014 01:26:28.725182881 EDT -04:00
+    #   now.ago(1.day)      # => Sun, 02 Nov 2014 00:26:28.725182881 EDT -04:00
     def ago(other)
       since(-other)
     end
@@ -367,12 +367,12 @@ module ActiveSupport
     # or <tt>:nsec</tt>, not both. Similarly, pass either <tt>:zone</tt> or
     # <tt>:offset</tt>, not both.
     #
-    #   t = Time.zone.now          # => Fri, 14 Apr 2017 11:45:15 EST -05:00
-    #   t.change(year: 2020)       # => Tue, 14 Apr 2020 11:45:15 EST -05:00
-    #   t.change(hour: 12)         # => Fri, 14 Apr 2017 12:00:00 EST -05:00
-    #   t.change(min: 30)          # => Fri, 14 Apr 2017 11:30:00 EST -05:00
-    #   t.change(offset: "-10:00") # => Fri, 14 Apr 2017 11:45:15 HST -10:00
-    #   t.change(zone: "Hawaii")   # => Fri, 14 Apr 2017 11:45:15 HST -10:00
+    #   t = Time.zone.now          # => Fri, 14 Apr 2017 11:45:15.116992711 EST -05:00
+    #   t.change(year: 2020)       # => Tue, 14 Apr 2020 11:45:15.116992711 EST -05:00
+    #   t.change(hour: 12)         # => Fri, 14 Apr 2017 12:00:00.116992711 EST -05:00
+    #   t.change(min: 30)          # => Fri, 14 Apr 2017 11:30:00.116992711 EST -05:00
+    #   t.change(offset: "-10:00") # => Fri, 14 Apr 2017 11:45:15.116992711 HST -10:00
+    #   t.change(zone: "Hawaii")   # => Fri, 14 Apr 2017 11:45:15.116992711 HST -10:00
     def change(options)
       if options[:zone] && options[:offset]
         raise ArgumentError, "Can't change both :offset and :zone at the same time: #{options.inspect}"
@@ -405,14 +405,14 @@ module ActiveSupport
     # accuracy when moving across DST boundaries.
     #
     #   Time.zone = 'Eastern Time (US & Canada)' # => 'Eastern Time (US & Canada)'
-    #   now = Time.zone.now # => Sun, 02 Nov 2014 01:26:28 EDT -04:00
-    #   now.advance(seconds: 1) # => Sun, 02 Nov 2014 01:26:29 EDT -04:00
-    #   now.advance(minutes: 1) # => Sun, 02 Nov 2014 01:27:28 EDT -04:00
-    #   now.advance(hours: 1)   # => Sun, 02 Nov 2014 01:26:28 EST -05:00
-    #   now.advance(days: 1)    # => Mon, 03 Nov 2014 01:26:28 EST -05:00
-    #   now.advance(weeks: 1)   # => Sun, 09 Nov 2014 01:26:28 EST -05:00
-    #   now.advance(months: 1)  # => Tue, 02 Dec 2014 01:26:28 EST -05:00
-    #   now.advance(years: 1)   # => Mon, 02 Nov 2015 01:26:28 EST -05:00
+    #   now = Time.zone.now # => Sun, 02 Nov 2014 01:26:28.558049687 EDT -04:00
+    #   now.advance(seconds: 1) # => Sun, 02 Nov 2014 01:26:29.558049687 EDT -04:00
+    #   now.advance(minutes: 1) # => Sun, 02 Nov 2014 01:27:28.558049687 EDT -04:00
+    #   now.advance(hours: 1)   # => Sun, 02 Nov 2014 01:26:28.558049687 EST -05:00
+    #   now.advance(days: 1)    # => Mon, 03 Nov 2014 01:26:28.558049687 EST -05:00
+    #   now.advance(weeks: 1)   # => Sun, 09 Nov 2014 01:26:28.558049687 EST -05:00
+    #   now.advance(months: 1)  # => Tue, 02 Dec 2014 01:26:28.558049687 EST -05:00
+    #   now.advance(years: 1)   # => Mon, 02 Nov 2015 01:26:28.558049687 EST -05:00
     def advance(options)
       # If we're advancing a value of variable length (i.e., years, weeks, months, days), advance from #time,
       # otherwise advance from #utc, for accuracy when moving across DST boundaries
@@ -434,7 +434,7 @@ module ActiveSupport
     # Returns Array of parts of Time in sequence of
     # [seconds, minutes, hours, day, month, year, weekday, yearday, dst?, zone].
     #
-    #   now = Time.zone.now     # => Tue, 18 Aug 2015 02:29:27 UTC +00:00
+    #   now = Time.zone.now     # => Tue, 18 Aug 2015 02:29:27.485278555 UTC +00:00
     #   now.to_a                # => [27, 29, 2, 18, 8, 2015, 2, 230, false, "UTC"]
     def to_a
       [time.sec, time.min, time.hour, time.day, time.mon, time.year, time.wday, time.yday, dst?, zone]
