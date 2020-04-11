@@ -920,7 +920,7 @@ module ActiveRecord
         !!@association.include?(record)
       end
 
-      def proxy_association
+      def proxy_association # :nodoc:
         @association
       end
 
