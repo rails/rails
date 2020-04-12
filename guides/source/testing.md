@@ -437,11 +437,11 @@ Usage: rails test [options] [files or directories]
 
 You can run a single test by appending a line number to a filename:
 
-    rails test test/models/user_test.rb:27
+    bin/rails test test/models/user_test.rb:27
 
 You can run multiple files and directories at the same time:
 
-    rails test test/controllers test/integration/login_test.rb
+    bin/rails test test/controllers test/integration/login_test.rb
 
 By default test failures and errors are reported inline during a run.
 
@@ -489,7 +489,7 @@ parallelize your local test suite differently from your CI, so an environment va
 to be able to easily change the number of workers a test run should use:
 
 ```bash
-PARALLEL_WORKERS=15 rails test
+PARALLEL_WORKERS=15 bin/rails test
 ```
 
 When parallelizing tests, Active Record automatically handles creating a database and loading the schema into the database for each
@@ -542,7 +542,7 @@ want to parallelize your local test suite differently from your CI, so an enviro
 to be able to easily change the number of workers a test run should use:
 
 ```bash
-PARALLEL_WORKERS=15 rails test
+PARALLEL_WORKERS=15 bin/rails test
 ```
 
 ### Testing Parallel Transactions
@@ -561,7 +561,7 @@ You can disable transactions in a test case class by setting
 ```ruby
 class WorkerTest < ActiveSupport::TestCase
   self.use_transactional_tests = false
-  
+
   test "parallel transactions" do
     # start some threads that create transactions
   end
@@ -852,7 +852,7 @@ The test should see that there is an `h1` on the articles index page and pass.
 Run the system tests.
 
 ```bash
-rails test:system
+bin/rails test:system
 ```
 
 NOTE: By default, running `bin/rails test` won't run your system tests.
