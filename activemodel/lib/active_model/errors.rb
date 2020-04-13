@@ -208,16 +208,6 @@ module ActiveModel
       DeprecationHandlingMessageArray.new(messages_for(attribute), self, attribute)
     end
 
-    def first
-      deprecation_index_access_warning(:first)
-      super
-    end
-
-    def last
-      deprecation_index_access_warning(:last)
-      super
-    end
-
     # Iterates through each error object.
     #
     #   person.errors.add(:name, :too_short, count: 2)
@@ -584,15 +574,6 @@ module ActiveModel
 
       def deprecation_rename_warning(old_method_name, new_method_name)
         ActiveSupport::Deprecation.warn("ActiveModel::Errors##{old_method_name} is deprecated. Please call ##{new_method_name} instead.")
-      end
-
-      def deprecation_index_access_warning(method_name, alternative_message)
-        message = +"ActiveModel::Errors##{method_name} is deprecated. In the next release it would return `Error` object instead."
-        if alternative_message
-          message << "\n\nTo achieve the same use:\n\n  "
-          message << alternative_message
-        end
-        ActiveSupport::Deprecation.warn(message)
       end
   end
 
