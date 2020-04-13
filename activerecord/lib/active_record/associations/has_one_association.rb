@@ -81,7 +81,7 @@ module ActiveRecord
             target.delete
           when :destroy
             target.destroyed_by_association = reflection
-            touch_owner_if(target.persisted?) do
+            if target.persisted?
               target.destroy
             end
           else
@@ -105,14 +105,6 @@ module ActiveRecord
             reflection.klass.transaction { yield }
           else
             yield
-          end
-        end
-
-        def touch_owner_if(value)
-          if value
-            yield
-          else
-            owner.class.no_touching { yield }
           end
         end
 
