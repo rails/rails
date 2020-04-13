@@ -138,19 +138,19 @@ module ActiveRecord
       self.filter_attributes = []
 
       def self.connection_handler
-        Thread.current.thread_variable_get(:ar_connection_handler) || default_connection_handler
+        Thread.current[:ar_connection_handler] || default_connection_handler
       end
 
       def self.connection_handler=(handler)
-        Thread.current.thread_variable_set(:ar_connection_handler, handler)
+        Thread.current[:ar_connection_handler] = handler
       end
 
       def self.current_pool_key
-        Thread.current.thread_variable_get(:ar_pool_key) || default_pool_key
+        Thread.current[:ar_pool_key] || default_pool_key
       end
 
       def self.current_pool_key=(pool_key)
-        Thread.current.thread_variable_set(:ar_pool_key, pool_key)
+        Thread.current[:ar_pool_key] = pool_key
       end
 
       self.default_connection_handler = ConnectionAdapters::ConnectionHandler.new
