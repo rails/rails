@@ -8,13 +8,12 @@ module ActiveSupport
           @id = SecureRandom.uuid
           @number = number
           @url = url
-          @title = "Rails test worker #{@id}"
           @setup_exception = nil
         end
 
         def start
           fork do
-            Process.setproctitle("#{@title} - (starting)")
+            set_process_title("(starting)")
 
             DRb.stop_service
 
@@ -27,7 +26,7 @@ module ActiveSupport
 
             work_from_queue
           ensure
-            Process.setproctitle("#{@title} - (stopping)")
+            set_process_title("(stopping)")
 
             run_cleanup
             @queue.stop_worker(@id)
@@ -45,7 +44,7 @@ module ActiveSupport
           method   = job[1]
           reporter = job[2]
 
-          Process.setproctitle("#{@title} - #{klass}##{method}")
+          set_process_title("#{klass}##{method}")
 
           result = klass.with_info_handler reporter do
             Minitest.run_one_method(klass, method)
@@ -72,7 +71,7 @@ module ActiveSupport
             @queue.record(reporter, result)
           end
 
-          Process.setproctitle("#{@title} - (idle)")
+          set_process_title("(idle)")
         end
 
         def after_fork
@@ -90,6 +89,10 @@ module ActiveSupport
         private
           def add_setup_exception(result)
             result.failures.prepend Minitest::UnexpectedError.new(@setup_exception)
+          end
+
+          def set_process_title(status)
+            Process.setproctitle("Rails test worker #{@number} - #{status}")
           end
       end
     end
