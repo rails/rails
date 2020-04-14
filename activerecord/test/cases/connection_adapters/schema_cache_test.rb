@@ -269,7 +269,7 @@ module ActiveRecord
 
       private
         def schema_dump_path
-          "test/assets/schema_dump_5_1.yml"
+          "#{ASSETS_ROOT}/schema_dump_5_1.yml"
         end
     end
   end
