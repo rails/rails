@@ -133,7 +133,7 @@ class EnumTest < ActiveRecord::TestCase
     old_status = @book.status
     old_language = @book.language
     @book.status = :proposed
-    @book.set_spanish
+    @book.set_in_spanish
     assert_equal old_status, @book.changed_attributes[:status]
     assert_equal old_language, @book.changed_attributes[:language]
   end
@@ -152,7 +152,7 @@ class EnumTest < ActiveRecord::TestCase
     old_status = @book.status
     old_language = @book.language
     @book.status = :proposed
-    @book.set_spanish
+    @book.set_in_spanish
     assert_equal [old_status, "proposed"], @book.changes[:status]
     assert_equal [old_language, "spanish"], @book.changes[:language]
   end
@@ -161,21 +161,21 @@ class EnumTest < ActiveRecord::TestCase
     old_status = @book.status
     old_language = @book.language
     @book.status = :published
-    @book.set_spanish
+    @book.set_in_spanish
     assert_equal old_status, @book.attribute_was(:status)
     assert_equal old_language, @book.attribute_was(:language)
   end
 
   test "enum attribute changed" do
     @book.status = :proposed
-    @book.set_french
+    @book.set_in_french
     assert @book.attribute_changed?(:status)
     assert @book.attribute_changed?(:language)
   end
 
   test "enum attribute changed to" do
     @book.status = :proposed
-    @book.set_french
+    @book.set_in_french
     assert @book.attribute_changed?(:status, to: "proposed")
     assert @book.attribute_changed?(:language, to: "french")
   end
@@ -184,7 +184,7 @@ class EnumTest < ActiveRecord::TestCase
     old_status = @book.status
     old_language = @book.language
     @book.status = :proposed
-    @book.set_french
+    @book.set_in_french
     assert @book.attribute_changed?(:status, from: old_status)
     assert @book.attribute_changed?(:language, from: old_language)
   end
@@ -193,7 +193,7 @@ class EnumTest < ActiveRecord::TestCase
     old_status = @book.status
     old_language = @book.language
     @book.status = :proposed
-    @book.set_french
+    @book.set_in_french
     assert @book.attribute_changed?(:status, from: old_status, to: "proposed")
     assert @book.attribute_changed?(:language, from: old_language, to: "french")
   end
