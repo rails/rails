@@ -1,3 +1,18 @@
+*   Add writer methods for all enum values.
+
+    Example:
+
+        class Post < ActiveRecord::Base
+          enum status: %i[ drafted active trashed ]
+        end
+
+        p.status # => "draft"
+        p.set_active # => 1
+        p.status # => "active"
+        p.reload.status # => "draft"
+
+    *Ritikesh*
+
 *   Prevent `build_association` from `touching` a parent record if the record isn't persisted for `has_one` associations.
 
     Fixes #38219

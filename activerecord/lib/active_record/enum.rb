@@ -20,6 +20,12 @@ module ActiveRecord
   #   conversation.archived? # => true
   #   conversation.status    # => "archived"
   #
+  #   conversation.status    # => "archived"
+  #   conversation.set_active    # => 0
+  #   conversation.status    # => "active"
+  #   conversation.reload
+  #   conversation.status    # => "archived"
+  #
   #   # conversation.status = 1
   #   conversation.status = "archived"
   #
@@ -202,6 +208,10 @@ module ActiveRecord
             # def active!() update!(status: 0) end
             klass.send(:detect_enum_conflict!, name, "#{value_method_name}!")
             define_method("#{value_method_name}!") { update!(attr => value) }
+
+            # def set_active() write_attribute(:status, 0) end
+            klass.send(:detect_enum_conflict!, name, "set_#{value_method_name}")
+            define_method("set_#{value_method_name}") { write_attribute(attr, value) }
 
             # scope :active, -> { where(status: 0) }
             # scope :not_active, -> { where.not(status: 0) }
