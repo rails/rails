@@ -55,13 +55,18 @@ module ActionView
           # Always make sure we return a String in the default_internal
           erb.encode!
 
-          self.class.erb_implementation.new(
-            erb,
+          options = {
             escape: (self.class.escape_ignore_list.include? template.type),
-            trim: (self.class.erb_trim_mode == "-"),
-            format: template.format,
-            short_identifier: template.short_identifier
-          ).src
+            trim: (self.class.erb_trim_mode == "-")
+          }
+
+          # Annotate output with template file names, if we're rendering HTML
+          if ActionView::Base.annotate_template_file_names && template.format == :html
+            options[:preamble] = "@output_buffer.safe_append='<!-- BEGIN #{template.short_identifier} -->\n';"
+            options[:postamble] = "@output_buffer.safe_append='<!-- END #{template.short_identifier} -->\n';@output_buffer.to_s"
+          end
+
+          self.class.erb_implementation.new(erb, options).src
         end
 
       private
