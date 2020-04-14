@@ -1,3 +1,9 @@
+*   Prevent `build_association` from `touching` a parent record if the record isn't persisted for `has_one` associations.
+
+    Fixes #38219
+
+    *Josh Brody*
+    
 *   Add support for `if_not_exists` option for adding index.
 
     The `add_index` method respects `if_not_exists` option. If it is set to true
