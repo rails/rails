@@ -282,7 +282,6 @@
 
     *Josh Brody*
     
-    Prevent `has_one` `build_association` from `touch` parent record if the
 *   Add scale support to `ActiveRecord::Validations::NumericalityValidator`.
 
     *Gannon McGibbon*
