@@ -589,7 +589,7 @@ module ApplicationTests
 
       output = run_test_command(file_name)
 
-      assert_match %r{Queue not empty, but all workers have finished. This probably means that a worker crashed and 1 tests were missed.}, output
+      assert_match %r{RuntimeError: result not reported}, output
     end
 
     def test_run_in_parallel_with_threads
