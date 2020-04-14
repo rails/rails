@@ -1,9 +1,13 @@
+*   Remove ibm_db, informix, mssql, oracle, and oracle12 Arel visitors which are not used in the code base.
+
+    *Ryuta Kamizono*
+
 *   Prevent `build_association` from `touching` a parent record if the record isn't persisted for `has_one` associations.
 
     Fixes #38219
 
     *Josh Brody*
-    
+
 *   Add support for `if_not_exists` option for adding index.
 
     The `add_index` method respects `if_not_exists` option. If it is set to true
@@ -568,5 +572,6 @@
 *   Allow generated `create_table` migrations to include or skip timestamps.
 
     *Michael Duchemin*
+
 
 Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/activerecord/CHANGELOG.md) for previous changes.
