@@ -1298,7 +1298,7 @@ This loads all the articles and the associated category and comments for each ar
 Category.includes(articles: [{ comments: :guest }, :tags]).find(1)
 ```
 
-This will find the category with id 1 and eager load all of the associated articles, the associated articles' tags and comments, and every comment's guest association.
+This will find the category with id 1 and eager load all of the associated articles, the associated article's tags and comments, and every comment's guest association.
 
 ### Specifying Conditions on Eager Loaded Associations
 
