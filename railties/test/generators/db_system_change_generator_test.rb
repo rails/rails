@@ -24,8 +24,8 @@ module Rails
             assert_match <<~MSG.squish, output
               Invalid value for --to option.
               Supported preconfigurations are:
-              mysql, postgresql, sqlite3, oracle, frontbase,
-              ibm_db, sqlserver, jdbcmysql, jdbcsqlite3,
+              mysql, postgresql, sqlite3, oracle,
+              sqlserver, jdbcmysql, jdbcsqlite3,
               jdbcpostgresql, jdbc.
             MSG
           end
