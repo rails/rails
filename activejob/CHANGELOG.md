@@ -1,3 +1,18 @@
+*   Add an option to filter sensitive values of job's arguments.
+
+    ```ruby
+      class SensitiveJob < ApplicationJob
+        self.filter_arguments = [:password]
+
+        def perform(my_sensitive_argument)
+        end
+      end
+    ```
+
+    By default, `filter_arguments` is set `Rails.application.config.filter_parameters`  by Railtie hook.
+
+    *Igor Springer*
+
 *   While using `perform_enqueued_jobs` test helper enqueued jobs must be stored for the later check with
     `assert_enqueued_with`.
 

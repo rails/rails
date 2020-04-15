@@ -107,10 +107,26 @@ module ActiveJob
       def args_info(job)
         if job.class.log_arguments? && job.arguments.any?
           " with arguments: " +
-            job.arguments.map { |arg| format(arg).inspect }.join(", ")
+            job.arguments
+              .map { |arg| filter(job.class.filter_arguments, arg) }
+              .map { |arg| format(arg).inspect }
+              .join(", ")
         else
           ""
         end
+      end
+
+      def filter(filter_arguments, arg)
+        case arg
+        when Hash
+          parameter_filter(filter_arguments).filter(arg)
+        else
+          arg
+        end
+      end
+
+      def parameter_filter(filter_arguments)
+        @parameter_filter ||= ActiveSupport::ParameterFilter.new(filter_arguments)
       end
 
       def format(arg)

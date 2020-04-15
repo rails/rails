@@ -36,6 +36,12 @@ module ActiveJob
       end
     end
 
+    initializer "active_job.set_filter_arguments" do
+      ActiveSupport.on_load(:active_job) do
+        self.filter_arguments += Rails.application.config.filter_parameters
+      end
+    end
+
     initializer "active_job.set_reloader_hook" do |app|
       ActiveSupport.on_load(:active_job) do
         ActiveJob::Callbacks.singleton_class.set_callback(:execute, :around, prepend: true) do |_, inner|

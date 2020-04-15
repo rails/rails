@@ -3,6 +3,7 @@
 require "helper"
 require "active_support/log_subscriber/test_helper"
 require "active_support/core_ext/numeric/time"
+require "active_support/parameter_filter"
 require "jobs/hello_job"
 require "jobs/logging_job"
 require "jobs/overridden_logging_job"
@@ -177,6 +178,15 @@ class LoggingTest < ActiveSupport::TestCase
     end
 
     assert_equal(1, @logger.messages.scan(/a before_perform callback halted the job execution/).size)
+  end
+
+  def test_perform_filtering_sensitive_params
+    perform_enqueued_jobs do
+      LoggingJob.filter_arguments = [:password]
+      LoggingJob.perform_later({ login: "not-so-secret", password: "secret" })
+
+      assert_match(/Performing LoggingJob \(Job ID: .*?\) from .*? with arguments: {:login=>\"not-so-secret\", :password=>\"\[FILTERED\]\"}/, @logger.messages)
+    end
   end
 
   def test_perform_disabled_job_logging

@@ -864,6 +864,8 @@ There are a few configuration options available in Active Support:
 
 * `config.active_job.log_arguments` controls if the arguments of a job are logged. Defaults to `true`.
 
+* `config.active_job.filter_arguemnts` controls which sensitive argument values should be filtered. Works when arguments are passed as `Hash`. Defaults to `Rails.application.config.filter_parameters` (set by Railtie hook).
+
 * `config.active_job.retry_jitter` controls the amount of "jitter" (random variation) applied to the delay time calculated when retrying failed jobs. Defaults to `0.15`.
 
 ### Configuring Action Cable
