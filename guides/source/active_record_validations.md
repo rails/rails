@@ -266,7 +266,7 @@ end
 
 This check is performed only if `terms_of_service` is not `nil`.
 The default error message for this helper is _"must be accepted"_.
-You can also pass custom message via the `message` option.
+You can also pass in a custom message via the `message` option.
 
 ```ruby
 class Person < ApplicationRecord
