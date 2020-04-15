@@ -137,7 +137,9 @@ module ActiveStorage
 
         raise ActiveStorage::FileNotFoundError unless object.exists?
 
-        while offset < object.content_length
+        content_length = object.content_length
+        while offset < content_length
+          chunk_size = [chunk_size, content_length - offset].min
           yield object.get(range: "bytes=#{offset}-#{offset + chunk_size - 1}").body.string.force_encoding(Encoding::BINARY)
           offset += chunk_size
         end
