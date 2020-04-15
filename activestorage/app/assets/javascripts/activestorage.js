@@ -544,7 +544,7 @@
     }
   }
   var BlobRecord = function() {
-    function BlobRecord(file, checksum, url) {
+    function BlobRecord(file, checksum, url, serviceName) {
       var _this = this;
       classCallCheck(this, BlobRecord);
       this.file = file;
@@ -552,7 +552,8 @@
         filename: file.name,
         content_type: file.type || "application/octet-stream",
         byte_size: file.size,
-        checksum: checksum
+        checksum: checksum,
+        service_name: serviceName
       };
       this.xhr = new XMLHttpRequest();
       this.xhr.open("POST", url, true);
@@ -671,11 +672,12 @@
   }();
   var id = 0;
   var DirectUpload = function() {
-    function DirectUpload(file, url, delegate) {
+    function DirectUpload(file, url, serviceName, delegate) {
       classCallCheck(this, DirectUpload);
       this.id = ++id;
       this.file = file;
       this.url = url;
+      this.serviceName = serviceName;
       this.delegate = delegate;
     }
     createClass(DirectUpload, [ {
@@ -687,7 +689,7 @@
             callback(error);
             return;
           }
-          var blob = new BlobRecord(_this.file, checksum, _this.url);
+          var blob = new BlobRecord(_this.file, checksum, _this.url, _this.serviceName);
           notify(_this.delegate, "directUploadWillCreateBlobWithXHR", blob.xhr);
           blob.create(function(error) {
             if (error) {
@@ -722,7 +724,7 @@
       classCallCheck(this, DirectUploadController);
       this.input = input;
       this.file = file;
-      this.directUpload = new DirectUpload(this.file, this.url, this);
+      this.directUpload = new DirectUpload(this.file, this.url, this.serviceName, this);
       this.dispatch("initialize");
     }
     createClass(DirectUploadController, [ {
@@ -797,6 +799,11 @@
       key: "url",
       get: function get$$1() {
         return this.input.getAttribute("data-direct-upload-url");
+      }
+    }, {
+      key: "serviceName",
+      get: function get$$1() {
+        return this.input.getAttribute("data-direct-upload-service");
       }
     } ]);
     return DirectUploadController;

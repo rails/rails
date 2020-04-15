@@ -1,3 +1,8 @@
+
+*   Pass `service_name` param to `DirectUploadsController`
+
+    *Dmitry Tsepelev*
+
 *   OpenSSL constants are now used for Digest computations.
 
     *Dirkjan Bussink*

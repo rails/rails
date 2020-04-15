@@ -138,9 +138,10 @@ class ActiveStorage::DiskDirectUploadsControllerTest < ActionDispatch::Integrati
       "platform": "my_platform",
       "library_ID": "12345"
     }
+    service_name = ActiveStorage.verifier.generate("local")
 
     post rails_direct_uploads_url, params: { blob: {
-      filename: "hello.txt", byte_size: 6, checksum: checksum, content_type: "text/plain", metadata: metadata } }
+      filename: "hello.txt", byte_size: 6, checksum: checksum, content_type: "text/plain", metadata: metadata, service_name: service_name } }
 
     @response.parsed_body.tap do |details|
       assert_equal ActiveStorage::Blob.find(details["id"]), ActiveStorage::Blob.find_signed!(details["signed_id"])
@@ -149,6 +150,7 @@ class ActiveStorage::DiskDirectUploadsControllerTest < ActionDispatch::Integrati
       assert_equal checksum, details["checksum"]
       assert_equal metadata, details["metadata"].transform_keys(&:to_sym)
       assert_equal "text/plain", details["content_type"]
+      assert_equal "local", details["service_name"]
       assert_match(/rails\/active_storage\/disk/, details["direct_upload"]["url"])
       assert_equal({ "Content-Type" => "text/plain" }, details["direct_upload"]["headers"])
     end
