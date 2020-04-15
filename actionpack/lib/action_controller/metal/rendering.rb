@@ -39,13 +39,7 @@ module ActionController
     # Overwrite render_to_string because body can now be set to a Rack body.
     def render_to_string(*)
       result = super
-      if result.respond_to?(:each)
-        string = +""
-        result.each { |r| string << r }
-        string
-      else
-        result
-      end
+      result.is_a?(Array) ? result.join : result
     end
 
     def render_to_body(options = {})
