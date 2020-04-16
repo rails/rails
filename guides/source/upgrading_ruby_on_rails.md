@@ -263,7 +263,7 @@ The default configuration for Rails 6
 ```ruby
 # config/application.rb
 
-config.load_defaults "6.0"
+config.load_defaults 6.0
 ```
 
 enables `zeitwerk` autoloading mode on CRuby. In that mode, autoloading, reloading, and eager loading are managed by [Zeitwerk](https://github.com/fxn/zeitwerk).
@@ -738,18 +738,16 @@ it.
 
 `debugger` is not supported by Ruby 2.2 which is required by Rails 5. Use `byebug` instead.
 
-### Use `rails` for running tasks and tests
+### Use `bin/rails` for running tasks and tests
 
 Rails 5 adds the ability to run tasks and tests through `bin/rails` instead of rake. Generally
-these changes are in parallel with rake, but some were ported over altogether. As the `rails`
-command already looks for and runs `bin/rails`, we recommend you to use the shorter `rails`
-over `bin/rails`.
+these changes are in parallel with rake, but some were ported over altogether.
 
-To use the new test runner simply type `rails test`.
+To use the new test runner simply type `bin/rails test`.
 
-`rake dev:cache` is now `rails dev:cache`.
+`rake dev:cache` is now `bin/rails dev:cache`.
 
-Run `rails` inside your application's directory to see the list of commands available.
+Run `bin/rails` inside your application's root directory to see the list of commands available.
 
 ### `ActionController::Parameters` No Longer Inherits from `HashWithIndifferentAccess`
 

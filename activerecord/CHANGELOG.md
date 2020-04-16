@@ -1,3 +1,13 @@
+*   Remove ibm_db, informix, mssql, oracle, and oracle12 Arel visitors which are not used in the code base.
+
+    *Ryuta Kamizono*
+
+*   Prevent `build_association` from `touching` a parent record if the record isn't persisted for `has_one` associations.
+
+    Fixes #38219.
+
+    *Josh Brody*
+
 *   Add support for `if_not_exists` option for adding index.
 
     The `add_index` method respects `if_not_exists` option. If it is set to true
@@ -5,11 +15,11 @@
 
     Usage:
 
-    ```
+    ```ruby
       add_index :users, :account_id, if_not_exists: true
     ```
 
-    The `if_not_exists` option passed to `create_table` also gets propogated to indexes
+    The `if_not_exists` option passed to `create_table` also gets propagated to indexes
     created within that migration so that if table and its indexes exist then there is no
     attempt to create them again.
 
@@ -19,7 +29,7 @@
 
     *Tom Ward*
 
-*   Support descending order for `find_each`, `find_in_batches` and `in_batches`.
+*   Support descending order for `find_each`, `find_in_batches`, and `in_batches`.
 
     Batch processing methods allow you to work with the records in batches, greatly reducing memory consumption, but records are always batched from oldest id to newest.
 
@@ -35,7 +45,7 @@
 
     *Alexey Vasiliev*
 
-*   Fix insert_all with enum values
+*   Fix `insert_all` with enum values.
 
     Fixes #38716.
 
@@ -51,7 +61,7 @@
 
     *Eugene Kenny*
 
-*   Deprecate using `return`, `break` or `throw` to exit a transaction block
+*   Deprecate using `return`, `break` or `throw` to exit a transaction block.
 
     *Dylan Thacker-Smith*
 
@@ -182,14 +192,14 @@
 
     Usage:
 
-    ```
-    >> class Developer < ApplicationRecord
-    >>   has_many :projects, strict_loading: true
-    >> end
-    >>
-    >> dev = Developer.first
-    >> dev.projects.first
-    => ActiveRecord::StrictLoadingViolationError: The projects association is marked as strict_loading and cannot be lazily loaded.
+    ```ruby
+    class Developer < ApplicationRecord
+      has_many :projects, strict_loading: true
+    end
+
+    dev = Developer.first
+    dev.projects.first
+    # => ActiveRecord::StrictLoadingViolationError: The projects association is marked as strict_loading and cannot be lazily loaded.
     ```
 
     *Kevin Deisz*
@@ -200,10 +210,10 @@
 
     Usage:
 
-    ```
-    >> dev = Developer.strict_loading.first
-    >> dev.audit_logs.to_a
-    => ActiveRecord::StrictLoadingViolationError: Developer is marked as strict_loading and AuditLog cannot be lazily loaded.
+    ```ruby
+    dev = Developer.strict_loading.first
+    dev.audit_logs.to_a
+    # => ActiveRecord::StrictLoadingViolationError: Developer is marked as strict_loading and AuditLog cannot be lazily loaded.
     ```
 
     *Eileen M. Uchitelle*, *Aaron Patterson*
@@ -302,7 +312,7 @@
 
     *Eileen M. Uchitelle*
 
-*   Deprecate "primary" as the connection_specification_name for ActiveRecord::Base.
+*   Deprecate `"primary"` as the `connection_specification_name` for `ActiveRecord::Base`.
 
     `"primary"` has been deprecated as the `connection_specification_name` for `ActiveRecord::Base` in favor of using `"ActiveRecord::Base"`. This change affects calls to `ActiveRecord::Base.connection_handler.retrieve_connection` and `ActiveRecord::Base.connection_handler.remove_connection`. If you're calling these methods with `"primary"`, please switch to `"ActiveRecord::Base"`.
 
@@ -521,7 +531,7 @@
 
     *Josh Goodall*
 
-*   Add database_exists? method to connection adapters to check if a database exists.
+*   Add `database_exists?` method to connection adapters to check if a database exists.
 
     *Guilherme Mansur*
 
@@ -562,5 +572,6 @@
 *   Allow generated `create_table` migrations to include or skip timestamps.
 
     *Michael Duchemin*
+
 
 Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/activerecord/CHANGELOG.md) for previous changes.

@@ -31,11 +31,11 @@ module ActiveRecord
     class UrlConfig < HashConfig
       attr_reader :url
 
-      def initialize(env_name, name, url, config = {})
-        super(env_name, name, config)
+      def initialize(env_name, name, url, configuration_hash = {})
+        super(env_name, name, configuration_hash)
 
         @url = url
-        @config.merge!(build_url_hash)
+        @configuration_hash = @configuration_hash.merge(build_url_hash).freeze
       end
 
       private

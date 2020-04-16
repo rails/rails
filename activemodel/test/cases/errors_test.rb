@@ -63,6 +63,14 @@ class ErrorsTest < ActiveModel::TestCase
     }
   end
 
+  def test_first
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:name, :blank)
+
+    error = errors.first
+    assert_kind_of ActiveModel::Error, error
+  end
+
   def test_dup
     errors = ActiveModel::Errors.new(Person.new)
     errors.add(:name)

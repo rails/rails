@@ -3,37 +3,12 @@
 require "drb"
 require "drb/unix" unless Gem.win_platform?
 require "active_support/core_ext/module/attribute_accessors"
+require "active_support/testing/parallelization/server"
+require "active_support/testing/parallelization/worker"
 
 module ActiveSupport
   module Testing
     class Parallelization # :nodoc:
-      class Server
-        include DRb::DRbUndumped
-
-        def initialize
-          @queue = Queue.new
-        end
-
-        def record(reporter, result)
-          raise DRb::DRbConnError if result.is_a?(DRb::DRbUnknown)
-
-          reporter.synchronize do
-            reporter.record(result)
-          end
-        end
-
-        def <<(o)
-          o[2] = DRbObject.new(o[2]) if o
-          @queue << o
-        end
-
-        def length
-          @queue.length
-        end
-
-        def pop; @queue.pop; end
-      end
-
       @@after_fork_hooks = []
 
       def self.after_fork_hook(&blk)
@@ -50,96 +25,27 @@ module ActiveSupport
 
       cattr_reader :run_cleanup_hooks
 
-      def initialize(queue_size)
-        @queue_size = queue_size
-        @queue      = Server.new
-        @pool       = []
-
-        @url = DRb.start_service("drbunix:", @queue).uri
-      end
-
-      def after_fork(worker)
-        self.class.after_fork_hooks.each do |cb|
-          cb.call(worker)
-        end
-      end
-
-      def run_cleanup(worker)
-        self.class.run_cleanup_hooks.each do |cb|
-          cb.call(worker)
-        end
+      def initialize(worker_count)
+        @worker_count = worker_count
+        @queue_server = Server.new
+        @worker_pool = []
+        @url = DRb.start_service("drbunix:", @queue_server).uri
       end
 
       def start
-        @pool = @queue_size.times.map do |worker|
-          title = "Rails test worker #{worker}"
-
-          fork do
-            Process.setproctitle("#{title} - (starting)")
-
-            DRb.stop_service
-
-            begin
-              after_fork(worker)
-            rescue => setup_exception; end
-
-            queue = DRbObject.new_with_uri(@url)
-
-            while job = queue.pop
-              klass    = job[0]
-              method   = job[1]
-              reporter = job[2]
-
-              Process.setproctitle("#{title} - #{klass}##{method}")
-
-              result = klass.with_info_handler reporter do
-                Minitest.run_one_method(klass, method)
-              end
-
-              add_setup_exception(result, setup_exception) if setup_exception
-
-              begin
-                queue.record(reporter, result)
-              rescue DRb::DRbConnError
-                result.failures.map! do |failure|
-                  if failure.respond_to?(:error)
-                    # minitest >5.14.0
-                    error = DRb::DRbRemoteError.new(failure.error)
-                  else
-                    error = DRb::DRbRemoteError.new(failure.exception)
-                  end
-                  Minitest::UnexpectedError.new(error)
-                end
-                queue.record(reporter, result)
-              end
-
-              Process.setproctitle("#{title} - (idle)")
-            end
-          ensure
-            Process.setproctitle("#{title} - (stopping)")
-
-            run_cleanup(worker)
-          end
+        @worker_pool = @worker_count.times.map do |worker|
+          Worker.new(worker, @url).start
         end
       end
 
       def <<(work)
-        @queue << work
+        @queue_server << work
       end
 
       def shutdown
-        @queue_size.times { @queue << nil }
-        @pool.each { |pid| Process.waitpid pid }
-
-        if @queue.length > 0
-          raise "Queue not empty, but all workers have finished. This probably means that a worker crashed and #{@queue.length} tests were missed."
-        end
+        @queue_server.shutdown
+        @worker_pool.each { |pid| Process.waitpid pid }
       end
-
-      private
-        def add_setup_exception(result, setup_exception)
-          result.failures.prepend Minitest::UnexpectedError.new(setup_exception)
-        end
     end
   end
 end

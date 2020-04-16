@@ -81,7 +81,9 @@ module ActiveRecord
             target.delete
           when :destroy
             target.destroyed_by_association = reflection
-            target.destroy
+            if target.persisted?
+              target.destroy
+            end
           else
             nullify_owner_attributes(target)
             remove_inverse_instance(target)

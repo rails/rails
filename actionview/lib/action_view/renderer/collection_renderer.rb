@@ -141,7 +141,11 @@ module ActionView
 
       def render_collection(collection, view, path, template, layout, block)
         identifier = (template && template.identifier) || path
-        instrument(:collection, identifier: identifier, count: collection.size) do |payload|
+        ActiveSupport::Notifications.instrument(
+          "render_collection.action_view",
+          identifier: identifier,
+          count: collection.size
+        ) do |payload|
           spacer = if @options.key?(:spacer_template)
             spacer_template = find_template(@options[:spacer_template], @locals.keys)
             build_rendered_template(spacer_template.render(view, @locals), spacer_template)

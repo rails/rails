@@ -56,7 +56,7 @@ module ActiveRecord
   end
 
   module ConnectionAdapters
-    # The PostgreSQL adapter works with the native C (https://bitbucket.org/ged/ruby-pg) driver.
+    # The PostgreSQL adapter works with the native C (https://github.com/ged/ruby-pg) driver.
     #
     # Options:
     #

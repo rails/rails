@@ -170,12 +170,6 @@ module ActionView
         details || NO_DETAILS
       end
 
-      def instrument(name, **options) # :doc:
-        ActiveSupport::Notifications.instrument("render_#{name}.action_view", options) do |payload|
-          yield payload
-        end
-      end
-
       def prepend_formats(formats) # :doc:
         formats = Array(formats)
         return if formats.empty? || @lookup_context.html_fallback_for_js
