@@ -178,7 +178,7 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     assert_match(encrypted_content, run_diff_command(content_path))
   end
 
-  test "edit/show commands with environment option uses custom paths when they are set" do
+  test "edit/show commands with environment option use custom paths when they are set" do
     add_to_env_config("development", "config.credentials.key_path = 'config/credentials/custom.key'")
     add_to_env_config("development", "config.credentials.content_path = 'config/credentials/custom.yml.enc'")
 
@@ -191,7 +191,7 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     assert_match(/access_key_id: 123/, run_show_command(environment: "development"))
   end
 
-  test "edit/show commands with no environment option still uses default paths when dev and custom credentials exist" do
+  test "edit/show commands with no environment option still use default paths when dev and custom credentials exist" do
     remove_file "config/master.key"
     remove_file "config/credentials.yml.enc"
     write_credentials_override("development")
@@ -208,7 +208,7 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     assert_match(/access_key_id: 123/, run_show_command)
   end
 
-  test "edit/show commands with environment option uses correct environment paths when development credentials exist" do
+  test "edit/show commands with environment option use correct environment paths when development credentials exist" do
     write_credentials_override("development")
 
     run_edit_command(environment: "production")
@@ -220,7 +220,7 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     assert_match(/access_key_id: 123/, run_show_command(environment: "production"))
   end
 
-  test "edit/show commands with non-dev environment option uses custom environment config" do
+  test "edit/show commands with non-dev environment option use custom environment config" do
     write_credentials_override("development")
     add_to_env_config("production", "config.credentials.key_path = 'config/credentials/custom.key'")
     add_to_env_config("production", "config.credentials.content_path = 'config/credentials/custom.yml.enc'")
@@ -234,7 +234,7 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     assert_match(/access_key_id: 123/, run_show_command(environment: "production"))
   end
 
-  test "edit/show commands uses application config paths" do
+  test "edit/show commands use application config paths" do
     add_to_config("config.credentials.key_path = 'config/credentials/custom.key'")
     add_to_config("config.credentials.content_path = 'config/credentials/custom.yml.enc'")
 
@@ -251,7 +251,7 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     assert_match(/access_key_id: 123/, run_show_command(environment: "production"))
   end
 
-  test "edit/show commands uses application config paths when dev credentials exist" do
+  test "edit/show commands use application config paths when dev credentials exist" do
     write_credentials_override("development")
     add_to_config("config.credentials.key_path = 'config/credentials/custom.key'")
     add_to_config("config.credentials.content_path = 'config/credentials/custom.yml.enc'")
