@@ -114,7 +114,7 @@ module Rails
 
         def determine_path(which, default_path:, env_path:)
           load_environment_config if environment_specified?
-          config_path = Rails.application.config.credentials[which].to_s.gsub(Rails.root.to_s + '/', '')
+          config_path = Rails.application.config.credentials[which].to_s.gsub(Rails.root.to_s + "/", "")
 
           if environment_specified?
             # Rails.configuration initializes credentials paths based on the existence of credentials files. So,
@@ -142,7 +142,7 @@ module Rails
 
         def environment
           # Explicitly keep credentials env in sync with Rails env, which defaults to dev
-          options[:environment] || 'development'
+          options[:environment] || "development"
         end
 
         def environment_specified?
@@ -151,7 +151,7 @@ module Rails
 
         def load_environment_config
           path = Rails.root.join("config/environments/#{environment}.rb")
-          require(path) if File.exists?(path)
+          require(path) if File.exist?(path)
         end
 
         def encryption_key_file_generator
