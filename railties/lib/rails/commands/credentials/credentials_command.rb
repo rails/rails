@@ -46,6 +46,7 @@ module Rails
 
       def show
         extract_environment_option_from_argument(default_environment: nil)
+        ENV["RAILS_ENV"] = environment # Ensures that Rails.configuration is initialized using the right env
         require_application!
 
         say credentials.read.presence || missing_credentials_message
