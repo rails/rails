@@ -72,11 +72,27 @@ module ActiveRecord
         connection.add_index(table_name, "foo", name: good_index_name)
       end
 
-      def test_add_index_which_already_exists_does_not_raise_error
+      def test_add_index_which_already_exists_does_not_raise_error_with_option
         connection.add_index(table_name, "foo", if_not_exists: true)
 
         assert_nothing_raised do
           connection.add_index(table_name, "foo", if_not_exists: true)
+        end
+
+        assert connection.index_name_exists?(table_name, "index_testings_on_foo")
+      end
+
+      def test_remove_index_which_does_not_exist_doesnt_raise_with_option
+        connection.add_index(table_name, "foo")
+
+        connection.remove_index(table_name, "foo")
+
+        assert_raises ArgumentError do
+          connection.remove_index(table_name, "foo")
+        end
+
+        assert_nothing_raised do
+          connection.remove_index(table_name, "foo", if_exists: true)
         end
       end
 

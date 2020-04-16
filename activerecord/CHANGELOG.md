@@ -1,3 +1,9 @@
+*   Add support for `if_exists` option for removing an index.
+
+    The `remove_index` method can take an `if_exists` option. If this is set to true an error won't be raised if the index doesn't exist.
+
+    *Eileen M. Uchitelle*
+
 *   Remove ibm_db, informix, mssql, oracle, and oracle12 Arel visitors which are not used in the code base.
 
     *Ryuta Kamizono*

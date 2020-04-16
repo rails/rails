@@ -845,6 +845,11 @@ module ActiveRecord
       #
       #   remove_index :accounts, :branch_id, name: :by_branch_party
       #
+      # Checks if the index exists before trying to remove it. Will silently ignore indexes that
+      # don't exist.
+      #
+      #   remove_index :accounts, if_exists: true
+      #
       # Removes the index named +by_branch_party+ in the +accounts+ table +concurrently+.
       #
       #   remove_index :accounts, name: :by_branch_party, algorithm: :concurrently
@@ -855,7 +860,10 @@ module ActiveRecord
       #
       # For more information see the {"Transactional Migrations" section}[rdoc-ref:Migration].
       def remove_index(table_name, column_name = nil, options = {})
+        return if options[:if_exists] && !index_exists?(table_name, column_name, options)
+
         index_name = index_name_for_remove(table_name, column_name, options)
+
         execute "DROP INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)}"
       end
 
