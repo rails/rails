@@ -500,7 +500,7 @@ module ActiveRecord
 
       if touch
         names = touch if touch != true
-        names = Array(names)
+        names = Array.wrap(names)
         options = names.extract_options!
         touch_updates = klass.touch_attributes_with_time(*names, **options)
         updates.merge!(touch_updates) unless touch_updates.empty?
