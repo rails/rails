@@ -225,6 +225,29 @@ Hello, Rails!
 To begin with, let's get some text up on screen quickly. To do this, you need to
 get your Rails application server running.
 
+### Packaging frontend JS assets
+
+Before your server will run; you'll need a webpacker.yml to use the generated 
+source for your new project. This is to allow frontend assets to be built for 
+your rails application and support modern frontend tooling.
+
+By this point NodeJS and YARN should be setup. If they are not, please refer to
+the [#Installing Node.js and Yarn](#installing-node-js-and-yarn) section of this
+document.
+
+```bash
+$ bin/rails webpacker:install
+```
+
+If you have a specific frontend framework you'd like to work with, and Rails 
+has built-in support for those technologies, then you may find a more specific
+and helpful command for React, Angular, or other webpacker tooling by looking at
+all available webpacker commands.
+
+```bash
+$ bin/rails -T webpacker
+```
+
 ### Starting up the Web Server
 
 You actually have a functional Rails application already. To see it, you need to
