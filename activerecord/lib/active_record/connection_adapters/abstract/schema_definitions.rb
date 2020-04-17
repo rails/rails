@@ -184,7 +184,7 @@ module ActiveRecord
         end
 
         def column_names
-          columns.map(&:first)
+          columns.map(&:first).sort
         end
 
         def foreign_table_name

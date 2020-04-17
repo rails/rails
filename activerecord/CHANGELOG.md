@@ -579,5 +579,8 @@
 
     *Michael Duchemin*
 
+*   Change order of index creation for polymorphic association on rails to improve performance on database queries. Exp: [:foo_id. :foo_type].
+
+    *Andre Leoni*
 
 Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/activerecord/CHANGELOG.md) for previous changes.
