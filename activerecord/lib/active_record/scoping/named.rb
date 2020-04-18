@@ -83,10 +83,6 @@ module ActiveRecord
         # <tt>Shirt.dry_clean_only</tt>. <tt>Shirt.red</tt>, in effect,
         # represents the query <tt>Shirt.where(color: 'red')</tt>.
         #
-        # You should always pass a callable object to the scopes defined
-        # with #scope. This ensures that the scope is re-evaluated each
-        # time it is called.
-        #
         # Note that this is simply 'syntactic sugar' for defining an actual
         # class method:
         #
