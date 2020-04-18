@@ -12,7 +12,7 @@ module ActiveRecord
     end
 
     def teardown
-      Topic.reset_column_information
+      Topic.class_eval { @predicate_builder = nil }
     end
 
     def test_registering_new_handlers

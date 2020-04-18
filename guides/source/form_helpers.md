@@ -621,6 +621,94 @@ The first parameter specifies which value should be selected and can either be a
 
 will produce the same output and the value chosen by the user can be retrieved by `params[:date][:year]`.
 
+Creating Checkboxes for Relations
+------------------------------------------
+
+Generating checkboxes options that act appropriately with Active Record models
+and strong parameters can be a confusing undertaking. Luckily there is a helper
+function to significantly reduce the work required.
+
+Here is what the markup may look like:
+
+```html
+<input type="checkbox" value="1" checked="checked" name="person[city_ids][]" id="person_cities_1" />
+<label for="person_cities_1">Pittsburgh</label>
+<input type="checkbox" value="2" checked="checked" name="person[city_ids][]" id="person_cities_2"/>
+<label for="person_cities_2">Madison</label>
+<input type="checkbox" value="3" checked="checked" name="person[city_ids][]" id="person_cities_3"/>
+<label for="person_cities_3">Santa Rosa</label>
+```
+
+You have a list of cities whose names are shown to the user and associated
+checkboxes that hold the id of each cities database entry.
+
+### The Collection Check Boxes tag
+
+The `collection_check_boxes` exists to help create these checkboxes with the
+name for each input that maps to params that can be passed directly to model
+relationships.
+
+In this example we show the currently associated records in a collection:
+
+```erb
+<%= form_with model: @person do |person_form| %>
+  <%= person_form.collection_check_boxes :city_ids, person.object.cities, :id, :name %>
+<% end %>
+```
+
+This returns
+
+```html
+<input type="checkbox" value="1" checked="checked" name="person[city_ids][]" id="person_cities_1" checked="checked" />
+<label for="person_cities_1">Pittsburgh</label>
+<input type="checkbox" value="2" checked="checked" name="person[city_ids][]" id="person_cities_2" checked="checked" />
+<label for="person_cities_2">Madison</label>
+<input type="checkbox" value="3" checked="checked" name="person[city_ids][]" id="person_cities_3" checked="checked" />
+<label for="person_cities_3">Santa Rosa</label>
+```
+
+You can also pass a block to format the html as you'd like:
+
+```erb
+<%= form_with model: @person do |person_form| %>
+  <%= person_form.collection_check_boxes :city_ids, City.all, :id, :name do |city| %>
+    <div>
+      <%= city.check_box %><%= city.label %>
+    </div>
+  <% end %>
+<% end %>
+```
+
+This returns
+
+```html
+<div>
+  <input type="checkbox" value="1" checked="checked" name="person[city_ids][]" id="person_cities_1" checked="checked" />
+  <label for="person_cities_1">Pittsburgh</label>
+</div>
+<div>
+  <input type="checkbox" value="2" checked="checked" name="person[city_ids][]" id="person_cities_2" checked="checked" />
+  <label for="person_cities_2">Madison</label>
+</div>
+<div>
+  <input type="checkbox" value="3" checked="checked" name="person[city_ids][]" id="person_cities_3" checked="checked" />
+  <label for="person_cities_3">Santa Rosa</label>
+</div>
+```
+
+The method signature is
+
+```erb
+collection_check_boxes(object, method, collection, value_method, text_method, options = {}, html_options = {}, &block)
+```
+* `object` - the form object, this is unnecessary if using the
+  `form.collection_check_boxes` method call
+* `method` -  the association method for the model relation
+* `collection` - an array of objects to show in checkboxes
+* `value_method` -  the method to call when populating the value attribute in
+  the checkbox
+* `text` - the method to call when populating the text of the label
+
 Uploading Files
 ---------------
 

@@ -27,8 +27,8 @@ Ruby on Rails allows applications to be written as if their code was preloaded.
 In a normal Ruby program classes need to load their dependencies:
 
 ```ruby
-require 'application_controller'
-require 'post'
+require "application_controller"
+require "post"
 
 class PostsController < ApplicationController
   def index
@@ -440,7 +440,7 @@ autoload_paths and eager_load_paths
 As you probably know, when `require` gets a relative file name:
 
 ```ruby
-require 'erb'
+require "erb"
 ```
 
 Ruby looks for the file in the directories listed in `$LOAD_PATH`. That is, Ruby
@@ -1030,7 +1030,7 @@ have to know all its descendants.
 Files defining constants to be autoloaded should never be `require`d:
 
 ```ruby
-require 'user' # DO NOT DO THIS
+require "user" # DO NOT DO THIS
 
 class UsersController < ApplicationController
   ...

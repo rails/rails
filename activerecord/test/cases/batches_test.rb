@@ -154,6 +154,24 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
+  def test_find_in_batches_should_quote_batch_order_with_desc_order
+    c = Post.connection
+    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("posts.id"))} DESC/) do
+      Post.find_in_batches(batch_size: 1, order: :desc) do |batch|
+        assert_kind_of Array, batch
+        assert_kind_of Post, batch.first
+      end
+    end
+  end
+
+  def test_each_should_raise_if_order_is_invalid
+    assert_raise(ArgumentError) do
+      Post.select(:title).find_each(batch_size: 1, order: :invalid) { |post|
+        flunk "should not call this block"
+      }
+    end
+  end
+
   def test_find_in_batches_should_not_use_records_after_yielding_them_in_case_original_array_is_modified
     not_a_post = +"not a post"
     def not_a_post.id; end
@@ -407,6 +425,16 @@ class EachTest < ActiveRecord::TestCase
     c = Post.connection
     assert_sql(/ORDER BY #{c.quote_table_name('posts')}\.#{c.quote_column_name('id')}/) do
       Post.in_batches(of: 1) do |relation|
+        assert_kind_of ActiveRecord::Relation, relation
+        assert_kind_of Post, relation.first
+      end
+    end
+  end
+
+  def test_in_batches_should_quote_batch_order_with_desc_order
+    c = Post.connection
+    assert_sql(/ORDER BY #{Regexp.escape(c.quote_table_name("posts.id"))} DESC/) do
+      Post.in_batches(of: 1, order: :desc) do |relation|
         assert_kind_of ActiveRecord::Relation, relation
         assert_kind_of Post, relation.first
       end

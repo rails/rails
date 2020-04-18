@@ -169,14 +169,14 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_limit_should_apply_before_count
-    accounts = Account.limit(4)
+    accounts = Account.order(:id).limit(4)
 
     assert_equal 3, accounts.count(:firm_id)
     assert_equal 3, accounts.select(:firm_id).count
   end
 
   def test_limit_should_apply_before_count_arel_attribute
-    accounts = Account.limit(4)
+    accounts = Account.order(:id).limit(4)
 
     firm_id_attribute = Account.arel_table[:firm_id]
     assert_equal 3, accounts.count(firm_id_attribute)
@@ -922,6 +922,30 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_pick_delegate_to_all
     cool_first = minivans(:cool_first)
     assert_equal cool_first.color, Minivan.pick(:color)
+  end
+
+  def test_pick_loaded_relation
+    companies = Company.order(:id).limit(3).load
+
+    assert_no_queries do
+      assert_equal "37signals", companies.pick(:name)
+    end
+  end
+
+  def test_pick_loaded_relation_multiple_columns
+    companies = Company.order(:id).limit(3).load
+
+    assert_no_queries do
+      assert_equal [1, "37signals"], companies.pick(:id, :name)
+    end
+  end
+
+  def test_pick_loaded_relation_sql_fragment
+    companies = Company.order(:name).limit(3).load
+
+    assert_queries 1 do
+      assert_equal "37signals", companies.pick(Arel.sql("DISTINCT name"))
+    end
   end
 
   def test_grouped_calculation_with_polymorphic_relation

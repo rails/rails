@@ -254,7 +254,7 @@ module Rails
           command, *args = Shellwords.split(command)
           in_root do
             silence_warnings do
-              ::Rails::Command.invoke(command, args, options)
+              ::Rails::Command.invoke(command, args, **options)
             end
           end
         else

@@ -47,6 +47,7 @@ module ActiveModel
             generated_attribute_methods, name, writer: true,
           ) do |temp_method_name, attr_name_expr|
             generated_attribute_methods.module_eval <<-RUBY, __FILE__, __LINE__ + 1
+              # frozen_string_literal: true
               def #{temp_method_name}(value)
                 name = #{attr_name_expr}
                 write_attribute(name, value)

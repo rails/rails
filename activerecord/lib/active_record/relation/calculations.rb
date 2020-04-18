@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/enumerable"
+
 module ActiveRecord
   module Calculations
     # Count the records.
@@ -172,14 +174,14 @@ module ActiveRecord
     #   # SELECT people.id FROM people WHERE people.age = 21 LIMIT 5
     #   # => [2, 3]
     #
-    #   Person.pluck('DATEDIFF(updated_at, created_at)')
+    #   Person.pluck(Arel.sql('DATEDIFF(updated_at, created_at)'))
     #   # SELECT DATEDIFF(updated_at, created_at) FROM people
     #   # => ['0', '27761', '173']
     #
     # See also #ids.
     #
     def pluck(*column_names)
-      if loaded? && (column_names.map(&:to_s) - @klass.attribute_names - @klass.attribute_aliases.keys).empty?
+      if loaded? && all_attributes?(column_names)
         return records.pluck(*column_names)
       end
 
@@ -216,6 +218,10 @@ module ActiveRecord
     #   # SELECT people.name, people.email_address FROM people WHERE id = 1 LIMIT 1
     #   # => [ 'David', 'david@loudthinking.com' ]
     def pick(*column_names)
+      if loaded? && all_attributes?(column_names)
+        return records.pick(*column_names)
+      end
+
       limit(1).pluck(*column_names).first
     end
 
@@ -228,6 +234,10 @@ module ActiveRecord
     end
 
     private
+      def all_attributes?(column_names)
+        (column_names.map(&:to_s) - @klass.attribute_names - @klass.attribute_aliases.keys).empty?
+      end
+
       def has_include?(column_name)
         eager_loading? || (includes_values.present? && column_name && column_name != :all)
       end
@@ -354,7 +364,7 @@ module ActiveRecord
         if association
           key_ids     = calculated_data.collect { |row| row[group_aliases.first] }
           key_records = association.klass.base_class.where(association.klass.base_class.primary_key => key_ids)
-          key_records = Hash[key_records.map { |r| [r.id, r] }]
+          key_records = key_records.index_by(&:id)
         end
 
         Hash[calculated_data.map do |row|

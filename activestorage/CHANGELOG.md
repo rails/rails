@@ -1,3 +1,7 @@
+*   Add support for creating variants of `WebP` images out of the box.
+
+    *Dino Maric*
+
 *   Only enqueue analysis jobs for blobs with non-null analyzer classes.
 
     *Gannon McGibbon*

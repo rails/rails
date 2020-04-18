@@ -27,7 +27,7 @@ module ActionDispatch
   #
   # Here is an example system test:
   #
-  #   require 'application_system_test_case'
+  #   require "application_system_test_case"
   #
   #   class Users::CreateTest < ApplicationSystemTestCase
   #     test "adding a new user" do

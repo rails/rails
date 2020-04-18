@@ -15,7 +15,7 @@ module ActionMailbox
   # - <tt>500 Server Error</tt> if the Mandrill API key is missing, or one of the Active Record database,
   #   the Active Storage service, or the Active Job backend is misconfigured or unavailable
   class Ingresses::Mandrill::InboundEmailsController < ActionMailbox::BaseController
-    before_action :authenticate
+    before_action :authenticate, except: :health_check
 
     def create
       raw_emails.each { |raw_email| ActionMailbox::InboundEmail.create_and_extract_message_id! raw_email }
@@ -23,6 +23,10 @@ module ActionMailbox
     rescue JSON::ParserError => error
       logger.error error.message
       head :unprocessable_entity
+    end
+
+    def health_check
+      head :ok
     end
 
     private

@@ -51,7 +51,7 @@ module ApplicationTests
 
       test "db:create and db:drop without database URL" do
         require "#{app_path}/config/environment"
-        db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, spec_name: "primary")
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: "primary")
         db_create_and_drop db_config.database
       end
 
@@ -173,7 +173,7 @@ module ApplicationTests
         db_create_and_drop("db/development.sqlite3", environment_loaded: false)
       end
 
-      test "db:create and db:drop dont raise errors when loading YAML with FIXME ERB" do
+      test "db:create and db:drop dont raise errors when loading YAML with single-line ERB" do
         app_file "config/database.yml", <<-YAML
           development:
             <%= Rails.application.config.database ? 'database: db/development.sqlite3' : 'database: db/development.sqlite3' %>
@@ -333,7 +333,7 @@ module ApplicationTests
 
       test "db:migrate and db:migrate:status without database_url" do
         require "#{app_path}/config/environment"
-        db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, spec_name: "primary")
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: "primary")
         db_migrate_and_status db_config.database
       end
 
@@ -450,7 +450,7 @@ module ApplicationTests
 
       test "db:fixtures:load without database_url" do
         require "#{app_path}/config/environment"
-        db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, spec_name: "primary")
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: "primary")
         db_fixtures_load db_config.database
       end
 
@@ -578,7 +578,7 @@ module ApplicationTests
           require "#{app_path}/app/models/book"
           # if structure is not loaded correctly, exception would be raised
           assert_equal 0, Book.count
-          db_config = ActiveRecord::Base.configurations.configs_for(env_name: "test", spec_name: "primary")
+          db_config = ActiveRecord::Base.configurations.configs_for(env_name: "test", name: "primary")
           assert_match db_config.database, ActiveRecord::Base.connection_db_config.database
         end
       end

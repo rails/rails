@@ -3,6 +3,7 @@
 require "zlib"
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/array/wrap"
+require "active_support/core_ext/enumerable"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/numeric/bytes"
 require "active_support/core_ext/numeric/time"
@@ -58,6 +59,8 @@ module ActiveSupport
         when Symbol
           options = parameters.extract_options!
           retrieve_store_class(store).new(*parameters, **options)
+        when Array
+          lookup_store(*store)
         when nil
           ActiveSupport::Cache::MemoryStore.new
         else
@@ -440,8 +443,8 @@ module ActiveSupport
         instrument :read_multi, names, options do |payload|
           reads   = read_multi_entries(names, **options)
           writes  = {}
-          ordered = names.each_with_object({}) do |name, hash|
-            hash[name] = reads.fetch(name) { writes[name] = yield(name) }
+          ordered = names.index_with do |name|
+            reads.fetch(name) { writes[name] = yield(name) }
           end
 
           payload[:hits] = reads.keys

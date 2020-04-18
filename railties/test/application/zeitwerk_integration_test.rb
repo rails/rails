@@ -101,7 +101,7 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
   test "autoloaded? and overridden class names" do
     invalid_constant_name = Module.new do
       def self.name
-        "primary::SchemaMigration"
+        "MyModule::SchemaMigration"
       end
     end
     assert_not deps.autoloaded?(invalid_constant_name)

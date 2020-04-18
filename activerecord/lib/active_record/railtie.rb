@@ -131,7 +131,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
           ActiveSupport.on_load(:active_record) do
             db_config = ActiveRecord::Base.configurations.configs_for(
               env_name: Rails.env,
-              spec_name: "primary",
+              name: "primary",
             )
             filename = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(
               "primary",
@@ -218,13 +218,6 @@ To keep using the current cache store, you can turn off cache versioning entirel
       require "active_record/railties/controller_runtime"
       ActiveSupport.on_load(:action_controller) do
         include ActiveRecord::Railties::ControllerRuntime
-      end
-    end
-
-    initializer "active_record.collection_cache_association_loading" do
-      require "active_record/railties/collection_cache_association_loading"
-      ActiveSupport.on_load(:action_view) do
-        ActionView::PartialRenderer.prepend(ActiveRecord::Railties::CollectionCacheAssociationLoading)
       end
     end
 

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/enumerable"
+
 module ActiveRecord
   class InsertAll # :nodoc:
     attr_reader :model, :connection, :inserts, :keys
@@ -179,7 +181,7 @@ module ActiveRecord
             unknown_column = (keys - columns.keys).first
             raise UnknownAttributeError.new(model.new, unknown_column) if unknown_column
 
-            keys.map { |key| [ key, connection.lookup_cast_type_from_column(columns[key]) ] }.to_h
+            keys.index_with { |key| model.type_for_attribute(key) }
           end
 
           def format_columns(columns)

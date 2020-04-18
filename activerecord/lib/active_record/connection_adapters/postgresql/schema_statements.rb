@@ -442,13 +442,13 @@ module ActiveRecord
         end
 
         def add_index(table_name, column_name, options = {}) #:nodoc:
-          index_name, index_type, index_columns_and_opclasses, index_options, index_algorithm, index_using, comment = add_index_options(table_name, column_name, **options)
-          execute("CREATE #{index_type} INDEX #{index_algorithm} #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} #{index_using} (#{index_columns_and_opclasses})#{index_options}").tap do
+          index_name, index_type, index_columns_and_opclasses, index_if_not_exists_clause, index_options, index_algorithm, index_using, comment = add_index_options(table_name, column_name, **options)
+          execute("CREATE #{index_type} #{index_if_not_exists_clause} #{index_algorithm} #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} #{index_using} (#{index_columns_and_opclasses})#{index_options}").tap do
             execute "COMMENT ON INDEX #{quote_column_name(index_name)} IS #{quote(comment)}" if comment
           end
         end
 
-        def remove_index(table_name, column_name = nil, options = {}) #:nodoc:
+        def remove_index(table_name, column_name = nil, options = {}) # :nodoc:
           table = Utils.extract_schema_qualified_name(table_name.to_s)
 
           if column_name.is_a?(Hash)
@@ -467,13 +467,17 @@ module ActiveRecord
             end
           end
 
+          return if options[:if_exists] && !index_exists?(table_name, column_name, options)
+
           index_to_remove = PostgreSQL::Name.new(table.schema, index_name_for_remove(table.to_s, column_name, options))
+
           algorithm =
             if options.key?(:algorithm)
               index_algorithms.fetch(options[:algorithm]) do
                 raise ArgumentError.new("Algorithm must be one of the following: #{index_algorithms.keys.map(&:inspect).join(', ')}")
               end
             end
+
           execute "DROP INDEX #{algorithm} #{quote_table_name(index_to_remove)}"
         end
 

@@ -18,7 +18,7 @@ module ActiveRecord
 
       def test_bad_connection
         assert_raise ActiveRecord::NoDatabaseError do
-          db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+          db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
           configuration = db_config.configuration_hash.merge(database: "should_not_exist-cinco-dog-db")
           connection = ActiveRecord::Base.postgresql_connection(configuration)
           connection.exec_query("SELECT 1")
@@ -32,7 +32,7 @@ module ActiveRecord
       end
 
       def test_database_exists_returns_true_when_the_database_exists
-        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
         assert ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.database_exists?(db_config.configuration_hash),
           "expected database #{db_config.database} to exist"
       end
@@ -453,7 +453,7 @@ module ActiveRecord
           @connection.execute("INSERT INTO ex (data) VALUES ('138853948594')")
 
           @connection_handler.while_preventing_writes do
-            assert_equal 1, @connection.execute("(\n( SELECT * FROM ex WHERE data = '138853948594' ) )").entries.count
+            assert_equal 1, @connection.execute("/*action:index*/(\n( SELECT * FROM ex WHERE data = '138853948594' ) )").entries.count
           end
         end
       end
@@ -477,7 +477,7 @@ module ActiveRecord
         end
 
         def connection_without_insert_returning
-          db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+          db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
           ActiveRecord::Base.postgresql_connection(db_config.configuration_hash.merge(insert_returning: false))
         end
     end

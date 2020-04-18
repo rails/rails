@@ -81,7 +81,7 @@ create  test/fixtures/articles.yml
 The default test stub in `test/models/article_test.rb` looks like this:
 
 ```ruby
-require 'test_helper'
+require "test_helper"
 
 class ArticleTest < ActiveSupport::TestCase
   # test "the truth" do
@@ -93,7 +93,7 @@ end
 A line by line examination of this file will help get you oriented to Rails testing code and terminology.
 
 ```ruby
-require 'test_helper'
+require "test_helper"
 ```
 
 By requiring this file, `test_helper.rb` the default configuration to run our tests is loaded. We will include this with all the tests we write, so any methods added to this file are available to all our tests.
@@ -437,11 +437,11 @@ Usage: rails test [options] [files or directories]
 
 You can run a single test by appending a line number to a filename:
 
-    rails test test/models/user_test.rb:27
+    bin/rails test test/models/user_test.rb:27
 
 You can run multiple files and directories at the same time:
 
-    rails test test/controllers test/integration/login_test.rb
+    bin/rails test test/controllers test/integration/login_test.rb
 
 By default test failures and errors are reported inline during a run.
 
@@ -489,7 +489,7 @@ parallelize your local test suite differently from your CI, so an environment va
 to be able to easily change the number of workers a test run should use:
 
 ```bash
-PARALLEL_WORKERS=15 rails test
+PARALLEL_WORKERS=15 bin/rails test
 ```
 
 When parallelizing tests, Active Record automatically handles creating a database and loading the schema into the database for each
@@ -542,8 +542,34 @@ want to parallelize your local test suite differently from your CI, so an enviro
 to be able to easily change the number of workers a test run should use:
 
 ```bash
-PARALLEL_WORKERS=15 rails test
+PARALLEL_WORKERS=15 bin/rails test
 ```
+
+### Testing Parallel Transactions
+
+Rails automatically wraps any test case in a database transaction that is rolled
+back after the test completes.  This makes test cases independent of each other
+and changes to the database are only visible within a single test.
+
+When you want to test code that runs parallel transactions in threads,
+transactions can block each other because they are already nested under the test
+transaction.
+
+You can disable transactions in a test case class by setting
+`self.use_transactional_tests = false`:
+
+```ruby
+class WorkerTest < ActiveSupport::TestCase
+  self.use_transactional_tests = false
+
+  test "parallel transactions" do
+    # start some threads that create transactions
+  end
+end
+```
+
+NOTE: With disabled transactional tests, you have to clean up any data tests
+create as changes are not automatically rolled back after the test completes.
 
 The Test Database
 -----------------
@@ -826,7 +852,7 @@ The test should see that there is an `h1` on the articles index page and pass.
 Run the system tests.
 
 ```bash
-rails test:system
+bin/rails test:system
 ```
 
 NOTE: By default, running `bin/rails test` won't run your system tests.
@@ -917,7 +943,7 @@ $ bin/rails generate integration_test user_flows
 Here's what a freshly generated integration test looks like:
 
 ```ruby
-require 'test_helper'
+require "test_helper"
 
 class UserFlowsTest < ActionDispatch::IntegrationTest
   # test "the truth" do
@@ -959,7 +985,7 @@ previous command we should see:
 Now let's open that file and write our first assertion:
 
 ```ruby
-require 'test_helper'
+require "test_helper"
 
 class BlogFlowTest < ActionDispatch::IntegrationTest
   test "can see the welcome page" do
@@ -1322,7 +1348,7 @@ Notice we're starting to see some duplication in these three tests, they both ac
 Our test should now look something as what follows. Disregard the other tests for now, we're leaving them out for brevity.
 
 ```ruby
-require 'test_helper'
+require "test_helper"
 
 class ArticlesControllerTest < ActionDispatch::IntegrationTest
   # called before every single test
@@ -1383,7 +1409,7 @@ end
 ```
 
 ```ruby
-require 'test_helper'
+require "test_helper"
 
 class ProfileControllerTest < ActionDispatch::IntegrationTest
 
@@ -1414,8 +1440,8 @@ end
 These helpers can then be explicitly required as needed and included as needed
 
 ```ruby
-require 'test_helper'
-require 'test_helpers/multiple_assertions'
+require "test_helper"
+require "test_helpers/multiple_assertions"
 
 class NumberTest < ActiveSupport::TestCase
   include MultipleAssertions
@@ -1430,7 +1456,7 @@ or they can continue to be included directly into the relevant parent classes
 
 ```ruby
 # test/test_helper.rb
-require 'test_helpers/sign_in_helper'
+require "test_helpers/sign_in_helper"
 
 class ActionDispatch::IntegrationTest
   include SignInHelper
@@ -1590,7 +1616,7 @@ If you generated your mailer, the generator does not create stub fixtures for th
 Here's a unit test to test a mailer named `UserMailer` whose action `invite` is used to send an invitation to a friend. It is an adapted version of the base test created by the generator for an `invite` action.
 
 ```ruby
-require 'test_helper'
+require "test_helper"
 
 class UserMailerTest < ActionMailer::TestCase
   test "invite" do
@@ -1649,7 +1675,7 @@ Unit testing allows us to test the attributes of the email while functional and 
 
 ```ruby
 # Integration Test
-require 'test_helper'
+require "test_helper"
 
 class UsersControllerTest < ActionDispatch::IntegrationTest
   test "invite friend" do
@@ -1663,7 +1689,7 @@ end
 
 ```ruby
 # System Test
-require 'test_helper'
+require "test_helper"
 
 class UsersTest < ActionDispatch::SystemTestCase
   driven_by :selenium, using: :headless_chrome
@@ -1693,7 +1719,7 @@ By default, when you generate a job, an associated test will be generated as wel
 under the `test/jobs` directory. Here's an example test with a billing job:
 
 ```ruby
-require 'test_helper'
+require "test_helper"
 
 class BillingJobTest < ActiveJob::TestCase
   test 'that account is charged' do
@@ -1721,7 +1747,7 @@ the custom assertions provided by Active Job are pretty useful. For instance,
 within a model:
 
 ```ruby
-require 'test_helper'
+require "test_helper"
 
 class ProductTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
@@ -1739,7 +1765,7 @@ end
 When serializing job arguments, `Time`, `DateTime`, and `ActiveSupport::TimeWithZone` lose microsecond precision. This means comparing deserialized time with actual time doesn't always work. To compensate for the loss of precision, `assert_enqueued_with` and `assert_performed_with` will remove microseconds from time objects in argument assertions.
 
 ```ruby
-require 'test_helper'
+require "test_helper"
 
 class ProductTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
@@ -1848,7 +1874,7 @@ the custom assertions provided by Action Cable are pretty useful. For instance,
 within a model:
 
 ```ruby
-require 'test_helper'
+require "test_helper"
 
 class ProductTest < ActionCable::TestCase
   test "broadcast status after charge" do
@@ -1871,7 +1897,7 @@ class ChatRelayJob < ApplicationJob
 end
 
 # test/jobs/chat_relay_job_test.rb
-require 'test_helper'
+require "test_helper"
 
 class ChatRelayJobTest < ActiveJob::TestCase
   include ActionCable::TestHelper

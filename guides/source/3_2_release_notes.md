@@ -64,8 +64,8 @@ Replace the code beneath the comment in `script/rails` with the following conten
 ENGINE_ROOT = File.expand_path('../..', __FILE__)
 ENGINE_PATH = File.expand_path('../../lib/your_engine_name/engine', __FILE__)
 
-require 'rails/all'
-require 'rails/engine/commands'
+require "rails/all"
+require "rails/engine/commands"
 ```
 
 Creating a Rails 3.2 application

@@ -82,8 +82,12 @@ module ActionController
     #   need to call <tt>.to_json</tt> on the object you want to render.
     # * <tt>:body</tt> - Renders provided text and sets content type of <tt>text/plain</tt>.
     #
-    # If no <tt>options</tt> hash is passed or if <tt>:update</tt> is specified, the default is
-    # to render a partial and use the second parameter as the locals hash.
+    # If no <tt>options</tt> hash is passed or if <tt>:update</tt> is specified, then:
+    #
+    # If an object responding to `render_in` is passed, `render_in` is called on the object,
+    # passing in the current view context.
+    #
+    # Otherwise, a partial is rendered using the second parameter as the locals hash.
     def render(*args)
       raise "missing controller" unless controller
 
@@ -99,8 +103,13 @@ module ActionController
     private
       def normalize_keys(defaults, env)
         new_env = {}
-        defaults.each_pair { |k, v| new_env[rack_key_for(k)] = rack_value_for(k, v) }
         env.each_pair { |k, v| new_env[rack_key_for(k)] = rack_value_for(k, v) }
+
+        defaults.each_pair do |k, v|
+          key = rack_key_for(k)
+          new_env[key] = rack_value_for(k, v) unless new_env.key?(key)
+        end
+
         new_env["rack.url_scheme"] = new_env["HTTPS"] == "on" ? "https" : "http"
         new_env
       end
@@ -113,19 +122,19 @@ module ActionController
         input:       "rack.input"
       }
 
-      IDENTITY = ->(_) { _ }
-
-      RACK_VALUE_TRANSLATION = {
-        https: ->(v) { v ? "on" : "off" },
-        method: ->(v) { -v.upcase },
-      }
-
       def rack_key_for(key)
         RACK_KEY_TRANSLATION[key] || key.to_s
       end
 
       def rack_value_for(key, value)
-        RACK_VALUE_TRANSLATION.fetch(key, IDENTITY).call value
+        case key
+        when :https
+          value ? "on" : "off"
+        when :method
+          -value.upcase
+        else
+          value
+        end
       end
   end
 end

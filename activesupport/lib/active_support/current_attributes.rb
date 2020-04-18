@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/callbacks"
+require "active_support/core_ext/enumerable"
 
 module ActiveSupport
   # Abstract super class that provides a thread-isolated attributes singleton, which resets automatically
@@ -201,7 +202,7 @@ module ActiveSupport
       end
 
       def compute_attributes(keys)
-        keys.collect { |key| [ key, public_send(key) ] }.to_h
+        keys.index_with { |key| public_send(key) }
       end
   end
 end

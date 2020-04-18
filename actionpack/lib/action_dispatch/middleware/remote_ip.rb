@@ -33,7 +33,7 @@ module ActionDispatch
     # not be the ultimate client IP in production, and so are discarded. See
     # https://en.wikipedia.org/wiki/Private_network for details.
     TRUSTED_PROXIES = [
-      "127.0.0.1",      # localhost IPv4
+      "127.0.0.0/8",    # localhost IPv4 range, per RFC-3330
       "::1",            # localhost IPv6
       "fc00::/7",       # private IPv6 range fc00::/7
       "10.0.0.0/8",     # private IPv4 range 10.x.x.x

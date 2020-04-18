@@ -1,3 +1,37 @@
+*   While using `perform_enqueued_jobs` test helper enqueued jobs must be stored for the later check with
+    `assert_enqueued_with`.
+
+    *Dmitry Polushkin*
+
+*   `ActiveJob::TestCase#perform_enqueued_jobs` without a block removes performed jobs from the queue.
+
+    That way the helper can be called multiple times and not perform a job invocation multiple times.
+
+    ```ruby
+    def test_jobs
+      HelloJob.perform_later("rafael")
+      perform_enqueued_jobs # only runs with "rafael"
+      HelloJob.perform_later("david")
+      perform_enqueued_jobs # only runs with "david"
+    end
+    ```
+
+    *Étienne Barrié*
+
+*   `ActiveJob::TestCase#perform_enqueued_jobs` will no longer perform retries:
+
+    When calling `perform_enqueued_jobs` without a block, the adapter will
+    now perform jobs that are **already** in the queue. Jobs that will end up in
+    the queue afterwards won't be performed.
+
+    This change only affects `perform_enqueued_jobs` when no block is given.
+
+    *Edouard Chin*
+
+*   Add queue name support to Que adapter.
+
+    *Brad Nauta*, *Wojciech Wnętrzak*
+
 *   Don't run `after_enqueue` and `after_perform` callbacks if the callback chain is halted.
 
         class MyJob < ApplicationJob
@@ -8,7 +42,7 @@
     `after_enqueue` and `after_perform` callbacks will no longer run if the callback chain is halted.
     This behaviour is a breaking change and won't take effect until Rails 6.2.
     To enable this behaviour in your app right now, you can add in your app's configuration file
-    `config.active_job.skip_after_callbacks_if_terminated = true`
+    `config.active_job.skip_after_callbacks_if_terminated = true`.
 
     *Edouard Chin*
 
@@ -65,14 +99,16 @@
 
     *Vlado Cingel*
 
-*   Add jitter to :exponentially_longer
+*   Add jitter to `ActiveJob::Exceptions.retry_on`.
 
-    ActiveJob::Exceptions.retry_on with :exponentially_longer now uses a random amount of jitter in order to
-    prevent the [thundering herd effect.](https://en.wikipedia.org/wiki/Thundering_herd_problem).  Defaults to
+    `ActiveJob::Exceptions.retry_on` now uses a random amount of jitter in order to
+    prevent the [thundering herd effect](https://en.wikipedia.org/wiki/Thundering_herd_problem). Defaults to
     15% (represented as 0.15) but overridable via the `:jitter` option when using `retry_on`.
-    Jitter is applied when an `Integer`, `ActiveSupport::Duration` or `exponentially_longer`, is passed to the `wait` argument in `retry_on`.
+    Jitter is applied when an `Integer`, `ActiveSupport::Duration` or `:exponentially_longer`, is passed to the `wait` argument in `retry_on`.
 
+    ```ruby
     retry_on(MyError, wait: :exponentially_longer, jitter: 0.30)
+    ```
 
     *Anthony Ross*
 
