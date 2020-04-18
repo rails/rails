@@ -303,6 +303,7 @@ class ApplicationRecord < ActiveRecord::Base
     shard_one: { writing: :primary_shard_one, reading: :primary_shard_one_replica }
   }
 end
+```
 
 Then models can swap connections manually via the `connected_to` API:
 
