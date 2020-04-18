@@ -209,6 +209,14 @@ module ActiveSupport
         end
     end
 
+    PARTS.each do |part|
+      define_method(part) do
+        self.value /= PARTS_IN_SECONDS[part].to_f
+        self.value.round(2).public_send(part)
+      end
+      alias_method part.to_s.singularize, part
+    end
+
     def initialize(value, parts) #:nodoc:
       @value, @parts = value, parts
       @parts.reject! { |k, v| v.zero? } unless value == 0

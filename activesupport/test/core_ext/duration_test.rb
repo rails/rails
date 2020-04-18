@@ -78,6 +78,11 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal "3600 seconds",                    (1.day / 24).inspect
   end
 
+  def test_method_chaining
+    assert_equal 1.day.hours, 24.hours
+    assert_equal 1.year.days.months.year, 1.year
+  end
+
   def test_inspect_locale
     current_locale = I18n.default_locale
     I18n.default_locale = :de
