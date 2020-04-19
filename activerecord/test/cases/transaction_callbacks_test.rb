@@ -501,6 +501,43 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     assert flag
   end
 
+  def test_saving_two_records_that_override_object_id_should_run_after_commit_callbacks_for_both
+    klass = Class.new(TopicWithCallbacks) do
+      define_method(:object_id) { 42 }
+    end
+
+    records = [klass.new, klass.new]
+
+    klass.transaction do
+      records.each do |record|
+        record.after_commit_block { |r| r.history << :after_commit }
+        record.save!
+      end
+    end
+
+    assert_equal [:after_commit], records.first.history
+    assert_equal [:after_commit], records.second.history
+  end
+
+  def test_saving_two_records_that_override_object_id_should_run_after_rollback_callbacks_for_both
+    klass = Class.new(TopicWithCallbacks) do
+      define_method(:object_id) { 42 }
+    end
+
+    records = [klass.new, klass.new]
+
+    klass.transaction do
+      records.each do |record|
+        record.after_rollback_block { |r| r.history << :after_rollback }
+        record.save!
+      end
+      raise ActiveRecord::Rollback
+    end
+
+    assert_equal [:after_rollback], records.first.history
+    assert_equal [:after_rollback], records.second.history
+  end
+
   private
     def add_transaction_execution_blocks(record)
       record.after_commit_block(:create) { |r| r.history << :commit_on_create }
