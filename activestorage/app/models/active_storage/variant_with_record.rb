@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 class ActiveStorage::VariantWithRecord
-  WEB_IMAGE_CONTENT_TYPES = %w[ image/png image/jpeg image/jpg image/gif ]
-
   attr_reader :blob, :variation
 
   def initialize(blob, variation)
@@ -36,7 +34,7 @@ class ActiveStorage::VariantWithRecord
   private
     def transform_blob
       blob.open do |input|
-        if blob.content_type.in?(WEB_IMAGE_CONTENT_TYPES)
+        if blob.content_type.in?(ActiveStorage.web_image_content_types)
           variation.transform(input) do |output|
             yield io: output, filename: blob.filename, content_type: blob.content_type, service_name: blob.service.name
           end

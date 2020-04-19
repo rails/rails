@@ -53,8 +53,6 @@ require "ostruct"
 # * {ImageProcessing::Vips}[https://github.com/janko-m/image_processing/blob/master/doc/vips.md#methods]
 # * {ruby-vips reference}[http://www.rubydoc.info/gems/ruby-vips/Vips/Image]
 class ActiveStorage::Variant
-  WEB_IMAGE_CONTENT_TYPES = %w[ image/png image/jpeg image/jpg image/gif ]
-
   attr_reader :blob, :variation
   delegate :service, to: :blob
 
@@ -106,7 +104,7 @@ class ActiveStorage::Variant
 
     def specification
       @specification ||=
-        if WEB_IMAGE_CONTENT_TYPES.include?(blob.content_type)
+        if ActiveStorage.web_image_content_types.include?(blob.content_type)
           Specification.new \
             filename: blob.filename,
             content_type: blob.content_type,

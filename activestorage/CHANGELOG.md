@@ -1,3 +1,9 @@
+*   Add `config.active_storage.web_image_content_types` to allow applications
+    to add content types (like `image/webp`) in which variants can be processed,
+    instead of letting those images be converted to the fallback PNG format.
+
+    *Jeroen van Haperen*
+
 *   Add support for creating variants of `WebP` images out of the box.
 
     *Dino Maric*
