@@ -1,3 +1,7 @@
+*   Instrument layout rendering in `TemplateRenderer#render_with_layout` as `render_layout.action_view`, and include (when necessary) the layout's virtual path in notification payloads for collection and partial renders.
+
+    *Zach Kemp*
+
 *   `ActionView::Base.annotate_template_file_names` annotates HTML output with template file names.
 
     *Joel Hawksley*, *Aaron Patterson*
