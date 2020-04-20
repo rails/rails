@@ -665,7 +665,8 @@ module ActiveRecord
           options = {
             default: column.default,
             null: column.null,
-            auto_increment: column.auto_increment?
+            auto_increment: column.auto_increment?,
+            comment: column.comment
           }
 
           current_type = exec_query("SHOW COLUMNS FROM #{quote_table_name(table_name)} LIKE #{quote(column_name)}", "SCHEMA").first["Type"]

@@ -1,3 +1,7 @@
+*   Preserve column comment value on changing column name on MySQL.
+
+    *Islam Taha*
+
 *   Add support for `if_exists` option for removing an index.
 
     The `remove_index` method can take an `if_exists` option. If this is set to true an error won't be raised if the index doesn't exist.
