@@ -38,6 +38,7 @@ module ActiveStorage
       image/bmp
       image/vnd.adobe.photoshop
       image/vnd.microsoft.icon
+      image/webp
     )
 
     config.active_storage.content_types_to_serve_as_binary = %w(
@@ -106,17 +107,10 @@ module ActiveStorage
       ActiveSupport.on_load(:active_storage_blob) do
         configs = Rails.configuration.active_storage.service_configurations ||=
           begin
-            config_file = Pathname.new(Rails.root.join("config/storage.yml"))
+            config_file = Rails.root.join("config/storage.yml")
             raise("Couldn't find Active Storage configuration in #{config_file}") unless config_file.exist?
 
-            require "yaml"
-            require "erb"
-
-            YAML.load(ERB.new(config_file.read).result) || {}
-          rescue Psych::SyntaxError => e
-            raise "YAML syntax error occurred while parsing #{config_file}. " \
-                  "Please note that YAML must be consistently indented using spaces. Tabs are not allowed. " \
-                  "Error: #{e.message}"
+            ActiveSupport::ConfigurationFile.parse(config_file)
           end
 
         ActiveStorage::Blob.services = ActiveStorage::Service::Registry.new(configs)

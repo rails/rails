@@ -16,8 +16,8 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-Introduction
-------------
+What is Action Mailer?
+----------------------
 
 Action Mailer allows you to send emails from your application using mailer classes
 and views.
@@ -44,7 +44,7 @@ views.
 #### Create the Mailer
 
 ```bash
-$ rails generate mailer UserMailer
+$ bin/rails generate mailer UserMailer
 create  app/mailers/user_mailer.rb
 create  app/mailers/application_mailer.rb
 invoke  erb
@@ -173,8 +173,8 @@ Setting this up is simple.
 First, let's create a simple `User` scaffold:
 
 ```bash
-$ rails generate scaffold user name email login
-$ rails db:migrate
+$ bin/rails generate scaffold user name email login
+$ bin/rails db:migrate
 ```
 
 Now that we have a user model to play with, we will just edit the

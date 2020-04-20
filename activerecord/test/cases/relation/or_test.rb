@@ -138,5 +138,17 @@ module ActiveRecord
         author.top_posts.or(author.other_top_posts)
       end
     end
+
+    def test_structurally_incompatible_values
+      assert_nothing_raised do
+        Post.includes(:author).includes(:author).or(Post.includes(:author))
+        Post.eager_load(:author).eager_load(:author).or(Post.eager_load(:author))
+        Post.preload(:author).preload(:author).or(Post.preload(:author))
+        Post.group(:author_id).group(:author_id).or(Post.group(:author_id))
+        Post.joins(:author).joins(:author).or(Post.joins(:author))
+        Post.left_outer_joins(:author).left_outer_joins(:author).or(Post.left_outer_joins(:author))
+        Post.from("posts").or(Post.from("posts"))
+      end
+    end
   end
 end

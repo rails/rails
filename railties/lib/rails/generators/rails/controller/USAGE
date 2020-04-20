@@ -9,7 +9,7 @@ Description:
     template engine, assets, and test framework generators.
 
 Example:
-    `rails generate controller CreditCards open debit credit close`
+    `bin/rails generate controller CreditCards open debit credit close`
 
     CreditCards controller with URLs like /credit_cards/debit.
         Controller: app/controllers/credit_cards_controller.rb

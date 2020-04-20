@@ -471,21 +471,21 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def test_select_year_with_empty_hash_value_and_no_start_year
-    expected = +%(<select id="date_year" name="date[year]">\n)
-    expected << %(<option value="2014">2014</option>\n<option value="2015">2015</option>\n<option value="2016">2016</option>\n<option value="2017">2017</option>\n<option value="2018">2018</option>\n)
-    expected << "</select>\n"
+    travel_to Time.new(2019, 1, 1) do
+      expected = +%(<select id="date_year" name="date[year]">\n)
+      expected << %(<option value="2014">2014</option>\n<option value="2015">2015</option>\n<option value="2016">2016</option>\n<option value="2017">2017</option>\n<option value="2018">2018</option>\n)
+      expected << "</select>\n"
 
-    Date.stub(:current, Date.new(2018, 12, 18)) do
       assert_dom_equal expected, select_year({ year: nil, month: 4, day: nil }, { end_year: 2018 })
     end
   end
 
   def test_select_year_with_empty_object_value_and_no_start_year
-    expected = +%(<select id="date_year" name="date[year]">\n)
-    expected << %(<option value="2014">2014</option>\n<option value="2015">2015</option>\n<option value="2016">2016</option>\n<option value="2017">2017</option>\n<option value="2018">2018</option>\n)
-    expected << "</select>\n"
+    travel_to Time.new(2019, 1, 1) do
+      expected = +%(<select id="date_year" name="date[year]">\n)
+      expected << %(<option value="2014">2014</option>\n<option value="2015">2015</option>\n<option value="2016">2016</option>\n<option value="2017">2017</option>\n<option value="2018">2018</option>\n)
+      expected << "</select>\n"
 
-    Date.stub(:current, Date.new(2018, 12, 18)) do
       assert_dom_equal expected, select_year(ComposedDate.new(nil, 4, nil), end_year: 2018)
     end
   end

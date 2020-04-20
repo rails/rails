@@ -20,8 +20,8 @@ module Remembered
   end
 
   module ClassMethods
-    def remembered; @@remembered ||= []; end
-    def sample; @@remembered.sample; end
+    def remembered; @remembered ||= []; end
+    def sample; remembered.sample; end
   end
 end
 

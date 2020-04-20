@@ -33,7 +33,7 @@ module ActionDispatch
     # not be the ultimate client IP in production, and so are discarded. See
     # https://en.wikipedia.org/wiki/Private_network for details.
     TRUSTED_PROXIES = [
-      "127.0.0.1",      # localhost IPv4
+      "127.0.0.0/8",    # localhost IPv4 range, per RFC-3330
       "::1",            # localhost IPv6
       "fc00::/7",       # private IPv6 range fc00::/7
       "10.0.0.0/8",     # private IPv4 range 10.x.x.x
@@ -143,10 +143,11 @@ module ActionDispatch
         #   - X-Forwarded-For will be a list of IPs, one per proxy, or blank
         #   - Client-Ip is propagated from the outermost proxy, or is blank
         #   - REMOTE_ADDR will be the IP that made the request to Rack
-        ips = [forwarded_ips, client_ips, remote_addr].flatten.compact
+        ips = [forwarded_ips, client_ips].flatten.compact
 
-        # If every single IP option is in the trusted list, just return REMOTE_ADDR
-        filter_proxies(ips).first || remote_addr
+        # If every single IP option is in the trusted list, return the IP
+        # that's furthest away
+        filter_proxies(ips + [remote_addr]).first || ips.last || remote_addr
       end
 
       # Memoizes the value returned by #calculate_ip and returns it for

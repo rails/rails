@@ -27,8 +27,8 @@ Ruby on Rails allows applications to be written as if their code was preloaded.
 In a normal Ruby program classes need to load their dependencies:
 
 ```ruby
-require 'application_controller'
-require 'post'
+require "application_controller"
+require "post"
 
 class PostsController < ApplicationController
   def index
@@ -412,7 +412,7 @@ Rails is always able to autoload provided its environment is in place. For
 example the `runner` command autoloads:
 
 ```bash
-$ rails runner 'p User.column_names'
+$ bin/rails runner 'p User.column_names'
 ["id", "email", "created_at", "updated_at"]
 ```
 
@@ -440,7 +440,7 @@ autoload_paths and eager_load_paths
 As you probably know, when `require` gets a relative file name:
 
 ```ruby
-require 'erb'
+require "erb"
 ```
 
 Ruby looks for the file in the directories listed in `$LOAD_PATH`. That is, Ruby
@@ -486,7 +486,7 @@ The value of `autoload_paths` can be inspected. In a just-generated application
 it is (edited):
 
 ```bash
-$ rails r 'puts ActiveSupport::Dependencies.autoload_paths'
+$ bin/rails runner 'puts ActiveSupport::Dependencies.autoload_paths'
 .../app/assets
 .../app/channels
 .../app/controllers
@@ -1030,7 +1030,7 @@ have to know all its descendants.
 Files defining constants to be autoloaded should never be `require`d:
 
 ```ruby
-require 'user' # DO NOT DO THIS
+require "user" # DO NOT DO THIS
 
 class UsersController < ApplicationController
   ...
@@ -1226,7 +1226,7 @@ been loaded but `app/models/hotel/image.rb` hasn't, Ruby does not find `Image`
 in `Hotel`, but it does in `Object`:
 
 ```bash
-$ rails r 'Image; p Hotel::Image' 2>/dev/null
+$ bin/rails runner 'Image; p Hotel::Image' 2>/dev/null
 Image # NOT Hotel::Image!
 ```
 

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/enumerable"
+
 module ActiveRecord
   module TestFixtures
     extend ActiveSupport::Concern
@@ -194,6 +196,8 @@ module ActiveRecord
           if handler != writing_handler
             handler.connection_pool_names.each do |name|
               writing_pool_manager = writing_handler.send(:owner_to_pool_manager)[name]
+              return unless writing_pool_manager
+
               writing_pool_config = writing_pool_manager.get_pool_config(:default)
 
               pool_manager = handler.send(:owner_to_pool_manager)[name]
@@ -204,8 +208,7 @@ module ActiveRecord
       end
 
       def load_fixtures(config)
-        fixtures = ActiveRecord::FixtureSet.create_fixtures(fixture_path, fixture_table_names, fixture_class_names, config)
-        Hash[fixtures.map { |f| [f.name, f] }]
+        ActiveRecord::FixtureSet.create_fixtures(fixture_path, fixture_table_names, fixture_class_names, config).index_by(&:name)
       end
 
       def instantiate_fixtures

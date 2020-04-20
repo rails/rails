@@ -57,6 +57,12 @@ module Rails
       template "gitignore", ".gitignore"
     end
 
+    def version_control
+      if !options[:skip_git] && !options[:pretend]
+        run "git init", capture: options[:quiet], abort_on_failure: false
+      end
+    end
+
     def lib
       template "lib/%namespaced_name%.rb"
       template "lib/tasks/%namespaced_name%_tasks.rake"
@@ -121,6 +127,7 @@ task default: :test
 
     def test_dummy_clean
       inside dummy_path do
+        remove_file ".ruby-version"
         remove_file "db/seeds.rb"
         remove_file "Gemfile"
         remove_file "lib/tasks"
@@ -203,6 +210,7 @@ task default: :test
         build(:license)
         build(:gitignore) unless options[:skip_git]
         build(:gemfile)   unless options[:skip_gemfile]
+        build(:version_control)
       end
 
       def create_app_files
@@ -393,7 +401,7 @@ task default: :test
 
       def rakefile_test_tasks
         <<-RUBY
-require 'rake/testtask'
+require "rake/testtask"
 
 Rake::TestTask.new(:test) do |t|
   t.libs << 'test'

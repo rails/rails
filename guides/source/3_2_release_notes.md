@@ -64,8 +64,8 @@ Replace the code beneath the comment in `script/rails` with the following conten
 ENGINE_ROOT = File.expand_path('../..', __FILE__)
 ENGINE_PATH = File.expand_path('../../lib/your_engine_name/engine', __FILE__)
 
-require 'rails/all'
-require 'rails/engine/commands'
+require "rails/all"
+require "rails/engine/commands"
 ```
 
 Creating a Rails 3.2 application
@@ -146,12 +146,12 @@ Railties
 
 * Add an alias `d` for `destroy`. This works for engines too.
 
-* Attributes on scaffold and model generators default to string. This allows the following: `rails g scaffold Post title body:text author`
+* Attributes on scaffold and model generators default to string. This allows the following: `bin/rails g scaffold Post title body:text author`
 
 * Allow scaffold/model/migration generators to accept "index" and "uniq" modifiers. For example,
 
     ```ruby
-    rails g scaffold Post title:string:index author:uniq price:decimal{7,2}
+    bin/rails g scaffold Post title:string:index author:uniq price:decimal{7,2}
     ```
 
     will create indexes for `title` and `author` with the latter being a unique index. Some types such as decimal accept custom options. In the example, `price` will be a decimal column with precision and scale set to 7 and 2 respectively.

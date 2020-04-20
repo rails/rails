@@ -5,7 +5,7 @@ module ActiveRecord
     module SQLite3
       module DatabaseStatements
         READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp(
-          :begin, :commit, :explain, :select, :pragma, :release, :savepoint, :rollback, :with
+          :pragma
         ) # :nodoc:
         private_constant :READ_QUERY
 
@@ -63,7 +63,7 @@ module ActiveRecord
                 records = stmt.to_a
               end
 
-              ActiveRecord::Result.new(cols, records)
+              build_result(columns: cols, rows: records)
             end
           end
         end

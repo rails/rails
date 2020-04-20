@@ -133,6 +133,16 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal old_language, @book.changed_attributes[:language]
   end
 
+  test "enum value after write symbol" do
+    @book.status = :proposed
+    assert_equal "proposed", @book.status
+  end
+
+  test "enum value after write string" do
+    @book.status = "proposed"
+    assert_equal "proposed", @book.status
+  end
+
   test "enum changes" do
     old_status = @book.status
     old_language = @book.language
@@ -231,9 +241,24 @@ class EnumTest < ActiveRecord::TestCase
     assert_nil @book.status
   end
 
+  test "assign nil value to enum which defines nil value to hash" do
+    @book.read_status = nil
+    assert_equal "forgotten", @book.read_status
+  end
+
   test "assign empty string value" do
     @book.status = ""
     assert_nil @book.status
+  end
+
+  test "assign false value to a field defined as not boolean" do
+    @book.status = false
+    assert_nil @book.status
+  end
+
+  test "assign false value to a field defined as boolean" do
+    @book.boolean_status = false
+    assert_equal "disabled", @book.boolean_status
   end
 
   test "assign long empty string value" do

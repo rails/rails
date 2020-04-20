@@ -82,6 +82,16 @@ module Arel # :nodoc: all
           visit o.right, collector
         end
 
+        def visit_Arel_Nodes_NullsFirst(o, collector)
+          visit o.expr, collector
+          collector << " NULLS FIRST"
+        end
+
+        def visit_Arel_Nodes_NullsLast(o, collector)
+          visit o.expr, collector
+          collector << " NULLS LAST"
+        end
+
         # Used by Lateral visitor to enclose select queries in parentheses
         def grouping_parentheses(o, collector)
           if o.expr.is_a? Nodes::SelectStatement

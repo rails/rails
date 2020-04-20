@@ -61,6 +61,15 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
     expected = "CREATE  INDEX `index_people_on_last_name` USING btree ON `people` (`last_name`(10)) ALGORITHM = COPY"
     assert_equal expected, add_index(:people, :last_name, length: 10, using: :btree, algorithm: :copy)
 
+    with_real_execute do
+      add_index(:people, :first_name)
+      assert index_exists?(:people, :first_name)
+
+      assert_nothing_raised do
+        add_index(:people, :first_name, if_not_exists: true)
+      end
+    end
+
     assert_raise ArgumentError do
       add_index(:people, :last_name, algorithm: :coyp)
     end
@@ -188,4 +197,5 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
     def method_missing(method_symbol, *arguments)
       ActiveRecord::Base.connection.send(method_symbol, *arguments)
     end
+    ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
 end

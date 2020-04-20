@@ -253,9 +253,81 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_yesterday_with_offset
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal true,  DateTime.civil(1999, 12, 31, 23, 59, 59, Rational(-18000, 86400)).yesterday?
+      assert_equal false, DateTime.civil(2000, 1, 1, 0, 0, 0, Rational(-18000, 86400)).yesterday?
+      assert_equal false, DateTime.civil(2000, 1, 1, 23, 59, 59, Rational(-18000, 86400)).yesterday?
+      assert_equal true,  DateTime.civil(1999, 12, 31, 0, 0, 0, Rational(-18000, 86400)).yesterday?
+    end
+  end
+
+  def test_yesterday_without_offset
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal true,  DateTime.civil(1999, 12, 31, 23, 59, 59).yesterday?
+      assert_equal false, DateTime.civil(2000, 1, 1, 0).yesterday?
+      assert_equal false, DateTime.civil(2000, 1, 1, 23, 59, 59).yesterday?
+      assert_equal false, DateTime.civil(2000, 1, 2, 0).yesterday?
+    end
+  end
+
+  def test_prev_day_with_offset
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal true,  DateTime.civil(1999, 12, 31, 23, 59, 59, Rational(-18000, 86400)).prev_day?
+      assert_equal false, DateTime.civil(2000, 1, 1, 0, 0, 0, Rational(-18000, 86400)).prev_day?
+      assert_equal false, DateTime.civil(2000, 1, 1, 23, 59, 59, Rational(-18000, 86400)).prev_day?
+      assert_equal true,  DateTime.civil(1999, 12, 31, 0, 0, 0, Rational(-18000, 86400)).prev_day?
+    end
+  end
+
+  def test_prev_day_without_offset
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal true,  DateTime.civil(1999, 12, 31, 23, 59, 59).prev_day?
+      assert_equal false, DateTime.civil(2000, 1, 1, 0).prev_day?
+      assert_equal false, DateTime.civil(2000, 1, 1, 23, 59, 59).prev_day?
+      assert_equal false, DateTime.civil(2000, 1, 2, 0).prev_day?
+    end
+  end
+
+  def test_tomorrow_with_offset
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal false, DateTime.civil(1999, 12, 31, 23, 59, 59, Rational(-18000, 86400)).tomorrow?
+      assert_equal true,  DateTime.civil(2000, 1, 2, 0, 0, 0, Rational(-18000, 86400)).tomorrow?
+      assert_equal false, DateTime.civil(2000, 1, 1, 23, 59, 59, Rational(-18000, 86400)).tomorrow?
+      assert_equal true,  DateTime.civil(2000, 1, 2, 23, 59, 59, Rational(-18000, 86400)).tomorrow?
+    end
+  end
+
+  def test_tomorrow_without_offset
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal false, DateTime.civil(1999, 12, 31, 23, 59, 59).tomorrow?
+      assert_equal true,  DateTime.civil(2000, 1, 2, 0).tomorrow?
+      assert_equal false, DateTime.civil(2000, 1, 1, 23, 59, 59).tomorrow?
+      assert_equal false, DateTime.civil(2000, 1, 3, 0).tomorrow?
+    end
+  end
+
+  def test_next_day_with_offset
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal false, DateTime.civil(1999, 12, 31, 23, 59, 59, Rational(-18000, 86400)).next_day?
+      assert_equal true,  DateTime.civil(2000, 1, 2, 0, 0, 0, Rational(-18000, 86400)).next_day?
+      assert_equal false, DateTime.civil(2000, 1, 1, 23, 59, 59, Rational(-18000, 86400)).next_day?
+      assert_equal true,  DateTime.civil(2000, 1, 2, 23, 59, 59, Rational(-18000, 86400)).next_day?
+    end
+  end
+
+  def test_next_day_without_offset
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal false, DateTime.civil(1999, 12, 31, 23, 59, 59).next_day?
+      assert_equal true,  DateTime.civil(2000, 1, 2, 0).next_day?
+      assert_equal false, DateTime.civil(2000, 1, 1, 23, 59, 59).next_day?
+      assert_equal false, DateTime.civil(2000, 1, 3, 0).next_day?
+    end
+  end
+
   def test_past_with_offset
     DateTime.stub(:current, DateTime.civil(2005, 2, 10, 15, 30, 45, Rational(-18000, 86400))) do
-      assert_equal true,  DateTime.civil(2005, 2, 10, 15, 30, 44, Rational(-18000, 86400)).past?
+      assert_equal true,   DateTime.civil(2005, 2, 10, 15, 30, 44, Rational(-18000, 86400)).past?
       assert_equal false,  DateTime.civil(2005, 2, 10, 15, 30, 45, Rational(-18000, 86400)).past?
       assert_equal false,  DateTime.civil(2005, 2, 10, 15, 30, 46, Rational(-18000, 86400)).past?
     end

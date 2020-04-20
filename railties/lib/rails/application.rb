@@ -8,6 +8,7 @@ require "active_support/message_verifier"
 require "active_support/encrypted_configuration"
 require "active_support/deprecation"
 require "active_support/hash_with_indifferent_access"
+require "active_support/configuration_file"
 require "rails/engine"
 require "rails/secrets"
 
@@ -45,7 +46,7 @@ module Rails
   # process. From the moment you require "config/application.rb" in your app,
   # the booting process goes like this:
   #
-  #   1)  require "config/boot.rb" to setup load paths
+  #   1)  require "config/boot.rb" to set up load paths
   #   2)  require railties and engines
   #   3)  Define Rails.application as "class MyApp::Application < Rails::Application"
   #   4)  Run config.before_configuration callbacks
@@ -224,7 +225,7 @@ module Rails
 
       if yaml.exist?
         require "erb"
-        all_configs    = YAML.load(ERB.new(yaml.read).result, symbolize_names: true) || {}
+        all_configs    = ActiveSupport::ConfigurationFile.parse(yaml, symbolize_names: true)
         config, shared = all_configs[env.to_sym], all_configs[:shared]
 
         if config.is_a?(Hash)
@@ -235,10 +236,6 @@ module Rails
       else
         raise "Could not load configuration. No such file - #{yaml}"
       end
-    rescue Psych::SyntaxError => error
-      raise "YAML syntax error occurred while parsing #{yaml}. " \
-        "Please note that YAML must be consistently indented using spaces. Tabs are not allowed. " \
-        "Error: #{error.message}"
     end
 
     # Stores some of the Rails initial environment parameters which
@@ -497,6 +494,15 @@ module Rails
       ordered_railties.flatten - [self]
     end
 
+    # Eager loads the application code.
+    def eager_load!
+      if Rails.autoloaders.zeitwerk_enabled?
+        Rails.autoloaders.each(&:eager_load)
+      else
+        super
+      end
+    end
+
   protected
     alias :build_middleware_stack :app
 
@@ -572,7 +578,7 @@ module Rails
       elsif secret_key_base
         raise ArgumentError, "`secret_key_base` for #{Rails.env} environment must be a type of String`"
       else
-        raise ArgumentError, "Missing `secret_key_base` for '#{Rails.env}' environment, set this string with `rails credentials:edit`"
+        raise ArgumentError, "Missing `secret_key_base` for '#{Rails.env}' environment, set this string with `bin/rails credentials:edit`"
       end
     end
 

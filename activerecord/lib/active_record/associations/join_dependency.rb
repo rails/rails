@@ -94,7 +94,7 @@ module ActiveRecord
         }
       end
 
-      def instantiate(result_set, &block)
+      def instantiate(result_set, strict_loading_value, &block)
         primary_key = aliases.column_alias(join_root, join_root.primary_key)
 
         seen = Hash.new { |i, object_id|
@@ -120,7 +120,7 @@ module ActiveRecord
           result_set.each { |row_hash|
             parent_key = primary_key ? row_hash[primary_key] : row_hash
             parent = parents[parent_key] ||= join_root.instantiate(row_hash, column_aliases, &block)
-            construct(parent, join_root, row_hash, seen, model_cache)
+            construct(parent, join_root, row_hash, seen, model_cache, strict_loading_value)
           }
         end
 
@@ -215,7 +215,7 @@ module ActiveRecord
           end
         end
 
-        def construct(ar_parent, parent, row, seen, model_cache)
+        def construct(ar_parent, parent, row, seen, model_cache, strict_loading_value)
           return if ar_parent.nil?
 
           parent.children.each do |node|
@@ -224,7 +224,7 @@ module ActiveRecord
               other.loaded!
             elsif ar_parent.association_cached?(node.reflection.name)
               model = ar_parent.association(node.reflection.name).target
-              construct(model, node, row, seen, model_cache)
+              construct(model, node, row, seen, model_cache, strict_loading_value)
               next
             end
 
@@ -239,21 +239,22 @@ module ActiveRecord
             model = seen[ar_parent.object_id][node][id]
 
             if model
-              construct(model, node, row, seen, model_cache)
+              construct(model, node, row, seen, model_cache, strict_loading_value)
             else
-              model = construct_model(ar_parent, node, row, model_cache, id)
+              model = construct_model(ar_parent, node, row, model_cache, id, strict_loading_value)
 
               seen[ar_parent.object_id][node][id] = model
-              construct(model, node, row, seen, model_cache)
+              construct(model, node, row, seen, model_cache, strict_loading_value)
             end
           end
         end
 
-        def construct_model(record, node, row, model_cache, id)
+        def construct_model(record, node, row, model_cache, id, strict_loading_value)
           other = record.association(node.reflection.name)
 
           model = model_cache[node][id] ||=
             node.instantiate(row, aliases.column_aliases(node)) do |m|
+              m.strict_loading! if strict_loading_value
               other.set_inverse_instance(m)
             end
 
@@ -264,6 +265,7 @@ module ActiveRecord
           end
 
           model.readonly! if node.readonly?
+          model.strict_loading! if node.strict_loading?
           model
         end
     end

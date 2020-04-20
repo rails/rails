@@ -216,10 +216,13 @@ module ActionController
       super
     end
 
-    # Pushes the given Rack middleware and its arguments to the bottom of the
-    # middleware stack.
-    def self.use(*args, &block)
-      middleware_stack.use(*args, &block)
+    class << self
+      # Pushes the given Rack middleware and its arguments to the bottom of the
+      # middleware stack.
+      def use(*args, &block)
+        middleware_stack.use(*args, &block)
+      end
+      ruby2_keywords(:use) if respond_to?(:ruby2_keywords, true)
     end
 
     # Alias for +middleware_stack+.

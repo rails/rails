@@ -107,7 +107,7 @@ module ActiveSupport
 
       def value_for_key(key, value, parents = [], original_params = nil)
         parents.push(key) if deep_regexps
-        if regexps.any? { |r| r.match?(key) }
+        if regexps.any? { |r| r.match?(key.to_s) }
           value = @mask
         elsif deep_regexps && (joined = parents.join(".")) && deep_regexps.any? { |r| r.match?(joined) }
           value = @mask

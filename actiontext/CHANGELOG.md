@@ -1,3 +1,7 @@
+*   Add method to confirm rich text content existence by adding `?` after content name.
+
+    *Kyohei Toyoda*
+
 *   The `fill_in_rich_text_area` system test helper locates a Trix editor and fills it in with the given HTML:
 
     ```ruby

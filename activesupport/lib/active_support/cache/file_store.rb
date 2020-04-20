@@ -16,7 +16,7 @@ module ActiveSupport
       attr_reader :cache_path
 
       DIR_FORMATTER = "%03X"
-      FILENAME_MAX_SIZE = 228 # max filename size on file system is 255, minus room for timestamp and random characters appended by Tempfile (used by atomic write)
+      FILENAME_MAX_SIZE = 226 # max filename size on file system is 255, minus room for timestamp, pid, and random characters appended by Tempfile (used by atomic write)
       FILEPATH_MAX_SIZE = 900 # max is 1024, plus some room
       GITKEEP_FILES = [".gitkeep", ".keep"].freeze
 
@@ -36,7 +36,7 @@ module ActiveSupport
       def clear(options = nil)
         root_dirs = (Dir.children(cache_path) - GITKEEP_FILES)
         FileUtils.rm_r(root_dirs.collect { |f| File.join(cache_path, f) })
-      rescue Errno::ENOENT
+      rescue Errno::ENOENT, Errno::ENOTEMPTY
       end
 
       # Preemptively iterates through all stored keys and removes the ones which have expired.

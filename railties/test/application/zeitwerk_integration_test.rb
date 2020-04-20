@@ -101,7 +101,7 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
   test "autoloaded? and overridden class names" do
     invalid_constant_name = Module.new do
       def self.name
-        "primary::SchemaMigration"
+        "MyModule::SchemaMigration"
       end
     end
     assert_not deps.autoloaded?(invalid_constant_name)
@@ -188,6 +188,26 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
 
     boot("production")
 
+    assert $zeitwerk_integration_test_user
+    assert $zeitwerk_integration_test_post
+  end
+
+  test "eager loading loads the application code if invoked manually too (regression test)" do
+    $zeitwerk_integration_test_user = false
+    $zeitwerk_integration_test_post = false
+
+    app_file "app/models/user.rb", "class User; end; $zeitwerk_integration_test_user = true"
+    app_file "app/models/post.rb", "class Post; end; $zeitwerk_integration_test_post = true"
+
+    boot
+
+    # Preconditions.
+    assert_not $zeitwerk_integration_test_user
+    assert_not $zeitwerk_integration_test_post
+
+    Rails.application.eager_load!
+
+    # Postconditions.
     assert $zeitwerk_integration_test_user
     assert $zeitwerk_integration_test_post
   end

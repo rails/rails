@@ -44,6 +44,7 @@ module ActiveStorage
         validate_service_configuration(name, service)
 
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
+          # frozen_string_literal: true
           def #{name}
             @active_storage_attached_#{name} ||= ActiveStorage::Attached::One.new("#{name}", self)
           end
@@ -113,6 +114,7 @@ module ActiveStorage
         validate_service_configuration(name, service)
 
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
+          # frozen_string_literal: true
           def #{name}
             @active_storage_attached_#{name} ||= ActiveStorage::Attached::Many.new("#{name}", self)
           end

@@ -366,7 +366,7 @@ class CookiesTest < ActionController::TestCase
     @request.env["action_dispatch.cookies_same_site_protection"] = :none
 
     get :authenticate
-    assert_cookie_header "user_name=david; path=/" # TODO: append "; SameSite=None" when rack 2.1.0 is out and bump rack dependency version.
+    assert_cookie_header "user_name=david; path=/; SameSite=None"
     assert_equal({ "user_name" => "david" }, @response.cookies)
   end
 
@@ -413,13 +413,13 @@ class CookiesTest < ActionController::TestCase
 
   def test_setting_cookie_for_fourteen_days
     get :authenticate_for_fourteen_days
-    assert_cookie_header "user_name=david; path=/; expires=Mon, 10 Oct 2005 05:00:00 -0000; SameSite=Lax"
+    assert_cookie_header "user_name=david; path=/; expires=Mon, 10 Oct 2005 05:00:00 GMT; SameSite=Lax"
     assert_equal({ "user_name" => "david" }, @response.cookies)
   end
 
   def test_setting_cookie_for_fourteen_days_with_symbols
     get :authenticate_for_fourteen_days_with_symbols
-    assert_cookie_header "user_name=david; path=/; expires=Mon, 10 Oct 2005 05:00:00 -0000; SameSite=Lax"
+    assert_cookie_header "user_name=david; path=/; expires=Mon, 10 Oct 2005 05:00:00 GMT; SameSite=Lax"
     assert_equal({ "user_name" => "david" }, @response.cookies)
   end
 
@@ -454,7 +454,7 @@ class CookiesTest < ActionController::TestCase
   def test_multiple_cookies
     get :set_multiple_cookies
     assert_equal 2, @response.cookies.size
-    assert_cookie_header "user_name=david; path=/; expires=Mon, 10 Oct 2005 05:00:00 -0000; SameSite=Lax\nlogin=XJ-122; path=/; SameSite=Lax"
+    assert_cookie_header "user_name=david; path=/; expires=Mon, 10 Oct 2005 05:00:00 GMT; SameSite=Lax\nlogin=XJ-122; path=/; SameSite=Lax"
     assert_equal({ "login" => "XJ-122", "user_name" => "david" }, @response.cookies)
   end
 
@@ -465,14 +465,14 @@ class CookiesTest < ActionController::TestCase
   def test_expiring_cookie
     request.cookies[:user_name] = "Joe"
     get :logout
-    assert_cookie_header "user_name=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 -0000; SameSite=Lax"
+    assert_cookie_header "user_name=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax"
     assert_equal({ "user_name" => nil }, @response.cookies)
   end
 
   def test_delete_cookie_with_path
     request.cookies[:user_name] = "Joe"
     get :delete_cookie_with_path
-    assert_cookie_header "user_name=; path=/beaten; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 -0000; SameSite=Lax"
+    assert_cookie_header "user_name=; path=/beaten; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax"
   end
 
   def test_delete_unexisting_cookie
@@ -604,6 +604,24 @@ class CookiesTest < ActionController::TestCase
     get :set_signed_cookie
     assert_not_equal 45, cookies[:user_id]
     assert_equal "45 was dumped and loaded", cookies.signed[:user_id]
+  end
+
+  def test_signed_cookie_using_marshal_serializer_can_read_from_json_dumped_value
+    @request.env["action_dispatch.cookies_serializer"] = :marshal
+
+    key_generator = @request.env["action_dispatch.key_generator"]
+    secret = key_generator.generate_key(@request.env["action_dispatch.signed_cookie_salt"])
+
+    json_value = ActiveSupport::MessageVerifier.new(secret, serializer: JSON).generate(45)
+    @request.headers["Cookie"] = "user_id=#{json_value}"
+
+    get :get_signed_cookie
+
+    cookies = @controller.send :cookies
+    assert_not_equal 45, cookies[:user_id]
+    assert_equal 45, cookies.signed[:user_id]
+
+    assert_nil @response.cookies["user_id"]
   end
 
   def test_signed_cookie_using_hybrid_serializer_can_migrate_marshal_dumped_value_to_json
@@ -749,7 +767,7 @@ class CookiesTest < ActionController::TestCase
   def test_delete_and_set_cookie
     request.cookies[:user_name] = "Joe"
     get :delete_and_set_cookie
-    assert_cookie_header "user_name=david; path=/; expires=Mon, 10 Oct 2005 05:00:00 -0000; SameSite=Lax"
+    assert_cookie_header "user_name=david; path=/; expires=Mon, 10 Oct 2005 05:00:00 GMT; SameSite=Lax"
     assert_equal({ "user_name" => "david" }, @response.cookies)
   end
 
@@ -828,6 +846,59 @@ class CookiesTest < ActionController::TestCase
     assert_equal 45, verifier.verify(@response.cookies["user_id"])
   end
 
+  def test_legacy_hmac_aes_cbc_marshal_mode_falls_back_to_authenticated_encrypted_cookie
+    @request.env["action_dispatch.use_authenticated_cookie_encryption"] = nil
+
+    key_generator = @request.env["action_dispatch.key_generator"]
+    aead_salt = @request.env["action_dispatch.authenticated_encrypted_cookie_salt"]
+    aead_secret = key_generator.generate_key(aead_salt, ActiveSupport::MessageEncryptor.key_len("aes-256-gcm"))
+    aead_encryptor = ActiveSupport::MessageEncryptor.new(aead_secret, cipher: "aes-256-gcm", serializer: Marshal)
+    marshal_value = aead_encryptor.encrypt_and_sign("bar")
+
+    @request.headers["Cookie"] = "foo=#{::Rack::Utils.escape marshal_value}"
+
+    get :get_encrypted_cookie
+
+    cookies = @controller.send :cookies
+    assert_not_equal "bar", cookies[:foo]
+    assert_equal "bar", cookies.encrypted[:foo]
+
+    encrypted_cookie_salt = @request.env["action_dispatch.encrypted_cookie_salt"]
+    encrypted_signed_cookie_salt = @request.env["action_dispatch.encrypted_signed_cookie_salt"]
+    secret = key_generator.generate_key(encrypted_cookie_salt, ActiveSupport::MessageEncryptor.key_len("aes-256-cbc"))
+    sign_secret = key_generator.generate_key(encrypted_signed_cookie_salt)
+    hmac_cbc_encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, cipher: "aes-256-cbc", serializer: Marshal)
+
+    assert_equal "bar", hmac_cbc_encryptor.decrypt_and_verify(@response.cookies["foo"])
+  end
+
+  def test_legacy_hmac_aes_cbc_json_mode_falls_back_to_authenticated_encrypted_cookie
+    @request.env["action_dispatch.use_authenticated_cookie_encryption"] = nil
+    @request.env["action_dispatch.cookies_serializer"] = :json
+
+    key_generator = @request.env["action_dispatch.key_generator"]
+    aead_salt = @request.env["action_dispatch.authenticated_encrypted_cookie_salt"]
+    aead_secret = key_generator.generate_key(aead_salt, ActiveSupport::MessageEncryptor.key_len("aes-256-gcm"))
+    aead_encryptor = ActiveSupport::MessageEncryptor.new(aead_secret, cipher: "aes-256-gcm", serializer: JSON)
+    marshal_value = aead_encryptor.encrypt_and_sign("bar")
+
+    @request.headers["Cookie"] = "foo=#{::Rack::Utils.escape marshal_value}"
+
+    get :get_encrypted_cookie
+
+    cookies = @controller.send :cookies
+    assert_not_equal "bar", cookies[:foo]
+    assert_equal "bar", cookies.encrypted[:foo]
+
+    encrypted_cookie_salt = @request.env["action_dispatch.encrypted_cookie_salt"]
+    encrypted_signed_cookie_salt = @request.env["action_dispatch.encrypted_signed_cookie_salt"]
+    secret = key_generator.generate_key(encrypted_cookie_salt, ActiveSupport::MessageEncryptor.key_len("aes-256-cbc"))
+    sign_secret = key_generator.generate_key(encrypted_signed_cookie_salt)
+    hmac_cbc_encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, cipher: "aes-256-cbc", serializer: JSON)
+
+    assert_equal "bar", hmac_cbc_encryptor.decrypt_and_verify(@response.cookies["foo"])
+  end
+
   def test_legacy_hmac_aes_cbc_encrypted_marshal_cookie_is_upgraded_to_authenticated_encrypted_cookie
     key_generator = @request.env["action_dispatch.key_generator"]
     encrypted_cookie_salt = @request.env["action_dispatch.encrypted_cookie_salt"]
@@ -902,7 +973,7 @@ class CookiesTest < ActionController::TestCase
     secret = "b3c631c314c0bbca50c1b2843150fe33"
 
     @request.env["action_dispatch.encrypted_cookie_cipher"] = "aes-256-gcm"
-    @request.env["action_dispatch.cookies_rotations"].rotate :encrypted, secret
+    @request.env["action_dispatch.cookies_rotations"].rotate :encrypted, secret, digest: "SHA1"
 
     key_len = ActiveSupport::MessageEncryptor.key_len("aes-256-gcm")
 
@@ -991,7 +1062,7 @@ class CookiesTest < ActionController::TestCase
     request.cookies[:user_name] = "Joe"
     get :delete_cookie_with_domain
     assert_response :success
-    assert_cookie_header "user_name=; domain=.nextangle.com; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 -0000; SameSite=Lax"
+    assert_cookie_header "user_name=; domain=.nextangle.com; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax"
   end
 
   def test_cookie_with_all_domain_option_and_tld_length
@@ -1025,7 +1096,7 @@ class CookiesTest < ActionController::TestCase
     request.cookies[:user_name] = "Joe"
     get :delete_cookie_with_domain_and_tld
     assert_response :success
-    assert_cookie_header "user_name=; domain=.nextangle.com; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 -0000; SameSite=Lax"
+    assert_cookie_header "user_name=; domain=.nextangle.com; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax"
   end
 
   def test_cookie_with_several_preset_domains_using_one_of_these_domains
@@ -1054,7 +1125,7 @@ class CookiesTest < ActionController::TestCase
     request.cookies[:user_name] = "Joe"
     get :delete_cookie_with_domains
     assert_response :success
-    assert_cookie_header "user_name=; domain=example2.com; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 -0000; SameSite=Lax"
+    assert_cookie_header "user_name=; domain=example2.com; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax"
   end
 
   def test_deletings_cookie_with_several_preset_domains_using_other_domain
@@ -1062,7 +1133,7 @@ class CookiesTest < ActionController::TestCase
     request.cookies[:user_name] = "Joe"
     get :delete_cookie_with_domains
     assert_response :success
-    assert_cookie_header "user_name=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 -0000; SameSite=Lax"
+    assert_cookie_header "user_name=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax"
   end
 
   def test_cookies_hash_is_indifferent_access
@@ -1207,7 +1278,7 @@ class CookiesTest < ActionController::TestCase
   def test_vanilla_cookie_with_expires_set_relatively
     travel_to Time.utc(2017, 8, 15) do
       get :cookie_expires_in_two_hours
-      assert_cookie_header "user_name=assain; path=/; expires=Tue, 15 Aug 2017 02:00:00 -0000; SameSite=Lax"
+      assert_cookie_header "user_name=assain; path=/; expires=Tue, 15 Aug 2017 02:00:00 GMT; SameSite=Lax"
     end
   end
 

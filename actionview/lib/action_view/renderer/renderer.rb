@@ -65,7 +65,50 @@ module ActionView
     end
 
     def render_partial_to_object(context, options, &block) #:nodoc:
-      PartialRenderer.new(@lookup_context).render(context, options, block)
+      partial = options[:partial]
+      if String === partial
+        collection = collection_from_options(options)
+
+        if collection
+          # Collection + Partial
+          renderer = CollectionRenderer.new(@lookup_context, options)
+          renderer.render_collection_with_partial(collection, partial, context, block)
+        else
+          if options.key?(:object)
+            # Object + Partial
+            renderer = ObjectRenderer.new(@lookup_context, options)
+            renderer.render_object_with_partial(options[:object], partial, context, block)
+          else
+            # Partial
+            renderer = PartialRenderer.new(@lookup_context, options)
+            renderer.render(partial, context, block)
+          end
+        end
+      else
+        collection = collection_from_object(partial) || collection_from_options(options)
+
+        if collection
+          # Collection + Derived Partial
+          renderer = CollectionRenderer.new(@lookup_context, options)
+          renderer.render_collection_derive_partial(collection, context, block)
+        else
+          # Object + Derived Partial
+          renderer = ObjectRenderer.new(@lookup_context, options)
+          renderer.render_object_derive_partial(partial, context, block)
+        end
+      end
     end
+
+    private
+      def collection_from_options(options)
+        if options.key?(:collection)
+          collection = options[:collection]
+          collection || []
+        end
+      end
+
+      def collection_from_object(object)
+        object if object.respond_to?(:to_ary)
+      end
   end
 end
