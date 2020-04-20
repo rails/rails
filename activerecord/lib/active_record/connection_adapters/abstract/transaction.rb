@@ -98,7 +98,7 @@ module ActiveRecord
       end
 
       def rollback_records
-        ite = records.uniq(&:object_id)
+        ite = records.uniq(&:__id__)
         already_run_callbacks = {}
         while record = ite.shift
           trigger_callbacks = record.trigger_transactional_callbacks?
@@ -117,7 +117,7 @@ module ActiveRecord
       end
 
       def commit_records
-        ite = records.uniq(&:object_id)
+        ite = records.uniq(&:__id__)
         already_run_callbacks = {}
         while record = ite.shift
           if @run_commit_callbacks
