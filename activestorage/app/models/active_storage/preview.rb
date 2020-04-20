@@ -68,6 +68,7 @@ class ActiveStorage::Preview
 
   # Returns a combination key of the blob and the variation that together identifies a specific variant.
   def key
+    variant
     "variants/#{image.key}/#{Digest::SHA256.hexdigest(variation.key)}"
   end
 

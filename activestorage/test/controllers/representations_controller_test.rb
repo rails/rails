@@ -31,6 +31,12 @@ class ActiveStorage::RepresentationsControllerWithVariantsTest < ActionDispatch:
 
     assert_response :not_found
   end
+
+  test "proxying variant" do
+    get rails_storage_proxy_url(@blob.variant(resize: "100x100"))
+
+    assert_response(:success)
+  end
 end
 
 class ActiveStorage::RepresentationsControllerWithPreviewsTest < ActionDispatch::IntegrationTest
@@ -52,6 +58,12 @@ class ActiveStorage::RepresentationsControllerWithPreviewsTest < ActionDispatch:
     image = read_image(@blob.preview_image.variant(resize: "100x100"))
     assert_equal 77, image.width
     assert_equal 100, image.height
+  end
+
+  test "proxying preview" do
+    get rails_storage_proxy_url(@blob.preview(resize: "100x100"))
+
+    assert_response(:success)
   end
 
   test "showing preview with invalid signed blob ID" do
