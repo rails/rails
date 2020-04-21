@@ -88,6 +88,14 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_nothing_raised { company.account = company.account }
   end
 
+  def test_proxy_assignment_from_hash
+    company = companies(:first_firm)
+    company_from_hash = Company.new(company.attributes)
+    attrs = company.account.attributes
+    sql = capture_sql { company_from_hash.account = Account.new(attrs) }
+    assert_equal [], sql
+  end
+
   def test_type_mismatch
     assert_raise(ActiveRecord::AssociationTypeMismatch) { companies(:first_firm).account = 1 }
     assert_raise(ActiveRecord::AssociationTypeMismatch) { companies(:first_firm).account = Project.find(1) }
