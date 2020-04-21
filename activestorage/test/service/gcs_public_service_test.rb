@@ -9,6 +9,10 @@ if SERVICE_CONFIGURATIONS[:gcs_public]
 
     include ActiveStorage::Service::SharedServiceTests
 
+    test "public acl options" do
+      assert_equal "public_read", @service.upload_options[:acl]
+    end
+
     test "public URL generation" do
       url = @service.url(@key, filename: ActiveStorage::Filename.new("avatar.png"))
 

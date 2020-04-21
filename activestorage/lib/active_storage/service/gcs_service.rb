@@ -7,10 +7,13 @@ module ActiveStorage
   # Wraps the Google Cloud Storage as an Active Storage service. See ActiveStorage::Service for the generic API
   # documentation that applies to all services.
   class Service::GCSService < Service
+    attr_reader :upload_options
+
     def initialize(public: false, upload: {}, **config)
       @config = config
       @public = public
       @upload_options = upload
+      @upload_options[:acl] = "public_read" if public?
     end
 
     def upload(key, io, checksum: nil, content_type: nil, disposition: nil, filename: nil)
@@ -111,7 +114,7 @@ module ActiveStorage
         file_for(key).public_url
       end
 
-      attr_reader :config, :upload_options
+      attr_reader :config
 
       def file_for(key, skip_lookup: true)
         bucket.file(key, skip_lookup: skip_lookup)
