@@ -39,7 +39,7 @@ PATH
     actionpack (6.1.0.alpha)
       actionview (= 6.1.0.alpha)
       activesupport (= 6.1.0.alpha)
-      rack (~> 2.0, >= 2.0.8)
+      rack (~> 2.0, >= 2.0.9)
       rack-test (>= 0.6.3)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.0, >= 1.2.0)
