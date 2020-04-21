@@ -227,10 +227,6 @@ module ActionView
       end
 
       def find_template_paths_from_details(path, details)
-        if path.name.include?(".")
-          ActiveSupport::Deprecation.warn("Rendering actions with '.' in the name is deprecated: #{path}")
-        end
-
         query = build_query(path, details)
         find_template_paths(query)
       end
@@ -335,11 +331,6 @@ module ActionView
       end
 
       def find_template_paths_from_details(path, details)
-        if path.name.include?(".")
-          # Fall back to the unoptimized resolver, which will warn
-          return super
-        end
-
         candidates = find_candidate_template_paths(path)
 
         regex = build_regex(path, details)
