@@ -85,6 +85,21 @@ if SERVICE_CONFIGURATIONS[:gcs]
       @service.delete key
     end
 
+    test "upload with custom upload options" do
+      key = SecureRandom.base58(24)
+      data = "Something else entirely!"
+      cache_control = "public, max-age=60"
+      service = build_service(upload: { cache_control: cache_control })
+
+      begin
+        service.upload(key, StringIO.new(data), checksum: Digest::MD5.base64digest(data), disposition: :attachment, filename: ActiveStorage::Filename.new("test.txt"), content_type: "text/plain")
+
+        assert_equal cache_control, service.bucket.find_file(key).cache_control
+      ensure
+        service.delete key
+      end
+    end
+
     test "update metadata" do
       key      = SecureRandom.base58(24)
       data     = "Something else entirely!"
@@ -104,6 +119,11 @@ if SERVICE_CONFIGURATIONS[:gcs]
       assert_match(/storage\.googleapis\.com\/.*response-content-disposition=inline.*test\.txt.*response-content-type=text%2Fplain/,
         @service.url(@key, expires_in: 2.minutes, disposition: :inline, filename: ActiveStorage::Filename.new("test.txt"), content_type: "text/plain"))
     end
+
+    private
+      def build_service(configuration)
+        ActiveStorage::Service.configure(:gcs, SERVICE_CONFIGURATIONS.deep_merge(gcs: configuration))
+      end
   end
 else
   puts "Skipping GCS Service tests because no GCS configuration was supplied"
