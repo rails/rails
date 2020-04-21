@@ -766,7 +766,7 @@ module ActiveSupport
         @created_at = Time.now.to_f
         @expires_in = expires_in && expires_in.to_f
 
-        compress!(compress_threshold) if compress
+        calculate_size_and_possibly_compress!(compress, compress_threshold)
       end
 
       def value
@@ -795,17 +795,10 @@ module ActiveSupport
         end
       end
 
-      # Returns the size of the cached value. This could be less than
+      # Returns the size of the cached value. This is less than
       # <tt>value.size</tt> if the data is compressed.
       def size
-        case value
-        when NilClass
-          0
-        when String
-          @value.bytesize
-        else
-          @s ||= Marshal.dump(@value).bytesize
-        end
+        @value_size
       end
 
       # Duplicates the value in a class. This is used by cache implementations that don't natively
@@ -821,23 +814,22 @@ module ActiveSupport
       end
 
       private
-        def compress!(compress_threshold)
+        def calculate_size_and_possibly_compress!(compress, compress_threshold)
           case @value
-          when nil, true, false, Numeric
-            uncompressed_size = 0
           when String
-            uncompressed_size = @value.bytesize
+            @value_size = @value.bytesize
           else
             serialized = Marshal.dump(@value)
-            uncompressed_size = serialized.bytesize
+            @value_size = serialized.bytesize
           end
 
-          if uncompressed_size >= compress_threshold
+          if compress && @value_size >= compress_threshold
             serialized ||= Marshal.dump(@value)
             compressed = Zlib::Deflate.deflate(serialized)
 
-            if compressed.bytesize < uncompressed_size
+            if compressed.bytesize < @value_size
               @value = compressed
+              @value_size = compressed.bytesize
               @compressed = true
             end
           end
