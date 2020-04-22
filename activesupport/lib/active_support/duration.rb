@@ -212,7 +212,7 @@ module ActiveSupport
     PARTS.each do |part|
       define_method(part) do
         self.value /= PARTS_IN_SECONDS[part].to_f
-        self.value.round(2).public_send(part)
+        self.value.public_send(part)
       end
       alias_method part.to_s.singularize, part
     end
@@ -385,7 +385,7 @@ module ActiveSupport
 
       parts.
         sort_by { |unit,  _ | PARTS.index(unit) }.
-        map     { |unit, val| "#{val} #{val == 1 ? unit.to_s.chop : unit.to_s}" }.
+        map     { |unit, val| "#{val.round} #{val == 1 ? unit.to_s.chop : unit.to_s}" }.
         to_sentence(locale: ::I18n.default_locale)
     end
 
