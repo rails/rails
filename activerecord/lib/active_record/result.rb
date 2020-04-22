@@ -34,13 +34,19 @@ module ActiveRecord
   class Result
     include Enumerable
 
-    attr_reader :columns, :rows, :types
+    attr_reader :columns, :rows, :types, :column_types
 
     def initialize(columns, rows, types = [])
       @columns      = columns
       @rows         = rows
       @hash_rows    = nil
-      @types        = types
+      @types        = types || []
+      @column_types =
+        if types.empty?
+          {}
+        else
+          Hash[@columns.zip(@types)]
+        end
     end
 
     # Returns true if this result set includes the column named +name+
@@ -131,14 +137,7 @@ module ActiveRecord
       @rows         = rows.dup
       @hash_rows    = nil
       @types        = types.dup
-    end
-
-    def column_types
-      if @types.present?
-        Hash[@columns.zip(@types)]
-      else
-        {}
-      end
+      @column_types = column_types.dup
     end
 
     private
