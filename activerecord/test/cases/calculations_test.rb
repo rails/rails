@@ -865,6 +865,17 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal expected, actual
   end
 
+  def test_pluck_columns_with_same_name_but_different_types
+    assert_equal [
+      ["Domain-Driven Design", "hardcover", 0],
+      ["Thoughtleadering", "unspecified", 0]
+    ], Book.where(id: 3..4).order(:id).pluck(
+      :name,
+      Arel.sql("COALESCE(format, 'unspecified')"),
+      Arel.sql("COALESCE(nullable_status, 0)")
+    )
+  end
+
   def test_calculation_with_polymorphic_relation
     part = ShipPart.create!(name: "has trinket")
     part.trinkets.create!
