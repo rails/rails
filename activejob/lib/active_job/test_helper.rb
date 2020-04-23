@@ -345,10 +345,10 @@ module ActiveJob
     #
     #   def test_assert_enqueued_with
     #     MyJob.perform_later(1,2,3)
-    #     assert_enqueued_with(job: MyJob, args: [1,2,3], queue: 'low')
+    #     assert_enqueued_with(job: MyJob, args: [1,2,3])
     #
-    #     MyJob.set(wait_until: Date.tomorrow.noon).perform_later
-    #     assert_enqueued_with(job: MyJob, at: Date.tomorrow.noon)
+    #     MyJob.set(wait_until: Date.tomorrow.noon, queue: "my_queue").perform_later
+    #     assert_enqueued_with(at: Date.tomorrow.noon, queue: "my_queue")
     #   end
     #
     # The +at+ and +args+ arguments also accept a proc.
@@ -375,14 +375,14 @@ module ActiveJob
     #     end
     #
     #     MyJob.perform_later(foo: 'bar', other_arg: 'No need to check in the test')
-    #     assert_enqueued_with(job: MyJob, args: expected_args, queue: 'low')
+    #     assert_enqueued_with(job: MyJob, args: expected_args)
     #   end
     #
     # If a block is passed, asserts that the block will cause the job to be
     # enqueued with the given arguments.
     #
     #   def test_assert_enqueued_with
-    #     assert_enqueued_with(job: MyJob, args: [1,2,3], queue: 'low') do
+    #     assert_enqueued_with(job: MyJob, args: [1,2,3]) do
     #       MyJob.perform_later(1,2,3)
     #     end
     #
@@ -431,13 +431,13 @@ module ActiveJob
     #
     #     perform_enqueued_jobs
     #
-    #     assert_performed_with(job: MyJob, args: [1,2,3], queue: 'high')
+    #     assert_performed_with(job: MyJob, args: [1,2,3])
     #
-    #     MyJob.set(wait_until: Date.tomorrow.noon).perform_later
+    #     MyJob.set(wait_until: Date.tomorrow.noon, queue: "my_queue").perform_later
     #
     #     perform_enqueued_jobs
     #
-    #     assert_performed_with(job: MyJob, at: Date.tomorrow.noon)
+    #     assert_performed_with(at: Date.tomorrow.noon, queue: "my_queue")
     #   end
     #
     # The +at+ and +args+ arguments also accept a proc.
@@ -466,7 +466,7 @@ module ActiveJob
     #
     #     perform_enqueued_jobs
     #
-    #     assert_performed_with(job: MyJob, args: expected_args, queue: 'high')
+    #     assert_performed_with(job: MyJob, args: expected_args)
     #   end
     #
     # If a block is passed, that block performs all of the jobs that were
@@ -474,7 +474,7 @@ module ActiveJob
     # the job has been performed with the given arguments in the block.
     #
     #   def test_assert_performed_with
-    #     assert_performed_with(job: MyJob, args: [1,2,3], queue: 'high') do
+    #     assert_performed_with(job: MyJob, args: [1,2,3]) do
     #       MyJob.perform_later(1,2,3)
     #     end
     #
