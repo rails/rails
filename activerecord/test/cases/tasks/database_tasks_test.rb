@@ -447,6 +447,29 @@ module ActiveRecord
       ENV["RAILS_ENV"] = old_env
     end
 
+    def test_creates_development_database_without_test_database_when_skip_test_database
+      old_env = ENV["RAILS_ENV"]
+      ENV["RAILS_ENV"] = "development"
+      ENV["SKIP_TEST_DATABASE"] = "true"
+
+      with_stubbed_configurations_establish_connection do
+        assert_called_with(
+          ActiveRecord::Tasks::DatabaseTasks,
+          :create,
+          [
+            [config_for("development", "primary")]
+          ],
+        ) do
+          ActiveRecord::Tasks::DatabaseTasks.create_current(
+            ActiveSupport::StringInquirer.new("development")
+          )
+        end
+      end
+    ensure
+      ENV["RAILS_ENV"] = old_env
+      ENV.delete("SKIP_TEST_DATABASE")
+    end
+
     def test_establishes_connection_for_the_given_environments
       ActiveRecord::Tasks::DatabaseTasks.stub(:create, nil) do
         assert_called_with(ActiveRecord::Base, :establish_connection, [:development]) do
