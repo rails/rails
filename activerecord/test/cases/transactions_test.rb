@@ -1036,6 +1036,8 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_empty_transaction_is_not_materialized
+    skip "not supports lazy transactions" unless supports_lazy_transactions?
+
     assert_no_queries do
       Topic.transaction { }
     end
@@ -1058,6 +1060,8 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_savepoint_does_not_materialize_transaction
+    skip "not supports lazy transactions" unless supports_lazy_transactions?
+
     assert_no_queries do
       Topic.transaction do
         Topic.transaction(requires_new: true) { }
@@ -1088,6 +1092,8 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_checking_in_connection_reenables_lazy_transactions
+    skip "not supports lazy transactions" unless supports_lazy_transactions?
+
     connection = Topic.connection_pool.checkout
     connection.raw_connection
     Topic.connection_pool.checkin connection
