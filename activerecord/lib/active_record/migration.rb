@@ -1259,7 +1259,7 @@ module ActiveRecord
       def run_without_lock
         migration = migrations.detect { |m| m.version == @target_version }
         raise UnknownMigrationVersionError.new(@target_version) if migration.nil?
-        result = execute_migration_in_transaction(migration, @direction)
+        result = execute_migration_in_transaction(migration)
 
         record_environment
         result
@@ -1271,10 +1271,7 @@ module ActiveRecord
           raise UnknownMigrationVersionError.new(@target_version)
         end
 
-        result = runnable.each do |migration|
-          execute_migration_in_transaction(migration, @direction)
-        end
-
+        result = runnable.each(&method(:execute_migration_in_transaction))
         record_environment
         result
       end
@@ -1294,14 +1291,14 @@ module ActiveRecord
         @target_version && @target_version != 0 && !target
       end
 
-      def execute_migration_in_transaction(migration, direction)
+      def execute_migration_in_transaction(migration)
         return if down? && !migrated.include?(migration.version.to_i)
         return if up?   &&  migrated.include?(migration.version.to_i)
 
         Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
 
         ddl_transaction(migration) do
-          migration.migrate(direction)
+          migration.migrate(@direction)
           record_version_state_after_migrating(migration.version)
         end
       rescue => e
