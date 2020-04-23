@@ -144,12 +144,21 @@ db_namespace = namespace :db do
     task redo: :load_config do
       raise "Empty VERSION provided" if ENV["VERSION"] && ENV["VERSION"].empty?
 
+      migration_context = ActiveRecord::Base.connection.migration_context
+
       if ENV["VERSION"]
-        db_namespace["migrate:down"].invoke
-        db_namespace["migrate:up"].invoke
+        ActiveRecord::Tasks::DatabaseTasks.raise_for_multi_db(command: "db:migrate:redo")
+        ActiveRecord::Tasks::DatabaseTasks.check_target_version
+
+        migration_context.redo(ActiveRecord::Tasks::DatabaseTasks.target_version)
+        db_namespace["_dump"].invoke
       else
-        db_namespace["rollback"].invoke
-        db_namespace["migrate"].invoke
+        if ActiveRecord::Tasks::DatabaseTasks.step == 1 && migration_context.current_version != 0
+          migration_context.redo
+        else
+          db_namespace["rollback"].invoke
+          db_namespace["migrate"].invoke
+        end
       end
     end
 
@@ -248,11 +257,12 @@ db_namespace = namespace :db do
     ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
       desc "Rollback #{name} database for current environment (specify steps w/ STEP=n)."
       task name => :load_config do
-        step = ENV["STEP"] ? ENV["STEP"].to_i : 1
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: name)
 
         ActiveRecord::Base.establish_connection(db_config)
-        ActiveRecord::Base.connection.migration_context.rollback(step)
+        ActiveRecord::Base.connection.migration_context.rollback(
+          ActiveRecord::Tasks::DatabaseTasks.step
+        )
 
         db_namespace["_dump"].invoke
       end
@@ -263,17 +273,18 @@ db_namespace = namespace :db do
   task rollback: :load_config do
     ActiveRecord::Tasks::DatabaseTasks.raise_for_multi_db(command: "db:rollback")
 
-    step = ENV["STEP"] ? ENV["STEP"].to_i : 1
-
-    ActiveRecord::Base.connection.migration_context.rollback(step)
+    ActiveRecord::Base.connection.migration_context.rollback(
+      ActiveRecord::Tasks::DatabaseTasks.step
+    )
 
     db_namespace["_dump"].invoke
   end
 
   # desc 'Pushes the schema to the next version (specify steps w/ STEP=n).'
   task forward: :load_config do
-    step = ENV["STEP"] ? ENV["STEP"].to_i : 1
-    ActiveRecord::Base.connection.migration_context.forward(step)
+    ActiveRecord::Base.connection.migration_context.forward(
+      ActiveRecord::Tasks::DatabaseTasks.step
+    )
     db_namespace["_dump"].invoke
   end
 

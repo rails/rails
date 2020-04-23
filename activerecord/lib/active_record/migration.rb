@@ -1081,6 +1081,12 @@ module ActiveRecord
       Migrator.new(direction, migrations, schema_migration, target_version).run
     end
 
+    def redo(target_version = nil)
+      version = target_version || (current_version == 0 ? 0 : move_version(:down, 0))
+      return if version == 0
+      Migrator.new(nil, migrations, schema_migration, version).redo
+    end
+
     def open
       Migrator.new(:up, migrations, schema_migration)
     end
@@ -1166,6 +1172,11 @@ module ActiveRecord
       end
 
       def move(direction, steps)
+        version = move_version(direction, steps)
+        send(direction, version)
+      end
+
+      def move_version(direction, steps)
         migrator = Migrator.new(direction, migrations, schema_migration)
 
         if current_version != 0 && !migrator.current_migration
@@ -1180,8 +1191,7 @@ module ActiveRecord
           end
 
         finish = migrator.migrations[start_index + steps]
-        version = finish ? finish.version : 0
-        send(direction, version)
+        finish ? finish.version : 0
       end
   end
 
@@ -1196,6 +1206,8 @@ module ActiveRecord
     end
 
     self.migrations_paths = ["db/migrate"]
+
+    attr_accessor :direction
 
     def initialize(direction, migrations, schema_migration, target_version = nil)
       @direction         = direction
@@ -1235,6 +1247,14 @@ module ActiveRecord
       end
     end
 
+    def redo
+      if use_advisory_lock?
+        with_advisory_lock { redo_without_lock }
+      else
+        redo_without_lock
+      end
+    end
+
     def runnable
       runnable = migrations[start..finish]
       if up?
@@ -1263,15 +1283,31 @@ module ActiveRecord
       @migrated_versions = Set.new(@schema_migration.all_versions.map(&:to_i))
     end
 
-    private
+    protected
       # Used for running a specific migration.
       def run_without_lock
-        migration = migrations.detect { |m| m.version == @target_version }
-        raise UnknownMigrationVersionError.new(@target_version) if migration.nil?
+        migration = target_migration
         result = execute_migration_in_transaction(migration)
 
         record_environment
         result
+      end
+
+    private
+      def target_migration
+        migration = migrations.detect { |m| m.version == @target_version }
+        raise UnknownMigrationVersionError.new(@target_version) if migration.nil?
+        migration
+      end
+
+      def redo_without_lock
+        up_migrator = dup.tap { |m| m.direction = :up }
+        down_migrator = dup.tap { |m| m.direction = :down }
+
+        ddl_transaction(target_migration) do
+          down_migrator.run_without_lock
+          up_migrator.run_without_lock
+        end
       end
 
       # Used for running multiple migrations up to or down to a certain value.
@@ -1307,7 +1343,7 @@ module ActiveRecord
         Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
 
         ddl_transaction(migration) do
-          migration.migrate(@direction)
+          migration.migrate(direction)
           record_version_state_after_migrating(migration.version)
         end
       rescue => e
@@ -1348,11 +1384,11 @@ module ActiveRecord
       end
 
       def up?
-        @direction == :up
+        direction == :up
       end
 
       def down?
-        @direction == :down
+        direction == :down
       end
 
       # Wrap the migration in a transaction only if supported by the adapter.

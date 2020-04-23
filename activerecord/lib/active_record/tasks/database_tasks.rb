@@ -266,6 +266,10 @@ module ActiveRecord
         ENV["VERSION"].to_i if ENV["VERSION"] && !ENV["VERSION"].empty?
       end
 
+      def step
+        ENV["STEP"] ? ENV["STEP"].to_i : 1
+      end
+
       def charset_current(env_name = env, db_name = name)
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: env_name, name: db_name)
         charset(db_config)
