@@ -70,7 +70,7 @@ module ActiveRecord
         @scope
       end
 
-      # Returns a new relation with left outer joins and where clause to idenitfy
+      # Returns a new relation with left outer joins and where clause to identify
       # missing relations.
       #
       # For example, posts that are missing a related author:

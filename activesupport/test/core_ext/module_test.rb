@@ -278,7 +278,7 @@ class ModuleTest < ActiveSupport::TestCase
     assert_nil rails.name
   end
 
-  # Ensures with check for nil, not for a falseish target.
+  # Ensures with check for nil, not for a falsy target.
   def test_delegation_with_allow_nil_and_false_value
     project = Project.new(false, false)
     assert_raise(NoMethodError) { project.name }
