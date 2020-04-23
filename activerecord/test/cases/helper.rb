@@ -66,6 +66,7 @@ end
   supports_insert_on_duplicate_update?
   supports_insert_conflict_target?
   supports_optimizer_hints?
+  supports_lazy_transactions?
 ].each do |method_name|
   define_method method_name do
     ActiveRecord::Base.connection.public_send(method_name)
