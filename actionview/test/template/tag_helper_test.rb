@@ -31,19 +31,19 @@ class TagHelperTest < ActionView::TestCase
     assert_equal tag, tag
   end
 
-  def test_tag_options
+  def test_tag_attributes
     str = tag("p", "class" => "show", :class => "elsewhere")
     assert_match(/class="show"/, str)
     assert_match(/class="elsewhere"/, str)
   end
 
-  def test_tag_options_with_array_of_numeric
+  def test_tag_attributes_with_array_of_numeric
     str = tag(:input, value: [123, 456])
 
     assert_equal("<input value=\"123 456\" />", str)
   end
 
-  def test_tag_options_with_array_of_random_objects
+  def test_tag_attributes_with_array_of_random_objects
     klass = Class.new do
       def to_s
         "hello"
@@ -55,15 +55,32 @@ class TagHelperTest < ActionView::TestCase
     assert_equal("<input value=\"hello\" />", str)
   end
 
-  def test_tag_options_rejects_nil_option
+  def test_tag_attributes_rejects_nil_option
     assert_equal "<p />", tag("p", ignored: nil)
+  end
+
+  def test_tag_attributes
+    options = {
+      data: { user_id: 1 },
+      included: "value",
+      disabled: true
+    }
+    assert_equal "data-user-id=\"1\" included=\"value\" disabled=\"disabled\"", tag_attributes(options)
+  end
+
+  def test_tag_attributes_escaping
+    options = {
+      alt: "1 < 2"
+    }
+    assert_equal "alt=\"1 &lt; 2\"", tag_attributes(options, true)
+    assert_equal "alt=\"1 < 2\"", tag_attributes(options, false)
   end
 
   def test_tag_builder_options_rejects_nil_option
     assert_equal "<p></p>", tag.p(ignored: nil)
   end
 
-  def test_tag_options_accepts_false_option
+  def test_tag_attributes_accepts_false_option
     assert_equal "<p value=\"false\" />", tag("p", value: false)
   end
 
@@ -71,7 +88,7 @@ class TagHelperTest < ActionView::TestCase
     assert_equal "<p value=\"false\"></p>", tag.p(value: false)
   end
 
-  def test_tag_options_accepts_blank_option
+  def test_tag_attributes_accepts_blank_option
     assert_equal "<p included=\"\" />", tag("p", included: "")
   end
 
@@ -79,15 +96,15 @@ class TagHelperTest < ActionView::TestCase
     assert_equal "<p included=\"\"></p>", tag.p(included: "")
   end
 
-  def test_tag_options_accepts_symbol_option_when_not_escaping
+  def test_tag_attributes_accepts_symbol_option_when_not_escaping
     assert_equal "<p value=\"symbol\" />", tag("p", { value: :symbol }, false, false)
   end
 
-  def test_tag_options_accepts_integer_option_when_not_escaping
+  def test_tag_attributes_accepts_integer_option_when_not_escaping
     assert_equal "<p value=\"42\" />", tag("p", { value: 42 }, false, false)
   end
 
-  def test_tag_options_converts_boolean_option
+  def test_tag_attributes_converts_boolean_option
     assert_dom_equal '<p disabled="disabled" itemscope="itemscope" multiple="multiple" readonly="readonly" allowfullscreen="allowfullscreen" seamless="seamless" typemustmatch="typemustmatch" sortable="sortable" default="default" inert="inert" truespeed="truespeed" allowpaymentrequest="allowpaymentrequest" nomodule="nomodule" playsinline="playsinline" />',
       tag("p", disabled: true, itemscope: true, multiple: true, readonly: true, allowfullscreen: true, seamless: true, typemustmatch: true, sortable: true, default: true, inert: true, truespeed: true, allowpaymentrequest: true, nomodule: true, playsinline: true)
   end

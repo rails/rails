@@ -1,3 +1,17 @@
+*   Introduce `tag_attributes` helper.
+
+    Example:
+
+    ```erb
+    <button type="submit" <%= tag_attributes(data: data) %>>Submit</button>
+    ```
+
+    ```erb
+    <button type="submit" <%= tag_attributes(disabled: true, class: "disabled") if disabled? %>>Submit</button>
+    ```
+
+    *Mu-An Chiou*, *Joel Hawksley*
+
 *   Ensure cache fragment digests include all relevant template dependencies when
     fragments are contained in a block passed to the render helper. Remove the
     virtual_path keyword arguments found in CacheHelper as they no longer possess
