@@ -7,6 +7,7 @@ class MethodCallAssertionsTest < ActiveSupport::TestCase
     def increment; 1; end
     def decrement; end
     def <<(arg); end
+    def push(args); end
   end
 
   setup do
@@ -66,6 +67,12 @@ class MethodCallAssertionsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_assert_called_with_an_array_as_expected_argument
+    assert_called_with(@object, :<<, [ [ 2 ] ]) do
+      @object << [ 2 ]
+    end
+  end
+
   def test_assert_called_with_arguments_and_returns
     assert_called_with(@object, :<<, [ 2 ], returns: 10) do
       assert_equal(10, @object << 2)
@@ -86,6 +93,17 @@ class MethodCallAssertionsTest < ActiveSupport::TestCase
     assert_called_with(@object, :<<, [ [ 1 ], [ 2 ] ]) do
       @object << 1
       @object << 2
+    end
+
+    assert_called_with(@object, :<<, [ [ [ 1 ] ], [ [ 2 ] ] ]) do
+      @object << [ 1 ]
+      @object << [ 2 ]
+    end
+  end
+
+  def test_assert_called_with_expected_arguments_as_array_and_one_non_array_object
+    assert_called_with(@object, :push, [ [ 1 ], { number: 42 } ]) do
+      @object.push([ 1 ], { number: 42 })
     end
   end
 
