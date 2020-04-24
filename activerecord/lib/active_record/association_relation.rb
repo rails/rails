@@ -31,6 +31,18 @@ module ActiveRecord
       scoping { @association.create!(attributes, &block) }
     end
 
+    %w(insert insert_all insert! insert_all! upsert upsert_all).each do |method|
+      class_eval <<~RUBY
+        def #{method}(attributes, **kwargs)
+          if @association.reflection.through_reflection?
+            raise ArgumentError, "Bulk insert or upsert is currently not supported for has_many through association"
+          end
+
+          scoping { klass.#{method}(attributes, **kwargs) }
+        end
+      RUBY
+    end
+
     private
       def exec_queries
         super do |record|
