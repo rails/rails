@@ -286,6 +286,14 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     assert_equal 2736, @user.avatar.metadata[:height]
   end
 
+  test "updating an attachment as part of an autosave association" do
+    group = Group.create!(users: [@user])
+    @user.avatar = fixture_file_upload("racecar.jpg")
+    group.save!
+    @user.reload
+    assert @user.avatar.attached?
+  end
+
   test "attaching an existing blob to a new record" do
     User.new(name: "Jason").tap do |user|
       user.avatar.attach create_blob(filename: "funky.jpg")
