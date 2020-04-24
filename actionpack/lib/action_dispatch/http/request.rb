@@ -70,6 +70,10 @@ module ActionDispatch
       @ip                = nil
     end
 
+    def check_request
+      check_method(request_method)
+    end
+
     def commit_cookie_jar! # :nodoc:
     end
 
@@ -144,7 +148,7 @@ module ActionDispatch
     # the application should use), this \method returns the overridden
     # value, not the original.
     def request_method
-      @request_method ||= check_method(super)
+      @request_method ||= super
     end
 
     def routes # :nodoc:
