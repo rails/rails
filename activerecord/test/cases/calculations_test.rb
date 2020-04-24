@@ -756,11 +756,7 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [50, 53, 55, 60], Account.pluck(Arel.sql("DISTINCT credit_limit")).sort
     assert_equal [50, 53, 55, 60], Account.pluck(Arel.sql("DISTINCT accounts.credit_limit")).sort
     assert_equal [50, 53, 55, 60], Account.pluck(Arel.sql("DISTINCT(credit_limit)")).sort
-
-    # MySQL returns "SUM(DISTINCT(credit_limit))" as the column name unless
-    # an alias is provided.  Without the alias, the column cannot be found
-    # and properly typecast.
-    assert_equal [50 + 53 + 55 + 60], Account.pluck(Arel.sql("SUM(DISTINCT(credit_limit)) as credit_limit"))
+    assert_equal [50 + 53 + 55 + 60], Account.pluck(Arel.sql("SUM(DISTINCT(credit_limit))"))
   end
 
   def test_plucks_with_ids
