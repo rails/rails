@@ -609,7 +609,7 @@ This makes `app/views/application/` a great place for your shared partials, whic
 
 ```erb
 <%# app/views/admin/products/index.html.erb %>
-<%= render @products || "empty_list" %>
+<%= render(@products) || render("empty_list") %>
 
 <%# app/views/application/_empty_list.html.erb %>
 There are no items in this list <em>yet</em>.
