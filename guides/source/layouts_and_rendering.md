@@ -595,6 +595,7 @@ end
 # in app/controllers/admin/products_controller
 class Admin::ProductsController < AdminController
   def index
+    @products = []
   end
 end
 ```
