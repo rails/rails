@@ -62,7 +62,8 @@ module ActiveRecord
       end
 
       def ast
-        Arel::Nodes::And.new(predicates_with_wrapped_sql_literals)
+        predicates = predicates_with_wrapped_sql_literals
+        predicates.one? ? predicates.first : Arel::Nodes::And.new(predicates)
       end
 
       def ==(other)
