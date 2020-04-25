@@ -373,6 +373,8 @@ class InsertAllTest < ActiveRecord::TestCase
   end
 
   def test_upsert_all_on_relation
+    skip unless supports_insert_on_duplicate_update?
+
     author = Author.create!(name: "Jimmy")
 
     assert_difference "author.books.count", +1 do
@@ -381,6 +383,8 @@ class InsertAllTest < ActiveRecord::TestCase
   end
 
   def test_upsert_all_on_relation_precedence
+    skip unless supports_insert_on_duplicate_update?
+
     author = Author.create!(name: "Jimmy")
     second_author = Author.create!(name: "Bob")
 
@@ -390,6 +394,8 @@ class InsertAllTest < ActiveRecord::TestCase
   end
 
   def test_upsert_all_create_with
+    skip unless supports_insert_on_duplicate_update?
+
     assert_difference "Book.where(format: 'X').count", +2 do
       Book.create_with(format: "X").upsert_all([ { name: "A" }, { name: "B" } ])
     end
