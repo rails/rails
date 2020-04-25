@@ -1,4 +1,15 @@
-*   Add support for `upload` options with `GCSService`
+*   Add support for `upload` options with `GCSService`.
+
+    For example, to add `Cache-Control` headers to uploaded files, modify
+    `config/storage.yml` with the `upload` key and corresponding Hash:
+
+    ```yml
+    google:
+      service: GCS
+      ...
+      upload:
+        cache_control: "public, max-age=60"
+    ```
 
     *Brendan Abbott*
 

@@ -114,6 +114,7 @@ module ActiveStorage
         file_for(key).public_url
       end
 
+
       attr_reader :config
 
       def file_for(key, skip_lookup: true)
