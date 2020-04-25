@@ -13,6 +13,10 @@ if SERVICE_CONFIGURATIONS[:gcs_public]
       assert_equal "public_read", @service.upload_options[:acl]
     end
 
+    test "uploaded file is accessible by all users" do
+      assert_includes @service.bucket.find_file(@key).acl.readers, "allUsers"
+    end
+
     test "public URL generation" do
       url = @service.url(@key, filename: ActiveStorage::Filename.new("avatar.png"))
 
