@@ -165,8 +165,23 @@ class CookiesTest < ActionController::TestCase
       head :ok
     end
 
+    def delete_signed_cookie
+      cookies.signed.delete(:user_id)
+      head :ok
+    end
+
     def set_encrypted_cookie
       cookies.encrypted[:foo] = "bar"
+      head :ok
+    end
+
+    def get_encrypted_cookie
+      cookies.encrypted[:foo]
+      head :ok
+    end
+
+    def delete_encrypted_cookie
+      cookies.encrypted.delete(:foo)
       head :ok
     end
 
@@ -187,11 +202,6 @@ class CookiesTest < ActionController::TestCase
 
     def set_wrapped_encrypted_cookie
       cookies.encrypted[:foo] = JSONWrapper.new("bar")
-      head :ok
-    end
-
-    def get_encrypted_cookie
-      cookies.encrypted[:foo]
       head :ok
     end
 
@@ -1065,6 +1075,22 @@ class CookiesTest < ActionController::TestCase
     assert_cookie_header "user_name=; domain=.nextangle.com; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax"
   end
 
+  def test_deleting_signed_cookie
+    cookies = @controller.send :cookies
+    cookies.signed[:user_id] = 45
+    get :delete_signed_cookie
+    assert_response :success
+    assert_cookie_header "user_id=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax"
+  end
+
+  def test_deleting_encrypted_cookie
+    cookies = @controller.send :cookies
+    cookies.encrypted[:foo] = "bar"
+    get :delete_encrypted_cookie
+    assert_response :success
+    assert_cookie_header "foo=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax"
+  end
+
   def test_cookie_with_all_domain_option_and_tld_length
     get :set_cookie_with_domain_and_tld
     assert_response :success
@@ -1296,6 +1322,18 @@ class CookiesTest < ActionController::TestCase
     assert_nil cookies.encrypted[:discount_percentage]
   end
 
+  def test_deleting_encrypted_cookies_returns_unencrypted_value
+    get :set_encrypted_cookie
+
+    value = cookies.delete(:foo)
+    assert_not_equal "bar", value
+
+    get :set_encrypted_cookie
+
+    value = cookies.encrypted.delete(:foo)
+    assert_equal "bar", value
+  end
+
   def test_purpose_metadata_for_signed_cookies
     get :signed_discount_and_user_id_cookie
 
@@ -1308,6 +1346,18 @@ class CookiesTest < ActionController::TestCase
 
     cookies[:discount_percentage] = cookies[:user_id]
     assert_nil cookies.signed[:discount_percentage]
+  end
+
+  def test_deleting_signed_cookies_returns_unsigned_value
+    get :set_signed_cookie
+
+    value = cookies.delete(:user_id)
+    assert_not_equal 45, value
+
+    get :set_signed_cookie
+
+    value = cookies.signed.delete(:user_id)
+    assert_equal 45, value
   end
 
   def test_switch_off_metadata_for_encrypted_cookies_if_config_is_false

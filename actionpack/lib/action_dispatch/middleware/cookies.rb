@@ -487,6 +487,12 @@ module ActionDispatch
         @parent_jar[name] = options
       end
 
+      def delete(name, options = {})
+        if data = @parent_jar.delete(name.to_s, options)
+          parse(name, data, purpose: "cookie.#{name}") || parse(name, data)
+        end
+      end
+
       protected
         def request; @parent_jar.request; end
 
