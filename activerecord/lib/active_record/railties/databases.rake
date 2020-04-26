@@ -344,23 +344,28 @@ db_namespace = namespace :db do
 
     ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
       ActiveRecord::Base.establish_connection(db_config)
-
-      # Skipped when no database
       ActiveRecord::Tasks::DatabaseTasks.migrate
-      if ActiveRecord::Base.dump_schema_after_migration
-        ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, ActiveRecord::Base.schema_format)
-      end
 
     rescue ActiveRecord::NoDatabaseError
+      # if the database does not exist, create it and try loading its schema
       ActiveRecord::Tasks::DatabaseTasks.create_current(db_config.env_name, db_config.name)
-      ActiveRecord::Tasks::DatabaseTasks.load_schema(
-        db_config,
-        ActiveRecord::Base.schema_format,
-        nil
-      )
+
+      file = ActiveRecord::Tasks::DatabaseTasks.dump_filename(db_config.spec_name)
+
+      if File.exist?(file)
+        ActiveRecord::Tasks::DatabaseTasks.load_schema(
+          db_config,
+          ActiveRecord::Base.schema_format,
+          nil
+        )
+      end
 
       seed = true
+
+      retry
     end
+
+    db_namespace["_dump"].invoke
 
     ActiveRecord::Base.establish_connection
     ActiveRecord::Tasks::DatabaseTasks.load_seed if seed
