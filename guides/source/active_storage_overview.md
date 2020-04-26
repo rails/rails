@@ -211,15 +211,10 @@ google:
   upload:
     acl: "" # will be set to `public_read` on public buckets
     cache_control: ""
-    content_encoding: ""
-    content_language: ""
-    crc32c: ""
-    encryption_key: ""
-    kms_key: ""
-    metadata:
-      key: ""
     storage_class: ""
 ```
+
+The [Google Cloud Storage SDK docs](https://googleapis.dev/ruby/google-cloud-storage/latest/Google/Cloud/Storage/Bucket.html#create_file-instance_method) detail other possible upload options.
 
 Add the [`google-cloud-storage`](https://github.com/GoogleCloudPlatform/google-cloud-ruby/tree/master/google-cloud-storage) gem to your `Gemfile`:
 
