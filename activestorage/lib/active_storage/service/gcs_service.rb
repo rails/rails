@@ -88,7 +88,7 @@ module ActiveStorage
 
     def url_for_direct_upload(key, expires_in:, checksum:, **)
       instrument :url, key: key do |payload|
-        generated_url = bucket.signed_url key, method: "PUT", expires: expires_in, content_md5: checksum
+        generated_url = bucket.signed_url key, method: "PUT", expires: expires_in, content_md5: checksum, **upload_options
 
         payload[:url] = generated_url
 
