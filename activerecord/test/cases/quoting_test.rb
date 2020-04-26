@@ -267,7 +267,7 @@ module ActiveRecord
       end
     end
 
-    if subsecond_precision_supported?
+    if supports_datetime_with_precision?
       class QuoteARBaseTest < ActiveRecord::TestCase
         class DatetimePrimaryKey < ActiveRecord::Base
         end

@@ -62,7 +62,7 @@ class DateTimeTest < ActiveRecord::TestCase
   end
 
   def test_date_time_with_string_value_with_subsecond_precision
-    skip unless subsecond_precision_supported?
+    skip unless supports_datetime_with_precision?
     string_value = "2017-07-04 14:19:00.5"
     topic = Topic.create(written_on: string_value)
     assert_equal topic, Topic.find_by(written_on: string_value)

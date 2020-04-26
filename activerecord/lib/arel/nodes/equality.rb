@@ -4,8 +4,6 @@ module Arel # :nodoc: all
   module Nodes
     class Equality < Arel::Nodes::Binary
       def operator; :== end
-      alias :operand1 :left
-      alias :operand2 :right
 
       def invert
         Arel::Nodes::NotEqual.new(left, right)

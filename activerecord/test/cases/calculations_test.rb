@@ -756,11 +756,7 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [50, 53, 55, 60], Account.pluck(Arel.sql("DISTINCT credit_limit")).sort
     assert_equal [50, 53, 55, 60], Account.pluck(Arel.sql("DISTINCT accounts.credit_limit")).sort
     assert_equal [50, 53, 55, 60], Account.pluck(Arel.sql("DISTINCT(credit_limit)")).sort
-
-    # MySQL returns "SUM(DISTINCT(credit_limit))" as the column name unless
-    # an alias is provided.  Without the alias, the column cannot be found
-    # and properly typecast.
-    assert_equal [50 + 53 + 55 + 60], Account.pluck(Arel.sql("SUM(DISTINCT(credit_limit)) as credit_limit"))
+    assert_equal [50 + 53 + 55 + 60], Account.pluck(Arel.sql("SUM(DISTINCT(credit_limit))"))
   end
 
   def test_plucks_with_ids
@@ -992,6 +988,17 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_group_by_attribute_with_custom_type
     assert_equal({ "proposed" => 2, "published" => 2 }, Book.group(:status).count)
+  end
+
+  def test_aggregate_attribute_on_custom_type
+    assert_equal 4, Book.sum(:status)
+    assert_equal 1, Book.sum(:difficulty)
+    assert_equal 0, Book.minimum(:status)
+    assert_equal 1, Book.maximum(:difficulty)
+    assert_equal({ "proposed" => 0, "published" => 4 }, Book.group(:status).sum(:status))
+    assert_equal({ "proposed" => 0, "published" => 1 }, Book.group(:status).sum(:difficulty))
+    assert_equal({ "proposed" => 0, "published" => 2 }, Book.group(:status).minimum(:status))
+    assert_equal({ "proposed" => 0, "published" => 1 }, Book.group(:status).maximum(:difficulty))
   end
 
   def test_select_avg_with_group_by_as_virtual_attribute_with_sql
