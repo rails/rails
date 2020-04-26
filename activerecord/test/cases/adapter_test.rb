@@ -410,6 +410,12 @@ module ActiveRecord
     def test_joins_per_query_is_deprecated
       assert_deprecated { @connection.joins_per_query }
     end
+
+    unless current_adapter?(:OracleAdapter)
+      def test_in_clause_length_is_deprecated
+        assert_deprecated { @connection.in_clause_length }
+      end
+    end
   end
 
   class AdapterForeignKeyTest < ActiveRecord::TestCase

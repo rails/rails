@@ -61,6 +61,7 @@ module ActiveRecord
       def in_clause_length
         nil
       end
+      deprecate :in_clause_length
 
       # Returns the maximum length of an SQL query.
       def sql_query_length
