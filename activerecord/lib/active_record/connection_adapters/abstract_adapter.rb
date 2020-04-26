@@ -565,10 +565,6 @@ module ActiveRecord
         pool.checkin self
       end
 
-      def column_name_for_operation(operation, node) # :nodoc:
-        visitor.compile(node)
-      end
-
       def default_index_type?(index) # :nodoc:
         index.using.nil?
       end
