@@ -1,16 +1,7 @@
 # frozen_string_literal: true
 
-# Make sure we're using pg high enough for type casts and Ruby 2.2+ compatibility
-gem "pg", ">= 0.18", "< 2.0"
+gem "pg", "~> 1.1"
 require "pg"
-
-# Use async_exec instead of exec_params on pg versions before 1.1
-class ::PG::Connection # :nodoc:
-  unless self.public_method_defined?(:async_exec_params)
-    remove_method :exec_params
-    alias exec_params async_exec
-  end
-end
 
 require "active_support/core_ext/object/try"
 require "active_record/connection_adapters/abstract_adapter"
@@ -905,13 +896,9 @@ module ActiveRecord
             "float4" => PG::TextDecoder::Float,
             "float8" => PG::TextDecoder::Float,
             "bool" => PG::TextDecoder::Boolean,
+            "timestamp" => PG::TextDecoder::TimestampUtc,
+            "timestamptz" => PG::TextDecoder::TimestampWithTimeZone,
           }
-
-          if defined?(PG::TextDecoder::TimestampUtc)
-            # Use native PG encoders available since pg-1.1
-            coders_by_name["timestamp"] = PG::TextDecoder::TimestampUtc
-            coders_by_name["timestamptz"] = PG::TextDecoder::TimestampWithTimeZone
-          end
 
           known_coder_types = coders_by_name.keys.map { |n| quote(n) }
           query = <<~SQL % known_coder_types.join(", ")

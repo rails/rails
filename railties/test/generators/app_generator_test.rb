@@ -547,7 +547,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     if defined?(JRUBY_VERSION)
       assert_gem "activerecord-jdbcpostgresql-adapter"
     else
-      assert_gem "pg", "'>= 0.18', '< 2.0'"
+      assert_gem "pg", "'~> 1.1'"
     end
   end
 
