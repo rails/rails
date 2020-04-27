@@ -477,6 +477,12 @@ db_namespace = namespace :db do
             db_config.name,
             schema_cache_path: db_config.schema_cache_path,
           )
+
+          if ActiveRecord::ConnectionAdapters::SchemaCache.postgresql_adapter?
+            # Make sure it will re-generate type records.
+            ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.clear_type_records_cache!
+          end
+
           ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(
             ActiveRecord::Base.connection,
             filename,

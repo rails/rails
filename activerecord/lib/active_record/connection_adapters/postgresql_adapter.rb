@@ -88,6 +88,9 @@ module ActiveRecord
       #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables = true
       class_attribute :create_unlogged_tables, default: false
 
+      cattr_accessor :additional_type_records_cache, default: []
+      cattr_accessor :known_coder_type_records_cache, default: []
+
       NATIVE_DATABASE_TYPES = {
         primary_key: "bigserial primary key",
         string:      { name: "character varying" },
@@ -137,6 +140,13 @@ module ActiveRecord
       include PostgreSQL::ReferentialIntegrity
       include PostgreSQL::SchemaStatements
       include PostgreSQL::DatabaseStatements
+
+      def self.clear_type_records_cache!
+        self.additional_type_records_cache = []
+        self.known_coder_type_records_cache = []
+      end
+
+      delegate :clear_type_records_cache!, to: :class
 
       def supports_bulk_alter?
         true
@@ -451,6 +461,11 @@ module ActiveRecord
         end
       end
 
+      def clear_cache! # :nodoc:
+        clear_type_records_cache!
+        super
+      end
+
       private
         # See https://www.postgresql.org/docs/current/static/errcodes-appendix.html
         VALUE_LIMIT_VIOLATION = "22001"
@@ -614,6 +629,11 @@ module ActiveRecord
         def load_additional_types(oids = nil)
           initializer = OID::TypeMapInitializer.new(type_map)
 
+          if additional_type_records_cache.present? && oids.blank?
+            initializer.run(additional_type_records_cache)
+            return
+          end
+
           query = <<~SQL
             SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype, t.typtype, t.typbasetype
             FROM pg_type as t
@@ -627,6 +647,7 @@ module ActiveRecord
           end
 
           execute_and_clear(query, "SCHEMA", []) do |records|
+            self.additional_type_records_cache |= records.to_a
             initializer.run(records)
           end
         end
@@ -895,16 +916,30 @@ module ActiveRecord
             "timestamptz" => PG::TextDecoder::TimestampWithTimeZone,
           }
 
-          known_coder_types = coders_by_name.keys.map { |n| quote(n) }
-          query = <<~SQL % known_coder_types.join(", ")
-            SELECT t.oid, t.typname
-            FROM pg_type as t
-            WHERE t.typname IN (%s)
-          SQL
-          coders = execute_and_clear(query, "SCHEMA", []) do |result|
-            result
-              .map { |row| construct_coder(row, coders_by_name[row["typname"]]) }
-              .compact
+          if defined?(PG::TextDecoder::TimestampUtc)
+            # Use native PG encoders available since pg-1.1
+            coders_by_name["timestamp"] = PG::TextDecoder::TimestampUtc
+            coders_by_name["timestamptz"] = PG::TextDecoder::TimestampWithTimeZone
+          end
+
+          if known_coder_type_records_cache.present?
+            coders = known_coder_type_records_cache
+                      .map { |row| construct_coder(row, coders_by_name[row["typname"]]) }
+                      .compact
+          else
+            known_coder_types = coders_by_name.keys.map { |n| quote(n) }
+            query = <<~SQL % known_coder_types.join(", ")
+              SELECT t.oid, t.typname
+              FROM pg_type as t
+              WHERE t.typname IN (%s)
+            SQL
+            coders = execute_and_clear(query, "SCHEMA", []) do |result|
+              self.known_coder_type_records_cache = result.to_a
+
+              result
+                .map { |row| construct_coder(row, coders_by_name[row["typname"]]) }
+                .compact
+            end
           end
 
           map = PG::TypeMapByOid.new
@@ -924,6 +959,11 @@ module ActiveRecord
         def construct_coder(row, coder_class)
           return unless coder_class
           coder_class.new(oid: row["oid"].to_i, name: row["typname"])
+        end
+
+        def reload_type_map
+          clear_type_records_cache!
+          super
         end
 
         class MoneyDecoder < PG::SimpleDecoder # :nodoc:

@@ -238,6 +238,26 @@ module ActiveRecord
       assert_deprecated { @connection.supports_ranges? }
     end
 
+    def test_type_records_cache
+      ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.clear_type_records_cache!
+      connection_without_cache = ActiveRecord::Base.connection_pool.send(:new_connection)
+
+      schema_query_count = @subscriber.logged.count { |arr| arr[1] == "SCHEMA" }
+      @subscriber.logged.clear
+
+      assert_not_nil ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.additional_type_records_cache
+      assert_not_nil ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.known_coder_type_records_cache
+
+      connection_with_cache = ActiveRecord::Base.connection_pool.send(:new_connection)
+      schema_query_count_with_cache = @subscriber.logged.count { |arr| arr[1] == "SCHEMA" }
+
+      assert_equal 2, schema_query_count - schema_query_count_with_cache
+      assert_equal connection_with_cache.send(:type_map).keys, connection_without_cache.send(:type_map).keys
+    ensure
+      connection_without_cache.disconnect! if connection_without_cache
+      connection_with_cache.disconnect! if connection_with_cache
+    end
+
     private
       def with_warning_suppression
         log_level = @connection.client_min_messages

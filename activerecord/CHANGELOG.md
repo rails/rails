@@ -1,3 +1,7 @@
+*   Cache the result of type-related queries for PostgreSQL adapter.
+
+    *Zhang Kang*
+
 *   Allow attribute's default to be configured but keeping its own type.
 
     ```ruby

@@ -139,6 +139,11 @@ To keep using the current cache store, you can turn off cache versioning entirel
             cache = ActiveRecord::ConnectionAdapters::SchemaCache.load_from(filename)
             next if cache.nil?
 
+            if cache.postgresql_adapter?
+              ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.additional_type_records_cache = cache.postgresql_additional_type_records
+              ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.known_coder_type_records_cache = cache.postgresql_known_coder_type_records
+            end
+
             current_version = ActiveRecord::Migrator.current_version
             next if current_version.nil?
 
