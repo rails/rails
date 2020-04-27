@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 require "set"
-require "active_record/connection_adapters/schema_cache"
 require "active_record/connection_adapters/sql_type_metadata"
+require "active_record/connection_adapters/abstract/schema_cache"
 require "active_record/connection_adapters/abstract/schema_dumper"
 require "active_record/connection_adapters/abstract/schema_creation"
 require "active_support/concurrency/load_interlock_aware_monitor"
@@ -41,6 +41,10 @@ module ActiveRecord
 
       attr_accessor :pool
       attr_reader :visitor, :owner, :logger, :lock
+
+      cattr_accessor :additional_type_records_cache, default: {}
+      cattr_accessor :known_coder_type_records_cache, default: []
+
       alias :in_use? :owner
 
       set_callback :checkin, :after, :enable_lazy_transactions!
@@ -90,9 +94,9 @@ module ActiveRecord
         @config              = config
         @pool                = ActiveRecord::ConnectionAdapters::NullPool.new
         @idle_since          = Concurrent.monotonic_time
-        @visitor = arel_visitor
-        @statements = build_statement_pool
-        @lock = ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
+        @visitor             = arel_visitor
+        @statements          = build_statement_pool
+        @lock                = ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
 
         @prepared_statements = self.class.type_cast_config_to_boolean(
           config.fetch(:prepared_statements, true)
@@ -418,6 +422,17 @@ module ActiveRecord
         false
       end
 
+      # This is meant to be implemented by each adapter for their schema cache
+      def init_schema_cache
+        SchemaCache.new(self)
+      end
+
+      def self.clear_type_records_cache!
+        self.additional_type_records_cache  = {}
+        self.known_coder_type_records_cache = []
+      end
+      delegate :clear_type_records_cache!, to: :class
+
       # This is meant to be implemented by the adapters that support extensions
       def disable_extension(name)
       end
@@ -512,6 +527,7 @@ module ActiveRecord
 
       # Clear any caching the database adapter may be doing.
       def clear_cache!
+        clear_type_records_cache!
         @lock.synchronize { @statements.clear } if @statements
       end
 
@@ -634,6 +650,7 @@ module ActiveRecord
         end
 
         def reload_type_map
+          clear_type_records_cache!
           type_map.clear
           initialize_type_map
         end

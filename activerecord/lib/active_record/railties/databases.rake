@@ -477,6 +477,7 @@ db_namespace = namespace :db do
             db_config.name,
             schema_cache_path: db_config.schema_cache_path,
           )
+
           ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(
             ActiveRecord::Base.connection,
             filename,

@@ -1,3 +1,8 @@
+*   Create SchemaCache interface for type-related queries in each adapter.
+
+    *Zhang Kang*
+    *Ted Hanson*
+
 *   Support `where` with comparison operators (`>`, `>=`, `<`, and `<=`).
 
     ```ruby

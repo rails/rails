@@ -49,21 +49,21 @@ module ActiveRecord
       def encode_with(coder)
         reset_version!
 
-        coder["columns"]          = @columns
-        coder["primary_keys"]     = @primary_keys
-        coder["data_sources"]     = @data_sources
-        coder["indexes"]          = @indexes
-        coder["version"]          = @version
-        coder["database_version"] = database_version
+        coder["columns"]                  = @columns
+        coder["primary_keys"]             = @primary_keys
+        coder["data_sources"]             = @data_sources
+        coder["indexes"]                  = @indexes
+        coder["version"]                  = @version
+        coder["database_version"]         = database_version
       end
 
       def init_with(coder)
-        @columns          = coder["columns"]
-        @primary_keys     = coder["primary_keys"]
-        @data_sources     = coder["data_sources"]
-        @indexes          = coder["indexes"] || {}
-        @version          = coder["version"]
-        @database_version = coder["database_version"]
+        @columns                  = coder["columns"]
+        @primary_keys             = coder["primary_keys"]
+        @data_sources             = coder["data_sources"]
+        @indexes                  = coder["indexes"] || {}
+        @version                  = coder["version"]
+        @database_version         = coder["database_version"]
 
         derive_columns_hash_and_deduplicate_values
       end
@@ -166,7 +166,6 @@ module ActiveRecord
 
       def marshal_dump
         reset_version!
-
         [@version, @columns, {}, @primary_keys, @data_sources, @indexes, database_version]
       end
 

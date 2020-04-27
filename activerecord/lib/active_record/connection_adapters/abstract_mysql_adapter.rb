@@ -5,6 +5,7 @@ require "active_record/connection_adapters/statement_pool"
 require "active_record/connection_adapters/mysql/column"
 require "active_record/connection_adapters/mysql/explain_pretty_printer"
 require "active_record/connection_adapters/mysql/quoting"
+require "active_record/connection_adapters/mysql/schema_cache"
 require "active_record/connection_adapters/mysql/schema_creation"
 require "active_record/connection_adapters/mysql/schema_definitions"
 require "active_record/connection_adapters/mysql/schema_dumper"
@@ -52,6 +53,10 @@ module ActiveRecord
 
       def initialize(connection, logger, connection_options, config)
         super(connection, logger, config)
+      end
+
+      def init_schema_cache
+        MySQL::SchemaCache.new(self)
       end
 
       def get_database_version #:nodoc:

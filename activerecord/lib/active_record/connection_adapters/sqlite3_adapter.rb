@@ -5,6 +5,7 @@ require "active_record/connection_adapters/statement_pool"
 require "active_record/connection_adapters/sqlite3/explain_pretty_printer"
 require "active_record/connection_adapters/sqlite3/quoting"
 require "active_record/connection_adapters/sqlite3/database_statements"
+require "active_record/connection_adapters/sqlite3/schema_cache"
 require "active_record/connection_adapters/sqlite3/schema_creation"
 require "active_record/connection_adapters/sqlite3/schema_definitions"
 require "active_record/connection_adapters/sqlite3/schema_dumper"
@@ -96,6 +97,10 @@ module ActiveRecord
       def initialize(connection, logger, connection_options, config)
         super(connection, logger, config)
         configure_connection
+      end
+
+      def init_schema_cache
+        SQLite3::SchemaCache.new(self)
       end
 
       def self.database_exists?(config)

@@ -12,6 +12,7 @@ require "active_record/connection_adapters/postgresql/explain_pretty_printer"
 require "active_record/connection_adapters/postgresql/oid"
 require "active_record/connection_adapters/postgresql/quoting"
 require "active_record/connection_adapters/postgresql/referential_integrity"
+require "active_record/connection_adapters/postgresql/schema_cache"
 require "active_record/connection_adapters/postgresql/schema_creation"
 require "active_record/connection_adapters/postgresql/schema_definitions"
 require "active_record/connection_adapters/postgresql/schema_dumper"
@@ -255,6 +256,10 @@ module ActiveRecord
         initialize_type_map
         @local_tz = execute("SHOW TIME ZONE", "SCHEMA").first["TimeZone"]
         @use_insert_returning = @config.key?(:insert_returning) ? self.class.type_cast_config_to_boolean(@config[:insert_returning]) : true
+      end
+
+      def init_schema_cache
+        PostgreSQL::SchemaCache.new(self)
       end
 
       def self.database_exists?(config)
@@ -614,6 +619,12 @@ module ActiveRecord
         def load_additional_types(oids = nil)
           initializer = OID::TypeMapInitializer.new(type_map)
 
+          self.additional_type_records_cache[oids] ||= []
+          if self.additional_type_records_cache[oids].present?
+            initializer.run(self.additional_type_records_cache[oids])
+            return
+          end
+
           query = <<~SQL
             SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype, t.typtype, t.typbasetype
             FROM pg_type as t
@@ -627,6 +638,7 @@ module ActiveRecord
           end
 
           execute_and_clear(query, "SCHEMA", []) do |records|
+            self.additional_type_records_cache[oids] |= records.to_a
             initializer.run(records)
           end
         end
@@ -895,16 +907,24 @@ module ActiveRecord
             "timestamptz" => PG::TextDecoder::TimestampWithTimeZone,
           }
 
-          known_coder_types = coders_by_name.keys.map { |n| quote(n) }
-          query = <<~SQL % known_coder_types.join(", ")
-            SELECT t.oid, t.typname
-            FROM pg_type as t
-            WHERE t.typname IN (%s)
-          SQL
-          coders = execute_and_clear(query, "SCHEMA", []) do |result|
-            result
-              .map { |row| construct_coder(row, coders_by_name[row["typname"]]) }
-              .compact
+          if self.known_coder_type_records_cache.present?
+            coders = self.known_coder_type_records_cache
+                      .map { |row| construct_coder(row, coders_by_name[row["typname"]]) }
+                      .compact
+          else
+            known_coder_types = coders_by_name.keys.map { |n| quote(n) }
+            query = <<~SQL % known_coder_types.join(", ")
+              SELECT t.oid, t.typname
+              FROM pg_type as t
+              WHERE t.typname IN (%s)
+            SQL
+            coders = execute_and_clear(query, "SCHEMA", []) do |result|
+              self.known_coder_type_records_cache = result.to_a
+
+              result
+                .map { |row| construct_coder(row, coders_by_name[row["typname"]]) }
+                .compact
+            end
           end
 
           map = PG::TypeMapByOid.new
