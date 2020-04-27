@@ -33,8 +33,6 @@ module ApplicationTests
         rails "db:system:change", "--to=postgresql"
         rails "db:drop", allow_failure: true
 
-        app_file "db/schema.rb", ""
-
         output = `bin/setup 2>&1`
 
         # Ignore line that's only output by Bundler < 1.14
