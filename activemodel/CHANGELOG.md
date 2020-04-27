@@ -1,3 +1,14 @@
+* Add `"False"/:False` and `"Off"/:Off` to `Type::Boolean::FALSE_VALUES`
+
+        ActiveModel::Type::Boolean.new.cast("False") # => false
+        ActiveModel::Type::Boolean.new.cast(:False) # => false
+        ActiveModel::Type::Boolean.new.cast("Off") # => false
+        ActiveModel::Type::Boolean.new.cast(:Off) # => false
+
+        Fixes #39069
+
+    *Colton Fent*
+
 *   `*_previously_changed?` accepts `:from` and `:to` keyword arguments like `*_changed?`.
 
         topic.update!(status: :archived)
