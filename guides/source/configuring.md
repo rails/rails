@@ -505,6 +505,8 @@ The schema dumper adds two additional configuration options:
 
 * `config.action_controller.default_protect_from_forgery` determines whether forgery protection is added on `ActionController::Base`. This is false by default.
 
+* `config.action_controller.urlsafe_csrf_tokens` configures whether generated CSRF tokens are URL-safe. Defaults to `false`.
+
 * `config.action_controller.relative_url_root` can be used to tell Rails that you are [deploying to a subdirectory](configuring.html#deploy-to-a-subdirectory-relative-url-root). The default is `ENV['RAILS_RELATIVE_URL_ROOT']`.
 
 * `config.action_controller.permit_all_parameters` sets all the parameters for mass assignment to be permitted by default. The default value is `false`.
@@ -994,6 +996,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 - `config.active_job.skip_after_callbacks_if_terminated`: `true`
 - `config.action_dispatch.cookies_same_site_protection`: `:lax`
 - `ActiveSupport.utc_to_local_returns_utc_offset_times`: `true`
+- `config.action_controller.urlsafe_csrf_tokens`: `true`
 
 #### For '6.0', new defaults from previous versions below and:
 

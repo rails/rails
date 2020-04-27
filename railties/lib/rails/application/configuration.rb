@@ -177,6 +177,10 @@ module Rails
             action_dispatch.cookies_same_site_protection = :lax
           end
 
+          if respond_to?(:action_controller)
+            action_controller.urlsafe_csrf_tokens = true
+          end
+
           ActiveSupport.utc_to_local_returns_utc_offset_times = true
         else
           raise "Unknown version #{target_version.to_s.inspect}"
