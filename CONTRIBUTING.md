@@ -30,13 +30,13 @@ Changes that are cosmetic in nature and do not add anything substantial to the s
 
 #### **Do you intend to add a new feature or change an existing one?**
 
-* Suggest your change in the [rubyonrails-core mailing list](https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core) and start writing code.
+* Suggest your change in the [rubyonrails-core mailing list](https://discuss.rubyonrails.org/c/rubyonrails-core) and start writing code.
 
 * Do not open an issue on GitHub until you have collected positive feedback about the change. GitHub issues are primarily intended for bug reports and fixes.
 
 #### **Do you have questions about the source code?**
 
-* Ask any question about how to use Ruby on Rails in the [rubyonrails-talk mailing list](https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-talk).
+* Ask any question about how to use Ruby on Rails in the [rubyonrails-talk mailing list](https://discuss.rubyonrails.org/c/rubyonrails-talk).
 
 #### **Do you want to contribute to the Rails documentation?**
 

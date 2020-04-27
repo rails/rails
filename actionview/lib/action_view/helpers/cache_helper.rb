@@ -25,7 +25,7 @@ module ActionView
       # the project. The cache key generated from this call will be something like:
       #
       #   views/template/action:7a1156131a6928cb0026877f8b749ac9/projects/123
-      #         ^template path           ^template tree digest            ^class   ^id
+      #         ^template path  ^template tree digest            ^class   ^id
       #
       # This cache key is stable, but it's combined with a cache version derived from the project
       # record. When the project updated_at is touched, the #cache_version changes, even

@@ -114,6 +114,17 @@ if ActiveRecord::Base.connection.supports_comments?
       assert_nil column.comment
     end
 
+    def test_rename_column_preserves_comment
+      @connection.add_column    :commenteds, :rating, :string, comment: "I am running out of imagination"
+      @connection.rename_column :commenteds, :rating, :new_rating
+
+      Commented.reset_column_information
+      column = Commented.columns_hash["new_rating"]
+
+      assert_equal :string, column.type
+      assert_equal column.comment, "I am running out of imagination"
+    end
+
     def test_schema_dump_with_comments
       # Do all the stuff from other tests
       @connection.add_column    :commenteds, :rating, :integer, comment: "I am running out of imagination"

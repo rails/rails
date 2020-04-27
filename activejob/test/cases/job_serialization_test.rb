@@ -22,6 +22,9 @@ class JobSerializationTest < ActiveSupport::TestCase
   end
 
   test "serialize and deserialize are symmetric" do
+    # Ensure `enqueued_at` does not change between serializations
+    freeze_time
+
     # Round trip a job in memory only
     h1 = HelloJob.new("Rafael")
     h2 = HelloJob.deserialize(h1.serialize)

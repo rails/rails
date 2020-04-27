@@ -27,6 +27,7 @@ require "models/bird"
 require "models/car"
 require "models/bulb"
 require "concurrent/atomic/count_down_latch"
+require "active_support/core_ext/enumerable"
 
 class FirstAbstractClass < ActiveRecord::Base
   self.abstract_class = true
@@ -101,7 +102,6 @@ class BasicsTest < ActiveRecord::TestCase
       "Mysql2Adapter"     => "`",
       "PostgreSQLAdapter" => '"',
       "OracleAdapter"     => '"',
-      "FbAdapter"         => '"'
     }.fetch(classname) {
       raise "need a bad char for #{classname}"
     }
@@ -221,7 +221,7 @@ class BasicsTest < ActiveRecord::TestCase
     )
 
     # For adapters which support microsecond resolution.
-    if subsecond_precision_supported?
+    if supports_datetime_with_precision?
       assert_equal 11, Topic.find(1).written_on.sec
       assert_equal 223300, Topic.find(1).written_on.usec
       assert_equal 9900, Topic.find(2).written_on.usec
@@ -732,9 +732,9 @@ class BasicsTest < ActiveRecord::TestCase
   def test_attributes
     category = Category.new(name: "Ruby")
 
-    expected_attributes = category.attribute_names.map do |attribute_name|
-      [attribute_name, category.public_send(attribute_name)]
-    end.to_h
+    expected_attributes = category.attribute_names.index_with do |attribute_name|
+      category.public_send(attribute_name)
+    end
 
     assert_instance_of Hash, category.attributes
     assert_equal expected_attributes, category.attributes
@@ -743,6 +743,12 @@ class BasicsTest < ActiveRecord::TestCase
   def test_new_record_returns_boolean
     assert_equal false, Topic.new.persisted?
     assert_equal true, Topic.find(1).persisted?
+  end
+
+  def test_previously_new_record_returns_boolean
+    assert_equal false, Topic.new.previously_new_record?
+    assert_equal true, Topic.create.previously_new_record?
+    assert_equal false, Topic.find(1).previously_new_record?
   end
 
   def test_dup
@@ -1495,6 +1501,10 @@ class BasicsTest < ActiveRecord::TestCase
 
     loaded_developer = AttributedDeveloper.where(id: developer.id).select("*").first
     assert_equal "Developer: name", loaded_developer.name
+  end
+
+  test "when assigning new ignored columns it invalidates cache for column names" do
+    assert_not_includes ColumnNamesCachedDeveloper.column_names, "name"
   end
 
   test "ignored columns not included in SELECT" do

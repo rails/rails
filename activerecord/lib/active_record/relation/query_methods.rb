@@ -70,7 +70,7 @@ module ActiveRecord
         @scope
       end
 
-      # Returns a new relation with left outer joins and where clause to idenitfy
+      # Returns a new relation with left outer joins and where clause to identify
       # missing relations.
       #
       # For example, posts that are missing a related author:
@@ -1359,12 +1359,7 @@ module ActiveRecord
       end
 
       def preprocess_order_args(order_args)
-        order_args.reject!(&:blank?)
-        order_args.map! do |arg|
-          klass.sanitize_sql_for_order(arg)
-        end
-        order_args.flatten!
-
+        order_args = sanitize_order_arguments(order_args)
         @klass.disallow_raw_sql!(
           order_args.flat_map { |a| a.is_a?(Hash) ? a.keys : a },
           permit: connection.column_name_with_order_matcher
@@ -1372,8 +1367,7 @@ module ActiveRecord
 
         validate_order_args(order_args)
 
-        references = order_args.grep(String)
-        references.map! { |arg| arg =~ /^\W?(\w+)\W?\./ && $1 }.compact!
+        references = column_references(order_args)
         references!(references) if references.any?
 
         # if a symbol is given we prepend the quoted table name
@@ -1394,6 +1388,21 @@ module ActiveRecord
             arg
           end
         end.flatten!
+      end
+
+      def sanitize_order_arguments(order_args)
+        order_args.reject!(&:blank?)
+        order_args.map! do |arg|
+          klass.sanitize_sql_for_order(arg)
+        end
+        order_args.flatten!
+        order_args
+      end
+
+      def column_references(order_args)
+        references = order_args.grep(String)
+        references.map! { |arg| arg =~ /^\W?(\w+)\W?\./ && $1 }.compact!
+        references
       end
 
       def order_column(field)

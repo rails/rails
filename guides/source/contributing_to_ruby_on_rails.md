@@ -74,7 +74,7 @@ submissions! They just won't get backported to maintenance branches.
 
 If you'd like feedback on an idea for a feature before doing the work to make
 a patch, please send an email to the [rails-core mailing
-list](https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core). You
+list](https://discuss.rubyonrails.org/c/rubyonrails-core). You
 might get no response, which means that everyone is indifferent. You might find
 someone who's also interested in building that feature. You might get a "This
 won't be accepted". But it's the proper place to discuss new ideas. GitHub
@@ -379,6 +379,16 @@ $ cd actionmailer
 $ SEED=15002 bundle exec ruby -w -Itest test/mail_layout_test.rb
 ```
 
+#### Running Tests in Serial
+
+Action Pack and Action View unit tests run in parallel by default. If you are experiencing random
+test failures you can set the randomization seed and let these unit tests run in serial by setting `PARALLEL_WORKERS=1`
+
+```bash
+$ cd actionview
+$ PARALLEL_WORKERS=1 SEED=53708 bundle exec ruby -w -Itest test/template/test_case_test.rb
+```
+
 #### Testing Active Record
 
 First, create the databases you'll need. You can find a list of the required
@@ -603,7 +613,7 @@ is the open source life.
 
 If it's been over a week, and you haven't heard anything, you might want to try
 and nudge things along. You can use the [rubyonrails-core mailing
-list](https://groups.google.com/forum/#!forum/rubyonrails-core) for this. You can also
+list](https://discuss.rubyonrails.org/c/rubyonrails-core) for this. You can also
 leave another comment on the pull request.
 
 While you're waiting for feedback on your pull request, open up a few other

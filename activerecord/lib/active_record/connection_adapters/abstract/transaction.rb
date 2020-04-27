@@ -101,7 +101,7 @@ module ActiveRecord
 
       def rollback_records
         return unless records
-        ite = records.uniq(&:object_id)
+        ite = records.uniq(&:__id__)
         already_run_callbacks = {}
         while record = ite.shift
           trigger_callbacks = record.trigger_transactional_callbacks?
@@ -121,7 +121,7 @@ module ActiveRecord
 
       def commit_records
         return unless records
-        ite = records.uniq(&:object_id)
+        ite = records.uniq(&:__id__)
         already_run_callbacks = {}
         while record = ite.shift
           if @run_commit_callbacks
@@ -292,7 +292,9 @@ module ActiveRecord
       def within_new_transaction(isolation: nil, joinable: true)
         @connection.lock.synchronize do
           transaction = begin_transaction(isolation: isolation, joinable: joinable)
-          yield
+          ret = yield
+          completed = true
+          ret
         rescue Exception => error
           if transaction
             rollback_transaction
@@ -304,6 +306,16 @@ module ActiveRecord
             if Thread.current.status == "aborting"
               rollback_transaction
             else
+              unless completed
+                ActiveSupport::Deprecation.warn(<<~EOW)
+                  Using `return`, `break` or `throw` to exit a transaction block is
+                  deprecated without replacement. If the `throw` came from
+                  `Timeout.timeout(duration)`, pass an exception class as a second
+                  argument so it doesn't use `throw` to abort its block. This results
+                  in the transaction being committed, but in the next release of Rails
+                  it will raise and rollback.
+                EOW
+              end
               begin
                 commit_transaction
               rescue Exception

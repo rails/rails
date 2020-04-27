@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/enumerable"
+
 module ActiveSupport
   module Testing
     module Assertions
@@ -89,7 +91,7 @@ module ActiveSupport
           else
             difference = args[0] || 1
             message = args[1]
-            Hash[Array(expression).map { |e| [e, difference] }]
+            Array(expression).index_with(difference)
           end
 
         exps = expressions.keys.map { |e|

@@ -36,13 +36,15 @@ module ActiveRecord
             arel = join_scope.arel(alias_tracker.aliases)
             nodes = arel.constraints.first
 
-            others = nodes.children.extract! do |node|
-              !Arel.fetch_attribute(node) { |attr| attr.relation.name == table.name }
+            if nodes.is_a?(Arel::Nodes::And)
+              others = nodes.children.extract! do |node|
+                !Arel.fetch_attribute(node) { |attr| attr.relation.name == table.name }
+              end
             end
 
             joins << table.create_join(table, table.create_on(nodes), join_type)
 
-            unless others.empty?
+            if others && !others.empty?
               joins.concat arel.join_sources
               append_constraints(joins.last, others)
             end
@@ -77,7 +79,8 @@ module ActiveRecord
               join_string = table.create_and(constraints.unshift(join.left))
               join.left = Arel.sql(base_klass.connection.visitor.compile(join_string))
             else
-              join.right.expr.children.concat(constraints)
+              right = join.right
+              right.expr = Arel::Nodes::And.new(constraints.unshift right.expr)
             end
           end
       end

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/enumerable"
+
 module ActiveRecord
   module Calculations
     # Count the records.
@@ -172,14 +174,14 @@ module ActiveRecord
     #   # SELECT people.id FROM people WHERE people.age = 21 LIMIT 5
     #   # => [2, 3]
     #
-    #   Person.pluck('DATEDIFF(updated_at, created_at)')
+    #   Person.pluck(Arel.sql('DATEDIFF(updated_at, created_at)'))
     #   # SELECT DATEDIFF(updated_at, created_at) FROM people
     #   # => ['0', '27761', '173']
     #
     # See also #ids.
     #
     def pluck(*column_names)
-      if loaded? && (column_names.map(&:to_s) - @klass.attribute_names - @klass.attribute_aliases.keys).empty?
+      if loaded? && all_attributes?(column_names)
         return records.pluck(*column_names)
       end
 
@@ -216,6 +218,10 @@ module ActiveRecord
     #   # SELECT people.name, people.email_address FROM people WHERE id = 1 LIMIT 1
     #   # => [ 'David', 'david@loudthinking.com' ]
     def pick(*column_names)
+      if loaded? && all_attributes?(column_names)
+        return records.pick(*column_names)
+      end
+
       limit(1).pluck(*column_names).first
     end
 
@@ -228,6 +234,10 @@ module ActiveRecord
     end
 
     private
+      def all_attributes?(column_names)
+        (column_names.map(&:to_s) - @klass.attribute_names - @klass.attribute_aliases.keys).empty?
+      end
+
       def has_include?(column_name)
         eager_loading? || (includes_values.present? && column_name && column_name != :all)
       end
@@ -276,13 +286,12 @@ module ActiveRecord
       end
 
       def execute_simple_calculation(operation, column_name, distinct) #:nodoc:
-        column_alias = column_name
-
         if operation == "count" && (column_name == :all && distinct || has_limit_or_offset?)
           # Shortcut when limit is zero.
           return 0 if limit_value == 0
 
           query_builder = build_count_subquery(spawn, column_name, distinct)
+          skip_query_cache_if_necessary { @klass.connection.select_value(query_builder) }
         else
           # PostgreSQL doesn't like ORDER BY when there are no GROUP BY
           relation = unscope(:order).distinct!(false)
@@ -299,16 +308,14 @@ module ActiveRecord
           relation.select_values = [select_value]
 
           query_builder = relation.arel
-        end
 
-        result = skip_query_cache_if_necessary { @klass.connection.select_all(query_builder, nil) }
-        row    = result.first
-        value  = row && row.values.first
-        type   = result.column_types.fetch(column_alias) do
-          type_for(column_name)
-        end
+          result = skip_query_cache_if_necessary { @klass.connection.select_all(query_builder, nil) }
+          row    = result.rows.first
+          value  = row && row.first
+          type   = result.column_types.fetch(column_alias, Type.default_value)
 
-        type_cast_calculated_value(value, type, operation)
+          type_cast_calculated_value(value, type, operation)
+        end
       end
 
       def execute_grouped_calculation(operation, column_name, distinct) #:nodoc:
@@ -354,22 +361,22 @@ module ActiveRecord
         if association
           key_ids     = calculated_data.collect { |row| row[group_aliases.first] }
           key_records = association.klass.base_class.where(association.klass.base_class.primary_key => key_ids)
-          key_records = Hash[key_records.map { |r| [r.id, r] }]
+          key_records = key_records.index_by(&:id)
         end
 
-        Hash[calculated_data.map do |row|
+        calculated_data.each_with_object({}) do |row, result|
           key = group_columns.map { |aliaz, col_name|
             type = type_for(col_name) do
               calculated_data.column_types.fetch(aliaz, Type.default_value)
             end
-            type_cast_calculated_value(row[aliaz], type)
+            type.deserialize(row[aliaz])
           }
           key = key.first if key.size == 1
           key = key_records[key] if associated
 
-          type = calculated_data.column_types.fetch(aggregate_alias) { type_for(column_name) }
-          [key, type_cast_calculated_value(row[aggregate_alias], type, operation)]
-        end]
+          type = calculated_data.column_types.fetch(aggregate_alias, Type.default_value)
+          result[key] = type_cast_calculated_value(row[aggregate_alias], type, operation)
+        end
       end
 
       # Converts the given field to the value that the database adapter returns as
@@ -394,7 +401,7 @@ module ActiveRecord
         @klass.type_for_attribute(field_name, &block)
       end
 
-      def type_cast_calculated_value(value, type, operation = nil)
+      def type_cast_calculated_value(value, type, operation)
         case operation
         when "count"   then value.to_i
         when "sum"     then type.deserialize(value || 0)

@@ -52,7 +52,11 @@ module ActionView
       # supplied as well.
       def render_template(view, template, layout_name, locals)
         render_with_layout(view, template, layout_name, locals) do |layout|
-          instrument(:template, identifier: template.identifier, layout: (layout && layout.virtual_path)) do
+          ActiveSupport::Notifications.instrument(
+            "render_template.action_view",
+            identifier: template.identifier,
+            layout: layout && layout.virtual_path
+          ) do
             template.render(view, locals) { |*name| view._layout_for(*name) }
           end
         end

@@ -38,7 +38,7 @@ class EagerLoadingTooManyIdsTest < ActiveRecord::TestCase
     assert_equal Citation.count, Citation.preload(:reference_of).to_a.size
   end
 
-  def test_eager_loading_too_may_ids
+  def test_eager_loading_too_many_ids
     assert_equal Citation.count, Citation.eager_load(:citations).offset(0).size
   end
 end
@@ -219,61 +219,6 @@ class EagerAssociationTest < ActiveRecord::TestCase
     comments = Comment.all.merge!(where: "post_id = 1", includes: [post: :author]).to_a
     assert_no_queries do
       comments.each { |comment| comment.post.author.name }
-    end
-  end
-
-  def test_preloading_has_many_in_multiple_queries_with_more_ids_than_database_can_handle
-    assert_called(Comment.connection, :in_clause_length, returns: 5) do
-      posts = Post.all.merge!(includes: :comments).to_a
-      assert_equal 11, posts.size
-    end
-  end
-
-  def test_preloading_has_many_in_one_queries_when_database_has_no_limit_on_ids_it_can_handle
-    assert_called(Comment.connection, :in_clause_length, returns: nil) do
-      posts = Post.all.merge!(includes: :comments).to_a
-      assert_equal 11, posts.size
-    end
-  end
-
-  def test_preloading_habtm_in_multiple_queries_with_more_ids_than_database_can_handle
-    assert_called(Comment.connection, :in_clause_length, times: 2, returns: 5) do
-      posts = Post.all.merge!(includes: :categories).to_a
-      assert_equal 11, posts.size
-    end
-  end
-
-  def test_preloading_habtm_in_one_queries_when_database_has_no_limit_on_ids_it_can_handle
-    assert_called(Comment.connection, :in_clause_length, times: 2, returns: nil) do
-      posts = Post.all.merge!(includes: :categories).to_a
-      assert_equal 11, posts.size
-    end
-  end
-
-  def test_load_associated_records_in_one_query_when_adapter_has_no_limit
-    assert_not_called(Comment.connection, :in_clause_length) do
-      post = posts(:welcome)
-      assert_queries(2) do
-        Post.includes(:comments).where(id: post.id).to_a
-      end
-    end
-  end
-
-  def test_load_associated_records_in_several_queries_when_many_ids_passed
-    assert_called(Comment.connection, :in_clause_length, times: 2, returns: 1) do
-      post1, post2 = posts(:welcome), posts(:thinking)
-      assert_queries(2) do
-        Post.includes(:comments).where(id: [post1.id, post2.id]).to_a
-      end
-    end
-  end
-
-  def test_load_associated_records_in_one_query_when_a_few_ids_passed
-    assert_not_called(Comment.connection, :in_clause_length) do
-      post = posts(:welcome)
-      assert_queries(2) do
-        Post.includes(:comments).where(id: post.id).to_a
-      end
     end
   end
 

@@ -243,10 +243,29 @@ db_namespace = namespace :db do
     end
   end
 
+  namespace :rollback do
+    ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
+      desc "Rollback #{name} database for current environment (specify steps w/ STEP=n)."
+      task name => :load_config do
+        step = ENV["STEP"] ? ENV["STEP"].to_i : 1
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: name)
+
+        ActiveRecord::Base.establish_connection(db_config)
+        ActiveRecord::Base.connection.migration_context.rollback(step)
+
+        db_namespace["_dump"].invoke
+      end
+    end
+  end
+
   desc "Rolls the schema back to the previous version (specify steps w/ STEP=n)."
   task rollback: :load_config do
+    ActiveRecord::Tasks::DatabaseTasks.raise_for_multi_db(command: "db:rollback")
+
     step = ENV["STEP"] ? ENV["STEP"].to_i : 1
+
     ActiveRecord::Base.connection.migration_context.rollback(step)
+
     db_namespace["_dump"].invoke
   end
 
@@ -310,7 +329,7 @@ db_namespace = namespace :db do
           pending_migrations.each do |pending_migration|
             puts "  %4d %s" % [pending_migration.version, pending_migration.name]
           end
-          abort %{Run `rails db:migrate:#{name}` to update your database then try again.}
+          abort %{Run `bin/rails db:migrate:#{name}` to update your database then try again.}
         end
       end
     end

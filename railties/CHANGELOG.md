@@ -1,3 +1,21 @@
+*   No longer include `rake rdoc` task when generating plugins.
+
+    To generate docs, use the `rdoc lib` command instead.
+
+    *Jonathan Hefner*
+
+*   Allow relative paths with trailing slashes to be passed to `rails test`.
+
+    *Eugene Kenny*
+
+*   Add `rack-mini-profiler` gem to the default `Gemfile`.
+
+    `rack-mini-profiler` displays performance information such as SQL time and flame graphs.
+    It's enabled by default in development environment, but can be enabled in production as well.
+    See the gem [README](https://github.com/MiniProfiler/rack-mini-profiler/blob/master/README.md) for information on how to enable it in production.
+
+    *Osama Sayegh*
+
 *   `rails stats` will now count TypeScript files toward JavaScript stats.
 
     *Joshua Cody*

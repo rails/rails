@@ -80,7 +80,7 @@ your prompt will look something like `c:\source_code>`
 Before you install Rails, you should check to make sure that your system has the
 proper prerequisites installed. These include:
 
-* Ruby 
+* Ruby
 * SQLite3
 * Node.js
 * Yarn
@@ -100,21 +100,18 @@ ruby 2.5.0
 Rails requires Ruby version 2.5.0 or later. If the version number returned is
 less than that number (such as 2.3.7, or 1.8.7), you'll need to install a fresh copy of Ruby.
 
-TIP: To quickly install Ruby and Ruby on Rails on your system in Windows, you can use
-[Rails Installer](http://railsinstaller.org). For more installation methods for most
-Operating Systems take a look at [ruby-lang.org](https://www.ruby-lang.org/en/documentation/installation/).
+To install Rails on Windows, you'll first need to install [Ruby Installer](https://rubyinstaller.org/).
 
-If you are working on Windows, you should also install the
-[Ruby Installer Development Kit](https://rubyinstaller.org/downloads/).
+For more installation methods for most Operating Systems take a look at
+[ruby-lang.org](https://www.ruby-lang.org/en/documentation/installation/).
 
 #### Installing SQLite3
 
 You will also need an installation of the SQLite3 database.
 Many popular UNIX-like OSes ship with an acceptable version of SQLite3.
-On Windows, if you installed Rails through Rails Installer, you
-already have SQLite installed. Others can find installation instructions
-at the [SQLite3 website](https://www.sqlite.org).
-Verify that it is correctly installed and in your PATH:
+Others can find installation instructions at the [SQLite3 website](https://www.sqlite.org).
+
+Verify that it is correctly installed and in your load `PATH`:
 
 ```bash
 $ sqlite3 --version
@@ -126,10 +123,10 @@ The program should report its version.
 
 Finally, you'll need Node.js and Yarn installed to manage your application's JavaScript.
 
-Find the installation instructions at the [Node.js website](https://nodejs.org/en/download/) and 
+Find the installation instructions at the [Node.js website](https://nodejs.org/en/download/) and
 verify it's installed correctly with the following command:
 
-```bash 
+```bash
 $ node --version
 ```
 
@@ -408,7 +405,7 @@ tells Rails to map requests to <http://localhost:3000/welcome/index> to the
 welcome controller's index action. This was created earlier when you ran the
 controller generator (`bin/rails generate controller Welcome index`).
 
-Launch the web server again if you stopped it to generate the controller (`rails
+Launch the web server again if you stopped it to generate the controller (`bin/rails
 server`) and navigate to <http://localhost:3000> in your browser. You'll see the
 "Hello, Rails!" message you put into `app/views/welcome/index.html.erb`,
 indicating that this new route is indeed going to `WelcomeController`'s `index`
@@ -482,7 +479,7 @@ error:
 ![Another routing error, uninitialized constant ArticlesController](images/getting_started/routing_error_no_controller.png)
 
 This error occurs because the route needs to have a controller defined in order
-to serve the request. The solution to this particular problem is simple: create
+to serve the request. The solution to this particular problem is to create
 a controller called `ArticlesController`. You can do this by running this
 command:
 
@@ -498,7 +495,7 @@ class ArticlesController < ApplicationController
 end
 ```
 
-A controller is simply a class that is defined to inherit from
+A controller is a class that is defined to inherit from
 `ApplicationController`.
 It's inside this class that you'll define methods that will become the actions
 for this controller. These actions will perform CRUD operations on the articles
@@ -607,7 +604,6 @@ method called `form_with`. To use this method, add this code into
 ```
 
 If you refresh the page now, you'll see the exact same form from our example above.
-Building forms in Rails is really just that easy!
 
 When you call `form_with`, you pass it an identifying scope for this
 form. In this case, it's the symbol `:article`. This tells the `form_with`
@@ -691,7 +687,7 @@ end
 
 If you re-submit the form now, you may not see any change on the page. Don't worry!
 This is because Rails by default returns `204 No Content` response for an action if
-we don't specify what the response should be. We just added the `create` action
+we don't specify what the response should be. We added the `create` action
 but didn't specify anything about how the response should be. In this case, the
 `create` action should save our new article to the database.
 
@@ -706,7 +702,7 @@ def create
 end
 ```
 
-The `render` method here is taking a very simple hash with a key of `:plain` and
+The `render` method here is taking a hash with a key of `:plain` and
 value of `params[:article].inspect`. The `params` method is the object which
 represents the parameters (or fields) coming in from the form. The `params`
 method returns an `ActionController::Parameters` object, which
@@ -754,7 +750,7 @@ models, as that will be done automatically by Active Record.
 
 As we've just seen, `bin/rails generate model` created a _database migration_ file
 inside the `db/migrate` directory. Migrations are Ruby classes that are
-designed to make it simple to create and modify database tables. Rails uses
+designed to create and modify database tables. Rails uses
 rake commands to run migrations, and it's possible to undo a migration after
 it's been applied to your database. Migration filenames include a timestamp to
 ensure that they're processed in the order that they were created.
@@ -1201,7 +1197,7 @@ with class `field_with_errors`. You can define a CSS rule to make them
 standout.
 
 Now you'll get a nice error message when saving an article without a title when
-you attempt to do just that on the new article form
+you attempt to do that on the new article form
 <http://localhost:3000/articles/new>:
 
 ![Form With Errors](images/getting_started/form_with_errors.png)
@@ -1429,7 +1425,7 @@ content:
 ```
 
 Everything except for the `form_with` declaration remained the same.
-The reason we can use this shorter, simpler `form_with` declaration
+The reason we can use this shorter `form_with` declaration
 to stand in for either of the other forms is that `@article` is a *resource*
 corresponding to a full set of RESTful routes, and Rails is able to infer
 which URI and method to use.
@@ -2078,7 +2074,7 @@ Security
 If you were to publish your blog online, anyone would be able to add, edit and
 delete articles or delete comments.
 
-Rails provides a very simple HTTP authentication system that will work nicely in
+Rails provides an HTTP authentication system that will work nicely in
 this situation.
 
 In the `ArticlesController` we need to have a way to block access to the
@@ -2149,7 +2145,7 @@ getting up and running with Rails, feel free to consult these support
 resources:
 
 * The [Ruby on Rails Guides](index.html)
-* The [Ruby on Rails mailing list](https://groups.google.com/group/rubyonrails-talk)
+* The [Ruby on Rails mailing list](https://discuss.rubyonrails.org/c/rubyonrails-talk)
 * The [#rubyonrails](irc://irc.freenode.net/#rubyonrails) channel on irc.freenode.net
 
 

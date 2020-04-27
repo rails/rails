@@ -69,7 +69,7 @@ module AbstractController
       end
 
       def _normalize_callback_option(options, from, to) # :nodoc:
-        if from = options[from]
+        if from = options.delete(from)
           _from = Array(from).map(&:to_s).to_set
           from = proc { |c| _from.include? c.action_name }
           options[to] = Array(options[to]).unshift(from)

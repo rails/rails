@@ -38,6 +38,14 @@ module ActiveStorage
       image/bmp
       image/vnd.adobe.photoshop
       image/vnd.microsoft.icon
+      image/webp
+    )
+
+    config.active_storage.web_image_content_types = %w(
+      image/png
+      image/jpeg
+      image/jpg
+      image/gif
     )
 
     config.active_storage.content_types_to_serve_as_binary = %w(
@@ -78,6 +86,7 @@ module ActiveStorage
         ActiveStorage.draw_routes       = app.config.active_storage.draw_routes != false
 
         ActiveStorage.variable_content_types = app.config.active_storage.variable_content_types || []
+        ActiveStorage.web_image_content_types = app.config.active_storage.web_image_content_types || []
         ActiveStorage.content_types_to_serve_as_binary = app.config.active_storage.content_types_to_serve_as_binary || []
         ActiveStorage.service_urls_expire_in = app.config.active_storage.service_urls_expire_in || 5.minutes
         ActiveStorage.content_types_allowed_inline = app.config.active_storage.content_types_allowed_inline || []

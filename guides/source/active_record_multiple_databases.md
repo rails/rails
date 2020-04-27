@@ -133,10 +133,10 @@ connection specification name.
 Now that we have the `database.yml` and the new model set up it's time to create the databases.
 Rails 6.0 ships with all the rails tasks you need to use multiple databases in Rails.
 
-You can run `rails -T` to see all the commands you're able to run. You should see the following:
+You can run `bin/rails -T` to see all the commands you're able to run. You should see the following:
 
 ```bash
-$ rails -T
+$ bin/rails -T
 rails db:create                          # Creates the database from DATABASE_URL or config/database.yml for the ...
 rails db:create:animals                  # Create animals database for current environment
 rails db:create:primary                  # Create primary database for current environment
@@ -149,6 +149,9 @@ rails db:migrate:primary                 # Migrate primary database for current 
 rails db:migrate:status                  # Display status of migrations
 rails db:migrate:status:animals          # Display status of migrations for animals database
 rails db:migrate:status:primary          # Display status of migrations for primary database
+rails db:rollback                        # Rolls the schema back to the previous version (specify steps w/ STEP=n)
+rails db:rollback:animals                # Rollback animals database for current environment (specify steps w/ STEP=n)
+rails db:rollback:primary                # Rollback primary database for current environment (specify steps w/ STEP=n)
 rails db:schema:dump                     # Creates a db/schema.rb file that is portable against any DB supported  ...
 rails db:schema:dump:animals             # Creates a db/schema.rb file that is portable against any DB supported  ...
 rails db:schema:dump:primary             # Creates a db/schema.rb file that is portable against any DB supported  ...
@@ -163,10 +166,10 @@ rails db:structure:load:animals          # Recreates the animals database from t
 rails db:structure:load:primary          # Recreates the primary database from the structure.sql file
 ```
 
-Running a command like `rails db:create` will create both the primary and animals databases.
+Running a command like `bin/rails db:create` will create both the primary and animals databases.
 Note that there is no command for creating the users and you'll need to do that manually
 to support the readonly users for your replicas. If you want to create just the animals
-database you can run `rails db:create:animals`.
+database you can run `bin/rails db:create:animals`.
 
 ## Migrations
 
@@ -300,6 +303,7 @@ class ApplicationRecord < ActiveRecord::Base
     shard_one: { writing: :primary_shard_one, reading: :primary_shard_one_replica }
   }
 end
+```
 
 Then models can swap connections manually via the `connected_to` API:
 

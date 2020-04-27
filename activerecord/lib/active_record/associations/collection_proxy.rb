@@ -920,7 +920,7 @@ module ActiveRecord
         !!@association.include?(record)
       end
 
-      def proxy_association
+      def proxy_association # :nodoc:
         @association
       end
 
@@ -1096,7 +1096,9 @@ module ActiveRecord
         SpawnMethods,
       ].flat_map { |klass|
         klass.public_instance_methods(false)
-      } - self.public_instance_methods(false) - [:select] + [:scoping, :values]
+      } - self.public_instance_methods(false) - [:select] + [
+        :scoping, :values, :insert, :insert_all, :insert!, :insert_all!, :upsert, :upsert_all
+      ]
 
       delegate(*delegate_methods, to: :scope)
 

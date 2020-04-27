@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/enumerable"
 require "active_support/core_ext/hash/indifferent_access"
 require "active_support/core_ext/string/filters"
 require "active_support/parameter_filter"
@@ -208,9 +209,7 @@ module ActiveRecord
         keys = hash.keys
 
         statement = cached_find_by_statement(keys) { |params|
-          wheres = keys.each_with_object({}) { |param, o|
-            o[param] = params.bind
-          }
+          wheres = keys.index_with { params.bind }
           where(wheres).limit(1)
         }
         begin
@@ -413,6 +412,7 @@ module ActiveRecord
       _run_initialize_callbacks
 
       @new_record               = true
+      @previously_new_record    = false
       @destroyed                = false
       @_start_transaction_state = nil
       @transaction_state        = nil
@@ -589,6 +589,7 @@ module ActiveRecord
       def init_internals
         @primary_key              = self.class.primary_key
         @readonly                 = false
+        @previously_new_record    = false
         @destroyed                = false
         @marked_for_destruction   = false
         @destroyed_by_association = nil

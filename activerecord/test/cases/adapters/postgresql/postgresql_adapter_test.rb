@@ -453,7 +453,7 @@ module ActiveRecord
           @connection.execute("INSERT INTO ex (data) VALUES ('138853948594')")
 
           @connection_handler.while_preventing_writes do
-            assert_equal 1, @connection.execute("(\n( SELECT * FROM ex WHERE data = '138853948594' ) )").entries.count
+            assert_equal 1, @connection.execute("/*action:index*/(\n( SELECT * FROM ex WHERE data = '138853948594' ) )").entries.count
           end
         end
       end

@@ -495,7 +495,7 @@ module ActiveModel
         def self.define_attribute_accessor_method(mod, attr_name, writer: false)
           method_name = "#{attr_name}#{'=' if writer}"
           if attr_name.ascii_only? && DEF_SAFE_NAME.match?(attr_name)
-            yield method_name, "'#{attr_name}'.freeze"
+            yield method_name, "'#{attr_name}'"
           else
             safe_name = attr_name.unpack1("h*")
             const_name = "ATTR_#{safe_name}"

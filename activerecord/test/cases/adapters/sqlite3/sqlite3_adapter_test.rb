@@ -355,6 +355,16 @@ module ActiveRecord
         end
       end
 
+      def test_index_with_if_not_exists
+        with_example_table do
+          @conn.add_index "ex", "id"
+
+          assert_nothing_raised do
+            @conn.add_index "ex", "id", if_not_exists: true
+          end
+        end
+      end
+
       def test_non_unique_index
         with_example_table do
           @conn.add_index "ex", "id", name: "fun"
@@ -657,7 +667,7 @@ module ActiveRecord
           @conn.execute("INSERT INTO ex (data) VALUES ('138853948594')")
 
           @connection_handler.while_preventing_writes do
-            assert_equal 1, @conn.execute("  SELECT data from ex WHERE data = '138853948594'").count
+            assert_equal 1, @conn.execute("/*action:index*/  SELECT data from ex WHERE data = '138853948594'").count
           end
         end
       end

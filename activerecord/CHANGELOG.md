@@ -9,7 +9,96 @@
 
     *Slava Korolev*
 
-*   Dump the schema or structure of a database when calling db:migrate:name
+*   Deprecate `in_clause_length` in `DatabaseLimits`.
+
+    *Ryuta Kamizono*
+
+*   Fix aggregate functions to return numeric value consistently even on custom attribute type.
+
+    *Ryuta Kamizono*
+
+*   Support bulk insert/upsert on relation to preserve scope values.
+
+    *Josef Šimánek*, *Ryuta Kamizono*
+
+*   Preserve column comment value on changing column name on MySQL.
+
+    *Islam Taha*
+
+*   Add support for `if_exists` option for removing an index.
+
+    The `remove_index` method can take an `if_exists` option. If this is set to true an error won't be raised if the index doesn't exist.
+
+    *Eileen M. Uchitelle*
+
+*   Remove ibm_db, informix, mssql, oracle, and oracle12 Arel visitors which are not used in the code base.
+
+    *Ryuta Kamizono*
+
+*   Prevent `build_association` from `touching` a parent record if the record isn't persisted for `has_one` associations.
+
+    Fixes #38219.
+
+    *Josh Brody*
+
+*   Add support for `if_not_exists` option for adding index.
+
+    The `add_index` method respects `if_not_exists` option. If it is set to true
+    index won't be added.
+
+    Usage:
+
+    ```ruby
+      add_index :users, :account_id, if_not_exists: true
+    ```
+
+    The `if_not_exists` option passed to `create_table` also gets propagated to indexes
+    created within that migration so that if table and its indexes exist then there is no
+    attempt to create them again.
+
+    *Prathamesh Sonpatki*
+
+*   Add `ActiveRecord::Base#previously_new_record?` to show if a record was new before the last save.
+
+    *Tom Ward*
+
+*   Support descending order for `find_each`, `find_in_batches`, and `in_batches`.
+
+    Batch processing methods allow you to work with the records in batches, greatly reducing memory consumption, but records are always batched from oldest id to newest.
+
+    This change allows reversing the order, batching from newest to oldest. This is useful when you need to process newer batches of records first.
+
+    Pass `order: :desc` to yield batches in descending order. The default remains `order: :asc`.
+
+    ```ruby
+    Person.find_each(order: :desc) do |person|
+      person.party_all_night!
+    end
+    ```
+
+    *Alexey Vasiliev*
+
+*   Fix `insert_all` with enum values.
+
+    Fixes #38716.
+
+    *Joel Blum*
+
+*   Add support for `db:rollback:name` for multiple database applications.
+
+    Multiple database applications will now raise if `db:rollback` is call and recommend using the `db:rollback:[NAME]` to rollback migrations.
+
+    *Eileen M. Uchitelle*
+
+*   `Relation#pick` now uses already loaded results instead of making another query.
+
+    *Eugene Kenny*
+
+*   Deprecate using `return`, `break` or `throw` to exit a transaction block.
+
+    *Dylan Thacker-Smith*
+
+*   Dump the schema or structure of a database when calling `db:migrate:name`.
 
     In previous versions of Rails, `rails db:migrate` would dump the schema of the database. In Rails 6, that holds true (`rails db:migrate` dumps all databases' schemas), but `rails db:migrate:name` does not share that behavior.
 
@@ -17,7 +106,7 @@
 
     *Kyle Thompson*
 
-*   Reset the `ActiveRecord::Base` connection after `rails db:migrate:name`
+*   Reset the `ActiveRecord::Base` connection after `rails db:migrate:name`.
 
     When `rails db:migrate` has finished, it ensures the `ActiveRecord::Base` connection is reset to its original configuration. Going forward, `rails db:migrate:name` will have the same behavior.
 
@@ -136,14 +225,14 @@
 
     Usage:
 
-    ```
-    >> class Developer < ApplicationRecord
-    >>   has_many :projects, strict_loading: true
-    >> end
-    >>
-    >> dev = Developer.first
-    >> dev.projects.first
-    => ActiveRecord::StrictLoadingViolationError: The projects association is marked as strict_loading and cannot be lazily loaded.
+    ```ruby
+    class Developer < ApplicationRecord
+      has_many :projects, strict_loading: true
+    end
+
+    dev = Developer.first
+    dev.projects.first
+    # => ActiveRecord::StrictLoadingViolationError: The projects association is marked as strict_loading and cannot be lazily loaded.
     ```
 
     *Kevin Deisz*
@@ -154,10 +243,10 @@
 
     Usage:
 
-    ```
-    >> dev = Developer.strict_loading.first
-    >> dev.audit_logs.to_a
-    => ActiveRecord::StrictLoadingViolationError: Developer is marked as strict_loading and AuditLog cannot be lazily loaded.
+    ```ruby
+    dev = Developer.strict_loading.first
+    dev.audit_logs.to_a
+    # => ActiveRecord::StrictLoadingViolationError: Developer is marked as strict_loading and AuditLog cannot be lazily loaded.
     ```
 
     *Eileen M. Uchitelle*, *Aaron Patterson*
@@ -256,7 +345,7 @@
 
     *Eileen M. Uchitelle*
 
-*   Deprecate "primary" as the connection_specification_name for ActiveRecord::Base.
+*   Deprecate `"primary"` as the `connection_specification_name` for `ActiveRecord::Base`.
 
     `"primary"` has been deprecated as the `connection_specification_name` for `ActiveRecord::Base` in favor of using `"ActiveRecord::Base"`. This change affects calls to `ActiveRecord::Base.connection_handler.retrieve_connection` and `ActiveRecord::Base.connection_handler.remove_connection`. If you're calling these methods with `"primary"`, please switch to `"ActiveRecord::Base"`.
 
@@ -475,7 +564,7 @@
 
     *Josh Goodall*
 
-*   Add database_exists? method to connection adapters to check if a database exists.
+*   Add `database_exists?` method to connection adapters to check if a database exists.
 
     *Guilherme Mansur*
 

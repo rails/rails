@@ -33,7 +33,7 @@ module Rails
         @filter_parameters                       = []
         @filter_redirect                         = []
         @helpers_paths                           = []
-        @hosts                                   = Array(([IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0"), ".localhost"] if Rails.env.development?))
+        @hosts                                   = Array(([".localhost", IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0")] if Rails.env.development?))
         @public_file_server                      = ActiveSupport::OrderedOptions.new
         @public_file_server.enabled              = true
         @public_file_server.index_name           = "index"
@@ -159,10 +159,6 @@ module Rails
         when "6.1"
           load_defaults "6.0"
 
-          if respond_to?(:active_job)
-            active_job.retry_jitter = 0.15
-          end
-
           if respond_to?(:active_record)
             active_record.has_many_inversing = true
           end
@@ -172,12 +168,15 @@ module Rails
           end
 
           if respond_to?(:active_job)
+            active_job.retry_jitter = 0.15
             active_job.skip_after_callbacks_if_terminated = true
           end
 
           if respond_to?(:action_dispatch)
             action_dispatch.cookies_same_site_protection = :lax
           end
+
+          ActiveSupport.utc_to_local_returns_utc_offset_times = true
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end

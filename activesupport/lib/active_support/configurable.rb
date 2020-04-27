@@ -126,7 +126,7 @@ module ActiveSupport
 
     # Reads and writes attributes from a configuration <tt>OrderedHash</tt>.
     #
-    #   require 'active_support/configurable'
+    #   require "active_support/configurable"
     #
     #   class User
     #     include ActiveSupport::Configurable

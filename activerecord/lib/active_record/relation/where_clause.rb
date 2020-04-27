@@ -62,7 +62,8 @@ module ActiveRecord
       end
 
       def ast
-        Arel::Nodes::And.new(predicates_with_wrapped_sql_literals)
+        predicates = predicates_with_wrapped_sql_literals
+        predicates.one? ? predicates.first : Arel::Nodes::And.new(predicates)
       end
 
       def ==(other)
@@ -137,18 +138,10 @@ module ActiveRecord
           case node
           when NilClass
             raise ArgumentError, "Invalid argument for .where.not(), got nil."
-          when Arel::Nodes::In
-            Arel::Nodes::NotIn.new(node.left, node.right)
-          when Arel::Nodes::IsNotDistinctFrom
-            Arel::Nodes::IsDistinctFrom.new(node.left, node.right)
-          when Arel::Nodes::IsDistinctFrom
-            Arel::Nodes::IsNotDistinctFrom.new(node.left, node.right)
-          when Arel::Nodes::Equality
-            Arel::Nodes::NotEqual.new(node.left, node.right)
           when String
             Arel::Nodes::Not.new(Arel::Nodes::SqlLiteral.new(node))
           else
-            Arel::Nodes::Not.new(node)
+            node.invert
           end
         end
 

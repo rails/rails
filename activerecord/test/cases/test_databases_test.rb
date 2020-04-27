@@ -9,7 +9,7 @@ class TestDatabasesTest < ActiveRecord::TestCase
       previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "arunit"
       prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, {
         "arunit" => {
-          "primary" => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" }
+          "primary" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" }
         }
       }
 
@@ -25,14 +25,13 @@ class TestDatabasesTest < ActiveRecord::TestCase
       ActiveRecord::Base.configurations = prev_configs
       ActiveRecord::Base.establish_connection(:arunit)
       ENV["RAILS_ENV"] = previous_env
-      FileUtils.rm_rf("db")
     end
 
     def test_create_databases_after_fork
       previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "arunit"
       prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, {
         "arunit" => {
-          "primary" => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" }
+          "primary" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" }
         }
       }
 
@@ -52,15 +51,14 @@ class TestDatabasesTest < ActiveRecord::TestCase
       ActiveRecord::Base.configurations = prev_configs
       ActiveRecord::Base.establish_connection(:arunit)
       ENV["RAILS_ENV"] = previous_env
-      FileUtils.rm_rf("db")
     end
 
     def test_order_of_configurations_isnt_changed_by_test_databases
       previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "arunit"
       prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, {
         "arunit" => {
-          "primary" => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" },
-          "replica" => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" }
+          "primary" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" },
+          "replica" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" }
         }
       }
 
@@ -76,7 +74,6 @@ class TestDatabasesTest < ActiveRecord::TestCase
       ActiveRecord::Base.configurations = prev_configs
       ActiveRecord::Base.establish_connection(:arunit)
       ENV["RAILS_ENV"] = previous_env
-      FileUtils.rm_rf("db")
     end
   end
 end
