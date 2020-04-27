@@ -337,7 +337,7 @@ module ActionController #:nodoc:
         end
 
         begin
-          masked_token = Base64.urlsafe_decode64(encoded_masked_token)
+          masked_token = decode_csrf_token(encoded_masked_token)
         rescue ArgumentError # encoded_masked_token is invalid Base64
           return false
         end
@@ -375,7 +375,7 @@ module ActionController #:nodoc:
         one_time_pad = SecureRandom.random_bytes(AUTHENTICITY_TOKEN_LENGTH)
         encrypted_csrf_token = xor_byte_strings(one_time_pad, raw_token)
         masked_token = one_time_pad + encrypted_csrf_token
-        Base64.urlsafe_encode64(masked_token, padding: false)
+        encode_csrf_token(masked_token)
       end
 
       def compare_with_real_token(token, session) # :doc:
@@ -401,8 +401,8 @@ module ActionController #:nodoc:
       end
 
       def real_csrf_token(session) # :doc:
-        session[:_csrf_token] ||= SecureRandom.urlsafe_base64(AUTHENTICITY_TOKEN_LENGTH, padding: false)
-        Base64.urlsafe_decode64(session[:_csrf_token])
+        session[:_csrf_token] ||= generate_csrf_token
+        decode_csrf_token(session[:_csrf_token])
       end
 
       def per_form_csrf_token(session, action_path, method) # :doc:
@@ -469,6 +469,18 @@ module ActionController #:nodoc:
       def normalize_action_path(action_path) # :doc:
         uri = URI.parse(action_path)
         uri.path.chomp("/")
+      end
+
+      def generate_csrf_token # :nodoc:
+        SecureRandom.urlsafe_base64(AUTHENTICITY_TOKEN_LENGTH, padding: false)
+      end
+
+      def encode_csrf_token(csrf_token) # :nodoc:
+        Base64.urlsafe_encode64(csrf_token, padding: false)
+      end
+
+      def decode_csrf_token(encoded_csrf_token) # :nodoc:
+        Base64.urlsafe_decode64(encoded_csrf_token)
       end
   end
 end
