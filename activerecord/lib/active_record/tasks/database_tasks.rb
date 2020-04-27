@@ -348,7 +348,10 @@ module ActiveRecord
         return true unless File.exist?(file)
 
         ActiveRecord::Base.establish_connection(db_config)
+
+        return false unless ActiveRecord::InternalMetadata.enabled?
         return false unless ActiveRecord::InternalMetadata.table_exists?
+
         ActiveRecord::InternalMetadata[:schema_sha1] == schema_sha1(file)
       end
 

@@ -1260,6 +1260,21 @@ development:
 
 Change the username and password in the `development` section as appropriate.
 
+#### Configuring Metadata Storage
+
+By default Rails will store information about your Rails environment and schema
+in an internal table named `ar_internal_metadata`.
+
+To turn this off per connection, set `use_metadata_table` in your database
+configuration. This is useful when working with a shared database and/or
+database user that cannot create tables.
+
+```yaml
+development:
+  adapter: postgresql
+  use_metadata_table: false
+```
+
 ### Creating Rails Environments
 
 By default Rails ships with three environments: "development", "test", and "production". While these are sufficient for most use cases, there are circumstances when you want more environments.

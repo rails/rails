@@ -190,6 +190,14 @@ module ActiveRecord
     end
   end
 
+  class EnvironmentStorageError < ActiveRecordError # :nodoc:
+    def initialize
+      msg = +"You are attempting to store the environment in a database where metadata is disabled.\n"
+      msg << "Check your database configuration to see if this is intended."
+      super(msg)
+    end
+  end
+
   # = Active Record Migrations
   #
   # Migrations can manage the evolution of a schema used by several physical
@@ -1138,6 +1146,7 @@ module ActiveRecord
     end
 
     def last_stored_environment
+      return nil unless ActiveRecord::InternalMetadata.enabled?
       return nil if current_version == 0
       raise NoEnvironmentInSchemaError unless ActiveRecord::InternalMetadata.table_exists?
 

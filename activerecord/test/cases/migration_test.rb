@@ -640,6 +640,29 @@ class MigrationTest < ActiveRecord::TestCase
     assert_equal "bar", ActiveRecord::InternalMetadata[:foo]
   end
 
+  def test_internal_metadata_not_used_when_not_enabled
+    ActiveRecord::InternalMetadata.drop_table
+    original_config = ActiveRecord::Base.connection.instance_variable_get("@config")
+
+    modified_config = original_config.dup.merge(use_metadata_table: false)
+
+    ActiveRecord::Base.connection
+      .instance_variable_set("@config", modified_config)
+
+    assert_not ActiveRecord::InternalMetadata.enabled?
+    assert_not ActiveRecord::InternalMetadata.table_exists?
+
+    migrations_path = MIGRATIONS_ROOT + "/valid"
+    migrator = ActiveRecord::MigrationContext.new(migrations_path, @schema_migration)
+    migrator.up
+
+    assert_not ActiveRecord::InternalMetadata[:environment]
+    assert_not ActiveRecord::InternalMetadata.table_exists?
+  ensure
+    ActiveRecord::Base.connection.instance_variable_set("@config", original_config)
+    ActiveRecord::InternalMetadata.create_table
+  end
+
   def test_proper_table_name_on_migration
     reminder_class = new_isolated_reminder_class
     migration = ActiveRecord::Migration.new
