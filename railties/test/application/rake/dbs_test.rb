@@ -734,6 +734,25 @@ module ApplicationTests
         end
       end
 
+      test "db:prepare works when database and schema file do not exist" do
+        use_postgresql
+
+        Dir.chdir(app_path) do
+          begin
+            FileUtils.rm_rf("db/schema.rb")
+            rails "db:drop"
+
+            output = rails("db:prepare")
+
+            assert_equal 0, $?.exitstatus
+            assert_match(/Created database/, output)
+            assert File.exist?("db/schema.rb")
+          ensure
+            rails "db:drop" rescue nil
+          end
+        end
+      end
+
       test "db:prepare does not touch schema when dumping is disabled" do
         Dir.chdir(app_path) do
           rails "generate", "model", "book", "title:string"
