@@ -738,18 +738,16 @@ module ApplicationTests
         use_postgresql
 
         Dir.chdir(app_path) do
-          begin
-            FileUtils.rm_rf("db/schema.rb")
-            rails "db:drop"
+          FileUtils.rm_rf("db/schema.rb")
+          rails "db:drop"
 
-            output = rails("db:prepare")
+          output = rails("db:prepare")
 
-            assert_equal 0, $?.exitstatus
-            assert_match(/Created database/, output)
-            assert File.exist?("db/schema.rb")
-          ensure
-            rails "db:drop" rescue nil
-          end
+          assert_equal 0, $?.exitstatus
+          assert_match(/Created database/, output)
+          assert File.exist?("db/schema.rb")
+        ensure
+          rails "db:drop" rescue nil
         end
       end
 
