@@ -1,3 +1,7 @@
+*   Deprecate `in_clause_length` in `DatabaseLimits`.
+
+    *Ryuta Kamizono*
+
 *   Fix aggregate functions to return numeric value consistently even on custom attribute type.
 
     *Ryuta Kamizono*
