@@ -22,6 +22,28 @@ if SERVICE_CONFIGURATIONS[:s3_public]
       response = Net::HTTP.get_response(URI(url))
       assert_equal "200", response.code
     end
+
+    test "direct upload" do
+      key      = SecureRandom.base58(24)
+      data     = "Something else entirely!"
+      checksum = Digest::MD5.base64digest(data)
+      url      = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
+
+      uri = URI.parse url
+      request = Net::HTTP::Put.new uri.request_uri
+      request.body = data
+      request.add_field "Content-Type", "text/plain"
+      request.add_field "Content-MD5", checksum
+      Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
+        http.request request
+      end
+
+      response = Net::HTTP.get_response(URI(@service.url(key)))
+      assert_equal "200", response.code
+      assert_equal data, response.body
+    ensure
+      @service.delete key
+    end
   end
 else
   puts "Skipping S3 Public Service tests because no S3 configuration was supplied"
