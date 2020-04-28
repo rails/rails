@@ -1128,8 +1128,8 @@ Let us modify `test_should_create_article` test in `articles_controller_test.rb`
 
 ```ruby
 test "should create article" do
-  assert_difference('Article.count') do
-    post articles_url, params: { article: { body: 'Rails is awesome!', title: 'Hello Rails' } }
+  assert_difference("Article.count") do
+    post articles_url, params: { article: { body: "Rails is awesome!", title: "Hello Rails" } }
   end
 
   assert_redirected_to article_path(Article.last)
@@ -1141,7 +1141,7 @@ Now you can try running all the tests and they should pass.
 NOTE: If you followed the steps in the [Basic Authentication](getting_started.html#basic-authentication) section, you'll need to add authorization to every request header to get all the tests passing:
 
 ```ruby
-post articles_url, params: { article: { body: 'Rails is awesome!', title: 'Hello Rails' } }, headers: { Authorization: ActionController::HttpAuthentication::Basic.encode_credentials('dhh', 'secret') }
+post articles_url, params: { article: { body: "Rails is awesome!", title: "Hello Rails" } }, headers: { Authorization: ActionController::HttpAuthentication::Basic.encode_credentials("dhh", "secret") }
 ```
 
 ### Available Request Types for Functional Tests
@@ -1169,7 +1169,7 @@ test "ajax request" do
   article = articles(:one)
   get article_url(article), xhr: true
 
-  assert_equal 'hello world', @response.body
+  assert_equal "hello world", @response.body
   assert_equal "text/javascript", @response.media_type
 end
 ```
@@ -1237,12 +1237,12 @@ Let's start by adding this assertion to our `test_should_create_article` test:
 
 ```ruby
 test "should create article" do
-  assert_difference('Article.count') do
-    post articles_url, params: { article: { title: 'Some title' } }
+  assert_difference("Article.count") do
+    post articles_url, params: { article: { title: "Some title" } }
   end
 
   assert_redirected_to article_path(Article.last)
-  assert_equal 'Article was successfully created.', flash[:notice]
+  assert_equal "Article was successfully created.", flash[:notice]
 end
 ```
 
@@ -1276,10 +1276,10 @@ def create
   @article = Article.new(article_params)
 
   if @article.save
-    flash[:notice] = 'Article was successfully created.'
+    flash[:notice] = "Article was successfully created."
     redirect_to @article
   else
-    render 'new'
+    render "new"
   end
 end
 ```
@@ -1320,7 +1320,7 @@ How about deleting an existing Article?
 ```ruby
 test "should destroy article" do
   article = articles(:one)
-  assert_difference('Article.count', -1) do
+  assert_difference("Article.count", -1) do
     delete article_url(article)
   end
 
@@ -1369,7 +1369,7 @@ class ArticlesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should destroy article" do
-    assert_difference('Article.count', -1) do
+    assert_difference("Article.count", -1) do
       delete article_url(@article)
     end
 
@@ -1446,7 +1446,7 @@ require "test_helpers/multiple_assertions"
 class NumberTest < ActiveSupport::TestCase
   include MultipleAssertions
 
-  test '420 is a multiple of forty two' do
+  test "420 is a multiple of forty two" do
     assert_multiple_of_forty_two 420
   end
 end
@@ -1469,7 +1469,7 @@ You may find it convenient to eagerly require helpers in `test_helper.rb` so you
 
 ```ruby
 # test/test_helper.rb
-Dir[Rails.root.join('test', 'test_helpers', '**', '*.rb')].each { |file| require file }
+Dir[Rails.root.join("test", "test_helpers", "**", "*.rb")].each { |file| require file }
 ```
 
 This has the downside of increasing the boot-up time, as opposed to manually requiring only the necessary files in your individual tests.
@@ -1497,7 +1497,7 @@ There are two forms of `assert_select`:
 For example, you could verify the contents on the title element in your response with:
 
 ```ruby
-assert_select 'title', "Welcome to Rails Testing Guide"
+assert_select "title", "Welcome to Rails Testing Guide"
 ```
 
 You can also use nested `assert_select` blocks for deeper investigation.
@@ -1506,8 +1506,8 @@ In the following example, the inner `assert_select` for `li.menu_item` runs
 within the collection of elements selected by the outer block:
 
 ```ruby
-assert_select 'ul.navigation' do
-  assert_select 'li.menu_item'
+assert_select "ul.navigation" do
+  assert_select "li.menu_item"
 end
 ```
 
@@ -1543,7 +1543,7 @@ Here's an example of using `assert_select_email`:
 
 ```ruby
 assert_select_email do
-  assert_select 'small', 'Please click the "Unsubscribe" link if you want to opt-out.'
+  assert_select "small", "Please click the 'Unsubscribe' link if you want to opt-out."
 end
 ```
 
@@ -1621,8 +1621,8 @@ require "test_helper"
 class UserMailerTest < ActionMailer::TestCase
   test "invite" do
     # Create the email and store it for further assertions
-    email = UserMailer.create_invite('me@example.com',
-                                     'friend@example.com', Time.now)
+    email = UserMailer.create_invite("me@example.com",
+                                     "friend@example.com", Time.now)
 
     # Send the email, then test that it got queued
     assert_emails 1 do
@@ -1630,10 +1630,10 @@ class UserMailerTest < ActionMailer::TestCase
     end
 
     # Test the body of the sent email contains what we expect it to
-    assert_equal ['me@example.com'], email.from
-    assert_equal ['friend@example.com'], email.to
-    assert_equal 'You have been invited by me@example.com', email.subject
-    assert_equal read_fixture('invite').join, email.body.to_s
+    assert_equal ["me@example.com"], email.from
+    assert_equal ["friend@example.com"], email.to
+    assert_equal "You have been invited by me@example.com", email.subject
+    assert_equal read_fixture("invite").join, email.body.to_s
   end
 end
 ```
@@ -1681,7 +1681,7 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
   test "invite friend" do
     # Asserts the difference in the ActionMailer::Base.deliveries
     assert_emails 1 do
-      post invite_friend_url, params: { email: 'friend@example.com' }
+      post invite_friend_url, params: { email: "friend@example.com" }
     end
   end
 end
@@ -1696,9 +1696,9 @@ class UsersTest < ActionDispatch::SystemTestCase
 
   test "inviting a friend" do
     visit invite_users_url
-    fill_in 'Email', with: 'friend@example.com'
+    fill_in "Email", with: "friend@example.com"
     assert_emails 1 do
-      click_on 'Invite'
+      click_on "Invite"
     end
   end
 end
@@ -1722,7 +1722,7 @@ under the `test/jobs` directory. Here's an example test with a billing job:
 require "test_helper"
 
 class BillingJobTest < ActiveJob::TestCase
-  test 'that account is charged' do
+  test "that account is charged" do
     BillingJob.perform_now(account, product)
     assert account.reload.charged_for?(product)
   end
@@ -1752,7 +1752,7 @@ require "test_helper"
 class ProductTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
 
-  test 'billing job scheduling' do
+  test "billing job scheduling" do
     assert_enqueued_with(job: BillingJob) do
       product.charge(account)
     end
@@ -1770,7 +1770,7 @@ require "test_helper"
 class ProductTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
 
-  test 'that product is reserved at a given time' do
+  test "that product is reserved at a given time" do
     now = Time.now
     assert_performed_with(job: ReservationJob, args: [product, now]) do
       product.reserve(now)
@@ -1923,7 +1923,7 @@ Here is an example using the [`travel_to`](https://api.rubyonrails.org/classes/A
 
 ```ruby
 # Lets say that a user is eligible for gifting a month after they register.
-user = User.create(name: 'Gaurish', activation_date: Date.new(2004, 10, 24))
+user = User.create(name: "Gaurish", activation_date: Date.new(2004, 10, 24))
 assert_not user.applicable_for_gifting?
 travel_to Date.new(2004, 11, 24) do
   assert_equal Date.new(2004, 10, 24), user.activation_date # inside the `travel_to` block `Date.current` is mocked
