@@ -495,7 +495,11 @@ module ActionController #:nodoc:
         if urlsafe_csrf_tokens
           Base64.urlsafe_decode64(encoded_csrf_token)
         else
-          Base64.strict_decode64(encoded_csrf_token)
+          begin
+            Base64.strict_decode64(encoded_csrf_token)
+          rescue ArgumentError
+            Base64.urlsafe_decode64(encoded_csrf_token)
+          end
         end
       end
   end
