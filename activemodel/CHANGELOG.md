@@ -1,11 +1,11 @@
-* Add `"False"/:False` and `"Off"/:Off` to `Type::Boolean::FALSE_VALUES`
+*   Add `"False"`/`:False` and `"Off"`/`:Off` to `Type::Boolean::FALSE_VALUES`.
 
         ActiveModel::Type::Boolean.new.cast("False") # => false
         ActiveModel::Type::Boolean.new.cast(:False) # => false
         ActiveModel::Type::Boolean.new.cast("Off") # => false
         ActiveModel::Type::Boolean.new.cast(:Off) # => false
 
-        Fixes #39069
+    Fixes #39069.
 
     *Colton Fent*
 
