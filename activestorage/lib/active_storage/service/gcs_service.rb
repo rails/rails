@@ -7,9 +7,13 @@ module ActiveStorage
   # Wraps the Google Cloud Storage as an Active Storage service. See ActiveStorage::Service for the generic API
   # documentation that applies to all services.
   class Service::GCSService < Service
-    def initialize(public: false, **config)
+    attr_reader :upload_options
+
+    def initialize(public: false, upload: {}, **config)
       @config = config
       @public = public
+      @upload_options = upload
+      @upload_options[:acl] = "public_read" if public?
     end
 
     def upload(key, io, checksum: nil, content_type: nil, disposition: nil, filename: nil)
@@ -19,7 +23,7 @@ module ActiveStorage
         # binary and attachment when the file's content type requires it. The only way to force them is to
         # store them as object's metadata.
         content_disposition = content_disposition_with(type: disposition, filename: filename) if disposition && filename
-        bucket.create_file(io, key, md5: checksum, content_type: content_type, content_disposition: content_disposition)
+        bucket.create_file(io, key, md5: checksum, content_type: content_type, content_disposition: content_disposition, **upload_options)
       rescue Google::Cloud::InvalidArgumentError
         raise ActiveStorage::IntegrityError
       end
@@ -84,7 +88,7 @@ module ActiveStorage
 
     def url_for_direct_upload(key, expires_in:, checksum:, **)
       instrument :url, key: key do |payload|
-        generated_url = bucket.signed_url key, method: "PUT", expires: expires_in, content_md5: checksum
+        generated_url = bucket.signed_url key, method: "PUT", expires: expires_in, content_md5: checksum, **upload_options
 
         payload[:url] = generated_url
 

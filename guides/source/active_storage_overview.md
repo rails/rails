@@ -118,6 +118,7 @@ amazon:
   secret_access_key: ""
   region: ""
   bucket: ""
+  public: false
 ```
 
 Optionally provide a Hash of upload options:
@@ -129,7 +130,7 @@ amazon:
   secret_access_key: ""
   region: ""
   bucket: ""
-  upload: 
+  upload:
     server_side_encryption: "" # 'aws:kms' or 'AES256'
 ```
 
@@ -176,6 +177,7 @@ google:
   credentials: <%= Rails.root.join("path/to/keyfile.json") %>
   project: ""
   bucket: ""
+  public: false
 ```
 
 Optionally provide a Hash of credentials instead of a keyfile path:
@@ -197,6 +199,22 @@ google:
   project: ""
   bucket: ""
 ```
+
+Optionally provide a Hash of upload options:
+
+```yaml
+google:
+  service: GCS
+  credentials: <%= Rails.root.join("path/to/keyfile.json") %>
+  project: ""
+  bucket: ""
+  upload:
+    acl: "" # will be set to `public_read` on public buckets
+    cache_control: ""
+    storage_class: ""
+```
+
+The [Google Cloud Storage SDK docs](https://googleapis.dev/ruby/google-cloud-storage/latest/Google/Cloud/Storage/Bucket.html#create_file-instance_method) detail other possible upload options.
 
 Add the [`google-cloud-storage`](https://github.com/GoogleCloudPlatform/google-cloud-ruby/tree/master/google-cloud-storage) gem to your `Gemfile`:
 

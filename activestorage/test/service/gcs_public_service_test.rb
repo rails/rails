@@ -9,6 +9,34 @@ if SERVICE_CONFIGURATIONS[:gcs_public]
 
     include ActiveStorage::Service::SharedServiceTests
 
+    test "public acl options" do
+      assert_equal "public_read", @service.upload_options[:acl]
+    end
+
+    test "uploaded file is accessible by all users" do
+      assert_includes @service.bucket.find_file(@key).acl.readers, "allUsers"
+    end
+
+    test "direct upload file is accessible by all users" do
+      key      = SecureRandom.base58(24)
+      data     = "Something else entirely!"
+      checksum = Digest::MD5.base64digest(data)
+      url      = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
+
+      uri = URI.parse url
+      request = Net::HTTP::Put.new uri.request_uri
+      request.body = data
+      request.add_field "Content-Type", ""
+      request.add_field "Content-MD5", checksum
+      Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
+        http.request request
+      end
+
+      assert_includes @service.bucket.find_file(key).acl.readers, "allUsers"
+    ensure
+      @service.delete key
+    end
+
     test "public URL generation" do
       url = @service.url(@key, filename: ActiveStorage::Filename.new("avatar.png"))
 

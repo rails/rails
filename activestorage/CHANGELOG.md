@@ -1,3 +1,18 @@
+*   Add support for `upload` options with `GCSService`.
+
+    For example, to add `Cache-Control` headers to uploaded files, modify
+    `config/storage.yml` with the `upload` key and corresponding Hash:
+
+    ```yml
+    google:
+      service: GCS
+      ...
+      upload:
+        cache_control: "public, max-age=60"
+    ```
+
+    *Brendan Abbott*
+
 *   Add `config.active_storage.web_image_content_types` to allow applications
     to add content types (like `image/webp`) in which variants can be processed,
     instead of letting those images be converted to the fallback PNG format.
