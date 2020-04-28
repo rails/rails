@@ -1106,7 +1106,7 @@ The `get` method kicks off the web request and populates the results into the `@
 * `headers`: for setting the headers that will be passed with the request.
 * `env`: for customizing the request environment as needed.
 * `xhr`: whether the request is Ajax request or not. Can be set to true for marking the request as Ajax.
-* `as`: for encoding the request with different content type. Supports `:json` by default.
+* `as`: for encoding the request with different content type.
 
 All of these keyword arguments are optional.
 
@@ -1120,6 +1120,13 @@ Another example: Calling the `:update` action for the last `Article`, passing in
 
 ```ruby
 patch article_url(Article.last), params: { article: { title: "updated" } }, xhr: true
+```
+
+One more example: Calling the `:create` action to create a new article, passing in
+text for the `title` in `params`, as JSON request:
+
+```ruby
+post articles_path, params: { article: { title: "Ahoy!" } }, as: :json
 ```
 
 NOTE: If you try running `test_should_create_article` test from `articles_controller_test.rb` it will fail on account of the newly added model level validation and rightly so.
