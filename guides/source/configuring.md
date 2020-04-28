@@ -970,6 +970,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
 - `config.active_record.has_many_inversing`: `true`
 - `config.active_storage.track_variants`: `true`
+- `config.action_controller.urlsafe_csrf_tokens`: `true`
 
 #### For '6.0', new defaults from previous versions below and:
 
