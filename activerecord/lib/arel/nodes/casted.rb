@@ -3,30 +3,42 @@
 module Arel # :nodoc: all
   module Nodes
     class Casted < Arel::Nodes::NodeExpression # :nodoc:
-      attr_reader :val, :attribute
-      def initialize(val, attribute)
-        @val       = val
+      attr_reader :value, :attribute
+      alias :value_before_type_cast :value
+
+      def initialize(value, attribute)
+        @value     = value
         @attribute = attribute
         super()
       end
 
-      def nil?; @val.nil?; end
+      def nil?; value.nil?; end
+
+      def value_for_database
+        if attribute.able_to_type_cast?
+          attribute.type_cast_for_database(value)
+        else
+          value
+        end
+      end
 
       def hash
-        [self.class, val, attribute].hash
+        [self.class, value, attribute].hash
       end
 
       def eql?(other)
         self.class == other.class &&
-            self.val == other.val &&
-            self.attribute == other.attribute
+          self.value == other.value &&
+          self.attribute == other.attribute
       end
       alias :== :eql?
     end
 
     class Quoted < Arel::Nodes::Unary # :nodoc:
-      alias :val :value
-      def nil?; val.nil?; end
+      alias :value_for_database :value
+      alias :value_before_type_cast :value
+
+      def nil?; value.nil?; end
 
       def infinite?
         value.respond_to?(:infinite?) && value.infinite?

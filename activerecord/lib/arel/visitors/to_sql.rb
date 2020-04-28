@@ -82,12 +82,9 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_Casted(o, collector)
-          collector << quoted(o.val, o.attribute).to_s
+          collector << quote(o.value_for_database).to_s
         end
-
-        def visit_Arel_Nodes_Quoted(o, collector)
-          collector << quoted(o.expr, nil).to_s
-        end
+        alias :visit_Arel_Nodes_Quoted :visit_Arel_Nodes_Casted
 
         def visit_Arel_Nodes_True(o, collector)
           collector << "TRUE"
@@ -667,14 +664,6 @@ module Arel # :nodoc: all
 
         alias :visit_Arel_Nodes_SqlLiteral :literal
         alias :visit_Integer               :literal
-
-        def quoted(o, a)
-          if a && a.able_to_type_cast?
-            quote(a.type_cast_for_database(o))
-          else
-            quote(o)
-          end
-        end
 
         def unsupported(o, collector)
           raise UnsupportedVisitError.new(o)

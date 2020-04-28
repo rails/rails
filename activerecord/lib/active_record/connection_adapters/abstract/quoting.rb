@@ -11,10 +11,6 @@ module ActiveRecord
       def quote(value)
         value = id_value_for_database(value) if value.is_a?(Base)
 
-        if value.respond_to?(:value_for_database)
-          value = value.value_for_database
-        end
-
         _quote(value)
       end
 

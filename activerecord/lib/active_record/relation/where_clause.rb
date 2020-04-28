@@ -177,15 +177,8 @@ module ActiveRecord
           case node
           when Array
             node.map { |v| extract_node_value(v) }
-          when Arel::Nodes::Casted, Arel::Nodes::Quoted
-            node.val
-          when Arel::Nodes::BindParam
-            value = node.value
-            if value.respond_to?(:value_before_type_cast)
-              value.value_before_type_cast
-            else
-              value
-            end
+          when Arel::Nodes::BindParam, Arel::Nodes::Casted, Arel::Nodes::Quoted
+            node.value_before_type_cast
           end
         end
     end
