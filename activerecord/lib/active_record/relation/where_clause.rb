@@ -47,18 +47,12 @@ module ActiveRecord
       end
 
       def to_h(table_name = nil)
-        equalities = equalities(predicates)
-        if table_name
-          equalities = equalities.select do |node|
-            node.left.relation.name == table_name
-          end
-        end
-
-        equalities.map { |node|
+        equalities(predicates).each_with_object({}) do |node, hash|
+          next if table_name&.!= node.left.relation.name
           name = node.left.name.to_s
           value = extract_node_value(node.right)
-          [name, value]
-        }.to_h
+          hash[name] = value
+        end
       end
 
       def ast
