@@ -1,3 +1,18 @@
+*   `fixture_file_upload` now uses path relative to `file_fixture_path`
+
+    Previously the path had to be relative to `fixture_path`.
+    You can change your existing code as follow:
+
+    ```ruby
+    # Before
+    fixture_file_upload('files/dog.png')
+
+    # After
+    fixture_file_upload('dog.png')
+    ```
+
+    *Edouard Chin*
+
 *   Remove deprecated `force_ssl` at the controller level.
 
     *Rafael Mendonça França*
