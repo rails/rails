@@ -12,6 +12,7 @@ module ActiveRecord
           @conn = Base.sqlite3_connection database: dir.join("db/foo.sqlite3"),
                                adapter: "sqlite3",
                                timeout: 100
+          @conn.raw_connection
 
           assert Dir.exist? dir.join("db")
           assert File.exist? dir.join("db/foo.sqlite3")

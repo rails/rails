@@ -530,7 +530,7 @@ module ActiveRecord
       # PostgreSQL's lo_* methods.
       def raw_connection
         disable_lazy_transactions!
-        @connection
+        connection
       end
 
       def default_uniqueness_comparison(attribute, value, klass) # :nodoc:
@@ -589,6 +589,13 @@ module ActiveRecord
       end
 
       private
+        def connection
+          @connection || @lock.synchronize do
+            connect
+            @connection
+          end
+        end
+
         def type_map
           @type_map ||= Type::TypeMap.new.tap do |mapping|
             initialize_type_map(mapping)

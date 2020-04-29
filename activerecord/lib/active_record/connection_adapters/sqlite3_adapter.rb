@@ -32,12 +32,7 @@ module ActiveRecord
         Dir.mkdir(dirname) unless File.directory?(dirname)
       end
 
-      db = SQLite3::Database.new(
-        config[:database].to_s,
-        config.merge(results_as_hash: true)
-      )
-
-      ConnectionAdapters::SQLite3Adapter.new(db, logger, nil, config)
+      ConnectionAdapters::SQLite3Adapter.new(nil, logger, nil, config)
     rescue Errno::ENOENT => error
       if error.message.include?("No such file or directory")
         raise ActiveRecord::NoDatabaseError
@@ -93,9 +88,8 @@ module ActiveRecord
           end
       end
 
-      def initialize(connection, logger, connection_options, config)
+      def initialize(connection, logger, _connection_options, config)
         super(connection, logger, config)
-        configure_connection
       end
 
       def self.database_exists?(config)
@@ -185,7 +179,7 @@ module ActiveRecord
 
       # Returns the current database encoding format as a string, eg: 'UTF-8'
       def encoding
-        @connection.encoding.to_s
+        connection.encoding.to_s
       end
 
       def supports_explain?
@@ -538,6 +532,12 @@ module ActiveRecord
             @config.merge(results_as_hash: true)
           )
           configure_connection
+        rescue Errno::ENOENT => error
+          if error.message.include?("No such file or directory")
+            raise ActiveRecord::NoDatabaseError
+          else
+            raise
+          end
         end
 
         def configure_connection

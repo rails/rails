@@ -86,7 +86,7 @@ class SQLite3TransactionTest < ActiveRecord::SQLite3TestCase
   test "set the read_uncommitted PRAGMA to its previous value" do
     with_connection(flags: shared_cache_flags) do |conn|
       conn.transaction(joinable: false, isolation: :read_uncommitted) do
-        conn.instance_variable_get(:@connection).read_uncommitted = true
+        conn.send(:connection).read_uncommitted = true
         assert(read_uncommitted?(conn))
         conn.transaction_manager.materialize_transactions
         assert(read_uncommitted?(conn))
@@ -98,7 +98,7 @@ class SQLite3TransactionTest < ActiveRecord::SQLite3TestCase
 
   private
     def read_uncommitted?(conn)
-      conn.instance_variable_get(:@connection).get_first_value("PRAGMA read_uncommitted") != 0
+      conn.send(:connection).get_first_value("PRAGMA read_uncommitted") != 0
     end
 
     def shared_cache_flags
@@ -115,6 +115,7 @@ class SQLite3TransactionTest < ActiveRecord::SQLite3TestCase
         options[:database] ||= db_config.database
       end
       conn = ActiveRecord::Base.sqlite3_connection(options)
+      conn.send(:connection)
 
       yield(conn)
     ensure
