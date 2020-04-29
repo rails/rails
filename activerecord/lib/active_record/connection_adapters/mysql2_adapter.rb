@@ -8,8 +8,6 @@ require "mysql2"
 
 module ActiveRecord
   module ConnectionHandling # :nodoc:
-    ER_BAD_DB_ERROR = 1049
-
     # Establishes a connection to the database that's used by all Active Record objects.
     def mysql2_connection(config)
       config = config.symbolize_keys
@@ -21,31 +19,24 @@ module ActiveRecord
         config[:flags] |= Mysql2::Client::FOUND_ROWS
       end
 
-      client = Mysql2::Client.new(config)
-      ConnectionAdapters::Mysql2Adapter.new(client, logger, nil, config)
-    rescue Mysql2::Error => error
-      if error.error_number == ER_BAD_DB_ERROR
-        raise ActiveRecord::NoDatabaseError
-      else
-        raise
-      end
+      ConnectionAdapters::Mysql2Adapter.new(nil, logger, nil, config)
     end
   end
 
   module ConnectionAdapters
     class Mysql2Adapter < AbstractMysqlAdapter
       ADAPTER_NAME = "Mysql2"
+      ER_BAD_DB_ERROR = 1049
 
       include MySQL::DatabaseStatements
 
       def initialize(connection, logger, connection_options, config)
         superclass_config = config.reverse_merge(prepared_statements: false)
         super(connection, logger, connection_options, superclass_config)
-        configure_connection
       end
 
       def self.database_exists?(config)
-        !!ActiveRecord::Base.mysql2_connection(config)
+        !!ActiveRecord::Base.mysql2_connection(config).raw_connection
       rescue ActiveRecord::NoDatabaseError
         false
       end
@@ -90,8 +81,12 @@ module ActiveRecord
       # QUOTING ==================================================
       #++
 
+      def check_version
+        # NOOP
+      end
+
       def quote_string(string)
-        @connection.escape(string)
+        ::Mysql2::Client.escape(string)
       end
 
       #--
@@ -99,7 +94,7 @@ module ActiveRecord
       #++
 
       def active?
-        @connection.ping
+        @connection&.ping
       end
 
       def reconnect!
@@ -113,12 +108,12 @@ module ActiveRecord
       # Otherwise, this method does nothing.
       def disconnect!
         super
-        @connection.close
+        @connection&.close
       end
 
       def discard! # :nodoc:
         super
-        @connection.automatic_close = false
+        @connection&.automatic_close = false
         @connection = nil
       end
 
@@ -126,6 +121,12 @@ module ActiveRecord
         def connect
           @connection = Mysql2::Client.new(@config)
           configure_connection
+        rescue Mysql2::Error => error
+          if error.error_number == ER_BAD_DB_ERROR
+            raise ActiveRecord::NoDatabaseError
+          else
+            raise
+          end
         end
 
         def configure_connection

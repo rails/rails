@@ -519,6 +519,7 @@ module ActiveRecord
       # This is done under the hood by calling #active?. If the connection
       # is no longer active, then this method will reconnect to the database.
       def verify!
+        return if @connection.nil?
         reconnect! unless active?
       end
 
