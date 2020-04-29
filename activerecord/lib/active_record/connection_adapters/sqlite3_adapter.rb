@@ -179,13 +179,6 @@ module ActiveRecord
         true
       end
 
-      # Returns 62. SQLite supports index names up to 64
-      # characters. The rest is used by Rails internally to perform
-      # temporary rename operations
-      def allowed_index_name_length
-        index_name_length - 2
-      end
-
       def native_database_types #:nodoc:
         NATIVE_DATABASE_TYPES
       end
