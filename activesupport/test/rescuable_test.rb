@@ -5,6 +5,12 @@ require_relative "abstract_unit"
 class WraithAttack < StandardError
 end
 
+class Trap < StandardError
+end
+
+class SneakAttack < StandardError
+end
+
 class MadRonon < StandardError
 end
 
@@ -30,6 +36,8 @@ class Stargate
 
   rescue_from WraithAttack, with: :sos
 
+  rescue_from SneakAttack, with: :sos
+
   rescue_from "NuclearExplosion" do
     @result = "alldead"
   end
@@ -40,6 +48,10 @@ class Stargate
 
   rescue_from WeirdError do
     @result = "weird"
+  end
+
+  rescue_from Trap do
+    raise SneakAttack
   end
 
   def dispatch(method)
@@ -107,6 +119,10 @@ class Stargate
   def sos_first
     @result = "sos_first"
   end
+
+  def walk
+    raise Trap
+  end
 end
 
 class CoolStargate < Stargate
@@ -148,13 +164,13 @@ class RescuableTest < ActiveSupport::TestCase
   end
 
   def test_rescues_defined_later_are_added_at_end_of_the_rescue_handlers_array
-    expected = ["WraithAttack", "WraithAttack", "NuclearExplosion", "MadRonon", "WeirdError"]
+    expected = ["WraithAttack", "WraithAttack", "SneakAttack", "NuclearExplosion", "MadRonon", "WeirdError", "Trap"]
     result = @stargate.send(:rescue_handlers).collect(&:first)
     assert_equal expected, result
   end
 
   def test_children_should_inherit_rescue_definitions_from_parents_and_child_rescue_should_be_appended
-    expected = ["WraithAttack", "WraithAttack", "NuclearExplosion", "MadRonon", "WeirdError", "CoolError"]
+    expected = ["WraithAttack", "WraithAttack", "SneakAttack", "NuclearExplosion", "MadRonon", "WeirdError", "Trap", "CoolError"]
     result = @cool_stargate.send(:rescue_handlers).collect(&:first)
     assert_equal expected, result
   end
@@ -172,5 +188,11 @@ class RescuableTest < ActiveSupport::TestCase
   def test_rescue_handles_loops_in_exception_cause_chain
     @stargate.dispatch :looped_crash
     assert_equal "unhandled", @stargate.result
+  end
+
+  def test_exceptions_raised_inside_handler_are_not_propagated
+    assert_raises SneakAttack do
+      @stargate.dispatch :walk
+    end
   end
 end

@@ -47,7 +47,7 @@ module ActiveSupport
       #       end
       #   end
       #
-      # Exceptions raised inside exception handlers are not propagated up.
+      # Exceptions raised inside exception handlers are not propagated to the handlers above it.
       def rescue_from(*klasses, with: nil, &block)
         unless with
           if block_given?
