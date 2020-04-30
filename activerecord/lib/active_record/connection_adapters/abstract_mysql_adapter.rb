@@ -489,7 +489,7 @@ module ActiveRecord
       def columns_for_distinct(columns, orders) # :nodoc:
         order_columns = orders.compact_blank.map { |s|
           # Convert Arel node to string
-          s = s.to_sql unless s.is_a?(String)
+          s = visitor.compile(s) unless s.is_a?(String)
           # Remove any ASC/DESC modifiers
           s.gsub(/\s+(?:ASC|DESC)\b/i, "")
         }.compact_blank.map.with_index { |column, i| "#{column} AS alias_#{i}" }

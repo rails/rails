@@ -145,7 +145,7 @@ module ActiveRecord
             connection.with_yaml_fallback(types[key].serialize(value))
           end
 
-          Arel::InsertManager.new.create_values_list(values_list).to_sql
+          connection.visitor.compile(Arel::Nodes::ValuesList.new(values_list))
         end
 
         def returning

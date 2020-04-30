@@ -493,7 +493,7 @@ module ActiveRecord
           end
 
           manager.values = manager.create_values_list(values_list)
-          manager.to_sql
+          visitor.compile(manager.ast)
         end
 
         def build_fixture_statements(fixture_set)
