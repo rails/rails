@@ -32,6 +32,7 @@ module ActiveRecord
       def allowed_index_name_length
         index_name_length
       end
+      deprecate :allowed_index_name_length
 
       # Returns the maximum length of an index name.
       def index_name_length

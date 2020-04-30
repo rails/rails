@@ -254,7 +254,7 @@ module ActiveRecord
 
       def test_change_column_with_long_index_name
         table_name_prefix = "test_models_"
-        long_index_name = table_name_prefix + ("x" * (connection.allowed_index_name_length - table_name_prefix.length))
+        long_index_name = table_name_prefix + ("x" * (connection.index_name_length - table_name_prefix.length))
         add_column "test_models", "category", :string
         add_index :test_models, :category, name: long_index_name
 
