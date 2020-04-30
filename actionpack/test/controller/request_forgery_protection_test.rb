@@ -381,9 +381,11 @@ module RequestForgeryProtectionTests
   end
 
   def test_should_allow_post_with_strict_encoded_token
-    session[:_csrf_token] = Base64.strict_encode64("railstestrailstestrailstestrails")
-    @controller.stub :form_authenticity_token, @token do
-      assert_not_blocked { post :index, params: { custom_authenticity_token: @token } }
+    token_length = (ActionController::RequestForgeryProtection::AUTHENTICITY_TOKEN_LENGTH * 4.0 / 3).ceil
+    token_including_url_unsafe_chars = "+/".ljust(token_length, "A")
+    session[:_csrf_token] = token_including_url_unsafe_chars
+    @controller.stub :form_authenticity_token, token_including_url_unsafe_chars do
+      assert_not_blocked { post :index, params: { custom_authenticity_token: token_including_url_unsafe_chars } }
     end
   end
 
