@@ -10,6 +10,14 @@ end
 class InsertAllTest < ActiveRecord::TestCase
   fixtures :books
 
+  def setup
+    Arel::Table.engine = nil # should not rely on the global Arel::Table.engine
+  end
+
+  def teardown
+    Arel::Table.engine = ActiveRecord::Base
+  end
+
   def test_insert
     skip unless supports_insert_on_duplicate_skip?
 

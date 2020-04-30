@@ -46,6 +46,14 @@ class FixturesTest < ActiveRecord::TestCase
                  movies projects subscribers topics tasks )
   MATCH_ATTRIBUTE_NAME = /[a-zA-Z][-\w]*/
 
+  def setup
+    Arel::Table.engine = nil # should not rely on the global Arel::Table.engine
+  end
+
+  def teardown
+    Arel::Table.engine = ActiveRecord::Base
+  end
+
   def test_clean_fixtures
     FIXTURES.each do |name|
       fixtures = nil
