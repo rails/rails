@@ -861,6 +861,28 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal expected, actual
   end
 
+  def test_pluck_functions_with_alias
+    assert_equal [
+      [1, "The First Topic"], [2, "The Second Topic of the day"],
+      [3, "The Third Topic of the day"], [4, "The Fourth Topic of the day"],
+      [5, "The Fifth Topic of the day"]
+    ], Topic.order(:id).pluck(
+      Arel.sql("COALESCE(id, 0) id"),
+      Arel.sql("COALESCE(title, 'untitled') title")
+    )
+  end
+
+  def test_pluck_functions_without_alias
+    assert_equal [
+      [1, "The First Topic"], [2, "The Second Topic of the day"],
+      [3, "The Third Topic of the day"], [4, "The Fourth Topic of the day"],
+      [5, "The Fifth Topic of the day"]
+    ], Topic.order(:id).pluck(
+      Arel.sql("COALESCE(id, 0)"),
+      Arel.sql("COALESCE(title, 'untitled')")
+    )
+  end
+
   def test_calculation_with_polymorphic_relation
     part = ShipPart.create!(name: "has trinket")
     part.trinkets.create!
