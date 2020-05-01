@@ -569,7 +569,7 @@ DEPENDENCIES
   minitest-retry
   mysql2 (~> 0.5)
   nokogiri (>= 1.8.1)
-  pg (>= 0.18.0)
+  pg (~> 1.1)
   psych (~> 3.0)
   puma
   que

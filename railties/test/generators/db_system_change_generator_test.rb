@@ -40,7 +40,7 @@ module Rails
 
             assert_file("Gemfile") do |content|
               assert_match "# Use pg as the database for Active Record", content
-              assert_match "gem 'pg', '>= 0.18', '< 2.0'", content
+              assert_match "gem 'pg', '~> 1.1'", content
             end
           end
 
