@@ -907,6 +907,11 @@ module ActiveRecord
           coders.each { |coder| map.add_coder(coder) }
           @connection.type_map_for_results = map
 
+          @type_map_for_results = PG::TypeMapByOid.new
+          @type_map_for_results.default_type_map = map
+          @type_map_for_results.add_coder(PG::TextDecoder::Bytea.new(oid: 17, name: "bytea"))
+          @type_map_for_results.add_coder(MoneyDecoder.new(oid: 790, name: "money"))
+
           # extract timestamp decoder for use in update_typemap_for_default_timezone
           @timestamp_decoder = coders.find { |coder| coder.name == "timestamp" }
           update_typemap_for_default_timezone
@@ -915,6 +920,14 @@ module ActiveRecord
         def construct_coder(row, coder_class)
           return unless coder_class
           coder_class.new(oid: row["oid"].to_i, name: row["typname"])
+        end
+
+        class MoneyDecoder < PG::SimpleDecoder # :nodoc:
+          TYPE = OID::Money.new
+
+          def decode(value, tuple = nil, field = nil)
+            TYPE.deserialize(value)
+          end
         end
 
         ActiveRecord::Type.add_modifier({ array: true }, OID::Array, adapter: :postgresql)
