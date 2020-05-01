@@ -8,7 +8,7 @@ gemfile(true) do
   git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
   gem "rails", github: "rails/rails"
-  gem "benchmark-ips"
+  gem "benchmark-ips", "< 2.8"
 end
 
 require "active_support"
