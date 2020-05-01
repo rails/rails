@@ -1,3 +1,5 @@
+## Rails 6.0.3.rc1 (April 30, 2020) ##
+
 *   Cache compiled view templates when running tests by default
 
     When generating a new app without `--skip-spring`, caching classes is

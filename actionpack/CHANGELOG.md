@@ -1,3 +1,5 @@
+## Rails 6.0.3.rc1 (April 30, 2020) ##
+
 *   Include child session assertion count in ActionDispatch::IntegrationTest
 
     `IntegrationTest#open_session` uses `dup` to create the new session, which

@@ -1,3 +1,5 @@
+## Rails 6.0.3.rc1 (April 30, 2020) ##
+
 *   `Array#to_sentence` no longer returns a frozen string.
 
     Before:
