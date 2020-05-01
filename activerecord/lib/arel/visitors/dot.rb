@@ -222,7 +222,7 @@ module Arel # :nodoc: all
           edge("value") { visit o.value }
         end
 
-        def visit_ActiveRecord_Relation_QueryAttribute(o)
+        def visit_ActiveModel_Attribute(o)
           edge("value_before_type_cast") { visit o.value_before_type_cast }
         end
 

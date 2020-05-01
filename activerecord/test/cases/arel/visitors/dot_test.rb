@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "../helper"
+require "active_model/attribute"
 
 module Arel
   module Visitors
@@ -77,6 +78,12 @@ module Arel
         node = Arel::Nodes::BindParam.new(1)
         collector = Collectors::PlainString.new
         assert_match '[label="<f0>Arel::Nodes::BindParam"]', @visitor.accept(node, collector).value
+      end
+
+      def test_ActiveModel_Attribute
+        node = ActiveModel::Attribute.with_cast_value("LIMIT", 1, nil)
+        collector = Collectors::PlainString.new
+        assert_match '[label="<f0>ActiveModel::Attribute::WithCastValue"]', @visitor.accept(node, collector).value
       end
     end
   end
