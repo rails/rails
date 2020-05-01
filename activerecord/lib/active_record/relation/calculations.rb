@@ -281,7 +281,8 @@ module ActiveRecord
         end
       end
 
-      def operation_over_aggregate_column(column, operation, distinct)
+      def operation_over_aggregate_column(column_name, operation, distinct)
+        column = aggregate_column(column_name)
         operation == "count" ? column.count(distinct) : column.send(operation)
       end
 
@@ -291,31 +292,20 @@ module ActiveRecord
           return 0 if limit_value == 0
 
           query_builder = build_count_subquery(spawn, column_name, distinct)
-          skip_query_cache_if_necessary { @klass.connection.select_value(query_builder) }
         else
           # PostgreSQL doesn't like ORDER BY when there are no GROUP BY
           relation = unscope(:order).distinct!(false)
 
-          column = aggregate_column(column_name)
+          select_value = operation_over_aggregate_column(column_name, operation, distinct)
+          select_value.distinct = true if operation == "sum" && distinct
 
-          select_value = operation_over_aggregate_column(column, operation, distinct)
-          if operation == "sum" && distinct
-            select_value.distinct = true
-          end
-
-          column_alias = select_value.alias
-          column_alias ||= @klass.connection.column_name_for_operation(operation, select_value)
           relation.select_values = [select_value]
 
           query_builder = relation.arel
-
-          result = skip_query_cache_if_necessary { @klass.connection.select_all(query_builder, nil) }
-          row    = result.rows.first
-          value  = row && row.first
-          type   = result.column_types.fetch(column_alias, Type.default_value)
-
-          type_cast_calculated_value(value, type, operation)
         end
+
+        value = skip_query_cache_if_necessary { @klass.connection.select_value(query_builder) }
+        type_cast_calculated_value(value, operation)
       end
 
       def execute_grouped_calculation(operation, column_name, distinct) #:nodoc:
@@ -334,14 +324,11 @@ module ActiveRecord
         }
         group_columns = group_aliases.zip(group_fields)
 
-        aggregate_alias = column_alias_for("#{operation} #{column_name.to_s.downcase}")
+        column_alias = column_alias_for("#{operation} #{column_name.to_s.downcase}")
+        select_value = operation_over_aggregate_column(column_name, operation, distinct)
+        select_value.as(column_alias)
 
-        select_values = [
-          operation_over_aggregate_column(
-            aggregate_column(column_name),
-            operation,
-            distinct).as(aggregate_alias)
-        ]
+        select_values = [select_value]
         select_values += self.select_values unless having_clause.empty?
 
         select_values.concat group_columns.map { |aliaz, field|
@@ -374,8 +361,7 @@ module ActiveRecord
           key = key.first if key.size == 1
           key = key_records[key] if associated
 
-          type = calculated_data.column_types.fetch(aggregate_alias, Type.default_value)
-          result[key] = type_cast_calculated_value(row[aggregate_alias], type, operation)
+          result[key] = type_cast_calculated_value(row[column_alias], operation)
         end
       end
 
@@ -401,12 +387,11 @@ module ActiveRecord
         @klass.type_for_attribute(field_name, &block)
       end
 
-      def type_cast_calculated_value(value, type, operation)
+      def type_cast_calculated_value(value, operation)
         case operation
-        when "count"   then value.to_i
-        when "sum"     then type.deserialize(value || 0)
+        when "sum"     then value || 0
         when "average" then value&.respond_to?(:to_d) ? value.to_d : value
-        else type.deserialize(value)
+        else value
         end
       end
 

@@ -418,16 +418,6 @@ module ActiveRecord
         @use_insert_returning
       end
 
-      def column_name_for_operation(operation, node) # :nodoc:
-        OPERATION_ALIASES.fetch(operation) { operation.downcase }
-      end
-
-      OPERATION_ALIASES = { # :nodoc:
-        "maximum" => "max",
-        "minimum" => "min",
-        "average" => "avg",
-      }
-
       # Returns the version of the connected PostgreSQL server.
       def get_database_version # :nodoc:
         @connection.server_version
@@ -895,6 +885,7 @@ module ActiveRecord
             "oid" => PG::TextDecoder::Integer,
             "float4" => PG::TextDecoder::Float,
             "float8" => PG::TextDecoder::Float,
+            "numeric" => PG::TextDecoder::Numeric,
             "bool" => PG::TextDecoder::Boolean,
             "timestamp" => PG::TextDecoder::TimestampUtc,
             "timestamptz" => PG::TextDecoder::TimestampWithTimeZone,
