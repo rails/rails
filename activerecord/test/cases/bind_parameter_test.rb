@@ -159,7 +159,9 @@ if ActiveRecord::Base.connection.prepared_statements
 
       def test_logs_legacy_binds_after_type_cast
         binds = [[@pk, "10"]]
-        assert_logs_binds(binds)
+        assert_deprecated do
+          assert_logs_binds(binds)
+        end
       end
 
       private
