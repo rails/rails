@@ -28,7 +28,21 @@ module ActiveStorage
 
     private
       def draw_relevant_frame_from(file, &block)
-        draw self.class.ffmpeg_path, "-i", file.path, "-y", "-vframes", "1", "-f", "image2", "-", &block
+        ffmpeg_args = [
+          "-i", file.path,
+          "-vf",
+            # Select the first video frame, plus keyframes and frames
+            # that meet the scene change threshold.
+            'select=eq(n\,0)+eq(key\,1)+gt(scene\,0.015),' +
+            # Loop the first 1-2 selected frames in case we were only
+            # able to select 1 frame, then drop the first looped frame.
+            # This lets us use the first video frame as a fallback.
+            "loop=loop=-1:size=2,trim=start_frame=1",
+          "-frames:v", "1",
+          "-f", "image2", "-",
+        ]
+
+        draw self.class.ffmpeg_path, *ffmpeg_args, &block
       end
   end
 end
