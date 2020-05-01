@@ -218,7 +218,13 @@ module Arel # :nodoc: all
         alias :visit_Symbol :visit_String
         alias :visit_Arel_Nodes_SqlLiteral :visit_String
 
-        def visit_Arel_Nodes_BindParam(o); end
+        def visit_Arel_Nodes_BindParam(o)
+          edge("value") { visit o.value }
+        end
+
+        def visit_ActiveRecord_Relation_QueryAttribute(o)
+          edge("value_before_type_cast") { visit o.value_before_type_cast }
+        end
 
         def visit_Hash(o)
           o.each_with_index do |pair, i|
