@@ -1592,13 +1592,14 @@ These configuration points are then available through the configuration object:
 
 You can also use `Rails::Application.config_for` to load whole configuration files:
 
-  ```ruby
+  ```yaml
   # config/payment.yml:
   production:
     environment: production
     merchant_id: production_merchant_id
     public_key:  production_public_key
     private_key: production_private_key
+
   development:
     environment: sandbox
     merchant_id: development_merchant_id
@@ -1615,6 +1616,28 @@ You can also use `Rails::Application.config_for` to load whole configuration fil
 
   ```ruby
   Rails.configuration.payment['merchant_id'] # => production_merchant_id or development_merchant_id
+  ```
+`Rails::Application.config_for` supports a `shared` configuration to group common
+configurations. The shared configuration will be merged into the environment
+configuration.
+
+  ```yaml
+  # config/example.yml
+  shared:
+    foo:
+      bar:
+        baz: 1
+
+  development:
+    foo:
+      bar:
+        qux: 2
+  ```
+
+
+  ```ruby
+  # development environment
+  Rails.application.config_for(:example)[:foo][:bar] #=> { baz: 1, qux: 2 }
   ```
 
 Search Engines Indexing
