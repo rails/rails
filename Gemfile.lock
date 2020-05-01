@@ -547,7 +547,7 @@ DEPENDENCIES
   azure-storage-blob
   backburner
   bcrypt (~> 3.1.11)
-  benchmark-ips
+  benchmark-ips (< 2.8)
   blade
   blade-sauce_labs_plugin
   bootsnap (>= 1.4.4)
