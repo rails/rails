@@ -37,7 +37,7 @@ module ActiveModel
         attr_reader :range
 
         def in_range?(value)
-          !value || range.cover?(value)
+          !value || range.member?(value)
         end
 
         def cast_value(value)
