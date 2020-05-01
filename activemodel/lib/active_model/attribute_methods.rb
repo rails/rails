@@ -294,7 +294,7 @@ module ActiveModel
               generate_method = "define_method_#{matcher.target}"
 
               if respond_to?(generate_method, true)
-                send(generate_method, attr_name.to_s)
+                send(generate_method, attr_name.to_s, owner: owner)
               else
                 define_proxy_call true, owner, method_name, matcher.target, attr_name.to_s
               end
@@ -354,14 +354,23 @@ module ActiveModel
             @path = path
             @line = line
             @sources = ["# frozen_string_literal: true\n"]
+            @renames = {}
           end
 
           def <<(source_line)
             @sources << source_line
           end
 
+          def rename_method(old_name, new_name)
+            @renames[old_name] = new_name
+          end
+
           def execute
             @owner.module_eval(@sources.join(";"), @path, @line - 1)
+            @renames.each do |old_name, new_name|
+              @owner.alias_method new_name, old_name
+              @owner.undef_method old_name
+            end
           end
         end
         private_constant :CodeGenerator
@@ -527,7 +536,7 @@ module ActiveModel
         # to allocate an object on each call to the attribute method.
         # Making it frozen means that it doesn't get duped when used to
         # key the @attributes in read_attribute.
-        def self.define_attribute_accessor_method(mod, attr_name, writer: false)
+        def self.define_attribute_accessor_method(owner, attr_name, writer: false)
           method_name = "#{attr_name}#{'=' if writer}"
           if attr_name.ascii_only? && DEF_SAFE_NAME.match?(attr_name)
             yield method_name, "'#{attr_name}'"
@@ -538,8 +547,7 @@ module ActiveModel
             temp_method_name = "__temp__#{safe_name}#{'=' if writer}"
             attr_name_expr = "::ActiveModel::AttributeMethods::AttrNames::#{const_name}"
             yield temp_method_name, attr_name_expr
-            mod.alias_method method_name, temp_method_name
-            mod.undef_method temp_method_name
+            owner.rename_method(temp_method_name, method_name)
           end
         end
       end
