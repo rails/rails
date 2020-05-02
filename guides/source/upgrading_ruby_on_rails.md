@@ -147,6 +147,33 @@ Example:
   end
 ```
 
+### The `helper` class method in controllers uses `String#constantize`
+
+Conceptually, before Rails 6.1
+
+```ruby
+helper "foo/bar"
+```
+
+resulted in
+
+```ruby
+require_dependency "foo/bar_helper"
+module_name = "foo/bar_helper".camelize
+module_name.constantize
+```
+
+Now it does this instead:
+
+```ruby
+prefix = "foo/bar".camelize
+"#{prefix}Helper".constantize
+```
+
+This change is backwards compatible for the majority of applications, in which case you do not need to do anything.
+
+Technically, however, controllers could configure `helpers_path` to point to a directoy in `$LOAD_PATH` that was not in the autoload paths. That use case is no longer supported out of the box. If the helper module is not autoloadable, the application is responsible for loading it before calling `helper`.
+
 Upgrading from Rails 5.2 to Rails 6.0
 -------------------------------------
 
