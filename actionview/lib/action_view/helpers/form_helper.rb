@@ -2163,11 +2163,15 @@ module ActionView
         case record_name
         when String, Symbol
           record_name = record_name.to_s
-          if nested_attributes_association?(record_name)
+          if nested_attributes_association?(record_name) || record_object.is_a?(Array)
             return fields_for_with_nested_attributes(record_name, record_object, fields_options, block)
           end
+        when Array
+          record_object = record_name
+          record_name   = model_name_from_record_or_class(record_object.last).param_key.pluralize
+          return fields_for_with_nested_attributes(record_name, record_object, fields_options, block)
         else
-          record_object = record_name.is_a?(Array) ? record_name.last : record_name
+          record_object = record_name
           record_name   = model_name_from_record_or_class(record_object).param_key
         end
 

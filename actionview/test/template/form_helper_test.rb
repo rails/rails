@@ -3552,6 +3552,48 @@ class FormHelperTest < ActionView::TestCase
     assert_equal 1, initialization_count, "form builder instantiated more than once"
   end
 
+  def test_fields_for_with_non_associated_collection
+    comment_relevances = Array.new(2) { |id| CommentRelevance.new(id + 1) }
+
+    form_for(@post) do |f|
+      concat f.text_field(:title)
+      concat f.fields_for(:relevances, comment_relevances) { |crf|
+        concat crf.text_field(:value)
+      }
+    end
+
+    expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
+      '<input name="post[title]" type="text" id="post_title" value="Hello World" />' \
+      '<input id="post_relevances_attributes_0_value" name="post[relevances_attributes][0][value]" type="text" value="commentrelevance #1" />' \
+      '<input id="post_relevances_attributes_0_id" name="post[relevances_attributes][0][id]" type="hidden" value="1" />' \
+      '<input id="post_relevances_attributes_1_value" name="post[relevances_attributes][1][value]" type="text" value="commentrelevance #2" />' \
+      '<input id="post_relevances_attributes_1_id" name="post[relevances_attributes][1][id]" type="hidden" value="2" />'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_fields_for_with_explicit_array
+    comment_relevances = Array.new(2) { |id| CommentRelevance.new(id + 1) }
+
+    form_for(@post) do |f|
+      concat f.text_field(:title)
+      concat f.fields_for(comment_relevances) { |crf|
+        concat crf.text_field(:value)
+      }
+    end
+
+    expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
+      '<input name="post[title]" type="text" id="post_title" value="Hello World" />' \
+      '<input id="post_comment_relevances_attributes_0_value" name="post[comment_relevances_attributes][0][value]" type="text" value="commentrelevance #1" />' \
+      '<input id="post_comment_relevances_attributes_0_id" name="post[comment_relevances_attributes][0][id]" type="hidden" value="1" />' \
+      '<input id="post_comment_relevances_attributes_1_value" name="post[comment_relevances_attributes][1][value]" type="text" value="commentrelevance #2" />' \
+      '<input id="post_comment_relevances_attributes_1_id" name="post[comment_relevances_attributes][1][id]" type="hidden" value="2" />'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   private
     def hidden_fields(options = {})
       method = options[:method]
