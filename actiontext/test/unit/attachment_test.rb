@@ -60,6 +60,21 @@ class ActionText::AttachmentTest < ActiveSupport::TestCase
     assert_equal "pages/page", attachable.to_trix_content_attachment_partial_path
   end
 
+  test "preview blob url for MP4 video" do
+    blob = create_file_blob(filename: "video.mp4", content_type: "video/mp4")
+    blob.preview(resize_to_limit: [100, 100]).processed
+    message = Message.create!(subject: "Greetings", content: ActionText::Content.new("Hello world").append_attachables(blob))
+
+    attachment = attachment_from_html(message.content.body.to_trix_html)
+
+    trix_attachment = attachment.to_trix_attachment
+    assert_kind_of ActionText::TrixAttachment, trix_attachment
+
+    assert_equal blob.attachable_sgid, trix_attachment.attributes["sgid"]
+    assert_equal blob.attachable_content_type, trix_attachment.attributes["contentType"]
+    assert_equal Rails.application.routes.url_helpers.rails_blob_url(blob.preview_image, only_path: true), trix_attachment.attributes["url"]
+  end
+
   private
     def attachment_from_html(html)
       ActionText::Content.new(html).attachments.first

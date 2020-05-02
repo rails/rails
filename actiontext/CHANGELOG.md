@@ -1,3 +1,10 @@
+*   Adds preview images for PDFs and videos attachments in the trix HTML. This
+    helps Action Text to render attachments preview images with Trix editor.
+
+    Fixes #38027.
+
+    *Abhay Nikam*
+
 *   Add support for passing `form:` option to `rich_text_area_tag` and
     `rich_text_area` helpers to specify the `<input type="hidden" form="...">`
     value.
