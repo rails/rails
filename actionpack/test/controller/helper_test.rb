@@ -54,7 +54,7 @@ class HelpersPathsController < ActionController::Base
   end
 
   self.helpers_path = paths
-  ActionPackTesSuitetUtils.require_helpers(helpers_path)
+  ActionPackTestSuiteUtils.require_helpers(helpers_path)
 
   helper :all
 
@@ -65,7 +65,7 @@ end
 
 class HelpersTypoController < ActionController::Base
   self.helpers_path = File.expand_path("../fixtures/helpers_typo", __dir__)
-  ActionPackTesSuitetUtils.require_helpers(helpers_path)
+  ActionPackTestSuiteUtils.require_helpers(helpers_path)
 end
 
 module LocalAbcHelper
@@ -196,7 +196,7 @@ class HelperTest < ActiveSupport::TestCase
 
   def test_all_helpers_with_alternate_helper_dir
     @controller_class.helpers_path = File.expand_path("../fixtures/alternate_helpers", __dir__)
-    ActionPackTesSuitetUtils.require_helpers(@controller_class.helpers_path)
+    ActionPackTestSuiteUtils.require_helpers(@controller_class.helpers_path)
 
     # Reload helpers
     @controller_class._helpers = Module.new

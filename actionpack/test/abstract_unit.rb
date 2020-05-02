@@ -33,7 +33,7 @@ module Rails
   end
 end
 
-module ActionPackTesSuitetUtils
+module ActionPackTestSuiteUtils
   def self.require_helpers(helpers_dirs)
     Array(helpers_dirs).each do |helpers_dir|
       Dir.glob("#{helpers_dir}/**/*_helper.rb") do |helper_file|
@@ -43,8 +43,8 @@ module ActionPackTesSuitetUtils
   end
 end
 
-ActionPackTesSuitetUtils.require_helpers("#{__dir__}/fixtures/helpers")
-ActionPackTesSuitetUtils.require_helpers("#{__dir__}/fixtures/alternate_helpers")
+ActionPackTestSuiteUtils.require_helpers("#{__dir__}/fixtures/helpers")
+ActionPackTestSuiteUtils.require_helpers("#{__dir__}/fixtures/alternate_helpers")
 
 ActiveSupport::Dependencies.hook!
 
