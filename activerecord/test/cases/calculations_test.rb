@@ -1023,6 +1023,13 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal({ "proposed" => 0, "published" => 1 }, Book.group(:status).maximum(:difficulty))
   end
 
+  def test_minimum_and_maximum_on_non_numeric_type
+    assert_equal Date.new(2004, 4, 15), Topic.minimum(:last_read)
+    assert_equal Date.new(2004, 4, 15), Topic.maximum(:last_read)
+    assert_equal({ false => Date.new(2004, 4, 15), true => nil }, Topic.group(:approved).minimum(:last_read))
+    assert_equal({ false => Date.new(2004, 4, 15), true => nil }, Topic.group(:approved).maximum(:last_read))
+  end
+
   def test_select_avg_with_group_by_as_virtual_attribute_with_sql
     rails_core = companies(:rails_core)
 
