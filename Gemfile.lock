@@ -74,7 +74,7 @@ PATH
       i18n (>= 1.6, < 2)
       minitest (~> 5.1)
       tzinfo (~> 2.0)
-      zeitwerk (~> 2.2, >= 2.2.2)
+      zeitwerk (~> 2.3)
     rails (6.1.0.alpha)
       actioncable (= 6.1.0.alpha)
       actionmailbox (= 6.1.0.alpha)
@@ -530,7 +530,7 @@ GEM
     websocket-extensions (0.1.4)
     xpath (3.2.0)
       nokogiri (~> 1.8)
-    zeitwerk (2.2.2)
+    zeitwerk (2.3.0)
 
 PLATFORMS
   java
