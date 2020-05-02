@@ -55,6 +55,9 @@ module Rails
         class_option :skip_active_storage, type: :boolean, default: false,
                                            desc: "Skip Active Storage files"
 
+        class_option :skip_active_job,     type: :boolean, default: false,
+                                           desc: "Skip Active Job files"
+
         class_option :skip_puma,           type: :boolean, aliases: "-P", default: false,
                                            desc: "Skip Puma related files"
 
@@ -204,7 +207,8 @@ module Rails
             :skip_action_mailer,
             :skip_test,
             :skip_sprockets,
-            :skip_action_cable
+            :skip_action_cable,
+            :skip_active_job
           ),
           skip_active_storage?,
           skip_action_mailbox?,

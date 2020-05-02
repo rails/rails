@@ -460,6 +460,12 @@ module Rails
         end
       end
 
+      def delete_active_job_files_skipping_active_job
+        if options[:skip_active_job]
+          remove_dir "app/jobs"
+        end
+      end
+
       def delete_non_api_initializers_if_api_option
         if options[:api]
           remove_file "config/initializers/cookies_serializer.rb"

@@ -355,6 +355,19 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_app_update_does_not_generate_active_job_contents_when_skip_active_job_is_given
+    app_root = File.join(destination_root, "myapp")
+    run_generator [app_root, "--skip-active-job"]
+
+    stub_rails_application(app_root) do
+      generator = Rails::Generators::AppGenerator.new ["rails"], { update: true, skip_active_job: true }, { destination_root: app_root, shell: @shell }
+      generator.send(:app_const)
+      quietly { generator.send(:update_config_files) }
+
+      assert_no_file "#{app_root}/app/jobs/application_job.rb"
+    end
+  end
+
   def test_app_update_does_not_generate_bootsnap_contents_when_skip_bootsnap_is_given
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root, "--skip-bootsnap"]

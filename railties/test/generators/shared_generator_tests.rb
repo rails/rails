@@ -130,12 +130,12 @@ module SharedGeneratorTests
       "--skip-action-mailbox",
       "--skip-action-text",
       "--skip-action-cable",
+      "--skip-active-job",
       "--skip-sprockets"
     ]
 
     assert_file "#{application_path}/config/application.rb", /^require\s+["']rails["']/
     assert_file "#{application_path}/config/application.rb", /^require\s+["']active_model\/railtie["']/
-    assert_file "#{application_path}/config/application.rb", /^require\s+["']active_job\/railtie["']/
     assert_file "#{application_path}/config/application.rb", /^# require\s+["']active_record\/railtie["']/
     assert_file "#{application_path}/config/application.rb", /^# require\s+["']active_storage\/engine["']/
     assert_file "#{application_path}/config/application.rb", /^require\s+["']action_controller\/railtie["']/
@@ -313,6 +313,15 @@ module SharedGeneratorTests
     assert_no_directory "#{application_path}/app/channels"
     assert_file "Gemfile" do |content|
       assert_no_match(/redis/, content)
+    end
+  end
+
+  def test_generator_if_skip_active_job_is_given
+    run_generator [destination_root, "--skip-active-job"]
+    assert_file "#{application_path}/config/application.rb", /#\s+require\s+["']active_job\/railtie["']/
+    assert_no_directory "#{application_path}/app/jobs"
+    assert_file "#{application_path}/config/environments/production.rb" do |content|
+      assert_no_match(/config\.active_job/, content)
     end
   end
 
