@@ -1,3 +1,12 @@
+*   Inspect time attributes with subsec.
+
+    ```ruby
+    p Knot.create
+    => #<Knot id: 1, created_at: "2016-05-05 01:29:47.116928000">
+    ```
+
+    *akinomaeni*
+
 *   Deprecate passing a column to `type_cast`.
 
     *Ryuta Kamizono*
