@@ -1,3 +1,7 @@
+*   Deprecate passing a column to `type_cast`.
+
+    *Ryuta Kamizono*
+
 *   Deprecate `in_clause_length` and `allowed_index_name_length` in `DatabaseLimits`.
 
     *Ryuta Kamizono*
