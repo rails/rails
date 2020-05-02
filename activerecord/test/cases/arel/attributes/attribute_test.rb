@@ -643,7 +643,7 @@ module Arel
             attribute = Attribute.new nil, nil
             node = attribute.between(eval("..0")) # eval for backwards compatibility
 
-            node.must_equal Nodes::LessThanOrEqual.new(
+            _(node).must_equal Nodes::LessThanOrEqual.new(
               attribute,
               Nodes::Casted.new(0, attribute)
             )
@@ -856,7 +856,7 @@ module Arel
             attribute = Attribute.new nil, nil
             node = attribute.not_between(eval("..0")) # eval for backwards compatibility
 
-            node.must_equal Nodes::GreaterThan.new(
+            _(node).must_equal Nodes::GreaterThan.new(
               attribute,
               Nodes::Casted.new(0, attribute)
             )
