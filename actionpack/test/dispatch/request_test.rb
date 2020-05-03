@@ -105,6 +105,9 @@ class RequestIP < BaseRequestTest
     request = stub_request "HTTP_X_FORWARDED_FOR" => "3.4.5.6,127.0.0.1"
     assert_equal "3.4.5.6", request.remote_ip
 
+    request = stub_request "HTTP_X_FORWARDED_FOR" => "3.4.5.6:1234,127.0.0.1"
+    assert_equal "3.4.5.6", request.remote_ip
+
     request = stub_request "HTTP_X_FORWARDED_FOR" => "unknown,192.168.0.1"
     assert_equal "192.168.0.1", request.remote_ip
 
@@ -162,6 +165,9 @@ class RequestIP < BaseRequestTest
     assert_equal "fe80:0000:0000:0000:0202:b3ff:fe1e:8329", request.remote_ip
 
     request = stub_request "HTTP_X_FORWARDED_FOR" => "fe80:0000:0000:0000:0202:b3ff:fe1e:8329,unknown"
+    assert_equal "fe80:0000:0000:0000:0202:b3ff:fe1e:8329", request.remote_ip
+
+    request = stub_request "HTTP_X_FORWARDED_FOR" => "[fe80:0000:0000:0000:0202:b3ff:fe1e:8329]:3000,unknown"
     assert_equal "fe80:0000:0000:0000:0202:b3ff:fe1e:8329", request.remote_ip
 
     request = stub_request "HTTP_X_FORWARDED_FOR" => "fe80:0000:0000:0000:0202:b3ff:fe1e:8329,::1"
