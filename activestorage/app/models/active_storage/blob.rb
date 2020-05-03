@@ -46,7 +46,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
 
   has_many :attachments
 
-  scope :unattached, -> { left_joins(:attachments).where(ActiveStorage::Attachment.table_name => { blob_id: nil }) }
+  scope :unattached, -> { where.missing(:attachments) }
 
   after_initialize do
     self.service_name ||= self.class.service.name
