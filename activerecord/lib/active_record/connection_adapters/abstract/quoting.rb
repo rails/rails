@@ -29,9 +29,6 @@ module ActiveRecord
         end
 
         _type_cast(value)
-      rescue TypeError
-        to_type = column ? " to #{column.type}" : ""
-        raise TypeError, "can't cast #{value.class}#{to_type}"
       end
 
       # If you are having to call this function, you are likely doing something
@@ -236,7 +233,7 @@ module ActiveRecord
           when nil, Numeric, String then value
           when Type::Time::Value then quoted_time(value)
           when Date, Time then quoted_date(value)
-          else raise TypeError
+          else raise TypeError, "can't cast #{value.class.name}"
           end
         end
     end
