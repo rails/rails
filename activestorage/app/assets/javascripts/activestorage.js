@@ -2,6 +2,25 @@
   typeof exports === "object" && typeof module !== "undefined" ? factory(exports) : typeof define === "function" && define.amd ? define([ "exports" ], factory) : factory(global.ActiveStorage = {});
 })(this, function(exports) {
   "use strict";
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+  function _defineProperties(target, props) {
+    for (var i = 0; i < props.length; i++) {
+      var descriptor = props[i];
+      descriptor.enumerable = descriptor.enumerable || false;
+      descriptor.configurable = true;
+      if ("value" in descriptor) descriptor.writable = true;
+      Object.defineProperty(target, descriptor.key, descriptor);
+    }
+  }
+  function _createClass(Constructor, protoProps, staticProps) {
+    if (protoProps) _defineProperties(Constructor.prototype, protoProps);
+    if (staticProps) _defineProperties(Constructor, staticProps);
+    return Constructor;
+  }
   function createCommonjsModule(fn, module) {
     return module = {
       exports: {}
@@ -327,7 +346,7 @@
         return {
           buff: this._buff,
           length: this._length,
-          hash: this._hash
+          hash: this._hash.slice()
         };
       };
       SparkMD5.prototype.setState = function(state) {
@@ -414,30 +433,9 @@
       return SparkMD5;
     });
   });
-  var classCallCheck = function(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  };
-  var createClass = function() {
-    function defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];
-        descriptor.enumerable = descriptor.enumerable || false;
-        descriptor.configurable = true;
-        if ("value" in descriptor) descriptor.writable = true;
-        Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }
-    return function(Constructor, protoProps, staticProps) {
-      if (protoProps) defineProperties(Constructor.prototype, protoProps);
-      if (staticProps) defineProperties(Constructor, staticProps);
-      return Constructor;
-    };
-  }();
   var fileSlice = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice;
   var FileChecksum = function() {
-    createClass(FileChecksum, null, [ {
+    _createClass(FileChecksum, null, [ {
       key: "create",
       value: function create(file, callback) {
         var instance = new FileChecksum(file);
@@ -445,13 +443,13 @@
       }
     } ]);
     function FileChecksum(file) {
-      classCallCheck(this, FileChecksum);
+      _classCallCheck(this, FileChecksum);
       this.file = file;
       this.chunkSize = 2097152;
       this.chunkCount = Math.ceil(this.file.size / this.chunkSize);
       this.chunkIndex = 0;
     }
-    createClass(FileChecksum, [ {
+    _createClass(FileChecksum, [ {
       key: "create",
       value: function create(callback) {
         var _this = this;
@@ -479,7 +477,7 @@
     }, {
       key: "fileReaderDidError",
       value: function fileReaderDidError(event) {
-        this.callback("Error reading " + this.file.name);
+        this.callback("Error reading ".concat(this.file.name));
       }
     }, {
       key: "readNextChunk",
@@ -499,7 +497,7 @@
     return FileChecksum;
   }();
   function getMetaValue(name) {
-    var element = findElement(document.head, 'meta[name="' + name + '"]');
+    var element = findElement(document.head, 'meta[name="'.concat(name, '"]'));
     if (element) {
       return element.getAttribute("content");
     }
@@ -510,7 +508,7 @@
       root = document;
     }
     var elements = root.querySelectorAll(selector);
-    return toArray$1(elements);
+    return toArray(elements);
   }
   function findElement(root, selector) {
     if (typeof root == "string") {
@@ -534,7 +532,7 @@
     }
     return event;
   }
-  function toArray$1(value) {
+  function toArray(value) {
     if (Array.isArray(value)) {
       return value;
     } else if (Array.from) {
@@ -546,7 +544,7 @@
   var BlobRecord = function() {
     function BlobRecord(file, checksum, url) {
       var _this = this;
-      classCallCheck(this, BlobRecord);
+      _classCallCheck(this, BlobRecord);
       this.file = file;
       this.attributes = {
         filename: file.name,
@@ -571,7 +569,7 @@
         return _this.requestDidError(event);
       });
     }
-    createClass(BlobRecord, [ {
+    _createClass(BlobRecord, [ {
       key: "create",
       value: function create(callback) {
         this.callback = callback;
@@ -596,7 +594,7 @@
     }, {
       key: "requestDidError",
       value: function requestDidError(event) {
-        this.callback('Error creating Blob for "' + this.file.name + '". Status: ' + this.status);
+        this.callback('Error creating Blob for "'.concat(this.file.name, '". Status: ').concat(this.status));
       }
     }, {
       key: "toJSON",
@@ -609,13 +607,13 @@
       }
     }, {
       key: "status",
-      get: function get$$1() {
+      get: function get() {
         return this.xhr.status;
       }
     }, {
       key: "response",
-      get: function get$$1() {
-        var _xhr = this.xhr, responseType = _xhr.responseType, response = _xhr.response;
+      get: function get() {
+        var _this$xhr = this.xhr, responseType = _this$xhr.responseType, response = _this$xhr.response;
         if (responseType == "json") {
           return response;
         } else {
@@ -628,7 +626,7 @@
   var BlobUpload = function() {
     function BlobUpload(blob) {
       var _this = this;
-      classCallCheck(this, BlobUpload);
+      _classCallCheck(this, BlobUpload);
       this.blob = blob;
       this.file = blob.file;
       var _blob$directUploadDat = blob.directUploadData, url = _blob$directUploadDat.url, headers = _blob$directUploadDat.headers;
@@ -645,7 +643,7 @@
         return _this.requestDidError(event);
       });
     }
-    createClass(BlobUpload, [ {
+    _createClass(BlobUpload, [ {
       key: "create",
       value: function create(callback) {
         this.callback = callback;
@@ -654,7 +652,7 @@
     }, {
       key: "requestDidLoad",
       value: function requestDidLoad(event) {
-        var _xhr = this.xhr, status = _xhr.status, response = _xhr.response;
+        var _this$xhr = this.xhr, status = _this$xhr.status, response = _this$xhr.response;
         if (status >= 200 && status < 300) {
           this.callback(null, response);
         } else {
@@ -664,21 +662,21 @@
     }, {
       key: "requestDidError",
       value: function requestDidError(event) {
-        this.callback('Error storing "' + this.file.name + '". Status: ' + this.xhr.status);
+        this.callback('Error storing "'.concat(this.file.name, '". Status: ').concat(this.xhr.status));
       }
     } ]);
     return BlobUpload;
   }();
-  var id = 0;
+  var id$1 = 0;
   var DirectUpload = function() {
     function DirectUpload(file, url, delegate) {
-      classCallCheck(this, DirectUpload);
-      this.id = ++id;
+      _classCallCheck(this, DirectUpload);
+      this.id = ++id$1;
       this.file = file;
       this.url = url;
       this.delegate = delegate;
     }
-    createClass(DirectUpload, [ {
+    _createClass(DirectUpload, [ {
       key: "create",
       value: function create(callback) {
         var _this = this;
@@ -711,7 +709,7 @@
   }();
   function notify(object, methodName) {
     if (object && typeof object[methodName] == "function") {
-      for (var _len = arguments.length, messages = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
+      for (var _len = arguments.length, messages = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
         messages[_key - 2] = arguments[_key];
       }
       return object[methodName].apply(object, messages);
@@ -719,13 +717,13 @@
   }
   var DirectUploadController = function() {
     function DirectUploadController(input, file) {
-      classCallCheck(this, DirectUploadController);
+      _classCallCheck(this, DirectUploadController);
       this.input = input;
       this.file = file;
       this.directUpload = new DirectUpload(this.file, this.url, this);
       this.dispatch("initialize");
     }
-    createClass(DirectUploadController, [ {
+    _createClass(DirectUploadController, [ {
       key: "start",
       value: function start(callback) {
         var _this = this;
@@ -761,7 +759,7 @@
         var detail = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
         detail.file = this.file;
         detail.id = this.directUpload.id;
-        return dispatchEvent(this.input, "direct-upload:" + name, {
+        return dispatchEvent(this.input, "direct-upload:".concat(name), {
           detail: detail
         });
       }
@@ -795,7 +793,7 @@
       }
     }, {
       key: "url",
-      get: function get$$1() {
+      get: function get() {
         return this.input.getAttribute("data-direct-upload-url");
       }
     } ]);
@@ -804,13 +802,13 @@
   var inputSelector = "input[type=file][data-direct-upload-url]:not([disabled])";
   var DirectUploadsController = function() {
     function DirectUploadsController(form) {
-      classCallCheck(this, DirectUploadsController);
+      _classCallCheck(this, DirectUploadsController);
       this.form = form;
       this.inputs = findElements(form, inputSelector).filter(function(input) {
         return input.files.length;
       });
     }
-    createClass(DirectUploadsController, [ {
+    _createClass(DirectUploadsController, [ {
       key: "start",
       value: function start(callback) {
         var _this = this;
@@ -839,7 +837,7 @@
       value: function createDirectUploadControllers() {
         var controllers = [];
         this.inputs.forEach(function(input) {
-          toArray$1(input.files).forEach(function(file) {
+          toArray(input.files).forEach(function(file) {
             var controller = new DirectUploadController(input, file);
             controllers.push(controller);
           });
@@ -850,7 +848,7 @@
       key: "dispatch",
       value: function dispatch(name) {
         var detail = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-        return dispatchEvent(this.form, "direct-uploads:" + name, {
+        return dispatchEvent(this.form, "direct-uploads:".concat(name), {
           detail: detail
         });
       }
@@ -920,7 +918,7 @@
       button.click();
       form.removeChild(button);
     }
-    submitButtonsByForm.delete(form);
+    submitButtonsByForm["delete"](form);
   }
   function disable(input) {
     input.disabled = true;

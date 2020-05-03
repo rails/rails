@@ -21,13 +21,13 @@
     "spark-md5": "^3.0.0"
   },
   "devDependencies": {
-    "babel-core": "^6.25.0",
-    "babel-plugin-external-helpers": "^6.22.0",
-    "babel-preset-env": "^1.6.0",
+    "@babel/core": "^7.9.0",
+    "@babel/plugin-external-helpers": "^7.8.3",
+    "@babel/preset-env": "^7.9.0",
     "eslint": "^4.3.0",
     "eslint-plugin-import": "^2.7.0",
     "rollup": "^0.58.2",
-    "rollup-plugin-babel": "^3.0.4",
+    "rollup-plugin-babel": "^4.4.0",
     "rollup-plugin-commonjs": "^9.1.0",
     "rollup-plugin-node-resolve": "^3.3.0",
     "rollup-plugin-uglify": "^3.0.0"
