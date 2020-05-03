@@ -739,6 +739,15 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     assert_equal 2, firm.clients.length
     assert_includes firm.clients, Client.find_by_name("New Client")
   end
+
+  def test_replace_on_duplicated_object
+    firm = Firm.create!("name" => "New Firm").dup
+    firm.clients = [companies(:second_client), Client.new("name" => "New Client")]
+    assert firm.save
+    firm.reload
+    assert_equal 2, firm.clients.length
+    assert_includes firm.clients, Client.find_by_name("New Client")
+  end
 end
 
 class TestDefaultAutosaveAssociationOnNewRecord < ActiveRecord::TestCase
