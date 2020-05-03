@@ -302,6 +302,8 @@ end
 
 You can append as many column name/type pairs as you want.
 
+The native migration types are: :primary_key, :string, :text, :integer, :bigint, :float, :decimal, :numeric, :datetime, :time, :date, :binary, :boolean.
+
 ### Passing Modifiers
 
 Some commonly used [type modifiers](#column-modifiers) can be passed directly on
