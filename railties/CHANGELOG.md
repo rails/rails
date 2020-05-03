@@ -1,3 +1,15 @@
+*   Make test file patterns configurable via Environment variables
+
+    This makes test file patterns configurable via two environment variables:
+     `DEFAULT_TEST`, to configure files to test, and `DEFAULT_TEST_EXCLUDE`,
+    to configure files to exclude from testing.
+
+    These values were hardcoded before, which made it difficult to add
+    new categories of tests that should not be executed by default (e.g:
+    smoke tests).
+
+    *Jorge Manrubia*
+
 *   No longer include `rake rdoc` task when generating plugins.
 
     To generate docs, use the `rdoc lib` command instead.

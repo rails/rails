@@ -895,6 +895,23 @@ module ApplicationTests
       assert_match "1 runs, 1 assertions, 0 failures, 0 errors, 0 skips", output
     end
 
+    def test_can_exclude_files_from_being_tested_via_default_rails_command_by_setting_DEFAULT_TEST_EXCLUDE_env_var
+      create_test_file "smoke", "smoke_foo"
+
+      output = Dir.chdir(app_path) { `DEFAULT_TEST_EXCLUDE="test/smoke/**/*_test.rb" bin/rails test` }
+      assert_match "0 runs, 0 assertions, 0 failures, 0 errors, 0 skips", output
+    end
+
+    def test_can_exclude_files_from_being_tested_via_rake_task_by_setting_DEFAULT_TEST_EXCLUDE_env_var
+      create_test_file "smoke", "smoke_foo"
+
+      switch_env("DEFAULT_TEST_EXCLUDE", "test/smoke/**/*_test.rb") do
+        run_test_command "" do |output|
+          assert_match "0 runs, 0 assertions, 0 failures, 0 errors, 0 skips", output
+        end
+      end
+    end
+
     private
       def run_test_command(arguments = "test/unit/test_test.rb", **opts)
         rails "t", *Shellwords.split(arguments), allow_failure: true, **opts
