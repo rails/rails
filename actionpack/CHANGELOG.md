@@ -1,3 +1,8 @@
+*   `remote_ip` will no longer ignore IPs in X-Forwarded-For headers if they
+    are accompanied by port information.
+
+    *Duncan Brown*, *Prevenios Marinos*
+
 *   Update `ActionController::AllowBrowser` to support passing method names to `:block`
 
     ```ruby

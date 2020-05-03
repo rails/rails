@@ -126,11 +126,11 @@ module ActionDispatch
       # left, which was presumably set by one of those proxies.
       def calculate_ip
         # Set by the Rack web server, this is a single value.
-        remote_addr = ips_from(@req.remote_addr).last
+        remote_addr = sanitize_ips(ips_from(@req.remote_addr)).last
 
         # Could be a CSV list and/or repeated headers that were concatenated.
-        client_ips    = ips_from(@req.client_ip).reverse!
-        forwarded_ips = ips_from(@req.x_forwarded_for).reverse!
+        client_ips    = sanitize_ips(ips_from(@req.client_ip)).reverse!
+        forwarded_ips = sanitize_ips(@req.forwarded_for || []).reverse!
 
         # `Client-Ip` and `X-Forwarded-For` should not, generally, both be set. If they
         # are both set, it means that either:
@@ -176,7 +176,10 @@ module ActionDispatch
       def ips_from(header) # :doc:
         return [] unless header
         # Split the comma-separated list into an array of strings.
-        ips = header.strip.split(/[,\s]+/)
+        header.strip.split(/[,\s]+/)
+      end
+
+      def sanitize_ips(ips) # :doc:
         ips.select! do |ip|
           # Only return IPs that are valid according to the IPAddr#new method.
           range = IPAddr.new(ip).to_range

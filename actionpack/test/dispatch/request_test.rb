@@ -105,6 +105,9 @@ class RequestIP < BaseRequestTest
     request = stub_request "HTTP_X_FORWARDED_FOR" => "3.4.5.6,127.0.0.1"
     assert_equal "3.4.5.6", request.remote_ip
 
+    request = stub_request "HTTP_X_FORWARDED_FOR" => "3.4.5.6:1234,127.0.0.1"
+    assert_equal "3.4.5.6", request.remote_ip
+
     request = stub_request "HTTP_X_FORWARDED_FOR" => "unknown,192.168.0.1"
     assert_equal "192.168.0.1", request.remote_ip
 
