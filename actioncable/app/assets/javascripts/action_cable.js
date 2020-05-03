@@ -10,7 +10,7 @@
     log: function log() {
       if (this.enabled) {
         var _adapters$logger;
-        for (var _len = arguments.length, messages = Array(_len), _key = 0; _key < _len; _key++) {
+        for (var _len = arguments.length, messages = new Array(_len), _key = 0; _key < _len; _key++) {
           messages[_key] = arguments[_key];
         }
         messages.push(Date.now());
@@ -18,32 +18,6 @@
       }
     }
   };
-  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function(obj) {
-    return typeof obj;
-  } : function(obj) {
-    return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-  };
-  var classCallCheck = function(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  };
-  var createClass = function() {
-    function defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];
-        descriptor.enumerable = descriptor.enumerable || false;
-        descriptor.configurable = true;
-        if ("value" in descriptor) descriptor.writable = true;
-        Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }
-    return function(Constructor, protoProps, staticProps) {
-      if (protoProps) defineProperties(Constructor.prototype, protoProps);
-      if (staticProps) defineProperties(Constructor, staticProps);
-      return Constructor;
-    };
-  }();
   var now = function now() {
     return new Date().getTime();
   };
@@ -55,12 +29,12 @@
   };
   var ConnectionMonitor = function() {
     function ConnectionMonitor(connection) {
-      classCallCheck(this, ConnectionMonitor);
       this.visibilityDidChange = this.visibilityDidChange.bind(this);
       this.connection = connection;
       this.reconnectAttempts = 0;
     }
-    ConnectionMonitor.prototype.start = function start() {
+    var _proto = ConnectionMonitor.prototype;
+    _proto.start = function start() {
       if (!this.isRunning()) {
         this.startedAt = now();
         delete this.stoppedAt;
@@ -69,7 +43,7 @@
         logger.log("ConnectionMonitor started. pollInterval = " + this.getPollInterval() + " ms");
       }
     };
-    ConnectionMonitor.prototype.stop = function stop() {
+    _proto.stop = function stop() {
       if (this.isRunning()) {
         this.stoppedAt = now();
         this.stopPolling();
@@ -77,42 +51,42 @@
         logger.log("ConnectionMonitor stopped");
       }
     };
-    ConnectionMonitor.prototype.isRunning = function isRunning() {
+    _proto.isRunning = function isRunning() {
       return this.startedAt && !this.stoppedAt;
     };
-    ConnectionMonitor.prototype.recordPing = function recordPing() {
+    _proto.recordPing = function recordPing() {
       this.pingedAt = now();
     };
-    ConnectionMonitor.prototype.recordConnect = function recordConnect() {
+    _proto.recordConnect = function recordConnect() {
       this.reconnectAttempts = 0;
       this.recordPing();
       delete this.disconnectedAt;
       logger.log("ConnectionMonitor recorded connect");
     };
-    ConnectionMonitor.prototype.recordDisconnect = function recordDisconnect() {
+    _proto.recordDisconnect = function recordDisconnect() {
       this.disconnectedAt = now();
       logger.log("ConnectionMonitor recorded disconnect");
     };
-    ConnectionMonitor.prototype.startPolling = function startPolling() {
+    _proto.startPolling = function startPolling() {
       this.stopPolling();
       this.poll();
     };
-    ConnectionMonitor.prototype.stopPolling = function stopPolling() {
+    _proto.stopPolling = function stopPolling() {
       clearTimeout(this.pollTimeout);
     };
-    ConnectionMonitor.prototype.poll = function poll() {
+    _proto.poll = function poll() {
       var _this = this;
       this.pollTimeout = setTimeout(function() {
         _this.reconnectIfStale();
         _this.poll();
       }, this.getPollInterval());
     };
-    ConnectionMonitor.prototype.getPollInterval = function getPollInterval() {
-      var _constructor$pollInte = this.constructor.pollInterval, min = _constructor$pollInte.min, max = _constructor$pollInte.max, multiplier = _constructor$pollInte.multiplier;
+    _proto.getPollInterval = function getPollInterval() {
+      var _this$constructor$pol = this.constructor.pollInterval, min = _this$constructor$pol.min, max = _this$constructor$pol.max, multiplier = _this$constructor$pol.multiplier;
       var interval = multiplier * Math.log(this.reconnectAttempts + 1);
       return Math.round(clamp(interval, min, max) * 1e3);
     };
-    ConnectionMonitor.prototype.reconnectIfStale = function reconnectIfStale() {
+    _proto.reconnectIfStale = function reconnectIfStale() {
       if (this.connectionIsStale()) {
         logger.log("ConnectionMonitor detected stale connection. reconnectAttempts = " + this.reconnectAttempts + ", pollInterval = " + this.getPollInterval() + " ms, time disconnected = " + secondsSince(this.disconnectedAt) + " s, stale threshold = " + this.constructor.staleThreshold + " s");
         this.reconnectAttempts++;
@@ -124,13 +98,13 @@
         }
       }
     };
-    ConnectionMonitor.prototype.connectionIsStale = function connectionIsStale() {
+    _proto.connectionIsStale = function connectionIsStale() {
       return secondsSince(this.pingedAt ? this.pingedAt : this.startedAt) > this.constructor.staleThreshold;
     };
-    ConnectionMonitor.prototype.disconnectedRecently = function disconnectedRecently() {
+    _proto.disconnectedRecently = function disconnectedRecently() {
       return this.disconnectedAt && secondsSince(this.disconnectedAt) < this.constructor.staleThreshold;
     };
-    ConnectionMonitor.prototype.visibilityDidChange = function visibilityDidChange() {
+    _proto.visibilityDidChange = function visibilityDidChange() {
       var _this2 = this;
       if (document.visibilityState === "visible") {
         setTimeout(function() {
@@ -170,14 +144,14 @@
   var indexOf = [].indexOf;
   var Connection = function() {
     function Connection(consumer) {
-      classCallCheck(this, Connection);
       this.open = this.open.bind(this);
       this.consumer = consumer;
       this.subscriptions = this.consumer.subscriptions;
       this.monitor = new ConnectionMonitor(this);
       this.disconnected = true;
     }
-    Connection.prototype.send = function send(data) {
+    var _proto = Connection.prototype;
+    _proto.send = function send(data) {
       if (this.isOpen()) {
         this.webSocket.send(JSON.stringify(data));
         return true;
@@ -185,7 +159,7 @@
         return false;
       }
     };
-    Connection.prototype.open = function open() {
+    _proto.open = function open() {
       if (this.isActive()) {
         logger.log("Attempted to open WebSocket, but existing socket is " + this.getState());
         return false;
@@ -200,10 +174,10 @@
         return true;
       }
     };
-    Connection.prototype.close = function close() {
-      var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {
+    _proto.close = function close(_temp) {
+      var _ref = _temp === void 0 ? {
         allowReconnect: true
-      }, allowReconnect = _ref.allowReconnect;
+      } : _temp, allowReconnect = _ref.allowReconnect;
       if (!allowReconnect) {
         this.monitor.stop();
       }
@@ -211,7 +185,7 @@
         return this.webSocket.close();
       }
     };
-    Connection.prototype.reopen = function reopen() {
+    _proto.reopen = function reopen() {
       logger.log("Reopening WebSocket, current state is " + this.getState());
       if (this.isActive()) {
         try {
@@ -226,27 +200,27 @@
         return this.open();
       }
     };
-    Connection.prototype.getProtocol = function getProtocol() {
+    _proto.getProtocol = function getProtocol() {
       if (this.webSocket) {
         return this.webSocket.protocol;
       }
     };
-    Connection.prototype.isOpen = function isOpen() {
+    _proto.isOpen = function isOpen() {
       return this.isState("open");
     };
-    Connection.prototype.isActive = function isActive() {
+    _proto.isActive = function isActive() {
       return this.isState("open", "connecting");
     };
-    Connection.prototype.isProtocolSupported = function isProtocolSupported() {
+    _proto.isProtocolSupported = function isProtocolSupported() {
       return indexOf.call(supportedProtocols, this.getProtocol()) >= 0;
     };
-    Connection.prototype.isState = function isState() {
-      for (var _len = arguments.length, states = Array(_len), _key = 0; _key < _len; _key++) {
+    _proto.isState = function isState() {
+      for (var _len = arguments.length, states = new Array(_len), _key = 0; _key < _len; _key++) {
         states[_key] = arguments[_key];
       }
       return indexOf.call(states, this.getState()) >= 0;
     };
-    Connection.prototype.getState = function getState() {
+    _proto.getState = function getState() {
       if (this.webSocket) {
         for (var state in adapters.WebSocket) {
           if (adapters.WebSocket[state] === this.webSocket.readyState) {
@@ -256,13 +230,13 @@
       }
       return null;
     };
-    Connection.prototype.installEventHandlers = function installEventHandlers() {
+    _proto.installEventHandlers = function installEventHandlers() {
       for (var eventName in this.events) {
         var handler = this.events[eventName].bind(this);
         this.webSocket["on" + eventName] = handler;
       }
     };
-    Connection.prototype.uninstallEventHandlers = function uninstallEventHandlers() {
+    _proto.uninstallEventHandlers = function uninstallEventHandlers() {
       for (var eventName in this.events) {
         this.webSocket["on" + eventName] = function() {};
       }
@@ -325,6 +299,20 @@
       logger.log("WebSocket onerror event");
     }
   };
+  function _defineProperties(target, props) {
+    for (var i = 0; i < props.length; i++) {
+      var descriptor = props[i];
+      descriptor.enumerable = descriptor.enumerable || false;
+      descriptor.configurable = true;
+      if ("value" in descriptor) descriptor.writable = true;
+      Object.defineProperty(target, descriptor.key, descriptor);
+    }
+  }
+  function _createClass(Constructor, protoProps, staticProps) {
+    if (protoProps) _defineProperties(Constructor.prototype, protoProps);
+    if (staticProps) _defineProperties(Constructor, staticProps);
+    return Constructor;
+  }
   var extend = function extend(object, properties) {
     if (properties != null) {
       for (var key in properties) {
@@ -335,60 +323,63 @@
     return object;
   };
   var Subscription = function() {
-    function Subscription(consumer) {
-      var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-      var mixin = arguments[2];
-      classCallCheck(this, Subscription);
+    function Subscription(consumer, params, mixin) {
+      if (params === void 0) {
+        params = {};
+      }
       this.consumer = consumer;
       this.identifier = JSON.stringify(params);
       extend(this, mixin);
     }
-    Subscription.prototype.perform = function perform(action) {
-      var data = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    var _proto = Subscription.prototype;
+    _proto.perform = function perform(action, data) {
+      if (data === void 0) {
+        data = {};
+      }
       data.action = action;
       return this.send(data);
     };
-    Subscription.prototype.send = function send(data) {
+    _proto.send = function send(data) {
       return this.consumer.send({
         command: "message",
         identifier: this.identifier,
         data: JSON.stringify(data)
       });
     };
-    Subscription.prototype.unsubscribe = function unsubscribe() {
+    _proto.unsubscribe = function unsubscribe() {
       return this.consumer.subscriptions.remove(this);
     };
     return Subscription;
   }();
   var Subscriptions = function() {
     function Subscriptions(consumer) {
-      classCallCheck(this, Subscriptions);
       this.consumer = consumer;
       this.subscriptions = [];
     }
-    Subscriptions.prototype.create = function create(channelName, mixin) {
+    var _proto = Subscriptions.prototype;
+    _proto.create = function create(channelName, mixin) {
       var channel = channelName;
-      var params = (typeof channel === "undefined" ? "undefined" : _typeof(channel)) === "object" ? channel : {
+      var params = typeof channel === "object" ? channel : {
         channel: channel
       };
       var subscription = new Subscription(this.consumer, params, mixin);
       return this.add(subscription);
     };
-    Subscriptions.prototype.add = function add(subscription) {
+    _proto.add = function add(subscription) {
       this.subscriptions.push(subscription);
       this.consumer.ensureActiveConnection();
       this.notify(subscription, "initialized");
       this.sendCommand(subscription, "subscribe");
       return subscription;
     };
-    Subscriptions.prototype.remove = function remove(subscription) {
+    _proto.remove = function remove(subscription) {
       this.forget(subscription);
       if (!this.findAll(subscription.identifier).length) {
         this.sendCommand(subscription, "unsubscribe");
       }
       return subscription;
     };
-    Subscriptions.prototype.reject = function reject(identifier) {
+    _proto.reject = function reject(identifier) {
       var _this = this;
       return this.findAll(identifier).map(function(subscription) {
         _this.forget(subscription);
@@ -396,37 +387,37 @@
         return subscription;
       });
     };
-    Subscriptions.prototype.forget = function forget(subscription) {
+    _proto.forget = function forget(subscription) {
       this.subscriptions = this.subscriptions.filter(function(s) {
         return s !== subscription;
       });
       return subscription;
     };
-    Subscriptions.prototype.findAll = function findAll(identifier) {
+    _proto.findAll = function findAll(identifier) {
       return this.subscriptions.filter(function(s) {
         return s.identifier === identifier;
       });
     };
-    Subscriptions.prototype.reload = function reload() {
+    _proto.reload = function reload() {
       var _this2 = this;
       return this.subscriptions.map(function(subscription) {
         return _this2.sendCommand(subscription, "subscribe");
       });
     };
-    Subscriptions.prototype.notifyAll = function notifyAll(callbackName) {
+    _proto.notifyAll = function notifyAll(callbackName) {
       var _this3 = this;
-      for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+      for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
         args[_key - 1] = arguments[_key];
       }
       return this.subscriptions.map(function(subscription) {
         return _this3.notify.apply(_this3, [ subscription, callbackName ].concat(args));
       });
     };
-    Subscriptions.prototype.notify = function notify(subscription, callbackName) {
-      for (var _len2 = arguments.length, args = Array(_len2 > 2 ? _len2 - 2 : 0), _key2 = 2; _key2 < _len2; _key2++) {
+    _proto.notify = function notify(subscription, callbackName) {
+      for (var _len2 = arguments.length, args = new Array(_len2 > 2 ? _len2 - 2 : 0), _key2 = 2; _key2 < _len2; _key2++) {
         args[_key2 - 2] = arguments[_key2];
       }
-      var subscriptions = void 0;
+      var subscriptions;
       if (typeof subscription === "string") {
         subscriptions = this.findAll(subscription);
       } else {
@@ -436,7 +427,7 @@
         return typeof subscription[callbackName] === "function" ? subscription[callbackName].apply(subscription, args) : undefined;
       });
     };
-    Subscriptions.prototype.sendCommand = function sendCommand(subscription, command) {
+    _proto.sendCommand = function sendCommand(subscription, command) {
       var identifier = subscription.identifier;
       return this.consumer.send({
         command: command,
@@ -447,30 +438,30 @@
   }();
   var Consumer = function() {
     function Consumer(url) {
-      classCallCheck(this, Consumer);
       this._url = url;
       this.subscriptions = new Subscriptions(this);
       this.connection = new Connection(this);
     }
-    Consumer.prototype.send = function send(data) {
+    var _proto = Consumer.prototype;
+    _proto.send = function send(data) {
       return this.connection.send(data);
     };
-    Consumer.prototype.connect = function connect() {
+    _proto.connect = function connect() {
       return this.connection.open();
     };
-    Consumer.prototype.disconnect = function disconnect() {
+    _proto.disconnect = function disconnect() {
       return this.connection.close({
         allowReconnect: false
       });
     };
-    Consumer.prototype.ensureActiveConnection = function ensureActiveConnection() {
+    _proto.ensureActiveConnection = function ensureActiveConnection() {
       if (!this.connection.isActive()) {
         return this.connection.open();
       }
     };
-    createClass(Consumer, [ {
+    _createClass(Consumer, [ {
       key: "url",
-      get: function get$$1() {
+      get: function get() {
         return createWebSocketURL(this._url);
       }
     } ]);
@@ -490,8 +481,10 @@
       return url;
     }
   }
-  function createConsumer() {
-    var url = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : getConfig("url") || INTERNAL.default_mount_path;
+  function createConsumer(url) {
+    if (url === void 0) {
+      url = getConfig("url") || INTERNAL.default_mount_path;
+    }
     return new Consumer(url);
   }
   function getConfig(name) {
