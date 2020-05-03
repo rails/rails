@@ -1804,6 +1804,18 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
   end
 
+  def test_assert_performed_with_with_at_option_as_a_proc
+    assert_performed_with(job: HelloJob, at: ->(at) { (4.minutes.from_now..6.minutes.from_now).cover?(at) }) do
+      HelloJob.set(wait: 5.minutes).perform_later
+    end
+
+    assert_raise ActiveSupport::TestCase::Assertion do
+      assert_performed_with(job: HelloJob, at: ->(at) { (1.minute.from_now..3.minutes.from_now).cover?(at) }) do
+        HelloJob.set(wait: 1.minute).perform_later
+      end
+    end
+  end
+
   def test_assert_performed_with_without_block_with_at_option
     HelloJob.set(wait_until: Date.tomorrow.noon).perform_later
 

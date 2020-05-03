@@ -756,11 +756,7 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [50, 53, 55, 60], Account.pluck(Arel.sql("DISTINCT credit_limit")).sort
     assert_equal [50, 53, 55, 60], Account.pluck(Arel.sql("DISTINCT accounts.credit_limit")).sort
     assert_equal [50, 53, 55, 60], Account.pluck(Arel.sql("DISTINCT(credit_limit)")).sort
-
-    # MySQL returns "SUM(DISTINCT(credit_limit))" as the column name unless
-    # an alias is provided.  Without the alias, the column cannot be found
-    # and properly typecast.
-    assert_equal [50 + 53 + 55 + 60], Account.pluck(Arel.sql("SUM(DISTINCT(credit_limit)) as credit_limit"))
+    assert_equal [50 + 53 + 55 + 60], Account.pluck(Arel.sql("SUM(DISTINCT(credit_limit))"))
   end
 
   def test_plucks_with_ids
@@ -863,6 +859,28 @@ class CalculationsTest < ActiveRecord::TestCase
     actual = Topic.joins(:replies).order(:id)
       .pluck("topics.title", "replies_topics.title")
     assert_equal expected, actual
+  end
+
+  def test_pluck_functions_with_alias
+    assert_equal [
+      [1, "The First Topic"], [2, "The Second Topic of the day"],
+      [3, "The Third Topic of the day"], [4, "The Fourth Topic of the day"],
+      [5, "The Fifth Topic of the day"]
+    ], Topic.order(:id).pluck(
+      Arel.sql("COALESCE(id, 0) id"),
+      Arel.sql("COALESCE(title, 'untitled') title")
+    )
+  end
+
+  def test_pluck_functions_without_alias
+    assert_equal [
+      [1, "The First Topic"], [2, "The Second Topic of the day"],
+      [3, "The Third Topic of the day"], [4, "The Fourth Topic of the day"],
+      [5, "The Fifth Topic of the day"]
+    ], Topic.order(:id).pluck(
+      Arel.sql("COALESCE(id, 0)"),
+      Arel.sql("COALESCE(title, 'untitled')")
+    )
   end
 
   def test_calculation_with_polymorphic_relation
@@ -992,6 +1010,24 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_group_by_attribute_with_custom_type
     assert_equal({ "proposed" => 2, "published" => 2 }, Book.group(:status).count)
+  end
+
+  def test_aggregate_attribute_on_custom_type
+    assert_equal 4, Book.sum(:status)
+    assert_equal 1, Book.sum(:difficulty)
+    assert_equal 0, Book.minimum(:status)
+    assert_equal 1, Book.maximum(:difficulty)
+    assert_equal({ "proposed" => 0, "published" => 4 }, Book.group(:status).sum(:status))
+    assert_equal({ "proposed" => 0, "published" => 1 }, Book.group(:status).sum(:difficulty))
+    assert_equal({ "proposed" => 0, "published" => 2 }, Book.group(:status).minimum(:status))
+    assert_equal({ "proposed" => 0, "published" => 1 }, Book.group(:status).maximum(:difficulty))
+  end
+
+  def test_minimum_and_maximum_on_non_numeric_type
+    assert_equal Date.new(2004, 4, 15), Topic.minimum(:last_read)
+    assert_equal Date.new(2004, 4, 15), Topic.maximum(:last_read)
+    assert_equal({ false => Date.new(2004, 4, 15), true => nil }, Topic.group(:approved).minimum(:last_read))
+    assert_equal({ false => Date.new(2004, 4, 15), true => nil }, Topic.group(:approved).maximum(:last_read))
   end
 
   def test_select_avg_with_group_by_as_virtual_attribute_with_sql

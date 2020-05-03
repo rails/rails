@@ -271,7 +271,7 @@ module ActiveModel
     #   person.errors.messages # => {:name=>["cannot be nil", "must be specified"]}
     #   person.errors.keys     # => [:name]
     def keys
-      deprecation_removal_warning(:keys, "errors.map { |error| error.attribute }")
+      deprecation_removal_warning(:keys, "errors.attribute_names")
       keys = @errors.map(&:attribute)
       keys.uniq!
       keys.freeze

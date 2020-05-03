@@ -40,10 +40,6 @@ def in_memory_db?
   ActiveRecord::Base.connection_pool.db_config.database == ":memory:"
 end
 
-def subsecond_precision_supported?
-  ActiveRecord::Base.connection.supports_datetime_with_precision?
-end
-
 def mysql_enforcing_gtid_consistency?
   current_adapter?(:Mysql2Adapter) && "ON" == ActiveRecord::Base.connection.show_variable("enforce_gtid_consistency")
 end
@@ -66,6 +62,7 @@ end
   supports_insert_on_duplicate_update?
   supports_insert_conflict_target?
   supports_optimizer_hints?
+  supports_datetime_with_precision?
 ].each do |method_name|
   define_method method_name do
     ActiveRecord::Base.connection.public_send(method_name)

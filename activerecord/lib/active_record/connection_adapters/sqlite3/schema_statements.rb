@@ -91,6 +91,10 @@ module ActiveRecord
             SQLite3::TableDefinition.new(self, *args, **options)
           end
 
+          def validate_index_length!(table_name, new_name, internal = false)
+            super unless internal
+          end
+
           def new_column_from_field(table_name, field)
             default = \
               case field["dflt_value"]

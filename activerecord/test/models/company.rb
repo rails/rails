@@ -108,7 +108,7 @@ class Firm < Company
 end
 
 class DependentFirm < Company
-  has_one :account, foreign_key: "firm_id", dependent: :nullify
+  has_one :account, -> { order(:id) }, foreign_key: "firm_id", dependent: :nullify
   has_many :companies, foreign_key: "client_of", dependent: :nullify
   has_one :company, foreign_key: "client_of", dependent: :nullify
 end

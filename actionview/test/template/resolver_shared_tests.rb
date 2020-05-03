@@ -169,7 +169,7 @@ module ResolverSharedTests
   def test_virtual_path_is_preserved_with_dot
     with_file "test/hello_world.html.erb", "Hello html!"
 
-    template = assert_deprecated { context.find("hello_world.html", "test", false, [], {}) }
+    template = context.find("hello_world.html", "test", false, [], {})
     assert_equal "test/hello_world.html", template.virtual_path
 
     template = context.find("hello_world", "test", false, [], {})

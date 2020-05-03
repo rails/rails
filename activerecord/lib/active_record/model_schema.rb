@@ -288,6 +288,7 @@ module ActiveRecord
       # Sets the columns names the model should ignore. Ignored columns won't have attribute
       # accessors defined, and won't be referenced in SQL queries.
       def ignored_columns=(columns)
+        reload_schema_from_cache
         @ignored_columns = columns.map(&:to_s)
       end
 

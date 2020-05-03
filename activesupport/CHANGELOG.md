@@ -1,3 +1,28 @@
+*   Add override of unary plus for `ActiveSupport::Duration`.
+
+    `+ 1.second` is now identical to `+1.second` to prevent errors
+    where a seemingly innocent change of formatting leads to a change in the code behavior.
+
+    Before:
+    ```ruby
+    +1.second.class
+    # => ActiveSupport::Duration
+    (+ 1.second).class
+    # => Integer
+    ```
+
+    After:
+    ```ruby
+    +1.second.class
+    # => ActiveSupport::Duration
+    (+ 1.second).class
+    # => ActiveSupport::Duration
+    ```
+
+    Fixes #39079.
+
+    *Roman Kushnir*
+
 *   Add subsec to `ActiveSupport::TimeWithZone#inspect`.
 
     Before:

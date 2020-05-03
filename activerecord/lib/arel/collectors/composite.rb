@@ -3,6 +3,8 @@
 module Arel # :nodoc: all
   module Collectors
     class Composite
+      attr_accessor :preparable
+
       def initialize(left, right)
         @left = left
         @right = right

@@ -2,6 +2,11 @@
 
     *Eike Send*
 
+*   The +helper+ class method for controllers loads helper modules specified as
+    strings/symbols with `String#constantize` instead of `require_dependency`.
+
+    *Xavier Noria*, *Jean Boussier*
+
 *   Correctly identify the entire localhost IPv4 range as trusted proxy.
 
     *Nick Soracco*

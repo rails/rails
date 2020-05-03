@@ -47,22 +47,17 @@ module ActiveRecord
       end
 
       def to_h(table_name = nil)
-        equalities = equalities(predicates)
-        if table_name
-          equalities = equalities.select do |node|
-            node.left.relation.name == table_name
-          end
-        end
-
-        equalities.map { |node|
+        equalities(predicates).each_with_object({}) do |node, hash|
+          next if table_name&.!= node.left.relation.name
           name = node.left.name.to_s
           value = extract_node_value(node.right)
-          [name, value]
-        }.to_h
+          hash[name] = value
+        end
       end
 
       def ast
-        Arel::Nodes::And.new(predicates_with_wrapped_sql_literals)
+        predicates = predicates_with_wrapped_sql_literals
+        predicates.one? ? predicates.first : Arel::Nodes::And.new(predicates)
       end
 
       def ==(other)
@@ -176,15 +171,8 @@ module ActiveRecord
           case node
           when Array
             node.map { |v| extract_node_value(v) }
-          when Arel::Nodes::Casted, Arel::Nodes::Quoted
-            node.val
-          when Arel::Nodes::BindParam
-            value = node.value
-            if value.respond_to?(:value_before_type_cast)
-              value.value_before_type_cast
-            else
-              value
-            end
+          when Arel::Nodes::BindParam, Arel::Nodes::Casted, Arel::Nodes::Quoted
+            node.value_before_type_cast
           end
         end
     end

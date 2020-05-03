@@ -37,7 +37,7 @@ module('data-remote', {
         href: '/echo',
         'data-remote': 'true',
         disabled: 'disabled',
-        text: 'Disabed link'
+        text: 'Disabled link'
       }))
       .find('form').append($('<input type="text" name="user_name" value="john">'))
 

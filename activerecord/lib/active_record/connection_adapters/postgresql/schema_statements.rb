@@ -565,12 +565,12 @@ module ActiveRecord
         # requires that the ORDER BY include the distinct column.
         def columns_for_distinct(columns, orders) #:nodoc:
           order_columns = orders.compact_blank.map { |s|
-              # Convert Arel node to string
-              s = s.to_sql unless s.is_a?(String)
-              # Remove any ASC/DESC modifiers
-              s.gsub(/\s+(?:ASC|DESC)\b/i, "")
-               .gsub(/\s+NULLS\s+(?:FIRST|LAST)\b/i, "")
-            }.compact_blank.map.with_index { |column, i| "#{column} AS alias_#{i}" }
+            # Convert Arel node to string
+            s = visitor.compile(s) unless s.is_a?(String)
+            # Remove any ASC/DESC modifiers
+            s.gsub(/\s+(?:ASC|DESC)\b/i, "")
+             .gsub(/\s+NULLS\s+(?:FIRST|LAST)\b/i, "")
+          }.compact_blank.map.with_index { |column, i| "#{column} AS alias_#{i}" }
 
           (order_columns << super).join(", ")
         end

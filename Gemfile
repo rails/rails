@@ -114,7 +114,7 @@ group :test do
     gem "byebug"
   end
 
-  gem "benchmark-ips"
+  gem "benchmark-ips", "< 2.8"
 end
 
 platforms :ruby, :mswin, :mswin64, :mingw, :x64_mingw do
@@ -127,7 +127,7 @@ platforms :ruby, :mswin, :mswin64, :mingw, :x64_mingw do
   gem "sqlite3", "~> 1.4"
 
   group :db do
-    gem "pg", ">= 0.18.0"
+    gem "pg", "~> 1.1"
     gem "mysql2", "~> 0.5"
   end
 end

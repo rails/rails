@@ -312,41 +312,72 @@ module ActiveRecord
     end
 
     if ActiveRecord::Base.connection.prepared_statements
-      def test_select_all_with_legacy_binds
-        post = Post.create!(title: "foo", body: "bar")
-        expected = @connection.select_all("SELECT * FROM posts WHERE id = #{post.id}")
-        result = @connection.select_all("SELECT * FROM posts WHERE id = #{Arel::Nodes::BindParam.new(nil).to_sql}", nil, [[nil, post.id]])
-        assert_equal expected.to_a, result.to_a
+      def test_select_all_insert_update_delete_with_legacy_binds
+        binds = [[Event.column_for_attribute("id"), 1]]
+        bind_param = Arel::Nodes::BindParam.new(nil)
+
+        assert_deprecated do
+          id = @connection.insert("INSERT INTO events(id) VALUES (#{bind_param.to_sql})", nil, nil, nil, nil, binds)
+          assert_equal 1, id
+        end
+
+        assert_deprecated do
+          updated = @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
+          assert_equal 1, updated
+        end
+
+        assert_deprecated do
+          result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+          assert_equal({ "id" => 1, "title" => "foo" }, result.first)
+        end
+
+        assert_deprecated do
+          deleted = @connection.delete("DELETE FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+          assert_equal 1, deleted
+        end
+
+        assert_deprecated do
+          result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+          assert_nil result.first
+        end
       end
 
-      def test_insert_update_delete_with_legacy_binds
-        binds = [[nil, 1]]
+      def test_select_all_insert_update_delete_with_casted_binds
+        binds = [Event.type_for_attribute("id").serialize(1)]
         bind_param = Arel::Nodes::BindParam.new(nil)
 
         id = @connection.insert("INSERT INTO events(id) VALUES (#{bind_param.to_sql})", nil, nil, nil, nil, binds)
         assert_equal 1, id
 
-        @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
+        updated = @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
+        assert_equal 1, updated
+
         result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
         assert_equal({ "id" => 1, "title" => "foo" }, result.first)
 
-        @connection.delete("DELETE FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        deleted = @connection.delete("DELETE FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        assert_equal 1, deleted
+
         result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
         assert_nil result.first
       end
 
-      def test_insert_update_delete_with_binds
-        binds = [Relation::QueryAttribute.new("id", 1, Type.default_value)]
+      def test_select_all_insert_update_delete_with_binds
+        binds = [Relation::QueryAttribute.new("id", 1, Event.type_for_attribute("id"))]
         bind_param = Arel::Nodes::BindParam.new(nil)
 
         id = @connection.insert("INSERT INTO events(id) VALUES (#{bind_param.to_sql})", nil, nil, nil, nil, binds)
         assert_equal 1, id
 
-        @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
+        updated = @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
+        assert_equal 1, updated
+
         result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
         assert_equal({ "id" => 1, "title" => "foo" }, result.first)
 
-        @connection.delete("DELETE FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        deleted = @connection.delete("DELETE FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        assert_equal 1, deleted
+
         result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
         assert_nil result.first
       end
@@ -409,6 +440,16 @@ module ActiveRecord
 
     def test_joins_per_query_is_deprecated
       assert_deprecated { @connection.joins_per_query }
+    end
+
+    def test_allowed_index_name_length_is_deprecated
+      assert_deprecated { @connection.allowed_index_name_length }
+    end
+
+    unless current_adapter?(:OracleAdapter)
+      def test_in_clause_length_is_deprecated
+        assert_deprecated { @connection.in_clause_length }
+      end
     end
   end
 

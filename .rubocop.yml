@@ -31,6 +31,12 @@ Rails/RefuteMethods:
   Include:
     - '**/test/**/*'
 
+Rails/IndexBy:
+  Enabled: true
+
+Rails/IndexWith:
+  Enabled: true
+
 # Prefer &&/|| over and/or.
 Style/AndOr:
   Enabled: true
