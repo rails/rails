@@ -30,6 +30,19 @@ class ActiveStorage::Attachment < ActiveRecord::Base
     blob&.purge_later
   end
 
+  def variant(transformations)
+    case transformations
+    when Symbol
+      variant_name = transformations
+      transformations = variants.fetch(variant_name) do
+        record_model_name = record.to_model.model_name.name
+        raise ArgumentError, "Cannot find variant :#{variant_name} for #{record_model_name}##{name}"
+      end
+    end
+
+    blob.variant(transformations)
+  end
+
   private
     def identify_blob
       blob.identify
@@ -50,6 +63,10 @@ class ActiveStorage::Attachment < ActiveRecord::Base
 
     def dependent
       record.attachment_reflections[name]&.options[:dependent]
+    end
+
+    def variants
+      record.attachment_reflections[name]&.options[:variants]
     end
 end
 

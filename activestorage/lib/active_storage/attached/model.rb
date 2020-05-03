@@ -40,7 +40,7 @@ module ActiveStorage
       #     has_one_attached :avatar, service: :s3
       #   end
       #
-      def has_one_attached(name, dependent: :purge_later, service: nil)
+      def has_one_attached(name, dependent: :purge_later, service: nil, variants: {})
         validate_service_configuration(name, service)
 
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
@@ -72,7 +72,7 @@ module ActiveStorage
           :has_one_attached,
           name,
           nil,
-          { dependent: dependent, service_name: service },
+          { dependent: dependent, service_name: service, variants: variants },
           self
         )
         ActiveRecord::Reflection.add_attachment_reflection(self, name, reflection)
@@ -110,7 +110,7 @@ module ActiveStorage
       #     has_many_attached :photos, service: :s3
       #   end
       #
-      def has_many_attached(name, dependent: :purge_later, service: nil)
+      def has_many_attached(name, dependent: :purge_later, service: nil, variants: {})
         validate_service_configuration(name, service)
 
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
@@ -159,7 +159,7 @@ module ActiveStorage
           :has_many_attached,
           name,
           nil,
-          { dependent: dependent, service_name: service },
+          { dependent: dependent, service_name: service, variants: variants },
           self
         )
         ActiveRecord::Reflection.add_attachment_reflection(self, name, reflection)

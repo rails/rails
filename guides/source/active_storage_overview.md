@@ -129,7 +129,7 @@ amazon:
   secret_access_key: ""
   region: ""
   bucket: ""
-  upload: 
+  upload:
     server_side_encryption: "" # 'aws:kms' or 'AES256'
 ```
 
@@ -332,6 +332,20 @@ class User < ApplicationRecord
 end
 ```
 
+You can configure specific variants per attachment using the `variants` option:
+
+```ruby
+class User < ApplicationRecord
+  has_one_attached :avatar, variants: { thumb: { resize: "100x100" } }
+end
+```
+
+Call `avatar.variant(:thumb)` to get a thumb variant of an avatar:
+
+```ruby
+<%= image_tag user.avatar.variant(:thumb) %>
+```
+
 ### `has_many_attached`
 
 The `has_many_attached` macro sets up a one-to-many relationship between records
@@ -379,6 +393,14 @@ Overriding the default service is done the same way as `has_one_attached`, by us
 ```ruby
 class Message < ApplicationRecord
   has_many_attached :images, service: :s3
+end
+```
+
+Configuring specific variants is done the same way as `has_one_attached`, by using the `variants` option:
+
+```ruby
+class Message < ApplicationRecord
+  has_many_attached :images, variants: { thumb: { resize: "100x100" } }
 end
 ```
 

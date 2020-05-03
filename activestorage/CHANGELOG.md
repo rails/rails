@@ -1,3 +1,25 @@
+*   Add ability to use pre-defined variants.
+
+    ```ruby
+    class User < ActiveRecord::Base
+      has_one_attached :avatar, variants: {
+        thumb: { resize: "100x100" },
+        medium: { resize: "300x300", monochrome: true }
+      }
+    end
+
+    class Gallery < ActiveRecord::Base
+      has_many_attached :photos, variants: {
+        thumb: { resize: "100x100" },
+        medium: { resize: "300x300", monochrome: true }
+      }
+    end
+
+    <%= image_tag user.avatar.variant(:thumb) %>
+    ```
+
+    *fatkodima*
+
 *   Add `config.active_storage.web_image_content_types` to allow applications
     to add content types (like `image/webp`) in which variants can be processed,
     instead of letting those images be converted to the fallback PNG format.
