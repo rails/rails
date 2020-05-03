@@ -27,6 +27,8 @@ module ActiveRecord
 
       return if IGNORE_PAYLOAD_NAMES.include?(payload[:name])
 
+      pool_name = payload[:connection]&.pool&.pool_config&.db_config&.name
+      pool_info = pool_name.present? && pool_name != "primary" ? "[#{pool_name}] " : ""
       name  = "#{payload[:name]} (#{event.duration.round(1)}ms)"
       name  = "CACHE #{name}" if payload[:cached]
       sql   = payload[:sql]
@@ -43,10 +45,11 @@ module ActiveRecord
         binds.prepend("  ")
       end
 
+      pool_info = colorize_pool_info(pool_info)
       name = colorize_payload_name(name, payload[:name])
       sql  = color(sql, sql_color(sql), true) if colorize_logging
 
-      debug "  #{name}  #{sql}#{binds}"
+      debug "  #{pool_info}#{name}  #{sql}#{binds}"
     end
 
     private
@@ -67,6 +70,14 @@ module ActiveRecord
         end
 
         [attr&.name, value]
+      end
+
+      def colorize_pool_info(pool_info)
+        if pool_info.blank?
+          pool_info
+        else
+          color(pool_info, GREEN, true)
+        end
       end
 
       def colorize_payload_name(name, payload_name)

@@ -1,3 +1,7 @@
+*   Add connection names to the debug log when non-primary connection is used.
+
+    *Tomoki Sekiyama*
+
 *   Deprecate passing a column to `type_cast`.
 
     *Ryuta Kamizono*

@@ -224,6 +224,27 @@ class LogSubscriberTest < ActiveRecord::TestCase
     assert_match(/SELECT .*?FROM .?developers.?/i, @logger.logged(:debug).last)
   end
 
+  def test_non_primary_connection_logging
+    ActiveRecord::Base.connection_handlers = {
+      writing: ActiveRecord::Base.default_connection_handler,
+      reading: ActiveRecord::ConnectionAdapters::ConnectionHandler.new
+    }
+
+    config = ActiveRecord::Base.connection_pool.db_config.configuration_hash
+    ActiveRecord::Base.connected_to(role: :reading) do
+      db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(ENV["RAILS_ENV"], "replica", config)
+      ActiveRecord::Base.establish_connection(db_config)
+    end
+
+    Developer.all.load
+    ActiveRecord::Base.connected_to(role: :reading) { ActiveRecord::Base.connection.select_all("SELECT 1") }
+    wait
+    assert_no_match(/\[.*\]/, @logger.logged(:debug)[-2])
+    assert_match(/\[replica\]/, @logger.logged(:debug).last)
+  ensure
+    ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+  end
+
   def test_basic_query_doesnt_log_when_level_is_not_debug
     @logger.level = INFO
     Developer.all.load
