@@ -1,5 +1,10 @@
 import adapters from "./adapters"
 
+// The logger can be enabled with:
+//
+//   ActionCable.logger.enabled = true
+//
+
 export default {
   log(...messages) {
     if (this.enabled) {

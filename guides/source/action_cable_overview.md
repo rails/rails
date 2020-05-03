@@ -771,6 +771,14 @@ config.action_cable.log_tags = [
 For a full list of all configuration options, see the
 `ActionCable::Server::Configuration` class.
 
+Client-side logs can be enabled with the following:
+
+```ruby
+import * as ActionCable from '@rails/actioncable'
+
+ActionCable.logger.enabled = true
+```
+
 ## Running Standalone Cable Servers
 
 ### In App
