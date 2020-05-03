@@ -1096,20 +1096,10 @@ module ActiveRecord
         arel.where(where_clause.ast) unless where_clause.empty?
         arel.having(having_clause.ast) unless having_clause.empty?
         if limit_value
-          limit_attribute = ActiveModel::Attribute.with_cast_value(
-            "LIMIT",
-            connection.sanitize_limit(limit_value),
-            Type.default_value,
-          )
-          arel.take(Arel::Nodes::BindParam.new(limit_attribute))
+          arel.take(build_cast_value("LIMIT", connection.sanitize_limit(limit_value)))
         end
         if offset_value
-          offset_attribute = ActiveModel::Attribute.with_cast_value(
-            "OFFSET",
-            offset_value.to_i,
-            Type.default_value,
-          )
-          arel.skip(Arel::Nodes::BindParam.new(offset_attribute))
+          arel.skip(build_cast_value("OFFSET", offset_value.to_i))
         end
         arel.group(*arel_columns(group_values.uniq.compact_blank)) unless group_values.empty?
 
@@ -1124,6 +1114,11 @@ module ActiveRecord
         arel.comment(*annotate_values) unless annotate_values.empty?
 
         arel
+      end
+
+      def build_cast_value(name, value)
+        cast_value = ActiveModel::Attribute.with_cast_value(name, value, Type.default_value)
+        Arel::Nodes::BindParam.new(cast_value)
       end
 
       def build_from
