@@ -3,6 +3,8 @@
 module Arel # :nodoc: all
   module Collectors
     class SubstituteBinds
+      attr_accessor :preparable
+
       def initialize(quoter, delegate_collector)
         @quoter = quoter
         @delegate = delegate_collector

@@ -14,31 +14,32 @@ module ActiveRecord
         sql
       end
 
-      def to_sql_and_binds(arel_or_sql_string, binds = []) # :nodoc:
+      def to_sql_and_binds(arel_or_sql_string, binds = [], preparable = nil) # :nodoc:
         if arel_or_sql_string.respond_to?(:ast)
           unless binds.empty?
             raise "Passing bind parameters with an arel AST is forbidden. " \
               "The values must be stored on the AST directly"
           end
 
+          collector = collector()
+
           if prepared_statements
+            collector.preparable = true
             sql, binds = visitor.compile(arel_or_sql_string.ast, collector)
 
             if binds.length > bind_params_length
               unprepared_statement do
-                sql, binds = to_sql_and_binds(arel_or_sql_string)
-                visitor.preparable = false
+                return to_sql_and_binds(arel_or_sql_string)
               end
             end
+            preparable = collector.preparable
           else
             sql = visitor.compile(arel_or_sql_string.ast, collector)
           end
-          [sql.freeze, binds]
+          [sql.freeze, binds, preparable]
         else
-          visitor.preparable = false if prepared_statements
-
           arel_or_sql_string = arel_or_sql_string.dup.freeze unless arel_or_sql_string.frozen?
-          [arel_or_sql_string, binds]
+          [arel_or_sql_string, binds, preparable]
         end
       end
       private :to_sql_and_binds
@@ -60,11 +61,7 @@ module ActiveRecord
       # Returns an ActiveRecord::Result instance.
       def select_all(arel, name = nil, binds = [], preparable: nil)
         arel = arel_from_relation(arel)
-        sql, binds = to_sql_and_binds(arel, binds)
-
-        if preparable.nil?
-          preparable = prepared_statements ? visitor.preparable : false
-        end
+        sql, binds, preparable = to_sql_and_binds(arel, binds, preparable)
 
         if prepared_statements && preparable
           select_prepared(sql, name, binds)

@@ -57,6 +57,8 @@ module ActiveRecord
     end
 
     class PartialQueryCollector
+      attr_accessor :preparable
+
       def initialize
         @parts = []
         @binds = []

@@ -510,6 +510,7 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_In(o, collector)
+          collector.preparable = false
           attr, values = o.left, o.right
 
           if Array === values
@@ -525,6 +526,7 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_NotIn(o, collector)
+          collector.preparable = false
           attr, values = o.left, o.right
 
           if Array === values
@@ -656,14 +658,18 @@ module Arel # :nodoc: all
           collector << quote_table_name(join_name) << "." << quote_column_name(o.name)
         end
 
-        def literal(o, collector); collector << o.to_s; end
-
         def visit_Arel_Nodes_BindParam(o, collector)
           collector.add_bind(o.value) { "?" }
         end
 
-        alias :visit_Arel_Nodes_SqlLiteral :literal
-        alias :visit_Integer               :literal
+        def visit_Arel_Nodes_SqlLiteral(o, collector)
+          collector.preparable = false
+          collector << o.to_s
+        end
+
+        def visit_Integer(o, collector)
+          collector << o.to_s
+        end
 
         def unsupported(o, collector)
           raise UnsupportedVisitError.new(o)
