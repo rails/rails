@@ -14,7 +14,7 @@ class ActiveStorage::ReflectionTest < ActiveSupport::TestCase
     assert_equal :local, reflection.options[:service_name]
 
     reflection = User.reflect_on_attachment(:avatar_with_variants)
-    assert_instance_of Hash, reflection.options[:variants]
+    assert_instance_of Hash, reflection.variants
   end
 
   test "reflection on a singular attachment with the same name as an attachment on another model" do
@@ -33,7 +33,7 @@ class ActiveStorage::ReflectionTest < ActiveSupport::TestCase
     assert_equal :local, reflection.options[:service_name]
 
     reflection = User.reflect_on_attachment(:highlights_with_variants)
-    assert_instance_of Hash, reflection.options[:variants]
+    assert_instance_of Hash, reflection.variants
   end
 
   test "reflecting on all attachments" do

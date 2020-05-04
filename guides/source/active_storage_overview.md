@@ -332,11 +332,13 @@ class User < ApplicationRecord
 end
 ```
 
-You can configure specific variants per attachment using the `variants` option:
+You can configure specific variants per attachment by calling the `variant` method on yielded attachable object:
 
 ```ruby
 class User < ApplicationRecord
-  has_one_attached :avatar, variants: { thumb: { resize: "100x100" } }
+  has_one_attached :avatar do |attachable|
+    attachable.variant :thumb, resize: "100x100"
+  end
 end
 ```
 
@@ -396,11 +398,13 @@ class Message < ApplicationRecord
 end
 ```
 
-Configuring specific variants is done the same way as `has_one_attached`, by using the `variants` option:
+Configuring specific variants is done the same way as `has_one_attached`, by calling the `variant` method on the yielded attachable object:
 
 ```ruby
 class Message < ApplicationRecord
-  has_many_attached :images, variants: { thumb: { resize: "100x100" } }
+  has_many_attached :images do |attachable|
+    attachable.variant :thumb, resize: "100x100"
+  end
 end
 ```
 

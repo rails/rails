@@ -2,17 +2,17 @@
 
     ```ruby
     class User < ActiveRecord::Base
-      has_one_attached :avatar, variants: {
-        thumb: { resize: "100x100" },
-        medium: { resize: "300x300", monochrome: true }
-      }
+      has_one_attached :avatar do |attachable|
+        attachable.variant :thumb, resize: "100x100"
+        attachable.variant :medium, resize: "300x300", monochrome: true
+      end
     end
 
     class Gallery < ActiveRecord::Base
-      has_many_attached :photos, variants: {
-        thumb: { resize: "100x100" },
-        medium: { resize: "300x300", monochrome: true }
-      }
+      has_many_attached :photos do |attachable|
+        attachable.variant :thumb, resize: "100x100"
+        attachable.variant :medium, resize: "300x300", monochrome: true
+      end
     end
 
     <%= image_tag user.avatar.variant(:thumb) %>

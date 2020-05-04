@@ -66,7 +66,7 @@ class ActiveStorage::Attachment < ActiveRecord::Base
     end
 
     def variants
-      record.attachment_reflections[name]&.options[:variants]
+      record.attachment_reflections[name]&.variants
     end
 end
 
