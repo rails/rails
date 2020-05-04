@@ -280,8 +280,8 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_exists_with_distinct_and_offset_and_select
-    assert Post.select(:body).distinct.offset(3).exists?
-    assert_not Post.select(:body).distinct.offset(4).exists?
+    assert Post.select(:body).distinct.offset(4).exists?
+    assert_not Post.select(:body).distinct.offset(5).exists?
   end
 
   def test_exists_with_distinct_and_offset_and_eagerload_and_order
