@@ -21,7 +21,7 @@ module ActionMailbox
       end
 
       def create_migrations
-        rails_command "railties:install:migrations FROM=active_storage,action_mailbox"
+        rails_command "railties:install:migrations FROM=active_storage,action_mailbox", inline: true
       end
     end
   end
