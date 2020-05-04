@@ -3,18 +3,14 @@
 require "cases/helper"
 require "models/post"
 require "models/author"
+require "models/essay"
 require "models/comment"
 require "models/categorization"
 
 
 module ActiveRecord
   class WhereChainTest < ActiveRecord::TestCase
-    fixtures :posts, :authors
-
-    def setup
-      super
-      @name = "title"
-    end
+    fixtures :posts, :authors, :essays
 
     def test_missing_with_association
       assert posts(:authorless).author.blank?
@@ -40,7 +36,7 @@ module ActiveRecord
     end
 
     def test_association_not_eq
-      expected = Comment.arel_table[@name].not_eq(Arel::Nodes::BindParam.new(1))
+      expected = Comment.arel_table["title"].not_eq(Arel::Nodes::BindParam.new(1))
       relation = Post.joins(:comments).where.not(comments: { title: "hello" })
       assert_equal(expected.to_sql, relation.where_clause.ast.to_sql)
     end
@@ -91,6 +87,13 @@ module ActiveRecord
       expected = Post.where(body: "world", title: "alone")
 
       assert_equal expected.where_clause, relation.where_clause
+    end
+
+    def test_rewhere_with_polymorphic_association
+      relation = Essay.where(writer: authors(:david)).rewhere(writer_id: "Mary")
+      expected = Essay.where(writer: authors(:mary))
+
+      assert_equal expected, relation
     end
 
     def test_rewhere_with_range

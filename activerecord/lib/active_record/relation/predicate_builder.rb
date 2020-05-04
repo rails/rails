@@ -84,10 +84,17 @@ module ActiveRecord
             end
 
             klass ||= AssociationQueryValue
-            queries = klass.new(associated_table, value).queries.map do |query|
-              expand_from_hash(query).reduce(&:and)
+            queries = klass.new(associated_table, value).queries.map! do |query|
+              expand_from_hash(query)
             end
-            queries.reduce(&:or)
+
+            if queries.one?
+              queries.first
+            else
+              queries.map! { |query| query.reduce(&:and) }
+              queries = queries.reduce { |result, query| Arel::Nodes::Or.new(result, query) }
+              Arel::Nodes::Grouping.new(queries)
+            end
           elsif table.aggregated_with?(key)
             mapping = table.reflect_on_aggregation(key).mapping
             values = value.nil? ? [nil] : Array.wrap(value)
