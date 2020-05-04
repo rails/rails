@@ -17,7 +17,14 @@ if defined?(ActiveRecord::Base)
     ActiveRecord::Migration.maintain_test_schema!
   rescue ActiveRecord::PendingMigrationError => e
     puts e.to_s.strip
-    exit 1
+    actions = ActiveSupport::ActionableError.actions(e)
+    actions.each do |action, _|
+      if Rails::Generators::Base.new.yes?("\n#{action}?")
+        ActiveSupport::ActionableError.dispatch(e.class, action)
+      else
+        exit 1
+      end
+    end
   end
 
   ActiveSupport.on_load(:active_support_test_case) do
