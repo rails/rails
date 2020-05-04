@@ -1018,7 +1018,7 @@ module ActiveRecord
         Thread.current[:prevent_writes] = prevent_writes
       end
 
-      # Prevent regular writing to the database regardless of role.
+      # Prevent most writing to the database regardless of role.
       #
       # In some cases you may want to prevent writes to the database
       # even if you are on a database that can write. `while_preventing_writes`
