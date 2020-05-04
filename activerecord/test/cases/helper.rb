@@ -199,22 +199,3 @@ module InTimeZone
       ActiveRecord::Base.time_zone_aware_attributes = old_tz
     end
 end
-
-def setup_destroy_later
-  ActiveRecord::Base.destroy_association_later_job = ActiveRecord::DestroyAssociationLaterJob
-  ActiveRecord::Base.destroy_later_job = ActiveRecord::DestroyJob
-  yield
-ensure
-  ActiveRecord::Base.destroy_association_later_job = false
-  ActiveRecord::Base.destroy_later_job = false
-end
-
-require "global_id"
-GlobalID.app = "ActiveRecordExampleApp"
-ActiveRecord::Base.include GlobalID::Identification
-
-require "active_job"
-ActiveJob::Base.queue_adapter = :test
-ActiveJob::Base.logger = ActiveSupport::Logger.new(nil)
-
-require_relative "../../../tools/test_common"

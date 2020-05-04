@@ -74,7 +74,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
     def self.define_callbacks(model, reflection)
       if dependent = reflection.options[:dependent]
-        check_dependent_options(dependent)
+        check_dependent_options(dependent, model)
         add_destroy_callbacks(model, reflection)
       end
 
@@ -120,10 +120,10 @@ module ActiveRecord::Associations::Builder # :nodoc:
       raise NotImplementedError
     end
 
-    def self.check_dependent_options(dependent)
-      if dependent == :destroy_later && !ActiveRecord::Base.destroy_association_later_job
+    def self.check_dependent_options(dependent, model)
+      if dependent == :destroy_later && !model.destroy_association_later_job
         err_message = "ActiveJob is required to use destroy_later on dependencies"
-        raise ActiveRecord::ActiveJobRequiredError.new err_message
+        raise ActiveRecord::ActiveJobRequiredError, err_message
       end
       unless valid_dependent_options.include? dependent
         raise ArgumentError, "The :dependent option must be one of #{valid_dependent_options}, but is :#{dependent}"

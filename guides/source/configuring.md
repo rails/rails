@@ -449,6 +449,10 @@ All these configuration options are delegated to the `I18n` library.
   the relation's cache key into the cache version to support recycling cache key.
   Defaults to `false`.
 
+* `config.active_record.destroy_later_job` allows specifying the job that will be used to destroy the record in background. It defaults to `ActiveRecord::DestroyJob`.
+
+* `config.active_record.destroy_association_later_job` allows specifying the job that will be used to destroy the associated records in background. It defaults to `ActiveRecord::DestroyAssociationLaterJob`.
+
 * `config.active_record.queues.destroy` allows specifying the Active Job queue to use for destroy jobs. It defaults to `:active_record_destroy`.
 
 The MySQL adapter adds one additional configuration option:

@@ -127,12 +127,6 @@ ActiveRecord::Schema.define do
     t.date :updated_on
   end
 
-  create_table :book_destroy_laters, id: :integer, force: true do |t|
-    t.column :status, :integer, default: 0
-    t.column :name, :string
-    t.integer :tags_count, default: 0
-  end
-
   create_table :booleans, force: true do |t|
     t.boolean :value
     t.boolean :has_fun, null: false, default: false
@@ -407,11 +401,6 @@ ActiveRecord::Schema.define do
     t.string :category_id
     t.string :author_id
     t.references :book
-  end
-
-  create_table :essay_destroy_laters, force: true do |t|
-    t.string :name, **case_sensitive_options
-    t.references :book_destroy_later
   end
 
   create_table :events, force: true do |t|

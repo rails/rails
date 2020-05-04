@@ -61,6 +61,19 @@ end
       t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
     }
 
+    namespace :integration do
+      # Active Job Integration Tests
+      namespace :active_job do
+        Rake::TestTask.new(adapter => "#{adapter}:env") do |t|
+          t.libs << "test"
+          t.test_files = FileList["test/activejob/*_test.rb"]
+          t.warning = true
+          t.verbose = true
+          t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
+        end
+      end
+    end
+
     namespace :isolated do
       task adapter => "#{adapter}:env" do
         adapter_short = adapter[/^[a-z0-9]+/]
@@ -162,7 +175,7 @@ end
   end
 
   # Make sure the adapter test evaluates the env setting task
-  task "test_#{adapter}" => ["#{adapter}:env", "test:#{adapter}"]
+  task "test_#{adapter}" => ["#{adapter}:env", "test:#{adapter}", "test:integration:active_job:#{adapter}"]
   task "isolated_test_#{adapter}" => ["#{adapter}:env", "test:isolated:#{adapter}"]
 end
 

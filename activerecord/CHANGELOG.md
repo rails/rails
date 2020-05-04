@@ -1,3 +1,27 @@
+*   Add `ActiveRecord::Base.destroy_later` for automatically destroying records
+    after a specified amount of time.
+
+    ```ruby
+    class Export < ApplicationRecord
+      # Destroy all exports 30 days after creation
+      destroy_later after: 30.days
+
+      # Destroy exports 30 days after completing them
+      destroy_later after: 30.days, if: -> { status_previously_changed? && completed? }
+
+      # Destroy exports 30 days after completing them, ensuring they're still completed at destroy time
+      destroy_later after: 30.days, if: -> { status_previously_changed? && completed? }, ensuring: :completed?
+
+      # Destroy all associated tags when the export is destroyed
+      has_many :tags, dependent: :destroy_later
+
+      # Destroy all associated tags when the export is destroyed, ensuring the the export is still completing at destroy time
+      has_many :tags, dependent: :destroy_later, owner_ensuring_destroy: :completed?
+    end
+    ```
+
+    *DHH*, *George Claghorn, Cory Gwin*
+
 *   Deprecate passing a column to `type_cast`.
 
     *Ryuta Kamizono*
@@ -313,26 +337,6 @@
     *Eileen M. Uchitelle*, *John Crepezzi*
 
 *   Add scale support to `ActiveRecord::Validations::NumericalityValidator`.
-
-*   Add `ActiveRecord::Base.destroy_later` for automatically destroying records
-    after a specified amount of time.
-
-    ```ruby
-    class Export < ApplicationRecord
-      # Destroy all exports 30 days after creation
-      destroy_later after: 30.days
-
-      # Destroy exports 30 days after completing them
-      destroy_later after: 30.days, if: -> { status_previously_changed? && completed? }
-
-      # Destroy exports 30 days after completing them, ensuring they're still completed at destroy time
-      destroy_later after: 30.days, if: -> { status_previously_changed? && completed? }, ensuring: :completed?
-    end
-    ```
-
-    *DHH*, *George Claghorn*
-
-*   Don't call commit/rollback callbacks despite a record isn't saved.
 
     *Gannon McGibbon*
 
