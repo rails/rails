@@ -7,8 +7,7 @@ module ActiveRecord
   class ActiveRecordError < StandardError
   end
 
-  # Raised when trying to use a feature in active record which
-  # requires activejob but the gem is not present
+  # Raised when trying to use a feature in Active Record which requires Active Job but the gem is not present.
   class ActiveJobRequiredError < ActiveRecordError
   end
 

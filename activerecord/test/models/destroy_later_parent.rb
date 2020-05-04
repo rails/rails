@@ -13,8 +13,5 @@
      through: :dl_keyed_join, dependent: :destroy_later,
      foreign_key: :dl_has_many_through_key_id, primary_key: :through_key
 
-   has_many :taggings, as: :taggable, class_name: "Tagging"
-   has_many :tags, -> { where name: "Der be rum" }, through: :taggings, dependent: :destroy_later
-
    destroy_later after: 10.days
  end

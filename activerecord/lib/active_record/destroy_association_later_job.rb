@@ -4,40 +4,34 @@ module ActiveRecord
   class DestroyAssociationLaterError < StandardError
   end
 
-  # Destroy record association in a background job.
-  #
-  #  class ParentNode < ApplicationRecord
-  #    has_one :child, dependent: :destroy_later
-  #   end
-  #
-  #   +destroy_later+ param adds an +after_destroy+ callback that schedules an ActiveRecord::DestroyAssocitionLaterJob.
-  #
+  # Job to destroy the records associated with a destroyed record in background.
   class DestroyAssociationLaterJob < ActiveJob::Base
     queue_as { ActiveRecord::Base.queues[:destroy] }
 
     discard_on ActiveJob::DeserializationError
 
-    def perform(owner_model_name: nil, owner_id: nil, assoc_class: nil,
-                assoc_ids: nil, assoc_primary_key_column: nil,
-                owner_ensuring_destroy_method: nil)
-      assoc_model = assoc_class.constantize
+    def perform(
+      owner_model_name: nil, owner_id: nil,
+      association_class: nil, association_ids: nil, association_primary_key_column: nil,
+      owner_ensuring_destroy_method: nil
+    )
+      association_model = association_class.constantize
       owner_class = owner_model_name.constantize
-      owner = owner_class
-        .where(owner_class.primary_key.to_sym => owner_id)
+      owner = owner_class.find_by(owner_class.primary_key.to_sym => owner_id)
 
       if !owner_destroyed?(owner, owner_ensuring_destroy_method)
         raise DestroyAssociationLaterError, "owner record not destroyed"
       end
-      assoc_model.where(assoc_primary_key_column => assoc_ids).find_each do |r|
+
+      association_model.where(association_primary_key_column => association_ids).find_each do |r|
         r.destroy
       end
     end
 
     private
       def owner_destroyed?(owner, owner_ensuring_destroy_method)
-        return true if owner.empty?
-        return owner.first.public_send(owner_ensuring_destroy_method) unless owner_ensuring_destroy_method.nil?
-        false
+        !owner ||
+          (owner_ensuring_destroy_method && owner.public_send(owner_ensuring_destroy_method))
       end
   end
 end

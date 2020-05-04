@@ -1291,6 +1291,7 @@ module ActiveRecord
         #
         #   * <tt>nil</tt> do nothing (default).
         #   * <tt>:destroy</tt> causes all the associated objects to also be destroyed.
+        #   * <tt>:destroy_later</tt> causes all the associated object to be destroyed in a background job.
         #   * <tt>:delete_all</tt> causes all the associated objects to be deleted directly from the database (so callbacks will not be executed).
         #   * <tt>:nullify</tt> causes the foreign keys to be set to +NULL+. Polymorphic type will also be nullified
         #     on polymorphic associations. Callbacks are not executed.
@@ -1357,6 +1358,9 @@ module ActiveRecord
         #   association objects.
         # [:strict_loading]
         #   Enforces strict loading every time the associated record is loaded through this association.
+        # [:owner_ensuring_destroy]
+        #   Specifies a instance method name that will be called in the owner when executing the background job to
+        #   delete the associated record to determine if the record should be deleted.
         #
         # Option examples:
         #   has_many :comments, -> { order("posted_on") }
@@ -1439,6 +1443,7 @@ module ActiveRecord
         #
         #   * <tt>nil</tt> do nothing (default).
         #   * <tt>:destroy</tt> causes the associated object to also be destroyed
+        #   * <tt>:destroy_later</tt> causes all the associated object to be destroyed in a background job.
         #   * <tt>:delete</tt> causes the associated object to be deleted directly from the database (so callbacks will not execute)
         #   * <tt>:nullify</tt> causes the foreign key to be set to +NULL+. Polymorphic type column is also nullified
         #     on polymorphic associations. Callbacks are not executed.
@@ -1499,6 +1504,9 @@ module ActiveRecord
         #   +:inverse_of+ to avoid an extra query during validation.
         # [:strict_loading]
         #   Enforces strict loading every time the associated record is loaded through this association.
+        # [:owner_ensuring_destroy]
+        #   Specifies a instance method name that will be called in the owner when executing the background job to
+        #   delete the associated record to determine if the record should be deleted.
         #
         # Option examples:
         #   has_one :credit_card, dependent: :destroy  # destroys the associated credit card
@@ -1593,7 +1601,8 @@ module ActiveRecord
         #   By default this is +id+.
         # [:dependent]
         #   If set to <tt>:destroy</tt>, the associated object is destroyed when this object is. If set to
-        #   <tt>:delete</tt>, the associated object is deleted *without* calling its destroy method.
+        #   <tt>:delete</tt>, the associated object is deleted *without* calling its destroy method. If set to
+        #   <tt>:destroy_later</tt>, the associated object is scheduled to be destroyed in a background job.
         #   This option should not be specified when #belongs_to is used in conjunction with
         #   a #has_many relationship on another class because of the potential to leave
         #   orphaned records behind.
@@ -1647,6 +1656,9 @@ module ActiveRecord
         #   be initialized with a particular record before validation.
         # [:strict_loading]
         #   Enforces strict loading every time the associated record is loaded through this association.
+        # [:owner_ensuring_destroy]
+        #   Specifies a instance method name that will be called in the owner when executing the background job to
+        #   delete the associated record to determine if the record should be deleted.
         #
         # Option examples:
         #   belongs_to :firm, foreign_key: "client_of"
