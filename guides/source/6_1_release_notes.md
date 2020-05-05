@@ -55,6 +55,8 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated support to calling `ActionView::ViewPaths#with_fallback` with a block.
+
 *   Remove deprecated support to passing absolute paths to `render template:`.
 
 *   Remove deprecated support to passing relative paths to `render file:`.
