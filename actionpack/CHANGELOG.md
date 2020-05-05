@@ -1,3 +1,7 @@
+*   Remove deprecated `ActionDispatch::Http::ParameterFilter`.
+
+    *Rafael Mendonça França*
+
 *   Added support for exclusive no-store Cache-Control header.
 
     If `no-store` is set on Cache-Control header it is exclusive (all other cache directives are dropped).

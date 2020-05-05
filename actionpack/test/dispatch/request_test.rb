@@ -1116,12 +1116,6 @@ class RequestParameters < BaseRequestTest
 end
 
 class RequestParameterFilter < BaseRequestTest
-  test "parameter filter is deprecated" do
-    assert_deprecated do
-      ActionDispatch::Http::ParameterFilter.new(["blah"])
-    end
-  end
-
   test "filtered_parameters returns params filtered" do
     request = stub_request(
       "action_dispatch.request.parameters" => {
