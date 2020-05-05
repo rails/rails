@@ -1,3 +1,7 @@
+*   Remove deprecated support to passing absolute paths to `render template:`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support to passing relative paths to `render file:`.
 
     *Rafael Mendonça França*

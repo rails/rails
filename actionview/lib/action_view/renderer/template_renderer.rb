@@ -92,8 +92,7 @@ module ActionView
         when String
           begin
             if layout.start_with?("/")
-              ActiveSupport::Deprecation.warn "Rendering layouts from an absolute path is deprecated."
-              @lookup_context.with_fallbacks.find_template(layout, nil, false, [], details)
+              raise ArgumentError, "Rendering layouts from an absolute path is not supported."
             else
               @lookup_context.find_template(layout, nil, false, [], details)
             end
