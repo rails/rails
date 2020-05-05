@@ -117,12 +117,7 @@ module ActionView
     attr_reader :identifier, :handler, :original_encoding, :updated_at
     attr_reader :variable, :format, :variant, :locals, :virtual_path
 
-    def initialize(source, identifier, handler, format: nil, variant: nil, locals: nil, virtual_path: nil, updated_at: nil)
-      unless locals
-        ActiveSupport::Deprecation.warn "ActionView::Template#initialize requires a locals parameter"
-        locals = []
-      end
-
+    def initialize(source, identifier, handler, locals:, format: nil, variant: nil, virtual_path: nil, updated_at: nil)
       @source            = source
       @identifier        = identifier
       @handler           = handler
@@ -150,7 +145,6 @@ module ActionView
     deprecate :original_encoding
     deprecate :updated_at
     deprecate def virtual_path=(_); end
-    deprecate def locals=(_); end
     deprecate def formats=(_); end
     deprecate def formats; Array(format); end
     deprecate def variants=(_); end
