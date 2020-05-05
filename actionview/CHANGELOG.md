@@ -1,3 +1,7 @@
+*   Remove deprecated `ActionView::Template#original_encoding`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActionView::Template#variants`.
 
     *Rafael Mendonça França*
