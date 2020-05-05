@@ -26,8 +26,7 @@ module ActionView
           if File.exist?(options[:file])
             Template::RawFile.new(options[:file])
           else
-            ActiveSupport::Deprecation.warn "render file: should be given the absolute path to a file"
-            @lookup_context.with_fallbacks.find_template(options[:file], nil, false, keys, @details)
+            raise ArgumentError, "`render file:` should be given the absolute path to a file. '#{options[:file]}' was given instead"
           end
         elsif options.key?(:inline)
           handler = Template.handler_for_extension(options[:type] || "erb")

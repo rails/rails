@@ -1,3 +1,7 @@
+*   Remove deprecated support to passing relative paths to `render file:`.
+
+    *Rafael Mendonça França*
+
 *   Remove support to template handlers that don't accept two arguments.
 
     *Rafael Mendonça França*
