@@ -145,7 +145,6 @@ module ActionMailer
               @mailer_class.name, @action.to_s, delivery_method.to_s, params: @params, args: @args)
           end
         end
-
     end
   end
 end

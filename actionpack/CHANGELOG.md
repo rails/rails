@@ -1,3 +1,7 @@
+*   Remove deprecated `force_ssl` at the controller level.
+
+    *Rafael Mendonça França*
+
 *   The +helper+ class method for controllers loads helper modules specified as
     strings/symbols with `String#constantize` instead of `require_dependency`.
 

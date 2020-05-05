@@ -93,7 +93,7 @@ module ActionController
     # the ones passed as arguments:
     #
     #   class MyAPIBaseController < ActionController::Metal
-    #     ActionController::API.without_modules(:ForceSSL, :UrlFor).each do |left|
+    #     ActionController::API.without_modules(:UrlFor).each do |left|
     #       include left
     #     end
     #   end
@@ -120,7 +120,6 @@ module ActionController
       BasicImplicitRender,
       StrongParameters,
 
-      ForceSSL,
       DataStreaming,
       DefaultHeaders,
       Logging,
