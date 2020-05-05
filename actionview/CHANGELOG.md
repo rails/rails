@@ -1,3 +1,11 @@
+*   Remove deprecated `ActionView::Template#updated_at`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `updated_at` argument required on `ActionView::Template#initialize`.
+
+    *Rafael Mendonça França*
+
 *   Make `locals` argument required on `ActionView::Template#initialize`.
 
     *Rafael Mendonça França*

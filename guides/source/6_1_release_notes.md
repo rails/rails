@@ -55,6 +55,10 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `ActionView::Template#updated_at`.
+
+*   Remove deprecated `updated_at` argument required on `ActionView::Template#initialize`.
+
 *   Make `locals` argument required on `ActionView::Template#initialize`.
 
 *   Remove deprecated `ActionView::Template.finalize_compiled_template_methods`.
