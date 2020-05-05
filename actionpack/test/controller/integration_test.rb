@@ -1205,7 +1205,7 @@ class IntegrationFileUploadTest < ActionDispatch::IntegrationTest
     self.class
   end
 
-  def self.fixture_path
+  def self.file_fixture_path
     File.expand_path("../fixtures/multipart", __dir__)
   end
 
