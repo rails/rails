@@ -202,6 +202,7 @@ module ActiveRecord
           else
             binds.map do |value|
               if ActiveModel::Attribute === value
+                yield unless value.serializable?
                 type_cast(value.value_for_database)
               else
                 type_cast(value)

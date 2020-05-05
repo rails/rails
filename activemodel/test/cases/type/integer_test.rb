@@ -81,27 +81,19 @@ module ActiveModel
       end
 
       test "values below int min value are out of range" do
-        assert_raises(ActiveModel::RangeError) do
-          Integer.new.serialize(-2147483649)
-        end
+        assert_not Integer.new.serializable?(-2147483649)
       end
 
       test "values above int max value are out of range" do
-        assert_raises(ActiveModel::RangeError) do
-          Integer.new.serialize(2147483648)
-        end
+        assert_not Integer.new.serializable?(2147483648)
       end
 
       test "very small numbers are out of range" do
-        assert_raises(ActiveModel::RangeError) do
-          Integer.new.serialize(-9999999999999999999999999999999)
-        end
+        assert_not Integer.new.serializable?(-9999999999999999999999999999999)
       end
 
       test "very large numbers are out of range" do
-        assert_raises(ActiveModel::RangeError) do
-          Integer.new.serialize(9999999999999999999999999999999)
-        end
+        assert_not Integer.new.serializable?(9999999999999999999999999999999)
       end
 
       test "normal numbers are in range" do
@@ -124,12 +116,8 @@ module ActiveModel
 
         assert_equal(9223372036854775807, type.serialize(9223372036854775807))
         assert_equal(-9223372036854775808, type.serialize(-9223372036854775808))
-        assert_raises(ActiveModel::RangeError) do
-          type.serialize(-9999999999999999999999999999999)
-        end
-        assert_raises(ActiveModel::RangeError) do
-          type.serialize(9999999999999999999999999999999)
-        end
+        assert_not type.serializable?(-9999999999999999999999999999999)
+        assert_not type.serializable?(9999999999999999999999999999999)
       end
     end
   end

@@ -41,7 +41,9 @@ module ActiveRecord
           materialize_transactions
           mark_transaction_written_if_write(sql)
 
-          type_casted_binds = type_casted_binds(binds)
+          type_casted_binds = type_casted_binds(binds) do
+            return ActiveRecord::Result.empty
+          end
 
           log(sql, name, binds, type_casted_binds) do
             ActiveSupport::Dependencies.interlock.permit_concurrent_loads do

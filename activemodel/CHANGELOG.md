@@ -1,3 +1,9 @@
+*   Change `serialize` so it does not raise.
+
+    `serialize` should be responsible for validation and serialization. We should check whether values are serializable before serializing them. Out-of-range integers will no longer raise a `RangeError` with this change. They will now return `nil` if the value is not serializable.
+
+    *Aaron Patterson*, *Eileen M. Uchitelle*
+
 *   Deprecate marshalling load from legacy attributes format.
 
     *Ryuta Kamizono*

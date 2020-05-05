@@ -25,7 +25,8 @@ module ActiveModel
 
       def serialize(value)
         return if value.is_a?(::String) && non_numeric_string?(value)
-        ensure_in_range(super)
+        return unless serializable?(value)
+        super
       end
 
       def serializable?(value)
@@ -42,13 +43,6 @@ module ActiveModel
 
         def cast_value(value)
           value.to_i rescue nil
-        end
-
-        def ensure_in_range(value)
-          unless in_range?(value)
-            raise ActiveModel::RangeError, "#{value} is out of range for #{self.class} with limit #{_limit} bytes"
-          end
-          value
         end
 
         def max_value

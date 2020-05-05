@@ -43,6 +43,10 @@ module ActiveModel
       @value
     end
 
+    def serializable?
+      type.serializable?(value_before_type_cast)
+    end
+
     def original_value
       if assigned?
         original_attribute.original_value
