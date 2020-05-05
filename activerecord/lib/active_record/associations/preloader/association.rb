@@ -6,7 +6,7 @@ module ActiveRecord
       class Association #:nodoc:
         def initialize(klass, owners, reflection, preload_scope)
           @klass         = klass
-          @owners        = owners
+          @owners        = owners.uniq(&:__id__)
           @reflection    = reflection
           @preload_scope = preload_scope
           @model         = owners.first && owners.first.class
