@@ -523,7 +523,7 @@ Applications can load Rails 6 defaults and still use the classic autoloader by s
 ```ruby
 # config/application.rb
 
-config.load_defaults "6.0"
+config.load_defaults 6.0
 config.autoloader = :classic
 ```
 

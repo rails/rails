@@ -162,7 +162,7 @@ defaults to `:debug` for all environments. The available log levels are: `:debug
 * `config.autoloader` sets the autoloading mode. This option defaults to `:zeitwerk` if `6.0` is specified in `config.load_defaults`. Applications can still use the classic autoloader by setting this value to `:classic` after loading the framework defaults:
 
     ```ruby
-    config.load_defaults "6.0"
+    config.load_defaults 6.0
     config.autoloader = :classic
     ```
 
