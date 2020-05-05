@@ -91,7 +91,7 @@ module ActiveRecord
         predicates.any? do |x|
           case x
           when Arel::Nodes::In
-            Array === x.right && x.right.empty?
+            Arel::Nodes::CastedArray === x.right && x.right.value.empty?
           when Arel::Nodes::Equality
             x.right.respond_to?(:unboundable?) && x.right.unboundable?
           end

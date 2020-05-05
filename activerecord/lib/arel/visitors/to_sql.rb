@@ -81,6 +81,10 @@ module Arel # :nodoc: all
           end
         end
 
+        def visit_Arel_Nodes_CastedArray(o, collector)
+          collector << o.value_for_database.map! { |v| quote(v) }.join(", ")
+        end
+
         def visit_Arel_Nodes_Casted(o, collector)
           collector << quote(o.value_for_database).to_s
         end
@@ -513,12 +517,8 @@ module Arel # :nodoc: all
           collector.preparable = false
           attr, values = o.left, o.right
 
-          if Array === values
-            unless values.empty?
-              values.delete_if { |value| unboundable?(value) }
-            end
-
-            return collector << "1=0" if values.empty?
+          if Arel::Nodes::CastedArray === values
+            return collector << "1=0" if values.value.empty?
           end
 
           visit(attr, collector) << " IN ("
@@ -529,12 +529,8 @@ module Arel # :nodoc: all
           collector.preparable = false
           attr, values = o.left, o.right
 
-          if Array === values
-            unless values.empty?
-              values.delete_if { |value| unboundable?(value) }
-            end
-
-            return collector << "1=1" if values.empty?
+          if Arel::Nodes::CastedArray === values
+            return collector << "1=1" if values.value.empty?
           end
 
           visit(attr, collector) << " NOT IN ("
