@@ -1,3 +1,8 @@
+*   Remove deprecated `ActionMailer::DeliveryJob` and `ActionMailer::Parameterized::DeliveryJob`
+    in favor of `ActionMailer::MailDeliveryJob`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActionMailer::Base.receive` in favor of [Action Mailbox](https://github.com/rails/rails/tree/master/actionmailbox).
 
     *Rafael Mendonça França*

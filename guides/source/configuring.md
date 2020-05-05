@@ -770,7 +770,7 @@ There are a number of settings available on `config.action_mailer`:
 
 * `config.action_mailer.perform_caching` specifies whether the mailer templates should perform fragment caching or not. If it's not specified, the default will be `true`.
 
-* `config.action_mailer.delivery_job` specifies delivery job for mail. Defaults to `ActionMailer::DeliveryJob`.
+* `config.action_mailer.delivery_job` specifies delivery job for mail. Defaults to `ActionMailer::MailDeliveryJob`.
 
 
 ### Configuring Active Support
