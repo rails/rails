@@ -137,8 +137,6 @@ module ActionView
     end
 
     deprecate :original_encoding
-    deprecate def variants=(_); end
-    deprecate def variants; [variant]; end
     deprecate def refresh(_); self; end
 
     # Returns whether the underlying handler supports streaming. If so,
