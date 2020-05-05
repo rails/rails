@@ -24,35 +24,11 @@ module ActionView #:nodoc:
         @@template_extensions ||= @@template_handlers.keys
       end
 
-      class LegacyHandlerWrapper < SimpleDelegator # :nodoc:
-        def call(view, source)
-          __getobj__.call(ActionView::Template::LegacyTemplate.new(view, source))
-        end
-      end
-
       # Register an object that knows how to handle template files with the given
       # extensions. This can be used to implement new template types.
       # The handler must respond to +:call+, which will be passed the template
       # and should return the rendered template as a String.
       def register_template_handler(*extensions, handler)
-        params = if handler.is_a?(Proc)
-          handler.parameters
-        else
-          handler.method(:call).parameters
-        end
-
-        unless params.find_all { |type, _| type == :req || type == :opt }.length >= 2
-          ActiveSupport::Deprecation.warn <<~eowarn
-          Single arity template handlers are deprecated. Template handlers must
-          now accept two parameters, the view object and the source for the view object.
-          Change:
-            >> #{handler}.call(#{params.map(&:last).join(", ")})
-          To:
-            >> #{handler}.call(#{params.map(&:last).join(", ")}, source)
-          eowarn
-          handler = LegacyHandlerWrapper.new(handler)
-        end
-
         raise(ArgumentError, "Extension is required") if extensions.empty?
         extensions.each do |extension|
           @@template_handlers[extension.to_sym] = handler

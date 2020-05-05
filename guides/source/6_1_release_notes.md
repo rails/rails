@@ -55,6 +55,8 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 ### Removals
 
+*   Remove support to template handlers that don't accept two arguments.
+
 *   Remove deprecated `ActionDispatch::Http::ParameterFilter`.
 
 *   Remove deprecated `force_ssl` at the controller level.
