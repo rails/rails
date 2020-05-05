@@ -547,32 +547,6 @@ module ActionMailer
       #    config.action_mailer.default_options = { from: "no-reply@example.org" }
       alias :default_options= :default
 
-      # Receives a raw email, parses it into an email object, decodes it,
-      # instantiates a new mailer, and passes the email object to the mailer
-      # object's +receive+ method.
-      #
-      # If you want your mailer to be able to process incoming messages, you'll
-      # need to implement a +receive+ method that accepts the raw email string
-      # as a parameter:
-      #
-      #   class MyMailer < ActionMailer::Base
-      #     def receive(mail)
-      #       # ...
-      #     end
-      #   end
-      def receive(raw_mail)
-        ActiveSupport::Deprecation.warn(<<~MESSAGE.squish)
-          ActionMailer::Base.receive is deprecated and will be removed in Rails 6.1.
-          Use Action Mailbox to process inbound email.
-        MESSAGE
-
-        ActiveSupport::Notifications.instrument("receive.action_mailer") do |payload|
-          mail = Mail.new(raw_mail)
-          set_payload_for_mail(payload, mail)
-          new.receive(mail)
-        end
-      end
-
       # Wraps an email delivery inside of <tt>ActiveSupport::Notifications</tt> instrumentation.
       #
       # This method is actually called by the <tt>Mail::Message</tt> object itself
