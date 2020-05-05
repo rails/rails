@@ -87,11 +87,17 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_collection_options_with_private_value_method
-    assert_deprecated("Using private methods from view helpers is deprecated (calling private Struct::Post#secret)") {  options_from_collection_for_select(dummy_posts, "secret", "title") }
+    e = assert_raise(NoMethodError) do
+      options_from_collection_for_select(dummy_posts, "secret", "title")
+    end
+    assert_match(/private method/, e.message)
   end
 
   def test_collection_options_with_private_text_method
-    assert_deprecated("Using private methods from view helpers is deprecated (calling private Struct::Post#secret)") {  options_from_collection_for_select(dummy_posts, "author_name", "secret") }
+    e = assert_raise(NoMethodError) do
+      options_from_collection_for_select(dummy_posts, "author_name", "secret")
+    end
+    assert_match(/private method/, e.message)
   end
 
   def test_collection_options_with_preselected_value

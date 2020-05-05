@@ -795,7 +795,7 @@ module ActionView
         def extract_values_from_collection(collection, value_method, selected)
           if selected.is_a?(Proc)
             collection.map do |element|
-              public_or_deprecated_send(element, value_method) if selected.call(element)
+              element.public_send(value_method) if selected.call(element)
             end.compact
           else
             selected
@@ -803,15 +803,7 @@ module ActionView
         end
 
         def value_for_collection(item, value)
-          value.respond_to?(:call) ? value.call(item) : public_or_deprecated_send(item, value)
-        end
-
-        def public_or_deprecated_send(item, value)
-          item.public_send(value)
-        rescue NoMethodError
-          raise unless item.respond_to?(value, true) && !item.respond_to?(value)
-          ActiveSupport::Deprecation.warn "Using private methods from view helpers is deprecated (calling private #{item.class}##{value})"
-          item.send(value)
+          value.respond_to?(:call) ? value.call(item) : item.public_send(value)
         end
 
         def prompt_text(prompt)

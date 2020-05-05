@@ -1,3 +1,7 @@
+*   Remove deprecated support to call private methods from object in some view helpers.
+
+    *Rafael Mendonça França*
+
 *   Instrument layout rendering in `TemplateRenderer#render_with_layout` as `render_layout.action_view`, and include (when necessary) the layout's virtual path in notification payloads for collection and partial renders.
 
     *Zach Kemp*
