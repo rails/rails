@@ -1,8 +1,3 @@
-*   Deprecate `starts_with?` and `ends_with?` for String core extensions.
-    Use the native `start_with?` and `end_with?` instead.
-
-    *Ryuta Kamizono*
-
 *   Add override of unary plus for `ActiveSupport::Duration`.
 
     `+ 1.second` is now identical to `+1.second` to prevent errors
