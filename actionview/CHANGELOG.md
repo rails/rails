@@ -1,3 +1,7 @@
+*   Remove deprecated support to call private methods from object in some view helpers.
+
+    *Rafael Mendonça França*
+
 *   `ActionView::Helpers::TranslationHelper#translate` accepts a block, yielding
     the translated text and the fully resolved translation key:
 
