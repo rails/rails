@@ -1,3 +1,11 @@
+*   Remove deprecated `ActionView::Template.finalize_compiled_template_methods`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `config.action_view.finalize_compiled_template_methods`
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support to calling `ActionView::ViewPaths#with_fallback` with a block.
 
     *Rafael Mendonça França*

@@ -55,6 +55,10 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `ActionView::Template.finalize_compiled_template_methods`.
+
+*   Remove deprecated `config.action_view.finalize_compiled_template_methods`
+
 *   Remove deprecated support to calling `ActionView::ViewPaths#with_fallback` with a block.
 
 *   Remove deprecated support to passing absolute paths to `render template:`.
