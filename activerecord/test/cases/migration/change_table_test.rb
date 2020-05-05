@@ -281,6 +281,13 @@ module ActiveRecord
         end
       end
 
+      def test_change_null_changes_column
+        with_change_table do |t|
+          @connection.expect :change_column_null, nil, [:delete_me, :bar, true, nil]
+          t.change_null :bar, true
+        end
+      end
+
       def test_remove_drops_single_column
         with_change_table do |t|
           if RUBY_VERSION < "2.7"
