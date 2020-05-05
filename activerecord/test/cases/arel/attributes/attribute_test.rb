@@ -31,38 +31,6 @@ module Arel
         end
       end
 
-      describe "#not_eq_any" do
-        it "should create a Grouping node" do
-          relation = Table.new(:users)
-          _(relation[:id].not_eq_any([1, 2])).must_be_kind_of Nodes::Grouping
-        end
-
-        it "should generate ORs in sql" do
-          relation = Table.new(:users)
-          mgr = relation.project relation[:id]
-          mgr.where relation[:id].not_eq_any([1, 2])
-          _(mgr.to_sql).must_be_like %{
-            SELECT "users"."id" FROM "users" WHERE ("users"."id" != 1 OR "users"."id" != 2)
-          }
-        end
-      end
-
-      describe "#not_eq_all" do
-        it "should create a Grouping node" do
-          relation = Table.new(:users)
-          _(relation[:id].not_eq_all([1, 2])).must_be_kind_of Nodes::Grouping
-        end
-
-        it "should generate ANDs in sql" do
-          relation = Table.new(:users)
-          mgr = relation.project relation[:id]
-          mgr.where relation[:id].not_eq_all([1, 2])
-          _(mgr.to_sql).must_be_like %{
-            SELECT "users"."id" FROM "users" WHERE ("users"."id" != 1 AND "users"."id" != 2)
-          }
-        end
-      end
-
       describe "#gt" do
         it "should create a GreaterThan node" do
           relation = Table.new(:users)
@@ -101,38 +69,6 @@ module Arel
         end
       end
 
-      describe "#gt_any" do
-        it "should create a Grouping node" do
-          relation = Table.new(:users)
-          _(relation[:id].gt_any([1, 2])).must_be_kind_of Nodes::Grouping
-        end
-
-        it "should generate ORs in sql" do
-          relation = Table.new(:users)
-          mgr = relation.project relation[:id]
-          mgr.where relation[:id].gt_any([1, 2])
-          _(mgr.to_sql).must_be_like %{
-            SELECT "users"."id" FROM "users" WHERE ("users"."id" > 1 OR "users"."id" > 2)
-          }
-        end
-      end
-
-      describe "#gt_all" do
-        it "should create a Grouping node" do
-          relation = Table.new(:users)
-          _(relation[:id].gt_all([1, 2])).must_be_kind_of Nodes::Grouping
-        end
-
-        it "should generate ANDs in sql" do
-          relation = Table.new(:users)
-          mgr = relation.project relation[:id]
-          mgr.where relation[:id].gt_all([1, 2])
-          _(mgr.to_sql).must_be_like %{
-            SELECT "users"."id" FROM "users" WHERE ("users"."id" > 1 AND "users"."id" > 2)
-          }
-        end
-      end
-
       describe "#gteq" do
         it "should create a GreaterThanOrEqual node" do
           relation = Table.new(:users)
@@ -157,38 +93,6 @@ module Arel
           current_time = ::Time.now
           mgr.where relation[:created_at].gteq(current_time)
           _(mgr.to_sql).must_match %{"users"."created_at" >= '#{current_time}'}
-        end
-      end
-
-      describe "#gteq_any" do
-        it "should create a Grouping node" do
-          relation = Table.new(:users)
-          _(relation[:id].gteq_any([1, 2])).must_be_kind_of Nodes::Grouping
-        end
-
-        it "should generate ORs in sql" do
-          relation = Table.new(:users)
-          mgr = relation.project relation[:id]
-          mgr.where relation[:id].gteq_any([1, 2])
-          _(mgr.to_sql).must_be_like %{
-            SELECT "users"."id" FROM "users" WHERE ("users"."id" >= 1 OR "users"."id" >= 2)
-          }
-        end
-      end
-
-      describe "#gteq_all" do
-        it "should create a Grouping node" do
-          relation = Table.new(:users)
-          _(relation[:id].gteq_all([1, 2])).must_be_kind_of Nodes::Grouping
-        end
-
-        it "should generate ANDs in sql" do
-          relation = Table.new(:users)
-          mgr = relation.project relation[:id]
-          mgr.where relation[:id].gteq_all([1, 2])
-          _(mgr.to_sql).must_be_like %{
-            SELECT "users"."id" FROM "users" WHERE ("users"."id" >= 1 AND "users"."id" >= 2)
-          }
         end
       end
 
@@ -219,38 +123,6 @@ module Arel
         end
       end
 
-      describe "#lt_any" do
-        it "should create a Grouping node" do
-          relation = Table.new(:users)
-          _(relation[:id].lt_any([1, 2])).must_be_kind_of Nodes::Grouping
-        end
-
-        it "should generate ORs in sql" do
-          relation = Table.new(:users)
-          mgr = relation.project relation[:id]
-          mgr.where relation[:id].lt_any([1, 2])
-          _(mgr.to_sql).must_be_like %{
-            SELECT "users"."id" FROM "users" WHERE ("users"."id" < 1 OR "users"."id" < 2)
-          }
-        end
-      end
-
-      describe "#lt_all" do
-        it "should create a Grouping node" do
-          relation = Table.new(:users)
-          _(relation[:id].lt_all([1, 2])).must_be_kind_of Nodes::Grouping
-        end
-
-        it "should generate ANDs in sql" do
-          relation = Table.new(:users)
-          mgr = relation.project relation[:id]
-          mgr.where relation[:id].lt_all([1, 2])
-          _(mgr.to_sql).must_be_like %{
-            SELECT "users"."id" FROM "users" WHERE ("users"."id" < 1 AND "users"."id" < 2)
-          }
-        end
-      end
-
       describe "#lteq" do
         it "should create a LessThanOrEqual node" do
           relation = Table.new(:users)
@@ -275,38 +147,6 @@ module Arel
           current_time = ::Time.now
           mgr.where relation[:created_at].lteq(current_time)
           _(mgr.to_sql).must_match %{"users"."created_at" <= '#{current_time}'}
-        end
-      end
-
-      describe "#lteq_any" do
-        it "should create a Grouping node" do
-          relation = Table.new(:users)
-          _(relation[:id].lteq_any([1, 2])).must_be_kind_of Nodes::Grouping
-        end
-
-        it "should generate ORs in sql" do
-          relation = Table.new(:users)
-          mgr = relation.project relation[:id]
-          mgr.where relation[:id].lteq_any([1, 2])
-          _(mgr.to_sql).must_be_like %{
-            SELECT "users"."id" FROM "users" WHERE ("users"."id" <= 1 OR "users"."id" <= 2)
-          }
-        end
-      end
-
-      describe "#lteq_all" do
-        it "should create a Grouping node" do
-          relation = Table.new(:users)
-          _(relation[:id].lteq_all([1, 2])).must_be_kind_of Nodes::Grouping
-        end
-
-        it "should generate ANDs in sql" do
-          relation = Table.new(:users)
-          mgr = relation.project relation[:id]
-          mgr.where relation[:id].lteq_all([1, 2])
-          _(mgr.to_sql).must_be_like %{
-            SELECT "users"."id" FROM "users" WHERE ("users"."id" <= 1 AND "users"."id" <= 2)
-          }
         end
       end
 
@@ -416,54 +256,6 @@ module Arel
         end
       end
 
-      describe "#eq_any" do
-        it "should create a Grouping node" do
-          relation = Table.new(:users)
-          _(relation[:id].eq_any([1, 2])).must_be_kind_of Nodes::Grouping
-        end
-
-        it "should generate ORs in sql" do
-          relation = Table.new(:users)
-          mgr = relation.project relation[:id]
-          mgr.where relation[:id].eq_any([1, 2])
-          _(mgr.to_sql).must_be_like %{
-            SELECT "users"."id" FROM "users" WHERE ("users"."id" = 1 OR "users"."id" = 2)
-          }
-        end
-
-        it "should not eat input" do
-          relation = Table.new(:users)
-          mgr = relation.project relation[:id]
-          values = [1, 2]
-          mgr.where relation[:id].eq_any(values)
-          _(values).must_equal [1, 2]
-        end
-      end
-
-      describe "#eq_all" do
-        it "should create a Grouping node" do
-          relation = Table.new(:users)
-          _(relation[:id].eq_all([1, 2])).must_be_kind_of Nodes::Grouping
-        end
-
-        it "should generate ANDs in sql" do
-          relation = Table.new(:users)
-          mgr = relation.project relation[:id]
-          mgr.where relation[:id].eq_all([1, 2])
-          _(mgr.to_sql).must_be_like %{
-            SELECT "users"."id" FROM "users" WHERE ("users"."id" = 1 AND "users"."id" = 2)
-          }
-        end
-
-        it "should not eat input" do
-          relation = Table.new(:users)
-          mgr = relation.project relation[:id]
-          values = [1, 2]
-          mgr.where relation[:id].eq_all(values)
-          _(values).must_equal [1, 2]
-        end
-      end
-
       describe "#matches" do
         it "should create a Matches node" do
           relation = Table.new(:users)
@@ -480,38 +272,6 @@ module Arel
         end
       end
 
-      describe "#matches_any" do
-        it "should create a Grouping node" do
-          relation = Table.new(:users)
-          _(relation[:name].matches_any(["%chunky%", "%bacon%"])).must_be_kind_of Nodes::Grouping
-        end
-
-        it "should generate ORs in sql" do
-          relation = Table.new(:users)
-          mgr = relation.project relation[:id]
-          mgr.where relation[:name].matches_any(["%chunky%", "%bacon%"])
-          _(mgr.to_sql).must_be_like %{
-            SELECT "users"."id" FROM "users" WHERE ("users"."name" LIKE '%chunky%' OR "users"."name" LIKE '%bacon%')
-          }
-        end
-      end
-
-      describe "#matches_all" do
-        it "should create a Grouping node" do
-          relation = Table.new(:users)
-          _(relation[:name].matches_all(["%chunky%", "%bacon%"])).must_be_kind_of Nodes::Grouping
-        end
-
-        it "should generate ANDs in sql" do
-          relation = Table.new(:users)
-          mgr = relation.project relation[:id]
-          mgr.where relation[:name].matches_all(["%chunky%", "%bacon%"])
-          _(mgr.to_sql).must_be_like %{
-            SELECT "users"."id" FROM "users" WHERE ("users"."name" LIKE '%chunky%' AND "users"."name" LIKE '%bacon%')
-          }
-        end
-      end
-
       describe "#does_not_match" do
         it "should create a DoesNotMatch node" do
           relation = Table.new(:users)
@@ -524,38 +284,6 @@ module Arel
           mgr.where relation[:name].does_not_match("%bacon%")
           _(mgr.to_sql).must_be_like %{
             SELECT "users"."id" FROM "users" WHERE "users"."name" NOT LIKE '%bacon%'
-          }
-        end
-      end
-
-      describe "#does_not_match_any" do
-        it "should create a Grouping node" do
-          relation = Table.new(:users)
-          _(relation[:name].does_not_match_any(["%chunky%", "%bacon%"])).must_be_kind_of Nodes::Grouping
-        end
-
-        it "should generate ORs in sql" do
-          relation = Table.new(:users)
-          mgr = relation.project relation[:id]
-          mgr.where relation[:name].does_not_match_any(["%chunky%", "%bacon%"])
-          _(mgr.to_sql).must_be_like %{
-            SELECT "users"."id" FROM "users" WHERE ("users"."name" NOT LIKE '%chunky%' OR "users"."name" NOT LIKE '%bacon%')
-          }
-        end
-      end
-
-      describe "#does_not_match_all" do
-        it "should create a Grouping node" do
-          relation = Table.new(:users)
-          _(relation[:name].does_not_match_all(["%chunky%", "%bacon%"])).must_be_kind_of Nodes::Grouping
-        end
-
-        it "should generate ANDs in sql" do
-          relation = Table.new(:users)
-          mgr = relation.project relation[:id]
-          mgr.where relation[:name].does_not_match_all(["%chunky%", "%bacon%"])
-          _(mgr.to_sql).must_be_like %{
-            SELECT "users"."id" FROM "users" WHERE ("users"."name" NOT LIKE '%chunky%' AND "users"."name" NOT LIKE '%bacon%')
           }
         end
       end
@@ -693,7 +421,7 @@ module Arel
         it "can be constructed with a subquery" do
           relation = Table.new(:users)
           mgr = relation.project relation[:id]
-          mgr.where relation[:name].does_not_match_all(["%chunky%", "%bacon%"])
+          mgr.where relation[:name].does_not_match("%chunky%")
           attribute = Attribute.new nil, nil
 
           node = attribute.in(mgr)
@@ -732,38 +460,6 @@ module Arel
           mgr.where relation[:id].in([1, 2, 3])
           _(mgr.to_sql).must_be_like %{
             SELECT "users"."id" FROM "users" WHERE "users"."id" IN (1, 2, 3)
-          }
-        end
-      end
-
-      describe "#in_any" do
-        it "should create a Grouping node" do
-          relation = Table.new(:users)
-          _(relation[:id].in_any([1, 2])).must_be_kind_of Nodes::Grouping
-        end
-
-        it "should generate ORs in sql" do
-          relation = Table.new(:users)
-          mgr = relation.project relation[:id]
-          mgr.where relation[:id].in_any([[1, 2], [3, 4]])
-          _(mgr.to_sql).must_be_like %{
-            SELECT "users"."id" FROM "users" WHERE ("users"."id" IN (1, 2) OR "users"."id" IN (3, 4))
-          }
-        end
-      end
-
-      describe "#in_all" do
-        it "should create a Grouping node" do
-          relation = Table.new(:users)
-          _(relation[:id].in_all([1, 2])).must_be_kind_of Nodes::Grouping
-        end
-
-        it "should generate ANDs in sql" do
-          relation = Table.new(:users)
-          mgr = relation.project relation[:id]
-          mgr.where relation[:id].in_all([[1, 2], [3, 4]])
-          _(mgr.to_sql).must_be_like %{
-            SELECT "users"."id" FROM "users" WHERE ("users"."id" IN (1, 2) AND "users"."id" IN (3, 4))
           }
         end
       end
@@ -908,7 +604,7 @@ module Arel
         it "can be constructed with a subquery" do
           relation = Table.new(:users)
           mgr = relation.project relation[:id]
-          mgr.where relation[:name].does_not_match_all(["%chunky%", "%bacon%"])
+          mgr.where relation[:name].does_not_match("%chunky%")
           attribute = Attribute.new nil, nil
 
           node = attribute.not_in(mgr)
@@ -959,54 +655,6 @@ module Arel
           mgr.where relation[:id].not_in([1, 2, 3])
           _(mgr.to_sql).must_be_like %{
             SELECT "users"."id" FROM "users" WHERE "users"."id" NOT IN (1, 2, 3)
-          }
-        end
-      end
-
-      describe "#not_in_any" do
-        it "should create a Grouping node" do
-          relation = Table.new(:users)
-          _(relation[:id].not_in_any([1, 2])).must_be_kind_of Nodes::Grouping
-        end
-
-        it "should generate ORs in sql" do
-          relation = Table.new(:users)
-          mgr = relation.project relation[:id]
-          mgr.where relation[:id].not_in_any([[1, 2], [3, 4]])
-          _(mgr.to_sql).must_be_like %{
-            SELECT "users"."id" FROM "users" WHERE ("users"."id" NOT IN (1, 2) OR "users"."id" NOT IN (3, 4))
-          }
-        end
-      end
-
-      describe "#not_in_all" do
-        it "should create a Grouping node" do
-          relation = Table.new(:users)
-          _(relation[:id].not_in_all([1, 2])).must_be_kind_of Nodes::Grouping
-        end
-
-        it "should generate ANDs in sql" do
-          relation = Table.new(:users)
-          mgr = relation.project relation[:id]
-          mgr.where relation[:id].not_in_all([[1, 2], [3, 4]])
-          _(mgr.to_sql).must_be_like %{
-            SELECT "users"."id" FROM "users" WHERE ("users"."id" NOT IN (1, 2) AND "users"."id" NOT IN (3, 4))
-          }
-        end
-      end
-
-      describe "#eq_all" do
-        it "should create a Grouping node" do
-          relation = Table.new(:users)
-          _(relation[:id].eq_all([1, 2])).must_be_kind_of Nodes::Grouping
-        end
-
-        it "should generate ANDs in sql" do
-          relation = Table.new(:users)
-          mgr = relation.project relation[:id]
-          mgr.where relation[:id].eq_all([1, 2])
-          _(mgr.to_sql).must_be_like %{
-            SELECT "users"."id" FROM "users" WHERE ("users"."id" = 1 AND "users"."id" = 2)
           }
         end
       end

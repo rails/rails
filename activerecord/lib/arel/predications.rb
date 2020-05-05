@@ -6,14 +6,6 @@ module Arel # :nodoc: all
       Nodes::NotEqual.new self, quoted_node(other)
     end
 
-    def not_eq_any(others)
-      grouping_any :not_eq, others
-    end
-
-    def not_eq_all(others)
-      grouping_all :not_eq, others
-    end
-
     def eq(other)
       Nodes::Equality.new self, quoted_node(other)
     end
@@ -24,14 +16,6 @@ module Arel # :nodoc: all
 
     def is_distinct_from(other)
       Nodes::IsDistinctFrom.new self, quoted_node(other)
-    end
-
-    def eq_any(others)
-      grouping_any :eq, others
-    end
-
-    def eq_all(others)
-      grouping_all :eq, quoted_array(others)
     end
 
     def between(other)
@@ -65,14 +49,6 @@ module Arel # :nodoc: all
       else
         Nodes::In.new self, quoted_node(other)
       end
-    end
-
-    def in_any(others)
-      grouping_any :in, others
-    end
-
-    def in_all(others)
-      grouping_all :in, others
     end
 
     def not_between(other)
@@ -110,28 +86,12 @@ module Arel # :nodoc: all
       end
     end
 
-    def not_in_any(others)
-      grouping_any :not_in, others
-    end
-
-    def not_in_all(others)
-      grouping_all :not_in, others
-    end
-
     def matches(other, escape = nil, case_sensitive = false)
       Nodes::Matches.new self, quoted_node(other), escape, case_sensitive
     end
 
     def matches_regexp(other, case_sensitive = true)
       Nodes::Regexp.new self, quoted_node(other), case_sensitive
-    end
-
-    def matches_any(others, escape = nil, case_sensitive = false)
-      grouping_any :matches, others, escape, case_sensitive
-    end
-
-    def matches_all(others, escape = nil, case_sensitive = false)
-      grouping_all :matches, others, escape, case_sensitive
     end
 
     def does_not_match(other, escape = nil, case_sensitive = false)
@@ -142,60 +102,20 @@ module Arel # :nodoc: all
       Nodes::NotRegexp.new self, quoted_node(other), case_sensitive
     end
 
-    def does_not_match_any(others, escape = nil)
-      grouping_any :does_not_match, others, escape
-    end
-
-    def does_not_match_all(others, escape = nil)
-      grouping_all :does_not_match, others, escape
-    end
-
     def gteq(right)
       Nodes::GreaterThanOrEqual.new self, quoted_node(right)
-    end
-
-    def gteq_any(others)
-      grouping_any :gteq, others
-    end
-
-    def gteq_all(others)
-      grouping_all :gteq, others
     end
 
     def gt(right)
       Nodes::GreaterThan.new self, quoted_node(right)
     end
 
-    def gt_any(others)
-      grouping_any :gt, others
-    end
-
-    def gt_all(others)
-      grouping_all :gt, others
-    end
-
     def lt(right)
       Nodes::LessThan.new self, quoted_node(right)
     end
 
-    def lt_any(others)
-      grouping_any :lt, others
-    end
-
-    def lt_all(others)
-      grouping_all :lt, others
-    end
-
     def lteq(right)
       Nodes::LessThanOrEqual.new self, quoted_node(right)
-    end
-
-    def lteq_any(others)
-      grouping_any :lteq, others
-    end
-
-    def lteq_all(others)
-      grouping_all :lteq, others
     end
 
     def when(right)
@@ -219,18 +139,6 @@ module Arel # :nodoc: all
     end
 
     private
-      def grouping_any(method_id, others, *extras)
-        nodes = others.map { |expr| send(method_id, expr, *extras) }
-        Nodes::Grouping.new nodes.inject { |memo, node|
-          Nodes::Or.new(memo, node)
-        }
-      end
-
-      def grouping_all(method_id, others, *extras)
-        nodes = others.map { |expr| send(method_id, expr, *extras) }
-        Nodes::Grouping.new Nodes::And.new(nodes)
-      end
-
       def quoted_node(other)
         Nodes.build_quoted(other, self)
       end
