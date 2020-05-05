@@ -134,7 +134,7 @@ module ActionView
       #   #    <option selected="selected">MasterCard</option></select>
       def select_tag(name, option_tags = nil, options = {})
         option_tags ||= ""
-        html_name = (options[:multiple] == true && !name.to_s.ends_with?("[]")) ? "#{name}[]" : name
+        html_name = (options[:multiple] == true && !name.to_s.end_with?("[]")) ? "#{name}[]" : name
 
         if options.include?(:include_blank)
           include_blank = options[:include_blank]

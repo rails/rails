@@ -1212,17 +1212,6 @@ The `inquiry` method converts a string into a `StringInquirer` object making equ
 
 NOTE: Defined in `active_support/core_ext/string/inquiry.rb`.
 
-### `starts_with?` and `ends_with?`
-
-Active Support defines 3rd person aliases of `String#start_with?` and `String#end_with?`:
-
-```ruby
-"foo".starts_with?("f") # => true
-"foo".ends_with?("o")   # => true
-```
-
-NOTE: Defined in `active_support/core_ext/string/starts_ends_with.rb`.
-
 ### `strip_heredoc`
 
 The method `strip_heredoc` strips indentation in heredocs.

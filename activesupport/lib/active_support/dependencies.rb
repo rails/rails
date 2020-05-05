@@ -12,7 +12,6 @@ require "active_support/core_ext/object/blank"
 require "active_support/core_ext/kernel/reporting"
 require "active_support/core_ext/load_error"
 require "active_support/core_ext/name_error"
-require "active_support/core_ext/string/starts_ends_with"
 require "active_support/dependencies/interlock"
 require "active_support/inflector"
 
@@ -453,7 +452,7 @@ module ActiveSupport #:nodoc:
 
     # Search for a file in autoload_paths matching the provided suffix.
     def search_for_file(path_suffix)
-      path_suffix += ".rb" unless path_suffix.ends_with?(".rb")
+      path_suffix += ".rb" unless path_suffix.end_with?(".rb")
 
       autoload_paths.each do |root|
         path = File.join(root, path_suffix)
@@ -473,9 +472,9 @@ module ActiveSupport #:nodoc:
     end
 
     def load_once_path?(path)
-      # to_s works around a ruby issue where String#starts_with?(Pathname)
+      # to_s works around a ruby issue where String#start_with?(Pathname)
       # will raise a TypeError: no implicit conversion of Pathname into String
-      autoload_once_paths.any? { |base| path.starts_with? base.to_s }
+      autoload_once_paths.any? { |base| path.start_with?(base.to_s) }
     end
 
     # Attempt to autoload the provided module name by searching for a directory
@@ -585,7 +584,7 @@ module ActiveSupport #:nodoc:
       end
 
       name_error = NameError.new("uninitialized constant #{qualified_name}", const_name)
-      name_error.set_backtrace(caller.reject { |l| l.starts_with? __FILE__ })
+      name_error.set_backtrace(caller.reject { |l| l.start_with?(__FILE__) })
       raise name_error
     end
 

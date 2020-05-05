@@ -4,7 +4,6 @@ require "isolation/abstract_unit"
 require "rack/test"
 require "env_helpers"
 require "set"
-require "active_support/core_ext/string/starts_ends_with"
 
 class ::MyMailInterceptor
   def self.delivering_email(email); email; end
@@ -1710,8 +1709,8 @@ module ApplicationTests
     test "autoload paths do not include asset paths" do
       app "development"
       ActiveSupport::Dependencies.autoload_paths.each do |path|
-        assert_not_operator path, :ends_with?, "app/assets"
-        assert_not_operator path, :ends_with?, "app/javascript"
+        assert_not_operator path, :end_with?, "app/assets"
+        assert_not_operator path, :end_with?, "app/javascript"
       end
     end
 
@@ -1722,8 +1721,8 @@ module ApplicationTests
       app "development"
 
       ActiveSupport::Dependencies.autoload_paths.each do |path|
-        assert_not_operator path, :ends_with?, "app/assets"
-        assert_not_operator path, :ends_with?, "app/webpack"
+        assert_not_operator path, :end_with?, "app/assets"
+        assert_not_operator path, :end_with?, "app/webpack"
       end
     end
 
@@ -1733,7 +1732,7 @@ module ApplicationTests
       # Action Mailer modifies AS::Dependencies.autoload_paths in-place.
       autoload_paths = ActiveSupport::Dependencies.autoload_paths
       autoload_paths_from_app_and_engines = autoload_paths.reject do |path|
-        path.ends_with?("mailers/previews")
+        path.end_with?("mailers/previews")
       end
       assert_equal true, Rails.configuration.add_autoload_paths_to_load_path
       assert_empty autoload_paths_from_app_and_engines - $LOAD_PATH
