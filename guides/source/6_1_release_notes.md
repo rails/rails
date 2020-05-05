@@ -55,6 +55,8 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 ### Removals
 
+*   Make `locals` argument required on `ActionView::Template#initialize`.
+
 *   Remove deprecated `ActionView::Template.finalize_compiled_template_methods`.
 
 *   Remove deprecated `config.action_view.finalize_compiled_template_methods`

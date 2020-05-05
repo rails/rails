@@ -1,3 +1,7 @@
+*   Make `locals` argument required on `ActionView::Template#initialize`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActionView::Template.finalize_compiled_template_methods`.
 
     *Rafael Mendonça França*
