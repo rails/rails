@@ -41,7 +41,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :readers, :people, :comments, :authors, :categories, :taggings, :tags,
            :owners, :pets, :toys, :jobs, :references, :companies, :members, :author_addresses,
            :subscribers, :books, :subscriptions, :developers, :categorizations, :essays,
-           :categories_posts, :clubs, :memberships, :organizations
+           :categories_posts, :clubs, :memberships, :organizations, :author_favorites
 
   # Dummies to force column loads so query counts are clean.
   def setup
@@ -67,11 +67,13 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_preload_with_nested_association
-    posts = Post.preload(:author, :author_favorites_with_scope).to_a
+    posts = Post.where(id: [authors(:david).id, authors(:mary).id]).
+      preload(:author, :author_favorites_with_scope).order(:id).to_a
 
     assert_no_queries do
       posts.each(&:author)
       posts.each(&:author_favorites_with_scope)
+      assert_equal 1, posts[0].author_favorites_with_scope.length
     end
   end
 
