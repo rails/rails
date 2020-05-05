@@ -114,7 +114,7 @@ module ActionView
 
     extend Template::Handlers
 
-    attr_reader :identifier, :handler, :original_encoding
+    attr_reader :identifier, :handler
     attr_reader :variable, :format, :variant, :locals, :virtual_path
 
     def initialize(source, identifier, handler, locals:, format: nil, variant: nil, virtual_path: nil)
@@ -136,7 +136,6 @@ module ActionView
       @compile_mutex     = Mutex.new
     end
 
-    deprecate :original_encoding
     deprecate def refresh(_); self; end
 
     # Returns whether the underlying handler supports streaming. If so,
