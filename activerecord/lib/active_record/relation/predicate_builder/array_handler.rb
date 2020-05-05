@@ -21,10 +21,21 @@ module ActiveRecord
           when 0 then NullPredicate
           when 1 then predicate_builder.build(attribute, values.first)
           else
-            values.map! do |v|
-              predicate_builder.build_bind_attribute(attribute.name, v)
+            if nils.empty? && ranges.empty?
+              type = attribute.type_caster
+
+              casted_values = values.map do |raw_value|
+                type.unchecked_serialize(raw_value) if type.serializable?(raw_value)
+              end
+
+              casted_values.compact!
+
+              return Arel::Nodes::HomogeneousIn.new(casted_values, attribute, :in)
+            else
+              attribute.in values.map { |v|
+                predicate_builder.build_bind_attribute(attribute.name, v)
+              }
             end
-            values.empty? ? NullPredicate : attribute.in(values)
           end
 
         unless nils.empty?
