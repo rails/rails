@@ -66,6 +66,14 @@ class CacheStoreSettingTest < ActiveSupport::TestCase
     assert_equal "/path/to/cache/directory", store.cache_path
   end
 
+  def test_redis_cache_store_with_single_array_object
+    cache_store = [:redis_cache_store, namespace: "foo"]
+
+    store = ActiveSupport::Cache.lookup_store(cache_store)
+    assert_kind_of ActiveSupport::Cache::RedisCacheStore, store
+    assert_equal "foo", store.options[:namespace]
+  end
+
   def test_redis_cache_store_with_ordered_options
     options = ActiveSupport::OrderedOptions.new
     options.update namespace: "foo"

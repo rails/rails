@@ -393,7 +393,7 @@ module Arel
           attribute = Attribute.new nil, nil
           equality = attribute.eq 1
           _(equality.left).must_equal attribute
-          _(equality.right.val).must_equal 1
+          _(equality.right.value).must_equal 1
           _(equality).must_be_kind_of Nodes::Equality
         end
 
@@ -618,14 +618,14 @@ module Arel
           attribute = Attribute.new nil, nil
           node = attribute.between(-::Float::INFINITY..::Float::INFINITY)
 
-          _(node).must_equal Nodes::NotIn.new(attribute, [])
+          _(node).must_equal attribute.not_in([])
         end
 
         it "can be constructed with a quoted infinite range" do
           attribute = Attribute.new nil, nil
           node = attribute.between(quoted_range(-::Float::INFINITY, ::Float::INFINITY, false))
 
-          _(node).must_equal Nodes::NotIn.new(attribute, [])
+          _(node).must_equal attribute.not_in([])
         end
 
         it "can be constructed with a range ending at Infinity" do
@@ -707,11 +707,7 @@ module Arel
 
           _(node).must_equal Nodes::In.new(
             attribute,
-            [
-              Nodes::Casted.new(1, attribute),
-              Nodes::Casted.new(2, attribute),
-              Nodes::Casted.new(3, attribute),
-            ]
+            Nodes::CastedArray.new([1, 2, 3], attribute)
           )
         end
 
@@ -831,14 +827,14 @@ module Arel
           attribute = Attribute.new nil, nil
           node = attribute.not_between(-::Float::INFINITY..::Float::INFINITY)
 
-          _(node).must_equal Nodes::In.new(attribute, [])
+          _(node).must_equal attribute.in([])
         end
 
         it "can be constructed with a quoted infinite range" do
           attribute = Attribute.new nil, nil
           node = attribute.not_between(quoted_range(-::Float::INFINITY, ::Float::INFINITY, false))
 
-          _(node).must_equal Nodes::In.new(attribute, [])
+          _(node).must_equal attribute.in([])
         end
 
         it "can be constructed with a range ending at Infinity" do
@@ -934,11 +930,7 @@ module Arel
 
           _(node).must_equal Nodes::NotIn.new(
             attribute,
-            [
-              Nodes::Casted.new(1, attribute),
-              Nodes::Casted.new(2, attribute),
-              Nodes::Casted.new(3, attribute),
-            ]
+            Nodes::CastedArray.new([1, 2, 3], attribute)
           )
         end
 

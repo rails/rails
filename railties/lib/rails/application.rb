@@ -8,6 +8,7 @@ require "active_support/message_verifier"
 require "active_support/encrypted_configuration"
 require "active_support/deprecation"
 require "active_support/hash_with_indifferent_access"
+require "active_support/configuration_file"
 require "rails/engine"
 require "rails/secrets"
 
@@ -45,7 +46,7 @@ module Rails
   # process. From the moment you require "config/application.rb" in your app,
   # the booting process goes like this:
   #
-  #   1)  require "config/boot.rb" to setup load paths
+  #   1)  require "config/boot.rb" to set up load paths
   #   2)  require railties and engines
   #   3)  Define Rails.application as "class MyApp::Application < Rails::Application"
   #   4)  Run config.before_configuration callbacks
@@ -205,12 +206,13 @@ module Rails
 
     # Convenience for loading config/foo.yml for the current Rails env.
     #
-    # Example:
+    # Examples:
     #
     #     # config/exception_notification.yml:
     #     production:
     #       url: http://127.0.0.1:8080
     #       namespace: my_app_production
+    #
     #     development:
     #       url: http://localhost:3001
     #       namespace: my_app_development
@@ -219,12 +221,30 @@ module Rails
     #     Rails.application.configure do
     #       config.middleware.use ExceptionNotifier, config_for(:exception_notification)
     #     end
+    #
+    #     # You can also store configurations in a shared section which will be
+    #     # merged with the environment configuration
+    #
+    #     # config/example.yml
+    #     shared:
+    #       foo:
+    #         bar:
+    #           baz: 1
+    #
+    #     development:
+    #       foo:
+    #         bar:
+    #           qux: 2
+    #
+    #     # development environment
+    #     Rails.application.config_for(:example)[:foo][:bar]
+    #     # => { baz: 1, qux: 2 }
     def config_for(name, env: Rails.env)
       yaml = name.is_a?(Pathname) ? name : Pathname.new("#{paths["config"].existent.first}/#{name}.yml")
 
       if yaml.exist?
         require "erb"
-        all_configs    = YAML.load(ERB.new(yaml.read).result, symbolize_names: true) || {}
+        all_configs    = ActiveSupport::ConfigurationFile.parse(yaml, symbolize_names: true)
         config, shared = all_configs[env.to_sym], all_configs[:shared]
 
         if config.is_a?(Hash)
@@ -235,10 +255,6 @@ module Rails
       else
         raise "Could not load configuration. No such file - #{yaml}"
       end
-    rescue Psych::SyntaxError => error
-      raise "YAML syntax error occurred while parsing #{yaml}. " \
-        "Please note that YAML must be consistently indented using spaces. Tabs are not allowed. " \
-        "Error: #{error.message}"
     end
 
     # Stores some of the Rails initial environment parameters which

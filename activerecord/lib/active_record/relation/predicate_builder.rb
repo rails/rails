@@ -67,7 +67,7 @@ module ActiveRecord
 
         attributes.flat_map do |key, value|
           if value.is_a?(Hash) && !table.has_column?(key)
-            associated_predicate_builder(key).expand_from_hash(value)
+            table.associated_predicate_builder(key).expand_from_hash(value)
           elsif table.associated_with?(key)
             # Find the foreign key when using queries such as:
             # Post.where(author: author)
@@ -84,10 +84,17 @@ module ActiveRecord
             end
 
             klass ||= AssociationQueryValue
-            queries = klass.new(associated_table, value).queries.map do |query|
-              expand_from_hash(query).reduce(&:and)
+            queries = klass.new(associated_table, value).queries.map! do |query|
+              expand_from_hash(query)
             end
-            queries.reduce(&:or)
+
+            if queries.one?
+              queries.first
+            else
+              queries.map! { |query| query.reduce(&:and) }
+              queries = queries.reduce { |result, query| Arel::Nodes::Or.new(result, query) }
+              Arel::Nodes::Grouping.new(queries)
+            end
           elsif table.aggregated_with?(key)
             mapping = table.reflect_on_aggregation(key).mapping
             values = value.nil? ? [nil] : Array.wrap(value)
@@ -113,10 +120,6 @@ module ActiveRecord
 
     private
       attr_reader :table
-
-      def associated_predicate_builder(association_name)
-        self.class.new(table.associated_table(association_name))
-      end
 
       def convert_dot_notation_to_hash(attributes)
         dot_notation = attributes.select do |k, v|

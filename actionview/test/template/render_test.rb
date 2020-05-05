@@ -265,14 +265,14 @@ module RenderTestCases
   end
 
   def test_render_partial_with_invalid_option_as
-    e = assert_raises(ArgumentError) { @view.render(partial: "test/partial_only", as: "a-in") }
+    e = assert_raises(ArgumentError) { @view.render(partial: "test/partial_only", as: "a-in", object: nil) }
     assert_equal "The value (a-in) of the option `as` is not a valid Ruby identifier; " \
       "make sure it starts with lowercase letter, " \
       "and is followed by any combination of letters, numbers and underscores.", e.message
   end
 
   def test_render_partial_with_hyphen_and_invalid_option_as
-    e = assert_raises(ArgumentError) { @view.render(partial: "test/a-in", as: "a-in") }
+    e = assert_raises(ArgumentError) { @view.render(partial: "test/a-in", as: "a-in", object: nil) }
     assert_equal "The value (a-in) of the option `as` is not a valid Ruby identifier; " \
       "make sure it starts with lowercase letter, " \
       "and is followed by any combination of letters, numbers and underscores.", e.message
@@ -323,6 +323,10 @@ module RenderTestCases
     assert_equal "Hello: david", @view.render(partial: "test/customer", object: Customer.new("david"))
     assert_equal "FalseClass", @view.render(partial: "test/klass", object: false)
     assert_equal "NilClass", @view.render(partial: "test/klass", object: nil)
+  end
+
+  def test_render_object_different_name
+    assert_equal "Hello: t.lo", @view.render(partial: "test/template_not_named_customer", object: Customer.new("t.lo"), as: "customer").chomp
   end
 
   def test_render_object_with_array
@@ -677,17 +681,9 @@ module RenderTestCases
 
   def test_render_component
     assert_equal(
-      %(<span title="my title">Hello, World! (Inline render)</span>),
-      @view.render(TestComponent.new(title: "my title")) { "Hello, World!" }.strip
+      %(Hello, World!),
+      @view.render(TestComponent.new)
     )
-  end
-
-  def test_render_component_with_validation_error
-    error = assert_raises(ActiveModel::ValidationError) do
-      @view.render(TestComponent.new(title: "my title")).strip
-    end
-
-    assert_match "Content can't be blank", error.message
   end
 end
 

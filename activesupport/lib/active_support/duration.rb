@@ -295,6 +295,10 @@ module ActiveSupport
       Duration.new(-value, parts.transform_values(&:-@))
     end
 
+    def +@ #:nodoc:
+      self
+    end
+
     def is_a?(klass) #:nodoc:
       Duration == klass || value.is_a?(klass)
     end

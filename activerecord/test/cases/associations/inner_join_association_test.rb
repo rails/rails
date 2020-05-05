@@ -110,7 +110,7 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
 
   def test_join_conditions_allow_nil_associations
     authors = Author.includes(:essays).where(essays: { id: nil })
-    assert_equal 2, authors.count
+    assert_equal 1, authors.count
   end
 
   def test_find_with_implicit_inner_joins_without_select_does_not_imply_readonly

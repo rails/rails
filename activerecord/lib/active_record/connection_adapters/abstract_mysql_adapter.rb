@@ -360,7 +360,9 @@ module ActiveRecord
       end
 
       def add_index(table_name, column_name, options = {}) #:nodoc:
-        index_name, index_type, index_columns, _, index_algorithm, index_using, comment = add_index_options(table_name, column_name, **options)
+        return if options[:if_not_exists] && index_exists?(table_name, column_name, options)
+
+        index_name, index_type, index_columns, _, _, index_algorithm, index_using, comment = add_index_options(table_name, column_name, **options)
         sql = +"CREATE #{index_type} INDEX #{quote_column_name(index_name)} #{index_using} ON #{quote_table_name(table_name)} (#{index_columns}) #{index_algorithm}"
         execute add_sql_comment!(sql, comment)
       end
@@ -487,7 +489,7 @@ module ActiveRecord
       def columns_for_distinct(columns, orders) # :nodoc:
         order_columns = orders.compact_blank.map { |s|
           # Convert Arel node to string
-          s = s.to_sql unless s.is_a?(String)
+          s = visitor.compile(s) unless s.is_a?(String)
           # Remove any ASC/DESC modifiers
           s.gsub(/\s+(?:ASC|DESC)\b/i, "")
         }.compact_blank.map.with_index { |column, i| "#{column} AS alias_#{i}" }
@@ -511,6 +513,7 @@ module ActiveRecord
           sql << " ON DUPLICATE KEY UPDATE #{no_op_column}=#{no_op_column}"
         elsif insert.update_duplicates?
           sql << " ON DUPLICATE KEY UPDATE "
+          sql << insert.touch_model_timestamps_unless { |column| "#{column}<=>VALUES(#{column})" }
           sql << insert.updatable_columns.map { |column| "#{column}=VALUES(#{column})" }.join(",")
         end
 
@@ -662,7 +665,8 @@ module ActiveRecord
           options = {
             default: column.default,
             null: column.null,
-            auto_increment: column.auto_increment?
+            auto_increment: column.auto_increment?,
+            comment: column.comment
           }
 
           current_type = exec_query("SHOW COLUMNS FROM #{quote_table_name(table_name)} LIKE #{quote(column_name)}", "SCHEMA").first["Type"]
@@ -672,7 +676,7 @@ module ActiveRecord
         end
 
         def add_index_for_alter(table_name, column_name, options = {})
-          index_name, index_type, index_columns, _, index_algorithm, index_using = add_index_options(table_name, column_name, **options)
+          index_name, index_type, index_columns, _, _, index_algorithm, index_using = add_index_options(table_name, column_name, **options)
           index_algorithm[0, 0] = ", " if index_algorithm.present?
           "ADD #{index_type} INDEX #{quote_column_name(index_name)} #{index_using} (#{index_columns})#{index_algorithm}"
         end

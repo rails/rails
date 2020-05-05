@@ -412,8 +412,7 @@ module ActionView
       # Creates a link tag of the given +name+ using a URL created by the set of
       # +options+ if +condition+ is true, otherwise only the name is
       # returned. To specialize the default behavior, you can pass a block that
-      # accepts the name or the full argument list for +link_to_unless+ (see the examples
-      # in +link_to_unless+).
+      # accepts the name or the full argument list for +link_to_if+.
       #
       # ==== Examples
       #   <%= link_to_if(@current_user.nil?, "Login", { controller: "sessions", action: "new" }) %>

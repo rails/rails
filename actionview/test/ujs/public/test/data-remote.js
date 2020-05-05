@@ -37,7 +37,7 @@ module('data-remote', {
         href: '/echo',
         'data-remote': 'true',
         disabled: 'disabled',
-        text: 'Disabed link'
+        text: 'Disabled link'
       }))
       .find('form').append($('<input type="text" name="user_name" value="john">'))
 
@@ -47,7 +47,7 @@ module('data-remote', {
 asyncTest('ctrl-clicking on a link does not fire ajaxyness', 0, function() {
   var link = $('a[data-remote]')
 
-  // Ideally, we'd setup an iframe to intercept normal link clicks
+  // Ideally, we'd set up an iframe to intercept normal link clicks
   // and add a test to make sure the iframe:loaded event is triggered.
   // However, jquery doesn't actually cause a native `click` event and
   // follow links using `trigger('click')`, it only fires bindings.
@@ -66,7 +66,7 @@ asyncTest('ctrl-clicking on a link does not fire ajaxyness', 0, function() {
 asyncTest('right/mouse-wheel-clicking on a link does not fire ajaxyness', 0, function() {
   var link = $('a[data-remote]')
 
-  // Ideally, we'd setup an iframe to intercept normal link clicks
+  // Ideally, we'd set up an iframe to intercept normal link clicks
   // and add a test to make sure the iframe:loaded event is triggered.
   // However, jquery doesn't actually cause a native `click` event and
   // follow links using `trigger('click')`, it only fires bindings.
@@ -184,7 +184,7 @@ asyncTest('clicking on a button with data-remote attribute', 5, function() {
 asyncTest('right/mouse-wheel-clicking on a button with data-remote attribute does not fire ajaxyness', 0, function() {
   var button = $('button[data-remote]')
 
-  // Ideally, we'd setup an iframe to intercept normal link clicks
+  // Ideally, we'd set up an iframe to intercept normal link clicks
   // and add a test to make sure the iframe:loaded event is triggered.
   // However, jquery doesn't actually cause a native `click` event and
   // follow links using `trigger('click')`, it only fires bindings.

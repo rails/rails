@@ -202,7 +202,7 @@ module ActiveRecord
         @pool.disconnect!
 
         config = @db_config.configuration_hash.merge(idle_timeout: "0.02")
-        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(@db_config.env_name, @db_config.spec_name, config)
+        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(@db_config.env_name, @db_config.name, config)
 
         pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new("primary", db_config)
         @pool = ConnectionPool.new(pool_config)
@@ -230,7 +230,7 @@ module ActiveRecord
         @pool.disconnect!
 
         config = @db_config.configuration_hash.merge(idle_timeout: -5)
-        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(@db_config.env_name, @db_config.spec_name, config)
+        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(@db_config.env_name, @db_config.name, config)
         pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new("primary", db_config)
         @pool = ConnectionPool.new(pool_config)
         idle_conn = @pool.checkout

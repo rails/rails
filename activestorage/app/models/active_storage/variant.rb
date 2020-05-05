@@ -10,7 +10,7 @@ require "ostruct"
 # of the file, so you must add <tt>gem "image_processing"</tt> to your Gemfile if you wish to use variants. By
 # default, images will be processed with {ImageMagick}[http://imagemagick.org] using the
 # {MiniMagick}[https://github.com/minimagick/minimagick] gem, but you can also switch to the
-# {libvips}[http://jcupitt.github.io/libvips/] processor operated by the {ruby-vips}[https://github.com/jcupitt/ruby-vips]
+# {libvips}[http://libvips.github.io/libvips/] processor operated by the {ruby-vips}[https://github.com/libvips/ruby-vips]
 # gem).
 #
 #   Rails.application.config.active_storage.variant_processor
@@ -53,8 +53,6 @@ require "ostruct"
 # * {ImageProcessing::Vips}[https://github.com/janko-m/image_processing/blob/master/doc/vips.md#methods]
 # * {ruby-vips reference}[http://www.rubydoc.info/gems/ruby-vips/Vips/Image]
 class ActiveStorage::Variant
-  WEB_IMAGE_CONTENT_TYPES = %w[ image/png image/jpeg image/jpg image/gif ]
-
   attr_reader :blob, :variation
   delegate :service, to: :blob
 
@@ -106,7 +104,7 @@ class ActiveStorage::Variant
 
     def specification
       @specification ||=
-        if WEB_IMAGE_CONTENT_TYPES.include?(blob.content_type)
+        if ActiveStorage.web_image_content_types.include?(blob.content_type)
           Specification.new \
             filename: blob.filename,
             content_type: blob.content_type,

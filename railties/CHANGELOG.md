@@ -1,4 +1,32 @@
-*   Add benchmark generator
+*   No longer include `rake rdoc` task when generating plugins.
+
+    To generate docs, use the `rdoc lib` command instead.
+
+    *Jonathan Hefner*
+
+*   Allow relative paths with trailing slashes to be passed to `rails test`.
+
+    *Eugene Kenny*
+
+*   Add `rack-mini-profiler` gem to the default `Gemfile`.
+
+    `rack-mini-profiler` displays performance information such as SQL time and flame graphs.
+    It's enabled by default in development environment, but can be enabled in production as well.
+    See the gem [README](https://github.com/MiniProfiler/rack-mini-profiler/blob/master/README.md) for information on how to enable it in production.
+
+    *Osama Sayegh*
+
+*   `rails stats` will now count TypeScript files toward JavaScript stats.
+
+    *Joshua Cody*
+
+*   Run `git init` when generating plugins.
+
+    Opt out with `--skip-git`.
+
+    *OKURA Masafumi*
+
+*   Add benchmark generator.
 
     Introduce benchmark generator to benchmark Rails applications.
 
@@ -12,7 +40,7 @@
 
     *Kevin Jalbert*, *Gannon McGibbon*
 
-*   Cache compiled view templates when running tests by default
+*   Cache compiled view templates when running tests by default.
 
     When generating a new app without `--skip-spring`, caching classes is
     disabled in `environments/test.rb`. This implicitly disables caching
@@ -25,7 +53,7 @@
 
     *Jorge Manrubia*
 
-*   Introduce middleware move operations
+*   Introduce middleware move operations.
 
     With this change, you no longer need to delete and reinsert a middleware to
     move it from one place to another in the stack:
@@ -43,7 +71,7 @@
 
     *Genadi Samokovarov*
 
-*   Generators that inherit from NamedBase respect `--force` option
+*   Generators that inherit from NamedBase respect `--force` option.
 
     *Josh Brody*
 
@@ -55,7 +83,7 @@
 
     *Thierry Joyal*
 
-*   Ensure Rails migration generator respects system-wide primary key config
+*   Ensure Rails migration generator respects system-wide primary key config.
 
     When rails is configured to use a specific primary key type:
 
@@ -74,9 +102,9 @@
     The references line in the migration would not have `type: :uuid`.
     This change causes the type to be applied appropriately.
 
-    *Louis-Michel Couture* *Dermot Haughey*
+    *Louis-Michel Couture*, *Dermot Haughey*
 
-*   Deprecate `Rails::DBConsole#config`
+*   Deprecate `Rails::DBConsole#config`.
 
     `Rails::DBConsole#config` is deprecated without replacement. Use `Rails::DBConsole.db_config.configuration_hash` instead.
 

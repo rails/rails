@@ -29,8 +29,8 @@ module Rails
       def perform(*)
         $LOAD_PATH << Rails::Command.root.join("test").to_s
 
-        Rails::TestUnit::Runner.parse_options(ARGV)
-        Rails::TestUnit::Runner.run(ARGV)
+        Rails::TestUnit::Runner.parse_options(args)
+        Rails::TestUnit::Runner.run(args)
       end
     end
   end

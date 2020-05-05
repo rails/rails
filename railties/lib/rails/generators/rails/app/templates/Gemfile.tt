@@ -14,7 +14,7 @@ ruby <%= "'#{RUBY_VERSION}'" -%>
 <%= gem.commented_out ? '# ' : '' %>gem '<%= gem.name %>'<%= %(, '#{gem.version}') if gem.version -%>
 <% if gem.options.any? -%>
 , <%= gem.options.map { |k,v|
-  "#{k}: #{v.inspect}" }.join(', ') %>
+  "#{k}: #{v.inspect.gsub('"', '\'')}" }.join(', ') %>
 <% end -%>
 <% end -%>
 
@@ -46,11 +46,14 @@ end
 group :development do
 <%- unless options.api? -%>
   # Access an interactive console on exception pages or by calling 'console' anywhere in the code.
-  <%- if options.dev? || options.edge? -%>
+  <%- if options.dev? || options.edge? || options.master? -%>
   gem 'web-console', github: 'rails/web-console'
   <%- else -%>
   gem 'web-console', '>= 3.3.0'
   <%- end -%>
+  # Display performance information such as SQL time and flame graphs for each request in your browser.
+  # Can be configured to work on production as well see: https://github.com/MiniProfiler/rack-mini-profiler/blob/master/README.md
+  gem 'rack-mini-profiler', '~> 2.0'
 <%- end -%>
 <% if depend_on_listen? -%>
   gem 'listen', '~> 3.2'

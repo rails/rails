@@ -227,7 +227,6 @@ module ActionController
       RequestForgeryProtection,
       ContentSecurityPolicy,
       FeaturePolicy,
-      ForceSSL,
       Streaming,
       DataStreaming,
       HttpAuthentication::Basic::ControllerMethods,
@@ -263,9 +262,10 @@ module ActionController
       @_view_renderer @_lookup_context @_routes @_view_runtime @_db_runtime @_helper_proxy
     )
 
-    def _protected_ivars # :nodoc:
+    def _protected_ivars
       PROTECTED_IVARS
     end
+    private :_protected_ivars
 
     ActiveSupport.run_load_hooks(:action_controller_base, self)
     ActiveSupport.run_load_hooks(:action_controller, self)

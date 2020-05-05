@@ -3,8 +3,9 @@
 # Some non-image blobs can be previewed: that is, they can be presented as images. A video blob can be previewed by
 # extracting its first frame, and a PDF blob can be previewed by extracting its first page.
 #
-# A previewer extracts a preview image from a blob. Active Storage provides previewers for videos and PDFs:
-# ActiveStorage::Previewer::VideoPreviewer and ActiveStorage::Previewer::PDFPreviewer. Build custom previewers by
+# A previewer extracts a preview image from a blob. Active Storage provides previewers for videos and PDFs.
+# ActiveStorage::Previewer::VideoPreviewer is used for videos whereas ActiveStorage::Previewer::PopplerPDFPreviewer
+# and ActiveStorage::Previewer::MuPDFPreviewer are used for PDFs. Build custom previewers by
 # subclassing ActiveStorage::Previewer and implementing the requisite methods. Consult the ActiveStorage::Previewer
 # documentation for more details on what's required of previewers.
 #
@@ -13,11 +14,11 @@
 # by manipulating +Rails.application.config.active_storage.previewers+ in an initializer:
 #
 #   Rails.application.config.active_storage.previewers
-#   # => [ ActiveStorage::Previewer::PDFPreviewer, ActiveStorage::Previewer::VideoPreviewer ]
+#   # => [ ActiveStorage::Previewer::PopplerPDFPreviewer, ActiveStorage::Previewer::MuPDFPreviewer, ActiveStorage::Previewer::VideoPreviewer ]
 #
 #   # Add a custom previewer for Microsoft Office documents:
 #   Rails.application.config.active_storage.previewers << DOCXPreviewer
-#   # => [ ActiveStorage::Previewer::PDFPreviewer, ActiveStorage::Previewer::VideoPreviewer, DOCXPreviewer ]
+#   # => [ ActiveStorage::Previewer::PopplerPDFPreviewer, ActiveStorage::Previewer::MuPDFPreviewer, ActiveStorage::Previewer::VideoPreviewer, DOCXPreviewer ]
 #
 # Outside of a Rails application, modify +ActiveStorage.previewers+ instead.
 #

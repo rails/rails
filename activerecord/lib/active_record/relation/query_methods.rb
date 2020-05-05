@@ -51,7 +51,7 @@ module ActiveRecord
         if not_behaves_as_nor?(opts)
           ActiveSupport::Deprecation.warn(<<~MSG.squish)
             NOT conditions will no longer behave as NOR in Rails 6.1.
-            To continue using NOR conditions, NOT each conditions manually
+            To continue using NOR conditions, NOT each condition individually
             (`#{
               opts.flat_map { |key, value|
                 if value.is_a?(Hash) && value.size > 1
@@ -70,7 +70,7 @@ module ActiveRecord
         @scope
       end
 
-      # Returns a new relation with left outer joins and where clause to idenitfy
+      # Returns a new relation with left outer joins and where clause to identify
       # missing relations.
       #
       # For example, posts that are missing a related author:
@@ -483,7 +483,7 @@ module ActiveRecord
               raise ArgumentError, "Hash arguments in .unscope(*args) must have :where as the key."
             end
 
-            target_values = Array(target_value).map(&:to_s)
+            target_values = Array(target_value)
             self.where_clause = where_clause.except(*target_values)
           end
         else
@@ -683,9 +683,7 @@ module ActiveRecord
     end
 
     def where!(opts, *rest) # :nodoc:
-      opts = sanitize_forbidden_attributes(opts)
-      references!(PredicateBuilder.references(opts)) if Hash === opts
-      self.where_clause += where_clause_factory.build(opts, rest)
+      self.where_clause += build_where_clause(opts, *rest)
       self
     end
 
@@ -703,7 +701,17 @@ module ActiveRecord
     # This is short-hand for <tt>unscope(where: conditions.keys).where(conditions)</tt>.
     # Note that unlike reorder, we're only unscoping the named conditions -- not the entire where statement.
     def rewhere(conditions)
-      unscope(where: conditions.keys).where(conditions)
+      attrs = []
+      scope = spawn
+
+      where_clause = scope.build_where_clause(conditions)
+      where_clause.each_attribute do |attr|
+        attrs << attr
+      end
+
+      scope.unscope!(where: attrs)
+      scope.where_clause += where_clause
+      scope
     end
 
     # Returns a new relation, which is the logical union of this relation and the one passed as an
@@ -849,6 +857,21 @@ module ActiveRecord
 
     def readonly!(value = true) # :nodoc:
       self.readonly_value = value
+      self
+    end
+
+    # Sets the returned relation to strict_loading mode. This will raise an error
+    # if the record tries to lazily load an association.
+    #
+    #   user = User.strict_loading.first
+    #   user.comments.to_a
+    #   => ActiveRecord::StrictLoadingViolationError
+    def strict_loading(value = true)
+      spawn.strict_loading!(value)
+    end
+
+    def strict_loading!(value = true) # :nodoc:
+      self.strict_loading_value = value
       self
     end
 
@@ -1063,6 +1086,12 @@ module ActiveRecord
         end
       end
 
+      def build_where_clause(opts, *rest)
+        opts = sanitize_forbidden_attributes(opts)
+        references!(PredicateBuilder.references(opts)) if Hash === opts
+        where_clause_factory.build(opts, rest)
+      end
+
     private
       def assert_mutability!
         raise ImmutableRelation if @loaded
@@ -1081,20 +1110,10 @@ module ActiveRecord
         arel.where(where_clause.ast) unless where_clause.empty?
         arel.having(having_clause.ast) unless having_clause.empty?
         if limit_value
-          limit_attribute = ActiveModel::Attribute.with_cast_value(
-            "LIMIT",
-            connection.sanitize_limit(limit_value),
-            Type.default_value,
-          )
-          arel.take(Arel::Nodes::BindParam.new(limit_attribute))
+          arel.take(build_cast_value("LIMIT", connection.sanitize_limit(limit_value)))
         end
         if offset_value
-          offset_attribute = ActiveModel::Attribute.with_cast_value(
-            "OFFSET",
-            offset_value.to_i,
-            Type.default_value,
-          )
-          arel.skip(Arel::Nodes::BindParam.new(offset_attribute))
+          arel.skip(build_cast_value("OFFSET", offset_value.to_i))
         end
         arel.group(*arel_columns(group_values.uniq.compact_blank)) unless group_values.empty?
 
@@ -1109,6 +1128,11 @@ module ActiveRecord
         arel.comment(*annotate_values) unless annotate_values.empty?
 
         arel
+      end
+
+      def build_cast_value(name, value)
+        cast_value = ActiveModel::Attribute.with_cast_value(name, value, Type.default_value)
+        Arel::Nodes::BindParam.new(cast_value)
       end
 
       def build_from
@@ -1319,12 +1343,7 @@ module ActiveRecord
       end
 
       def preprocess_order_args(order_args)
-        order_args.reject!(&:blank?)
-        order_args.map! do |arg|
-          klass.sanitize_sql_for_order(arg)
-        end
-        order_args.flatten!
-
+        order_args = sanitize_order_arguments(order_args)
         @klass.disallow_raw_sql!(
           order_args.flat_map { |a| a.is_a?(Hash) ? a.keys : a },
           permit: connection.column_name_with_order_matcher
@@ -1332,8 +1351,7 @@ module ActiveRecord
 
         validate_order_args(order_args)
 
-        references = order_args.grep(String)
-        references.map! { |arg| arg =~ /^\W?(\w+)\W?\./ && $1 }.compact!
+        references = column_references(order_args)
         references!(references) if references.any?
 
         # if a symbol is given we prepend the quoted table name
@@ -1354,6 +1372,21 @@ module ActiveRecord
             arg
           end
         end.flatten!
+      end
+
+      def sanitize_order_arguments(order_args)
+        order_args.reject!(&:blank?)
+        order_args.map! do |arg|
+          klass.sanitize_sql_for_order(arg)
+        end
+        order_args.flatten!
+        order_args
+      end
+
+      def column_references(order_args)
+        references = order_args.grep(String)
+        references.map! { |arg| arg =~ /^\W?(\w+)\W?\./ && $1 }.compact!
+        references
       end
 
       def order_column(field)

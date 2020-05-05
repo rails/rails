@@ -9,8 +9,8 @@ incorporate real-time features into your Rails application.
 After reading this guide, you will know:
 
 * What Action Cable is and its integration backend and frontend
-* How to setup Action Cable
-* How to setup channels
+* How to set up Action Cable
+* How to set up channels
 * Deployment and Architecture setup for running Action Cable
 
 --------------------------------------------------------------------------------
@@ -128,6 +128,28 @@ can use this approach:
 verified_user = User.find_by(id: cookies.encrypted['_session']['user_id'])
 ```
 
+#### Exception Handling
+
+By default, unhandled exceptions are caught and logged to Rails' logger. If you would like to
+globally intercept these exceptions and report them to an external bug tracking service, for
+example, you can do so with
+[`rescue_from`](https://api.rubyonrails.org/classes/ActiveSupport/Rescuable/ClassMethods.html#method-i-rescue_from).
+
+```ruby
+# app/channels/application_cable/connection.rb
+module ApplicationCable
+  class Connection < ActionCable::Connection::Base
+    rescue_from StandardError, with: :report_error
+
+    private
+
+    def report_error(e)
+      SomeExternalBugtrackingService.notify(e)
+    end
+  end
+end
+```
+
 ### Channels
 
 A *channel* encapsulates a logical unit of work, similar to what a controller does in a
@@ -171,6 +193,24 @@ class ChatChannel < ApplicationCable::Channel
   # Called when the consumer has successfully
   # become a subscriber to this channel.
   def subscribed
+  end
+end
+```
+
+#### Exception Handling
+
+As with `ActionCable::Connection::Base`, you can also use `rescue_from` on a
+specific channel to handle raised exceptions:
+
+```ruby
+# app/channels/chat_channel.rb
+class ChatChannel < ApplicationCable::Channel
+  rescue_from 'MyError', with: :deliver_error_message
+
+  private
+
+  def deliver_error_message(e)
+    broadcast_to(...)
   end
 end
 ```
@@ -250,7 +290,9 @@ consumer.subscriptions.create({ channel: "ChatChannel", room: "2nd Room" })
 ### Streams
 
 *Streams* provide the mechanism by which channels route published content
-(broadcasts) to their subscribers.
+(broadcasts) to their subscribers. The following example would
+subscribe to the broadcasting `chat_Best Room` if the room parameter
+is `Best Room`:
 
 ```ruby
 # app/channels/chat_channel.rb
@@ -262,8 +304,9 @@ end
 ```
 
 If you have a stream that is related to a model, then the broadcasting used
-can be generated from the model and channel. The following example would
-subscribe to a broadcasting like `comments:Z2lkOi8vVGVzdEFwcC9Qb3N0LzE`
+can be generated from the channel and model. The following example would
+subscribe to a broadcasting like `comments:Z2lkOi8vVGVzdEFwcC9Qb3N0LzE`,
+where `Z2lkOi8vVGVzdEFwcC9Qb3N0LzE` is the GlobalID of the Post model.
 
 ```ruby
 class CommentsChannel < ApplicationCable::Channel
@@ -627,7 +670,7 @@ and unpacked for the data argument arriving as `received`.
 ### More Complete Examples
 
 See the [rails/actioncable-examples](https://github.com/rails/actioncable-examples)
-repository for a full example of how to setup Action Cable in a Rails app and adding channels.
+repository for a full example of how to set up Action Cable in a Rails app and adding channels.
 
 ## Configuration
 
@@ -759,7 +802,7 @@ basic setup is as follows:
 
 ```ruby
 # cable/config.ru
-require_relative '../config/environment'
+require_relative "../config/environment"
 Rails.application.eager_load!
 
 run ActionCable.server

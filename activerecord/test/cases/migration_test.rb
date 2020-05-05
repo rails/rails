@@ -155,6 +155,23 @@ class MigrationTest < ActiveRecord::TestCase
     connection.drop_table :testings, if_exists: true
   end
 
+  def test_create_table_with_indexes_and_if_not_exists_true
+    connection = Person.connection
+    connection.create_table :testings, force: true do |t|
+      t.references :people
+      t.string :foo
+    end
+
+    assert_nothing_raised do
+      connection.create_table :testings, if_not_exists: true do |t|
+        t.references :people
+        t.string :foo
+      end
+    end
+  ensure
+    connection.drop_table :testings, if_exists: true
+  end
+
   def test_create_table_with_force_true_does_not_drop_nonexisting_table
     # using a copy as we need the drop_table method to
     # continue to work for the ensure block of the test
@@ -621,6 +638,29 @@ class MigrationTest < ActiveRecord::TestCase
     migrator.up
     assert_equal current_env, ActiveRecord::InternalMetadata[:environment]
     assert_equal "bar", ActiveRecord::InternalMetadata[:foo]
+  end
+
+  def test_internal_metadata_not_used_when_not_enabled
+    ActiveRecord::InternalMetadata.drop_table
+    original_config = ActiveRecord::Base.connection.instance_variable_get("@config")
+
+    modified_config = original_config.dup.merge(use_metadata_table: false)
+
+    ActiveRecord::Base.connection
+      .instance_variable_set("@config", modified_config)
+
+    assert_not ActiveRecord::InternalMetadata.enabled?
+    assert_not ActiveRecord::InternalMetadata.table_exists?
+
+    migrations_path = MIGRATIONS_ROOT + "/valid"
+    migrator = ActiveRecord::MigrationContext.new(migrations_path, @schema_migration)
+    migrator.up
+
+    assert_not ActiveRecord::InternalMetadata[:environment]
+    assert_not ActiveRecord::InternalMetadata.table_exists?
+  ensure
+    ActiveRecord::Base.connection.instance_variable_set("@config", original_config)
+    ActiveRecord::InternalMetadata.create_table
   end
 
   def test_proper_table_name_on_migration

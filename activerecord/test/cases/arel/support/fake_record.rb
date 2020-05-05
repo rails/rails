@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/enumerable"
+
 require "date"
 module FakeRecord
   class Column < Struct.new(:name, :type)
@@ -24,8 +26,8 @@ module FakeRecord
         ]
       }
       @columns_hash = {
-        "users" => Hash[@columns["users"].map { |x| [x.name, x] }],
-        "products" => Hash[@columns["products"].map { |x| [x.name, x] }]
+        "users" => @columns["users"].index_by(&:name),
+        "products" => @columns["products"].index_by(&:name)
       }
       @primary_keys = {
         "users" => "id",
@@ -60,10 +62,6 @@ module FakeRecord
 
     def sanitize_as_sql_comment(comment)
       comment
-    end
-
-    def in_clause_length
-      3
     end
 
     def schema_cache

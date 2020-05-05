@@ -44,7 +44,7 @@ module ActiveRecord
       end
 
       name = colorize_payload_name(name, payload[:name])
-      sql  = color(sql, sql_color(sql), true)
+      sql  = color(sql, sql_color(sql), true) if colorize_logging
 
       debug "  #{name}  #{sql}#{binds}"
     end
@@ -55,13 +55,18 @@ module ActiveRecord
       end
 
       def render_bind(attr, value)
-        if attr.is_a?(Array)
+        case attr
+        when ActiveModel::Attribute
+          if attr.type.binary? && attr.value
+            value = "<#{attr.value_for_database.to_s.bytesize} bytes of binary data>"
+          end
+        when Array
           attr = attr.first
-        elsif attr.type.binary? && attr.value
-          value = "<#{attr.value_for_database.to_s.bytesize} bytes of binary data>"
+        else
+          attr = nil
         end
 
-        [attr && attr.name, value]
+        [attr&.name, value]
       end
 
       def colorize_payload_name(name, payload_name)

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "shellwords"
+require "active_support/core_ext/kernel/reporting"
 require "active_support/core_ext/string/strip"
 
 module Rails
@@ -225,9 +227,9 @@ module Rails
         log :generate, what
 
         options = args.extract_options!
-        argument = args.flat_map(&:to_s).join(" ")
+        options[:abort_on_failure] = !options[:inline]
 
-        execute_command :rails, "generate #{what} #{argument}", options
+        rails_command "generate #{what} #{args.join(" ")}", options
       end
 
       # Runs the supplied rake task (invoked with 'rake ...')
@@ -247,7 +249,17 @@ module Rails
       #   rails_command("gems:install", sudo: true)
       #   rails_command("gems:install", capture: true)
       def rails_command(command, options = {})
-        execute_command :rails, command, options
+        if options[:inline]
+          log :rails, command
+          command, *args = Shellwords.split(command)
+          in_root do
+            silence_warnings do
+              ::Rails::Command.invoke(command, args, **options)
+            end
+          end
+        else
+          execute_command :rails, command, options
+        end
       end
 
       # Make an entry in Rails routing file <tt>config/routes.rb</tt>

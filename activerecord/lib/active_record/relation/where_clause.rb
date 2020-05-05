@@ -39,30 +39,31 @@ module ActiveRecord
         if left.empty? || right.empty?
           common
         else
-          or_clause = WhereClause.new(
-            [left.ast.or(right.ast)],
-          )
-          common + or_clause
+          left = left.ast
+          left = left.expr if left.is_a?(Arel::Nodes::Grouping)
+
+          right = right.ast
+          right = right.expr if right.is_a?(Arel::Nodes::Grouping)
+
+          or_clause = Arel::Nodes::Or.new(left, right)
+
+          common.predicates << Arel::Nodes::Grouping.new(or_clause)
+          common
         end
       end
 
       def to_h(table_name = nil)
-        equalities = equalities(predicates)
-        if table_name
-          equalities = equalities.select do |node|
-            node.left.relation.name == table_name
-          end
-        end
-
-        equalities.map { |node|
+        equalities(predicates).each_with_object({}) do |node, hash|
+          next if table_name&.!= node.left.relation.name
           name = node.left.name.to_s
           value = extract_node_value(node.right)
-          [name, value]
-        }.to_h
+          hash[name] = value
+        end
       end
 
       def ast
-        Arel::Nodes::And.new(predicates_with_wrapped_sql_literals)
+        predicates = predicates_with_wrapped_sql_literals
+        predicates.one? ? predicates.first : Arel::Nodes::And.new(predicates)
       end
 
       def ==(other)
@@ -90,10 +91,16 @@ module ActiveRecord
         predicates.any? do |x|
           case x
           when Arel::Nodes::In
-            Array === x.right && x.right.empty?
+            Arel::Nodes::CastedArray === x.right && x.right.value.empty?
           when Arel::Nodes::Equality
             x.right.respond_to?(:unboundable?) && x.right.unboundable?
           end
+        end
+      end
+
+      def each_attribute(&block)
+        predicates.each do |node|
+          Arel.fetch_attribute(node, &block)
         end
       end
 
@@ -137,24 +144,24 @@ module ActiveRecord
           case node
           when NilClass
             raise ArgumentError, "Invalid argument for .where.not(), got nil."
-          when Arel::Nodes::In
-            Arel::Nodes::NotIn.new(node.left, node.right)
-          when Arel::Nodes::IsNotDistinctFrom
-            Arel::Nodes::IsDistinctFrom.new(node.left, node.right)
-          when Arel::Nodes::IsDistinctFrom
-            Arel::Nodes::IsNotDistinctFrom.new(node.left, node.right)
-          when Arel::Nodes::Equality
-            Arel::Nodes::NotEqual.new(node.left, node.right)
           when String
             Arel::Nodes::Not.new(Arel::Nodes::SqlLiteral.new(node))
           else
-            Arel::Nodes::Not.new(node)
+            node.invert
           end
         end
 
         def except_predicates(columns)
           predicates.reject do |node|
-            Arel.fetch_attribute(node) { |attr| columns.include?(attr.name.to_s) }
+            Arel.fetch_attribute(node) do |attr|
+              columns.any? do |column|
+                if column.is_a?(Arel::Attributes::Attribute)
+                  attr == column
+                else
+                  attr.name.to_s == column.to_s
+                end
+              end
+            end
           end
         end
 
@@ -184,15 +191,8 @@ module ActiveRecord
           case node
           when Array
             node.map { |v| extract_node_value(v) }
-          when Arel::Nodes::Casted, Arel::Nodes::Quoted
-            node.val
-          when Arel::Nodes::BindParam
-            value = node.value
-            if value.respond_to?(:value_before_type_cast)
-              value.value_before_type_cast
-            else
-              value
-            end
+          when Arel::Nodes::BindParam, Arel::Nodes::Casted, Arel::Nodes::Quoted
+            node.value_before_type_cast
           end
         end
     end

@@ -46,6 +46,14 @@ class FixturesTest < ActiveRecord::TestCase
                  movies projects subscribers topics tasks )
   MATCH_ATTRIBUTE_NAME = /[a-zA-Z][-\w]*/
 
+  def setup
+    Arel::Table.engine = nil # should not rely on the global Arel::Table.engine
+  end
+
+  def teardown
+    Arel::Table.engine = ActiveRecord::Base
+  end
+
   def test_clean_fixtures
     FIXTURES.each do |name|
       fixtures = nil
@@ -147,27 +155,25 @@ class FixturesTest < ActiveRecord::TestCase
           ]
         }
 
-        ActiveRecord::Base.connection.stub(:supports_set_server_option?, false) do
-          assert_nothing_raised do
-            conn = ActiveRecord::Base.connection
-            conn.execute("SELECT 1; SELECT 2;")
-            conn.raw_connection.abandon_results!
-          end
+        assert_nothing_raised do
+          conn = ActiveRecord::Base.connection
+          conn.execute("SELECT 1; SELECT 2;")
+          conn.raw_connection.abandon_results!
+        end
 
-          assert_difference "TrafficLight.count" do
-            ActiveRecord::Base.transaction do
-              conn = ActiveRecord::Base.connection
-              assert_equal 1, conn.open_transactions
-              conn.insert_fixtures_set(fixtures)
-              assert_equal 1, conn.open_transactions
-            end
-          end
-
-          assert_nothing_raised do
+        assert_difference "TrafficLight.count" do
+          ActiveRecord::Base.transaction do
             conn = ActiveRecord::Base.connection
-            conn.execute("SELECT 1; SELECT 2;")
-            conn.raw_connection.abandon_results!
+            assert_equal 1, conn.open_transactions
+            conn.insert_fixtures_set(fixtures)
+            assert_equal 1, conn.open_transactions
           end
+        end
+
+        assert_nothing_raised do
+          conn = ActiveRecord::Base.connection
+          conn.execute("SELECT 1; SELECT 2;")
+          conn.raw_connection.abandon_results!
         end
       end
     end
@@ -184,23 +190,21 @@ class FixturesTest < ActiveRecord::TestCase
           ]
         }
 
-        ActiveRecord::Base.connection.stub(:supports_set_server_option?, false) do
-          assert_raises(ActiveRecord::StatementInvalid) do
-            conn = ActiveRecord::Base.connection
-            conn.execute("SELECT 1; SELECT 2;")
-            conn.raw_connection.abandon_results!
-          end
+        assert_raises(ActiveRecord::StatementInvalid) do
+          conn = ActiveRecord::Base.connection
+          conn.execute("SELECT 1; SELECT 2;")
+          conn.raw_connection.abandon_results!
+        end
 
-          assert_difference "TrafficLight.count" do
-            conn = ActiveRecord::Base.connection
-            conn.insert_fixtures_set(fixtures)
-          end
+        assert_difference "TrafficLight.count" do
+          conn = ActiveRecord::Base.connection
+          conn.insert_fixtures_set(fixtures)
+        end
 
-          assert_raises(ActiveRecord::StatementInvalid) do
-            conn = ActiveRecord::Base.connection
-            conn.execute("SELECT 1; SELECT 2;")
-            conn.raw_connection.abandon_results!
-          end
+        assert_raises(ActiveRecord::StatementInvalid) do
+          conn = ActiveRecord::Base.connection
+          conn.execute("SELECT 1; SELECT 2;")
+          conn.raw_connection.abandon_results!
         end
       end
     end

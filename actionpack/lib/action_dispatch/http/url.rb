@@ -9,6 +9,7 @@ module ActionDispatch
       HOST_REGEXP     = /(^[^:]+:\/\/)?(\[[^\]]+\]|[^:]+)(?::(\d+$))?/
       PROTOCOL_REGEXP = /^([^:]+)(:)?(\/\/)?$/
 
+      mattr_accessor :secure_protocol, default: false
       mattr_accessor :tld_length, default: 1
 
       class << self
@@ -139,7 +140,7 @@ module ActionDispatch
           def normalize_protocol(protocol)
             case protocol
             when nil
-              "http://"
+              secure_protocol ? "https://" : "http://"
             when false, "//"
               "//"
             when PROTOCOL_REGEXP

@@ -5,6 +5,8 @@ require "arel/collectors/plain_string"
 module Arel # :nodoc: all
   module Collectors
     class SQLString < PlainString
+      attr_accessor :preparable
+
       def initialize(*)
         super
         @bind_index = 1

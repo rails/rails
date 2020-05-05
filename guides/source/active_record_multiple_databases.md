@@ -7,8 +7,9 @@ This guide covers using multiple databases with your Rails application.
 
 After reading this guide you will know:
 
-* How to setup your application for multiple databases.
+* How to set up your application for multiple databases.
 * How automatic connection switching works.
+* How to use horizontal sharding for multiple databases.
 * What features are supported and what's still a work in progress.
 
 --------------------------------------------------------------------------------
@@ -29,7 +30,7 @@ databases
 
 The following features are not (yet) supported:
 
-* Sharding
+* Automatic swapping for horizontal sharding
 * Joining across clusters
 * Load balancing replicas
 * Dumping schema caches for multiple databases
@@ -132,10 +133,10 @@ connection specification name.
 Now that we have the `database.yml` and the new model set up it's time to create the databases.
 Rails 6.0 ships with all the rails tasks you need to use multiple databases in Rails.
 
-You can run `rails -T` to see all the commands you're able to run. You should see the following:
+You can run `bin/rails -T` to see all the commands you're able to run. You should see the following:
 
 ```bash
-$ rails -T
+$ bin/rails -T
 rails db:create                          # Creates the database from DATABASE_URL or config/database.yml for the ...
 rails db:create:animals                  # Create animals database for current environment
 rails db:create:primary                  # Create primary database for current environment
@@ -148,12 +149,27 @@ rails db:migrate:primary                 # Migrate primary database for current 
 rails db:migrate:status                  # Display status of migrations
 rails db:migrate:status:animals          # Display status of migrations for animals database
 rails db:migrate:status:primary          # Display status of migrations for primary database
+rails db:rollback                        # Rolls the schema back to the previous version (specify steps w/ STEP=n)
+rails db:rollback:animals                # Rollback animals database for current environment (specify steps w/ STEP=n)
+rails db:rollback:primary                # Rollback primary database for current environment (specify steps w/ STEP=n)
+rails db:schema:dump                     # Creates a db/schema.rb file that is portable against any DB supported  ...
+rails db:schema:dump:animals             # Creates a db/schema.rb file that is portable against any DB supported  ...
+rails db:schema:dump:primary             # Creates a db/schema.rb file that is portable against any DB supported  ...
+rails db:schema:load                     # Loads a schema.rb file into the database
+rails db:schema:load:animals             # Loads a schema.rb file into the animals database
+rails db:schema:load:primary             # Loads a schema.rb file into the primary database
+rails db:structure:dump                  # Dumps the database structure to db/structure.sql. Specify another file ...
+rails db:structure:dump:animals          # Dumps the animals database structure to sdb/structure.sql. Specify another ...
+rails db:structure:dump:primary          # Dumps the primary database structure to db/structure.sql. Specify another ...
+rails db:structure:load                  # Recreates the databases from the structure.sql file
+rails db:structure:load:animals          # Recreates the animals database from the structure.sql file
+rails db:structure:load:primary          # Recreates the primary database from the structure.sql file
 ```
 
-Running a command like `rails db:create` will create both the primary and animals databases.
+Running a command like `bin/rails db:create` will create both the primary and animals databases.
 Note that there is no command for creating the users and you'll need to do that manually
 to support the readonly users for your replicas. If you want to create just the animals
-database you can run `rails db:create:animals`.
+database you can run `bin/rails db:create:animals`.
 
 ## Migrations
 
@@ -247,15 +263,76 @@ like `connected_to(role: :nonexistent)` you will get an error that says
 `ActiveRecord::ConnectionNotEstablished (No connection pool with 'AnimalsBase' found
 for the 'nonexistent' role.)`
 
+## Horizontal sharding
+
+Horizontal sharding is when you split up your database to reduce the number of rows on each
+database server, but maintain the same schema across "shards". This is commonly called "multi-tenant"
+sharding.
+
+The API for supporting horizontal sharding in Rails is similar to the multiple database / vertical
+sharding API that's existed since Rails 6.0.
+
+Shards are declared in the three-tier config like this:
+
+```yaml
+production:
+  primary:
+    database: my_primary_database
+    adapter: mysql
+  primary_replica:
+    database: my_primary_database
+    adapter: mysql
+    replica: true
+  primary_shard_one:
+    database: my_primary_shard_one
+    adapter: mysql
+  primary_shard_one_replica:
+    database: my_primary_shard_one
+    adapter: mysql
+    replica: true
+```
+
+Models are then connected with the `connects_to` API via the `shards` key:
+
+```ruby
+class ApplicationRecord < ActiveRecord::Base
+  self.abstract_class = true
+
+  connects_to shards: {
+    default: { writing: :primary, reading: :primary_replica },
+    shard_one: { writing: :primary_shard_one, reading: :primary_shard_one_replica }
+  }
+end
+```
+
+Then models can swap connections manually via the `connected_to` API:
+
+```ruby
+ActiveRecord::Base.connected_to(shard: :default) do
+  @id = Record.create! # creates a record in shard one
+end
+
+ActiveRecord::Base.connected_to(shard: :shard_one) do
+  Record.find(@id) # can't find record, doesn't exist
+end
+```
+
+The horizontal sharding API also supports read replicas. You can swap the
+role and the shard with the `connected_to` API.
+
+```ruby
+ActiveRecord::Base.connected_to(role: :reading, shard: :shard_one) do
+  Record.first # lookup record from read replica of shard one
+end
+```
+
 ## Caveats
 
-### Sharding
+### Automatic swapping for horizontal sharding
 
-As noted at the top, Rails doesn't (yet) support sharding. We had to do a lot of work
-to support multiple databases for Rails 6.0. The lack of support for sharding isn't
-an oversight, but does require additional work that didn't make it in for 6.0. For now
-if you need sharding it may be advisable to continue using one of the many gems
-that supports this.
+While Rails now supports an API for connecting to and swapping connections of shards, it does
+not yet support an automatic swapping strategy. Any shard swapping will need to be done manually
+in your app via a middleware or `around_action`.
 
 ### Load Balancing Replicas
 

@@ -288,6 +288,7 @@ module ActiveRecord
       # Sets the columns names the model should ignore. Ignored columns won't have attribute
       # accessors defined, and won't be referenced in SQL queries.
       def ignored_columns=(columns)
+        reload_schema_from_cache
         @ignored_columns = columns.map(&:to_s)
       end
 
@@ -426,7 +427,7 @@ module ActiveRecord
       # when just after creating a table you want to populate it with some default
       # values, eg:
       #
-      #  class CreateJobLevels < ActiveRecord::Migration[5.0]
+      #  class CreateJobLevels < ActiveRecord::Migration[6.0]
       #    def up
       #      create_table :job_levels do |t|
       #        t.integer :id

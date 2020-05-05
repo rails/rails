@@ -239,15 +239,15 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal 97, "abc".ord
   end
 
-  def test_starts_ends_with_alias
+  def test_deprecated_starts_ends_with_alias
     s = "hello"
-    assert s.starts_with?("h")
-    assert s.starts_with?("hel")
-    assert_not s.starts_with?("el")
+    assert_deprecated { assert s.starts_with?("h") }
+    assert_deprecated { assert s.starts_with?("hel") }
+    assert_deprecated { assert_not s.starts_with?("el") }
 
-    assert s.ends_with?("o")
-    assert s.ends_with?("lo")
-    assert_not s.ends_with?("el")
+    assert_deprecated { assert s.ends_with?("o") }
+    assert_deprecated { assert s.ends_with?("lo") }
+    assert_deprecated { assert_not s.ends_with?("el") }
   end
 
   def test_string_squish

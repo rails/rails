@@ -54,7 +54,7 @@ module ApplicationTests
 
     def test_run_file_with_syntax_error
       app_file "test/models/error_test.rb", <<-RUBY
-        require 'test_helper'
+        require "test_helper"
         def; end
       RUBY
 
@@ -188,7 +188,7 @@ module ApplicationTests
 
     def test_run_named_test
       app_file "test/unit/chu_2_koi_test.rb", <<-RUBY
-        require 'test_helper'
+        require "test_helper"
 
         class Chu2KoiTest < ActiveSupport::TestCase
           def test_rikka
@@ -209,7 +209,7 @@ module ApplicationTests
 
     def test_run_matched_test
       app_file "test/unit/chu_2_koi_test.rb", <<-RUBY
-        require 'test_helper'
+        require "test_helper"
 
         class Chu2KoiTest < ActiveSupport::TestCase
           def test_rikka
@@ -251,7 +251,7 @@ module ApplicationTests
     def test_run_different_environment_using_env_var
       skip "no longer possible. Running tests in a different environment should be explicit"
       app_file "test/unit/env_test.rb", <<-RUBY
-        require 'test_helper'
+        require "test_helper"
 
         class EnvTest < ActiveSupport::TestCase
           def test_env
@@ -310,9 +310,19 @@ module ApplicationTests
       end
     end
 
+    def test_run_relative_path_with_trailing_slash
+      create_test_file :models, "account"
+      create_test_file :controllers, "accounts_controller"
+
+      run_test_command("test/models/").tap do |output|
+        assert_match "AccountTest", output
+        assert_match "1 runs, 1 assertions, 0 failures, 0 errors, 0 skips", output
+      end
+    end
+
     def test_run_with_ruby_command
       app_file "test/models/post_test.rb", <<-RUBY
-        require 'test_helper'
+        require "test_helper"
 
         class PostTest < ActiveSupport::TestCase
           test 'declarative syntax works' do
@@ -333,7 +343,7 @@ module ApplicationTests
     def test_mix_files_and_line_filters
       create_test_file :models, "account"
       app_file "test/models/post_test.rb", <<-RUBY
-        require 'test_helper'
+        require "test_helper"
 
         class PostTest < ActiveSupport::TestCase
           def test_post
@@ -356,7 +366,7 @@ module ApplicationTests
 
     def test_more_than_one_line_filter
       app_file "test/models/post_test.rb", <<-RUBY
-        require 'test_helper'
+        require "test_helper"
 
         class PostTest < ActiveSupport::TestCase
           test "first filter" do
@@ -384,7 +394,7 @@ module ApplicationTests
 
     def test_more_than_one_line_filter_with_multiple_files
       app_file "test/models/account_test.rb", <<-RUBY
-        require 'test_helper'
+        require "test_helper"
 
         class AccountTest < ActiveSupport::TestCase
           test "first filter" do
@@ -404,7 +414,7 @@ module ApplicationTests
       RUBY
 
       app_file "test/models/post_test.rb", <<-RUBY
-        require 'test_helper'
+        require "test_helper"
 
         class PostTest < ActiveSupport::TestCase
           test "first filter" do
@@ -444,7 +454,7 @@ module ApplicationTests
 
     def test_line_filters_trigger_only_one_runnable
       app_file "test/models/post_test.rb", <<-RUBY
-        require 'test_helper'
+        require "test_helper"
 
         class PostTest < ActiveSupport::TestCase
           test 'truth' do
@@ -468,7 +478,7 @@ module ApplicationTests
 
     def test_line_filter_with_minitest_string_filter
       app_file "test/models/post_test.rb", <<-RUBY
-        require 'test_helper'
+        require "test_helper"
 
         class PostTest < ActiveSupport::TestCase
           test 'by line' do
@@ -517,7 +527,7 @@ module ApplicationTests
       app_file "config/boot.rb", <<-RUBY
         ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../Gemfile', __dir__)
 
-        require 'bundler/setup' # Set up gems listed in the Gemfile.
+        require "bundler/setup" # Set up gems listed in the Gemfile.
       RUBY
 
       assert_match "0 runs, 0 assertions", run_test_command("")
@@ -568,7 +578,7 @@ module ApplicationTests
       exercise_parallelization_regardless_of_machine_core_count(with: :processes)
 
       file_name = app_file("test/models/parallel_test.rb", <<-RUBY)
-        require 'test_helper'
+        require "test_helper"
 
         class ParallelTest < ActiveSupport::TestCase
           def test_crash
@@ -579,7 +589,7 @@ module ApplicationTests
 
       output = run_test_command(file_name)
 
-      assert_match %r{Queue not empty, but all workers have finished. This probably means that a worker crashed and 1 tests were missed.}, output
+      assert_match %r{RuntimeError: result not reported}, output
     end
 
     def test_run_in_parallel_with_threads
@@ -748,7 +758,7 @@ module ApplicationTests
 
     def test_warnings_option
       app_file "test/models/warnings_test.rb", <<-RUBY
-        require 'test_helper'
+        require "test_helper"
         def test_warnings
           a = 1
         end
@@ -910,7 +920,7 @@ module ApplicationTests
 
       def create_fixture_test(path = :unit, name = "test")
         app_file "test/#{path}/#{name}_test.rb", <<-RUBY
-          require 'test_helper'
+          require "test_helper"
 
           class #{name.camelize}Test < ActiveSupport::TestCase
             def test_fixture
@@ -922,7 +932,7 @@ module ApplicationTests
 
       def create_backtrace_test
         app_file "test/unit/backtrace_test.rb", <<-RUBY
-          require 'test_helper'
+          require "test_helper"
 
           class BacktraceTest < ActiveSupport::TestCase
             def test_backtrace
@@ -938,7 +948,7 @@ module ApplicationTests
 
       def create_test_for_env(env)
         app_file "test/models/environment_test.rb", <<-RUBY
-          require 'test_helper'
+          require "test_helper"
           class JSONReporter < Minitest::AbstractReporter
             def record(result)
               puts JSON.dump(klass: result.class.name,
@@ -962,11 +972,11 @@ module ApplicationTests
           # Minitest won't require the Rails minitest plugin when we run
           # these integration tests.  So we have to manually require the
           # Minitest plugin here.
-          require 'minitest/rails_plugin'
+          require "minitest/rails_plugin"
 
           class EnvironmentTest < ActiveSupport::TestCase
             def test_environment
-              test_db = ActiveRecord::Base.configurations.configs_for(env_name: #{env.dump}, spec_name: "primary").database
+              test_db = ActiveRecord::Base.configurations.configs_for(env_name: #{env.dump}, name: "primary").database
               db_file = ActiveRecord::Base.connection_db_config.database
               assert_match(test_db, db_file)
               assert_equal #{env.dump}, ENV["RAILS_ENV"]
@@ -977,7 +987,7 @@ module ApplicationTests
 
       def create_test_file(path = :unit, name = "test", pass: true, print: true)
         app_file "test/#{path}/#{name}_test.rb", <<-RUBY
-          require 'test_helper'
+          require "test_helper"
 
           class #{name.camelize}Test < ActiveSupport::TestCase
             def test_truth
@@ -990,7 +1000,7 @@ module ApplicationTests
 
       def create_parallel_processes_test_file
         app_file "test/models/parallel_test.rb", <<-RUBY
-          require 'test_helper'
+          require "test_helper"
 
           class ParallelTest < ActiveSupport::TestCase
             RD1, WR1 = IO.pipe
@@ -1019,7 +1029,7 @@ module ApplicationTests
 
       def create_parallel_threads_test_file
         app_file "test/models/parallel_test.rb", <<-RUBY
-          require 'test_helper'
+          require "test_helper"
 
           class ParallelTest < ActiveSupport::TestCase
             Q1 = Queue.new
@@ -1049,7 +1059,7 @@ module ApplicationTests
 
       def create_env_test
         app_file "test/unit/env_test.rb", <<-RUBY
-          require 'test_helper'
+          require "test_helper"
 
           class EnvTest < ActiveSupport::TestCase
             def test_env

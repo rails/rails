@@ -7,6 +7,7 @@ require "jobs/hello_job"
 require "jobs/logging_job"
 require "jobs/nested_job"
 require "jobs/rescue_job"
+require "jobs/raising_job"
 require "jobs/inherited_job"
 require "jobs/multiple_kwargs_job"
 require "models/person"
@@ -632,6 +633,17 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     assert_enqueued_with(job: HelloJob, at: Date.tomorrow.noon)
   end
 
+  def test_assert_enqueued_with_wait_until_with_performed
+    assert_enqueued_with(job: LoggingJob) do
+      perform_enqueued_jobs(only: HelloJob) do
+        HelloJob.set(wait_until: Date.tomorrow.noon).perform_later("david")
+        LoggingJob.set(wait_until: Date.tomorrow.noon).perform_later("enqueue")
+      end
+    end
+    assert_enqueued_jobs 1
+    assert_performed_jobs 1
+  end
+
   def test_assert_enqueued_with_with_hash_arg
     assert_enqueued_with(job: MultipleKwargsJob, args: [{ argument1: 1, argument2: { a: 1, b: 2 } }]) do
       MultipleKwargsJob.perform_later(argument2: { b: 2, a: 1 }, argument1: 1)
@@ -660,7 +672,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
       end
     end
     assert_match(/No enqueued job found with {:job=>HelloJob, :args=>\[#{wilma.inspect}\]}/, error.message)
-    assert_match(/Potential matches: {:job=>HelloJob, :args=>\[#<Person.* @id=\"9\"\>\], :queue=>\"default\"}/, error.message)
+    assert_match(/Potential matches: {.*?:job=>HelloJob, :args=>\[#<Person.* @id=\"9\"\>\], :queue=>\"default\"}/, error.message)
   end
 
   def test_assert_enqueued_with_failure_with_no_block_with_global_id_args
@@ -672,7 +684,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     end
 
     assert_match(/No enqueued job found with {:job=>HelloJob, :args=>\[#{wilma.inspect}\]}/, error.message)
-    assert_match(/Potential matches: {:job=>HelloJob, :args=>\[#<Person.* @id=\"9\"\>\], :queue=>\"default\"}/, error.message)
+    assert_match(/Potential matches: {.*?:job=>HelloJob, :args=>\[#<Person.* @id=\"9\"\>\], :queue=>\"default\"}/, error.message)
   end
 
   def test_assert_enqueued_with_does_not_change_jobs_count
@@ -690,6 +702,17 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     assert_enqueued_with(job: HelloJob)
 
     assert_equal 2, queue_adapter.enqueued_jobs.count
+  end
+
+  def test_assert_enqueued_jobs_with_performed
+    assert_enqueued_with(job: LoggingJob) do
+      perform_enqueued_jobs(only: HelloJob) do
+        HelloJob.perform_later("david")
+        LoggingJob.perform_later("enqueue")
+      end
+    end
+    assert_enqueued_jobs 1
+    assert_performed_jobs 1
   end
 end
 
@@ -906,6 +929,57 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
 
     assert_performed_jobs 0
+  end
+
+  def test_perform_enqueued_jobs_properly_count_job_that_raises
+    RaisingJob.perform_later("NotImplementedError")
+
+    assert_raises(NotImplementedError) do
+      perform_enqueued_jobs(only: RaisingJob)
+    end
+
+    assert_equal(1, performed_jobs.size)
+  end
+
+  def test_perform_enqueued_jobs_dont_perform_retries
+    RaisingJob.perform_later
+
+    assert_nothing_raised do
+      perform_enqueued_jobs(only: RaisingJob)
+    end
+
+    assert_equal(1, performed_jobs.size)
+    assert_equal(1, enqueued_jobs.size)
+  end
+
+  def test_perform_enqueued_jobs_without_block_removes_from_enqueued_jobs
+    HelloJob.perform_later("rafael")
+    assert_equal(0, performed_jobs.size)
+    assert_equal(1, enqueued_jobs.size)
+    perform_enqueued_jobs
+    assert_equal(1, performed_jobs.size)
+    assert_equal(0, enqueued_jobs.size)
+  end
+
+  def test_perform_enqueued_jobs_without_block_works_with_other_helpers
+    NestedJob.perform_later
+    assert_equal(0, performed_jobs.size)
+    assert_equal(1, enqueued_jobs.size)
+    assert_enqueued_jobs(1) do
+      assert_enqueued_with(job: LoggingJob) do
+        perform_enqueued_jobs
+      end
+    end
+    assert_equal(1, performed_jobs.size)
+    assert_equal(1, enqueued_jobs.size)
+  end
+
+  def test_perform_enqueued_jobs_without_block_only_performs_once
+    JobBuffer.clear
+    RescueJob.perform_later("no exception")
+    perform_enqueued_jobs
+    perform_enqueued_jobs
+    assert_equal(1, JobBuffer.values.size)
   end
 
   def test_assert_performed_jobs
@@ -1730,6 +1804,18 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
   end
 
+  def test_assert_performed_with_with_at_option_as_a_proc
+    assert_performed_with(job: HelloJob, at: ->(at) { (4.minutes.from_now..6.minutes.from_now).cover?(at) }) do
+      HelloJob.set(wait: 5.minutes).perform_later
+    end
+
+    assert_raise ActiveSupport::TestCase::Assertion do
+      assert_performed_with(job: HelloJob, at: ->(at) { (1.minute.from_now..3.minutes.from_now).cover?(at) }) do
+        HelloJob.set(wait: 1.minute).perform_later
+      end
+    end
+  end
+
   def test_assert_performed_with_without_block_with_at_option
     HelloJob.set(wait_until: Date.tomorrow.noon).perform_later
 
@@ -1825,7 +1911,7 @@ class PerformedJobsTest < ActiveJob::TestCase
       end
     end
     assert_match(/No performed job found with {:job=>HelloJob, :args=>\[#{wilma.inspect}\]}/, error.message)
-    assert_match(/Potential matches: {:job=>HelloJob, :args=>\[#<Person.* @id=\"9\"\>\], :queue=>\"default\"}/, error.message)
+    assert_match(/Potential matches: {.*?:job=>HelloJob, :args=>\[#<Person.* @id=\"9\"\>\], :queue=>\"default\"}/, error.message)
   end
 
   def test_assert_performed_with_without_block_failure_with_global_id_args
@@ -1838,7 +1924,7 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
 
     assert_match(/No performed job found with {:job=>HelloJob, :args=>\[#{wilma.inspect}\]}/, error.message)
-    assert_match(/Potential matches: {:job=>HelloJob, :args=>\[#<Person.* @id=\"9\"\>\], :queue=>\"default\"}/, error.message)
+    assert_match(/Potential matches: {.*?:job=>HelloJob, :args=>\[#<Person.* @id=\"9\"\>\], :queue=>\"default\"}/, error.message)
   end
 
   def test_assert_performed_with_does_not_change_jobs_count
@@ -1850,6 +1936,7 @@ class PerformedJobsTest < ActiveJob::TestCase
       HelloJob.perform_later
     end
 
+    assert_equal 0, queue_adapter.enqueued_jobs.count
     assert_equal 2, queue_adapter.performed_jobs.count
   end
 
@@ -1858,9 +1945,20 @@ class PerformedJobsTest < ActiveJob::TestCase
     perform_enqueued_jobs
     assert_performed_with(job: HelloJob)
 
-    perform_enqueued_jobs
     HelloJob.perform_later
+    perform_enqueued_jobs
     assert_performed_with(job: HelloJob)
+
+    assert_equal 0, queue_adapter.enqueued_jobs.count
+    assert_equal 2, queue_adapter.performed_jobs.count
+  end
+
+  test "TestAdapter respect max attempts" do
+    perform_enqueued_jobs(only: RaisingJob) do
+      assert_raises(RaisingJob::MyError) do
+        RaisingJob.perform_later
+      end
+    end
 
     assert_equal 2, queue_adapter.performed_jobs.count
   end

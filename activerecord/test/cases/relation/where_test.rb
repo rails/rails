@@ -20,13 +20,6 @@ module ActiveRecord
   class WhereTest < ActiveRecord::TestCase
     fixtures :posts, :comments, :edges, :authors, :author_addresses, :binaries, :essays, :cars, :treasures, :price_estimates, :topics
 
-    def test_in_clause_is_correctly_sliced
-      assert_called(Author.connection, :in_clause_length, returns: 1) do
-        david = authors(:david)
-        assert_equal [david], Author.where(name: "David", id: [1, 2])
-      end
-    end
-
     def test_type_casting_nested_joins
       comment = comments(:eager_other_comment1)
       assert_equal [comment], Comment.joins(post: :author).where(authors: { id: "2-foo" })
@@ -167,7 +160,7 @@ module ActiveRecord
 
       message = <<~MSG.squish
         NOT conditions will no longer behave as NOR in Rails 6.1.
-        To continue using NOR conditions, NOT each conditions manually
+        To continue using NOR conditions, NOT each condition individually
         (`.where.not(:estimate_of_type => ...).where.not(:estimate_of_id => ...)`).
       MSG
       actual = assert_deprecated(message) do
@@ -188,7 +181,7 @@ module ActiveRecord
 
       message = <<~MSG.squish
         NOT conditions will no longer behave as NOR in Rails 6.1.
-        To continue using NOR conditions, NOT each conditions manually
+        To continue using NOR conditions, NOT each condition individually
         (`.where.not(:price_estimates => { :price => ... }).where.not(:price_estimates => { :currency => ... })`).
       MSG
       assert_deprecated(message) do

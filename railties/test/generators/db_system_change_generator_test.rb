@@ -24,8 +24,8 @@ module Rails
             assert_match <<~MSG.squish, output
               Invalid value for --to option.
               Supported preconfigurations are:
-              mysql, postgresql, sqlite3, oracle, frontbase,
-              ibm_db, sqlserver, jdbcmysql, jdbcsqlite3,
+              mysql, postgresql, sqlite3, oracle,
+              sqlserver, jdbcmysql, jdbcsqlite3,
               jdbcpostgresql, jdbc.
             MSG
           end
@@ -40,7 +40,7 @@ module Rails
 
             assert_file("Gemfile") do |content|
               assert_match "# Use pg as the database for Active Record", content
-              assert_match "gem 'pg', '>= 0.18', '< 2.0'", content
+              assert_match "gem 'pg', '~> 1.1'", content
             end
           end
 

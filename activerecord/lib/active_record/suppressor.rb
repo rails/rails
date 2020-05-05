@@ -40,11 +40,11 @@ module ActiveRecord
       end
     end
 
-    def save(*, **) # :nodoc:
+    def save(**) # :nodoc:
       SuppressorRegistry.suppressed[self.class.name] ? true : super
     end
 
-    def save!(*, **) # :nodoc:
+    def save!(**) # :nodoc:
       SuppressorRegistry.suppressed[self.class.name] ? true : super
     end
   end

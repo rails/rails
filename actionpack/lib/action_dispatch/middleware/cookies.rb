@@ -154,8 +154,10 @@ module ActionDispatch
   # * <tt>:domain</tt> - The domain for which this cookie applies so you can
   #   restrict to the domain level. If you use a schema like www.example.com
   #   and want to share session with user.example.com set <tt>:domain</tt>
-  #   to <tt>:all</tt>. Make sure to specify the <tt>:domain</tt> option with
-  #   <tt>:all</tt> or <tt>Array</tt> again when deleting cookies.
+  #   to <tt>:all</tt>. To support multiple domains, provide an array, and
+  #   the first domain matching <tt>request.host</tt> will be used. Make
+  #   sure to specify the <tt>:domain</tt> option with <tt>:all</tt> or
+  #   <tt>Array</tt> again when deleting cookies.
   #
   #     domain: nil  # Does not set cookie domain. (default)
   #     domain: :all # Allow the cookie for the top most level
@@ -262,6 +264,12 @@ module ActionDispatch
             request.encrypted_signed_cookie_salt.present? &&
             request.encrypted_cookie_salt.present? &&
             request.use_authenticated_cookie_encryption
+        end
+
+        def prepare_upgrade_legacy_hmac_aes_cbc_cookies?
+          request.secret_key_base.present? &&
+            request.authenticated_encrypted_cookie_salt.present? &&
+            !request.use_authenticated_cookie_encryption
         end
 
         def encrypted_cookie_cipher
@@ -438,7 +446,6 @@ module ActionDispatch
 
           options[:path]      ||= "/"
           options[:same_site] ||= request.cookies_same_site_protection
-          options[:same_site] = false if options[:same_site] == :none # TODO: Remove when rack 2.1.0 is out.
 
           if options[:domain] == :all || options[:domain] == "all"
             # If there is a provided tld length then we use it otherwise default domain regexp.
@@ -509,6 +516,18 @@ module ActionDispatch
         end
     end
 
+    class MarshalWithJsonFallback # :nodoc:
+      def self.load(value)
+        Marshal.load(value)
+      rescue TypeError => e
+        ActiveSupport::JSON.decode(value) rescue raise e
+      end
+
+      def self.dump(value)
+        Marshal.dump(value)
+      end
+    end
+
     class JsonSerializer # :nodoc:
       def self.load(value)
         ActiveSupport::JSON.decode(value)
@@ -556,7 +575,7 @@ module ActionDispatch
           serializer = request.cookies_serializer || :marshal
           case serializer
           when :marshal
-            Marshal
+            MarshalWithJsonFallback
           when :json, :hybrid
             JsonSerializer
           else
@@ -615,7 +634,8 @@ module ActionDispatch
           @encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, cipher: "aes-256-cbc", serializer: SERIALIZER)
         end
 
-        request.cookies_rotations.encrypted.each do |*secrets, **options|
+        request.cookies_rotations.encrypted.each do |(*secrets)|
+          options = secrets.extract_options!
           @encryptor.rotate(*secrets, serializer: SERIALIZER, **options)
         end
 
@@ -625,6 +645,11 @@ module ActionDispatch
           sign_secret = request.key_generator.generate_key(request.encrypted_signed_cookie_salt)
 
           @encryptor.rotate(secret, sign_secret, cipher: legacy_cipher, digest: digest, serializer: SERIALIZER)
+        elsif prepare_upgrade_legacy_hmac_aes_cbc_cookies?
+          future_cipher = encrypted_cookie_cipher
+          secret = request.key_generator.generate_key(request.authenticated_encrypted_cookie_salt, ActiveSupport::MessageEncryptor.key_len(future_cipher))
+
+          @encryptor.rotate(secret, nil, cipher: future_cipher, serializer: SERIALIZER)
         end
       end
 

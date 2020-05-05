@@ -41,7 +41,6 @@ module ActiveRecord
         reflection.check_validity!
 
         @owner, @reflection = owner, reflection
-        @_scope = nil
 
         reset
         reset_scope
@@ -98,7 +97,11 @@ module ActiveRecord
       end
 
       def scope
-        @_scope&.spawn || target_scope.merge!(association_scope)
+        if (scope = klass.current_scope) && scope.try(:proxy_association) == self
+          scope.spawn
+        else
+          target_scope.merge!(association_scope)
+        end
       end
 
       def reset_scope
@@ -198,15 +201,16 @@ module ActiveRecord
         _create_record(attributes, true, &block)
       end
 
-      def scoping(relation, &block)
-        @_scope = relation
-        relation.scoping(&block)
-      ensure
-        @_scope = nil
-      end
-
       private
         def find_target
+          if owner.strict_loading?
+            raise StrictLoadingViolationError, "#{owner.class} is marked as strict_loading and #{klass} cannot be lazily loaded."
+          end
+
+          if reflection.strict_loading?
+            raise StrictLoadingViolationError, "The #{reflection.name} association is marked as strict_loading and cannot be lazily loaded."
+          end
+
           scope = self.scope
           return scope.to_a if skip_statement_cache?(scope)
 

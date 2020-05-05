@@ -501,6 +501,43 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     assert flag
   end
 
+  def test_saving_two_records_that_override_object_id_should_run_after_commit_callbacks_for_both
+    klass = Class.new(TopicWithCallbacks) do
+      define_method(:object_id) { 42 }
+    end
+
+    records = [klass.new, klass.new]
+
+    klass.transaction do
+      records.each do |record|
+        record.after_commit_block { |r| r.history << :after_commit }
+        record.save!
+      end
+    end
+
+    assert_equal [:after_commit], records.first.history
+    assert_equal [:after_commit], records.second.history
+  end
+
+  def test_saving_two_records_that_override_object_id_should_run_after_rollback_callbacks_for_both
+    klass = Class.new(TopicWithCallbacks) do
+      define_method(:object_id) { 42 }
+    end
+
+    records = [klass.new, klass.new]
+
+    klass.transaction do
+      records.each do |record|
+        record.after_rollback_block { |r| r.history << :after_rollback }
+        record.save!
+      end
+      raise ActiveRecord::Rollback
+    end
+
+    assert_equal [:after_rollback], records.first.history
+    assert_equal [:after_rollback], records.second.history
+  end
+
   private
     def add_transaction_execution_blocks(record)
       record.after_commit_block(:create) { |r| r.history << :commit_on_create }
@@ -679,75 +716,6 @@ class CallbacksOnDestroyUpdateActionRaceTest < ActiveRecord::TestCase
     topic_clone.save
 
     assert_equal [], TopicWithCallbacksOnUpdate.history
-  end
-end
-
-class TransactionEnrollmentCallbacksTest < ActiveRecord::TestCase
-  class TopicWithoutTransactionalEnrollmentCallbacks < ActiveRecord::Base
-    self.table_name = :topics
-
-    before_commit_without_transaction_enrollment { |r| r.history << :before_commit }
-    after_commit_without_transaction_enrollment { |r| r.history << :after_commit }
-    after_rollback_without_transaction_enrollment { |r| r.history << :rollback }
-
-    def history
-      @history ||= []
-    end
-  end
-
-  def setup
-    @topic = TopicWithoutTransactionalEnrollmentCallbacks.create!
-  end
-
-  def test_commit_does_not_run_transactions_callbacks_without_enrollment
-    @topic.transaction do
-      @topic.content = "foo"
-      @topic.save!
-    end
-    assert_empty @topic.history
-  end
-
-  def test_commit_run_transactions_callbacks_with_explicit_enrollment
-    @topic.transaction do
-      2.times do
-        @topic.content = "foo"
-        @topic.save!
-      end
-      @topic.send(:add_to_transaction)
-    end
-    assert_equal [:before_commit, :after_commit], @topic.history
-  end
-
-  def test_commit_run_transactions_callbacks_with_nested_transactions
-    @topic.transaction do
-      @topic.transaction(requires_new: true) do
-        @topic.content = "foo"
-        @topic.save!
-        @topic.send(:add_to_transaction)
-      end
-    end
-    assert_equal [:before_commit, :after_commit], @topic.history
-  end
-
-  def test_rollback_does_not_run_transactions_callbacks_without_enrollment
-    @topic.transaction do
-      @topic.content = "foo"
-      @topic.save!
-      raise ActiveRecord::Rollback
-    end
-    assert_empty @topic.history
-  end
-
-  def test_rollback_run_transactions_callbacks_with_explicit_enrollment
-    @topic.transaction do
-      2.times do
-        @topic.content = "foo"
-        @topic.save!
-      end
-      @topic.send(:add_to_transaction)
-      raise ActiveRecord::Rollback
-    end
-    assert_equal [:rollback], @topic.history
   end
 end
 
