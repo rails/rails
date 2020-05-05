@@ -39,10 +39,16 @@ module ActiveRecord
         if left.empty? || right.empty?
           common
         else
-          or_clause = WhereClause.new(
-            [left.ast.or(right.ast)],
-          )
-          common + or_clause
+          left = left.ast
+          left = left.expr if left.is_a?(Arel::Nodes::Grouping)
+
+          right = right.ast
+          right = right.expr if right.is_a?(Arel::Nodes::Grouping)
+
+          or_clause = Arel::Nodes::Or.new(left, right)
+
+          common.predicates << Arel::Nodes::Grouping.new(or_clause)
+          common
         end
       end
 
