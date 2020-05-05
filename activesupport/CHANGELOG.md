@@ -1,5 +1,9 @@
-*   Deprecate `starts_with?` and `ends_with?` for String core extensions.
-    Use the native `start_with?` and `end_with?` instead.
+*   Add 3rd person aliases of `Symbol#start_with?` and `Symbol#end_with?`.
+
+    ```ruby
+    :foo.starts_with?("f") # => true
+    :foo.ends_with?("o")   # => true
+    ```
 
     *Ryuta Kamizono*
 
