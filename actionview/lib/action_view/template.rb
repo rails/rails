@@ -136,8 +136,6 @@ module ActionView
       @compile_mutex     = Mutex.new
     end
 
-    deprecate def refresh(_); self; end
-
     # Returns whether the underlying handler supports streaming. If so,
     # a streaming buffer *may* be passed when it starts rendering.
     def supports_streaming?
