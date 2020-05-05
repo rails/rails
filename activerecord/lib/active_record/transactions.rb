@@ -292,11 +292,11 @@ module ActiveRecord
       with_transaction_returning_status { super }
     end
 
-    def save(*, **) #:nodoc:
+    def save(**) #:nodoc:
       with_transaction_returning_status { super }
     end
 
-    def save!(*, **) #:nodoc:
+    def save!(**) #:nodoc:
       with_transaction_returning_status { super }
     end
 
