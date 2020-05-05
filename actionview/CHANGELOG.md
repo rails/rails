@@ -1,3 +1,7 @@
+*   Remove support to template handlers that don't accept two arguments.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated pattern argument in `ActionView::Template::PathResolver`.
 
     *Rafael Mendonça França*
