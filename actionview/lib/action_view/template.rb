@@ -137,7 +137,6 @@ module ActionView
     end
 
     deprecate :original_encoding
-    deprecate def virtual_path=(_); end
     deprecate def formats=(_); end
     deprecate def formats; Array(format); end
     deprecate def variants=(_); end
