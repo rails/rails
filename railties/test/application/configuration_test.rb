@@ -2121,25 +2121,6 @@ module ApplicationTests
       assert_equal :default, Rails.configuration.debug_exception_response_format
     end
 
-    test "controller force_ssl declaration can be used even if session_store is disabled" do
-      make_basic_app do |application|
-        application.config.session_store :disabled
-      end
-
-      class ::OmgController < ActionController::Base
-        force_ssl
-
-        def index
-          render plain: "Yay! You're on Rails!"
-        end
-      end
-
-      get "/"
-
-      assert_equal 301, last_response.status
-      assert_equal "https://example.org/", last_response.location
-    end
-
     test "ActiveRecord::Base.has_many_inversing is true by default for new apps" do
       app "development"
 
