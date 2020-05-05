@@ -20,17 +20,20 @@ module ActiveRecord
           case values.length
           when 0 then NullPredicate
           when 1 then predicate_builder.build(attribute, values.first)
-          else attribute.in(values)
+          else
+            values.map! do |v|
+              predicate_builder.build_bind_attribute(attribute.name, v)
+            end
+            values.empty? ? NullPredicate : attribute.in(values)
           end
 
-        if nils.empty?
-          return values_predicate if ranges.empty?
-        else
+        unless nils.empty?
           values_predicate = values_predicate.or(predicate_builder.build(attribute, nil))
         end
 
-        array_predicates = ranges.map! { |range| predicate_builder.build(attribute, range) }
-        array_predicates.inject(values_predicate, &:or)
+        array_predicates = ranges.map { |range| predicate_builder.build(attribute, range) }
+        array_predicates.unshift(values_predicate)
+        array_predicates.inject(&:or)
       end
 
       private

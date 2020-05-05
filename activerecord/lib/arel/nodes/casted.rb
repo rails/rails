@@ -34,16 +34,6 @@ module Arel # :nodoc: all
       alias :== :eql?
     end
 
-    class CastedArray < Casted # :nodoc:
-      def value_for_database
-        if attribute.able_to_type_cast?
-          value.map { |v| attribute.type_cast_for_database(v) }
-        else
-          value
-        end
-      end
-    end
-
     class Quoted < Arel::Nodes::Unary # :nodoc:
       alias :value_for_database :value
       alias :value_before_type_cast :value

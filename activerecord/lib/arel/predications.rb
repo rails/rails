@@ -31,7 +31,7 @@ module Arel # :nodoc: all
     end
 
     def eq_all(others)
-      grouping_all :eq, others
+      grouping_all :eq, quoted_array(others)
     end
 
     def between(other)
@@ -238,7 +238,7 @@ Passing a range to `#not_in` is deprecated. Call `#not_between`, instead.
       end
 
       def quoted_array(others)
-        Nodes::CastedArray.new(others, self)
+        others.map { |v| quoted_node(v) }
       end
 
       def infinity?(value)
