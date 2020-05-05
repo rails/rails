@@ -78,7 +78,7 @@ development environment, you would add the following to
 config.active_storage.service = :local
 ```
 
-To use the Amazon S3 service in production, you add the following to
+To use the S3 service in production, you add the following to
 `config/environments/production.rb`:
 
 ```ruby
@@ -107,9 +107,9 @@ local:
   root: <%= Rails.root.join("storage") %>
 ```
 
-### Amazon S3 Service
+### S3 Service (Amazon S3 and S3-compatible APIs)
 
-Declare an S3 service in `config/storage.yml`:
+To connect to Amazon S3, declare an S3 service in `config/storage.yml`:
 
 ```yaml
 amazon:
@@ -143,10 +143,20 @@ NOTE: The core features of Active Storage require the following permissions: `s3
 
 NOTE: If you want to use environment variables, standard SDK configuration files, profiles,
 IAM instance profiles or task roles, you can omit the `access_key_id`, `secret_access_key`,
-and `region` keys in the example above. The Amazon S3 Service supports all of the
+and `region` keys in the example above. The S3 Service supports all of the
 authentication options described in the [AWS SDK documentation]
 (https://docs.aws.amazon.com/sdk-for-ruby/v3/developer-guide/setup-config.html).
 
+To connect to an S3-compatible object storage API such as Digital Ocean Spaces, provide the `endpoint`:
+
+```yaml
+digitalocean:
+  service: S3
+  endpoint: https://nyc3.digitaloceanspaces.com
+  access_key_id: ...
+  secret_access_key: ...
+  # ...and other options
+```
 
 ### Microsoft Azure Storage Service
 
