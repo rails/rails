@@ -1,3 +1,12 @@
+*   Add 3rd person aliases of `Symbol#start_with?` and `Symbol#end_with?`.
+
+    ```ruby
+    :foo.starts_with?("f") # => true
+    :foo.ends_with?("o")   # => true
+    ```
+
+    *Ryuta Kamizono*
+
 *   Add override of unary plus for `ActiveSupport::Duration`.
 
     `+ 1.second` is now identical to `+1.second` to prevent errors
