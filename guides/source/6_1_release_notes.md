@@ -70,6 +70,8 @@ Please refer to the [Changelog][action-view] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated pattern argument in `ActionView::Template::PathResolver`.
+
 *   Remove deprecated support to call private methods from object in some view helpers.
 
 ### Deprecations

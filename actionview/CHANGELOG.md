@@ -1,3 +1,7 @@
+*   Remove deprecated pattern argument in `ActionView::Template::PathResolver`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support to call private methods from object in some view helpers.
 
     *Rafael Mendonça França*

@@ -8,12 +8,8 @@ module ActionView #:nodoc:
   # useful for testing extensions that have no way of knowing what the file
   # system will look like at runtime.
   class FixtureResolver < OptimizedFileSystemResolver
-    def initialize(hash = {}, pattern = nil)
+    def initialize(hash = {})
       super("")
-      if pattern
-        ActiveSupport::Deprecation.warn "Specifying a custom path for #{self.class} is deprecated. Implement a custom Resolver subclass instead."
-        @pattern = pattern
-      end
       @hash = hash
       @path = ""
     end
