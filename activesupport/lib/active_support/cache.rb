@@ -312,7 +312,7 @@ module ActiveSupport
       #     :bar
       #   end
       #   cache.fetch('foo') # => "bar"
-      def fetch(name, options = nil)
+      def fetch(name, options = nil, &block)
         if block_given?
           options = merged_options(options)
           key = normalize_key(name, options)
@@ -329,7 +329,7 @@ module ActiveSupport
           if entry
             get_entry_value(entry, name, options)
           else
-            save_block_result_to_cache(name, **options) { |_name| yield _name }
+            save_block_result_to_cache(name, options, &block)
           end
         elsif options && options[:force]
           raise ArgumentError, "Missing block: Calling `Cache#fetch` with `force: true` requires a block."
@@ -712,7 +712,7 @@ module ActiveSupport
           entry.value
         end
 
-        def save_block_result_to_cache(name, **options)
+        def save_block_result_to_cache(name, options)
           result = instrument(:generate, name, options) do
             yield(name)
           end
