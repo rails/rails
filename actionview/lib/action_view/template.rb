@@ -137,8 +137,6 @@ module ActionView
     end
 
     deprecate :original_encoding
-    deprecate def formats=(_); end
-    deprecate def formats; Array(format); end
     deprecate def variants=(_); end
     deprecate def variants; [variant]; end
     deprecate def refresh(_); self; end

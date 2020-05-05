@@ -55,6 +55,8 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `ActionView::Template#formats`.
+
 *   Remove deprecated `ActionView::Template#virtual_path=`.
 
 *   Remove deprecated `ActionView::Template#updated_at`.

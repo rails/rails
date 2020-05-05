@@ -1,3 +1,7 @@
+*   Remove deprecated `ActionView::Template#formats`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActionView::Template#virtual_path=`.
 
     *Rafael Mendonça França*
