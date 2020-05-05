@@ -77,6 +77,11 @@ module ActiveModel
       super
     end
 
+    def initialize_dup(other) # :nodoc:
+      @attributes = @attributes.deep_dup
+      super
+    end
+
     # Returns a hash of all the attributes with their names as keys and the values of the attributes as values.
     #
     #   class Person
