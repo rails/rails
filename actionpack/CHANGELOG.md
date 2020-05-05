@@ -1,3 +1,7 @@
+*   Remove deprecated `ActionDispatch::Http::ParameterFilter`.
+
+    *Rafael Mendonça França*
+
 *   `fixture_file_upload` now uses path relative to `file_fixture_path`
 
     Previously the path had to be relative to `fixture_path`.

@@ -55,6 +55,8 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `ActionDispatch::Http::ParameterFilter`.
+
 *   Remove deprecated `force_ssl` at the controller level.
 
 ### Deprecations
