@@ -92,6 +92,12 @@ module ActiveRecord
         end
       end
 
+      def each_attribute(&block)
+        predicates.each do |node|
+          Arel.fetch_attribute(node, &block)
+        end
+      end
+
       protected
         attr_reader :predicates
 
@@ -141,7 +147,15 @@ module ActiveRecord
 
         def except_predicates(columns)
           predicates.reject do |node|
-            Arel.fetch_attribute(node) { |attr| columns.include?(attr.name.to_s) }
+            Arel.fetch_attribute(node) do |attr|
+              columns.any? do |column|
+                if column.is_a?(Arel::Attributes::Attribute)
+                  attr == column
+                else
+                  attr.name.to_s == column.to_s
+                end
+              end
+            end
           end
         end
 

@@ -1,3 +1,20 @@
+*   Fix `rewhere` to truly overwrite collided where clause by new where clause.
+
+    ```ruby
+    steve = Person.find_by(name: "Steve")
+    david = Author.find_by(name: "David")
+
+    relation = Essay.where(writer: steve)
+
+    # Before
+    relation.rewhere(writer: david).to_a # => []
+
+    # After
+    relation.rewhere(writer: david).to_a # => [david]
+    ```
+
+    *Ryuta Kamizono*
+
 *   Inspect time attributes with subsec.
 
     ```ruby

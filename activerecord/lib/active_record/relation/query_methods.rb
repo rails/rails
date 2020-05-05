@@ -483,7 +483,7 @@ module ActiveRecord
               raise ArgumentError, "Hash arguments in .unscope(*args) must have :where as the key."
             end
 
-            target_values = Array(target_value).map(&:to_s)
+            target_values = Array(target_value)
             self.where_clause = where_clause.except(*target_values)
           end
         else
@@ -683,9 +683,7 @@ module ActiveRecord
     end
 
     def where!(opts, *rest) # :nodoc:
-      opts = sanitize_forbidden_attributes(opts)
-      references!(PredicateBuilder.references(opts)) if Hash === opts
-      self.where_clause += where_clause_factory.build(opts, rest)
+      self.where_clause += build_where_clause(opts, *rest)
       self
     end
 
@@ -703,7 +701,17 @@ module ActiveRecord
     # This is short-hand for <tt>unscope(where: conditions.keys).where(conditions)</tt>.
     # Note that unlike reorder, we're only unscoping the named conditions -- not the entire where statement.
     def rewhere(conditions)
-      unscope(where: conditions.keys).where(conditions)
+      attrs = []
+      scope = spawn
+
+      where_clause = scope.build_where_clause(conditions)
+      where_clause.each_attribute do |attr|
+        attrs << attr
+      end
+
+      scope.unscope!(where: attrs)
+      scope.where_clause += where_clause
+      scope
     end
 
     # Returns a new relation, which is the logical union of this relation and the one passed as an
@@ -1076,6 +1084,12 @@ module ActiveRecord
         Arel::SelectManager.new(subquery).project(select_value).tap do |arel|
           arel.optimizer_hints(*optimizer_hints_values) unless optimizer_hints_values.empty?
         end
+      end
+
+      def build_where_clause(opts, *rest)
+        opts = sanitize_forbidden_attributes(opts)
+        references!(PredicateBuilder.references(opts)) if Hash === opts
+        where_clause_factory.build(opts, rest)
       end
 
     private

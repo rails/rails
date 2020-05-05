@@ -9,3 +9,8 @@ mary_stay_home:
   name: Stay Home
   writer_type: Author
   writer_id: Mary
+
+steve_connecting_the_dots:
+  name: Connecting The Dots
+  writer_type: Man
+  writer_id: Steve
