@@ -1,3 +1,7 @@
+*   Remove deprecated support to calling `ActionView::ViewPaths#with_fallback` with a block.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support to passing absolute paths to `render template:`.
 
     *Rafael Mendonça França*
