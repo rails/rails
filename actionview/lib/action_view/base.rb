@@ -213,21 +213,6 @@ module ActionView #:nodoc:
 
     # :stopdoc:
 
-    def self.build_lookup_context(context)
-      case context
-      when ActionView::Renderer
-        context.lookup_context
-      when Array
-        ActionView::LookupContext.new(context)
-      when ActionView::PathSet
-        ActionView::LookupContext.new(context)
-      when nil
-        ActionView::LookupContext.new([])
-      else
-        raise NotImplementedError, context.class.name
-      end
-    end
-
     def self.empty
       with_view_paths([])
     end
@@ -242,19 +227,10 @@ module ActionView #:nodoc:
 
     # :startdoc:
 
-    def initialize(lookup_context = nil, assigns = {}, controller = nil) #:nodoc:
+    def initialize(lookup_context, assigns = {}, controller = nil) #:nodoc:
       @_config = ActiveSupport::InheritableOptions.new
 
-      case lookup_context
-      when ActionView::LookupContext
-        @lookup_context = lookup_context
-      else
-        ActiveSupport::Deprecation.warn <<~eowarn.squish
-        ActionView::Base instances should be constructed with a lookup context,
-        assignments, and a controller.
-        eowarn
-        @lookup_context = self.class.build_lookup_context(lookup_context)
-      end
+      @lookup_context = lookup_context
 
       @view_renderer = ActionView::Renderer.new @lookup_context
       @current_template = nil
