@@ -261,15 +261,27 @@ module ActiveSupport #:nodoc:
 
       # :doc:
 
-      # Interprets a file using <tt>mechanism</tt> and marks its defined
-      # constants as autoloaded. <tt>file_name</tt> can be either a string or
+      # <b>Warning:</b> This method is obsolete in +:zeitwerk+ mode. In
+      # +:zeitwerk+ mode semantics match Ruby's and you do not need to be
+      # defensive with load order. Just refer to classes an modules normally. If
+      # the class or module name is dynamic, camelize if needed, and
+      # constantize.</b>
+      #
+      # In +:classic+ mode, interprets a file using +mechanism+ and marks its
+      # defined constants as autoloaded. +file_name+ can be either a string or
       # respond to <tt>to_path</tt>.
       #
-      # Use this method in code that absolutely needs a certain constant to be
-      # defined at that point. A typical use case is to make constant name
-      # resolution deterministic for constants with the same relative name in
-      # different namespaces whose evaluation would depend on load order
-      # otherwise.
+      # In +:classic+ mode, use this method in code that absolutely needs a
+      # certain constant to be defined at that point. A typical use case is to
+      # make constant name resolution deterministic for constants with the same
+      # relative name in different namespaces whose evaluation would depend on
+      # load order otherwise.
+      #
+      # Engines which do not control the mode in which their parent application
+      # runs should call +require_dependency+ if a parent application running in
+      # +:classic+ mode would need it to guarantee load order. This use case is
+      # emulated in +:zeitwerk+ mode, which also loads the file and expects it
+      # to match the corresponding constant.
       def require_dependency(file_name, message = "No such file to load -- %s.rb")
         file_name = file_name.to_path if file_name.respond_to?(:to_path)
         unless file_name.is_a?(String)
