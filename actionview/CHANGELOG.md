@@ -1,3 +1,7 @@
+*   Remove deprecated `find_file` from `ActionView::ViewPaths`.
+
+    *Rafael Mendonça França*
+
 *   Require that `ActionView::Base` subclasses implement `#compiled_method_container`.
 
     *Rafael Mendonça França*
