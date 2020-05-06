@@ -5,14 +5,6 @@ require "active_support/core_ext/file/atomic"
 module ActiveRecord
   module ConnectionAdapters
     class SchemaCache
-      # Override this method to support other PostgreSQL adapter.
-      def self.postgresql_adapter?
-        adapter = ActiveRecord::Base.connection_db_config.configuration_hash[:adapter]
-        adapter == "postgresql"
-      end
-
-      delegate :postgresql_adapter?, to: :class
-
       def self.load_from(filename)
         return unless File.file?(filename)
 
@@ -33,7 +25,6 @@ module ActiveRecord
       private_class_method :read
 
       attr_reader :version
-      attr_reader :postgresql_additional_type_records, :postgresql_known_coder_type_records
       attr_accessor :connection
 
       def initialize(conn)
@@ -64,12 +55,6 @@ module ActiveRecord
         coder["indexes"]          = @indexes
         coder["version"]          = @version
         coder["database_version"] = database_version
-
-        if postgresql_adapter?
-          reset_postgresql_type_records!
-          coder["postgresql_additional_type_records"] = @postgresql_additional_type_records
-          coder["postgresql_known_coder_type_records"] = @postgresql_known_coder_type_records
-        end
       end
 
       def init_with(coder)
@@ -79,11 +64,6 @@ module ActiveRecord
         @indexes          = coder["indexes"] || {}
         @version          = coder["version"]
         @database_version = coder["database_version"]
-
-        if postgresql_adapter?
-          @postgresql_additional_type_records = coder["postgresql_additional_type_records"]
-          @postgresql_known_coder_type_records = coder["postgresql_known_coder_type_records"]
-        end
 
         derive_columns_hash_and_deduplicate_values
       end
@@ -157,11 +137,6 @@ module ActiveRecord
         @indexes.clear
         @version = nil
         @database_version = nil
-
-        if postgresql_adapter?
-          @postgresql_additional_type_records = []
-          @postgresql_known_coder_type_records = []
-        end
       end
 
       def size
@@ -191,16 +166,12 @@ module ActiveRecord
 
       def marshal_dump
         reset_version!
-        if postgresql_adapter?
-          reset_postgresql_type_records!
-          [@version, @columns, {}, @primary_keys, @data_sources, @indexes, database_version, @postgresql_additional_type_records, @postgresql_known_coder_type_records]
-        else
-          [@version, @columns, {}, @primary_keys, @data_sources, @indexes, database_version]
-        end
+
+        [@version, @columns, {}, @primary_keys, @data_sources, @indexes, database_version]
       end
 
       def marshal_load(array)
-        @version, @columns, _columns_hash, @primary_keys, @data_sources, @indexes, @database_version,  @postgresql_additional_type_records, @postgresql_known_coder_type_records = array
+        @version, @columns, _columns_hash, @primary_keys, @data_sources, @indexes, @database_version = array
         @indexes ||= {}
 
         derive_columns_hash_and_deduplicate_values
@@ -209,11 +180,6 @@ module ActiveRecord
       private
         def reset_version!
           @version = connection.migration_context.current_version
-        end
-
-        def reset_postgresql_type_records!
-          @postgresql_additional_type_records = connection&.additional_type_records_cache
-          @postgresql_known_coder_type_records = connection&.known_coder_type_records_cache
         end
 
         def derive_columns_hash_and_deduplicate_values

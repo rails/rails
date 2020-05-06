@@ -139,7 +139,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
             cache = ActiveRecord::ConnectionAdapters::SchemaCache.load_from(filename)
             next if cache.nil?
 
-            if cache.postgresql_adapter?
+            if cache.kind_of?(ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaCache)
               ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.additional_type_records_cache = cache.postgresql_additional_type_records
               ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.known_coder_type_records_cache = cache.postgresql_known_coder_type_records
             end
@@ -149,6 +149,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
 
             if cache.version != current_version
               warn "Ignoring #{filename} because it has expired. The current schema version is #{current_version}, but the one in the cache is #{cache.version}."
+              ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.clear_type_records_cache!
               next
             end
 
