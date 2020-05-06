@@ -55,6 +55,8 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `format` argument `ActionView::Base#initialize`.
+
 *   Remove deprecated `ActionView::Template#refresh`.
 
 *   Remove deprecated `ActionView::Template#original_encoding`.

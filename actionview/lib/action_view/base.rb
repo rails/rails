@@ -240,18 +240,10 @@ module ActionView #:nodoc:
       new context, assigns, controller
     end
 
-    NULL = Object.new
-
     # :startdoc:
 
-    def initialize(lookup_context = nil, assigns = {}, controller = nil, formats = NULL) #:nodoc:
+    def initialize(lookup_context = nil, assigns = {}, controller = nil) #:nodoc:
       @_config = ActiveSupport::InheritableOptions.new
-
-      unless formats == NULL
-        ActiveSupport::Deprecation.warn <<~eowarn.squish
-        Passing formats to ActionView::Base.new is deprecated
-        eowarn
-      end
 
       case lookup_context
       when ActionView::LookupContext
