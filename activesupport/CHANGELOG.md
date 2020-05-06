@@ -1,3 +1,13 @@
+*   `require_dependency` has been documented to be _obsolete_ in `:zeitwerk`
+    mode. The method is not deprecated as such (yet), but applications are
+    encouraged to not use it.
+
+    In `:zeitwerk` mode, semantics match Ruby's and you do not need to be
+    defensive with load order. Just refer to classes and modules normally. If
+    the constant name is dynamic, camelize if needed, and constantize.
+
+    *Xavier Noria*
+
 *   Add 3rd person aliases of `Symbol#start_with?` and `Symbol#end_with?`.
 
     ```ruby

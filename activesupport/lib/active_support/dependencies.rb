@@ -263,9 +263,8 @@ module ActiveSupport #:nodoc:
 
       # <b>Warning:</b> This method is obsolete in +:zeitwerk+ mode. In
       # +:zeitwerk+ mode semantics match Ruby's and you do not need to be
-      # defensive with load order. Just refer to classes an modules normally. If
-      # the class or module name is dynamic, camelize if needed, and
-      # constantize.</b>
+      # defensive with load order. Just refer to classes and modules normally.
+      # If the constant name is dynamic, camelize if needed, and constantize.
       #
       # In +:classic+ mode, interprets a file using +mechanism+ and marks its
       # defined constants as autoloaded. +file_name+ can be either a string or
@@ -277,11 +276,9 @@ module ActiveSupport #:nodoc:
       # relative name in different namespaces whose evaluation would depend on
       # load order otherwise.
       #
-      # Engines which do not control the mode in which their parent application
-      # runs should call +require_dependency+ if a parent application running in
-      # +:classic+ mode would need it to guarantee load order. This use case is
-      # emulated in +:zeitwerk+ mode, which also loads the file and expects it
-      # to match the corresponding constant.
+      # Engines that do not control the mode in which their parent application
+      # runs should call +require_dependency+ where needed in case the runtime
+      # mode is +:classic+.
       def require_dependency(file_name, message = "No such file to load -- %s.rb")
         file_name = file_name.to_path if file_name.respond_to?(:to_path)
         unless file_name.is_a?(String)
