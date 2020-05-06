@@ -1,3 +1,7 @@
+*   Remove deprecated `formats` from `ActionView::Template::Text`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `find_file` from `ActionView::PathSet`.
 
     *Rafael Mendonça França*

@@ -27,9 +27,6 @@ module ActionView #:nodoc:
       def format
         :text
       end
-
-      def formats; Array(format); end
-      deprecate :formats
     end
   end
 end
