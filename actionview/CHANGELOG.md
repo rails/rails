@@ -1,3 +1,7 @@
+*   Remove deprecated `find_all_anywhere` from `ActionView::Resolver`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `formats` from `ActionView::Template::HTML`.
 
     *Rafael Mendonça França*
