@@ -227,7 +227,7 @@ module ActionView #:nodoc:
 
     # :startdoc:
 
-    def initialize(lookup_context, assigns = {}, controller = nil) #:nodoc:
+    def initialize(lookup_context, assigns, controller) #:nodoc:
       @_config = ActiveSupport::InheritableOptions.new
 
       @lookup_context = lookup_context
