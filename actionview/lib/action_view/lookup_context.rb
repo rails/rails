@@ -14,8 +14,6 @@ module ActionView
   # only once during the request, it speeds up all cache accesses.
   class LookupContext #:nodoc:
     attr_accessor :prefixes, :rendered_format
-    deprecate :rendered_format
-    deprecate :rendered_format=
 
     mattr_accessor :fallbacks, default: FallbackFileSystemResolver.instances
 

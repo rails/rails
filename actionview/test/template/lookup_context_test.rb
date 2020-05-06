@@ -17,16 +17,6 @@ class LookupContextTest < ActiveSupport::TestCase
     I18n.locale = :en
   end
 
-  test "rendered_format is deprecated" do
-    assert_deprecated do
-      @lookup_context.rendered_format = "foo"
-    end
-
-    assert_deprecated do
-      assert_equal "foo", @lookup_context.rendered_format
-    end
-  end
-
   test "allows to override default_formats with ActionView::Base.default_formats" do
     formats = ActionView::Base.default_formats
     ActionView::Base.default_formats = [:foo, :bar]

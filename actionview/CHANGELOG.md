@@ -1,3 +1,7 @@
+*   Remove deprecated `rendered_format` from `ActionView::LookupContext`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `find_file` from `ActionView::ViewPaths`.
 
     *Rafael Mendonça França*
