@@ -44,8 +44,9 @@ module Rails
         def load_tests(argv)
           patterns = extract_filters(argv)
 
-          tests = Rake::FileList[patterns.any? ? patterns : "test/**/*_test.rb"]
-          tests.exclude("test/system/**/*", "test/dummy/**/*") if patterns.empty?
+
+          tests = Rake::FileList[patterns.any? ? patterns : default_test_glob]
+          tests.exclude(default_test_exclude_glob) if patterns.empty?
 
           tests.to_a.each { |path| require File.expand_path(path) }
         end
@@ -74,6 +75,14 @@ module Rails
                 path
               end
             end
+          end
+
+          def default_test_glob
+            ENV["DEFAULT_TEST"] || "test/**/*_test.rb"
+          end
+
+          def default_test_exclude_glob
+            ENV["DEFAULT_TEST_EXCLUDE"] || "test/{system,dummy}/**/*_test.rb"
           end
 
           def regexp_filter?(arg)
