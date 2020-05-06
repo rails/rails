@@ -1,3 +1,7 @@
+*   Remove deprecated `format` argument `ActionView::Base#initialize`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActionView::Template#refresh`.
 
     *Rafael Mendonça França*
