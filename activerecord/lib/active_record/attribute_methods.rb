@@ -402,7 +402,11 @@ module ActiveRecord
         if value.is_a?(String) && value.length > 50
           "#{value[0, 50]}...".inspect
         elsif value.is_a?(Time)
-          %("#{value.strftime(Time::DATE_FORMATS[:db] + '.%9N')}")
+          if Time::DATE_FORMATS[:db].respond_to?(:call)
+            Time::DATE_FORMATS[:db].call(value)
+          else
+            %("#{value.strftime(Time::DATE_FORMATS[:db] + '.%9N')}")
+          end
         elsif value.is_a?(Date)
           %("#{value.to_s(:db)}")
         else
