@@ -380,7 +380,7 @@ module RenderTestCases
 
   def test_without_compiled_method_container_is_deprecated
     view = ActionView::Base.with_view_paths(ActionController::Base.view_paths)
-    assert_deprecated("ActionView::Base instances must implement `compiled_method_container`") do
+    assert_raises(NotImplementedError) do
       assert_equal "Hello world!", view.render(template: "test/hello_world")
     end
   end
