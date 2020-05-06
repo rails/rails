@@ -1,3 +1,7 @@
+*   Require that `ActionView::Base` subclasses implement `#compiled_method_container`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support to pass an object that is not a `ActionView::LookupContext` as the first argument
     in `ActionView::Base#initialize`.
  
