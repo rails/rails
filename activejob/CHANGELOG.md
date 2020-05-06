@@ -1,3 +1,5 @@
+## Rails 6.0.3 (May 06, 2020) ##
+
 *   While using `perform_enqueued_jobs` test helper enqueued jobs must be stored for the later check with
     `assert_enqueued_with`.
 

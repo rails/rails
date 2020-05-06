@@ -1,3 +1,5 @@
+## Rails 6.0.3 (May 06, 2020) ##
+
 *   Recommend applications don't use the `database` kwarg in `connected_to`
 
     The database kwarg in `connected_to` was meant to be used for one-off scripts but is often used in requests. This is really dangerous because it re-establishes a connection every time. It's deprecated in 6.1 and will be removed in 6.2 without replacement. This change soft deprecates it in 6.0 by removing documentation.
