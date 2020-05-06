@@ -13,10 +13,7 @@ module ActiveRecord
         when String, Array
           parts = [klass.sanitize_sql(other.empty? ? opts : ([opts] + other))]
         when Hash
-          attributes = predicate_builder.resolve_column_aliases(opts)
-          attributes.stringify_keys!
-
-          parts = predicate_builder.build_from_hash(attributes)
+          parts = predicate_builder.build_from_hash(opts)
         when Arel::Nodes::Node
           parts = [opts]
         else

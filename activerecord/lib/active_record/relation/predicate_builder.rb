@@ -2,8 +2,6 @@
 
 module ActiveRecord
   class PredicateBuilder # :nodoc:
-    delegate :resolve_column_aliases, to: :table
-
     def initialize(table)
       @table = table
       @handlers = []
@@ -17,7 +15,10 @@ module ActiveRecord
     end
 
     def build_from_hash(attributes)
+      attributes = table.resolve_column_aliases(attributes)
+      attributes.stringify_keys!
       attributes = convert_dot_notation_to_hash(attributes)
+
       expand_from_hash(attributes)
     end
 
