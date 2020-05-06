@@ -1,3 +1,7 @@
+*   Remove deprecated `formats` from `ActionView::Template::RawFile`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `formats` from `ActionView::Template::Text`.
 
     *Rafael Mendonça França*
