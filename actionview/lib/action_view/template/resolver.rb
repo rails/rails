@@ -156,9 +156,6 @@ module ActionView
       end
     end
 
-    alias :find_all_anywhere :find_all
-    deprecate :find_all_anywhere
-
     def find_all_with_query(query) # :nodoc:
       @cache.cache_query(query) { find_template_paths(File.join(@path, query)) }
     end

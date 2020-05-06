@@ -55,6 +55,8 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `find_all_anywhere` from `ActionView::Resolver`.
+
 *   Remove deprecated `formats` from `ActionView::Template::HTML`.
 
 *   Remove deprecated `formats` from `ActionView::Template::RawFile`.
