@@ -55,6 +55,8 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `find_file` from `ActionView::PathSet`.
+
 *   Remove deprecated `rendered_format` from `ActionView::LookupContext`.
 
 *   Remove deprecated `find_file` from `ActionView::ViewPaths`.
