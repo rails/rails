@@ -632,13 +632,12 @@ module ActiveRecord
             rescue
               # find and show error
               table_rows_for_connection.each do |key, values|
-                  conn.insert_fixtures_set({ key => values }, [key])
-                rescue => e
-                  problematic_fixture = fixture_sets.find { |fs| fs.name == key }
-                  fixture_error = Fixture::FixtureError.new("Error: #{problematic_fixture.path}: #{e.message}")
-                  fixture_error.set_backtrace(e.backtrace)
-                  raise fixture_error
-                end
+                conn.insert_fixtures_set({ key => values }, [key])
+              rescue => e
+                problematic_fixture = fixture_sets.find { |fs| fs.name == key }
+                fixture_error = Fixture::FixtureError.new("Error: #{problematic_fixture.path}: #{e.message}")
+                fixture_error.set_backtrace(e.backtrace)
+                raise fixture_error
               end
             end
 
