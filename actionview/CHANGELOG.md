@@ -1,4 +1,4 @@
-## Rails 6.0.3.rc1 (April 30, 2020) ##
+## Rails 6.0.3 (May 06, 2020) ##
 
 *   annotated_source_code returns an empty array so TemplateErrors without a
     template in the backtrace are surfaced properly by DebugExceptions.

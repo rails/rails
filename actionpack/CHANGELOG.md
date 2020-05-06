@@ -1,4 +1,4 @@
-## Rails 6.0.3.rc1 (April 30, 2020) ##
+## Rails 6.0.3 (May 06, 2020) ##
 
 *   Include child session assertion count in ActionDispatch::IntegrationTest
 

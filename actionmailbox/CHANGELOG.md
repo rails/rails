@@ -1,4 +1,4 @@
-## Rails 6.0.3.rc1 (April 30, 2020) ##
+## Rails 6.0.3 (May 06, 2020) ##
 
 *   Update Mandrill inbound email route to respond appropriately to HEAD requests for URL health checks from Mandrill.
 
