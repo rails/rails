@@ -55,6 +55,8 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `formats` from `ActionView::Template::HTML`.
+
 *   Remove deprecated `formats` from `ActionView::Template::RawFile`.
 
 *   Remove deprecated `formats` from `ActionView::Template::Text`.
