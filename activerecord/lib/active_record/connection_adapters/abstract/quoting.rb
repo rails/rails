@@ -21,7 +21,7 @@ module ActiveRecord
         value = id_value_for_database(value) if value.is_a?(Base)
 
         if column
-          ActiveSupport::Deprecation.warn(<<~MSG.squish)
+          ActiveSupport::Deprecation.warn(<<~MSG)
             Passing a column to `type_cast` is deprecated and will be removed in Rails 6.2.
           MSG
           type = lookup_cast_type_from_column(column)
