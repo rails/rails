@@ -25,6 +25,20 @@ module ActiveRecord
       assert_equal [comment], Comment.joins(post: :author).where(authors: { id: "2-foo" })
     end
 
+    def test_type_cast_is_not_evaluated_at_relation_build_time
+      posts = nil
+
+      assert_not_called_on_instance_of(Type::Value, :cast) do
+        posts = Post.where(id: "1-foo")
+      end
+      assert_equal [posts(:welcome)], posts.to_a
+
+      assert_not_called_on_instance_of(Type::Value, :cast) do
+        posts = Post.where(id: ["1-foo", "bar"])
+      end
+      assert_equal [posts(:welcome)], posts.to_a
+    end
+
     def test_where_copies_bind_params
       author = authors(:david)
       posts  = author.posts.where("posts.id != 1")

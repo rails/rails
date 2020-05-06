@@ -323,7 +323,6 @@ module Arel # :nodoc: all
 
         def visit_Arel_Nodes_HomogeneousIn(o, collector)
           collector.preparable = false
-          collector << "("
 
           collector << quote_table_name(o.table_name) << "." << quote_column_name(o.column_name)
 
@@ -333,7 +332,7 @@ module Arel # :nodoc: all
             collector << "NOT IN ("
           end
 
-          values = o.values.map { |v| @connection.quote v }
+          values = o.casted_values.map { |v| @connection.quote(v) }
 
           expr = if values.empty?
             @connection.quote(nil)
@@ -342,7 +341,7 @@ module Arel # :nodoc: all
           end
 
           collector << expr
-          collector << "))"
+          collector << ")"
           collector
         end
 
