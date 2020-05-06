@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/symbol/starts_ends_with"
+
 module AbstractController
   module Translation
     # Delegates to <tt>I18n.translate</tt>. Also aliased as <tt>t</tt>.
@@ -11,7 +13,7 @@ module AbstractController
     # to translate many keys within the same controller / action and gives you a
     # simple framework for scoping them consistently.
     def translate(key, **options)
-      if key.to_s.start_with?(".")
+      if key.start_with?(".")
         path = controller_path.tr("/", ".")
         defaults = [:"#{path}#{key}"]
         defaults << options[:default] if options[:default]
