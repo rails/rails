@@ -627,7 +627,21 @@ module ActiveRecord
               end
             end
 
-            conn.insert_fixtures_set(table_rows_for_connection, table_rows_for_connection.keys)
+            begin
+              conn.insert_fixtures_set(table_rows_for_connection, table_rows_for_connection.keys)
+            rescue
+              # find and show error
+              table_rows_for_connection.each do |key,values|
+                begin
+                  conn.insert_fixtures_set({key => values}, [key])
+                rescue => e
+                  problematic_fixture = fixture_sets.find {|fs|fs.name == key}
+                  fixture_error = Fixture::FixtureError.new("Error: #{problematic_fixture.path}: #{e.message}")
+                  fixture_error.set_backtrace(e.backtrace)
+                  raise fixture_error
+                end
+              end
+            end
 
             # Cap primary key sequences to max(pk).
             if conn.respond_to?(:reset_pk_sequence!)
@@ -641,7 +655,7 @@ module ActiveRecord
         end
     end
 
-    attr_reader :table_name, :name, :fixtures, :model_class, :ignored_fixtures, :config
+    attr_reader :table_name, :name, :fixtures, :model_class, :ignored_fixtures, :config, :path
 
     def initialize(_, name, class_name, path, config = ActiveRecord::Base)
       @name     = name
