@@ -1,11 +1,12 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/hash/deep_merge"
+require "active_support/core_ext/symbol/starts_ends_with"
 
 module ActiveSupport
   class OptionMerger #:nodoc:
     instance_methods.each do |method|
-      undef_method(method) unless method.to_s.start_with?("__", "instance_eval", "class", "object_id")
+      undef_method(method) unless method.start_with?("__", "instance_eval", "class", "object_id")
     end
 
     def initialize(context, options)

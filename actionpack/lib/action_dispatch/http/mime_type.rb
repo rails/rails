@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "singleton"
+require "active_support/core_ext/symbol/starts_ends_with"
 
 module Mime
   class Mimes
@@ -305,7 +306,7 @@ module Mime
       def to_a; end
 
       def method_missing(method, *args)
-        if method.to_s.end_with? "?"
+        if method.end_with?("?")
           method[0..-2].downcase.to_sym == to_sym
         else
           super
@@ -313,7 +314,7 @@ module Mime
       end
 
       def respond_to_missing?(method, include_private = false)
-        (method.to_s.end_with? "?") || super
+        method.end_with?("?") || super
       end
   end
 
@@ -348,11 +349,11 @@ module Mime
 
     private
       def respond_to_missing?(method, _)
-        method.to_s.end_with? "?"
+        method.end_with?("?")
       end
 
       def method_missing(method, *args)
-        false if method.to_s.end_with? "?"
+        false if method.end_with?("?")
       end
   end
 end
