@@ -55,6 +55,8 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `rendered_format` from `ActionView::LookupContext`.
+
 *   Remove deprecated `find_file` from `ActionView::ViewPaths`.
 
 *   Require that `ActionView::Base` subclasses implement `#compiled_method_container`.
