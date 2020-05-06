@@ -39,7 +39,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   test "attribute_for_inspect with a date" do
     t = topics(:first)
 
-    assert_equal %("#{t.written_on.to_s(:db)}.#{t.written_on.strftime('%9N')}"), t.attribute_for_inspect(:written_on)
+    assert_equal %("#{t.written_on.to_s(:inspect)}"), t.attribute_for_inspect(:written_on)
   end
 
   test "attribute_for_inspect with an array" do

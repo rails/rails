@@ -401,14 +401,8 @@ module ActiveRecord
       def format_for_inspect(value)
         if value.is_a?(String) && value.length > 50
           "#{value[0, 50]}...".inspect
-        elsif value.is_a?(Time)
-          if Time::DATE_FORMATS[:db].respond_to?(:call)
-            Time::DATE_FORMATS[:db].call(value)
-          else
-            %("#{value.strftime(Time::DATE_FORMATS[:db] + '.%9N')}")
-          end
-        elsif value.is_a?(Date)
-          %("#{value.to_s(:db)}")
+        elsif value.is_a?(Date) || value.is_a?(Time)
+          %("#{value.to_s(:inspect)}")
         else
           value.inspect
         end
