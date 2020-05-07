@@ -1,3 +1,7 @@
+*   Remove deprecated `config.active_record.sqlite3.represent_boolean_as_integer`.
+
+    *Rafael Mendonça França*
+
 *   `relation.create` does no longer leak scope to class level querying methods
     in initialization block and callbacks.
 

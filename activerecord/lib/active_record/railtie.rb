@@ -31,9 +31,6 @@ module ActiveRecord
     config.active_record.maintain_test_schema = true
     config.active_record.has_many_inversing = false
 
-    config.active_record.sqlite3 = ActiveSupport::OrderedOptions.new
-    config.active_record.sqlite3.represent_boolean_as_integer = nil
-
     config.active_record.queues = ActiveSupport::InheritableOptions.new(destroy: :active_record_destroy)
 
     config.eager_load_namespaces << ActiveRecord
@@ -207,16 +204,6 @@ To keep using the current cache store, you can turn off cache versioning entirel
     initializer "active_record.set_configs" do |app|
       ActiveSupport.on_load(:active_record) do
         configs = app.config.active_record
-
-        represent_boolean_as_integer = configs.sqlite3.delete(:represent_boolean_as_integer)
-
-        unless represent_boolean_as_integer.nil?
-          ActiveSupport.on_load(:active_record_sqlite3adapter) do
-            ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer = represent_boolean_as_integer
-          end
-        end
-
-        configs.delete(:sqlite3)
 
         configs.each do |k, v|
           send "#{k}=", v
