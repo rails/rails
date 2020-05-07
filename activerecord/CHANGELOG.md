@@ -1,3 +1,13 @@
+*   Remove deprecated methods from `ActiveRecord::DatabaseConfigurations`.
+
+    `fetch`
+    `each`
+    `first`
+    `values`
+    `[]=`
+
+    *Rafael Mendonça França*
+
 *   `where.not` now generates NAND predicates instead of NOR.
 
      Before:
