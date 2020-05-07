@@ -62,6 +62,10 @@ module ActiveRecord
       Arel::Nodes::BindParam.new(attr)
     end
 
+    def resolve_arel_attribute(table_name, column_name)
+      table.associated_table(table_name).arel_attribute(column_name)
+    end
+
     protected
       def expand_from_hash(attributes)
         return ["1=0"] if attributes.empty?
