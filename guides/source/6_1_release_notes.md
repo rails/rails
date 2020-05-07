@@ -159,6 +159,18 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 ### Notable changes
 
+*   `where.not` now generates NAND predicates instead of NOR.
+
+     Before:
+
+         User.where.not(name: "Jon", role: "admin")
+         # SELECT * FROM users WHERE name != 'Jon' AND role != 'admin'
+
+     After:
+
+         User.where.not(name: "Jon", role: "admin")
+         # SELECT * FROM users WHERE NOT (name == 'Jon' AND role == 'admin')
+
 Active Storage
 --------------
 
