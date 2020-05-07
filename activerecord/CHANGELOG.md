@@ -1,3 +1,7 @@
+*   Remove deprecated `ActiveRecord::Base#update_attributes` and `ActiveRecord::Base#update_attributes!`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `migrations_path` argument in `ActiveRecord::ConnectionAdapter::SchemaStatements#assume_migrated_upto_version`.
 
     *Rafael Mendonça França*
