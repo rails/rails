@@ -117,7 +117,7 @@ class CreateBooks < ActiveRecord::Migration[6.0]
 end
 ```
 
-When used alone, `belongs_to` produces a one-directional one-to-one connection. Therefore each book in the above example "knows" it's author, but the authors don't know about their books.
+When used alone, `belongs_to` produces a one-directional one-to-one connection. Therefore each book in the above example "knows" its author, but the authors don't know about their books.
 To setup a [bi-directional association](#bi-directional-associations) - use `belongs_to` in combination with a `has_one` or `has_many` on the other model. 
 
 `belongs_to` does not ensure reference consistency, so depending on the use case, you might also need to add a database-level foreign key constraint on the reference column, like this:
