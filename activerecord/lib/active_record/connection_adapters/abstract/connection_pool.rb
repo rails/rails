@@ -1018,16 +1018,14 @@ module ActiveRecord
         Thread.current[:prevent_writes] = prevent_writes
       end
 
-      # Prevent most writing to the database regardless of role.
+      # Prevent writing to the database regardless of role.
       #
       # In some cases you may want to prevent writes to the database
       # even if you are on a database that can write. `while_preventing_writes`
-      # will prevent most writes to the database for the duration of the block.
+      # will prevent writes to the database for the duration of the block.
       #
-      # Note: `while_preventing_writes` does not necessarily catch all writes,
-      # it's meant as a safeguard against accidental writes. Writes as created
-      # by ActiveRecord will most likely be caught. Handcrafted write queries
-      # may still be possible though.
+      # Note: `while_preventing_writes` is not as safe as a separate readonly
+      # database user, it only provides a safeguard against accidental writes.
       def while_preventing_writes(enabled = true)
         original, self.prevent_writes = self.prevent_writes, enabled
         yield
