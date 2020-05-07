@@ -1,3 +1,9 @@
+*   Add a database configurations DSL
+
+    Applications can now use `config/database.rb` over `config/database.yml`.
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
 *   Fix `rewhere` to truly overwrite collided where clause by new where clause.
 
     ```ruby

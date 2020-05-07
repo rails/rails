@@ -208,7 +208,7 @@ module Rails
       def paths
         @paths ||= begin
           paths = super
-          paths.add "config/database",    with: "config/database.yml"
+          paths.add "config/database",    with: "config", glob: "database.{yml,rb}"
           paths.add "config/secrets",     with: "config", glob: "secrets.yml{,.enc}"
           paths.add "config/environment", with: "config/environment.rb"
           paths.add "lib/templates"
@@ -226,16 +226,32 @@ module Rails
       # configuration values or loading the environment. Do not use this
       # method.
       #
-      # This uses a DummyERB custom compiler so YAML can ignore the ERB
-      # tags and load the database.yml for the rake tasks.
-      def load_database_yaml # :nodoc:
-        if path = paths["config/database"].existent.first
+      # If you're using YAML, this method will parse the ERB with a
+      # DummyERB custom compiler so YAML can ignore the ERB tags
+      # and load the database.yml for the rake tasks.
+      #
+      # If you're using Ruby, this method will skip the instance_eval on
+      # the configuration and only create config objects with the env_name
+      # and name.
+      def load_dummy_databases # :nodoc:
+        pathnames = database_configuration_pathnames_by_extension
+
+        if pathname = pathnames[".yml"]
           require "rails/application/dummy_erb_compiler"
 
-          yaml = Pathname.new(path)
-          erb = DummyERB.new(yaml.read)
+          erb = DummyERB.new(pathname.read)
 
-          YAML.load(erb.result) || {}
+          begin
+            YAML.load(erb.result) || {}
+          rescue
+            $stderr.puts "Rails couldn't infer whether you are using multiple databases from your database.yml and can't generate the tasks for the non-primary databases. If you'd like to use this feature, please simplify your ERB."
+
+            {}
+          end
+        elsif pathname = pathnames[".rb"]
+          ActiveRecord::DatabaseConfigurations.builder = ActiveRecord::DatabaseConfigurations::Builder.new(dummy: true)
+
+          load pathname.to_path
         else
           {}
         end
@@ -244,26 +260,31 @@ module Rails
       # Loads and returns the entire raw configuration of database from
       # values stored in <tt>config/database.yml</tt>.
       def database_configuration
-        path = paths["config/database"].existent.first
-        yaml = Pathname.new(path) if path
+        pathnames = database_configuration_pathnames_by_extension
 
-        config = if yaml&.exist?
-          loaded_yaml = ActiveSupport::ConfigurationFile.parse(yaml)
+        if pathname = pathnames[".yml"]
+          loaded_yaml = ActiveSupport::ConfigurationFile.parse(pathname)
+
           if (shared = loaded_yaml.delete("shared"))
             loaded_yaml.each do |_k, values|
               values.reverse_merge!(shared)
             end
           end
+
           Hash.new(shared).merge(loaded_yaml)
+        elsif pathname = pathnames[".rb"]
+          ActiveRecord::DatabaseConfigurations.builder = ActiveRecord::DatabaseConfigurations::Builder.new
+
+          load pathname.to_path
+
+          {}
         elsif ENV["DATABASE_URL"]
           # Value from ENV['DATABASE_URL'] is set to default database connection
           # by Active Record.
           {}
         else
-          raise "Could not load database configuration. No such file - #{paths["config/database"].instance_variable_get(:@paths)}"
+          raise "No such file - config/database.yml or config/database.rb"
         end
-
-        config
       rescue => e
         raise e, "Cannot load database configuration:\n#{e.message}", e.backtrace
       end
@@ -373,6 +394,12 @@ module Rails
       end
 
       private
+        def database_configuration_pathnames_by_extension
+          found_paths = paths["config/database"].existent
+          pathnames = found_paths.map { |path| Pathname.new(path) }
+          pathnames.index_by(&:extname)
+        end
+
         def default_credentials_content_path
           if credentials_available_for_current_env?
             root.join("config", "credentials", "#{Rails.env}.yml.enc")

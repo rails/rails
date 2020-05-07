@@ -1832,10 +1832,10 @@ module ApplicationTests
       assert_equal [X, D], C.descendants
     end
 
-    test "load_database_yaml returns blank hash if configuration file is blank" do
+    test "load_dummy_databases returns blank hash if configuration file is blank" do
       app_file "config/database.yml", ""
       app "development"
-      assert_equal({}, Rails.application.config.load_database_yaml)
+      assert_equal({}, Rails.application.config.load_dummy_databases)
     end
 
     test "raises with proper error message if no database configuration found" do
@@ -2580,6 +2580,39 @@ module ApplicationTests
       app "development"
 
       assert_equal true, Rails.application.config.rake_eager_load
+    end
+
+    test "uses yaml database configuration over ruby" do
+      app_file "config/database.rb", <<-RUBY
+        raise 'hi'
+      RUBY
+
+      app "development"
+
+      assert_nothing_raised do
+        assert_equal 4, ActiveRecord::Base.configurations.configs_for.size
+      end
+    end
+
+    test "if database.yml is not present and database.rb is it will be used" do
+      remove_file "config/database.yml"
+
+      app_file "config/database.rb", <<-RUBY
+        ActiveRecord::DatabaseConfigurations.configure do
+          env(:development) do
+            config(:primary) do
+              database 'dev_db'
+              adapter 'sqlite3'
+            end
+          end
+        end
+      RUBY
+
+      app "development"
+
+      assert_nothing_raised do
+        assert_equal 1, ActiveRecord::Base.configurations.configs_for.size
+      end
     end
 
     private

@@ -1000,7 +1000,12 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
 ### Configuring a Database
 
-Just about every Rails application will interact with a database. You can connect to the database by setting an environment variable `ENV['DATABASE_URL']` or by using a configuration file called `config/database.yml`.
+Just about every Rails application will interact with a database.
+
+You can connect to a database in one of three ways:
+* Using a configuration file called `config/database.yml` (this is the default)
+* Using a configuration file called `config/database.rb` (for advanced configurations)
+* Or by setting an envinronment variable `ENV['DATABASE_URL']`
 
 Using the `config/database.yml` file you can specify all the information needed to access your database:
 
@@ -1011,7 +1016,24 @@ development:
   pool: 5
 ```
 
-This will connect to the database named `blog_development` using the `postgresql` adapter. This same information can be stored in a URL and provided via an environment variable like this:
+This will connect to the database named `blog_development` using the `postgresql` adapter.
+
+Using the `config/database.rb` file you can specify the information needed to access your database
+like this:
+
+```ruby
+ActiveRecord::DatabaseConfigurations.configure do
+  for_env(:development) do
+    add(:primary)
+      adapter 'postgresql'
+      database 'blog_development'
+      pool 5
+    end
+  end
+end
+```
+
+This same information can be stored in a URL and provided via an environment variable like this:
 
 ```ruby
 > puts ENV['DATABASE_URL']
@@ -1036,6 +1058,170 @@ The `config/database.yml` file can contain ERB tags `<%= %>`. Anything in the ta
 
 TIP: You don't have to update the database configurations manually. If you look at the options of the application generator, you will see that one of the options is named `--database`. This option allows you to choose an adapter from a list of the most used relational databases. You can even run the generator repeatedly: `cd .. && rails new blog --database=mysql`. When you confirm the overwriting of the `config/database.yml` file, your application will be configured for MySQL instead of SQLite. Detailed examples of the common database connections are below.
 
+### Advanced Database Configurations
+
+As you need to scale your application's database(s) you may find the `config/database.yml` becomes too
+cumbersome and you need something more powerful. This is where the configuration DSL can come in handy.
+
+To use the Ruby configuration, create a `config/database.rb` and delete your `config/database.yml`. Both
+types of databases can't coexist so you need to pick one. Inside the `config/database.rb` add your configuration.
+
+The Ruby DSL provides a few methods to make configuration easier.
+
+* `env` takes an environment name for the configuration in the form of a symbol.
+* `build` takes a block and is used for setting configuration defaults. It is similar to the
+default syntax YAML provides.
+* `config` takes a name, an optional default, and a block, allowing you to build named configurations
+* `shard` takes a name, an optional default, and a block. It is different from a standard config in
+that it's name it build from the `config` object.
+* `replica` takes a name, an optional default, and a block. The replica block will inherit from the
+parent configuration, which can be overriden by an optional default or directly in the `replica` block.
+
+Let's take a look at a configuration file:
+
+```ruby
+ActiveRecord::DatabaseConfigurations.configure do
+  default = build do
+    adapter "mysql2"
+    encoding "utf8mb4"
+    pool ENV.fetch("RAILS_MAX_THREADS") { 5 }
+    username "root"
+    password ""
+    socket "/tmp/mysql.sock"
+  end
+
+  env(:development) do
+    config(:primary, default) do
+      database 'my_database_development'
+
+      replica do
+        username "readonly_user"
+      end
+    end
+  end
+
+  env(:test) do
+    config(:primary, default) do
+      database 'my_database_test'
+
+      replica do
+        username "readonly_user"
+      end
+    end
+  end
+
+  env(:production) do
+    config(:primary, default) do
+      database 'my_database_production'
+
+      replica do
+        username "readonly_user"
+      end
+    end
+  end
+end
+```
+
+Adding multiple replicas is as simple as including multiple replica blocks:
+
+```ruby
+for_env(:development) do
+  add(:primary, default) do
+    database 'my_database_development'
+
+    replica(:one) do
+      username "readonly_user_one"
+    end
+
+    replica(:two) do
+      username "readonly_user_two"
+    end
+  end
+end
+```
+
+The above example will create 3 configurations named `primary`, `primary_replica_one`,
+and `primary_replica_two`. They will automatically inherit the `database` entry
+from the `primary` definition. To override any key from a default block or from
+the parent configuration, set it to a new value in the block:
+
+```ruby
+ActiveRecord::DatabaseConfigurations.configure do
+  default = build do
+    adapter "mysql2"
+    encoding "utf8mb4"
+    pool ENV.fetch("RAILS_MAX_THREADS") { 5 }
+    username "root"
+    password ""
+    socket "/tmp/mysql.sock"
+  end
+
+  default_replica = build do
+    username "readonly_user"
+    password "password"
+  end
+
+  env(:development) do
+    config(:primary, default) do
+      database 'my_database_development'
+
+      # will inherit from default, primary, and default_replica
+      replica(:one, default_replica)
+
+      # will inherit from default, primary, and default_replica
+      # but overrides username
+      replica(:two, default_replica) do
+        username "readonly_user_two"
+      end
+    end
+  end
+end
+```
+
+To add shards use the following:
+
+```ruby
+ActiveRecord::DatabaseConfigurations.configure do
+  default = build do
+    adapter "mysql2"
+    encoding "utf8mb4"
+    pool ENV.fetch("RAILS_MAX_THREADS") { 5 }
+    username "root"
+    password ""
+    socket "/tmp/mysql.sock"
+  end
+
+  env(:development) do
+    config(:primary, default) do
+      database "my_database_development"
+
+      replica do
+        username "primary_replica"
+      end
+
+      shard(:one) do
+        database "shard_db_one"
+
+        replica do
+          username "shard_one_readonly_user"
+        end
+      end
+
+      shard(:two) do
+        database "shard_db_two"
+
+        replica do
+          username "shard_two_readonly_user"
+        end
+      end
+    end
+  end
+end
+```
+
+The above example will create `primary`, `primary_replica`, `primary_shard_one`,
+`primary_shard_one_replica`, `primary_shard_two` and `primary_shard_two_replica`
+configurations.
 
 ### Connection Preference
 
