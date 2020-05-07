@@ -672,6 +672,8 @@ module ActiveRecord
       raise ActiveRecordError, "cannot update a new record" if new_record?
       raise ActiveRecordError, "cannot update a destroyed record" if destroyed?
 
+      attributes = attributes.to_h unless attributes.is_a?(Hash)
+
       attributes = attributes.transform_keys do |key|
         name = key.to_s
         self.class.attribute_aliases[name] || name

@@ -839,6 +839,15 @@ class PersistenceTest < ActiveRecord::TestCase
     assert developer.update_columns(name: "Will"), "did not update record due to default scope"
   end
 
+  def test_update_columns_with_objects_that_respond_to_to_h
+    topic = Topic.find(1)
+    object = Class.new { def to_h; { id: 123 }; end }.new
+    topic.update_columns(object)
+    assert_equal 123, topic.id
+    topic.reload
+    assert_equal 123, topic.id
+  end
+
   def test_update
     topic = Topic.find(1)
     assert_not_predicate topic, :approved?
