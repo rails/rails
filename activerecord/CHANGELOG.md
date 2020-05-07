@@ -1,3 +1,7 @@
+*   Remove deprecated `ActiveRecord::ConnectionAdapters::PostgreSQLAdapter#supports_ranges?`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActiveRecord::Base#update_attributes` and `ActiveRecord::Base#update_attributes!`.
 
     *Rafael Mendonça França*
