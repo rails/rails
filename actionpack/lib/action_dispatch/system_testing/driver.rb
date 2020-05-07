@@ -10,7 +10,10 @@ module ActionDispatch
         @options = options[:options] || {}
         @capabilities = capabilities
 
-        @browser.preload unless name == :rack_test
+        if name == :selenium
+          require "selenium/webdriver"
+          @browser.preload
+        end
       end
 
       def use
