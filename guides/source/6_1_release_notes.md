@@ -149,6 +149,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `ActiveRecord::Result#to_hash` method.
+
 *   Remove deprecated support for using unsafe raw SQL in `ActiveRecord::Relation` methods.
 
 ### Deprecations
