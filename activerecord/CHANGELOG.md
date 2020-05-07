@@ -1,3 +1,11 @@
+*   Deprecate `ActiveRecord::Base.allow_unsafe_raw_sql`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support for using unsafe raw SQL in `ActiveRecord::Relation` methods.
+
+    *Rafael Mendonça França*
+
 *   Fix `rewhere` to truly overwrite collided where clause by new where clause.
 
     ```ruby
