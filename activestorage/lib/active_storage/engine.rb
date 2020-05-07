@@ -133,15 +133,7 @@ module ActiveStorage
 
     initializer "active_storage.queues" do
       config.after_initialize do |app|
-        if queue = app.config.active_storage.queue
-          ActiveSupport::Deprecation.warn \
-            "config.active_storage.queue is deprecated and will be removed in Rails 6.1. " \
-            "Set config.active_storage.queues.purge and config.active_storage.queues.analysis instead."
-
-          ActiveStorage.queues = { purge: queue, analysis: queue, mirror: queue }
-        else
-          ActiveStorage.queues = app.config.active_storage.queues || {}
-        end
+        ActiveStorage.queues = app.config.active_storage.queues || {}
       end
     end
 

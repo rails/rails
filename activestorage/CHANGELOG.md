@@ -1,3 +1,7 @@
+*   Remove deprecated `config.active_storage.queue`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActiveStorage::Downloading`.
 
     *Rafael Mendonça França*
