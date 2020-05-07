@@ -1,3 +1,7 @@
+*   Remove deprecated `migrations_path` argument in `ActiveRecord::ConnectionAdapter::SchemaStatements#assume_migrated_upto_version`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `config.active_record.sqlite3.represent_boolean_as_integer`.
 
     *Rafael Mendonça França*

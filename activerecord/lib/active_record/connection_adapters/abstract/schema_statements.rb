@@ -1190,13 +1190,7 @@ module ActiveRecord
         { primary_key: true }
       end
 
-      def assume_migrated_upto_version(version, migrations_paths = nil)
-        unless migrations_paths.nil?
-          ActiveSupport::Deprecation.warn(<<~MSG.squish)
-            Passing migrations_paths to #assume_migrated_upto_version is deprecated and will be removed in Rails 6.1.
-          MSG
-        end
-
+      def assume_migrated_upto_version(version)
         version = version.to_i
         sm_table = quote_table_name(schema_migration.table_name)
 
