@@ -1275,23 +1275,14 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal "green", parrot.color
   end
 
-  def test_first_or_create_with_after_initialize
-    Bird.create!(color: "yellow", name: "canary")
-    parrot = assert_deprecated do
-      Bird.where(color: "green").first_or_create do |bird|
-        bird.name = "parrot"
-        bird.enable_count = true
-      end
-    end
-    assert_equal 0, parrot.total_count
-  end
-
   def test_first_or_create_with_block
-    Bird.create!(color: "yellow", name: "canary")
+    canary = Bird.create!(color: "yellow", name: "canary")
     parrot = Bird.where(color: "green").first_or_create do |bird|
       bird.name = "parrot"
-      assert_deprecated { assert_equal 0, Bird.count }
+      bird.enable_count = true
+      assert_equal canary, Bird.find_by!(name: "canary")
     end
+    assert_equal 1, parrot.total_count
     assert_kind_of Bird, parrot
     assert_predicate parrot, :persisted?
     assert_equal "green", parrot.color
@@ -1332,23 +1323,14 @@ class RelationTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::RecordInvalid) { Bird.where(color: "green").first_or_create! }
   end
 
-  def test_first_or_create_bang_with_after_initialize
-    Bird.create!(color: "yellow", name: "canary")
-    parrot = assert_deprecated do
-      Bird.where(color: "green").first_or_create! do |bird|
-        bird.name = "parrot"
-        bird.enable_count = true
-      end
-    end
-    assert_equal 0, parrot.total_count
-  end
-
   def test_first_or_create_bang_with_valid_block
-    Bird.create!(color: "yellow", name: "canary")
+    canary = Bird.create!(color: "yellow", name: "canary")
     parrot = Bird.where(color: "green").first_or_create! do |bird|
       bird.name = "parrot"
-      assert_deprecated { assert_equal 0, Bird.count }
+      bird.enable_count = true
+      assert_equal canary, Bird.find_by!(name: "canary")
     end
+    assert_equal 1, parrot.total_count
     assert_kind_of Bird, parrot
     assert_predicate parrot, :persisted?
     assert_equal "green", parrot.color
@@ -1401,23 +1383,14 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal "green", parrot.color
   end
 
-  def test_first_or_initialize_with_after_initialize
-    Bird.create!(color: "yellow", name: "canary")
-    parrot = assert_deprecated do
-      Bird.where(color: "green").first_or_initialize do |bird|
-        bird.name = "parrot"
-        bird.enable_count = true
-      end
-    end
-    assert_equal 0, parrot.total_count
-  end
-
   def test_first_or_initialize_with_block
-    Bird.create!(color: "yellow", name: "canary")
+    canary = Bird.create!(color: "yellow", name: "canary")
     parrot = Bird.where(color: "green").first_or_initialize do |bird|
       bird.name = "parrot"
-      assert_deprecated { assert_equal 0, Bird.count }
+      bird.enable_count = true
+      assert_equal canary, Bird.find_by!(name: "canary")
     end
+    assert_equal 1, parrot.total_count
     assert_kind_of Bird, parrot
     assert_not_predicate parrot, :persisted?
     assert_predicate parrot, :valid?

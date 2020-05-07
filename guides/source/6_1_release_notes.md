@@ -167,6 +167,37 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 ### Notable changes
 
+*   `relation.create` does no longer leak scope to class level querying methods
+    in initialization block and callbacks.
+
+    Before:
+
+        User.where(name: "John").create do |john|
+          User.find_by(name: "David") # => nil
+        end
+
+    After:
+
+        User.where(name: "John").create do |john|
+          User.find_by(name: "David") # => #<User name: "David", ...>
+        end
+
+*   Named scope chain does no longer leak scope to class level querying methods.
+
+        class class User < ActiveRecord::Base
+          scope :david, -> { User.where(name: "David") }
+        end
+
+    Before:
+
+        User.where(name: "John").david
+        # SELECT * FROM users WHERE name = 'John' AND name = 'David'
+
+    After:
+
+        User.where(name: "John").david
+        # SELECT * FROM users WHERE name = 'David'
+
 *   `where.not` now generates NAND predicates instead of NOR.
 
      Before:
