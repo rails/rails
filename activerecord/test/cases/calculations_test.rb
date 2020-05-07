@@ -114,10 +114,39 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_group_by_summed_field
-    c = Account.group(:firm_id).sum(:credit_limit)
-    assert_equal 50,   c[1]
-    assert_equal 105,  c[6]
-    assert_equal 60,   c[2]
+    expected = { nil => 50, 1 => 50, 2 => 60, 6 => 105, 9 => 53 }
+    assert_equal expected, Account.group(:firm_id).sum(:credit_limit)
+  end
+
+  def test_group_by_multiple_same_field
+    accounts = Account.group(:firm_id)
+
+    expected = {
+      nil => 50,
+      1 => 50,
+      2 => 60,
+      6 => 105,
+      9 => 53
+    }
+    assert_equal expected, accounts.sum(:credit_limit)
+
+    expected = {
+      [nil, nil] => 50,
+      [1, 1] => 50,
+      [2, 2] => 60,
+      [6, 6] => 55,
+      [9, 9] => 53
+    }
+    assert_equal expected, accounts.merge!(accounts).maximum(:credit_limit)
+
+    expected = {
+      [nil, nil, nil, nil] => 50,
+      [1, 1, 1, 1] => 50,
+      [2, 2, 2, 2] => 60,
+      [6, 6, 6, 6] => 50,
+      [9, 9, 9, 9] => 53
+    }
+    assert_equal expected, accounts.merge!(accounts).minimum(:credit_limit)
   end
 
   def test_should_generate_valid_sql_with_joins_and_group
