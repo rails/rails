@@ -331,7 +331,7 @@ module ActiveRecord
     def group!(*args) # :nodoc:
       args.flatten!
 
-      self.group_values |= args
+      self.group_values += args
       self
     end
 
@@ -1361,7 +1361,10 @@ module ActiveRecord
         values = other.values
         STRUCTURAL_OR_METHODS.reject do |method|
           default = DEFAULT_VALUES[method]
-          @values.fetch(method, default) == values.fetch(method, default)
+          v1, v2 = @values.fetch(method, default), values.fetch(method, default)
+          v1 = v1.uniq if v1.is_a?(Array)
+          v2 = v2.uniq if v2.is_a?(Array)
+          v1 == v2
         end
       end
 
