@@ -483,7 +483,7 @@ module ActiveRecord
               raise ArgumentError, "Hash arguments in .unscope(*args) must have :where as the key."
             end
 
-            target_values = Array(target_value)
+            target_values = resolve_arel_attributes(Array.wrap(target_value))
             self.where_clause = where_clause.except(*target_values)
           end
         else
@@ -1395,6 +1395,30 @@ module ActiveRecord
             arel_attribute(attr_name)
           else
             Arel.sql(connection.quote_table_name(attr_name))
+          end
+        end
+      end
+
+      def resolve_arel_attributes(attrs)
+        attrs.flat_map do |attr|
+          case attr
+          when Arel::Attributes::Attribute
+            attr
+          when Hash
+            attr.flat_map do |table, columns|
+              table = table.to_s
+              Array(columns).map do |column|
+                predicate_builder.resolve_arel_attribute(table, column)
+              end
+            end
+          else
+            attr = attr.to_s
+            if attr.include?(".")
+              table, column = attr.split(".", 2)
+              predicate_builder.resolve_arel_attribute(table, column)
+            else
+              attr
+            end
           end
         end
       end

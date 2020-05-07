@@ -2050,6 +2050,36 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 1, posts.unscope(where: :body).count
   end
 
+  def test_unscope_with_aliased_column
+    posts = Post.where(author: authors(:mary), text: "hullo").order(:id)
+    assert_equal [posts(:misc_by_mary)], posts
+
+    posts = posts.unscope(where: :"posts.text")
+    assert_equal posts(:eager_other, :misc_by_mary, :other_by_mary), posts
+  end
+
+  def test_unscope_with_table_name_qualified_column
+    comments = Comment.joins(:post).where("posts.id": posts(:thinking))
+    assert_equal [comments(:does_it_hurt)], comments
+
+    comments = comments.where(id: comments(:greetings))
+    assert_empty comments
+
+    comments = comments.unscope(where: :"posts.id")
+    assert_equal [comments(:greetings)], comments
+  end
+
+  def test_unscope_with_table_name_qualified_hash
+    comments = Comment.joins(:post).where("posts.id": posts(:thinking))
+    assert_equal [comments(:does_it_hurt)], comments
+
+    comments = comments.where(id: comments(:greetings))
+    assert_empty comments
+
+    comments = comments.unscope(where: { posts: :id })
+    assert_equal [comments(:greetings)], comments
+  end
+
   def test_unscope_with_arel_sql
     posts = Post.where(Arel.sql("'Welcome to the weblog'").eq(Post.arel_attribute(:title)))
 

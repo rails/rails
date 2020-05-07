@@ -1,3 +1,25 @@
+*   Allow `unscope` to be aware of table name qualified values.
+
+    It is possible to unscope only the column in the specified table.
+
+    ```ruby
+    posts = Post.joins(:comments).group(:"posts.hidden")
+    posts = posts.where("posts.hidden": false, "comments.hidden": false)
+
+    posts.count
+    # => { false => 10 }
+
+    # unscope both hidden columns
+    posts.unscope(where: :hidden).count
+    # => { false => 11, true => 1 }
+
+    # unscope only comments.hidden column
+    posts.unscope(where: :"comments.hidden").count
+    # => { false => 11 }
+    ```
+
+    *Ryuta Kamizono*, *Slava Korolev*
+
 *   Fix `rewhere` to truly overwrite collided where clause by new where clause.
 
     ```ruby
