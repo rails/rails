@@ -72,13 +72,6 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Migration.verbose = @verbose_was
   end
 
-  def test_passing_migrations_paths_to_assume_migrated_upto_version_is_deprecated
-    ActiveRecord::SchemaMigration.create_table
-    assert_deprecated do
-      ActiveRecord::Base.connection.assume_migrated_upto_version(0, [])
-    end
-  end
-
   def test_migration_version_matches_component_version
     assert_equal ActiveRecord::VERSION::STRING.to_f, ActiveRecord::Migration.current_version
   end
