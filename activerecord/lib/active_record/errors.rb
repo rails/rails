@@ -399,17 +399,15 @@ module ActiveRecord
   end
 
   # UnknownAttributeReference is raised when an unknown and potentially unsafe
-  # value is passed to a query method when allow_unsafe_raw_sql is set to
-  # :disabled. For example, passing a non column name value to a relation's
-  # #order method might cause this exception.
+  # value is passed to a query method. For example, passing a non column name
+  # value to a relation's #order method might cause this exception.
   #
   # When working around this exception, caution should be taken to avoid SQL
   # injection vulnerabilities when passing user-provided values to query
   # methods. Known-safe values can be passed to query methods by wrapping them
   # in Arel.sql.
   #
-  # For example, with allow_unsafe_raw_sql set to :disabled, the following
-  # code would raise this exception:
+  # For example, the following code would raise this exception:
   #
   #   Post.order("length(title)").first
   #

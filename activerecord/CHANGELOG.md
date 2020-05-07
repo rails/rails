@@ -1,3 +1,11 @@
+*   Deprecate `ActiveRecord::Base.allow_unsafe_raw_sql`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support for using unsafe raw SQL in `ActiveRecord::Relation` methods.
+
+    *Rafael Mendonça França*
+
 *   Allow users to silence the "Rails couldn't infer whether you are using multiple databases..."
     message using `config.active_record.suppress_multiple_database_warning`.
 

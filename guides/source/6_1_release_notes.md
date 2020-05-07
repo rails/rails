@@ -149,7 +149,11 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated support for using unsafe raw SQL in `ActiveRecord::Relation` methods.
+
 ### Deprecations
+
+*   Deprecate `ActiveRecord::Base.allow_unsafe_raw_sql`.
 
 ### Notable changes
 

@@ -10,112 +10,90 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   test "order: allows string column name" do
     ids_expected = Post.order(Arel.sql("title")).pluck(:id)
 
-    ids_depr     = with_unsafe_raw_sql_deprecated { Post.order("title").pluck(:id) }
-    ids_disabled = with_unsafe_raw_sql_disabled   { Post.order("title").pluck(:id) }
+    ids = Post.order("title").pluck(:id)
 
-    assert_equal ids_expected, ids_depr
-    assert_equal ids_expected, ids_disabled
+    assert_equal ids_expected, ids
   end
 
   test "order: allows symbol column name" do
     ids_expected = Post.order(Arel.sql("title")).pluck(:id)
 
-    ids_depr     = with_unsafe_raw_sql_deprecated { Post.order(:title).pluck(:id) }
-    ids_disabled = with_unsafe_raw_sql_disabled   { Post.order(:title).pluck(:id) }
+    ids = Post.order(:title).pluck(:id)
 
-    assert_equal ids_expected, ids_depr
-    assert_equal ids_expected, ids_disabled
+    assert_equal ids_expected, ids
   end
 
   test "order: allows downcase symbol direction" do
     ids_expected = Post.order(Arel.sql("title") => Arel.sql("asc")).pluck(:id)
 
-    ids_depr     = with_unsafe_raw_sql_deprecated { Post.order(title: :asc).pluck(:id) }
-    ids_disabled = with_unsafe_raw_sql_disabled   { Post.order(title: :asc).pluck(:id) }
+    ids = Post.order(title: :asc).pluck(:id)
 
-    assert_equal ids_expected, ids_depr
-    assert_equal ids_expected, ids_disabled
+    assert_equal ids_expected, ids
   end
 
   test "order: allows upcase symbol direction" do
     ids_expected = Post.order(Arel.sql("title") => Arel.sql("ASC")).pluck(:id)
 
-    ids_depr     = with_unsafe_raw_sql_deprecated { Post.order(title: :ASC).pluck(:id) }
-    ids_disabled = with_unsafe_raw_sql_disabled   { Post.order(title: :ASC).pluck(:id) }
+    ids = Post.order(title: :ASC).pluck(:id)
 
-    assert_equal ids_expected, ids_depr
-    assert_equal ids_expected, ids_disabled
+    assert_equal ids_expected, ids
   end
 
   test "order: allows string direction" do
     ids_expected = Post.order(Arel.sql("title") => Arel.sql("asc")).pluck(:id)
 
-    ids_depr     = with_unsafe_raw_sql_deprecated { Post.order(title: "asc").pluck(:id) }
-    ids_disabled = with_unsafe_raw_sql_disabled   { Post.order(title: "asc").pluck(:id) }
+    ids = Post.order(title: "asc").pluck(:id)
 
-    assert_equal ids_expected, ids_depr
-    assert_equal ids_expected, ids_disabled
+    assert_equal ids_expected, ids
   end
 
   test "order: allows multiple columns" do
     ids_expected = Post.order(Arel.sql("author_id"), Arel.sql("title")).pluck(:id)
 
-    ids_depr     = with_unsafe_raw_sql_deprecated { Post.order(:author_id, :title).pluck(:id) }
-    ids_disabled = with_unsafe_raw_sql_disabled   { Post.order(:author_id, :title).pluck(:id) }
+    ids = Post.order(:author_id, :title).pluck(:id)
 
-    assert_equal ids_expected, ids_depr
-    assert_equal ids_expected, ids_disabled
+    assert_equal ids_expected, ids
   end
 
   test "order: allows mixed" do
     ids_expected = Post.order(Arel.sql("author_id"), Arel.sql("title") => Arel.sql("asc")).pluck(:id)
 
-    ids_depr     = with_unsafe_raw_sql_deprecated { Post.order(:author_id, title: :asc).pluck(:id) }
-    ids_disabled = with_unsafe_raw_sql_disabled   { Post.order(:author_id, title: :asc).pluck(:id) }
+    ids = Post.order(:author_id, title: :asc).pluck(:id)
 
-    assert_equal ids_expected, ids_depr
-    assert_equal ids_expected, ids_disabled
+    assert_equal ids_expected, ids
   end
 
   test "order: allows table and column names" do
     ids_expected = Post.order(Arel.sql("title")).pluck(:id)
 
-    ids_depr     = with_unsafe_raw_sql_deprecated { Post.order("posts.title").pluck(:id) }
-    ids_disabled = with_unsafe_raw_sql_disabled   { Post.order("posts.title").pluck(:id) }
+    ids = Post.order("posts.title").pluck(:id)
 
-    assert_equal ids_expected, ids_depr
-    assert_equal ids_expected, ids_disabled
+    assert_equal ids_expected, ids
   end
 
   test "order: allows quoted table and column names" do
     ids_expected = Post.order(Arel.sql("title")).pluck(:id)
 
     quoted_title = Post.connection.quote_table_name("posts.title")
-    ids_depr     = with_unsafe_raw_sql_deprecated { Post.order(quoted_title).pluck(:id) }
-    ids_disabled = with_unsafe_raw_sql_disabled   { Post.order(quoted_title).pluck(:id) }
+    ids = Post.order(quoted_title).pluck(:id)
 
-    assert_equal ids_expected, ids_depr
-    assert_equal ids_expected, ids_disabled
+    assert_equal ids_expected, ids
   end
 
   test "order: allows column name and direction in string" do
     ids_expected = Post.order(Arel.sql("title desc")).pluck(:id)
 
-    ids_depr     = with_unsafe_raw_sql_deprecated { Post.order("title desc").pluck(:id) }
-    ids_disabled = with_unsafe_raw_sql_disabled   { Post.order("title desc").pluck(:id) }
+    ids = Post.order("title desc").pluck(:id)
 
-    assert_equal ids_expected, ids_depr
-    assert_equal ids_expected, ids_disabled
+    assert_equal ids_expected, ids
   end
 
   test "order: allows table name, column name and direction in string" do
     ids_expected = Post.order(Arel.sql("title desc")).pluck(:id)
 
-    ids_depr     = with_unsafe_raw_sql_deprecated { Post.order("posts.title desc").pluck(:id) }
-    ids_disabled = with_unsafe_raw_sql_disabled   { Post.order("posts.title desc").pluck(:id) }
+    ids = Post.order("posts.title desc").pluck(:id)
 
-    assert_equal ids_expected, ids_depr
-    assert_equal ids_expected, ids_disabled
+    assert_equal ids_expected, ids
   end
 
   test "order: allows NULLS FIRST and NULLS LAST too" do
@@ -129,224 +107,168 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
       %w(first last).each do |position|
         ids_expected = Post.order(Arel.sql("type::text #{direction} nulls #{position}")).pluck(:id)
 
-        ids_depr     = with_unsafe_raw_sql_deprecated { Post.order("type::text #{direction} nulls #{position}").pluck(:id) }
-        ids_disabled = with_unsafe_raw_sql_disabled   { Post.order("type::text #{direction} nulls #{position}").pluck(:id) }
+        ids = Post.order("type::text #{direction} nulls #{position}").pluck(:id)
 
-        assert_equal ids_expected, ids_depr
-        assert_equal ids_expected, ids_disabled
+        assert_equal ids_expected, ids
       end
     end
   end if current_adapter?(:PostgreSQLAdapter)
 
   test "order: disallows invalid column name" do
-    with_unsafe_raw_sql_disabled do
-      assert_raises(ActiveRecord::UnknownAttributeReference) do
-        Post.order("REPLACE(title, 'misc', 'zzzz') asc").pluck(:id)
-      end
+    assert_raises(ActiveRecord::UnknownAttributeReference) do
+      Post.order("REPLACE(title, 'misc', 'zzzz') asc").pluck(:id)
     end
   end
 
   test "order: disallows invalid direction" do
-    with_unsafe_raw_sql_disabled do
-      assert_raises(ArgumentError) do
-        Post.order(title: :foo).pluck(:id)
-      end
+    assert_raises(ArgumentError) do
+      Post.order(title: :foo).pluck(:id)
     end
   end
 
   test "order: disallows invalid column with direction" do
-    with_unsafe_raw_sql_disabled do
-      assert_raises(ActiveRecord::UnknownAttributeReference) do
-        Post.order("REPLACE(title, 'misc', 'zzzz')" => :asc).pluck(:id)
-      end
+    assert_raises(ActiveRecord::UnknownAttributeReference) do
+      Post.order("REPLACE(title, 'misc', 'zzzz')" => :asc).pluck(:id)
     end
   end
 
   test "order: always allows Arel" do
-    ids_depr     = with_unsafe_raw_sql_deprecated { Post.order(Arel.sql("length(title)")).pluck(:title) }
-    ids_disabled = with_unsafe_raw_sql_disabled   { Post.order(Arel.sql("length(title)")).pluck(:title) }
+    titles = Post.order(Arel.sql("length(title)")).pluck(:title)
 
-    assert_equal ids_depr, ids_disabled
+    assert_not_empty titles
   end
 
   test "order: allows Arel.sql with binds" do
     ids_expected = Post.order(Arel.sql("REPLACE(title, 'misc', 'zzzz'), id")).pluck(:id)
 
-    ids_depr     = with_unsafe_raw_sql_deprecated { Post.order([Arel.sql("REPLACE(title, ?, ?), id"), "misc", "zzzz"]).pluck(:id) }
-    ids_disabled = with_unsafe_raw_sql_disabled   { Post.order([Arel.sql("REPLACE(title, ?, ?), id"), "misc", "zzzz"]).pluck(:id) }
+    ids = Post.order([Arel.sql("REPLACE(title, ?, ?), id"), "misc", "zzzz"]).pluck(:id)
 
-    assert_equal ids_expected, ids_depr
-    assert_equal ids_expected, ids_disabled
+    assert_equal ids_expected, ids
   end
 
   test "order: disallows invalid bind statement" do
-    with_unsafe_raw_sql_disabled do
-      assert_raises(ActiveRecord::UnknownAttributeReference) do
-        Post.order(["REPLACE(title, ?, ?), id", "misc", "zzzz"]).pluck(:id)
-      end
+    assert_raises(ActiveRecord::UnknownAttributeReference) do
+      Post.order(["REPLACE(title, ?, ?), id", "misc", "zzzz"]).pluck(:id)
     end
   end
 
   test "order: disallows invalid Array arguments" do
-    with_unsafe_raw_sql_disabled do
-      assert_raises(ActiveRecord::UnknownAttributeReference) do
-        Post.order(["author_id", "REPLACE(title, 'misc', 'zzzz')"]).pluck(:id)
-      end
+    assert_raises(ActiveRecord::UnknownAttributeReference) do
+      Post.order(["author_id", "REPLACE(title, 'misc', 'zzzz')"]).pluck(:id)
     end
   end
 
   test "order: allows valid Array arguments" do
     ids_expected = Post.order(Arel.sql("author_id, length(title)")).pluck(:id)
 
-    ids_depr     = with_unsafe_raw_sql_deprecated { Post.order(["author_id", "length(title)"]).pluck(:id) }
-    ids_disabled = with_unsafe_raw_sql_disabled   { Post.order(["author_id", "length(title)"]).pluck(:id) }
+    ids = Post.order(["author_id", "length(title)"]).pluck(:id)
 
-    assert_equal ids_expected, ids_depr
-    assert_equal ids_expected, ids_disabled
+    assert_equal ids_expected, ids
   end
 
   test "order: logs deprecation warning for unrecognized column" do
-    with_unsafe_raw_sql_deprecated do
-      assert_deprecated(/Dangerous query method/) do
-        Post.order("REPLACE(title, 'misc', 'zzzz')")
-      end
+    e = assert_raises(ActiveRecord::UnknownAttributeReference) do
+      Post.order("REPLACE(title, 'misc', 'zzzz')")
     end
+
+    assert_match(/Query method called with non-attribute argument\(s\):/, e.message)
   end
 
   test "pluck: allows string column name" do
     titles_expected = Post.pluck(Arel.sql("title"))
 
-    titles_depr     = with_unsafe_raw_sql_deprecated { Post.pluck("title") }
-    titles_disabled = with_unsafe_raw_sql_disabled   { Post.pluck("title") }
+    titles = Post.pluck("title")
 
-    assert_equal titles_expected, titles_depr
-    assert_equal titles_expected, titles_disabled
+    assert_equal titles_expected, titles
   end
 
   test "pluck: allows string column name with function and alias" do
     titles_expected = Post.pluck(Arel.sql("UPPER(title)"))
 
-    titles_depr     = with_unsafe_raw_sql_deprecated { Post.pluck("UPPER(title) AS title") }
-    titles_disabled = with_unsafe_raw_sql_disabled   { Post.pluck("UPPER(title) AS title") }
+    titles = Post.pluck("UPPER(title) AS title")
 
-    assert_equal titles_expected, titles_depr
-    assert_equal titles_expected, titles_disabled
+    assert_equal titles_expected, titles
   end
 
   test "pluck: allows symbol column name" do
     titles_expected = Post.pluck(Arel.sql("title"))
 
-    titles_depr     = with_unsafe_raw_sql_deprecated { Post.pluck(:title) }
-    titles_disabled = with_unsafe_raw_sql_disabled   { Post.pluck(:title) }
+    titles = Post.pluck(:title)
 
-    assert_equal titles_expected, titles_depr
-    assert_equal titles_expected, titles_disabled
+    assert_equal titles_expected, titles
   end
 
   test "pluck: allows multiple column names" do
     values_expected = Post.pluck(Arel.sql("title"), Arel.sql("id"))
 
-    values_depr     = with_unsafe_raw_sql_deprecated { Post.pluck(:title, :id) }
-    values_disabled = with_unsafe_raw_sql_disabled   { Post.pluck(:title, :id) }
+    values = Post.pluck(:title, :id)
 
-    assert_equal values_expected, values_depr
-    assert_equal values_expected, values_disabled
+    assert_equal values_expected, values
   end
 
   test "pluck: allows column names with includes" do
     values_expected = Post.includes(:comments).pluck(Arel.sql("title"), Arel.sql("id"))
 
-    values_depr     = with_unsafe_raw_sql_deprecated { Post.includes(:comments).pluck(:title, :id) }
-    values_disabled = with_unsafe_raw_sql_disabled   { Post.includes(:comments).pluck(:title, :id) }
+    values = Post.includes(:comments).pluck(:title, :id)
 
-    assert_equal values_expected, values_depr
-    assert_equal values_expected, values_disabled
+    assert_equal values_expected, values
   end
 
   test "pluck: allows auto-generated attributes" do
     values_expected = Post.pluck(Arel.sql("tags_count"))
 
-    values_depr     = with_unsafe_raw_sql_deprecated { Post.pluck(:tags_count) }
-    values_disabled = with_unsafe_raw_sql_disabled   { Post.pluck(:tags_count) }
+    values = Post.pluck(:tags_count)
 
-    assert_equal values_expected, values_depr
-    assert_equal values_expected, values_disabled
+    assert_equal values_expected, values
   end
 
   test "pluck: allows table and column names" do
     titles_expected = Post.pluck(Arel.sql("title"))
 
-    titles_depr     = with_unsafe_raw_sql_deprecated { Post.pluck("posts.title") }
-    titles_disabled = with_unsafe_raw_sql_disabled   { Post.pluck("posts.title") }
+    titles = Post.pluck("posts.title")
 
-    assert_equal titles_expected, titles_depr
-    assert_equal titles_expected, titles_disabled
+    assert_equal titles_expected, titles
   end
 
   test "pluck: allows quoted table and column names" do
     titles_expected = Post.pluck(Arel.sql("title"))
 
-    quoted_title    = Post.connection.quote_table_name("posts.title")
-    titles_depr     = with_unsafe_raw_sql_deprecated { Post.pluck(quoted_title) }
-    titles_disabled = with_unsafe_raw_sql_disabled   { Post.pluck(quoted_title) }
+    quoted_title = Post.connection.quote_table_name("posts.title")
+    titles = Post.pluck(quoted_title)
 
-    assert_equal titles_expected, titles_depr
-    assert_equal titles_expected, titles_disabled
+    assert_equal titles_expected, titles
   end
 
   test "pluck: disallows invalid column name" do
-    with_unsafe_raw_sql_disabled do
-      assert_raises(ActiveRecord::UnknownAttributeReference) do
-        Post.pluck("REPLACE(title, 'misc', 'zzzz')")
-      end
+    assert_raises(ActiveRecord::UnknownAttributeReference) do
+      Post.pluck("REPLACE(title, 'misc', 'zzzz')")
     end
   end
 
   test "pluck: disallows invalid column name amongst valid names" do
-    with_unsafe_raw_sql_disabled do
-      assert_raises(ActiveRecord::UnknownAttributeReference) do
-        Post.pluck(:title, "REPLACE(title, 'misc', 'zzzz')")
-      end
+    assert_raises(ActiveRecord::UnknownAttributeReference) do
+      Post.pluck(:title, "REPLACE(title, 'misc', 'zzzz')")
     end
   end
 
   test "pluck: disallows invalid column names with includes" do
-    with_unsafe_raw_sql_disabled do
-      assert_raises(ActiveRecord::UnknownAttributeReference) do
-        Post.includes(:comments).pluck(:title, "REPLACE(title, 'misc', 'zzzz')")
-      end
+    assert_raises(ActiveRecord::UnknownAttributeReference) do
+      Post.includes(:comments).pluck(:title, "REPLACE(title, 'misc', 'zzzz')")
     end
   end
 
   test "pluck: always allows Arel" do
-    values_depr     = with_unsafe_raw_sql_deprecated { Post.includes(:comments).pluck(:title, Arel.sql("length(title)")) }
-    values_disabled = with_unsafe_raw_sql_disabled   { Post.includes(:comments).pluck(:title, Arel.sql("length(title)")) }
+    excepted_values = Post.includes(:comments).pluck(:title).map { |title| [title, title.size] }
+    values = Post.includes(:comments).pluck(:title, Arel.sql("length(title)"))
 
-    assert_equal values_depr, values_disabled
+    assert_equal excepted_values, values
   end
 
   test "pluck: logs deprecation warning" do
-    with_unsafe_raw_sql_deprecated do
-      assert_deprecated(/Dangerous query method/) do
-        Post.includes(:comments).pluck(:title, "REPLACE(title, 'misc', 'zzzz')")
-      end
+    e = assert_raises(ActiveRecord::UnknownAttributeReference) do
+      Post.includes(:comments).pluck(:title, "REPLACE(title, 'misc', 'zzzz')")
     end
+
+    assert_match(/Query method called with non-attribute argument\(s\):/, e.message)
   end
-
-  private
-    def with_unsafe_raw_sql_disabled(&block)
-      with_config(:disabled, &block)
-    end
-
-    def with_unsafe_raw_sql_deprecated(&block)
-      with_config(:deprecated, &block)
-    end
-
-    def with_config(new_value, &block)
-      old_value = ActiveRecord::Base.allow_unsafe_raw_sql
-      ActiveRecord::Base.allow_unsafe_raw_sql = new_value
-      yield
-    ensure
-      ActiveRecord::Base.allow_unsafe_raw_sql = old_value
-    end
 end

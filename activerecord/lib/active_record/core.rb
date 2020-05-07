@@ -93,14 +93,6 @@ module ActiveRecord
       # scope being ignored is error-worthy, rather than a warning.
       mattr_accessor :error_on_ignored_order, instance_writer: false, default: false
 
-      # :singleton-method:
-      # Specify the behavior for unsafe raw query methods. Values are as follows
-      #   deprecated - Warnings are logged when unsafe raw SQL is passed to
-      #                query methods.
-      #   disabled   - Unsafe raw SQL passed to query methods results in
-      #                UnknownAttributeReference exception.
-      mattr_accessor :allow_unsafe_raw_sql, instance_writer: false, default: :deprecated
-
       ##
       # :singleton-method:
       # Specify whether or not to use timestamps for migration versions
@@ -234,6 +226,14 @@ module ActiveRecord
         end
 
         klass
+      end
+
+      def self.allow_unsafe_raw_sql # :nodoc:
+        ActiveSupport::Deprecation.warn("ActiveRecord::Base.allow_unsafe_raw_sql is deprecated and will be removed in Rails 6.2")
+      end
+
+      def self.allow_unsafe_raw_sql=(value) # :nodoc:
+        ActiveSupport::Deprecation.warn("ActiveRecord::Base.allow_unsafe_raw_sql= is deprecated and will be removed in Rails 6.2")
       end
 
       self.default_connection_handler = ConnectionAdapters::ConnectionHandler.new
