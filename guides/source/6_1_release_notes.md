@@ -55,6 +55,21 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `ActionDispatch::Http::ParameterFilter`.
+
+*   Remove deprecated `force_ssl` at the controller level.
+
+### Deprecations
+
+### Notable changes
+
+Action View
+-----------
+
+Please refer to the [Changelog][action-view] for detailed changes.
+
+### Removals
+
 *   Remove deprecated `escape_whitelist` from `ActionView::Template::Handlers::ERB`.
 
 *   Remove deprecated `find_all_anywhere` from `ActionView::Resolver`.
@@ -105,21 +120,6 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 *   Remove deprecated support to passing relative paths to `render file:`.
 
 *   Remove support to template handlers that don't accept two arguments.
-
-*   Remove deprecated `ActionDispatch::Http::ParameterFilter`.
-
-*   Remove deprecated `force_ssl` at the controller level.
-
-### Deprecations
-
-### Notable changes
-
-Action View
------------
-
-Please refer to the [Changelog][action-view] for detailed changes.
-
-### Removals
 
 *   Remove deprecated pattern argument in `ActionView::Template::PathResolver`.
 
@@ -202,7 +202,11 @@ Please refer to the [Changelog][active-job] for detailed changes.
 
 ### Deprecations
 
+*   Deprecate `config.active_job.return_false_on_aborted_enqueue`.
+
 ### Notable changes
+
+*   Return `false` when enqueuing a job is aborted.
 
 Action Text
 ----------
