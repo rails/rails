@@ -1,3 +1,15 @@
+*   Remove deprecated methods from `ActiveRecord::ConnectionAdapters::DatabaseLimits`.
+
+    `column_name_length`
+    `table_name_length`
+    `columns_per_table`
+    `indexes_per_table`
+    `columns_per_multicolumn_index`
+    `sql_query_length`
+    `joins_per_query`
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActiveRecord::ConnectionAdapters::AbstractAdapter#supports_multi_insert?`.
 
     *Rafael Mendonça França*
