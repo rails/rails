@@ -335,13 +335,6 @@ module ActiveRecord
         false
       end
 
-      # Does this adapter support creating foreign key constraints
-      # in the same statement as creating the table?
-      def supports_foreign_keys_in_create?
-        supports_foreign_keys?
-      end
-      deprecate :supports_foreign_keys_in_create?
-
       # Does this adapter support creating check constraints?
       def supports_check_constraints?
         false

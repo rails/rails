@@ -332,10 +332,6 @@ module ActiveRecord
       assert_equal "special_db_type", @connection.type_to_sql(:special_db_type)
     end
 
-    def test_supports_foreign_keys_in_create_is_deprecated
-      assert_deprecated { @connection.supports_foreign_keys_in_create? }
-    end
-
     def test_supports_multi_insert_is_deprecated
       assert_deprecated { @connection.supports_multi_insert? }
     end
