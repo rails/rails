@@ -65,7 +65,10 @@ module ActiveRecord
           end
         end
 
+        attr_reader :through_scope
+
         def through_scope_attributes
+          scope = through_scope || self.scope
           scope.where_values_hash(through_association.reflection.name.to_s).
             except!(through_association.reflection.foreign_key,
                     through_association.reflection.klass.inheritance_column)
@@ -83,6 +86,7 @@ module ActiveRecord
         def build_record(attributes)
           ensure_not_nested
 
+          @through_scope = scope
           record = super
 
           inverse = source_reflection.inverse_of
@@ -95,6 +99,8 @@ module ActiveRecord
           end
 
           record
+        ensure
+          @through_scope = nil
         end
 
         def remove_records(existing_records, records, method)
