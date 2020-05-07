@@ -29,6 +29,17 @@ module ActiveRecord
       include Mutex_m
     end
 
+    class << self
+      def dangerous_attribute_methods # :nodoc:
+        @dangerous_attribute_methods ||= (
+          Base.instance_methods +
+          Base.private_instance_methods -
+          Base.superclass.instance_methods -
+          Base.superclass.private_instance_methods
+        ).map { |m| -m.to_s }.to_set.freeze
+      end
+    end
+
     module ClassMethods
       def inherited(child_class) #:nodoc:
         child_class.initialize_generated_modules
@@ -98,7 +109,7 @@ module ActiveRecord
       # A method name is 'dangerous' if it is already (re)defined by Active Record, but
       # not by any ancestors. (So 'puts' is not dangerous but 'save' is.)
       def dangerous_attribute_method?(name) # :nodoc:
-        method_defined_within?(name, Base)
+        ::ActiveRecord::AttributeMethods.dangerous_attribute_methods.include?(name.to_s)
       end
 
       def method_defined_within?(name, klass, superklass = klass.superclass) # :nodoc:
