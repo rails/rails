@@ -1,3 +1,7 @@
+*   Remove deprecated `ActiveRecord::Result#to_hash` method.
+
+    *Rafael Mendonça França*
+
 *   Deprecate `ActiveRecord::Base.allow_unsafe_raw_sql`.
 
     *Rafael Mendonça França*
