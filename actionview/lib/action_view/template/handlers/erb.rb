@@ -16,16 +16,6 @@ module ActionView
         # Do not escape templates of these mime types.
         class_attribute :escape_ignore_list, default: ["text/plain"]
 
-        [self, singleton_class].each do |base|
-          base.alias_method :escape_whitelist, :escape_ignore_list
-          base.alias_method :escape_whitelist=, :escape_ignore_list=
-
-          base.deprecate(
-            escape_whitelist: "use #escape_ignore_list instead",
-            :escape_whitelist= => "use #escape_ignore_list= instead"
-          )
-        end
-
         ENCODING_TAG = Regexp.new("\\A(<%#{ENCODING_FLAG}-?%>)[ \\t]*")
 
         def self.call(template, source)

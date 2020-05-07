@@ -1,3 +1,7 @@
+*   Remove deprecated `escape_whitelist` from `ActionView::Template::Handlers::ERB`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `find_all_anywhere` from `ActionView::Resolver`.
 
     *Rafael Mendonça França*
