@@ -310,6 +310,18 @@ class DependenciesTest < ActiveSupport::TestCase
     remove_constants(:ConstFromLib)
   end
 
+  def test_module_with_required_class_defining_parent_class
+    with_autoloading_fixtures do
+      _ = ParentChildConflict
+
+      assert defined?(ParentChildConflict::ChildConstant)
+      assert ActiveSupport::Dependencies.autoloaded_constants.include?("ParentChildConflict")
+      assert_not ActiveSupport::Dependencies.autoloaded_constants.include?("ParentChildConflict::ChildConstant")
+    end
+  ensure
+    remove_constants(:ParentChildConflict)
+  end
+
   def test_directories_may_manifest_as_nested_classes
     with_autoloading_fixtures do
       assert_kind_of Class, ClassFolder

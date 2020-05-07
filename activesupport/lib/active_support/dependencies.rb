@@ -297,7 +297,15 @@ module ActiveSupport #:nodoc:
         if Dependencies.load? && Dependencies.constant_watch_stack.watching?
           descs = Dependencies.constant_watch_stack.watching.flatten.uniq
 
-          Dependencies.new_constants_in(*descs) { yield }
+          new_constants = Dependencies.new_constants_in(*descs) { yield }
+          new_constants.each do |constant|
+            path_suffix = constant.underscore
+            if Dependencies.search_for_file(path_suffix) || Dependencies.autoloadable_module?(path_suffix)
+              Dependencies.autoloaded_constants << constant
+            end
+          end
+
+          Dependencies.autoloaded_constants.uniq!
         else
           yield
         end
