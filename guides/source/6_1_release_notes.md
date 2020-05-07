@@ -240,6 +240,8 @@ Please refer to the [Changelog][active-storage] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `ActiveStorage::Downloading`.
+
 ### Deprecations
 
 *   Deprecate `Blob.create_after_upload` in favor of `Blob.create_and_upload`.

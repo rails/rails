@@ -1,7 +1,11 @@
+*   Remove deprecated `ActiveStorage::Downloading`.
+
+    *Rafael Mendonça França*
+
 *   Add per-environment configuration support
 
     *Pietro Moro*
-    
+
 *   The Poppler PDF previewer renders a preview image using the original
     document's crop box rather than its media box, hiding print margins. This
     matches the behavior of the MuPDF previewer.
