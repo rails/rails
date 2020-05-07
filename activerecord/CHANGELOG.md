@@ -1,3 +1,7 @@
+*   Remove deprecated `ActiveRecord::ConnectionAdapters::AbstractAdapter#supports_multi_insert?`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActiveRecord::ConnectionAdapters::AbstractAdapter#supports_foreign_keys_in_create?`.
 
     *Rafael Mendonça França*

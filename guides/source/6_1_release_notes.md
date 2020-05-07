@@ -149,6 +149,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `ActiveRecord::ConnectionAdapters::AbstractAdapter#supports_multi_insert?`.
+
 *   Remove deprecated `ActiveRecord::ConnectionAdapters::AbstractAdapter#supports_foreign_keys_in_create?`.
 
 *   Remove deprecated `ActiveRecord::ConnectionAdapters::PostgreSQLAdapter#supports_ranges?`.

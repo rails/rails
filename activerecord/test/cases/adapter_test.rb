@@ -332,10 +332,6 @@ module ActiveRecord
       assert_equal "special_db_type", @connection.type_to_sql(:special_db_type)
     end
 
-    def test_supports_multi_insert_is_deprecated
-      assert_deprecated { @connection.supports_multi_insert? }
-    end
-
     def test_column_name_length_is_deprecated
       assert_deprecated { @connection.column_name_length }
     end

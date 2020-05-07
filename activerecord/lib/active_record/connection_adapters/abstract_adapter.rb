@@ -370,12 +370,6 @@ module ActiveRecord
         false
       end
 
-      # Does this adapter support multi-value insert?
-      def supports_multi_insert?
-        true
-      end
-      deprecate :supports_multi_insert?
-
       # Does this adapter support virtual columns?
       def supports_virtual_columns?
         false
