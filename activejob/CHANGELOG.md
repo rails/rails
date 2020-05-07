@@ -1,3 +1,11 @@
+*   Deprecate `config.active_job.return_false_on_aborted_enqueue`.
+
+    *Rafael Mendonça França*
+
+*   Return `false` when enqueuing a job is aborted.
+
+    *Rafael Mendonça França*
+
 *   While using `perform_enqueued_jobs` test helper enqueued jobs must be stored for the later check with
     `assert_enqueued_with`.
 

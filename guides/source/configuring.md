@@ -860,8 +860,6 @@ There are a few configuration options available in Active Support:
 
 * `config.active_job.custom_serializers` allows to set custom argument serializers. Defaults to `[]`.
 
-* `config.active_job.return_false_on_aborted_enqueue` change the return value of `#enqueue` to false instead of the job instance when the enqueuing is aborted. Defaults to `false`.
-
 * `config.active_job.log_arguments` controls if the arguments of a job are logged. Defaults to `true`.
 
 * `config.active_job.retry_jitter` controls the amount of "jitter" (random variation) applied to the delay time calculated when retrying failed jobs. Defaults to `0.15`.
@@ -970,7 +968,6 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 - `config.action_dispatch.use_cookies_with_metadata`: `true`
 - `config.action_dispatch.return_only_media_type_on_content_type`: `false`
 - `config.action_mailer.delivery_job`: `"ActionMailer::MailDeliveryJob"`
-- `config.active_job.return_false_on_aborted_enqueue`: `true`
 - `config.active_storage.queues.analysis`: `:active_storage_analysis`
 - `config.active_storage.queues.purge`: `:active_storage_purge`
 - `config.active_storage.replace_on_assign_to_many`: `true`
