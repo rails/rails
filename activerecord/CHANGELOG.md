@@ -1,3 +1,8 @@
+*   MySQL: Uniqueness validator now respects default database collation,
+    no longer enforce case sensitive comparison by default.
+
+    *Ryuta Kamizono*
+
 *   Remove deprecated methods from `ActiveRecord::ConnectionAdapters::DatabaseLimits`.
 
     `column_name_length`

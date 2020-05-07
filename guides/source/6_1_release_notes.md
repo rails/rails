@@ -149,6 +149,9 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 ### Removals
 
+*   MySQL: Uniqueness validator now respects default database collation,
+    no longer enforce case sensitive comparison by default.
+
 *   Remove deprecated methods from `ActiveRecord::ConnectionAdapters::DatabaseLimits`.
 
     `column_name_length`
