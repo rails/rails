@@ -467,8 +467,9 @@ class User < ApplicationRecord
   end
 end
 
-# prints nothing
+# creating @user
 >> @user = User.create
+=> User was saved to database
 
 # updating @user
 >> @user.save
