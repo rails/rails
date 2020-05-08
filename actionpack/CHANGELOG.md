@@ -20,6 +20,17 @@
 *   The +helper+ class method for controllers loads helper modules specified as
     strings/symbols with `String#constantize` instead of `require_dependency`.
 
+    Remember that support for strings/symbols is only a convenient API. You can
+    always pass a module object:
+
+    ```ruby
+    helper UtilsHelper
+    ```
+
+    which is recommended because it is simple and direct. When a string/symbol
+    is received, `helper` just manipulates and inflects the argument to obtain
+    that same module object.
+
     *Xavier Noria*, *Jean Boussier*
 
 *   Correctly identify the entire localhost IPv4 range as trusted proxy.
