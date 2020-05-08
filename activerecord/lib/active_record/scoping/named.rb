@@ -200,6 +200,7 @@ module ActiveRecord
               scope
             end
           end
+          singleton_class.send(:ruby2_keywords, name) if respond_to?(:ruby2_keywords, true)
 
           generate_relation_method(name)
         end
