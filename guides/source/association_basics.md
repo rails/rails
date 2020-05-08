@@ -2400,8 +2400,16 @@ class Author < ApplicationRecord
 end
 ```
 
-If a `before_add` callback throws an exception, the object does not get added to the collection. Similarly, if a `before_remove` callback throws an exception, the object does not get removed from the collection.
+If a `before_add` callback throws `:abort`, the object does not get added to
+the collection. Similarly, if a `before_remove` callback throws `:abort`, the
+object does not get removed from the collection:
 
+```ruby
+# book won't be added if the limit has been reached
+def check_credit_limit(book)
+  throw(:abort) if limit_reached?
+end
+```
 NOTE: These callbacks are called only when the associated objects are added or removed through the association collection:
 
 ```ruby
