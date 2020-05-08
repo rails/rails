@@ -22,6 +22,10 @@ class Topic < ActiveRecord::Base
     end
   end
 
+  scope :scope_stats, -> stats { stats[:count] = count; self }
+
+  def self.klass_stats(stats); stats[:count] = count; self; end
+
   scope :with_object, Class.new(Struct.new(:klass)) {
     def call
       klass.where(approved: true)

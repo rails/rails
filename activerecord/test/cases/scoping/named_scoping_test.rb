@@ -107,6 +107,20 @@ class NamedScopingTest < ActiveRecord::TestCase
     assert_equal all_topics, Topic.written_before(nil)
   end
 
+  def test_positional_scope_method
+    stats = {}
+    topics = Topic.all.scope_stats(stats)
+
+    assert_equal topics.count, stats[:count]
+  end
+
+  def test_positional_klass_method
+    stats = {}
+    topics = Topic.all.klass_stats(stats)
+
+    assert_equal topics.count, stats[:count]
+  end
+
   def test_scope_with_object
     objects = Topic.with_object
     assert_operator objects.length, :>, 0
