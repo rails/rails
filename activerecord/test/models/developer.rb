@@ -107,6 +107,11 @@ class SymbolIgnoredDeveloper < ActiveRecord::Base
   attribute :last_name
 end
 
+class LegacyDeveloper < ActiveRecord::Base
+  self.table_name = "legacy_developers"
+  alias_attribute :updated_at, :updated_datetime
+end
+
 class AuditLog < ActiveRecord::Base
   belongs_to :developer, validate: true
   belongs_to :unvalidated_developer, class_name: "Developer"

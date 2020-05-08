@@ -97,7 +97,7 @@ module ActiveRecord
     def cache_version
       return unless cache_versioning
 
-      if has_attribute?("updated_at")
+      if try(:updated_at)
         timestamp = updated_at_before_type_cast
         if can_use_fast_cache_version?(timestamp)
           raw_timestamp_to_cache_version(timestamp)

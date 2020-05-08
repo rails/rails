@@ -8,7 +8,7 @@ require "models/owner"
 require "models/pet"
 
 class IntegrationTest < ActiveRecord::TestCase
-  fixtures :companies, :developers, :owners, :pets
+  fixtures :companies, :developers, :legacy_developers, :owners, :pets
 
   def test_to_param_should_return_string
     assert_kind_of String, Client.first.to_param
@@ -139,6 +139,13 @@ class IntegrationTest < ActiveRecord::TestCase
     dev = Developer.first
     dev.updated_at = nil
     assert_equal "developers/#{dev.id}-#{dev.updated_on.utc.to_s(:usec)}", dev.cache_key
+  end
+
+  def test_cache_key_for_aliased_updated_at
+    with_cache_versioning do
+      dev = LegacyDeveloper.first
+      assert_equal dev.updated_datetime.utc.to_s(:usec), dev.cache_version
+    end
   end
 
   def test_cache_key_for_newer_updated_at

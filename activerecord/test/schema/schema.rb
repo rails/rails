@@ -307,6 +307,11 @@ ActiveRecord::Schema.define do
     end
   end
 
+  create_table :legacy_developers, force: true do |t|
+    t.string   :name
+    t.datetime :updated_datetime
+  end
+
   create_table :developers_projects, force: true, id: false do |t|
     t.integer :developer_id, null: false
     t.integer :project_id, null: false
