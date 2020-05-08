@@ -700,7 +700,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_group_weirds_by_from
     Weird.create("a$b" => "value", :from => "aaron")
-    count = Weird.group(Weird.arel_table[:from]).count
+    count = Weird.group(Weird[:from]).count
     assert_equal 1, count["aaron"]
   end
 

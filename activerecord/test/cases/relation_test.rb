@@ -60,7 +60,7 @@ module ActiveRecord
 
     def test_values_wrong_table
       relation = Relation.new(Post)
-      relation.where! Comment.arel_table[:id].eq(10)
+      relation.where! Comment[:id].eq(10)
       assert_equal({}, relation.where_values_hash)
     end
 

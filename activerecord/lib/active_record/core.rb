@@ -279,11 +279,17 @@ module ActiveRecord
         @arel_table ||= Arel::Table.new(table_name, type_caster: type_caster)
       end
 
-      def arel_attribute(name, table = arel_table) # :nodoc:
+      # Returns an instance of <tt>Arel::Attributes::Attribute</tt> which represents the named column.
+      # For example:
+      #
+      #   Developer.where(Developer[:salary].not_eq(9000))
+      def [](name, table = arel_table)
         name = name.to_s
         name = attribute_aliases[name] || name
         table[name]
       end
+
+      alias :arel_attribute :[] # :nodoc:
 
       def predicate_builder # :nodoc:
         @predicate_builder ||= PredicateBuilder.new(table_metadata)
