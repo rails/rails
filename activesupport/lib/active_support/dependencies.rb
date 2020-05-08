@@ -592,8 +592,8 @@ module ActiveSupport #:nodoc:
         end
       end
 
-      name_error = NameError.new("uninitialized constant #{qualified_name}", const_name)
-      name_error.set_backtrace(caller.reject { |l| l.start_with?(__FILE__) })
+      name_error = uninitialized_constant(qualified_name, const_name, receiver: from_mod)
+      name_error.set_backtrace(caller.reject { |l| l.start_with? __FILE__ })
       raise name_error
     end
 
@@ -801,6 +801,16 @@ module ActiveSupport #:nodoc:
     end
 
     private
+      if RUBY_VERSION < "2.6"
+        def uninitialized_constant(qualified_name, const_name, receiver:)
+          NameError.new("uninitialized constant #{qualified_name}", const_name)
+        end
+      else
+        def uninitialized_constant(qualified_name, const_name, receiver:)
+          NameError.new("uninitialized constant #{qualified_name}", const_name, receiver: receiver)
+        end
+      end
+
       # Returns the original name of a class or module even if `name` has been
       # overridden.
       def real_mod_name(mod)
