@@ -1,3 +1,9 @@
+*   Add `config.generators.after_generate` for processing to generated files.
+
+    Register a callback that will get called right after generators has finished.
+
+    *Yuji Yaginuma*
+
 *   Make test file patterns configurable via Environment variables
 
     This makes test file patterns configurable via two environment variables:

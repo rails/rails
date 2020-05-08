@@ -217,5 +217,37 @@ module ApplicationTests
       output = rails("generate", "model", "post", "title:string", "body:string", "--force")
       assert_no_match(/The name 'Post' is either already used in your application or reserved/, output)
     end
+
+    test "generators with after_generate callback" do
+      model_file = File.join(app_path, "app/models/post.rb")
+      with_config do |c|
+        c.generators.after_generate do |files|
+          expected = %w(
+            db/migrate/20000101000000_create_posts.rb
+            app/models/post.rb
+            test/models/post_test.rb
+            test/fixtures/posts.yml
+            app/controllers/posts_controller.rb
+            app/views/posts/index.html.erb
+            app/views/posts/edit.html.erb
+            app/views/posts/show.html.erb
+            app/views/posts/new.html.erb
+            app/views/posts/_form.html.erb
+            test/controllers/posts_controller_test.rb
+            test/system/posts_test.rb
+            app/helpers/posts_helper.rb
+          )
+          assert_equal expected, files
+
+          File.open(model_file, "a") { |f| f.write("# Add comment to model") }
+        end
+      end
+
+      travel_to Time.utc(2000, 1, 1)  do
+        rails("generate", "scaffold", "post", "title:string")
+      end
+
+      assert_match(/# Add comment to model/, File.read(model_file))
+    end
   end
 end
