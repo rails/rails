@@ -329,7 +329,7 @@ module ActiveModel
       #   person.name_short? # => NoMethodError
       def undefine_attribute_methods
         generated_attribute_methods.module_eval do
-          instance_methods.each { |m| undef_method(m) }
+          undef_method(*instance_methods)
         end
         attribute_method_matchers_cache.clear
       end
