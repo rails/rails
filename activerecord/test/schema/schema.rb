@@ -116,6 +116,7 @@ ActiveRecord::Schema.define do
     t.column :difficulty, :integer, **default_zero
     t.column :cover, :string, default: "hard"
     t.string :isbn, **case_sensitive_options
+    t.string :publisher_id
     t.datetime :published_on
     t.boolean :boolean_status
     t.index [:author_id, :name], unique: true
@@ -888,6 +889,10 @@ ActiveRecord::Schema.define do
     t.string :name
     t.integer :lock_version, null: false, default: 0
     t.index :id, unique: true
+  end
+
+  create_table :publishers, id: false, force: true do |t|
+    t.string :code, null: false
   end
 
   create_table :subscribers, id: false, force: true do |t|

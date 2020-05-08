@@ -517,7 +517,7 @@ class ReflectionTest < ActiveRecord::TestCase
     end
 end
 
-class UncastableReflectionTest < ActiveRecord::TestCase
+class UncastableHasManyReflectionTest < ActiveRecord::TestCase
   class Book < ActiveRecord::Base
   end
 
@@ -550,8 +550,8 @@ class UncastableReflectionTest < ActiveRecord::TestCase
   test "uncastable has_many through: reflection" do
     error = assert_raises(NotImplementedError) { @subscriber.books }
     assert_equal <<~MSG.squish, error.message
-      In order to correctly type cast UncastableReflectionTest::Subscriber.nick,
-      UncastableReflectionTest::Book needs to define a :subscriptions association.
+      In order to correctly type cast #{self.class}::Subscriber.nick,
+      #{self.class}::Book needs to define a :subscriptions association.
     MSG
   end
 
@@ -559,8 +559,8 @@ class UncastableReflectionTest < ActiveRecord::TestCase
     error = assert_raises(NotImplementedError) { @subscriber.book }
 
     assert_equal <<~MSG.squish, error.message
-      In order to correctly type cast UncastableReflectionTest::Subscriber.nick,
-      UncastableReflectionTest::Book needs to define a :subscription association.
+      In order to correctly type cast #{self.class}::Subscriber.nick,
+      #{self.class}::Book needs to define a :subscription association.
     MSG
   end
 
@@ -581,5 +581,63 @@ class UncastableReflectionTest < ActiveRecord::TestCase
   test "fixing uncastable has_one through: reflection with has_one" do
     Book.has_one :subscription
     @subscriber.book
+  end
+end
+
+class UncastableBelongsToReflectionTest < ActiveRecord::TestCase
+  class Book < ActiveRecord::Base
+    belongs_to :publisher
+    has_one :subscription
+  end
+
+  class Subscription < ActiveRecord::Base
+  end
+
+  class Publisher < ActiveRecord::Base
+    self.primary_key = "code"
+
+    has_many :books
+    has_one :book
+    has_many :subscriptions, through: :books
+    has_one :subscription, through: :book
+  end
+
+  setup do
+    @publisher = Publisher.create!(code: "unique")
+  end
+
+  teardown do
+    Subscription._reflections.clear
+    Subscription.clear_reflections_cache
+    Publisher.has_many :subscriptions, through: :books
+    Publisher.has_one :subscription, through: :book
+  end
+
+  test "uncastable has_many through: belongs_to reflection" do
+    error = assert_raises(NotImplementedError) { @publisher.subscriptions }
+
+    assert_equal <<~MSG.squish, error.message
+      In order to correctly type cast #{self.class}::Publisher.code,
+      #{self.class}::Subscription needs to define a :books association.
+    MSG
+  end
+
+  test "uncastable has_one through: belongs_to reflection" do
+    error = assert_raises(NotImplementedError) { @publisher.subscription }
+
+    assert_equal <<~MSG.squish, error.message
+      In order to correctly type cast #{self.class}::Publisher.code,
+      #{self.class}::Subscription needs to define a :book association.
+    MSG
+  end
+
+  test "fixing uncastable has_many through: reflection with has_many" do
+    Subscription.belongs_to :book
+    @publisher.subscriptions
+  end
+
+  test "fixing uncastable has_one through: reflection with has_many" do
+    Subscription.belongs_to :book
+    @publisher.subscription
   end
 end

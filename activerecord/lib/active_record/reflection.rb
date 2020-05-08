@@ -771,15 +771,7 @@ module ActiveRecord
 
       def klass
         @klass ||= delegate_reflection.compute_class(class_name).tap do |klass|
-          if !parent_reflection.is_a?(HasAndBelongsToManyReflection) &&
-             !(klass.reflections.key?(options[:through].to_s) ||
-               klass.reflections.key?(options[:through].to_s.pluralize)) &&
-             active_record.type_for_attribute(active_record.primary_key).type != :integer
-            raise NotImplementedError, <<~MSG.squish
-              In order to correctly type cast #{active_record}.#{active_record.primary_key},
-              #{klass} needs to define a :#{options[:through]} association.
-            MSG
-          end
+          check_reflection_validity!(klass)
         end
       end
 
@@ -996,11 +988,35 @@ module ActiveRecord
           end
         end
 
-        def inverse_name; delegate_reflection.send(:inverse_name); end
+        def inverse_name
+          delegate_reflection.send(:inverse_name)
+        end
 
         def derive_class_name
           # get the class_name of the belongs_to association of the through reflection
           options[:source_type] || source_reflection.class_name
+        end
+
+        def integer_primary_key?
+          active_record.type_for_attribute(active_record.primary_key).type == :integer
+        end
+
+        def through_has_and_belongs_to_many?
+          parent_reflection.is_a?(HasAndBelongsToManyReflection)
+        end
+
+        def check_reflection_validity!(klass)
+          return if integer_primary_key? || through_has_and_belongs_to_many?
+
+          through_reflection = options[:through].to_s
+          unless klass.reflections.key?(through_reflection) ||
+                 klass.reflections.key?(through_reflection.pluralize) ||
+                 klass.reflections.key?(through_reflection.singularize)
+            raise NotImplementedError, <<~MSG.squish
+              In order to correctly type cast #{active_record}.#{active_record.primary_key},
+              #{klass} needs to define a :#{options[:through]} association.
+            MSG
+          end
         end
 
         delegate_methods = AssociationReflection.public_instance_methods -
