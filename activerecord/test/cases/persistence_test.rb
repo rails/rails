@@ -19,6 +19,7 @@ require "models/person"
 require "models/ship"
 require "models/admin"
 require "models/admin/user"
+require "support/stubs/strong_parameters"
 
 class PersistenceTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :accounts, :minimalistics, :authors, :author_addresses, :posts, :minivans
@@ -837,6 +838,15 @@ class PersistenceTest < ActiveRecord::TestCase
     developer.save!
 
     assert developer.update_columns(name: "Will"), "did not update record due to default scope"
+  end
+
+  def test_update_columns_with_strong_params
+    topic = Topic.find(1)
+    params = ProtectedParams.new(id: 123).permit!
+    topic.update_columns(params)
+    assert_equal 123, topic.id
+    topic.reload
+    assert_equal 123, topic.id
   end
 
   def test_update

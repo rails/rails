@@ -7,6 +7,8 @@ module ActiveRecord
   module Persistence
     extend ActiveSupport::Concern
 
+    include ActiveModel::ForbiddenAttributesProtection
+
     module ClassMethods
       # Creates an object (or multiple objects) and saves it to the database, if validations pass.
       # The resulting object is returned whether the object was saved successfully to the database or not.
@@ -671,6 +673,8 @@ module ActiveRecord
     def update_columns(attributes)
       raise ActiveRecordError, "cannot update a new record" if new_record?
       raise ActiveRecordError, "cannot update a destroyed record" if destroyed?
+
+      attributes = sanitize_forbidden_attributes(attributes)
 
       attributes = attributes.transform_keys do |key|
         name = key.to_s
