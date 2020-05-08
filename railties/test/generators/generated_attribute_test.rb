@@ -176,4 +176,14 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
     att = Rails::Generators::GeneratedAttribute.parse("supplier:references:index")
     assert_not_predicate att, :required?
   end
+
+  def test_parse_attribute_with_uniq
+    att = Rails::Generators::GeneratedAttribute.parse("nickname:string:uniq")
+    assert_predicate att, :has_uniq_index?
+  end
+
+  def test_parse_attribute_with_unique
+    att = Rails::Generators::GeneratedAttribute.parse("nickname:string:unique")
+    assert_predicate att, :has_uniq_index?
+  end
 end

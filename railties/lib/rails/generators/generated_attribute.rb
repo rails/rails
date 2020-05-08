@@ -6,8 +6,8 @@ require "active_support/deprecation"
 module Rails
   module Generators
     class GeneratedAttribute # :nodoc:
-      INDEX_OPTIONS = %w(index uniq)
-      UNIQ_INDEX_OPTIONS = %w(uniq)
+      INDEX_OPTIONS = %w(index uniq unique)
+      UNIQ_INDEX_OPTIONS = %w(uniq unique)
 
       attr_accessor :name, :type
       attr_reader   :attr_options
