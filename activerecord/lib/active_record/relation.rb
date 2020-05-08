@@ -407,9 +407,16 @@ module ActiveRecord
       already_in_scope? ? yield : _scoping(self) { yield }
     end
 
-    def _exec_scope(name, *args, &block) # :nodoc:
+    def _exec_scope(name, *args, **kwargs, &block) # :nodoc:
       @delegate_to_klass = true
-      _scoping(_deprecated_spawn(name)) { instance_exec(*args, &block) || self }
+      _scoping(_deprecated_spawn(name)) do
+        if kwargs.empty?
+          # Ruby <= 2.6 compatibility
+          instance_exec(*args, &block) || self
+        else
+          instance_exec(*args, **kwargs, &block) || self
+        end
+      end
     ensure
       @delegate_to_klass = false
     end

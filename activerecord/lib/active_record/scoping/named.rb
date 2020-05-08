@@ -183,14 +183,14 @@ module ActiveRecord
           extension = Module.new(&block) if block
 
           if body.respond_to?(:to_proc)
-            singleton_class.define_method(name) do |*args|
-              scope = all._exec_scope(name, *args, &body)
+            singleton_class.define_method(name) do |*args, **kwargs|
+              scope = all._exec_scope(name, *args, **kwargs, &body)
               scope = scope.extending(extension) if extension
               scope
             end
           else
-            singleton_class.define_method(name) do |*args|
-              scope = body.call(*args) || all
+            singleton_class.define_method(name) do |*args, **kwargs|
+              scope = body.call(*args, **kwargs) || all
               scope = scope.extending(extension) if extension
               scope
             end

@@ -28,6 +28,8 @@ class Topic < ActiveRecord::Base
     end
   }.new(self)
 
+  scope :with_kwargs, ->(approved: false) { where(approved: approved) }
+
   module NamedExtension
     def two
       2
