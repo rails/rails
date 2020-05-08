@@ -127,6 +127,18 @@ class NamedScopingTest < ActiveRecord::TestCase
     assert objects.all?(&:approved?), "all objects should be approved"
   end
 
+  def test_scope_with_kwargs
+    # Explicit true
+    topics = Topic.with_kwargs(approved: true)
+    assert_operator topics.length, :>, 0
+    assert topics.all?(&:approved?), "all objects should be approved"
+
+    # No arguments
+    topics = Topic.with_kwargs()
+    assert_operator topics.length, :>, 0
+    assert topics.none?(&:approved?), "all objects should not be approved"
+  end
+
   def test_has_many_associations_have_access_to_scopes
     assert_not_equal Post.containing_the_letter_a, authors(:david).posts
     assert_not_empty Post.containing_the_letter_a
