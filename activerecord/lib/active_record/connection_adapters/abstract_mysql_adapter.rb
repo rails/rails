@@ -142,7 +142,12 @@ module ActiveRecord
       end
 
       def index_algorithms
-        { default: +"ALGORITHM = DEFAULT", copy: +"ALGORITHM = COPY", inplace: +"ALGORITHM = INPLACE" }
+        {
+          default: "ALGORITHM = DEFAULT",
+          copy:    "ALGORITHM = COPY",
+          inplace: "ALGORITHM = INPLACE",
+          instant: "ALGORITHM = INSTANT",
+        }
       end
 
       # HELPER METHODS ===========================================

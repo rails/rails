@@ -58,8 +58,10 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
     expected = "CREATE INDEX `index_people_on_last_name` USING btree ON `people` (`last_name`(10))"
     assert_equal expected, add_index(:people, :last_name, length: 10, using: :btree)
 
-    expected = "CREATE INDEX `index_people_on_last_name` USING btree ON `people` (`last_name`(10)) ALGORITHM = COPY"
-    assert_equal expected, add_index(:people, :last_name, length: 10, using: :btree, algorithm: :copy)
+    %i(default copy inplace instant).each do |algorithm|
+      expected = "CREATE INDEX `index_people_on_last_name` USING btree ON `people` (`last_name`(10)) ALGORITHM = #{algorithm.upcase}"
+      assert_equal expected, add_index(:people, :last_name, length: 10, using: :btree, algorithm: algorithm)
+    end
 
     with_real_execute do
       add_index(:people, :first_name)

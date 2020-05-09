@@ -1,3 +1,7 @@
+*   Support `ALGORITHM = INSTANT` DDL option for index operations on MySQL.
+
+    *Ryuta Kamizono*
+
 *   Fix index creation to preserve index comment in bulk change table on MySQL.
 
     *Ryuta Kamizono*
