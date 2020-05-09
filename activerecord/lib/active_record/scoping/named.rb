@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/array"
-
 module ActiveRecord
   # = Active Record \Named \Scopes
   module Scoping

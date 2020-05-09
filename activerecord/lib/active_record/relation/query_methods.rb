@@ -5,6 +5,7 @@ require "active_record/relation/query_attribute"
 require "active_record/relation/where_clause"
 require "active_record/relation/where_clause_factory"
 require "active_model/forbidden_attributes_protection"
+require "active_support/core_ext/array/wrap"
 
 module ActiveRecord
   module QueryMethods
