@@ -1111,8 +1111,16 @@ module ActiveRecord
         options
       end
 
+      # Gets a list of migrations that the database thinks has run (from the schema_migrations table),
+      # then compares this with a list of migration files in the codebase (from the db/migrate dir).
+      # Files not in the codebase are filtered out to allow you to use the same database connection across
+      # branches without incorrectly adding versions to your structure.sql file.
+      #
+      # Returns an SQL insert statement listing all versions that are in the db & codebase.
       def dump_schema_information # :nodoc:
         versions = schema_migration.all_versions
+        migrations_in_codebase = schema_migration.migration_context.migrations.map(&:version).to_set
+        versions.select! { |version| migrations_in_codebase.include?(version) }
         insert_versions_sql(versions) if versions.any?
       end
 
