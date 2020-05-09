@@ -33,6 +33,14 @@ module ActiveRecord
         @comment = comment
       end
 
+      def column_options
+        {
+          length: lengths,
+          order: orders,
+          opclass: opclasses,
+        }
+      end
+
       private
         def concise_options(options)
           if columns.size == options.size && options.values.uniq.size == 1
@@ -68,6 +76,8 @@ module ActiveRecord
     AddColumnDefinition = Struct.new(:column) # :nodoc:
 
     ChangeColumnDefinition = Struct.new(:column, :name) #:nodoc:
+
+    CreateIndexDefinition = Struct.new(:index, :algorithm, :if_not_exists) # :nodoc:
 
     PrimaryKeyDefinition = Struct.new(:name) # :nodoc:
 
