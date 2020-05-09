@@ -867,7 +867,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       classname = ActiveRecord::Base.connection.class.name[/[^:]*$/]
       expected_query_count = {
         "Mysql2Adapter"     => 3, # Adding an index fires a query every time to check if an index already exists or not
-        "PostgreSQLAdapter" => 2,
+        "PostgreSQLAdapter" => 3,
       }.fetch(classname) {
         raise "need an expected query count for #{classname}"
       }
@@ -875,7 +875,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       assert_queries(expected_query_count) do
         with_bulk_change_table do |t|
           t.index :username, unique: true, name: :awesome_username_index
-          t.index [:name, :age]
+          t.index [:name, :age], comment: "This is a comment"
         end
       end
 
@@ -883,6 +883,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
 
       name_age_index = index(:index_delete_me_on_name_and_age)
       assert_equal ["name", "age"].sort, name_age_index.columns.sort
+      assert_equal "This is a comment", name_age_index.comment
       assert_not name_age_index.unique
 
       assert index(:awesome_username_index).unique

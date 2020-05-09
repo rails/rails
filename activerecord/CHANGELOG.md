@@ -1,3 +1,8 @@
+*   Fix index creation to preserve index comment in bulk change table on MySQL.
+
+    *Ryuta Kamizono*
+
+
 ## Rails 6.0.3 (May 06, 2020) ##
 
 *   Recommend applications don't use the `database` kwarg in `connected_to`
