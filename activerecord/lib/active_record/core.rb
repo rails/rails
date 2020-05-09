@@ -162,9 +162,16 @@ module ActiveRecord
         @find_by_statement_cache = { true => Concurrent::Map.new, false => Concurrent::Map.new }
       end
 
+      def define_table_constant(child_class)
+        # We have a connection at this point, which we need for this to work
+        Table.base = child_class
+        child_class.const_set(:Table, Table)
+      end
+
       def inherited(child_class) # :nodoc:
         # initialize cache at class definition for thread safety
         child_class.initialize_find_by_cache
+        child_class.define_table_constant(child_class)
         super
       end
 
@@ -295,6 +302,14 @@ module ActiveRecord
 
       def _internal? # :nodoc:
         false
+      end
+
+      # Makes methods from ::Table available through a <tt>t</tt> method
+      #
+      # Developer.t.id.class #=> Arel::Attributes::Attribute
+      #
+      def t
+        self::Table
       end
 
       private
