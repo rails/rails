@@ -1,3 +1,7 @@
+*   Fix index creation to preserve index comment in bulk change table on MySQL.
+
+    *Ryuta Kamizono*
+
 *   Allow `unscope` to be aware of table name qualified values.
 
     It is possible to unscope only the column in the specified table.
