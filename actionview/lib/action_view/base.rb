@@ -162,8 +162,8 @@ module ActionView #:nodoc:
     # Specify whether submit_tag should automatically disable on click
     cattr_accessor :automatically_disable_submit_tag, default: true
 
-    # Render template filenames as comments in HTML
-    cattr_accessor :annotate_template_file_names, default: false
+    # Annotate rendered view with file names
+    cattr_accessor :annotate_rendered_view_with_filenames, default: false
 
     class_attribute :_routes
     class_attribute :logger

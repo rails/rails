@@ -2,7 +2,7 @@
 
     *Zach Kemp*
 
-*   `ActionView::Base.annotate_template_file_names` annotates HTML output with template file names.
+*   `ActionView::Base.annotate_rendered_view_with_filenames` annotates HTML output with template file names.
 
     *Joel Hawksley*, *Aaron Patterson*
 
