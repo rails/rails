@@ -42,6 +42,7 @@ class Topic < ActiveRecord::Base
 
   has_many :replies, dependent: :destroy, foreign_key: "parent_id", autosave: true
   has_many :approved_replies, -> { approved }, class_name: "Reply", foreign_key: "parent_id", counter_cache: "replies_count"
+  has_many :open_replies, -> { open }, class_name: "Reply", foreign_key: "parent_id"
 
   has_many :unique_replies, dependent: :destroy, foreign_key: "parent_id"
   has_many :silly_unique_replies, dependent: :destroy, foreign_key: "parent_id"
