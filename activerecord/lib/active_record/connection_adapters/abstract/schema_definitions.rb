@@ -155,7 +155,7 @@ module ActiveRecord
         end
 
         if index
-          table.index(column_names, index_options)
+          table.index(column_names, **index_options)
         end
 
         if foreign_key
@@ -373,7 +373,7 @@ module ActiveRecord
       #     t.references :tagger, polymorphic: true
       #     t.references :taggable, polymorphic: { default: 'Photo' }, index: false
       #   end
-      def column(name, type, **options)
+      def column(name, type, index: nil, **options)
         name = name.to_s
         type = type.to_sym if type
 
@@ -385,9 +385,13 @@ module ActiveRecord
           end
         end
 
-        index_options = options.delete(:index)
-        index(name, index_options.is_a?(Hash) ? index_options : {}) if index_options
         @columns_hash[name] = new_column_definition(name, type, **options)
+
+        if index
+          index_options = index.is_a?(Hash) ? index : {}
+          index(name, **index_options)
+        end
+
         self
       end
 
@@ -401,7 +405,7 @@ module ActiveRecord
       # This is primarily used to track indexes that need to be created after the table
       #
       #   index(:account_id, name: 'index_projects_on_account_id')
-      def index(column_name, options = {})
+      def index(column_name, **options)
         indexes << [column_name, options]
       end
 
@@ -551,10 +555,12 @@ module ActiveRecord
       #  t.column(:name, :string)
       #
       # See TableDefinition#column for details of the options you can use.
-      def column(column_name, type, **options)
-        index_options = options.delete(:index)
+      def column(column_name, type, index: nil, **options)
         @base.add_column(name, column_name, type, **options)
-        index(column_name, index_options.is_a?(Hash) ? index_options : {}) if index_options
+        if index
+          index_options = index.is_a?(Hash) ? index : {}
+          index(column_name, **index_options)
+        end
       end
 
       # Checks to see if a column exists.
@@ -574,8 +580,8 @@ module ActiveRecord
       #  t.index([:branch_id, :party_id], unique: true, name: 'by_branch_party')
       #
       # See {connection.add_index}[rdoc-ref:SchemaStatements#add_index] for details of the options you can use.
-      def index(column_name, options = {})
-        @base.add_index(name, column_name, options)
+      def index(column_name, **options)
+        @base.add_index(name, column_name, **options)
       end
 
       # Checks to see if an index exists.
@@ -656,8 +662,8 @@ module ActiveRecord
       #   t.remove_index(:branch_id, name: :by_branch_party)
       #
       # See {connection.remove_index}[rdoc-ref:SchemaStatements#remove_index]
-      def remove_index(column_name = nil, options = {})
-        @base.remove_index(name, column_name, options)
+      def remove_index(column_name = nil, **options)
+        @base.remove_index(name, column_name, **options)
       end
 
       # Removes the timestamp columns (+created_at+ and +updated_at+) from the table.

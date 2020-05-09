@@ -219,8 +219,8 @@ module ActiveRecord
         pks.sort_by { |f| f["pk"] }.map { |f| f["name"] }
       end
 
-      def remove_index(table_name, column_name, options = {}) # :nodoc:
-        return if options[:if_exists] && !index_exists?(table_name, column_name, options)
+      def remove_index(table_name, column_name = nil, **options) # :nodoc:
+        return if options[:if_exists] && !index_exists?(table_name, column_name, **options)
 
         index_name = index_name_for_remove(table_name, column_name, options)
 
@@ -445,10 +445,10 @@ module ActiveRecord
 
             unless columns.empty?
               # index name can't be the same
-              opts = { name: name.gsub(/(^|_)(#{from})_/, "\\1#{to}_"), internal: true }
-              opts[:unique] = true if index.unique
-              opts[:where] = index.where if index.where
-              add_index(to, columns, opts)
+              options = { name: name.gsub(/(^|_)(#{from})_/, "\\1#{to}_"), internal: true }
+              options[:unique] = true if index.unique
+              options[:where] = index.where if index.where
+              add_index(to, columns, **options)
             end
           end
         end

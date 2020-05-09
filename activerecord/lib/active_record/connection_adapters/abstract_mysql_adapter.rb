@@ -364,10 +364,11 @@ module ActiveRecord
         rename_column_indexes(table_name, column_name, new_column_name)
       end
 
-      def add_index(table_name, column_name, options = {}) #:nodoc:
-        index, algorithm, _ = add_index_options(table_name, column_name, **options)
+      def add_index(table_name, column_name, **options) #:nodoc:
+        index, algorithm, if_not_exists = add_index_options(table_name, column_name, **options)
 
-        return if options[:if_not_exists] && index_exists?(table_name, column_name, name: index.name)
+        return if if_not_exists && index_exists?(table_name, column_name, name: index.name)
+
         create_index = CreateIndexDefinition.new(index, algorithm)
         execute schema_creation.accept(create_index)
       end
@@ -680,14 +681,14 @@ module ActiveRecord
           schema_creation.accept(ChangeColumnDefinition.new(cd, column.name))
         end
 
-        def add_index_for_alter(table_name, column_name, options = {})
+        def add_index_for_alter(table_name, column_name, **options)
           index, algorithm, _ = add_index_options(table_name, column_name, **options)
           algorithm = ", #{algorithm}" if algorithm
 
           "ADD #{schema_creation.accept(index)}#{algorithm}"
         end
 
-        def remove_index_for_alter(table_name, column_name = nil, options = {})
+        def remove_index_for_alter(table_name, column_name = nil, **options)
           index_name = index_name_for_remove(table_name, column_name, options)
           "DROP INDEX #{quote_column_name(index_name)}"
         end

@@ -441,7 +441,7 @@ module ActiveRecord
           rename_column_indexes(table_name, column_name, new_column_name)
         end
 
-        def add_index(table_name, column_name, options = {}) #:nodoc:
+        def add_index(table_name, column_name, **options) #:nodoc:
           index, algorithm, if_not_exists = add_index_options(table_name, column_name, **options)
 
           create_index = CreateIndexDefinition.new(index, algorithm, if_not_exists)
@@ -451,13 +451,8 @@ module ActiveRecord
           result
         end
 
-        def remove_index(table_name, column_name = nil, options = {}) # :nodoc:
+        def remove_index(table_name, column_name = nil, **options) # :nodoc:
           table = Utils.extract_schema_qualified_name(table_name.to_s)
-
-          if column_name.is_a?(Hash)
-            options = column_name.dup
-            column_name = options.delete(:column)
-          end
 
           if options.key?(:name)
             provided_index = Utils.extract_schema_qualified_name(options[:name].to_s)
@@ -470,7 +465,7 @@ module ActiveRecord
             end
           end
 
-          return if options[:if_exists] && !index_exists?(table_name, column_name, options)
+          return if options[:if_exists] && !index_exists?(table_name, column_name, **options)
 
           index_to_remove = PostgreSQL::Name.new(table.schema, index_name_for_remove(table.to_s, column_name, options))
 

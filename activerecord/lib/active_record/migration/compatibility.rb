@@ -197,7 +197,7 @@ module ActiveRecord
           super
         end
 
-        def index_exists?(table_name, column_name, options = {})
+        def index_exists?(table_name, column_name, **options)
           column_names = Array(column_name).map(&:to_s)
           options[:name] =
             if options[:name].present?
@@ -208,10 +208,9 @@ module ActiveRecord
           super
         end
 
-        def remove_index(table_name, options = {})
-          options = { column: options } unless options.is_a?(Hash)
-          options[:name] = index_name_for_remove(table_name, options)
-          super(table_name, options)
+        def remove_index(table_name, column_name = nil, **options)
+          options[:name] = index_name_for_remove(table_name, column_name, options)
+          super
         end
 
         private
@@ -222,13 +221,12 @@ module ActiveRecord
             super
           end
 
-          def index_name_for_remove(table_name, options = {})
-            index_name = connection.index_name(table_name, options)
+          def index_name_for_remove(table_name, column_name, options)
+            index_name = connection.index_name(table_name, column_name || options)
 
             unless connection.index_name_exists?(table_name, index_name)
-              if options.is_a?(Hash) && options.has_key?(:name)
-                options_without_column = options.dup
-                options_without_column.delete :column
+              if options.key?(:name)
+                options_without_column = options.except(:column)
                 index_name_without_column = connection.index_name(table_name, options_without_column)
 
                 if connection.index_name_exists?(table_name, index_name_without_column)

@@ -132,6 +132,7 @@ module ActiveRecord
               create_table:      :drop_table,
               create_join_table: :drop_join_table,
               add_column:        :remove_column,
+              add_index:         :remove_index,
               add_timestamps:    :remove_timestamps,
               add_reference:     :remove_reference,
               add_foreign_key:   :remove_foreign_key,
@@ -192,30 +193,22 @@ module ActiveRecord
           [:rename_column, [args.first] + args.last(2).reverse]
         end
 
-        def invert_add_index(args)
-          table, columns, options = *args
-          options ||= {}
-
-          options_hash = options.slice(:name, :algorithm)
-          options_hash[:column] = columns if !options_hash[:name]
-
-          [:remove_index, [table, options_hash]]
-        end
-
         def invert_remove_index(args)
-          table, columns, options = *args
-          options ||= {}
+          options = args.extract_options!
+          table, columns = args
 
-          if columns.is_a?(Hash)
-            options = columns.dup
-            columns = options.delete(:column)
-          end
+          columns ||= options.delete(:column)
 
           unless columns
             raise ActiveRecord::IrreversibleMigration, "remove_index is only reversible if given a :column option."
           end
 
-          [:add_index, [table, columns, options]]
+          options.delete(:if_exists)
+
+          args = [table, columns]
+          args << options unless options.empty?
+
+          [:add_index, args]
         end
 
         alias :invert_add_belongs_to :invert_add_reference

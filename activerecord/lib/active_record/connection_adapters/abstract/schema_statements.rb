@@ -97,7 +97,7 @@ module ActiveRecord
       #   # Check an index with a custom name exists
       #   index_exists?(:suppliers, :company_id, name: "idx_company_id")
       #
-      def index_exists?(table_name, column_name, options = {})
+      def index_exists?(table_name, column_name, **options)
         checks = []
 
         if column_name.present?
@@ -324,7 +324,7 @@ module ActiveRecord
 
         unless supports_indexes_in_create?
           td.indexes.each do |column_name, index_options|
-            add_index(table_name, column_name, index_options.merge!(if_not_exists: td.if_not_exists))
+            add_index(table_name, column_name, **index_options, if_not_exists: td.if_not_exists)
           end
         end
 
@@ -833,7 +833,7 @@ module ActiveRecord
       # Concurrently adding an index is not supported in a transaction.
       #
       # For more information see the {"Transactional Migrations" section}[rdoc-ref:Migration].
-      def add_index(table_name, column_name, options = {})
+      def add_index(table_name, column_name, **options)
         index, algorithm, if_not_exists = add_index_options(table_name, column_name, **options)
 
         create_index = CreateIndexDefinition.new(index, algorithm, if_not_exists)
@@ -876,8 +876,8 @@ module ActiveRecord
       # Concurrently removing an index is not supported in a transaction.
       #
       # For more information see the {"Transactional Migrations" section}[rdoc-ref:Migration].
-      def remove_index(table_name, column_name = nil, options = {})
-        return if options[:if_exists] && !index_exists?(table_name, column_name, options)
+      def remove_index(table_name, column_name = nil, **options)
+        return if options[:if_exists] && !index_exists?(table_name, column_name, **options)
 
         index_name = index_name_for_remove(table_name, column_name, options)
 
@@ -1334,17 +1334,12 @@ module ActiveRecord
         end
 
         def index_name_for_remove(table_name, column_name, options)
-          if column_name.is_a?(Hash)
-            options = column_name.dup
-            column_name = options.delete(:column)
-          end
-
           return options[:name] if can_remove_index_by_name?(column_name, options)
 
           checks = []
 
           checks << lambda { |i| i.name == options[:name].to_s } if options.key?(:name)
-          column_names = index_column_names(column_name)
+          column_names = index_column_names(column_name || options[:column])
 
           if column_names.present?
             checks << lambda { |i| index_name(table_name, i.columns) == index_name(table_name, column_names) }
