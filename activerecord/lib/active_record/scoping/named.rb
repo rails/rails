@@ -198,6 +198,10 @@ module ActiveRecord
         end
 
         private
+          def singleton_method_added(name)
+            generate_relation_method(name) if Kernel.respond_to?(name)
+          end
+
           def valid_scope_name?(name)
             if respond_to?(name, true) && logger
               logger.warn "Creating scope :#{name}. " \

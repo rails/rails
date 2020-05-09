@@ -2119,6 +2119,8 @@ class RelationTest < ActiveRecord::TestCase
     sub_accounts = SubAccount.all
     assert_equal [accounts(:signals37)], sub_accounts.open
     assert_equal [accounts(:signals37)], sub_accounts.available
+
+    assert_equal [topics(:second)], topics(:first).open_replies
   end
 
   def test_where_with_take_memoization

@@ -9,6 +9,10 @@ class Reply < Topic
   has_many :silly_unique_replies, dependent: :destroy, foreign_key: "parent_id"
 
   scope :ordered, -> { Reply.order(:id) }
+
+  def self.open
+    approved
+  end
 end
 
 class SillyReply < Topic
