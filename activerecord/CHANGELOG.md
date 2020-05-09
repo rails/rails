@@ -1,3 +1,7 @@
+*   When generating structure.sql, don't include schema migration versions where there isn't a corresponding migration file.
+
+    *Alex Ghiculescu*
+
 *   Allow `unscope` to be aware of table name qualified values.
 
     It is possible to unscope only the column in the specified table.
