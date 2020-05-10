@@ -1119,7 +1119,7 @@ module ActiveRecord
       # Returns an SQL insert statement listing all versions that are in the db & codebase.
       def dump_schema_information # :nodoc:
         versions = schema_migration.all_versions
-        migrations_in_codebase = schema_migration.migration_context.migrations.map(&:version).to_set
+        migrations_in_codebase = migration_context.migrations.map(&:version).to_set
         versions.select! { |version| migrations_in_codebase.include?(version) }
         insert_versions_sql(versions) if versions.any?
       end
