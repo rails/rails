@@ -246,9 +246,11 @@ module ActiveRecord
 
       def merge_db_environment_variables(current_env, configs)
         configs.map do |config|
-          next config if config.is_a?(UrlConfig) || config.env_name != current_env
+          next config if config.is_a?(UrlConfig)
+          next config unless valid_enviroment_configuration?(current_env, config)
 
-          url_config = environment_url_config(current_env, config.name, config.configuration_hash)
+          env_to_config = config.env_name == 'test' ? 'test' : current_env
+          url_config = environment_url_config(env_to_config, config.name, config.configuration_hash)
           url_config || config
         end
       end
@@ -297,6 +299,14 @@ module ActiveRecord
 
       def throw_getter_deprecation(method)
         ActiveSupport::Deprecation.warn("`ActiveRecord::Base.configurations` no longer returns a hash. Methods that act on the hash like `#{method}` are deprecated and will be removed in Rails 6.1. Use the `configs_for` method to collect and iterate over the database configurations.")
+      end
+
+      def valid_enviroment_configuration?(current_env, config)
+        config.env_name == current_env || building_test_config_in_development?(current_env, config)
+      end
+
+      def building_test_config_in_development?(current_env, config)
+        config.env_name == 'test' && current_env == 'development'
       end
   end
 end

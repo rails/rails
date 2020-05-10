@@ -103,6 +103,17 @@ module ActiveRecord
         assert_equal expected, actual.configuration_hash
       end
 
+      def test_resolver_with_database_uri_when_test_config_is_resolved_on_development
+        ENV["DATABASE_URL"] = "postgres://localhost"
+        ENV["RAILS_ENV"] = "development"
+
+        config = { "development" => { "adapter" => "postgresql", "database" => "foo_development" }, "test" => { "adapter" => "postgresql", "database" => "foo_test" } }
+        actual = resolve_db_config(:test, config)
+        expected = { adapter: "postgresql", database: "foo_test", host: "localhost" }
+
+        assert_equal expected, actual.configuration_hash
+      end
+
       def test_resolver_with_database_uri_and_unknown_symbol_key
         ENV["DATABASE_URL"] = "postgres://localhost/foo"
         config = { "not_production" => {  "adapter" => "not_postgres", "database" => "not_foo" } }
@@ -418,6 +429,17 @@ module ActiveRecord
           database: "foo",
           adapter: "postgresql",
         }, actual.configuration_hash)
+      end
+
+      def test_resolver_with_complete_database_uri
+        ENV["DATABASE_URL"] = "postgres://user:pwd@localhost/foo"
+        ENV["RAILS_ENV"] = "production"
+
+        config = { "production" => { "adapter" => "not_postgres", "database" => "not_foo", "host" => "localhost" } }
+        actual = resolve_db_config(:production, config)
+        expected = { adapter: "postgresql", database: "foo", host: "localhost", username: 'user', password: 'pwd' }
+
+        assert_equal expected, actual.configuration_hash
       end
     end
   end
