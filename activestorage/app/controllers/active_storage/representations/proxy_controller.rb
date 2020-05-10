@@ -5,6 +5,7 @@ class ActiveStorage::Representations::ProxyController < ActiveStorage::BaseContr
   include ActiveStorage::SetHeaders
 
   def show
+    http_cache_forever(public: true) {}
     representation = @blob.representation(params[:variation_key]).processed
 
     set_headers(representation.image.blob)

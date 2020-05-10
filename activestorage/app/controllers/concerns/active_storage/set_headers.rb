@@ -5,8 +5,6 @@ module ActiveStorage::SetHeaders #:nodoc:
 
   private
     def set_headers(blob)
-      expires_in 1.year, public: true
-
       response.headers["Content-Type"] = blob.content_type
       response.headers["Content-Disposition"] = ActionDispatch::Http::ContentDisposition.format(
         disposition: params[:disposition] || "inline",

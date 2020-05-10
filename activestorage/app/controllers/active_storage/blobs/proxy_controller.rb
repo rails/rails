@@ -9,6 +9,7 @@ class ActiveStorage::Blobs::ProxyController < ActiveStorage::BaseController
   include ActiveStorage::SetHeaders
 
   def show
+    http_cache_forever(public: true) {}
     set_headers(@blob)
 
     @blob.download do |chunk|
