@@ -474,14 +474,7 @@ module ActiveRecord
 
           index_to_remove = PostgreSQL::Name.new(table.schema, index_name_for_remove(table.to_s, column_name, options))
 
-          algorithm =
-            if options.key?(:algorithm)
-              index_algorithms.fetch(options[:algorithm]) do
-                raise ArgumentError.new("Algorithm must be one of the following: #{index_algorithms.keys.map(&:inspect).join(', ')}")
-              end
-            end
-
-          execute "DROP INDEX #{algorithm} #{quote_table_name(index_to_remove)}"
+          execute "DROP INDEX #{index_algorithm(options[:algorithm])} #{quote_table_name(index_to_remove)}"
         end
 
         # Renames an index of a table. Raises error if length of new
