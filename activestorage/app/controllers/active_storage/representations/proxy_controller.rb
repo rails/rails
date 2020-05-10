@@ -10,10 +10,6 @@ class ActiveStorage::Representations::ProxyController < ActiveStorage::BaseContr
 
     set_content_headers_from_blob(representation.image.blob)
 
-    @blob.service.download(representation.key) do |chunk|
-      response.stream.write(chunk)
-    end
-  ensure
-    response.stream.close
+    stream(representation.blob)
   end
 end
