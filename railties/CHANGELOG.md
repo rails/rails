@@ -1,3 +1,10 @@
+*   Add default ENV variable option with BACKTRACE to turn off backtrace cleaning when debugging framework code in the 
+    generated config/initializers/backtrace_silencers.rb.
+    
+      `BACKTRACE=1 ./bin/rails test`
+
+    *DHH*
+
 *   Add `config.generators.after_generate` for processing to generated files.
 
     Register a callback that will get called right after generators has finished.
