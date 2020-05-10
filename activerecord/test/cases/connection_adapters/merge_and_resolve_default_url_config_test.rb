@@ -437,7 +437,7 @@ module ActiveRecord
 
         config = { "production" => { "adapter" => "not_postgres", "database" => "not_foo", "host" => "localhost" } }
         actual = resolve_db_config(:production, config)
-        expected = { adapter: "postgresql", database: "foo", host: "localhost", username: 'user', password: 'pwd' }
+        expected = { adapter: "postgresql", database: "foo", host: "localhost", username: "user", password: "pwd" }
 
         assert_equal expected, actual.configuration_hash
       end

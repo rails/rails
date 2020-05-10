@@ -249,7 +249,7 @@ module ActiveRecord
           next config if config.is_a?(UrlConfig)
           next config unless valid_enviroment_configuration?(current_env, config)
 
-          env_to_config = config.env_name == 'test' ? 'test' : current_env
+          env_to_config = config.env_name == "test" ? "test" : current_env
           url_config = environment_url_config(env_to_config, config.name, config.configuration_hash)
           url_config || config
         end
@@ -306,7 +306,7 @@ module ActiveRecord
       end
 
       def building_test_config_in_development?(current_env, config)
-        config.env_name == 'test' && current_env == 'development'
+        config.env_name == "test" && current_env == "development"
       end
   end
 end
