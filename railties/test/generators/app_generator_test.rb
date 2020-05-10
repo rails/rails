@@ -841,8 +841,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator
     assert_gem "spring"
     assert_file("config/environments/test.rb") do |contents|
-      assert_match("config.cache_classes = false", contents)
-      assert_match("config.action_view.cache_template_loading = true", contents)
+      assert_match("config.cache_classes = true", contents)
     end
   end
 
@@ -862,7 +861,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_spring_no_fork
     jruby_skip "spring doesn't run on JRuby"
-    assert_called_with(Process, :respond_to?, [[:fork], [:fork], [:fork], [:fork]], returns: false) do
+    assert_called_with(Process, :respond_to?, [[:fork], [:fork], [:fork]], returns: false) do
       run_generator
 
       assert_no_gem "spring"

@@ -1,3 +1,15 @@
+*   Enable `cache_classes` in generated `config/environments/test.rb`
+
+    Not caching classes when running tests can cause trouble when editing files
+    due to class reloading. In particular, when using multi-db setups, editing files
+    while tests were running will raise errors due to models resetting their db connections.
+
+    This setting was originally disabled because Spring reloading code even when this
+    was true caused problems with Zeitwerk. File watchers with this setting enabled were
+    removed in #37216, so there are no incompatibilities now.
+
+    *Jorge Manrubia*
+
 *   Add `config.generators.after_generate` for processing to generated files.
 
     Register a callback that will get called right after generators has finished.
