@@ -102,7 +102,7 @@ module ActiveRecord
         @bound_attributes = bound_attributes
 
         bound_attributes.each_with_index do |attr, i|
-          if Substitute === attr.value
+          if ActiveModel::Attribute === attr && Substitute === attr.value
             @indexes << i
           end
         end

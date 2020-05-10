@@ -41,8 +41,8 @@ module Arel # :nodoc: all
           visit(o.expr, collector) << " )"
         end
 
-        def visit_Arel_Nodes_BindParam(o, collector)
-          collector.add_bind(o.value) { |i| "$#{i}" }
+        def visit_Arel_Nodes_BindParam(o, collector, value = o.value)
+          collector.add_bind(value) { |i| "$#{i}" }
         end
 
         def visit_Arel_Nodes_GroupingElement(o, collector)

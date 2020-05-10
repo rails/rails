@@ -327,20 +327,24 @@ module Arel # :nodoc: all
           collector << quote_table_name(o.table_name) << "." << quote_column_name(o.column_name)
 
           if o.type == :in
-            collector << "IN ("
+            collector << " IN ("
           else
-            collector << "NOT IN ("
+            collector << " NOT IN ("
           end
 
-          values = o.casted_values.map { |v| @connection.quote(v) }
+          values = o.casted_values
 
-          expr = if values.empty?
-            @connection.quote(nil)
+          if values.empty?
+            collector << @connection.quote(nil)
+          elsif @connection.prepared_statements
+            values.each_with_index do |v, i|
+              collector << ", " unless i == 0
+              visit_Arel_Nodes_BindParam(nil, collector, v)
+            end
           else
-            values.join(",")
+            collector << values.map! { |v| @connection.quote(v) }.join(", ")
           end
 
-          collector << expr
           collector << ")"
           collector
         end
@@ -691,8 +695,8 @@ module Arel # :nodoc: all
           collector << quote_table_name(join_name) << "." << quote_column_name(o.name)
         end
 
-        def visit_Arel_Nodes_BindParam(o, collector)
-          collector.add_bind(o.value) { "?" }
+        def visit_Arel_Nodes_BindParam(o, collector, value = o.value)
+          collector.add_bind(value) { "?" }
         end
 
         def visit_Arel_Nodes_SqlLiteral(o, collector)
