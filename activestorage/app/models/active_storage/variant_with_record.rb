@@ -24,6 +24,10 @@ class ActiveStorage::VariantWithRecord
     record&.image
   end
 
+  def key
+    image&.key
+  end
+
   def url(**options)
     image&.url(**options)
   end
