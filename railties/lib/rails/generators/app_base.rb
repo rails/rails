@@ -429,12 +429,6 @@ module Rails
         end
       end
 
-      def generate_spring_binstubs
-        if bundle_install? && spring_install?
-          bundle_command("exec spring binstub --all")
-        end
-      end
-
       def empty_directory_with_keep_file(destination, config = {})
         empty_directory(destination, config)
         keep_file(destination)
