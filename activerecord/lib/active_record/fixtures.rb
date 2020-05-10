@@ -630,15 +630,7 @@ module ActiveRecord
             begin
               conn.insert_fixtures_set(table_rows_for_connection, table_rows_for_connection.keys)
             rescue
-              # find and show error
-              table_rows_for_connection.each do |key, values|
-                conn.insert_fixtures_set({ key => values }, [key])
-              rescue => e
-                problematic_fixture = fixture_sets.find { |fs| fs.name == key }
-                fixture_error = Fixture::FixtureError.new("Error: #{problematic_fixture.path}: #{e.message}")
-                fixture_error.set_backtrace(e.backtrace)
-                raise fixture_error
-              end
+              raise find_precise_fixture_error(table_rows_for_connection, conn, fixture_sets)
             end
 
             # Cap primary key sequences to max(pk).
@@ -651,6 +643,16 @@ module ActiveRecord
         def update_all_loaded_fixtures(fixtures_map) # :nodoc:
           all_loaded_fixtures.update(fixtures_map)
         end
+
+      def find_precise_fixture_error(table_rows_for_connection, conn, fixture_sets)
+        # reproduce the error to find it
+        table_rows_for_connection.each do |key, values|
+          conn.insert_fixtures_set({ key => values }, [key])
+        rescue => e
+          problematic_fixture = fixture_sets.find { |fs| fs.name == key }
+          return Fixture::FixtureError.new("[#{problematic_fixture.path}] #{e.message}")
+        end
+      end
     end
 
     attr_reader :table_name, :name, :fixtures, :model_class, :ignored_fixtures, :config, :path
