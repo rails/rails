@@ -336,13 +336,8 @@ module Arel # :nodoc: all
 
           if values.empty?
             collector << @connection.quote(nil)
-          elsif @connection.prepared_statements
-            values.each_with_index do |v, i|
-              collector << ", " unless i == 0
-              visit_Arel_Nodes_BindParam(nil, collector, v)
-            end
           else
-            collector << values.map! { |v| @connection.quote(v) }.join(", ")
+            collector.add_binds(values, &bind_block)
           end
 
           collector << ")"
@@ -695,8 +690,13 @@ module Arel # :nodoc: all
           collector << quote_table_name(join_name) << "." << quote_column_name(o.name)
         end
 
-        def visit_Arel_Nodes_BindParam(o, collector, value = o.value)
-          collector.add_bind(value) { "?" }
+        BIND_BLOCK = proc { "?" }
+        private_constant :BIND_BLOCK
+
+        def bind_block; BIND_BLOCK; end
+
+        def visit_Arel_Nodes_BindParam(o, collector)
+          collector.add_bind(o.value, &bind_block)
         end
 
         def visit_Arel_Nodes_SqlLiteral(o, collector)
