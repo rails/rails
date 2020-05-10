@@ -16,6 +16,10 @@ class DirtyTest < ActiveRecord::TestCase
     Person.create first_name: "foo"
   end
 
+  def teardown
+    Person.delete_by(first_name: "foo")
+  end
+
   def test_attribute_changes
     # New record - no changes.
     pirate = Pirate.new
