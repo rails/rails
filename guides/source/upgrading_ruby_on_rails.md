@@ -531,7 +531,7 @@ When using the Classic Autoloader in Rails 6 application it is recommended to se
 
 ### Active Storage assignment behavior change
 
-In Rails 5.2, assigning to a collection of attachments declared with `has_many_attached` appended new files:
+With the configuration defaults for Rails 5.2, assigning to a collection of attachments declared with `has_many_attached` appends new files:
 
 ```ruby
 class User < ApplicationRecord
@@ -549,8 +549,7 @@ user.highlights.first.filename # => "funky.jpg"
 user.highlights.second.filename # => "town.jpg"
 ```
 
-With the default configuration for Rails 6.0, assigning to a collection of attachments replaces existing files
-instead of appending to them. This matches Active Record behavior when assigning to a collection association:
+With the configuration defaults for Rails 6.0, assigning to a collection of attachments replaces existing files instead of appending to them. This matches Active Record behavior when assigning to a collection association:
 
 ```ruby
 user.highlights.attach(filename: "funky.jpg", ...)
@@ -574,8 +573,7 @@ user.highlights.first.filename # => "funky.jpg"
 user.highlights.second.filename # => "town.jpg"
 ```
 
-Opt in to the new default behavior by setting `config.active_storage.replace_on_assign_to_many` to `true`.
-The old behavior will be deprecated in Rails 6.1 and removed in a subsequent release.
+Existing applications can opt in to this new behavior by setting `config.active_storage.replace_on_assign_to_many` to `true`. The old behavior will be deprecated in Rails 6.1 and removed in a subsequent release.
 
 Upgrading from Rails 5.1 to Rails 5.2
 -------------------------------------
