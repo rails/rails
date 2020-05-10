@@ -33,6 +33,14 @@ module ActiveRecord
         @comment = comment
       end
 
+      def column_options
+        {
+          length: lengths,
+          order: orders,
+          opclass: opclasses,
+        }
+      end
+
       private
         def concise_options(options)
           if columns.size == options.size && options.values.uniq.size == 1
@@ -68,6 +76,8 @@ module ActiveRecord
     AddColumnDefinition = Struct.new(:column) # :nodoc:
 
     ChangeColumnDefinition = Struct.new(:column, :name) #:nodoc:
+
+    CreateIndexDefinition = Struct.new(:index, :algorithm, :if_not_exists) # :nodoc:
 
     PrimaryKeyDefinition = Struct.new(:name) # :nodoc:
 
@@ -105,8 +115,9 @@ module ActiveRecord
         !ActiveRecord::SchemaDumper.fk_ignore_pattern.match?(name) if name
       end
 
-      def defined_for?(to_table: nil, **options)
+      def defined_for?(to_table: nil, validate: nil, **options)
         (to_table.nil? || to_table.to_s == self.to_table) &&
+          (validate.nil? || validate == options.fetch(:validate, validate)) &&
           options.all? { |k, v| self.options[k].to_s == v.to_s }
       end
 
@@ -496,6 +507,7 @@ module ActiveRecord
     #     t.timestamps
     #     t.change
     #     t.change_default
+    #     t.change_null
     #     t.rename
     #     t.references
     #     t.belongs_to
@@ -613,6 +625,16 @@ module ActiveRecord
       # See {connection.change_column_default}[rdoc-ref:SchemaStatements#change_column_default]
       def change_default(column_name, default_or_changes)
         @base.change_column_default(name, column_name, default_or_changes)
+      end
+
+      # Sets or removes a NOT NULL constraint on a column.
+      #
+      #  t.change_null(:qualification, true)
+      #  t.change_null(:qualification, false, 0)
+      #
+      # See {connection.change_column_null}[rdoc-ref:SchemaStatements#change_column_null]
+      def change_null(column_name, null, default = nil)
+        @base.change_column_null(name, column_name, null, default)
       end
 
       # Removes the column(s) from the table definition.

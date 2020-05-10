@@ -60,13 +60,6 @@ module Arel # :nodoc: all
       case other
       when Arel::SelectManager
         Arel::Nodes::In.new(self, other.ast)
-      when Range
-        if $VERBOSE
-          warn <<-eowarn
-Passing a range to `#in` is deprecated. Call `#between`, instead.
-          eowarn
-        end
-        between(other)
       when Enumerable
         Nodes::In.new self, quoted_array(other)
       else
@@ -110,13 +103,6 @@ Passing a range to `#in` is deprecated. Call `#between`, instead.
       case other
       when Arel::SelectManager
         Arel::Nodes::NotIn.new(self, other.ast)
-      when Range
-        if $VERBOSE
-          warn <<-eowarn
-Passing a range to `#not_in` is deprecated. Call `#not_between`, instead.
-          eowarn
-        end
-        not_between(other)
       when Enumerable
         Nodes::NotIn.new self, quoted_array(other)
       else

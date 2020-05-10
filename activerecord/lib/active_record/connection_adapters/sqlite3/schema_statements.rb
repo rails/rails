@@ -9,7 +9,7 @@ module ActiveRecord
           exec_query("PRAGMA index_list(#{quote_table_name(table_name)})", "SCHEMA").map do |row|
             # Indexes SQLite creates implicitly for internal use start with "sqlite_".
             # See https://www.sqlite.org/fileformat2.html#intschema
-            next if row["name"].starts_with?("sqlite_")
+            next if row["name"].start_with?("sqlite_")
 
             index_sql = query_value(<<~SQL, "SCHEMA")
               SELECT sql
@@ -61,7 +61,7 @@ module ActiveRecord
 
         def remove_foreign_key(from_table, to_table = nil, **options)
           to_table ||= options[:to_table]
-          options = options.except(:name, :to_table)
+          options = options.except(:name, :to_table, :validate)
           foreign_keys = foreign_keys(from_table)
 
           fkey = foreign_keys.detect do |fk|
@@ -89,6 +89,10 @@ module ActiveRecord
 
           def create_table_definition(*args, **options)
             SQLite3::TableDefinition.new(self, *args, **options)
+          end
+
+          def validate_index_length!(table_name, new_name, internal = false)
+            super unless internal
           end
 
           def new_column_from_field(table_name, field)

@@ -106,21 +106,21 @@ module ActionDispatch
         end
 
         def find_routes(req)
-          routes = filter_routes(req.path_info).concat custom_routes.find_all { |r|
-            r.path.match?(req.path_info)
+          path_info = req.path_info
+          routes = filter_routes(path_info).concat custom_routes.find_all { |r|
+            r.path.match?(path_info)
           }
 
-          routes =
-            if req.head?
-              match_head_routes(routes, req)
-            else
-              match_routes(routes, req)
-            end
+          if req.head?
+            routes = match_head_routes(routes, req)
+          else
+            routes.select! { |r| r.matches?(req) }
+          end
 
           routes.sort_by!(&:precedence)
 
           routes.map! { |r|
-            match_data = r.path.match(req.path_info)
+            match_data = r.path.match(path_info)
             path_parameters = {}
             match_data.names.each_with_index { |name, i|
               val = match_data[i + 1]
@@ -131,23 +131,16 @@ module ActionDispatch
         end
 
         def match_head_routes(routes, req)
-          verb_specific_routes = routes.select(&:requires_matching_verb?)
-          head_routes = match_routes(verb_specific_routes, req)
+          head_routes = routes.select { |r| r.requires_matching_verb? && r.matches?(req) }
+          return head_routes unless head_routes.empty?
 
-          if head_routes.empty?
-            begin
-              req.request_method = "GET"
-              match_routes(routes, req)
-            ensure
-              req.request_method = "HEAD"
-            end
-          else
-            head_routes
+          begin
+            req.request_method = "GET"
+            routes.select! { |r| r.matches?(req) }
+            routes
+          ensure
+            req.request_method = "HEAD"
           end
-        end
-
-        def match_routes(routes, req)
-          routes.select { |r| r.matches?(req) }
         end
     end
   end

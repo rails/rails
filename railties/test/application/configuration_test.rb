@@ -4,7 +4,6 @@ require "isolation/abstract_unit"
 require "rack/test"
 require "env_helpers"
 require "set"
-require "active_support/core_ext/string/starts_ends_with"
 
 class ::MyMailInterceptor
   def self.delivering_email(email); email; end
@@ -1124,7 +1123,7 @@ module ApplicationTests
       assert_equal [::MyMailObserver, ::MyOtherMailObserver], ::Mail.class_variable_get(:@@delivery_notification_observers)
     end
 
-    test "allows setting the queue name for the ActionMailer::DeliveryJob" do
+    test "allows setting the queue name for the ActionMailer::MailDeliveryJob" do
       add_to_config <<-RUBY
         config.action_mailer.deliver_later_queue_name = 'test_default'
       RUBY
@@ -1710,8 +1709,8 @@ module ApplicationTests
     test "autoload paths do not include asset paths" do
       app "development"
       ActiveSupport::Dependencies.autoload_paths.each do |path|
-        assert_not_operator path, :ends_with?, "app/assets"
-        assert_not_operator path, :ends_with?, "app/javascript"
+        assert_not_operator path, :end_with?, "app/assets"
+        assert_not_operator path, :end_with?, "app/javascript"
       end
     end
 
@@ -1722,8 +1721,8 @@ module ApplicationTests
       app "development"
 
       ActiveSupport::Dependencies.autoload_paths.each do |path|
-        assert_not_operator path, :ends_with?, "app/assets"
-        assert_not_operator path, :ends_with?, "app/webpack"
+        assert_not_operator path, :end_with?, "app/assets"
+        assert_not_operator path, :end_with?, "app/webpack"
       end
     end
 
@@ -1733,7 +1732,7 @@ module ApplicationTests
       # Action Mailer modifies AS::Dependencies.autoload_paths in-place.
       autoload_paths = ActiveSupport::Dependencies.autoload_paths
       autoload_paths_from_app_and_engines = autoload_paths.reject do |path|
-        path.ends_with?("mailers/previews")
+        path.end_with?("mailers/previews")
       end
       assert_equal true, Rails.configuration.add_autoload_paths_to_load_path
       assert_empty autoload_paths_from_app_and_engines - $LOAD_PATH
@@ -2121,25 +2120,6 @@ module ApplicationTests
       assert_equal :default, Rails.configuration.debug_exception_response_format
     end
 
-    test "controller force_ssl declaration can be used even if session_store is disabled" do
-      make_basic_app do |application|
-        application.config.session_store :disabled
-      end
-
-      class ::OmgController < ActionController::Base
-        force_ssl
-
-        def index
-          render plain: "Yay! You're on Rails!"
-        end
-      end
-
-      get "/"
-
-      assert_equal 301, last_response.status
-      assert_equal "https://example.org/", last_response.location
-    end
-
     test "ActiveRecord::Base.has_many_inversing is true by default for new apps" do
       app "development"
 
@@ -2518,27 +2498,6 @@ module ApplicationTests
     end
 
     test "ActionMailer::Base.delivery_job is ActionMailer::MailDeliveryJob by default" do
-      app "development"
-
-      assert_equal ActionMailer::MailDeliveryJob, ActionMailer::Base.delivery_job
-    end
-
-    test "ActionMailer::Base.delivery_job is ActionMailer::DeliveryJob in the 5.x defaults" do
-      remove_from_config '.*config\.load_defaults.*\n'
-      add_to_config 'config.load_defaults "5.2"'
-
-      app "development"
-
-      assert_equal ActionMailer::DeliveryJob, ActionMailer::Base.delivery_job
-    end
-
-    test "ActionMailer::Base.delivery_job can be configured in the new framework defaults" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
-        Rails.application.config.action_mailer.delivery_job = "ActionMailer::MailDeliveryJob"
-      RUBY
-
       app "development"
 
       assert_equal ActionMailer::MailDeliveryJob, ActionMailer::Base.delivery_job

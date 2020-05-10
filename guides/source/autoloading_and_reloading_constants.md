@@ -57,7 +57,7 @@ The autoloading `zeitwerk` mode is enabled by default in Rails 6 applications ru
 
 ```ruby
 # config/application.rb
-config.load_defaults "6.0" # enables zeitwerk mode in CRuby
+config.load_defaults 6.0 # enables zeitwerk mode in CRuby
 ```
 
 In `zeitwerk` mode, Rails uses [Zeitwerk](https://github.com/fxn/zeitwerk) internally to autoload, reload, and eager load. Rails instantiates and configures a dedicated Zeitwerk instance that manages the project.
@@ -363,7 +363,7 @@ Applications can load Rails 6 defaults and still use the classic autoloader this
 
 ```ruby
 # config/application.rb
-config.load_defaults "6.0"
+config.load_defaults 6.0
 config.autoloader = :classic
 ```
 

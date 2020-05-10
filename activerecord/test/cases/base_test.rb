@@ -102,7 +102,6 @@ class BasicsTest < ActiveRecord::TestCase
       "Mysql2Adapter"     => "`",
       "PostgreSQLAdapter" => '"',
       "OracleAdapter"     => '"',
-      "FbAdapter"         => '"'
     }.fetch(classname) {
       raise "need a bad char for #{classname}"
     }
@@ -222,7 +221,7 @@ class BasicsTest < ActiveRecord::TestCase
     )
 
     # For adapters which support microsecond resolution.
-    if subsecond_precision_supported?
+    if supports_datetime_with_precision?
       assert_equal 11, Topic.find(1).written_on.sec
       assert_equal 223300, Topic.find(1).written_on.usec
       assert_equal 9900, Topic.find(2).written_on.usec
@@ -537,6 +536,10 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_find_by_slug
     assert_equal Topic.find("1-meowmeow"), Topic.find(1)
+  end
+
+  def test_out_of_range_slugs
+    assert_equal [Topic.find(1)], Topic.where(id: ["1-meowmeow", "9223372036854775808-hello"])
   end
 
   def test_find_by_slug_with_array
@@ -1502,6 +1505,10 @@ class BasicsTest < ActiveRecord::TestCase
 
     loaded_developer = AttributedDeveloper.where(id: developer.id).select("*").first
     assert_equal "Developer: name", loaded_developer.name
+  end
+
+  test "when assigning new ignored columns it invalidates cache for column names" do
+    assert_not_includes ColumnNamesCachedDeveloper.column_names, "name"
   end
 
   test "ignored columns not included in SELECT" do

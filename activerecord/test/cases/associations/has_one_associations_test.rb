@@ -21,7 +21,7 @@ require "models/membership"
 class HasOneAssociationsTest < ActiveRecord::TestCase
   self.use_transactional_tests = false unless supports_savepoints?
   fixtures :accounts, :companies, :developers, :projects, :developers_projects,
-           :ships, :pirates, :authors, :author_addresses, :memberships, :clubs
+           :ships, :pirates, :authors, :author_addresses, :books, :memberships, :clubs
 
   def setup
     Account.destroyed_account_ids.clear
@@ -849,6 +849,24 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
     assert_no_difference ["DestroyableAuthor.count", "UndestroyableBook.count"] do
       assert_not author.destroy
+    end
+  end
+
+  class SpecialCar < ActiveRecord::Base
+    self.table_name = "cars"
+    has_one :special_bulb, inverse_of: :car, dependent: :destroy, class_name: "SpecialBulb", foreign_key: "car_id"
+  end
+
+  class SpecialBulb < ActiveRecord::Base
+    self.table_name = "bulbs"
+    belongs_to :car, inverse_of: :special_bulb, touch: true, class_name: "SpecialCar"
+  end
+
+  def test_has_one_with_touch_option_on_nonpersisted_built_associations_doesnt_update_parent
+    car = SpecialCar.create(name: "honda")
+    assert_queries(1) do
+      car.build_special_bulb
+      car.build_special_bulb
     end
   end
 end

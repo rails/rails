@@ -157,7 +157,13 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_Casted(o)
-          visit_edge o, "val"
+          visit_edge o, "value"
+          visit_edge o, "attribute"
+        end
+
+        def visit_Arel_Nodes_HomogeneousIn(o)
+          visit_edge o, "values"
+          visit_edge o, "type"
           visit_edge o, "attribute"
         end
 
@@ -218,7 +224,13 @@ module Arel # :nodoc: all
         alias :visit_Symbol :visit_String
         alias :visit_Arel_Nodes_SqlLiteral :visit_String
 
-        def visit_Arel_Nodes_BindParam(o); end
+        def visit_Arel_Nodes_BindParam(o)
+          edge("value") { visit o.value }
+        end
+
+        def visit_ActiveModel_Attribute(o)
+          edge("value_before_type_cast") { visit o.value_before_type_cast }
+        end
 
         def visit_Hash(o)
           o.each_with_index do |pair, i|

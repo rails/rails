@@ -565,8 +565,6 @@ module ActiveRecord
       #   but the maximum supported <tt>:precision</tt> is 16. No default.
       # * Oracle: <tt>:precision</tt> [1..38], <tt>:scale</tt> [-84..127].
       #   Default is (38,0).
-      # * DB2: <tt>:precision</tt> [1..63], <tt>:scale</tt> [0..62].
-      #   Default unknown.
       # * SqlServer: <tt>:precision</tt> [1..38], <tt>:scale</tt> [0..38].
       #   Default (38,0).
       #
@@ -821,8 +819,10 @@ module ActiveRecord
       #
       # For more information see the {"Transactional Migrations" section}[rdoc-ref:Migration].
       def add_index(table_name, column_name, options = {})
-        index_name, index_type, index_columns, index_if_not_exists_clause, index_options = add_index_options(table_name, column_name, **options)
-        execute "CREATE #{index_type} #{index_if_not_exists_clause} #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} (#{index_columns})#{index_options}"
+        index, algorithm, if_not_exists = add_index_options(table_name, column_name, **options)
+
+        create_index = CreateIndexDefinition.new(index, algorithm, if_not_exists)
+        execute schema_creation.accept(create_index)
       end
 
       # Removes the given index from the table.
@@ -847,6 +847,11 @@ module ActiveRecord
       #
       #   remove_index :accounts, :branch_id, name: :by_branch_party
       #
+      # Checks if the index exists before trying to remove it. Will silently ignore indexes that
+      # don't exist.
+      #
+      #   remove_index :accounts, if_exists: true
+      #
       # Removes the index named +by_branch_party+ in the +accounts+ table +concurrently+.
       #
       #   remove_index :accounts, name: :by_branch_party, algorithm: :concurrently
@@ -857,7 +862,10 @@ module ActiveRecord
       #
       # For more information see the {"Transactional Migrations" section}[rdoc-ref:Migration].
       def remove_index(table_name, column_name = nil, options = {})
+        return if options[:if_exists] && !index_exists?(table_name, column_name, options)
+
         index_name = index_name_for_remove(table_name, column_name, options)
+
         execute "DROP INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)}"
       end
 
@@ -1213,35 +1221,43 @@ module ActiveRecord
         Table.new(table_name, base)
       end
 
-      def add_index_options(table_name, column_name, comment: nil, **options) # :nodoc:
+      def add_index_options(table_name, column_name, name: nil, if_not_exists: false, internal: false, **options) # :nodoc:
+        options.assert_valid_keys(:unique, :length, :order, :opclass, :where, :type, :using, :comment, :algorithm)
+
         column_names = index_column_names(column_name)
 
-        options.assert_valid_keys(:unique, :order, :name, :where, :length, :internal, :using, :algorithm, :type, :opclass, :if_not_exists)
-
-        index_type = options[:type].to_s if options.key?(:type)
-        index_type ||= options[:unique] ? "UNIQUE" : ""
-        index_name = options[:name].to_s if options.key?(:name)
+        index_name = name&.to_s
         index_name ||= index_name(table_name, column_names)
 
-        if options.key?(:algorithm)
-          algorithm = index_algorithms.fetch(options[:algorithm]) {
-            raise ArgumentError.new("Algorithm must be one of the following: #{index_algorithms.keys.map(&:inspect).join(', ')}")
-          }
+        validate_index_length!(table_name, index_name, internal)
+
+        index = IndexDefinition.new(
+          table_name, index_name,
+          options[:unique],
+          column_names,
+          lengths: options[:length] || {},
+          orders: options[:order] || {},
+          opclasses: options[:opclass] || {},
+          where: options[:where],
+          type: options[:type],
+          using: options[:using],
+          comment: options[:comment]
+        )
+
+        [index, index_algorithm(options[:algorithm]), if_not_exists]
+      end
+
+      def index_algorithm(algorithm) # :nodoc:
+        index_algorithms.fetch(algorithm) do
+          raise ArgumentError, "Algorithm must be one of the following: #{index_algorithms.keys.map(&:inspect).join(', ')}"
+        end if algorithm
+      end
+
+      def quoted_columns_for_index(column_names, options) # :nodoc:
+        quoted_columns = column_names.each_with_object({}) do |name, result|
+          result[name.to_sym] = quote_column_name(name).dup
         end
-
-        using = "USING #{options[:using]}" if options[:using].present?
-
-        if supports_partial_index?
-          index_options = options[:where] ? " WHERE #{options[:where]}" : ""
-        end
-
-        if_not_exists_index_clause = options[:if_not_exists] ? "INDEX IF NOT EXISTS" : "INDEX"
-
-        validate_index_length!(table_name, index_name, options.fetch(:internal, false))
-
-        index_columns = quoted_columns_for_index(column_names, **options).join(", ")
-
-        [index_name, index_type, index_columns, if_not_exists_index_clause, index_options, algorithm, using, comment]
+        add_options_for_index_columns(quoted_columns, **options).values.join(", ")
       end
 
       def options_include_default?(options)
@@ -1300,13 +1316,6 @@ module ActiveRecord
           end
 
           quoted_columns
-        end
-
-        def quoted_columns_for_index(column_names, **options)
-          return [column_names] if column_names.is_a?(String)
-
-          quoted_columns = Hash[column_names.map { |name| [name.to_sym, quote_column_name(name).dup] }]
-          add_options_for_index_columns(quoted_columns, **options).values
         end
 
         def index_name_for_remove(table_name, column_name, options)
@@ -1435,10 +1444,8 @@ module ActiveRecord
         end
 
         def validate_index_length!(table_name, new_name, internal = false)
-          max_index_length = internal ? index_name_length : allowed_index_name_length
-
-          if new_name.length > max_index_length
-            raise ArgumentError, "Index name '#{new_name}' on table '#{table_name}' is too long; the limit is #{allowed_index_name_length} characters"
+          if new_name.length > index_name_length
+            raise ArgumentError, "Index name '#{new_name}' on table '#{table_name}' is too long; the limit is #{index_name_length} characters"
           end
         end
 

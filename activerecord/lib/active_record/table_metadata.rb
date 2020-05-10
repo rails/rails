@@ -11,16 +11,6 @@ module ActiveRecord
       @association = association
     end
 
-    def resolve_column_aliases(hash)
-      new_hash = hash.dup
-      hash.each_key do |key|
-        if key.is_a?(Symbol) && new_key = klass.attribute_aliases[key.to_s]
-          new_hash[new_key] = new_hash.delete(key)
-        end
-      end
-      new_hash
-    end
-
     def arel_attribute(column_name)
       if klass
         klass.arel_attribute(column_name, arel_table)

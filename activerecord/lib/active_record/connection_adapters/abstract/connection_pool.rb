@@ -116,16 +116,16 @@ module ActiveRecord
           end
         end
 
-        if defined?(JRUBY_VERSION)
+        if RUBY_ENGINE == "ruby"
+          # Returns the number of threads currently waiting on this queue.
+          attr_reader :num_waiting
+        else
           # Returns the number of threads currently waiting on this queue.
           def num_waiting
             synchronize do
               @num_waiting
             end
           end
-        else
-          # Returns the number of threads currently waiting on this queue.
-          attr_reader :num_waiting
         end
 
         # Add +element+ to the queue.  Never blocks.
@@ -826,12 +826,12 @@ module ActiveRecord
         end
 
         def with_new_connections_blocked
-          if defined?(JRUBY_VERSION)
+          if RUBY_ENGINE == "ruby"
+            @threads_blocking_new_connections += 1
+          else
             synchronize do
               @threads_blocking_new_connections += 1
             end
-          else
-            @threads_blocking_new_connections += 1
           end
 
           yield

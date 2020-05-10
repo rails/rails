@@ -11,10 +11,6 @@ module ActiveRecord
       def quote(value)
         value = id_value_for_database(value) if value.is_a?(Base)
 
-        if value.respond_to?(:value_for_database)
-          value = value.value_for_database
-        end
-
         _quote(value)
       end
 
@@ -25,13 +21,14 @@ module ActiveRecord
         value = id_value_for_database(value) if value.is_a?(Base)
 
         if column
-          value = type_cast_from_column(column, value)
+          ActiveSupport::Deprecation.warn(<<~MSG)
+            Passing a column to `type_cast` is deprecated and will be removed in Rails 6.2.
+          MSG
+          type = lookup_cast_type_from_column(column)
+          value = type.serialize(value)
         end
 
         _type_cast(value)
-      rescue TypeError
-        to_type = column ? " to #{column.type}" : ""
-        raise TypeError, "can't cast #{value.class}#{to_type}"
       end
 
       # If you are having to call this function, you are likely doing something
@@ -43,16 +40,6 @@ module ActiveRecord
       # represent the type doesn't sufficiently reflect the differences
       # (varchar vs binary) for example. The type used to get this primitive
       # should have been provided before reaching the connection adapter.
-      def type_cast_from_column(column, value) # :nodoc:
-        if column
-          type = lookup_cast_type_from_column(column)
-          type.serialize(value)
-        else
-          value
-        end
-      end
-
-      # See docs for #type_cast_from_column
       def lookup_cast_type_from_column(column) # :nodoc:
         lookup_cast_type(column.sql_type)
       end
@@ -197,10 +184,13 @@ module ActiveRecord
 
       private
         def type_casted_binds(binds)
-          if binds.first.is_a?(Array)
+          case binds.first
+          when ActiveModel::Attribute
+            binds.map { |attr| type_cast(attr.value_for_database) }
+          when Array
             binds.map { |column, value| type_cast(value, column) }
           else
-            binds.map { |attr| type_cast(attr.value_for_database) }
+            binds.map { |value| type_cast(value) }
           end
         end
 
@@ -243,7 +233,7 @@ module ActiveRecord
           when nil, Numeric, String then value
           when Type::Time::Value then quoted_time(value)
           when Date, Time then quoted_date(value)
-          else raise TypeError
+          else raise TypeError, "can't cast #{value.class.name}"
           end
         end
     end

@@ -1482,4 +1482,18 @@ class RenderTest < ActionController::TestCase
   ensure
     ActionView::Base.annotate_template_file_names = false
   end
+
+  def test_line_offset_with_annotations_enabled
+    ActionView::Base.annotate_template_file_names = true
+
+    exc = assert_raises ActionView::Template::Error do
+      get :render_line_offset
+    end
+    line = exc.backtrace.first
+    assert(line =~ %r{:(\d+):})
+    assert_equal "1", $1,
+      "The line offset is wrong, perhaps the wrong exception has been raised, exception was: #{exc.inspect}"
+  ensure
+    ActionView::Base.annotate_template_file_names = false
+  end
 end

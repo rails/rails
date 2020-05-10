@@ -67,7 +67,7 @@ misc_by_mary:
   id: 9
   author_id: 2
   title: misc post by mary
-  body: hello
+  body: hullo
   type: Post
   tags_count: 1
 

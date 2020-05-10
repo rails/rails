@@ -16,6 +16,8 @@
     end
     ```
 
+    *Étienne Barrié*
+
 *   `ActiveJob::TestCase#perform_enqueued_jobs` will no longer perform retries:
 
     When calling `perform_enqueued_jobs` without a block, the adapter will
@@ -26,7 +28,7 @@
 
     *Edouard Chin*
 
-*   Add queue name support to Que adapter
+*   Add queue name support to Que adapter.
 
     *Brad Nauta*, *Wojciech Wnętrzak*
 
@@ -40,7 +42,7 @@
     `after_enqueue` and `after_perform` callbacks will no longer run if the callback chain is halted.
     This behaviour is a breaking change and won't take effect until Rails 6.2.
     To enable this behaviour in your app right now, you can add in your app's configuration file
-    `config.active_job.skip_after_callbacks_if_terminated = true`
+    `config.active_job.skip_after_callbacks_if_terminated = true`.
 
     *Edouard Chin*
 

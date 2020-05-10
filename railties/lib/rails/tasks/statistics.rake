@@ -3,7 +3,7 @@
 # While global constants are bad, many 3rd party tools depend on this one (e.g
 # rspec-rails & cucumber-rails). So a deprecation warning is needed if we want
 # to remove it.
-STATS_DIRECTORIES = [
+STATS_DIRECTORIES ||= [
   %w(Controllers        app/controllers),
   %w(Helpers            app/helpers),
   %w(Jobs               app/jobs),

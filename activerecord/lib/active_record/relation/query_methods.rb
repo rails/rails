@@ -5,6 +5,7 @@ require "active_record/relation/query_attribute"
 require "active_record/relation/where_clause"
 require "active_record/relation/where_clause_factory"
 require "active_model/forbidden_attributes_protection"
+require "active_support/core_ext/array/wrap"
 
 module ActiveRecord
   module QueryMethods
@@ -70,7 +71,7 @@ module ActiveRecord
         @scope
       end
 
-      # Returns a new relation with left outer joins and where clause to idenitfy
+      # Returns a new relation with left outer joins and where clause to identify
       # missing relations.
       #
       # For example, posts that are missing a related author:
@@ -363,7 +364,7 @@ module ActiveRecord
     def group!(*args) # :nodoc:
       args.flatten!
 
-      self.group_values |= args
+      self.group_values += args
       self
     end
 
@@ -483,7 +484,7 @@ module ActiveRecord
               raise ArgumentError, "Hash arguments in .unscope(*args) must have :where as the key."
             end
 
-            target_values = Array(target_value).map(&:to_s)
+            target_values = resolve_arel_attributes(Array.wrap(target_value))
             self.where_clause = where_clause.except(*target_values)
           end
         else
@@ -683,9 +684,7 @@ module ActiveRecord
     end
 
     def where!(opts, *rest) # :nodoc:
-      opts = sanitize_forbidden_attributes(opts)
-      references!(PredicateBuilder.references(opts)) if Hash === opts
-      self.where_clause += where_clause_factory.build(opts, rest)
+      self.where_clause += build_where_clause(opts, *rest)
       self
     end
 
@@ -703,7 +702,17 @@ module ActiveRecord
     # This is short-hand for <tt>unscope(where: conditions.keys).where(conditions)</tt>.
     # Note that unlike reorder, we're only unscoping the named conditions -- not the entire where statement.
     def rewhere(conditions)
-      unscope(where: conditions.keys).where(conditions)
+      attrs = []
+      scope = spawn
+
+      where_clause = scope.build_where_clause(conditions)
+      where_clause.each_attribute do |attr|
+        attrs << attr
+      end
+
+      scope.unscope!(where: attrs)
+      scope.where_clause += where_clause
+      scope
     end
 
     # Returns a new relation, which is the logical union of this relation and the one passed as an
@@ -1078,6 +1087,12 @@ module ActiveRecord
         end
       end
 
+      def build_where_clause(opts, *rest)
+        opts = sanitize_forbidden_attributes(opts)
+        references!(PredicateBuilder.references(opts)) if Hash === opts
+        where_clause_factory.build(opts, rest)
+      end
+
     private
       def assert_mutability!
         raise ImmutableRelation if @loaded
@@ -1096,20 +1111,10 @@ module ActiveRecord
         arel.where(where_clause.ast) unless where_clause.empty?
         arel.having(having_clause.ast) unless having_clause.empty?
         if limit_value
-          limit_attribute = ActiveModel::Attribute.with_cast_value(
-            "LIMIT",
-            connection.sanitize_limit(limit_value),
-            Type.default_value,
-          )
-          arel.take(Arel::Nodes::BindParam.new(limit_attribute))
+          arel.take(build_cast_value("LIMIT", connection.sanitize_limit(limit_value)))
         end
         if offset_value
-          offset_attribute = ActiveModel::Attribute.with_cast_value(
-            "OFFSET",
-            offset_value.to_i,
-            Type.default_value,
-          )
-          arel.skip(Arel::Nodes::BindParam.new(offset_attribute))
+          arel.skip(build_cast_value("OFFSET", offset_value.to_i))
         end
         arel.group(*arel_columns(group_values.uniq.compact_blank)) unless group_values.empty?
 
@@ -1124,6 +1129,11 @@ module ActiveRecord
         arel.comment(*annotate_values) unless annotate_values.empty?
 
         arel
+      end
+
+      def build_cast_value(name, value)
+        cast_value = ActiveModel::Attribute.with_cast_value(name, value, Type.default_value)
+        Arel::Nodes::BindParam.new(cast_value)
       end
 
       def build_from
@@ -1390,6 +1400,30 @@ module ActiveRecord
         end
       end
 
+      def resolve_arel_attributes(attrs)
+        attrs.flat_map do |attr|
+          case attr
+          when Arel::Attributes::Attribute
+            attr
+          when Hash
+            attr.flat_map do |table, columns|
+              table = table.to_s
+              Array(columns).map do |column|
+                predicate_builder.resolve_arel_attribute(table, column)
+              end
+            end
+          else
+            attr = attr.to_s
+            if attr.include?(".")
+              table, column = attr.split(".", 2)
+              predicate_builder.resolve_arel_attribute(table, column)
+            else
+              attr
+            end
+          end
+        end
+      end
+
       # Checks to make sure that the arguments are not blank. Note that if some
       # blank-like object were initially passed into the query method, then this
       # method will not raise an error.
@@ -1417,6 +1451,8 @@ module ActiveRecord
         values = other.values
         STRUCTURAL_OR_METHODS.reject do |method|
           v1, v2 = @values[method], values[method]
+          v1 = v1.uniq if v1.is_a?(Array)
+          v2 = v2.uniq if v2.is_a?(Array)
           v1 == v2 || (!v1 || v1.empty?) && (!v2 || v2.empty?)
         end
       end

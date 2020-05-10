@@ -294,7 +294,7 @@ ActiveRecord::Schema.define do
     t.integer  :salary, default: 70000
     t.references :firm, index: false
     t.integer :mentor_id
-    if subsecond_precision_supported?
+    if supports_datetime_with_precision?
       t.datetime :created_at, precision: 6
       t.datetime :updated_at, precision: 6
       t.datetime :created_on, precision: 6
@@ -420,7 +420,7 @@ ActiveRecord::Schema.define do
 
   create_table :invoices, force: true do |t|
     t.integer :balance
-    if subsecond_precision_supported?
+    if supports_datetime_with_precision?
       t.datetime :updated_at, precision: 6
     else
       t.datetime :updated_at
@@ -594,8 +594,6 @@ ActiveRecord::Schema.define do
     # Oracle/SQLServer supports precision up to 38
     if current_adapter?(:OracleAdapter, :SQLServerAdapter)
       t.decimal :atoms_in_universe, precision: 38, scale: 0
-    elsif current_adapter?(:FbAdapter)
-      t.decimal :atoms_in_universe, precision: 18, scale: 0
     else
       t.decimal :atoms_in_universe, precision: 55, scale: 0
     end
@@ -613,7 +611,7 @@ ActiveRecord::Schema.define do
 
   create_table :owners, primary_key: :owner_id, force: true do |t|
     t.string :name
-    if subsecond_precision_supported?
+    if supports_datetime_with_precision?
       t.column :updated_at, :datetime, precision: 6
     else
       t.column :updated_at, :datetime
@@ -637,7 +635,7 @@ ActiveRecord::Schema.define do
       t.string :parrot_sti_class
       t.integer :killer_id
       t.integer :updated_count, :integer, default: 0
-      if subsecond_precision_supported?
+      if supports_datetime_with_precision?
         t.datetime :created_at, precision: 0
         t.datetime :created_on, precision: 0
         t.datetime :updated_at, precision: 0
@@ -654,7 +652,7 @@ ActiveRecord::Schema.define do
       t.string :catchphrase
       t.integer :parrot_id
       t.integer :non_validated_parrot_id
-      if subsecond_precision_supported?
+      if supports_datetime_with_precision?
         t.datetime :created_on, precision: 6
         t.datetime :updated_on, precision: 6
       else
@@ -849,7 +847,7 @@ ActiveRecord::Schema.define do
   create_table :ship_parts, force: true do |t|
     t.string :name
     t.integer :ship_id
-    if subsecond_precision_supported?
+    if supports_datetime_with_precision?
       t.datetime :updated_at, precision: 6
     else
       t.datetime :updated_at
@@ -929,7 +927,7 @@ ActiveRecord::Schema.define do
     t.string   :title, limit: 250, **case_sensitive_options
     t.string   :author_name, **case_sensitive_options
     t.string   :author_email_address
-    if subsecond_precision_supported?
+    if supports_datetime_with_precision?
       t.datetime :written_on, precision: 6
     else
       t.datetime :written_on

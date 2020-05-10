@@ -154,7 +154,7 @@ class IntegrationTest < ActiveRecord::TestCase
   end
 
   def test_cache_key_format_is_precise_enough
-    skip("Subsecond precision is not supported") unless subsecond_precision_supported?
+    skip("Subsecond precision is not supported") unless supports_datetime_with_precision?
     dev = Developer.first
     key = dev.cache_key
     travel_to dev.updated_at + 0.000001 do
@@ -171,7 +171,7 @@ class IntegrationTest < ActiveRecord::TestCase
   end
 
   def test_cache_version_format_is_precise_enough
-    skip("Subsecond precision is not supported") unless subsecond_precision_supported?
+    skip("Subsecond precision is not supported") unless supports_datetime_with_precision?
     with_cache_versioning do
       dev = Developer.first
       version = dev.cache_version.to_param

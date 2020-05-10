@@ -8,6 +8,7 @@ databases = ActiveRecord::Tasks::DatabaseTasks.setup_initial_database_yaml
 db_namespace = namespace :db do
   desc "Set the environment value for the database"
   task "environment:set" => :load_config do
+    raise ActiveRecord::EnvironmentStorageError unless ActiveRecord::InternalMetadata.enabled?
     ActiveRecord::InternalMetadata.create_table
     ActiveRecord::InternalMetadata[:environment] = ActiveRecord::Base.connection.migration_context.current_environment
   end
@@ -329,7 +330,7 @@ db_namespace = namespace :db do
           pending_migrations.each do |pending_migration|
             puts "  %4d %s" % [pending_migration.version, pending_migration.name]
           end
-          abort %{Run `rails db:migrate:#{name}` to update your database then try again.}
+          abort %{Run `bin/rails db:migrate:#{name}` to update your database then try again.}
         end
       end
     end

@@ -640,6 +640,29 @@ class MigrationTest < ActiveRecord::TestCase
     assert_equal "bar", ActiveRecord::InternalMetadata[:foo]
   end
 
+  def test_internal_metadata_not_used_when_not_enabled
+    ActiveRecord::InternalMetadata.drop_table
+    original_config = ActiveRecord::Base.connection.instance_variable_get("@config")
+
+    modified_config = original_config.dup.merge(use_metadata_table: false)
+
+    ActiveRecord::Base.connection
+      .instance_variable_set("@config", modified_config)
+
+    assert_not ActiveRecord::InternalMetadata.enabled?
+    assert_not ActiveRecord::InternalMetadata.table_exists?
+
+    migrations_path = MIGRATIONS_ROOT + "/valid"
+    migrator = ActiveRecord::MigrationContext.new(migrations_path, @schema_migration)
+    migrator.up
+
+    assert_not ActiveRecord::InternalMetadata[:environment]
+    assert_not ActiveRecord::InternalMetadata.table_exists?
+  ensure
+    ActiveRecord::Base.connection.instance_variable_set("@config", original_config)
+    ActiveRecord::InternalMetadata.create_table
+  end
+
   def test_proper_table_name_on_migration
     reminder_class = new_isolated_reminder_class
     migration = ActiveRecord::Migration.new
@@ -1061,7 +1084,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       classname = ActiveRecord::Base.connection.class.name[/[^:]*$/]
       expected_query_count = {
         "Mysql2Adapter"     => 1, # mysql2 supports creating two indexes using one statement
-        "PostgreSQLAdapter" => 2,
+        "PostgreSQLAdapter" => 3,
       }.fetch(classname) {
         raise "need an expected query count for #{classname}"
       }
@@ -1069,7 +1092,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       assert_queries(expected_query_count) do
         with_bulk_change_table do |t|
           t.index :username, unique: true, name: :awesome_username_index
-          t.index [:name, :age]
+          t.index [:name, :age], comment: "This is a comment"
         end
       end
 
@@ -1077,6 +1100,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
 
       name_age_index = index(:index_delete_me_on_name_and_age)
       assert_equal ["name", "age"].sort, name_age_index.columns.sort
+      assert_equal "This is a comment", name_age_index.comment
       assert_not name_age_index.unique
 
       assert index(:awesome_username_index).unique

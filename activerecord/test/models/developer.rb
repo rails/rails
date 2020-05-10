@@ -303,3 +303,8 @@ class AttributedDeveloper < ActiveRecord::Base
 
   self.ignored_columns += ["name"]
 end
+
+class ColumnNamesCachedDeveloper < ActiveRecord::Base
+  self.table_name = "developers"
+  self.ignored_columns += ["name"] if column_names.include?("name")
+end

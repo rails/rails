@@ -22,11 +22,17 @@ class Topic < ActiveRecord::Base
     end
   end
 
+  scope :scope_stats, -> stats { stats[:count] = count; self }
+
+  def self.klass_stats(stats); stats[:count] = count; self; end
+
   scope :with_object, Class.new(Struct.new(:klass)) {
     def call
       klass.where(approved: true)
     end
   }.new(self)
+
+  scope :with_kwargs, ->(approved: false) { where(approved: approved) }
 
   module NamedExtension
     def two
@@ -36,6 +42,7 @@ class Topic < ActiveRecord::Base
 
   has_many :replies, dependent: :destroy, foreign_key: "parent_id", autosave: true
   has_many :approved_replies, -> { approved }, class_name: "Reply", foreign_key: "parent_id", counter_cache: "replies_count"
+  has_many :open_replies, -> { open }, class_name: "Reply", foreign_key: "parent_id"
 
   has_many :unique_replies, dependent: :destroy, foreign_key: "parent_id"
   has_many :silly_unique_replies, dependent: :destroy, foreign_key: "parent_id"

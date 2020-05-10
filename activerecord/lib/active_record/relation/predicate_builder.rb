@@ -2,8 +2,6 @@
 
 module ActiveRecord
   class PredicateBuilder # :nodoc:
-    delegate :resolve_column_aliases, to: :table
-
     def initialize(table)
       @table = table
       @handlers = []
@@ -17,7 +15,9 @@ module ActiveRecord
     end
 
     def build_from_hash(attributes)
+      attributes = attributes.stringify_keys
       attributes = convert_dot_notation_to_hash(attributes)
+
       expand_from_hash(attributes)
     end
 
@@ -61,6 +61,10 @@ module ActiveRecord
       Arel::Nodes::BindParam.new(attr)
     end
 
+    def resolve_arel_attribute(table_name, column_name)
+      table.associated_table(table_name).arel_attribute(column_name)
+    end
+
     protected
       def expand_from_hash(attributes)
         return ["1=0"] if attributes.empty?
@@ -84,10 +88,17 @@ module ActiveRecord
             end
 
             klass ||= AssociationQueryValue
-            queries = klass.new(associated_table, value).queries.map do |query|
-              expand_from_hash(query).reduce(&:and)
+            queries = klass.new(associated_table, value).queries.map! do |query|
+              expand_from_hash(query)
             end
-            queries.reduce(&:or)
+
+            if queries.one?
+              queries.first
+            else
+              queries.map! { |query| query.reduce(&:and) }
+              queries = queries.reduce { |result, query| Arel::Nodes::Or.new(result, query) }
+              Arel::Nodes::Grouping.new(queries)
+            end
           elsif table.aggregated_with?(key)
             mapping = table.reflect_on_aggregation(key).mapping
             values = value.nil? ? [nil] : Array.wrap(value)

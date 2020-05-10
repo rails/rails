@@ -2162,6 +2162,7 @@ module ActionView
 
         case record_name
         when String, Symbol
+          record_name = record_name.to_s
           if nested_attributes_association?(record_name)
             return fields_for_with_nested_attributes(record_name, record_object, fields_options, block)
           end
@@ -2180,8 +2181,8 @@ module ActionView
 
         record_name = if index
           "#{object_name}[#{index}][#{record_name}]"
-        elsif record_name.to_s.end_with?("[]")
-          record_name = record_name.to_s.sub(/(.*)\[\]$/, "[\\1][#{record_object.id}]")
+        elsif record_name.end_with?("[]")
+          record_name = record_name.sub(/(.*)\[\]$/, "[\\1][#{record_object.id}]")
           "#{object_name}#{record_name}"
         else
           "#{object_name}[#{record_name}]"

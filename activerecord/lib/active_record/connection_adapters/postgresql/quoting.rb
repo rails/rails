@@ -67,8 +67,8 @@ module ActiveRecord
           elsif column.type == :uuid && value.is_a?(String) && /\(\)/.match?(value)
             value # Does not quote function default values for UUID columns
           elsif column.respond_to?(:array?)
-            value = type_cast_from_column(column, value)
-            quote(value)
+            type = lookup_cast_type_from_column(column)
+            quote(type.serialize(value))
           else
             super
           end

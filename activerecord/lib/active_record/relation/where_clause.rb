@@ -39,30 +39,31 @@ module ActiveRecord
         if left.empty? || right.empty?
           common
         else
-          or_clause = WhereClause.new(
-            [left.ast.or(right.ast)],
-          )
-          common + or_clause
+          left = left.ast
+          left = left.expr if left.is_a?(Arel::Nodes::Grouping)
+
+          right = right.ast
+          right = right.expr if right.is_a?(Arel::Nodes::Grouping)
+
+          or_clause = Arel::Nodes::Or.new(left, right)
+
+          common.predicates << Arel::Nodes::Grouping.new(or_clause)
+          common
         end
       end
 
       def to_h(table_name = nil)
-        equalities = equalities(predicates)
-        if table_name
-          equalities = equalities.select do |node|
-            node.left.relation.name == table_name
-          end
-        end
-
-        equalities.map { |node|
+        equalities(predicates).each_with_object({}) do |node, hash|
+          next if table_name&.!= node.left.relation.name
           name = node.left.name.to_s
           value = extract_node_value(node.right)
-          [name, value]
-        }.to_h
+          hash[name] = value
+        end
       end
 
       def ast
-        Arel::Nodes::And.new(predicates_with_wrapped_sql_literals)
+        predicates = predicates_with_wrapped_sql_literals
+        predicates.one? ? predicates.first : Arel::Nodes::And.new(predicates)
       end
 
       def ==(other)
@@ -94,6 +95,12 @@ module ActiveRecord
           when Arel::Nodes::Equality
             x.right.respond_to?(:unboundable?) && x.right.unboundable?
           end
+        end
+      end
+
+      def each_attribute(&block)
+        predicates.each do |node|
+          Arel.fetch_attribute(node, &block)
         end
       end
 
@@ -130,7 +137,7 @@ module ActiveRecord
         end
 
         def equality_node?(node)
-          node.respond_to?(:operator) && node.operator == :==
+          !node.is_a?(String) && node.equality?
         end
 
         def invert_predicate(node)
@@ -146,7 +153,15 @@ module ActiveRecord
 
         def except_predicates(columns)
           predicates.reject do |node|
-            Arel.fetch_attribute(node) { |attr| columns.include?(attr.name.to_s) }
+            Arel.fetch_attribute(node) do |attr|
+              columns.any? do |column|
+                if column.is_a?(Arel::Attributes::Attribute)
+                  attr == column
+                else
+                  attr.name.to_s == column.to_s
+                end
+              end
+            end
           end
         end
 
@@ -176,15 +191,8 @@ module ActiveRecord
           case node
           when Array
             node.map { |v| extract_node_value(v) }
-          when Arel::Nodes::Casted, Arel::Nodes::Quoted
-            node.val
-          when Arel::Nodes::BindParam
-            value = node.value
-            if value.respond_to?(:value_before_type_cast)
-              value.value_before_type_cast
-            else
-              value
-            end
+          when Arel::Nodes::BindParam, Arel::Nodes::Casted, Arel::Nodes::Quoted
+            node.value_before_type_cast
           end
         end
     end

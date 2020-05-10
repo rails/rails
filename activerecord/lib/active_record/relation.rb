@@ -500,7 +500,7 @@ module ActiveRecord
 
       if touch
         names = touch if touch != true
-        names = Array(names)
+        names = Array.wrap(names)
         options = names.extract_options!
         touch_updates = klass.touch_attributes_with_time(*names, **options)
         updates.merge!(touch_updates) unless touch_updates.empty?
@@ -686,7 +686,9 @@ module ActiveRecord
     end
 
     def scope_for_create
-      where_values_hash.merge!(create_with_value.stringify_keys)
+      hash = where_values_hash
+      create_with_value.each { |k, v| hash[k.to_s] = v } unless create_with_value.empty?
+      hash
     end
 
     # Returns true if relation needs eager loading.

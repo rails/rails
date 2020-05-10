@@ -95,9 +95,6 @@ their gem, or as a stand-alone gem. For discussion about this see the
 following PRs: [23311](https://github.com/rails/rails/issues/23311#issuecomment-176275718),
 [21406](https://github.com/rails/rails/pull/21406#issuecomment-138813484), and [#32285](https://github.com/rails/rails/pull/32285).
 
-## Auxiliary gems
-
-* [activejob-stats](https://github.com/seuros/activejob-stats)
 
 ## Download and installation
 
@@ -110,6 +107,7 @@ The latest version of Active Job can be installed with RubyGems:
 Source code can be downloaded as part of the Rails project on GitHub:
 
 * https://github.com/rails/rails/tree/master/activejob
+
 
 ## License
 

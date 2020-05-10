@@ -1,3 +1,43 @@
+*   `remote_ip` will no longer ignore IPs in X-Forwarded-For headers if they
+    are accompanied by port information.
+
+    *Duncan Brown*, *Prevenios Marinos*
+
+*   `fixture_file_upload` now uses path relative to `file_fixture_path`
+
+    Previously the path had to be relative to `fixture_path`.
+    You can change your existing code as follow:
+
+    ```ruby
+    # Before
+    fixture_file_upload('files/dog.png')
+
+    # After
+    fixture_file_upload('dog.png')
+    ```
+
+    *Edouard Chin*
+
+*   Remove deprecated `force_ssl` at the controller level.
+
+    *Rafael Mendonça França*
+
+*   The +helper+ class method for controllers loads helper modules specified as
+    strings/symbols with `String#constantize` instead of `require_dependency`.
+
+    Remember that support for strings/symbols is only a convenient API. You can
+    always pass a module object:
+
+    ```ruby
+    helper UtilsHelper
+    ```
+
+    which is recommended because it is simple and direct. When a string/symbol
+    is received, `helper` just manipulates and inflects the argument to obtain
+    that same module object.
+
+    *Xavier Noria*, *Jean Boussier*
+
 *   Correctly identify the entire localhost IPv4 range as trusted proxy.
 
     *Nick Soracco*

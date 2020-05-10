@@ -73,6 +73,15 @@ class CreateMigrationTest < Rails::Generators::TestCase
     assert_predicate @migration, :identical?
   end
 
+  def test_invoke_return_existing_file_when_exists_identical
+    migration_exists!
+    create_migration
+
+    invoked_file = nil
+    quietly { invoked_file = @migration.invoke! }
+    assert_equal @existing_migration.relative_existing_migration, invoked_file
+  end
+
   def test_invoke_when_exists_not_identical
     migration_exists!
     create_migration { "different content" }

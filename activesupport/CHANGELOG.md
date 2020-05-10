@@ -1,3 +1,69 @@
+*   `require_dependency` has been documented to be _obsolete_ in `:zeitwerk`
+    mode. The method is not deprecated as such (yet), but applications are
+    encouraged to not use it.
+
+    In `:zeitwerk` mode, semantics match Ruby's and you do not need to be
+    defensive with load order. Just refer to classes and modules normally. If
+    the constant name is dynamic, camelize if needed, and constantize.
+
+    *Xavier Noria*
+
+*   Add 3rd person aliases of `Symbol#start_with?` and `Symbol#end_with?`.
+
+    ```ruby
+    :foo.starts_with?("f") # => true
+    :foo.ends_with?("o")   # => true
+    ```
+
+    *Ryuta Kamizono*
+
+*   Add override of unary plus for `ActiveSupport::Duration`.
+
+    `+ 1.second` is now identical to `+1.second` to prevent errors
+    where a seemingly innocent change of formatting leads to a change in the code behavior.
+
+    Before:
+    ```ruby
+    +1.second.class
+    # => ActiveSupport::Duration
+    (+ 1.second).class
+    # => Integer
+    ```
+
+    After:
+    ```ruby
+    +1.second.class
+    # => ActiveSupport::Duration
+    (+ 1.second).class
+    # => ActiveSupport::Duration
+    ```
+
+    Fixes #39079.
+
+    *Roman Kushnir*
+
+*   Add subsec to `ActiveSupport::TimeWithZone#inspect`.
+
+    Before:
+
+        Time.at(1498099140).in_time_zone.inspect
+        # => "Thu, 22 Jun 2017 02:39:00 UTC +00:00"
+        Time.at(1498099140, 123456780, :nsec).in_time_zone.inspect
+        # => "Thu, 22 Jun 2017 02:39:00 UTC +00:00"
+        Time.at(1498099140 + Rational("1/3")).in_time_zone.inspect
+        # => "Thu, 22 Jun 2017 02:39:00 UTC +00:00"
+
+    After:
+
+        Time.at(1498099140).in_time_zone.inspect
+        # => "Thu, 22 Jun 2017 02:39:00.000000000 UTC +00:00"
+        Time.at(1498099140, 123456780, :nsec).in_time_zone.inspect
+        # => "Thu, 22 Jun 2017 02:39:00.123456780 UTC +00:00"
+        Time.at(1498099140 + Rational("1/3")).in_time_zone.inspect
+        # => "Thu, 22 Jun 2017 02:39:00.333333333 UTC +00:00"
+
+    *akinomaeni*
+
 *   Calling `ActiveSupport::TaggedLogging#tagged` without a block now returns a tagged logger.
 
     ```ruby
@@ -9,10 +75,10 @@
 *   Align `Range#cover?` extension behavior with Ruby behavior for backwards ranges.
 
     `(1..10).cover?(5..3)` now returns `false`, as it does in plain Ruby.
-    
+
     Also update `#include?` and `#===` behavior to match.
 
-    *Michael Groeneman*  
+    *Michael Groeneman*
 
 *   Update to TZInfo v2.0.0.
 
@@ -25,7 +91,7 @@
 
     See the `utc_to_local_returns_utc_offset_times` documentation for details.
 
-    *Phil Ross and Jared Beck*
+    *Phil Ross*, *Jared Beck*
 
 *   Add Date and Time `#yesterday?` and `#tomorrow?` alongside `#today?`.
 

@@ -41,6 +41,13 @@ module ActiveStorage
       image/webp
     )
 
+    config.active_storage.web_image_content_types = %w(
+      image/png
+      image/jpeg
+      image/jpg
+      image/gif
+    )
+
     config.active_storage.content_types_to_serve_as_binary = %w(
       text/html
       text/javascript
@@ -80,6 +87,7 @@ module ActiveStorage
         ActiveStorage.resolve_model_to_route = app.config.active_storage.resolve_model_to_route || :rails_storage_redirect
 
         ActiveStorage.variable_content_types = app.config.active_storage.variable_content_types || []
+        ActiveStorage.web_image_content_types = app.config.active_storage.web_image_content_types || []
         ActiveStorage.content_types_to_serve_as_binary = app.config.active_storage.content_types_to_serve_as_binary || []
         ActiveStorage.service_urls_expire_in = app.config.active_storage.service_urls_expire_in || 5.minutes
         ActiveStorage.content_types_allowed_inline = app.config.active_storage.content_types_allowed_inline || []

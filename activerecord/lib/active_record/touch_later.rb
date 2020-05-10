@@ -3,10 +3,9 @@
 module ActiveRecord
   # = Active Record Touch Later
   module TouchLater # :nodoc:
-    extend ActiveSupport::Concern
-
-    included do
-      before_commit_without_transaction_enrollment :touch_deferred_attributes
+    def before_committed!
+      touch_deferred_attributes if has_defer_touch_attrs? && persisted?
+      super
     end
 
     def touch_later(*names) # :nodoc:
@@ -42,11 +41,9 @@ module ActiveRecord
       end
 
       def touch_deferred_attributes
-        if has_defer_touch_attrs? && persisted?
-          @_skip_dirty_tracking = true
-          touch(*@_defer_touch_attrs, time: @_touch_time)
-          @_defer_touch_attrs, @_touch_time = nil, nil
-        end
+        @_skip_dirty_tracking = true
+        touch(*@_defer_touch_attrs, time: @_touch_time)
+        @_defer_touch_attrs, @_touch_time = nil, nil
       end
 
       def has_defer_touch_attrs?

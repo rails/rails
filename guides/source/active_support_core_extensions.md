@@ -1758,6 +1758,20 @@ INFO: The three of them return `nil` for blank receivers.
 
 NOTE: Defined in `active_support/core_ext/string/conversions.rb`.
 
+Extensions to `Symbol`
+----------------------
+
+### `starts_with?` and `ends_with?`
+
+Active Support defines 3rd person aliases of `Symbol#start_with?` and `Symbol#end_with?`:
+
+```ruby
+:foo.starts_with?("f") # => true
+:foo.ends_with?("o")   # => true
+```
+
+NOTE: Defined in `active_support/core_ext/symbol/starts_ends_with.rb`.
+
 Extensions to `Numeric`
 -----------------------
 

@@ -52,9 +52,10 @@ class HelpersPathsController < ActionController::Base
   paths = ["helpers2_pack", "helpers1_pack"].map do |path|
     File.join(File.expand_path("../fixtures", __dir__), path)
   end
-  $:.unshift(*paths)
 
   self.helpers_path = paths
+  ActionPackTestSuiteUtils.require_helpers(helpers_path)
+
   helper :all
 
   def index
@@ -63,9 +64,8 @@ class HelpersPathsController < ActionController::Base
 end
 
 class HelpersTypoController < ActionController::Base
-  path = File.expand_path("../fixtures/helpers_typo", __dir__)
-  $:.unshift(path)
-  self.helpers_path = path
+  self.helpers_path = File.expand_path("../fixtures/helpers_typo", __dir__)
+  ActionPackTestSuiteUtils.require_helpers(helpers_path)
 end
 
 module LocalAbcHelper
@@ -85,18 +85,14 @@ class HelperPathsTest < ActiveSupport::TestCase
 end
 
 class HelpersTypoControllerTest < ActiveSupport::TestCase
-  def setup
-    @autoload_paths = ActiveSupport::Dependencies.autoload_paths
-    ActiveSupport::Dependencies.autoload_paths = Array(HelpersTypoController.helpers_path)
-  end
-
   def test_helper_typo_error_message
     e = assert_raise(NameError) { HelpersTypoController.helper "admin/users" }
-    assert_equal "Couldn't find Admin::UsersHelper, expected it to be defined in helpers/admin/users_helper.rb", e.message
-  end
-
-  def teardown
-    ActiveSupport::Dependencies.autoload_paths = @autoload_paths
+    # This message is better if autoloading.
+    if RUBY_VERSION >= "2.6"
+      assert_equal "uninitialized constant Admin::UsersHelper\nDid you mean?  Admin::UsersHelpeR", e.message
+    else
+      assert_equal "uninitialized constant Admin::UsersHelper", e.message
+    end
   end
 end
 
@@ -204,6 +200,7 @@ class HelperTest < ActiveSupport::TestCase
 
   def test_all_helpers_with_alternate_helper_dir
     @controller_class.helpers_path = File.expand_path("../fixtures/alternate_helpers", __dir__)
+    ActionPackTestSuiteUtils.require_helpers(@controller_class.helpers_path)
 
     # Reload helpers
     @controller_class._helpers = Module.new
