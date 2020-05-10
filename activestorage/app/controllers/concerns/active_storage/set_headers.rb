@@ -4,8 +4,9 @@ module ActiveStorage::SetHeaders #:nodoc:
   extend ActiveSupport::Concern
 
   private
-    def set_headers(blob)
+    def set_content_headers_from_blob(blob)
       response.headers["Content-Type"] = blob.content_type
+
       response.headers["Content-Disposition"] = ActionDispatch::Http::ContentDisposition.format(
         disposition: params[:disposition] || "inline",
         filename: blob.filename.sanitized

@@ -10,7 +10,7 @@ class ActiveStorage::Blobs::ProxyController < ActiveStorage::BaseController
 
   def show
     http_cache_forever(public: true) {}
-    set_headers(@blob)
+    set_content_headers_from_blob(@blob)
 
     @blob.download do |chunk|
       response.stream.write(chunk)

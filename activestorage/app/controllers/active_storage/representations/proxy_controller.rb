@@ -8,7 +8,7 @@ class ActiveStorage::Representations::ProxyController < ActiveStorage::BaseContr
     http_cache_forever(public: true) {}
     representation = @blob.representation(params[:variation_key]).processed
 
-    set_headers(representation.image.blob)
+    set_content_headers_from_blob(representation.image.blob)
 
     @blob.service.download(representation.key) do |chunk|
       response.stream.write(chunk)
