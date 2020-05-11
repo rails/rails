@@ -24,13 +24,7 @@ class ActiveStorage::VariantWithRecord
     record&.image
   end
 
-  def key
-    image&.key
-  end
-
-  def url(**options)
-    image&.url(**options)
-  end
+  delegate :key, :url, :download, to: :image, allow_nil: true
 
   alias_method :service_url, :url
   deprecate service_url: :url

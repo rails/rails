@@ -6,9 +6,9 @@ class ActiveStorage::Blobs::ProxyController < ActiveStorage::BaseController
   include ActiveStorage::SetHeaders
 
   def show
-    http_cache_forever(public: true) { }
-    set_content_headers_from_blob(@blob)
-
-    stream(@blob)
+    http_cache_forever public: true do
+      set_content_headers_from @blob
+      stream @blob
+    end
   end
 end
