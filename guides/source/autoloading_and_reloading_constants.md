@@ -188,9 +188,11 @@ When classes do need to be autoloaded, we have an initializer just for that. The
 
 ```
 Rails.application.reloader.to_prepare do
-  $PAYMENT_GATEWAY = Rails.env.production? ? RealGateway : MockedGateway
+  $PAYMENT_GATEWAY = MockedGateway
 end
 ```
+
+The class MockedGateway will be autoloaded every time code is reloaded.
 
 Eager Loading
 -------------
