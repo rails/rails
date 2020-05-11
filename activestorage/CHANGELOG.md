@@ -1,3 +1,7 @@
+*   Remove deprecated support to pass `:combine_options` operations to `ActiveStorage::Transformers::ImageProcessing`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `ActiveStorage::Transformers::MiniMagickTransformer`.
 
     *Rafael Mendonça França*
