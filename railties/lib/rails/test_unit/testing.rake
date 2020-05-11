@@ -23,12 +23,6 @@ namespace :test do
     # If used with Active Record, this task runs before the database schema is synchronized.
   end
 
-  desc "Runs all tests, even system tests"
-  task all: "test:prepare" do
-    $: << "test"
-    Rails::TestUnit::Runner.rake_run(["test/**/*_test.rb"])
-  end
-
   task run: %w[test]
 
   desc "Run tests quickly, but also reset db"
@@ -39,6 +33,12 @@ namespace :test do
       $: << "test"
       Rails::TestUnit::Runner.rake_run(["test/#{name}"])
     end
+  end
+
+  desc "Runs all tests, including system tests"
+  task all: "test:prepare" do
+    $: << "test"
+    Rails::TestUnit::Runner.rake_run(["test/**/*_test.rb"])
   end
 
   task generators: "test:prepare" do
