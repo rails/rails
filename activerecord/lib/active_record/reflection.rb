@@ -529,11 +529,20 @@ module ActiveRecord
 
       def polymorphic_inverse_of(associated_class)
         if has_inverse?
-          if inverse_relationship = associated_class._reflect_on_association(options[:inverse_of])
+          inverse_of_name = polymorphic_inverse_of_name(associated_class)
+          if inverse_relationship = associated_class._reflect_on_association(inverse_of_name)
             inverse_relationship
           else
             raise InverseOfAssociationNotFoundError.new(self, associated_class)
           end
+        end
+      end
+
+      def polymorphic_inverse_of_name(associated_class)
+        if options[:inverse_of].is_a?(Proc)
+          options[:inverse_of].call(associated_class)
+        else
+          options[:inverse_of]
         end
       end
 

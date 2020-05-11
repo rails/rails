@@ -21,6 +21,7 @@ require "models/company"
 require "models/project"
 require "models/author"
 require "models/post"
+require "models/member"
 
 class AutomaticInverseFindingTests < ActiveRecord::TestCase
   fixtures :ratings, :comments, :cars
@@ -779,6 +780,14 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
     assert_nothing_raised { Face.first.polymorphic_man = Man.first }
     # fails because Interest does have the correct inverse_of
     assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Face.first.polymorphic_man = Interest.first }
+  end
+
+  def test_set_inverse_for_polymorphic_association_dynamically
+    member = Member.create(face: Face.create)
+    man = Man.create(polymorphic_face: Face.create)
+    men = Face.all.map(&:polymorphic_man)
+    assert_includes men, member
+    assert_includes men, man
   end
 end
 

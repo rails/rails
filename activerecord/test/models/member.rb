@@ -37,6 +37,8 @@ class Member < ActiveRecord::Base
 
   belongs_to :admittable, polymorphic: true
   has_one :premium_club, through: :admittable
+
+  has_one :face, as: :polymorphic_man, inverse_of: :polymorphic_man
 end
 
 class SelfMember < ActiveRecord::Base
