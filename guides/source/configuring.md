@@ -956,13 +956,11 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
 * `config.active_storage.resolve_model_to_route` can be used to globally change how Active Storage files are delivered.
 
-  ```ruby
-  config.active_storage.resolve_name = :rails_storage_proxy
-  ```
+  Allowed values are:
+  * `:rails_storage_redirect`: Redirect to signed, short-lived service URLs.
+  * `:rails_storage_proxy`: Proxy files by downloading them.
 
   The default is `:rails_storage_redirect`.
-    * `:rails_storage_redirect` - Redirect files to temporary service URL.
-    * `:rails_storage_proxy` - Proxy assets through rails.
 
 ### Results of `config.load_defaults`
 
