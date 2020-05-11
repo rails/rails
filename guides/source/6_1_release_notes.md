@@ -108,7 +108,14 @@ Please refer to the [Changelog][active-storage] for detailed changes.
 
 ### Deprecations
 
+*   Deprecate `Blob.create_after_upload` in favor of `Blob.create_and_upload`.
+    ([Pull Request](https://github.com/rails/rails/pull/34827))
+
 ### Notable changes
+
+*   Add `Blob.create_and_upload` to create a new blob and upload the given `io`
+    to the service.
+    ([Pull Request](https://github.com/rails/rails/pull/34827))
 
 Active Model
 ------------
@@ -143,6 +150,36 @@ Please refer to the [Changelog][active-job] for detailed changes.
 
 ### Notable changes
 
+Action Text
+----------
+
+Please refer to the [Changelog][action-text] for detailed changes.
+
+### Removals
+
+### Deprecations
+
+### Notable changes
+
+*   Add method to confirm rich text content existence by adding `?` after
+    name of the rich text attribute.
+    ([Pull Request](https://github.com/rails/rails/pull/37951))
+
+*   Add `fill_in_rich_text_area` system test case helper to find a trix
+    editor and fill it with given HTML content.
+    ([Pull Request](https://github.com/rails/rails/pull/35885))
+
+Action Mailbox
+----------
+
+Please refer to the [Changelog][action-mailbox] for detailed changes.
+
+### Removals
+
+### Deprecations
+
+### Notable changes
+
 Ruby on Rails Guides
 --------------------
 
@@ -168,4 +205,6 @@ framework it is. Kudos to all of them.
 [active-model]:   https://github.com/rails/rails/blob/master/activemodel/CHANGELOG.md
 [active-support]: https://github.com/rails/rails/blob/master/activesupport/CHANGELOG.md
 [active-job]:     https://github.com/rails/rails/blob/master/activejob/CHANGELOG.md
+[action-text]:    https://github.com/rails/rails/blob/master/actiontext/CHANGELOG.md
+[action-mailbox]: https://github.com/rails/rails/blob/master/actionmailbox/CHANGELOG.md
 [guides]:         https://github.com/rails/rails/blob/master/guides/CHANGELOG.md
