@@ -69,6 +69,23 @@ class ActiveStorage::Preview
   alias_method :service_url, :url
   deprecate service_url: :url
 
+  # Returns a combination key of the blob and the variation that together identifies a specific variant.
+  def key
+    if processed?
+      variant.key
+    else
+      raise UnprocessedError
+    end
+  end
+
+  def download(&block)
+    if processed?
+      variant.download(&block)
+    else
+      raise UnprocessedError
+    end
+  end
+
   private
     def processed?
       image.attached?
