@@ -106,23 +106,35 @@ Variation of image attachment:
 <%= image_tag user.avatar.variant(resize_to_limit: [100, 100]) %>
 ```
 
-## Delivery Routes
-Active storage provides two primary ways to route files.
+## File serving strategies
 
-### Redirect (default)
-`:rails_storage_redirect` Requests for files will redirect to a temporary service URL.
+Active Storage supports two ways to serve files: redirecting and proxying.
 
-### Proxy
-`:rails_storage_proxy` Files are proxied through the application server. Useful for serving assets from a CDN or HTML caching.
+### Redirecting
 
-### Changing the default resolver
-To make all assets cachable via a CDN you may change the default resolver for Active Storage models:
-```ruby
-config.active_storage.resolve_model_to_route = :rails_storage_proxy
+Active Storage generates stable application URLs for files which, when accessed, redirect to signed, short-lived service URLs. This relieves application servers of the burden of serving file data. It is the default file serving strategy.
+
+When the application is configured to proxy files by default, use the `rails_storage_redirect_path` and `_url` route helpers to redirect instead:
+
+```erb
+<%= image_tag rails_storage_redirect_path(@user.avatar) %>
 ```
-If a more granular approach is needed the path or url helpers may be called from your views:
-```ruby
+
+### Proxying
+
+Optionally, files can be proxied instead. This means that your application servers will download file data from the storage service in response to requests. This can be useful for serving files from a CDN.
+
+Explicitly proxy attachments using the `rails_storage_proxy_path` and `_url` route helpers:
+
+```erb
 <%= image_tag rails_storage_proxy_path(@user.avatar) %>
+```
+
+Or configure Active Storage to use proxying by default:
+
+```ruby
+# config/initializers/active_storage.rb
+Rails.application.config.active_storage.resolve_model_to_route = :rails_storage_proxy
 ```
 
 ## Direct uploads
