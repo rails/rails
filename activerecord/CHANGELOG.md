@@ -1,3 +1,22 @@
+*   Fix merging IN clause to be AND as Boolean algebra.
+
+    ```ruby
+    david_and_mary = Author.where(id: [david, mary])
+    david_and_bob  = Author.where(id: [david, bob])
+
+    # Before
+    david_and_mary.merge(david_and_bob) # => [david, bob]
+    david_and_bob.merge(david_and_mary) # => [david, mary]
+
+    # After
+    david_and_mary.merge(david_and_bob) # => [david]
+    david_and_bob.merge(david_and_mary) # => [david]
+    ```
+
+    Fixes #39232.
+
+    *Ryuta Kamizono*
+
 *   Support `ALGORITHM = INSTANT` DDL option for index operations on MySQL.
 
     *Ryuta Kamizono*

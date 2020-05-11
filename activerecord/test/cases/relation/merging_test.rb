@@ -12,6 +12,28 @@ require "models/rating"
 class RelationMergingTest < ActiveRecord::TestCase
   fixtures :developers, :comments, :authors, :author_addresses, :posts
 
+  def test_merge_in_clause
+    david, mary, bob = authors(:david, :mary, :bob)
+
+    david_and_mary = Author.where(id: [david, mary])
+    david_and_bob  = Author.where(id: [david, bob])
+
+    assert_equal [david, mary], david_and_mary.sort_by(&:id)
+    assert_equal [david, bob], david_and_bob.sort_by(&:id)
+    assert_equal [david], david_and_mary.merge(david_and_bob)
+  end
+
+  def test_merge_or_clause
+    david, mary, bob = authors(:david, :mary, :bob)
+
+    david_and_mary = Author.where(id: david).or(Author.where(id: mary))
+    david_and_bob  = Author.where(id: david).or(Author.where(id: bob))
+
+    assert_equal [david, mary], david_and_mary.sort_by(&:id)
+    assert_equal [david, bob], david_and_bob.sort_by(&:id)
+    assert_equal [david], david_and_mary.merge(david_and_bob)
+  end
+
   def test_relation_merging
     devs = Developer.where("salary >= 80000").merge(Developer.limit(2)).merge(Developer.order("id ASC").where("id < 3"))
     assert_equal [developers(:david), developers(:jamis)], devs.to_a

@@ -109,7 +109,11 @@ module ActiveRecord
 
         def referenced_columns
           @referenced_columns ||= begin
-            equality_nodes = predicates.select { |n| equality_node?(n) }
+            equality_nodes = predicates.select do |node|
+              Arel::Nodes::Equality === node ||
+                Arel::Nodes::In === node ||
+                Arel::Nodes::HomogeneousIn === node
+            end
             Set.new(equality_nodes, &:left)
           end
         end
@@ -131,13 +135,10 @@ module ActiveRecord
         end
 
         def predicates_unreferenced_by(other)
-          predicates.reject do |n|
-            equality_node?(n) && other.referenced_columns.include?(n.left)
+          predicates.reject do |node|
+            Arel::Nodes::Equality === node &&
+              other.referenced_columns.include?(node.left)
           end
-        end
-
-        def equality_node?(node)
-          !node.is_a?(String) && node.equality?
         end
 
         def invert_predicate(node)

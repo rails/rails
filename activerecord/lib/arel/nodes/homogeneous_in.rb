@@ -20,10 +20,6 @@ module Arel # :nodoc: all
       end
       alias :== :eql?
 
-      def equality?
-        true
-      end
-
       def invert
         Arel::Nodes::HomogeneousIn.new(values, attribute, type == :in ? :notin : :in)
       end
