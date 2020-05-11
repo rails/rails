@@ -42,6 +42,11 @@ module ActiveRecord
         connection.encoding
       end
 
+      # Returns a string like "3.24.0"
+      def structure_dumper_version
+        `sqlite3 --version`.chomp.match(/[0-9]\.[0-9]+\.[0-9]+/)[0]
+      end
+
       def structure_dump(filename, extra_flags)
         args = []
         args.concat(Array(extra_flags)) if extra_flags

@@ -76,6 +76,13 @@ module ActiveRecord
 
       ##
       # :singleton-method:
+      # Specifies the preferred version of your database. Rails won't dump
+      # database structure unless your local database version matches this.
+      # Use this to ensure all members of your team use the same database version.
+      mattr_accessor :preferred_database_version, instance_writer: false
+
+      ##
+      # :singleton-method:
       # Specifies if an error should be raised if the query has an order being
       # ignored when doing batch queries. Useful in applications where the
       # scope being ignored is error-worthy, rather than a warning.

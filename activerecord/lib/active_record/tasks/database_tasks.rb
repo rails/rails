@@ -300,6 +300,11 @@ module ActiveRecord
         ActiveRecord::Base.establish_connection(environment.to_sym)
       end
 
+      def structure_dumper_version(configuration)
+        db_config = resolve_configuration(configuration)
+        database_adapter_for(db_config).structure_dumper_version
+      end
+
       def structure_dump(configuration, *arguments)
         db_config = resolve_configuration(configuration)
         filename = arguments.delete_at(0)
@@ -378,10 +383,18 @@ module ActiveRecord
         filename = dump_filename(db_config.name, format)
         connection = ActiveRecord::Base.connection
 
+        db_version = structure_dumper_version(db_config)
+        if db_version != ActiveRecord::Base.preferred_database_version
+          raise "The version reported by the database (#{db_version}) doesn't match the preferred " \
+                "database version for this application (#{ActiveRecord::Base.preferred_database_version}). " \
+                "If you have recently updated your database, set config.active_record.preferred_database_version " \
+                "Otherwise, you should ensure you're using the correct version of your database schema dumper locally."
+        end
+
         case format
         when :ruby
           File.open(filename, "w:utf-8") do |file|
-            ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, file)
+            ActiveRecord::SchemaDumper.dump(connection, file)
           end
         when :sql
           structure_dump(db_config, filename)

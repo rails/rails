@@ -46,6 +46,11 @@ module ActiveRecord
         create true
       end
 
+      # Returns a string like "9.6.0"
+      def structure_dumper_version
+        `pg_dump --version`.chomp.match(/[0-9]\.[0-9]+\.[0-9]+/)[0]
+      end
+
       def structure_dump(filename, extra_flags)
         set_psql_env
 

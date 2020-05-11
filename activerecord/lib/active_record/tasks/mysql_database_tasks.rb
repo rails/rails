@@ -40,6 +40,11 @@ module ActiveRecord
         connection.collation
       end
 
+      # Returns a string like "8.0.19"
+      def structure_dumper_version
+        `mysqldump --version`.chomp.match(/[0-9]\.[0-9]+\.[0-9]+/)[0]
+      end
+
       def structure_dump(filename, extra_flags)
         args = prepare_command_options
         args.concat(["--result-file", "#{filename}"])
