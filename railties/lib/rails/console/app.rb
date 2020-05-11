@@ -2,6 +2,7 @@
 
 require "active_support/all"
 require "action_controller"
+require "irb"
 
 module Rails
   module ConsoleMethods
@@ -32,6 +33,16 @@ module Rails
     def reload!(print = true)
       puts "Reloading..." if print
       Rails.application.reloader.reload!
+      true
+    end
+
+    # reboot a brand new session and exit current context
+    def reboot!(print = true)
+      puts "Rebooting..." if print
+      existing_context = IRB.CurrentContext
+      Rails.application.reloader.reload!
+      IRB.start
+      existing_context.exit
       true
     end
   end

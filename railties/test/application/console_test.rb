@@ -174,4 +174,15 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     write_prompt "puts Rails.env", "puts Rails.env\r\ntest"
     @primary.puts "quit"
   end
+
+  def test_reboot
+    options = "-- --verbose"
+    options += " --singleline --nocolorize" if RUBY_VERSION >= "2.7"
+    spawn_console(options)
+
+    write_prompt "a = 1", "a = 1"
+    write_prompt "reboot!", "Rebooting..."
+    write_prompt "a", "undefined local variable or method `a' for main:Object"
+    @primary.puts "quit"
+  end
 end
