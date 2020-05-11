@@ -3,76 +3,16 @@
 require "cases/helper"
 require "support/schema_dumping_helper"
 
-if current_adapter?(:SQLite3Adapter) && !in_memory_db?
-  class SchemaDumperWithMigrationsPathsTestCase < ActiveRecord::TestCase
-    include SchemaDumpingHelper
-    self.use_transactional_tests = false
+class SchemaDumperTest < ActiveRecord::TestCase
+  include SchemaDumpingHelper
+  self.use_transactional_tests = false
 
-    # Use a memory db here to avoid having to rollback at the end
-    setup do
-      migrations_path = MIGRATIONS_ROOT + "/schema_dumper"
-      file = ActiveRecord::Base.connection.raw_connection.filename
-      @conn = ActiveRecord::Base.establish_connection adapter: "sqlite3",
-        database: ":memory:", migrations_paths: migrations_path
-      source_db = SQLite3::Database.new file
-      dest_db = ActiveRecord::Base.connection.raw_connection
-      backup = SQLite3::Backup.new(dest_db, "main", source_db, "main")
-      backup.step(-1)
-      backup.finish
-    end
-
-    setup do
-      ActiveRecord::SchemaMigration.create_table
-    end
-
-    teardown do
-      @conn.release_connection if @conn
-      ActiveRecord::Base.establish_connection :arunit
-    end
-  end
-end
-
-class SchemaDumperTest < SchemaDumperWithMigrationsPathsTestCase
   def standard_dump
     @@standard_dump ||= perform_schema_dump
   end
 
   def perform_schema_dump
     dump_all_table_schema []
-  end
-
-  def test_dump_schema_information_with_empty_versions
-    ActiveRecord::SchemaMigration.delete_all
-    schema_info = ActiveRecord::Base.connection.dump_schema_information
-    assert_no_match(/INSERT INTO/, schema_info)
-  end
-
-  def test_dump_schema_information_outputs_lexically_ordered_versions
-    versions = %w{ 20100101010101 20100201010101 20100301010101 }
-    versions.reverse_each do |v|
-      ActiveRecord::SchemaMigration.create!(version: v)
-    end
-
-    schema_info = ActiveRecord::Base.connection.dump_schema_information
-    assert_match(/20100201010101.*20100301010101/m, schema_info)
-    assert_includes schema_info, "20100101010101"
-  ensure
-    ActiveRecord::SchemaMigration.delete_all
-  end
-
-  def test_dump_schema_information_excludes_versions_not_in_codebase
-    versions = %w{ 20100101010101 20100201010101 20100301010101 20100401010101 }
-    versions.reverse_each do |v|
-      ActiveRecord::SchemaMigration.create!(version: v)
-    end
-
-    schema_info = ActiveRecord::Base.connection.dump_schema_information
-    assert_includes schema_info, "20100101010101"
-    assert_includes schema_info, "20100201010101"
-    assert_includes schema_info, "20100301010101"
-    assert_not_includes schema_info, "20100401010101"
-  ensure
-    ActiveRecord::SchemaMigration.delete_all
   end
 
   def test_schema_dump
@@ -559,5 +499,70 @@ class SchemaDumperDefaultsTest < ActiveRecord::TestCase
     output = dump_table_schema("infinity_defaults")
     assert_match %r{t\.float\s+"float_with_inf_default",\s+default: ::Float::INFINITY}, output
     assert_match %r{t\.float\s+"float_with_nan_default",\s+default: ::Float::NAN}, output
+  end
+end
+
+if current_adapter?(:SQLite3Adapter) && !in_memory_db?
+  class SchemaDumperWithMigrationsPathsTestCase < ActiveRecord::TestCase
+    include SchemaDumpingHelper
+    self.use_transactional_tests = false
+
+    # Use a memory db here to avoid having to rollback at the end
+    setup do
+      migrations_path = MIGRATIONS_ROOT + "/schema_dumper"
+      file = ActiveRecord::Base.connection.raw_connection.filename
+      @conn = ActiveRecord::Base.establish_connection adapter: "sqlite3",
+        database: ":memory:", migrations_paths: migrations_path
+      source_db = SQLite3::Database.new file
+      dest_db = ActiveRecord::Base.connection.raw_connection
+      backup = SQLite3::Backup.new(dest_db, "main", source_db, "main")
+      backup.step(-1)
+      backup.finish
+    end
+
+    setup do
+      ActiveRecord::SchemaMigration.create_table
+    end
+
+    teardown do
+      @conn.release_connection if @conn
+      ActiveRecord::Base.establish_connection :arunit
+    end
+  end
+
+  class SchemaDumperWithVersionsTest < SchemaDumperWithMigrationsPathsTestCase
+    def test_dump_schema_information_with_empty_versions
+      ActiveRecord::SchemaMigration.delete_all
+      schema_info = ActiveRecord::Base.connection.dump_schema_information
+      assert_no_match(/INSERT INTO/, schema_info)
+    end
+
+    def test_dump_schema_information_outputs_lexically_ordered_versions
+      versions = %w{ 20100101010101 20100201010101 20100301010101 }
+      versions.reverse_each do |v|
+        ActiveRecord::SchemaMigration.create!(version: v)
+      end
+
+      schema_info = ActiveRecord::Base.connection.dump_schema_information
+      assert_match(/20100201010101.*20100301010101/m, schema_info)
+      assert_includes schema_info, "20100101010101"
+    ensure
+      ActiveRecord::SchemaMigration.delete_all
+    end
+
+    def test_dump_schema_information_excludes_versions_not_in_codebase
+      versions = %w{ 20100101010101 20100201010101 20100301010101 20100401010101 }
+      versions.reverse_each do |v|
+        ActiveRecord::SchemaMigration.create!(version: v)
+      end
+
+      schema_info = ActiveRecord::Base.connection.dump_schema_information
+      assert_includes schema_info, "20100101010101"
+      assert_includes schema_info, "20100201010101"
+      assert_includes schema_info, "20100301010101"
+      assert_not_includes schema_info, "20100401010101"
+    ensure
+      ActiveRecord::SchemaMigration.delete_all
+    end
   end
 end
