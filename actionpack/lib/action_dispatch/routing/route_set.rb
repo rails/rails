@@ -650,14 +650,6 @@ module ActionDispatch
       end
 
       class Generator
-        PARAMETERIZE = lambda do |name, value|
-          if name == :controller
-            value
-          else
-            value.to_param
-          end
-        end
-
         attr_reader :options, :recall, :set, :named_route
 
         def initialize(named_route, options, recall, set)
@@ -744,7 +736,7 @@ module ActionDispatch
         # Generates a path from routes, returns [path, params].
         # If no route is generated the formatter will raise ActionController::UrlGenerationError
         def generate
-          @set.formatter.generate(named_route, options, recall, PARAMETERIZE)
+          @set.formatter.generate(named_route, options, recall)
         end
 
         def different_controller?
