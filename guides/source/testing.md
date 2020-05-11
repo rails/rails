@@ -857,6 +857,7 @@ bin/rails test:system
 
 NOTE: By default, running `bin/rails test` won't run your system tests.
 Make sure to run `bin/rails test:system` to actually run them.
+You can also run `bin/rails test:all` to run all tests, including system tests.
 
 #### Creating Articles System Test
 
