@@ -161,7 +161,7 @@ For example, if an initializer stores and caches a class object:
 $PAYMENT_GATEWAY = Rails.env.production? ? RealGateway : MockedGateway
 ```
 
-`MockedGateway` gets reloaded, `$PAYMENT_GATEWAY` will store the class object `MockedGateway`, which was evaluated when the initializer ran. Reloading does not change the class object stored in `$PAYMENT_GATEWAY`.
+`$PAYMENT_GATEWAY` will store the class object `MockedGateway`, which was evaluated when the initializer ran. So the content stored in ObjectSpace will reference the *initial* class object. When reloading does happen, `$PAYMENT_GATEWAY` will not change.
 
 Similarly, in the Rails console, if you have a user instance and reload:
 
@@ -184,15 +184,15 @@ if `User` is reloaded, since `VipUser` is not, the superclass of `VipUser` is th
 
 Bottom line: **do not cache reloadable classes or modules**.
 
-When classes do need to be autoloaded, we have an initializer just for that. The callback will run once on application startup and every time code is reloaded.
+When classes do need to be autoloaded, we have a reloader callback just for that. This callback will run once on application startup and every time code is reloaded.
+
+NOTE: for historical reasons this callback will run twice, so the code within the block must be idempotent.
 
 ```
 Rails.application.reloader.to_prepare do
   $PAYMENT_GATEWAY = MockedGateway
 end
 ```
-
-The class MockedGateway will be autoloaded every time code is reloaded.
 
 Eager Loading
 -------------
