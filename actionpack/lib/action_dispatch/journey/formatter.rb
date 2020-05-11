@@ -54,7 +54,7 @@ module ActionDispatch
         message << ", missing required keys: #{missing_keys.sort.inspect}" if missing_keys && !missing_keys.empty?
         message << ", possible unmatched constraints: #{unmatched_keys.sort.inspect}" if unmatched_keys && !unmatched_keys.empty?
 
-        raise ActionController::UrlGenerationError, message
+        raise ActionController::UrlGenerationError.new(message, routes, name, constraints, missing_keys, unmatched_keys)
       end
 
       def clear

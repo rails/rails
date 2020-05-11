@@ -23,6 +23,29 @@ module ActionController
   end
 
   class UrlGenerationError < ActionControllerError #:nodoc:
+    attr_reader :routes, :route_name, :constraints, :missing_keys, :unmatched_keys
+
+    def initialize(message, routes = nil, route_name = nil, constraints = nil, missing_keys = nil, unmatched_keys = nil)
+      @routes     = routes
+      @route_name     = route_name
+      @constraints    = constraints
+      @missing_keys   = missing_keys
+      @unmatched_keys = unmatched_keys
+
+      super(message)
+    end
+
+    class Correction
+      def initialize error
+        @error = error
+      end
+
+      def corrections
+        @error.routes.named_routes.helper_names.grep(/#{@error.route_name}/).sort
+      end
+    end
+
+    DidYouMean.correct_error(self, Correction)
   end
 
   class MethodNotAllowed < ActionControllerError #:nodoc:
