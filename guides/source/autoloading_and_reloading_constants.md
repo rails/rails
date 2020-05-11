@@ -129,9 +129,9 @@ Reloading can be enabled or disabled. The setting that controls this behavior is
 
 Rails detects files have changed using an evented file monitor (default), or walking the autoload paths, depending on `config.file_watcher`.
 
-In a Rails console there is no file watcher active regardless of the value of `config.cache_classes`. This is so because, normally, it would be confusing to have code reloaded in the middle of a console session, the same way you generally want an individual request to be served by a consistent, non-changing set of application classes and modules.
+In a Rails console there is no file watcher active, regardless of the value of `config.cache_classes`. It's confusing to have code reloaded in the middle of a console session, the same way you generally want an individual request to be served by a consistent, non-changing set of application classes and modules.
 
-However, you can force a reload in the console executing `reload!`:
+However, you can force a reload in the console by executing `reload!`:
 
 ```bash
 $ bin/rails c
@@ -151,18 +151,17 @@ as you can see, the class object stored in the `User` constant is different afte
 
 It is very important to understand that Ruby does not have a way to truly reload classes and modules in memory, and have that reflected everywhere they are already used. Technically, "unloading" the `User` class means removing the `User` constant via `Object.send(:remove_const, "User")`.
 
-Therefore, if you store a reloadable class or module object in a place that is not reloaded, that value is going to become stale.
+Therefore, if you store a reloadable class or module object in a place that is not reloaded, that value will become stale.
 
-For example, if an initializer stores and caches a certain class object
+For example, if an initializer stores and caches a class object:
 
 ```ruby
 # config/initializers/configure_payment_gateway.rb
 # DO NOT DO THIS.
 $PAYMENT_GATEWAY = Rails.env.production? ? RealGateway : MockedGateway
-# DO NOT DO THIS.
 ```
 
-and `MockedGateway` gets reloaded, `$PAYMENT_GATEWAY` still stores the class object `MockedGateway` evaluated to when the initializer ran. Reloading does not change the class object stored in `$PAYMENT_GATEWAY`.
+`MockedGateway` gets reloaded, `$PAYMENT_GATEWAY` will store the class object `MockedGateway`, which was evaluated when the initializer ran. Reloading does not change the class object stored in `$PAYMENT_GATEWAY`.
 
 Similarly, in the Rails console, if you have a user instance and reload:
 
@@ -185,6 +184,13 @@ if `User` is reloaded, since `VipUser` is not, the superclass of `VipUser` is th
 
 Bottom line: **do not cache reloadable classes or modules**.
 
+When classes do need to be autoloaded, we have an initializer just for that. The callback will run once on application startup and every time code is reloaded.
+
+```
+Rails.application.reloader.to_prepare do
+  $PAYMENT_GATEWAY = Rails.env.production? ? RealGateway : MockedGateway
+end
+```
 
 Eager Loading
 -------------
