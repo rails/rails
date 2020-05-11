@@ -23,25 +23,28 @@ module ActionController
   end
 
   class UrlGenerationError < ActionControllerError #:nodoc:
-    attr_reader :routes, :route_name, :constraints, :missing_keys, :unmatched_keys
+    attr_reader :routes, :route_name, :method_name
 
-    def initialize(message, routes = nil, route_name = nil, constraints = nil, missing_keys = nil, unmatched_keys = nil)
-      @routes     = routes
-      @route_name     = route_name
-      @constraints    = constraints
-      @missing_keys   = missing_keys
-      @unmatched_keys = unmatched_keys
+    def initialize(message, routes = nil, route_name = nil, method_name = nil)
+      @routes      = routes
+      @route_name  = route_name
+      @method_name = method_name
 
       super(message)
     end
 
     class Correction
-      def initialize error
+      def initialize(error)
         @error = error
       end
 
       def corrections
-        @error.routes.named_routes.helper_names.grep(/#{@error.route_name}/).sort
+        maybe_these = @error.routes.named_routes.helper_names.grep(/#{@error.route_name}/)
+        maybe_these -= [@error.method_name.to_s] # remove exact match
+
+        maybe_these.sort_by { |n|
+          DidYouMean::Jaro.distance(@error.route_name, n)
+        }.reverse.first(4)
       end
     end
 
