@@ -367,13 +367,14 @@ module InflectorTestCases
   }
 
   Irregularities = {
-    "person" => "people",
-    "man"    => "men",
-    "child"  => "children",
-    "sex"    => "sexes",
-    "move"   => "moves",
-    "cow"    => "kine", # Test inflections with different starting letters
-    "zombie" => "zombies",
-    "genus"  => "genera"
+    "person"  => "people",
+    "man"     => "men",
+    "child"   => "children",
+    "sex"     => "sexes",
+    "move"    => "moves",
+    "cow"     => "kine", # Test inflections with different starting letters
+    "zombie"  => "zombies",
+    "genus"   => "genera",
+    "coterie" => "coteries"
   }
 end
