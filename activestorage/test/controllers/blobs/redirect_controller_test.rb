@@ -3,7 +3,7 @@
 require "test_helper"
 require "database/setup"
 
-class ActiveStorage::Blobs::RedirectionControllerTest < ActionDispatch::IntegrationTest
+class ActiveStorage::Blobs::RedirectControllerTest < ActionDispatch::IntegrationTest
   setup do
     @blob = create_file_blob filename: "racecar.jpg"
   end

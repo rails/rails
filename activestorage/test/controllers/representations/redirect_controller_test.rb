@@ -3,7 +3,7 @@
 require "test_helper"
 require "database/setup"
 
-class ActiveStorage::Representations::RedirectionControllerWithVariantsTest < ActionDispatch::IntegrationTest
+class ActiveStorage::Representations::RedirectControllerWithVariantsTest < ActionDispatch::IntegrationTest
   setup do
     @blob = create_file_blob filename: "racecar.jpg"
   end
@@ -33,7 +33,7 @@ class ActiveStorage::Representations::RedirectionControllerWithVariantsTest < Ac
   end
 end
 
-class ActiveStorage::Representations::RedirectionControllerWithPreviewsTest < ActionDispatch::IntegrationTest
+class ActiveStorage::Representations::RedirectControllerWithPreviewsTest < ActionDispatch::IntegrationTest
   setup do
     @blob = create_file_blob filename: "report.pdf", content_type: "application/pdf"
   end
