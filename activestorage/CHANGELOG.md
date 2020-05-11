@@ -1,3 +1,7 @@
+*   Remove deprecated `ActiveStorage::Transformers::MiniMagickTransformer`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `config.active_storage.queue`.
 
     *Rafael Mendonça França*
