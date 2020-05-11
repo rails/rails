@@ -1,3 +1,8 @@
+*   `remote_ip` will no longer ignore IPs in X-Forwarded-For headers if they
+    are accompanied by port information.
+
+    *Duncan Brown*, *Prevenios Marinos*
+
 *   `fixture_file_upload` now uses path relative to `file_fixture_path`
 
     Previously the path had to be relative to `fixture_path`.

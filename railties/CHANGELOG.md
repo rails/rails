@@ -1,3 +1,9 @@
+*   Adds `rails test:all` for running all tests in the test directory.
+
+    This runs all test files in the test directory, including system tests.
+
+    *Niklas Häusele*
+
 *   Add `config.generators.after_generate` for processing to generated files.
 
     Register a callback that will get called right after generators has finished.

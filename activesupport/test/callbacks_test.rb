@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "abstract_unit"
+require "active_support/core_ext/kernel/singleton_class"
 
 module CallbacksTest
   class Record
