@@ -79,9 +79,6 @@ Please refer to the [Changelog][action-mailer] for detailed changes.
 
 ### Removals
 
-*   Remove deprecated `ActionMailer::DeliveryJob` and `ActionMailer::Parameterized::DeliveryJob`
-    in favor of `ActionMailer::MailDeliveryJob`.
-
 *   Remove deprecated `ActionMailer::Base.receive` in favor of [Action Mailbox](https://github.com/rails/rails/tree/master/actionmailbox).
 
 ### Deprecations
