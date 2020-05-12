@@ -13,6 +13,81 @@ require "models/rating"
 class RelationMergingTest < ActiveRecord::TestCase
   fixtures :developers, :comments, :authors, :author_addresses, :posts
 
+  def test_merge_in_clause
+    david, mary, bob = authors(:david, :mary, :bob)
+
+    david_and_mary = Author.where(id: [david, mary]).order(:id)
+    mary_and_bob   = Author.where(id: [mary, bob]).order(:id)
+
+    assert_equal [david, mary], david_and_mary
+    assert_equal [mary, bob],   mary_and_bob
+
+    assert_equal [mary], david_and_mary.merge(Author.where(id: mary))
+    assert_equal [bob],  david_and_mary.merge(Author.where(id: bob))
+
+    assert_equal [mary], david_and_mary.merge(Author.rewhere(id: mary))
+    assert_equal [bob],  david_and_mary.merge(Author.rewhere(id: bob))
+
+    assert_equal [mary], david_and_mary.merge(Author.where(id: mary), rewhere: true)
+    assert_equal [bob],  david_and_mary.merge(Author.where(id: bob), rewhere: true)
+
+    assert_equal [mary, bob], david_and_mary.merge(mary_and_bob)
+    assert_equal [david, mary], mary_and_bob.merge(david_and_mary)
+
+    assert_equal [mary, bob], david_and_mary.merge(mary_and_bob, rewhere: true)
+    assert_equal [david, mary], mary_and_bob.merge(david_and_mary, rewhere: true)
+  end
+
+  def test_merge_between_clause
+    david, mary, bob = authors(:david, :mary, :bob)
+
+    david_and_mary = Author.where(id: david.id..mary.id).order(:id)
+    mary_and_bob   = Author.where(id: mary.id..bob.id).order(:id)
+
+    assert_equal [david, mary], david_and_mary
+    assert_equal [mary, bob],   mary_and_bob
+
+    assert_equal [mary], david_and_mary.merge(Author.where(id: mary))
+    assert_equal [],     david_and_mary.merge(Author.where(id: bob))
+
+    assert_equal [mary], david_and_mary.merge(Author.rewhere(id: mary))
+    assert_equal [bob],  david_and_mary.merge(Author.rewhere(id: bob))
+
+    assert_equal [mary], david_and_mary.merge(Author.where(id: mary), rewhere: true)
+    assert_equal [bob],  david_and_mary.merge(Author.where(id: bob), rewhere: true)
+
+    assert_equal [mary], david_and_mary.merge(mary_and_bob)
+    assert_equal [mary], mary_and_bob.merge(david_and_mary)
+
+    assert_equal [mary, bob], david_and_mary.merge(mary_and_bob, rewhere: true)
+    assert_equal [david, mary], mary_and_bob.merge(david_and_mary, rewhere: true)
+  end
+
+  def test_merge_or_clause
+    david, mary, bob = authors(:david, :mary, :bob)
+
+    david_and_mary = Author.where(id: david).or(Author.where(id: mary)).order(:id)
+    mary_and_bob   = Author.where(id: mary).or(Author.where(id: bob)).order(:id)
+
+    assert_equal [david, mary], david_and_mary
+    assert_equal [mary, bob],   mary_and_bob
+
+    assert_equal [mary], david_and_mary.merge(Author.where(id: mary))
+    assert_equal [],     david_and_mary.merge(Author.where(id: bob))
+
+    assert_equal [mary], david_and_mary.merge(Author.rewhere(id: mary))
+    assert_equal [bob],  david_and_mary.merge(Author.rewhere(id: bob))
+
+    assert_equal [mary], david_and_mary.merge(Author.where(id: mary), rewhere: true)
+    assert_equal [bob],  david_and_mary.merge(Author.where(id: bob), rewhere: true)
+
+    assert_equal [mary], david_and_mary.merge(mary_and_bob)
+    assert_equal [mary], mary_and_bob.merge(david_and_mary)
+
+    assert_equal [mary, bob], david_and_mary.merge(mary_and_bob, rewhere: true)
+    assert_equal [david, mary], mary_and_bob.merge(david_and_mary, rewhere: true)
+  end
+
   def test_relation_merging
     devs = Developer.where("salary >= 80000").merge(Developer.limit(2)).merge(Developer.order("id ASC").where("id < 3"))
     assert_equal [developers(:david), developers(:jamis)], devs.to_a
