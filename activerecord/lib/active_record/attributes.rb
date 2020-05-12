@@ -74,6 +74,7 @@ module ActiveRecord
       #   # db/schema.rb
       #   create_table :store_listings, force: true do |t|
       #     t.string :my_string, default: "original default"
+      #     t.string :changed_json
       #   end
       #
       #   StoreListing.new.my_string # => "original default"
@@ -81,9 +82,11 @@ module ActiveRecord
       #   # app/models/store_listing.rb
       #   class StoreListing < ActiveRecord::Base
       #     attribute :my_string, :string, default: "new default"
+      #     attribute :changed_json, :json, default: {}
       #   end
       #
       #   StoreListing.new.my_string # => "new default"
+      #   StoreListing.new.changed_json # => {}
       #
       #   class Product < ActiveRecord::Base
       #     attribute :my_default_proc, :datetime, default: -> { Time.now }
