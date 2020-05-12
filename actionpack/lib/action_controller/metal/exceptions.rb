@@ -39,12 +39,16 @@ module ActionController
       end
 
       def corrections
-        maybe_these = @error.routes.named_routes.helper_names.grep(/#{@error.route_name}/)
-        maybe_these -= [@error.method_name.to_s] # remove exact match
+        if @error.method_name
+          maybe_these = @error.routes.named_routes.helper_names.grep(/#{@error.route_name}/)
+          maybe_these -= [@error.method_name.to_s] # remove exact match
 
-        maybe_these.sort_by { |n|
-          DidYouMean::Jaro.distance(@error.route_name, n)
-        }.reverse.first(4)
+          maybe_these.sort_by { |n|
+            DidYouMean::Jaro.distance(@error.route_name, n)
+          }.reverse.first(4)
+        else
+          []
+        end
       end
     end
 
