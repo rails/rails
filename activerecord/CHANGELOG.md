@@ -62,10 +62,6 @@
 
     *Ryuta Kamizono*
 
-*   Fix aggregate functions to return numeric value consistently even on custom attribute type.
-
-    *Ryuta Kamizono*
-
 *   Support bulk insert/upsert on relation to preserve scope values.
 
     *Josef Šimánek*, *Ryuta Kamizono*
