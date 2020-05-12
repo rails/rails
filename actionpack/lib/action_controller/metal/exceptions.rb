@@ -48,7 +48,10 @@ module ActionController
       end
     end
 
-    DidYouMean.correct_error(self, Correction)
+    # We may not have DYM, and DYM might not let us register error handlers
+    if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
+      DidYouMean.correct_error(self, Correction)
+    end
   end
 
   class MethodNotAllowed < ActionControllerError #:nodoc:
