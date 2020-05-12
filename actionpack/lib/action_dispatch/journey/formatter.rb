@@ -15,7 +15,7 @@ module ActionDispatch
         @cache  = nil
       end
 
-      def generate(name, options, path_parameters)
+      def generate(name, options, path_parameters, method_name = nil)
         constraints = path_parameters.merge(options)
         missing_keys = nil
 
@@ -54,7 +54,7 @@ module ActionDispatch
         message << ", missing required keys: #{missing_keys.sort.inspect}" if missing_keys && !missing_keys.empty?
         message << ", possible unmatched constraints: #{unmatched_keys.sort.inspect}" if unmatched_keys && !unmatched_keys.empty?
 
-        raise ActionController::UrlGenerationError, message
+        raise ActionController::UrlGenerationError.new(message, routes, name, method_name)
       end
 
       def clear
