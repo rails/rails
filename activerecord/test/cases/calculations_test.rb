@@ -8,6 +8,7 @@ require "models/contract"
 require "models/edge"
 require "models/organization"
 require "models/possession"
+require "models/author"
 require "models/topic"
 require "models/reply"
 require "models/numeric_data"
@@ -22,7 +23,7 @@ require "models/rating"
 require "support/stubs/strong_parameters"
 
 class CalculationsTest < ActiveRecord::TestCase
-  fixtures :companies, :accounts, :topics, :speedometers, :minivans, :books, :posts, :comments
+  fixtures :companies, :accounts, :authors, :topics, :speedometers, :minivans, :books, :posts, :comments
 
   def test_should_sum_field
     assert_equal 318, Account.sum(:credit_limit)
@@ -1098,6 +1099,29 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal expected, actual
     assert_instance_of time_class, actual[true]
     assert_instance_of time_class, actual[true]
+
+    actual = Author.joins(:topics).maximum(:"topics.written_on")
+    assert_equal Time.utc(2004, 7, 15, 14, 28, 0, 9900), actual
+    assert_instance_of time_class, actual
+
+    actual = Author.joins(:topics).minimum(:"topics.written_on")
+    assert_equal Time.utc(2003, 7, 16, 14, 28, 11, 223300), actual
+    assert_instance_of time_class, actual
+
+    expected = {
+      1 => Time.utc(2003, 7, 16, 14, 28, 11, 223300),
+      2 => Time.utc(2004, 7, 15, 14, 28, 0, 9900),
+    }
+
+    actual = Author.joins(:topics).group(:id).maximum(:"topics.written_on")
+    assert_equal expected, actual
+    assert_instance_of time_class, actual[1]
+    assert_instance_of time_class, actual[2]
+
+    actual = Author.joins(:topics).group(:id).minimum(:"topics.written_on")
+    assert_equal expected, actual
+    assert_instance_of time_class, actual[1]
+    assert_instance_of time_class, actual[2]
   end
   private :assert_minimum_and_maximum_on_time_attributes
 
