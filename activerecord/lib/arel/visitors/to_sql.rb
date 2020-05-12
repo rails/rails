@@ -327,9 +327,9 @@ module Arel # :nodoc: all
           collector << quote_table_name(o.table_name) << "." << quote_column_name(o.column_name)
 
           if o.type == :in
-            collector << "IN ("
+            collector << " IN ("
           else
-            collector << "NOT IN ("
+            collector << " NOT IN ("
           end
 
           values = o.casted_values.map { |v| @connection.quote(v) }

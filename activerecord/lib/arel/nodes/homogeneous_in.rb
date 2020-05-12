@@ -44,7 +44,7 @@ module Arel # :nodoc: all
         type = attribute.type_caster
 
         casted_values = values.map do |raw_value|
-          type.unchecked_serialize(raw_value) if type.serializable?(raw_value)
+          type.serialize(raw_value) if type.serializable?(raw_value)
         end
 
         casted_values.compact!

@@ -7,7 +7,6 @@ module ActiveModel
         def serialize(value)
           cast(value)
         end
-        alias :unchecked_serialize :serialize
 
         def cast(value)
           # Checks whether the value is numeric. Spaceship operator
