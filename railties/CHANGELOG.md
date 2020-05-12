@@ -2,6 +2,8 @@
 
     New Rails projects are strongly discouraged from using `classic`, and we recommend that existing projects running on `classic` switch to `zeitwerk` mode when upgrading. Please check the [_Upgrading Ruby on Rails_](https://guides.rubyonrails.org/upgrading_ruby_on_rails.html) guide for tips.
 
+    *Xavier Noria*
+
 *   Adds `rails test:all` for running all tests in the test directory.
 
     This runs all test files in the test directory, including system tests.
