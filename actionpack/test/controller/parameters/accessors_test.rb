@@ -58,6 +58,11 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     end
   end
 
+  test "each without a block returns an enumerator" do
+    assert_kind_of Enumerator, @params.each
+    assert_equal @params, @params.each.to_h
+  end
+
   test "each_pair carries permitted status" do
     @params.permit!
     @params.each_pair { |key, value| assert(value.permitted?) if key == "person" }
@@ -75,6 +80,11 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     end
   end
 
+  test "each_pair without a block returns an enumerator" do
+    assert_kind_of Enumerator, @params.each_pair
+    assert_equal @params, @params.each_pair.to_h
+  end
+
   test "each_value carries permitted status" do
     @params.permit!
     @params.each_value do |value|
@@ -88,6 +98,11 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     end
   end
 
+  test "each_value without a block returns an enumerator" do
+    assert_kind_of Enumerator, @params.each_value
+    assert_equal @params.values, @params.each_value.to_a
+  end
+
   test "each_key converts to hash for permitted" do
     @params.permit!
     @params.each_key { |key| assert_kind_of(String, key) if key == "person" }
@@ -95,6 +110,11 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
 
   test "each_key converts to hash for unpermitted" do
     @params.each_key { |key| assert_kind_of(String, key) if key == "person" }
+  end
+
+  test "each_key without a block returns an enumerator" do
+    assert_kind_of Enumerator, @params.each_key
+    assert_equal @params.keys, @params.each_key.to_a
   end
 
   test "empty? returns true when params contains no key/value pairs" do
