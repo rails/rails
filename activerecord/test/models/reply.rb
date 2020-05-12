@@ -10,9 +10,14 @@ class Reply < Topic
 
   scope :ordered, -> { Reply.order(:id) }
 
+  # Method on Kernel
   def self.open
     approved
   end
+
+  # Methods both on Kernel and Relation
+  def self.load(data:); end
+  def self.select(data:); end
 end
 
 class SillyReply < Topic
