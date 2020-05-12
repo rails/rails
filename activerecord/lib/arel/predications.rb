@@ -206,6 +206,14 @@ module Arel # :nodoc: all
       Nodes::Concat.new self, other
     end
 
+    def contains(other)
+      Arel::Nodes::Contains.new(self, other)
+    end
+
+    def overlaps(other)
+      Arel::Nodes::Overlaps.new(self, other)
+    end
+
     private
       def grouping_any(method_id, others, *extras)
         nodes = others.map { |expr| send(method_id, expr, *extras) }
