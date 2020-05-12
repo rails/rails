@@ -4868,7 +4868,7 @@ class TestUrlGenerationErrors < ActionDispatch::IntegrationTest
     message = "No route matches #{url.inspect}, possible unmatched constraints: #{missing.inspect}"
 
     error = assert_raises(ActionController::UrlGenerationError, message) { product_path(id: nil) }
-    assert_equal message, error.message
+    assert_match message, error.message
   end
 
   test "URL helpers raise message with mixed parameters when generation fails" do
@@ -4877,11 +4877,11 @@ class TestUrlGenerationErrors < ActionDispatch::IntegrationTest
 
     # Optimized URL helper
     error = assert_raises(ActionController::UrlGenerationError) { product_path(nil, "id" => "url-tested") }
-    assert_equal message, error.message
+    assert_match message, error.message
 
     # Non-optimized URL helper
     error = assert_raises(ActionController::UrlGenerationError, message) { product_path(id: nil, "id" => "url-tested") }
-    assert_equal message, error.message
+    assert_match message, error.message
   end
 end
 
