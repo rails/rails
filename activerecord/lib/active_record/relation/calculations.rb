@@ -307,9 +307,7 @@ module ActiveRecord
         result = skip_query_cache_if_necessary { @klass.connection.select_all(query_builder) }
 
         type_cast_calculated_value(result.cast_values.first, operation) do |value|
-          if value.is_a?(String) &&
-              column = klass.columns_hash[column_name.to_s]
-            type = connection.lookup_cast_type_from_column(column)
+          if type = klass.attribute_types[column_name.to_s]
             type.deserialize(value)
           else
             value
@@ -379,9 +377,7 @@ module ActiveRecord
           key = key_records[key] if associated
 
           result[key] = type_cast_calculated_value(row[column_alias], operation) do |value|
-            if value.is_a?(String) &&
-                (type || column = klass.columns_hash[column_name.to_s])
-              type ||= connection.lookup_cast_type_from_column(column)
+            if type ||= klass.attribute_types[column_name.to_s]
               type.deserialize(value)
             else
               value
