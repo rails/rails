@@ -1391,57 +1391,59 @@ class FileFixtureConflictTest < ActiveRecord::TestCase
   end
 end
 
-class MultipleFixtureConnectionsTest < ActiveRecord::TestCase
-  include ActiveRecord::TestFixtures
+if current_adapter?(:SQLite3Adapter) && !in_memory_db?
+  class MultipleFixtureConnectionsTest < ActiveRecord::TestCase
+    include ActiveRecord::TestFixtures
 
-  fixtures :dogs
+    fixtures :dogs
 
-  def setup
-    @old_handler = ActiveRecord::Base.connection_handler
-    @old_handlers = ActiveRecord::Base.connection_handlers
-    @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
-    db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(ENV["RAILS_ENV"], "readonly", readonly_config)
+    def setup
+      @old_handler = ActiveRecord::Base.connection_handler
+      @old_handlers = ActiveRecord::Base.connection_handlers
+      @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
+      db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(ENV["RAILS_ENV"], "readonly", readonly_config)
 
-    handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
-    handler.establish_connection(db_config)
-    ActiveRecord::Base.connection_handlers = {}
-    ActiveRecord::Base.connection_handler = handler
-    ActiveRecord::Base.connects_to(database: { writing: :default, reading: :readonly })
-  end
+      handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
+      handler.establish_connection(db_config)
+      ActiveRecord::Base.connection_handlers = {}
+      ActiveRecord::Base.connection_handler = handler
+      ActiveRecord::Base.connects_to(database: { writing: :default, reading: :readonly })
+    end
 
-  def teardown
-    ActiveRecord::Base.configurations = @prev_configs
-    ActiveRecord::Base.connection_handler = @old_handler
-    ActiveRecord::Base.connection_handlers = @old_handlers
-  end
+    def teardown
+      ActiveRecord::Base.configurations = @prev_configs
+      ActiveRecord::Base.connection_handler = @old_handler
+      ActiveRecord::Base.connection_handlers = @old_handlers
+    end
 
-  def test_uses_writing_connection_for_fixtures
-    ActiveRecord::Base.connected_to(role: :reading) do
-      Dog.first
+    def test_uses_writing_connection_for_fixtures
+      ActiveRecord::Base.connected_to(role: :reading) do
+        Dog.first
 
-      assert_nothing_raised do
-        ActiveRecord::Base.connected_to(role: :writing) { Dog.create! alias: "Doggo" }
+        assert_nothing_raised do
+          ActiveRecord::Base.connected_to(role: :writing) { Dog.create! alias: "Doggo" }
+        end
       end
     end
+
+    def test_writing_and_reading_connections_are_the_same
+      rw_conn = ActiveRecord::Base.connection_handlers[:writing].connection_pool_list.first.connection
+      ro_conn = ActiveRecord::Base.connection_handlers[:reading].connection_pool_list.first.connection
+
+      assert_equal rw_conn, ro_conn
+    end
+
+    private
+      def config
+        { "default" => default_config, "readonly" => readonly_config }
+      end
+
+      def default_config
+        { "adapter" => "sqlite3", "database" => "test/fixtures/fixture_database.sqlite3" }
+      end
+
+      def readonly_config
+        default_config.merge("replica" => true)
+      end
   end
-
-  def test_writing_and_reading_connections_are_the_same
-    rw_conn = ActiveRecord::Base.connection_handlers[:writing].connection_pool_list.first.connection
-    ro_conn = ActiveRecord::Base.connection_handlers[:reading].connection_pool_list.first.connection
-
-    assert_equal rw_conn, ro_conn
-  end
-
-  private
-    def config
-      { "default" => default_config, "readonly" => readonly_config }
-    end
-
-    def default_config
-      { "adapter" => "sqlite3", "database" => "test/fixtures/fixture_database.sqlite3" }
-    end
-
-    def readonly_config
-      default_config.merge("replica" => true)
-    end
 end
