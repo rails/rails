@@ -1352,35 +1352,8 @@ class NilFixturePathTest < ActiveRecord::TestCase
   end
 end
 
-class MultipleDatabaseFixturesTest < ActiveRecord::TestCase
-  test "enlist_fixture_connections ensures multiple databases share a connection pool" do
-    with_temporary_connection_pool do
-      ActiveRecord::Base.connects_to database: { writing: :arunit, reading: :arunit2 }
-
-      rw_conn = ActiveRecord::Base.connection
-      ro_conn = ActiveRecord::Base.connection_handlers[:reading].connection_pool_list.first.connection
-
-      assert_equal rw_conn, ro_conn
-    end
-  ensure
-    ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.connection_handler }
-  end
-
-  private
-    def with_temporary_connection_pool
-      old_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(ActiveRecord::Base.connection_specification_name)
-      new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new ActiveRecord::Base.connection_pool.spec
-      ActiveRecord::Base.connection_handler.send(:owner_to_pool)["primary"] = new_pool
-
-      yield
-    ensure
-      ActiveRecord::Base.connection_handler.send(:owner_to_pool)["primary"] = old_pool
-    end
-end
-
-class UsesWritingConnectionForFixtures < ActiveRecord::TestCase
+class MultipleFixtureConnectionsTest < ActiveRecord::TestCase
   include ActiveRecord::TestFixtures
-  self.use_transactional_tests = true
 
   fixtures :dogs
 
@@ -1391,7 +1364,7 @@ class UsesWritingConnectionForFixtures < ActiveRecord::TestCase
     db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(ENV["RAILS_ENV"], "readonly", readonly_config)
 
     handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
-    handler.establish_connection(db_config)
+    handler.establish_connection(db_config.config)
     ActiveRecord::Base.connection_handlers = {}
     ActiveRecord::Base.connection_handler = handler
     ActiveRecord::Base.connects_to(database: { writing: :default, reading: :readonly })
@@ -1411,6 +1384,13 @@ class UsesWritingConnectionForFixtures < ActiveRecord::TestCase
         ActiveRecord::Base.connected_to(role: :writing) { Dog.create! alias: "Doggo" }
       end
     end
+  end
+
+  def test_writing_and_reading_connections_are_the_same
+    rw_conn = ActiveRecord::Base.connection_handlers[:writing].connection_pool_list.first.connection
+    ro_conn = ActiveRecord::Base.connection_handlers[:reading].connection_pool_list.first.connection
+
+    assert_equal rw_conn, ro_conn
   end
 
   private
