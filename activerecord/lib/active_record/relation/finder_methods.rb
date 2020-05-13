@@ -114,14 +114,7 @@ module ActiveRecord
     #   Person.first(3) # returns the first three objects fetched by SELECT * FROM people ORDER BY people.id LIMIT 3
     #
     def first(limit = nil)
-      if !order_values.empty? && order_values.all?(&:blank?)
-        blank_value = order_values.first
-        ActiveSupport::Deprecation.warn(<<~MSG.squish)
-          `.reorder(#{blank_value.inspect})` with `.first` / `.first!` no longer
-          takes non-deterministic result in Rails 6.2.
-          To continue taking non-deterministic result, use `.take` / `.take!` instead.
-        MSG
-      end
+      check_reorder_deprecation
 
       if limit
         find_nth_with_limit(0, limit)
@@ -355,8 +348,15 @@ module ActiveRecord
     end
 
     private
-      def offset_index
-        offset_value || 0
+      def check_reorder_deprecation
+        if !order_values.empty? && order_values.all?(&:blank?)
+          blank_value = order_values.first
+          ActiveSupport::Deprecation.warn(<<~MSG.squish)
+            `.reorder(#{blank_value.inspect})` with `.first` / `.first!` no longer
+            takes non-deterministic result in Rails 6.2.
+            To continue taking non-deterministic result, use `.take` / `.take!` instead.
+          MSG
+        end
       end
 
       def construct_relation_for_exists(conditions)
@@ -518,7 +518,7 @@ module ActiveRecord
       end
 
       def find_nth(index)
-        @offsets[offset_index + index] ||= find_nth_with_limit(index, 1).first
+        @offsets[index] ||= find_nth_with_limit(index, 1).first
       end
 
       def find_nth_with_limit(index, limit)
@@ -532,7 +532,7 @@ module ActiveRecord
           end
 
           if limit > 0
-            relation = relation.offset(offset_index + index) unless index.zero?
+            relation = relation.offset((offset_value || 0) + index) unless index.zero?
             relation.limit(limit).to_a
           else
             []
