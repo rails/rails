@@ -3,6 +3,7 @@
 require "cases/helper"
 require "models/post"
 require "models/comment"
+require "models/rating"
 require "models/author"
 require "models/essay"
 require "models/category"
@@ -10,7 +11,15 @@ require "models/categorization"
 require "models/person"
 
 class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
-  fixtures :authors, :author_addresses, :essays, :posts, :comments, :categorizations, :people
+  fixtures :authors, :author_addresses, :essays, :posts, :comments, :ratings, :categorizations, :people
+
+  def test_merging_multiple_left_joins_from_different_associations
+    count = Author.joins(:posts).merge(Post.left_joins(:comments).merge(Comment.left_joins(:ratings))).count
+    assert_equal 16, count
+
+    count = Author.left_joins(:posts).merge(Post.left_joins(:comments).merge(Comment.left_joins(:ratings))).count
+    assert_equal 16, count
+  end
 
   def test_construct_finder_sql_applies_aliases_tables_on_association_conditions
     result = Author.left_outer_joins(:thinking_posts, :welcome_posts).to_a
