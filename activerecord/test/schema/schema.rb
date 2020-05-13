@@ -107,7 +107,7 @@ ActiveRecord::Schema.define do
     t.string :format
     t.column :name, :string
     t.column :status, :integer, **default_zero
-    t.column :read_status, :integer, **default_zero
+    t.column :last_read, :integer, **default_zero
     t.column :nullable_status, :integer
     t.column :language, :integer, **default_zero
     t.column :author_visibility, :integer, **default_zero

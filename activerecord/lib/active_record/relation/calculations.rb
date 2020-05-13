@@ -190,8 +190,9 @@ module ActiveRecord
         relation.pluck(*column_names)
       else
         klass.disallow_raw_sql!(column_names)
+        columns = arel_columns(column_names)
         relation = spawn
-        relation.select_values = column_names
+        relation.select_values = columns
         result = skip_query_cache_if_necessary do
           if where_clause.contradiction?
             ActiveRecord::Result.new([], [])
@@ -199,7 +200,7 @@ module ActiveRecord
             klass.connection.select_all(relation.arel, nil)
           end
         end
-        result.cast_values(klass.attribute_types)
+        type_cast_pluck_values(result, columns)
       end
     end
 
@@ -277,12 +278,7 @@ module ActiveRecord
         return column_name if Arel::Expressions === column_name
 
         arel_column(column_name.to_s) do |name|
-          if name.match?(/\A\w+\.\w+\z/)
-            table, column = name.split(".")
-            predicate_builder.resolve_arel_attribute(table, column)
-          else
-            Arel.sql(column_name == :all ? "*" : name)
-          end
+          Arel.sql(column_name == :all ? "*" : name)
         end
       end
 
@@ -412,6 +408,20 @@ module ActiveRecord
       def type_for(field, &block)
         field_name = field.respond_to?(:name) ? field.name.to_s : field.to_s.split(".").last
         @klass.type_for_attribute(field_name, &block)
+      end
+
+      def type_cast_pluck_values(result, columns)
+        cast_types = if result.columns.size != columns.size
+          klass.attribute_types
+        else
+          columns.map.with_index do |column, i|
+            column.try(:type_caster) ||
+              klass.attribute_types.fetch(name = result.columns[i]) do
+                result.column_types.fetch(name, Type.default_value)
+              end
+          end
+        end
+        result.cast_values(cast_types)
       end
 
       def type_cast_calculated_value(value, operation)

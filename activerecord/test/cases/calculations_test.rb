@@ -729,6 +729,18 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [ topic.approved ], relation.pluck(:approved)
     assert_equal [ topic.last_read ], relation.pluck(:last_read)
     assert_equal [ topic.written_on ], relation.pluck(:written_on)
+
+    expected = [
+      [Date.new(2004, 4, 15), "unread"],
+      [Date.new(2004, 4, 15), "reading"],
+      [Date.new(2004, 4, 15), "read"],
+    ]
+    actual =
+      Author.joins(:topics, :books).order(:"books.last_read")
+      .where.not("books.last_read": nil)
+      .pluck(:"topics.last_read", :"books.last_read")
+
+    assert_equal expected, actual
   end
 
   def test_pluck_with_type_cast_does_not_corrupt_the_query_cache
