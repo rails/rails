@@ -1038,17 +1038,39 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 50, result[2].credit_limit
   end
 
+  def test_count_takes_attribute_type_precedence_over_database_type
+    assert_called(
+      Account.connection, :select_all,
+      returns: ActiveRecord::Result.new(["count"], [["10"]])
+    ) do
+      result = Account.count
+      assert_equal 10, result
+      assert_instance_of Integer, result
+    end
+  end
+
+  def test_sum_takes_attribute_type_precedence_over_database_type
+    assert_called(
+      Account.connection, :select_all,
+      returns: ActiveRecord::Result.new(["sum"], [[10.to_d]])
+    ) do
+      result = Account.sum(:credit_limit)
+      assert_equal 10, result
+      assert_instance_of Integer, result
+    end
+  end
+
   def test_group_by_attribute_with_custom_type
     assert_equal({ "proposed" => 2, "published" => 2 }, Book.group(:status).count)
   end
 
   def test_aggregate_attribute_on_custom_type
-    assert_equal 4, Book.sum(:status)
-    assert_equal 1, Book.sum(:difficulty)
+    assert_nil Book.sum(:status)
+    assert_equal "medium", Book.sum(:difficulty)
     assert_equal "easy", Book.minimum(:difficulty)
     assert_equal "medium", Book.maximum(:difficulty)
-    assert_equal({ "proposed" => 0, "published" => 4 }, Book.group(:status).sum(:status))
-    assert_equal({ "proposed" => 0, "published" => 1 }, Book.group(:status).sum(:difficulty))
+    assert_equal({ "proposed" => "proposed", "published" => nil }, Book.group(:status).sum(:status))
+    assert_equal({ "proposed" => "easy", "published" => "medium" }, Book.group(:status).sum(:difficulty))
     assert_equal({ "proposed" => "easy", "published" => "easy" }, Book.group(:status).minimum(:difficulty))
     assert_equal({ "proposed" => "easy", "published" => "medium" }, Book.group(:status).maximum(:difficulty))
   end

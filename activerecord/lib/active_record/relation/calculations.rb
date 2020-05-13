@@ -416,8 +416,10 @@ module ActiveRecord
 
       def type_cast_calculated_value(value, operation)
         case operation
-        when "count", "sum"
-          value || 0
+        when "count"
+          value.to_i
+        when "sum"
+          yield value || 0
         when "average"
           value&.respond_to?(:to_d) ? value.to_d : value
         else # "minimum", "maximum"
