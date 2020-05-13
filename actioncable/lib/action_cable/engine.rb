@@ -35,6 +35,7 @@ module ActionCable
 
         previous_connection_class = connection_class
         self.connection_class = -> { "ApplicationCable::Connection".safe_constantize || previous_connection_class.call }
+        self.filter_parameters << Rails.application.config.filter_parameters
 
         options.each { |k, v| send("#{k}=", v) }
       end

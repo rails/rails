@@ -105,6 +105,15 @@ class ActionCable::Channel::BaseTest < ActionCable::TestCase
     assert_equal({ id: 1 }, @channel.params)
   end
 
+  test "does not log filtered parameters" do
+    @connection.server.config.filter_parameters << :password
+    data = { password: "password", foo: "foo" }
+
+    assert_logged(':password=>"[FILTERED]"') do
+      @channel.perform_action data
+    end
+  end
+
   test "unsubscribing from a channel" do
     @channel.subscribe_to_channel
 
