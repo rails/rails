@@ -60,10 +60,9 @@ module ActiveRecord
           return if method_defined?(method)
 
           if /\A[a-zA-Z_]\w*[!?]?\z/.match?(method)
-            definition = RUBY_VERSION >= "2.7" ? "..." : "*args, &block"
             module_eval <<-RUBY, __FILE__, __LINE__ + 1
-              def #{method}(#{definition})
-                scoping { klass.#{method}(#{definition}) }
+              def #{method}(*args, &block)
+                scoping { klass.#{method}(*args, &block) }
               end
             RUBY
           else
