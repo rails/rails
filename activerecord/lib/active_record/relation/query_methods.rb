@@ -1272,9 +1272,6 @@ module ActiveRecord
 
         if klass.columns_hash.key?(field) && (!from || table_name_matches?(from))
           arel_attribute(field)
-        elsif field.match?(/\A\w+\.\w+\z/)
-          table, column = field.split(".")
-          predicate_builder.resolve_arel_attribute(table, column)
         else
           yield field
         end

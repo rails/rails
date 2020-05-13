@@ -277,7 +277,12 @@ module ActiveRecord
         return column_name if Arel::Expressions === column_name
 
         arel_column(column_name.to_s) do |name|
-          Arel.sql(column_name == :all ? "*" : name)
+          if name.match?(/\A\w+\.\w+\z/)
+            table, column = name.split(".")
+            predicate_builder.resolve_arel_attribute(table, column)
+          else
+            Arel.sql(column_name == :all ? "*" : name)
+          end
         end
       end
 
