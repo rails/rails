@@ -1103,6 +1103,10 @@ module ActiveRecord
       delegate(*delegate_methods, to: :scope)
 
       private
+        def check_reorder_deprecation
+          super unless loaded?
+        end
+
         def find_nth_with_limit(index, limit)
           load_target if find_from_target?
           super
