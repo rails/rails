@@ -2,6 +2,7 @@
 
 require "cases/helper"
 require "models/author"
+require "models/categorization"
 require "models/comment"
 require "models/developer"
 require "models/computer"
@@ -162,21 +163,24 @@ class MergingDifferentRelationsTest < ActiveRecord::TestCase
 
   test "merging order relations" do
     posts_by_author_name = Post.limit(3).joins(:author).
+      where.not("authors.name": "David").
       merge(Author.order(:name)).pluck("authors.name")
 
-    assert_equal ["Bob", "Bob", "David"], posts_by_author_name
+    assert_equal ["Bob", "Bob", "Mary"], posts_by_author_name
 
     posts_by_author_name = Post.limit(3).joins(:author).
+      where.not("authors.name": "David").
       merge(Author.order("name")).pluck("authors.name")
 
-    assert_equal ["Bob", "Bob", "David"], posts_by_author_name
+    assert_equal ["Bob", "Bob", "Mary"], posts_by_author_name
   end
 
   test "merging order relations (using a hash argument)" do
     posts_by_author_name = Post.limit(4).joins(:author).
+      where.not("authors.name": "David").
       merge(Author.order(name: :desc)).pluck("authors.name")
 
-    assert_equal ["Mary", "Mary", "Mary", "David"], posts_by_author_name
+    assert_equal ["Mary", "Mary", "Mary", "Bob"], posts_by_author_name
   end
 
   test "relation merging (using a proc argument)" do
