@@ -281,8 +281,7 @@ module ActiveRecord
         end
       end
 
-      def operation_over_aggregate_column(column_name, operation, distinct)
-        column = aggregate_column(column_name)
+      def operation_over_aggregate_column(column, operation, distinct)
         operation == "count" ? column.count(distinct) : column.send(operation)
       end
 
@@ -296,7 +295,8 @@ module ActiveRecord
           # PostgreSQL doesn't like ORDER BY when there are no GROUP BY
           relation = unscope(:order).distinct!(false)
 
-          select_value = operation_over_aggregate_column(column_name, operation, distinct)
+          column = aggregate_column(column_name)
+          select_value = operation_over_aggregate_column(column, operation, distinct)
           select_value.distinct = true if operation == "sum" && distinct
 
           relation.select_values = [select_value]
@@ -307,7 +307,7 @@ module ActiveRecord
         result = skip_query_cache_if_necessary { @klass.connection.select_all(query_builder) }
 
         type_cast_calculated_value(result.cast_values.first, operation) do |value|
-          if type = klass.attribute_types[column_name.to_s]
+          if type = column.try(:type_caster) || klass.attribute_types[column_name.to_s]
             type.deserialize(value)
           else
             value
@@ -331,8 +331,9 @@ module ActiveRecord
         }
         group_columns = group_aliases.zip(group_fields)
 
+        column = aggregate_column(column_name)
         column_alias = column_alias_for("#{operation} #{column_name.to_s.downcase}")
-        select_value = operation_over_aggregate_column(column_name, operation, distinct)
+        select_value = operation_over_aggregate_column(column, operation, distinct)
         select_value.as(column_alias)
 
         select_values = [select_value]
@@ -365,8 +366,8 @@ module ActiveRecord
         end
 
         hash_rows = calculated_data.cast_values(key_types).map! do |row|
-          calculated_data.columns.each_with_object({}).with_index do |(column, hash), i|
-            hash[column] = row[i]
+          calculated_data.columns.each_with_object({}).with_index do |(col_name, hash), i|
+            hash[col_name] = row[i]
           end
         end
 
@@ -377,7 +378,7 @@ module ActiveRecord
           key = key_records[key] if associated
 
           result[key] = type_cast_calculated_value(row[column_alias], operation) do |value|
-            if type ||= klass.attribute_types[column_name.to_s]
+            if type ||= column.try(:type_caster) || klass.attribute_types[column_name.to_s]
               type.deserialize(value)
             else
               value
