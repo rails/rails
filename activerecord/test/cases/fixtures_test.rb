@@ -1391,37 +1391,8 @@ class FileFixtureConflictTest < ActiveRecord::TestCase
   end
 end
 
-class MultipleDatabaseFixturesTest < ActiveRecord::TestCase
-  test "enlist_fixture_connections ensures multiple databases share a connection pool" do
-    old_handlers = ActiveRecord::Base.connection_handlers
-    ActiveRecord::Base.connection_handlers = {}
-
-    with_temporary_connection_pool do
-      ActiveRecord::Base.connects_to database: { writing: :arunit, reading: :arunit2 }
-
-      rw_conn = ActiveRecord::Base.connection
-      ro_conn = ActiveRecord::Base.connection_handlers[:reading].connection_pool_list.first.connection
-
-      assert_equal rw_conn, ro_conn
-    end
-  ensure
-    ActiveRecord::Base.connection_handlers = old_handlers
-  end
-
-  private
-    def with_temporary_connection_pool
-      pool_config = ActiveRecord::Base.connection_handler.send(:owner_to_pool_manager).fetch("ActiveRecord::Base").get_pool_config(:default)
-      new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(pool_config)
-
-      pool_config.stub(:pool, new_pool) do
-        yield
-      end
-    end
-end
-
-class UsesWritingConnectionForFixtures < ActiveRecord::TestCase
+class MultipleFixtureConnectionsTest < ActiveRecord::TestCase
   include ActiveRecord::TestFixtures
-  self.use_transactional_tests = true
 
   fixtures :dogs
 
@@ -1452,6 +1423,13 @@ class UsesWritingConnectionForFixtures < ActiveRecord::TestCase
         ActiveRecord::Base.connected_to(role: :writing) { Dog.create! alias: "Doggo" }
       end
     end
+  end
+
+  def test_writing_and_reading_connections_are_the_same
+    rw_conn = ActiveRecord::Base.connection_handlers[:writing].connection_pool_list.first.connection
+    ro_conn = ActiveRecord::Base.connection_handlers[:reading].connection_pool_list.first.connection
+
+    assert_equal rw_conn, ro_conn
   end
 
   private
