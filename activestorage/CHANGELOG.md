@@ -1,3 +1,8 @@
+*   Drop direct support for `mini_magick` gem, instead use `image_processing` gem
+    with config.active_storage.variant_processor = :mini_magick (which is the default).
+
+    *Sébastien Dubois*
+
 *   Files can now be served by proxying them from the underlying storage service
     instead of redirecting to a signed service URL. Use the
     `rails_storage_proxy_path` and `_url` helpers to proxy an attached file:

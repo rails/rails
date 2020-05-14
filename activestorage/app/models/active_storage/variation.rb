@@ -64,21 +64,6 @@ class ActiveStorage::Variation
 
   private
     def transformer
-      if ActiveStorage.variant_processor
-        begin
-          require "image_processing"
-        rescue LoadError
-          ActiveSupport::Deprecation.warn <<~WARNING.squish
-            Generating image variants will require the image_processing gem in Rails 6.1.
-            Please add `gem 'image_processing', '~> 1.2'` to your Gemfile.
-          WARNING
-
-          ActiveStorage::Transformers::MiniMagickTransformer.new(transformations)
-        else
-          ActiveStorage::Transformers::ImageProcessingTransformer.new(transformations)
-        end
-      else
-        ActiveStorage::Transformers::MiniMagickTransformer.new(transformations)
-      end
+      ActiveStorage::Transformers::ImageProcessingTransformer.new(transformations)
     end
 end

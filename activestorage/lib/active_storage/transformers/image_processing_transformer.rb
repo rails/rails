@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "image_processing"
-
 module ActiveStorage
   module Transformers
     class ImageProcessingTransformer < Transformer
@@ -16,6 +14,7 @@ module ActiveStorage
         end
 
         def processor
+          require "image_processing" unless defined?(ImageProcessing)
           ImageProcessing.const_get(ActiveStorage.variant_processor.to_s.camelize)
         end
 
