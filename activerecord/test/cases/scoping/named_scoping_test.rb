@@ -402,11 +402,11 @@ class NamedScopingTest < ActiveRecord::TestCase
   def test_spaces_in_scope_names
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "topics"
-      scope :"title containing space", -> { where("title LIKE '% %'") }
+      scope :"title containing space", ->(space: " ") { where("title LIKE '%#{space}%'") }
       scope :approved, -> { where(approved: true) }
     end
-    assert_equal klass.send(:"title containing space"), klass.where("title LIKE '% %'")
-    assert_equal klass.approved.send(:"title containing space"), klass.approved.where("title LIKE '% %'")
+    assert_equal klass.where("title LIKE '% %'"), klass.send(:"title containing space", space: " ")
+    assert_equal klass.approved.where("title LIKE '% %'"), klass.approved.send(:"title containing space", space: " ")
   end
 
   def test_find_all_should_behave_like_select
