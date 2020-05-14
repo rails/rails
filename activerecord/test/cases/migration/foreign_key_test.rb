@@ -93,6 +93,10 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
         end
 
         def test_rename_reference_column_of_child_table
+          if current_adapter?(:Mysql2Adapter) && !@connection.send(:supports_rename_index?)
+            skip "Cannot drop index, needed in a foreign key constraint"
+          end
+
           rocket = Rocket.create!(name: "myrocket")
           rocket.astronauts << Astronaut.create!
 
