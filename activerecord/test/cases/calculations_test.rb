@@ -743,6 +743,16 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal expected, actual
   end
 
+  def test_pluck_with_join_is_type_cast_consistently
+    p Author.first.author_address_id.is_a?(Integer)
+    pluck_with_string = Author.joins(:books).pluck(:author_address_id, "books.last_read")
+    pluck_with_symbol = Author.joins(:books).pluck(:author_address_id, :last_read)
+
+    assert_equal [[1, "read"], [1, "reading"], [1, nil], [1, "unread"]], pluck_with_string
+    assert_equal [[1, "read"], [1, "reading"], [1, nil], [1, "unread"]], pluck_with_symbol
+    assert_equal pluck_with_string, pluck_with_symbol
+  end
+
   def test_pluck_with_type_cast_does_not_corrupt_the_query_cache
     topic = topics(:first)
     relation = Topic.where(id: topic.id)
