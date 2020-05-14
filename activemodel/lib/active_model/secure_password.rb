@@ -93,10 +93,11 @@ module ActiveModel
         attr_reader attribute
 
         define_method("#{attribute}=") do |unencrypted_password|
+          instance_variable_set("@#{attribute}", unencrypted_password)
+
           if unencrypted_password.nil?
             self.send("#{attribute}_digest=", nil)
           elsif !unencrypted_password.empty?
-            instance_variable_set("@#{attribute}", unencrypted_password)
             cost = ActiveModel::SecurePassword.min_cost ? BCrypt::Engine::MIN_COST : BCrypt::Engine.cost
             self.send("#{attribute}_digest=", BCrypt::Password.create(unencrypted_password, cost: cost))
           end

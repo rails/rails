@@ -121,6 +121,7 @@ class SecurePasswordTest < ActiveModel::TestCase
     @existing_user.password = ""
     @existing_user.password_confirmation = ""
     assert @existing_user.valid?(:update), "user should be valid"
+    assert_equal "", @existing_user.password
   end
 
   test "updating an existing user with validation and a nil password" do
@@ -180,7 +181,10 @@ class SecurePasswordTest < ActiveModel::TestCase
   end
 
   test "setting a nil password should clear an existing password" do
+    @existing_user.password = "password"
+
     @existing_user.password = nil
+    assert_nil @existing_user.password
     assert_nil @existing_user.password_digest
   end
 
