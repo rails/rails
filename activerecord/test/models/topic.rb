@@ -10,6 +10,9 @@ class Topic < ActiveRecord::Base
   scope :approved, -> { where(approved: true) }
   scope :rejected, -> { where(approved: false) }
 
+  scope :true, -> { where(approved: true) }
+  scope :false, -> { where(approved: false) }
+
   scope :scope_with_lambda, lambda { all }
 
   scope :by_lifo, -> { where(author_name: "lifo") }
