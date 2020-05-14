@@ -1,3 +1,24 @@
+*   Create a new rails app using a minimal stack.
+
+      `rails new cool_app --minimal`
+
+    All the following are excluded from your minimal stack:
+
+    - action_cable
+    - action_mailbox
+    - action_mailer
+    - action_text
+    - active_job
+    - active_storage
+    - bootsnap
+    - jbuilder
+    - spring
+    - system_tests
+    - turbolinks
+    - webpack
+
+    *Haroon Ahmed*, *DHH*
+
 *   Add default ENV variable option with BACKTRACE to turn off backtrace cleaning when debugging framework code in the
     generated config/initializers/backtrace_silencers.rb.
 

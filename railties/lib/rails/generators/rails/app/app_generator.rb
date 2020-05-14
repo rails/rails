@@ -272,6 +272,9 @@ module Rails
       class_option :api, type: :boolean,
                          desc: "Preconfigure smaller stack for API only apps"
 
+      class_option :minimal, type: :boolean,
+                             desc: "Preconfigure a minimal rails app"
+
       class_option :skip_bundle, type: :boolean, aliases: "-B", default: false,
                                  desc: "Don't run bundle install"
 
@@ -292,6 +295,29 @@ module Rails
         # Can't modify options hash as it's frozen by default.
         if options[:api]
           self.options = options.merge(skip_sprockets: true, skip_javascript: true).freeze
+        end
+
+        if options[:minimal]
+          self.options = options.merge(
+            skip_action_cable: true,
+            skip_action_mailer: true,
+            skip_action_mailbox: true,
+            skip_action_text: true,
+            skip_active_job: true,
+            skip_active_storage: true,
+            skip_bootsnap: true,
+            skip_dev_gems: true,
+            skip_javascript: true,
+            skip_jbuilder: true,
+            skip_spring: true,
+            skip_system_test: true,
+            skip_webpack_install: true,
+            skip_turbolinks: true).tap do |option|
+              if option[:webpack]
+                option[:skip_webpack_install] = false
+                option[:skip_javascript] = false
+              end
+            end.freeze
         end
 
         @after_bundle_callbacks = []
@@ -446,8 +472,15 @@ module Rails
       end
 
       def delete_js_folder_skipping_javascript
-        if options[:skip_javascript]
+        if options[:skip_javascript] && !options[:minimal]
           remove_dir "app/javascript"
+        end
+      end
+
+      def delete_js_packs_when_minimal_skipping_webpack
+        if options[:minimal] && options[:skip_webpack_install]
+          remove_dir "app/javascript/packs"
+          keep_file  "app/javascript"
         end
       end
 
@@ -506,6 +539,12 @@ module Rails
 
       def finish_template
         build(:leftovers)
+      end
+
+      def delete_active_job_folder_if_skipping_active_job
+        if options[:skip_active_job]
+          remove_dir "app/jobs"
+        end
       end
 
       public_task :apply_rails_template, :run_bundle
