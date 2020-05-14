@@ -114,7 +114,7 @@ module ActiveRecord
     #   Person.first(3) # returns the first three objects fetched by SELECT * FROM people ORDER BY people.id LIMIT 3
     #
     def first(limit = nil)
-      check_reorder_deprecation
+      check_reorder_deprecation unless loaded?
 
       if limit
         find_nth_with_limit(0, limit)
