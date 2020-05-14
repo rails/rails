@@ -694,7 +694,11 @@ module ActiveRecord
         end
 
         def supports_rename_index?
-          mariadb? ? false : database_version >= "5.7.6"
+          if mariadb?
+            database_version >= "10.5.2"
+          else
+            database_version >= "5.7.6"
+          end
         end
 
         def configure_connection
