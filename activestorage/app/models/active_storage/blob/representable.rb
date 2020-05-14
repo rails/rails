@@ -39,10 +39,14 @@ module ActiveStorage::Blob::Representable
     end
   end
 
-  # Returns true if the variant processor can transform the blob (its content
-  # type is in +ActiveStorage.variable_content_types+).
+  # Returns true if the variant processor can transform the blob.
+  # By default, this will return true for images whose types are registered
+  # in config.active_storage.variable_content_types.
+  # To handle other image types, add them to variable_content_types.
+  # To handle other media types, register a custom variant transformer
+  # as described in the documentation.
   def variable?
-    ActiveStorage.variable_content_types.include?(content_type)
+    ActiveStorage.transformers.any? { |klass| klass.accept?(self) }
   end
 
 
