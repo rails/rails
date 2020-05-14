@@ -369,7 +369,7 @@ a, a:link, a:visited {
 .nav .nav-item {color: #FFF; text-decoration: none;}
 .nav .nav-item:hover {text-decoration: underline;}
 
-.guides-index-large, .guides-index-small .guides-index-item {
+.guides-index-large, .guides-index-small .guides-index-item, .guides-search-large {
   padding: 0.5em 1.5em;
   border-radius: 1em;
   -webkit-border-radius: 1em;
@@ -408,7 +408,7 @@ a, a:link, a:visited {
   :where(body[dir="ltr"]) .nav>li { margin-left: 0.5em; }
   :where(body[dir="rtl"]) .nav>li { margin-right: 0.5em; }
 
-  .guides-index.guides-index-small {
+  .guides-index.guides-index-small, .guides-search.guides-search-small {
     display: none;
   }
 }
@@ -432,14 +432,14 @@ a, a:link, a:visited {
   .nav .nav-item, .nav-item.guides-index-item {
     text-transform: uppercase;
   }
-  .nav .nav-item:first-child, .nav-item.guides-index-small {
+  .nav .nav-item:first-child, .nav-item.guides-index-small, .nav-item.guides-search-small {
     border-top: solid 1px #620c04;
   }
-  .guides-index.guides-index-small {
+  .guides-index.guides-index-small, .guides-search.guides-search-small {
     display: block;
     margin-top: 1.5em;
   }
-  .guides-index.guides-index-large {
+  .guides-index.guides-index-large, .guides-search.guides-search-large {
     display: none;
   }
   .guides-index-small .guides-index-item {

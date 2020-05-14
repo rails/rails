@@ -10,24 +10,24 @@ jobs:
     name: Check CHANGELOGs formatting
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-      with:
-        repository: skipkayhil/rails-bin
-        ref: ba349066e1ce0c6e8d5b2c5e92dc71802237adbd
-    - uses: ruby/setup-ruby@v1
-      with:
-        ruby-version: 3.1
-        bundler-cache: true
-    - uses: actions/checkout@v3
-      with:
-        path: rails
-    - run: bin/check-changelogs ./rails
+      - uses: actions/checkout@v3
+        with:
+          repository: skipkayhil/rails-bin
+          ref: ba349066e1ce0c6e8d5b2c5e92dc71802237adbd
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.1
+          bundler-cache: true
+      - uses: actions/checkout@v3
+        with:
+          path: rails
+      - run: bin/check-changelogs ./rails
   codespell:
     name: Check spelling all files with codespell
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.10']
+        python-version: ["3.10"]
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
@@ -39,4 +39,4 @@ jobs:
           python -m pip install --upgrade pip
           pip install codespell==2.1.0
       - name: Check spelling with codespell
-        run: codespell --ignore-words=codespell.txt --skip="./actionview/test/ujs/public/vendor/qunit.js" || exit 1
+        run: codespell --ignore-words=codespell.txt --skip="./actionview/test/ujs/public/vendor/qunit.js,./guides/assets/javascripts/lunr.js" || exit 1
