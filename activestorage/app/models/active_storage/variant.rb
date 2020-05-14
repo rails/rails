@@ -55,7 +55,7 @@ require "ostruct"
 class ActiveStorage::Variant
   attr_reader :blob, :variation
   delegate :service, to: :blob
-  delegate :content_type, :filename, to: :specification
+  delegate :filename, :content_type, to: :specification
 
   def initialize(blob, variation_or_variation_key)
     @blob, @variation = blob, ActiveStorage::Variation.wrap(variation_or_variation_key)
@@ -124,7 +124,7 @@ class ActiveStorage::Variant
         end
     end
 
-    delegate :filename, :content_type, :format, to: :specification
+    delegate :format, to: :specification
 
     class Specification < OpenStruct; end
 end
