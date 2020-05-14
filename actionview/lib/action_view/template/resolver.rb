@@ -375,20 +375,33 @@ module ActionView
 
         candidates = find_candidate_template_paths(path)
 
-        regex = build_regex(path, details)
-
-        candidates.uniq.reject do |filename|
-          # This regex match does double duty of finding only files which match
-          # details (instead of just matching the prefix) and also filtering for
-          # case-insensitive file systems.
-          !regex.match?(filename) ||
-            File.directory?(filename)
-        end.sort_by do |filename|
+        # The path parser does double duty of finding only files which match
+        # details (instead of just matching the prefix) and also filtering for
+        # case-insensitive file systems.
+        candidates.index_with do |filename|
+          @path_parser.parse(filename)
+        end.select do |filename, match|
+          match[:action] == path.name &&
+            !File.directory?(filename)
+        end.transform_values do |full_match|
+          # Convert to match same keys as details
+          {
+            locale:   full_match[:locale],
+            formats:  full_match[:format],
+            variants: full_match[:variant]&.to_sym,
+            handlers: full_match[:handler],
+          }
+        end.select do |filename, match|
+          EXTENSIONS.keys.all? do |ext|
+            (ext == :variants && details[ext] == :any) ||
+              match[ext].nil? ||
+              details[ext].include?(match[ext])
+          end
+        end.sort_by do |filename, match|
           # Because we scanned the directory, instead of checking for files
           # one-by-one, they will be returned in an arbitrary order.
           # We can use the matches found by the regex and sort by their index in
           # details.
-          match = filename.match(regex)
           EXTENSIONS.keys.map do |ext|
             if ext == :variants && details[ext] == :any
               match[ext].nil? ? 0 : 1
@@ -400,26 +413,7 @@ module ActionView
               details[ext].index(found)
             end
           end
-        end
-      end
-
-      def build_regex(path, details)
-        query = Regexp.escape(File.join(@path, path))
-        exts = EXTENSIONS.map do |ext, prefix|
-          match =
-            if ext == :variants && details[ext] == :any
-              ".*?"
-            else
-              arr = details[ext].compact
-              arr.uniq!
-              arr.map! { |e| Regexp.escape(e) }
-              arr.join("|")
-            end
-          prefix = Regexp.escape(prefix)
-          "(#{prefix}(?<#{ext}>#{match}))?"
-        end.join
-
-        %r{\A#{query}#{exts}\z}
+        end.map(&:first)
       end
   end
 
