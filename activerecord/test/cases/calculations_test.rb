@@ -1159,11 +1159,17 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_instance_of time_class, actual[true]
     assert_instance_of time_class, actual[true]
 
-    actual = Author.joins(:topics).maximum(:"topics.written_on")
+    assert_minimum_and_maximum_on_time_attributes_joins_with_column(time_class, :"topics.written_on")
+    assert_minimum_and_maximum_on_time_attributes_joins_with_column(time_class, :written_on)
+  end
+  private :assert_minimum_and_maximum_on_time_attributes
+
+  def assert_minimum_and_maximum_on_time_attributes_joins_with_column(time_class, column)
+    actual = Author.joins(:topics).maximum(column)
     assert_equal Time.utc(2004, 7, 15, 14, 28, 0, 9900), actual
     assert_instance_of time_class, actual
 
-    actual = Author.joins(:topics).minimum(:"topics.written_on")
+    actual = Author.joins(:topics).minimum(column)
     assert_equal Time.utc(2003, 7, 16, 14, 28, 11, 223300), actual
     assert_instance_of time_class, actual
 
@@ -1172,17 +1178,17 @@ class CalculationsTest < ActiveRecord::TestCase
       2 => Time.utc(2004, 7, 15, 14, 28, 0, 9900),
     }
 
-    actual = Author.joins(:topics).group(:id).maximum(:"topics.written_on")
+    actual = Author.joins(:topics).group(:id).maximum(column)
     assert_equal expected, actual
     assert_instance_of time_class, actual[1]
     assert_instance_of time_class, actual[2]
 
-    actual = Author.joins(:topics).group(:id).minimum(:"topics.written_on")
+    actual = Author.joins(:topics).group(:id).minimum(column)
     assert_equal expected, actual
     assert_instance_of time_class, actual[1]
     assert_instance_of time_class, actual[2]
   end
-  private :assert_minimum_and_maximum_on_time_attributes
+  private :assert_minimum_and_maximum_on_time_attributes_joins_with_column
 
   def test_select_avg_with_group_by_as_virtual_attribute_with_sql
     rails_core = companies(:rails_core)

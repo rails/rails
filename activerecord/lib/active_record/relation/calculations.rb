@@ -308,11 +308,10 @@ module ActiveRecord
         result = skip_query_cache_if_necessary { @klass.connection.select_all(query_builder) }
 
         type_cast_calculated_value(result.cast_values.first, operation) do |value|
-          if type = column.try(:type_caster) || klass.attribute_types[column_name.to_s]
-            type.deserialize(value)
-          else
-            value
+          type = column.try(:type_caster) || klass.attribute_types.fetch(name = column_name.to_s) do
+            lookup_cast_type_from_join_dependencies(name, build_join_dependencies) || Type.default_value
           end
+          type.deserialize(value)
         end
       end
 
@@ -379,11 +378,10 @@ module ActiveRecord
           key = key_records[key] if associated
 
           result[key] = type_cast_calculated_value(row[column_alias], operation) do |value|
-            if type ||= column.try(:type_caster) || klass.attribute_types[column_name.to_s]
-              type.deserialize(value)
-            else
-              value
+            type ||= column.try(:type_caster) || klass.attribute_types.fetch(name = column_name.to_s) do
+              lookup_cast_type_from_join_dependencies(name, build_join_dependencies) || Type.default_value
             end
+            type.deserialize(value)
           end
         end
       end
