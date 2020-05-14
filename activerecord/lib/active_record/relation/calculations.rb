@@ -410,14 +410,34 @@ module ActiveRecord
         @klass.type_for_attribute(field_name, &block)
       end
 
+      def build_join_dependencies
+        join_dependencies = []
+        join_dependencies.unshift construct_join_dependency(
+          select_association_list(joins_values + left_outer_joins_values, join_dependencies), nil
+        )
+      end
+
+      def lookup_cast_type_from_join_dependencies(name, join_dependencies)
+        join_dependencies.each do |join_dependency|
+          join_dependency.each do |join|
+            type = join.base_klass.attribute_types.fetch(name, nil)
+            return type if type
+          end
+        end
+        nil
+      end
+
       def type_cast_pluck_values(result, columns)
+        join_dependencies = nil
         cast_types = if result.columns.size != columns.size
           klass.attribute_types
         else
           columns.map.with_index do |column, i|
             column.try(:type_caster) ||
               klass.attribute_types.fetch(name = result.columns[i]) do
-                result.column_types.fetch(name, Type.default_value)
+                join_dependencies ||= build_join_dependencies
+                lookup_cast_type_from_join_dependencies(name, join_dependencies) ||
+                  result.column_types[name] || Type.default_value
               end
           end
         end

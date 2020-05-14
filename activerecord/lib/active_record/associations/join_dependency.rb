@@ -131,6 +131,10 @@ module ActiveRecord
         relation._select!(-> { aliases.columns })
       end
 
+      def each(&block)
+        join_root.each(&block)
+      end
+
       protected
         attr_reader :join_root, :join_type
 
