@@ -1,3 +1,8 @@
+## Rails 4.2.11.3 (May 15, 2020) ##
+
+*   Backport a missing commit for [CVE-2020-8163]
+
+
 ## Rails 4.2.11.2 (May 15, 2020) ##
 
 *   Restrict local variable names in templates [CVE-2020-8163]
