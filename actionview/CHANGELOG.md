@@ -1,3 +1,5 @@
+*   [CVE-2020-8167] Check that request is same-origin prior to including CSRF token in XHRs
+
 ## Rails 6.0.3 (May 06, 2020) ##
 
 *   annotated_source_code returns an empty array so TemplateErrors without a
