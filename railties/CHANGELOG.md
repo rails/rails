@@ -1,4 +1,14 @@
+## Rails 4.2.11.3 (May 15, 2020) ##
+
+*   No changes.
+
+
 ## Rails 4.2.11.2 (May 15, 2020) ##
+
+*   No changes.
+
+
+## Rails 4.2.11.1 (March 11, 2019) ##
 
 *   No changes.
 
