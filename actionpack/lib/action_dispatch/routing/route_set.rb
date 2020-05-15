@@ -733,10 +733,10 @@ module ActionDispatch
           end
         end
 
-        # Generates a path from routes, returns [path, params].
-        # If no route is generated the formatter will raise ActionController::UrlGenerationError
-        def generate(method_name)
-          @set.formatter.generate(named_route, options, recall, method_name)
+        # Generates a path from routes, returns a RouteWithParams or MissingRoute.
+        # MissingRoute will raise ActionController::UrlGenerationError.
+        def generate
+          @set.formatter.generate(named_route, options, recall)
         end
 
         def different_controller?
@@ -761,13 +761,20 @@ module ActionDispatch
       end
 
       def generate_extras(options, recall = {})
-        route_key = options.delete :use_route
-        path, params = generate(route_key, options, recall)
-        return path, params.keys
+        if recall
+          options = options.merge(_recall: recall)
+        end
+
+        route_name = options.delete :use_route
+        path = path_for(options, route_name)
+
+        uri = URI.parse(path)
+        params = Rack::Utils.parse_nested_query(uri.query).symbolize_keys
+        [uri.path, params.keys]
       end
 
-      def generate(route_key, options, recall = {}, method_name = nil)
-        Generator.new(route_key, options, recall, self).generate(method_name)
+      def generate(route_name, options, recall = {}, method_name = nil)
+        Generator.new(route_name, options, recall, self).generate
       end
       private :generate
 
@@ -814,7 +821,9 @@ module ActionDispatch
         path_options = options.dup
         RESERVED_OPTIONS.each { |ro| path_options.delete ro }
 
-        path, params = generate(route_name, path_options, recall, method_name)
+        route_with_params = generate(route_name, path_options, recall)
+        path = route_with_params.path(method_name)
+        params = route_with_params.params
 
         if options.key? :params
           params.merge! options[:params]
