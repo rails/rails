@@ -1,3 +1,8 @@
+*   [CVE-2020-8166] HMAC raw CSRF token before masking it, so it cannot be used to reconstruct a per-form token
+
+*   [CVE-2020-8164] Return self when calling #each, #each_pair, and #each_value instead of the raw @parameters hash
+
+
 ## Rails 5.2.4.1 (December 18, 2019) ##
 
 *   Fix possible information leak / session hijacking vulnerability.

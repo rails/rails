@@ -1,3 +1,6 @@
+*   [CVE-2020-8167] Check that request is same-origin prior to including CSRF token in XHRs
+
+
 ## Rails 5.2.4.1 (December 18, 2019) ##
 
 *   No changes.
