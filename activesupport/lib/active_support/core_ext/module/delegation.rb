@@ -11,6 +11,14 @@ class Module
        return self super then true undef unless until when while yield)
   ).freeze
 
+  DELEGATION_RESERVED_KEYWORDS = Set.new(
+    %w(_ arg args block)
+  )
+
+  DELEGATION_RESERVED_METHOD_NAMES = Set.new(
+    RUBY_RESERVED_WORDS + DELEGATION_RESERVED_KEYWORDS
+  ).freeze
+
   # Provides a +delegate+ class method to easily expose contained objects'
   # public methods as your own.
   #
