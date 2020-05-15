@@ -32,6 +32,10 @@ module Arel # :nodoc: all
         attribute
       end
 
+      def right
+        attribute.quoted_array(values)
+      end
+
       def table_name
         attribute.relation.table_alias || attribute.relation.name
       end
