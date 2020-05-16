@@ -1,6 +1,24 @@
+*   Default engine `ENGINE=InnoDB` is no longer dumped to make schema more agnostic.
+
+    Before:
+
+    ```ruby
+    create_table "accounts", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci", force: :cascade do |t|
+    end
+    ```
+
+    After:
+
+    ```ruby
+    create_table "accounts", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    end
+    ```
+
+    *Ryuta Kamizono*
+
 *   Added delegated type as an alternative to single-table inheritance for representing class hierarchies.
     See ActiveRecord::DelegatedType for the full description.
-    
+
     *DHH*
 
 *   Deprecate aggregations with group by duplicated fields.

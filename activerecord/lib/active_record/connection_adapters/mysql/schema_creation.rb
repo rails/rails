@@ -40,8 +40,11 @@ module ActiveRecord
             add_sql_comment!(sql.join(" "), o.comment)
           end
 
-          def add_table_options!(create_sql, options)
-            add_sql_comment!(super, options[:comment])
+          def add_table_options!(create_sql, o)
+            create_sql = super
+            create_sql << " DEFAULT CHARSET=#{o.charset}" if o.charset
+            create_sql << " COLLATE=#{o.collation}" if o.collation
+            add_sql_comment!(create_sql, o.comment)
           end
 
           def add_column_options!(sql, options)

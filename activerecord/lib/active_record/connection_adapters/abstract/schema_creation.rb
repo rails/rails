@@ -53,7 +53,7 @@ module ActiveRecord
           end
 
           create_sql << "(#{statements.join(', ')})" if statements.present?
-          add_table_options!(create_sql, table_options(o))
+          add_table_options!(create_sql, o)
           create_sql << " AS #{to_sql(o.as)}" if o.as
           create_sql
         end
@@ -106,17 +106,8 @@ module ActiveRecord
           true
         end
 
-        def table_options(o)
-          table_options = {}
-          table_options[:comment] = o.comment
-          table_options[:options] = o.options
-          table_options
-        end
-
-        def add_table_options!(create_sql, options)
-          if options_sql = options[:options]
-            create_sql << " #{options_sql}"
-          end
+        def add_table_options!(create_sql, o)
+          create_sql << " #{o.options}" if o.options
           create_sql
         end
 
