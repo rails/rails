@@ -52,7 +52,7 @@ module ActiveRecord
         attr_reader :value_transformation
 
         def join(table, constraint)
-          table.create_join(table, table.create_on(constraint))
+          table.create_join(table, table.create_on(constraint), Arel::Nodes::LeadingJoin)
         end
 
         def last_chain_scope(scope, reflection, owner)

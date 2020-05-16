@@ -83,6 +83,15 @@ class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
     assert_equal 16, Author.left_outer_joins(:posts).joins("LEFT OUTER JOIN comments ON comments.post_id = posts.id").count
   end
 
+  def test_left_outer_joins_with_arel_join
+    comments = Comment.arel_table
+    posts = Post.arel_table
+    constraint = comments[:post_id].eq(posts[:id])
+    arel_join = comments.create_join(comments, comments.create_on(constraint), Arel::Nodes::OuterJoin)
+
+    assert_equal 16, Author.left_outer_joins(:posts).joins(arel_join).count
+  end
+
   def test_join_conditions_added_to_join_clause
     queries = capture_sql { Author.left_outer_joins(:essays).to_a }
     assert queries.any? { |sql| /writer_type.*?=.*?(Author|\?|\$1|\:a1)/i.match?(sql) }
