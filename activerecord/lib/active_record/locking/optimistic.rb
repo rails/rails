@@ -60,6 +60,15 @@ module ActiveRecord
         self.class.locking_enabled?
       end
 
+      def increment!(*, **) #:nodoc:
+        super.tap do
+          if locking_enabled?
+            self[self.class.locking_column] += 1
+            clear_attribute_change(self.class.locking_column)
+          end
+        end
+      end
+
       private
         def _create_record(attribute_names = self.attribute_names)
           if locking_enabled?

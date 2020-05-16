@@ -509,6 +509,12 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal 3, car.lock_version
     assert_operator previously_updated_at, :<, car.updated_at
     assert_operator previously_wheels_owned_at, :<, car.wheels_owned_at
+
+    car.wheels << Wheel.create!
+    assert_equal 1, car.wheels_count
+    assert_equal 4, car.lock_version
+    assert_not car.lock_version_changed?
+    assert_nothing_raised { car.update(name: "herbie") }
   end
 
   def test_polymorphic_destroy_with_dependencies_and_lock_version
