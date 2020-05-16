@@ -26,6 +26,7 @@ module ActiveRecord
     #   connections.
     class HashConfig < DatabaseConfig
       attr_reader :configuration_hash
+
       def initialize(env_name, name, configuration_hash)
         super(env_name, name)
         @configuration_hash = configuration_hash.symbolize_keys.freeze
@@ -90,6 +91,12 @@ module ActiveRecord
       # default will be derived.
       def schema_cache_path
         configuration_hash[:schema_cache_path]
+      end
+
+      def schema_dump
+        return true if configuration_hash[:schema_dump].nil?
+
+        configuration_hash[:schema_dump]
       end
     end
   end

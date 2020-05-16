@@ -69,6 +69,21 @@ module ActiveRecord
         config = HashConfig.new("default_env", "primary", idle_timeout: "0")
         assert_nil config.idle_timeout
       end
+
+      def test_default_schema_dump_value
+        config = HashConfig.new("default_env", "primary", schema_dump: nil)
+        assert_equal config.schema_dump, true
+      end
+
+      def test_custom_schema_dump_value
+        config = HashConfig.new("default_env", "primary", schema_dump: true)
+        assert_equal config.schema_dump, true
+      end
+
+      def test_custom_schema_dump_value
+        config = HashConfig.new("default_env", "primary", schema_dump: false)
+        assert_equal config.schema_dump, false
+      end
     end
   end
 end

@@ -111,6 +111,10 @@ module ActiveRecord
         @config.fetch(:use_metadata_table, true)
       end
 
+      def use_metadata_table?
+        @config.fetch(:use_metadata_table, true)
+      end
+
       # Determines whether writes are currently being prevents.
       #
       # Returns true if the connection is a replica, or if +prevent_writes+
