@@ -111,9 +111,7 @@ module ActiveRecord
 
         # Test if any threads are currently waiting on the queue.
         def any_waiting?
-          synchronize do
-            @num_waiting > 0
-          end
+          num_waiting > 0
         end
 
         if RUBY_ENGINE == "ruby"
