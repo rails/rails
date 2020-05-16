@@ -1,3 +1,8 @@
+*   Use explicit `config/boot_with_spring.rb` boot file for bin/rails and bin/rake, which allows us to restrict Spring loading
+    to only test and development, and everywhere to be able to skip spring by passing UNSPRUNG=1 as an env variable.
+
+    *DHH*
+
 *   Add `config.generators.after_generate` for processing to generated files.
 
     Register a callback that will get called right after generators has finished.
