@@ -817,20 +817,20 @@ class CalculationsTest < ActiveRecord::TestCase
   end if current_adapter?(:PostgreSQLAdapter)
 
   def test_group_by_with_limit
-    expected = { "Post" => 8, "SpecialPost" => 1 }
-    actual = Post.includes(:comments).group(:type).order(:type).limit(2).count("comments.id")
+    expected = { "StiPost" => 2, "SpecialPost" => 1 }
+    actual = Post.includes(:comments).group(:type).order(type: :desc).limit(2).count("comments.id")
     assert_equal expected, actual
   end
 
   def test_group_by_with_offset
-    expected = { "SpecialPost" => 1, "StiPost" => 2 }
-    actual = Post.includes(:comments).group(:type).order(:type).offset(1).count("comments.id")
+    expected = { "SpecialPost" => 1, "Post" => 8 }
+    actual = Post.includes(:comments).group(:type).order(type: :desc).offset(1).count("comments.id")
     assert_equal expected, actual
   end
 
   def test_group_by_with_limit_and_offset
     expected = { "SpecialPost" => 1 }
-    actual = Post.includes(:comments).group(:type).order(:type).offset(1).limit(1).count("comments.id")
+    actual = Post.includes(:comments).group(:type).order(type: :desc).offset(1).limit(1).count("comments.id")
     assert_equal expected, actual
   end
 
