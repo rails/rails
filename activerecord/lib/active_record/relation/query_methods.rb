@@ -1178,6 +1178,9 @@ module ActiveRecord
         build_join_query(manager, buckets, Arel::Nodes::OuterJoin, aliases)
       end
 
+      class ::Arel::Nodes::LeadingJoin < Arel::Nodes::InnerJoin # :nodoc:
+      end
+
       def build_joins(manager, joins, aliases)
         buckets = Hash.new { |h, k| h[k] = [] }
 
@@ -1201,7 +1204,7 @@ module ActiveRecord
 
         while joins.first.is_a?(Arel::Nodes::Join)
           join_node = joins.shift
-          if join_node.is_a?(Arel::Nodes::StringJoin) && (stashed_eager_load || stashed_left_joins)
+          if !join_node.is_a?(Arel::Nodes::LeadingJoin) && (stashed_eager_load || stashed_left_joins)
             buckets[:join_node] << join_node
           else
             buckets[:leading_join] << join_node
