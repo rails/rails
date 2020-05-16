@@ -429,9 +429,9 @@ module Rails
         end
       end
 
-      def generate_spring_binstubs
+      def generate_spring_binstub
         if bundle_install? && spring_install?
-          bundle_command("exec spring binstub --all")
+          bundle_command("exec spring binstub")
         end
       end
 

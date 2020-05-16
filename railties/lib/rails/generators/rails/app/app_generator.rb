@@ -347,6 +347,11 @@ module Rails
         template "config/boot.rb"
       end
 
+      def create_boot_with_spring_file
+        return if options[:skip_spring]
+        template "config/boot_with_spring.rb"
+      end
+
       def create_active_record_files
         return if options[:skip_active_record]
         build(:database_yml)
@@ -489,7 +494,7 @@ module Rails
       end
 
       public_task :apply_rails_template, :run_bundle
-      public_task :generate_bundler_binstub, :generate_spring_binstubs
+      public_task :generate_bundler_binstub, :generate_spring_binstub
       public_task :run_webpack
 
       def run_after_bundle_callbacks
