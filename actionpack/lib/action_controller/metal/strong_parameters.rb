@@ -759,6 +759,16 @@ module ActionController
     end
     alias_method :delete_if, :reject!
 
+    # Returns a new instance of <tt>ActionController::Parameters</tt> with +nil+ values removed.
+    def compact
+      new_instance_with_inherited_permitted_status(@parameters.compact)
+    end
+
+    # Removes all +nil+ values in place and returns +self+, or +nil+ if no changes were made.
+    def compact!
+      self if @parameters.compact!
+    end
+
     # Returns a new instance of <tt>ActionController::Parameters</tt> without the blank values.
     # Uses Object#blank? for determining if a value is blank.
     def compact_blank
