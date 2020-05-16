@@ -360,6 +360,7 @@ module ActionController
     # Convert all hashes in values into parameters, then yield each pair in
     # the same way as <tt>Hash#each_pair</tt>.
     def each_pair(&block)
+      return to_enum(__callee__) unless block_given?
       @parameters.each_pair do |key, value|
         yield [key, convert_hashes_to_parameters(key, value)]
       end
@@ -369,6 +370,7 @@ module ActionController
     # Convert all hashes in values into parameters, then yield each value in
     # the same way as <tt>Hash#each_value</tt>.
     def each_value(&block)
+      return to_enum(:each_value) unless block_given?
       @parameters.each_pair do |key, value|
         yield convert_hashes_to_parameters(key, value)
       end
