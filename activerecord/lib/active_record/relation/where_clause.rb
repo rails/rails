@@ -119,10 +119,9 @@ module ActiveRecord
           equalities = []
 
           predicates.each do |node|
-            case node
-            when Arel::Nodes::Equality
+            if equality_node?(node)
               equalities << node
-            when Arel::Nodes::And
+            elsif node.is_a?(Arel::Nodes::And)
               equalities.concat equalities(node.children)
             end
           end

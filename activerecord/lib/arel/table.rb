@@ -4,6 +4,7 @@ module Arel # :nodoc: all
   class Table
     include Arel::Crud
     include Arel::FactoryMethods
+    include Arel::AliasPredication
 
     @engine = nil
     class << self; attr_accessor :engine; end

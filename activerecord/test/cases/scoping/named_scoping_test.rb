@@ -64,6 +64,11 @@ class NamedScopingTest < ActiveRecord::TestCase
     assert_equal klazz.to.since.to_a, klazz.since.to.to_a
   end
 
+  def test_define_scope_for_reserved_words
+    assert Topic.true.all?(&:approved?), "all objects should be approved"
+    assert Topic.false.none?(&:approved?), "all objects should not be approved"
+  end
+
   def test_scope_should_respond_to_own_methods_and_methods_of_the_proxy
     assert_respond_to Topic.approved, :limit
     assert_respond_to Topic.approved, :count
@@ -402,11 +407,11 @@ class NamedScopingTest < ActiveRecord::TestCase
   def test_spaces_in_scope_names
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "topics"
-      scope :"title containing space", -> { where("title LIKE '% %'") }
+      scope :"title containing space", ->(space: " ") { where("title LIKE '%#{space}%'") }
       scope :approved, -> { where(approved: true) }
     end
-    assert_equal klass.send(:"title containing space"), klass.where("title LIKE '% %'")
-    assert_equal klass.approved.send(:"title containing space"), klass.approved.where("title LIKE '% %'")
+    assert_equal klass.where("title LIKE '% %'"), klass.send(:"title containing space", space: " ")
+    assert_equal klass.approved.where("title LIKE '% %'"), klass.approved.send(:"title containing space", space: " ")
   end
 
   def test_find_all_should_behave_like_select

@@ -51,6 +51,7 @@ module ActionMailer
   autoload :TestCase
   autoload :TestHelper
   autoload :MessageDelivery
+  autoload :DeliveryJob
   autoload :MailDeliveryJob
 
   def self.eager_load!

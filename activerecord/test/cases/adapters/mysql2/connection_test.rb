@@ -170,7 +170,11 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
     @connection.execute "CREATE TABLE `bar_baz` (`foo` varchar(255))"
     @subscriber.logged.clear
     @connection.send(:rename_column_for_alter, "bar_baz", "foo", "foo2")
-    assert_equal "SCHEMA", @subscriber.logged[0][1]
+    if @connection.send(:supports_rename_column?)
+      assert_empty @subscriber.logged
+    else
+      assert_equal "SCHEMA", @subscriber.logged[0][1]
+    end
   ensure
     @connection.execute "DROP TABLE `bar_baz`"
   end
