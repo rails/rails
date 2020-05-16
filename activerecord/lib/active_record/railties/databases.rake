@@ -93,22 +93,42 @@ db_namespace = namespace :db do
     ActiveRecord::Base.establish_connection(original_db_config)
   end
 
-  # IMPORTANT: This task won't dump the schema if ActiveRecord::Base.dump_schema_after_migration is set to false
   task :_dump do
     if ActiveRecord::Base.dump_schema_after_migration
       db_namespace["schema:dump"].invoke
+      #
+    # dump_all = ActiveRecord::Base.dump_schema_after_migration
+
+    # ActiveRecord::Tasks::DatabaseTasks.for_each(databases, skip_single_database: false) do |name, db_config, single_db|
+    #   if dump_all && db_config.schema_dump
+    #     case ActiveRecord::Base.schema_format
+    #     when :ruby then single_db ? db_namespace["schema:dump"].invoke : db_namespace["schema:dump:#{name}"].invoke
+    #     when :sql  then single_db ? db_namespace["schema:dump"].invoke : db_namespace["structure:dump:#{name}"].invoke
+    #     else
+    #       raise "unknown schema format #{ActiveRecord::Base.schema_format}"
+    #     end
+    #   end
     end
+
     # Allow this task to be called as many times as required. An example is the
     # migrate:redo task, which calls other two internally that depend on this one.
     db_namespace["_dump"].reenable
   end
 
   namespace :_dump do
-    ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
-      # IMPORTANT: This task won't dump the schema if ActiveRecord::Base.dump_schema_after_migration is set to false
+    ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name, db_config|
       task name do
         if ActiveRecord::Base.dump_schema_after_migration
           db_namespace["schema:dump:#{name}"].invoke
+        # dump_all = ActiveRecord::Base.dump_schema_after_migration
+
+        # if dump_all && db_config.schema_dump
+        #   case ActiveRecord::Base.schema_format
+        #   when :ruby then db_namespace["schema:dump:#{name}"].invoke
+        #   when :sql  then db_namespace["structure:dump:#{name}"].invoke
+        #   else
+        #     raise "unknown schema format #{ActiveRecord::Base.schema_format}"
+        #   end
         end
         # Allow this task to be called as many times as required. An example is the
         # migrate:redo task, which calls other two internally that depend on this one.
