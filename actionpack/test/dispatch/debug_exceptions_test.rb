@@ -503,7 +503,9 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     output = StringIO.new
     backtrace_cleaner = ActiveSupport::BacktraceCleaner.new
-    backtrace_cleaner.add_silencer { true }
+    def backtrace_cleaner.clean(bt, _)
+      []
+    end
 
     env = { "action_dispatch.show_exceptions"   => true,
             "action_dispatch.logger"            => Logger.new(output),
