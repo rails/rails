@@ -1493,6 +1493,10 @@ module ActiveRecord
           schema_creation.accept(AddColumnDefinition.new(cd))
         end
 
+        def rename_column_for_alter(table_name, column_name, new_column_name)
+          "RENAME COLUMN #{quote_column_name(column_name)} TO #{quote_column_name(new_column_name)}"
+        end
+
         def remove_column_for_alter(table_name, column_name, type = nil, **options)
           "DROP COLUMN #{quote_column_name(column_name)}"
         end

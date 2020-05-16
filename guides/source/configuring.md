@@ -770,7 +770,7 @@ There are a number of settings available on `config.action_mailer`:
 
 * `config.action_mailer.perform_caching` specifies whether the mailer templates should perform fragment caching or not. If it's not specified, the default will be `true`.
 
-* `config.action_mailer.delivery_job` specifies delivery job for mail. Defaults to `ActionMailer::MailDeliveryJob`.
+* `config.action_mailer.delivery_job` specifies delivery job for mail. Defaults to `ActionMailer::DeliveryJob`.
 
 
 ### Configuring Active Support
@@ -953,6 +953,14 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 * `config.active_storage.track_variants` determines whether variants are recorded in the database. The default is `true`.
 
 * `config.active_storage.draw_routes` can be used to toggle Active Storage route generation. The default is `true`.
+
+* `config.active_storage.resolve_model_to_route` can be used to globally change how Active Storage files are delivered.
+
+  Allowed values are:
+  * `:rails_storage_redirect`: Redirect to signed, short-lived service URLs.
+  * `:rails_storage_proxy`: Proxy files by downloading them.
+
+  The default is `:rails_storage_redirect`.
 
 ### Results of `config.load_defaults`
 

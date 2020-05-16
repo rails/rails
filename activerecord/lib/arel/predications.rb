@@ -206,6 +206,18 @@ module Arel # :nodoc: all
       Nodes::Concat.new self, other
     end
 
+    def contains(other)
+      Arel::Nodes::Contains.new(self, other)
+    end
+
+    def overlaps(other)
+      Arel::Nodes::Overlaps.new(self, other)
+    end
+
+    def quoted_array(others)
+      others.map { |v| quoted_node(v) }
+    end
+
     private
       def grouping_any(method_id, others, *extras)
         nodes = others.map { |expr| send(method_id, expr, *extras) }
@@ -221,10 +233,6 @@ module Arel # :nodoc: all
 
       def quoted_node(other)
         Nodes.build_quoted(other, self)
-      end
-
-      def quoted_array(others)
-        others.map { |v| quoted_node(v) }
       end
 
       def infinity?(value)

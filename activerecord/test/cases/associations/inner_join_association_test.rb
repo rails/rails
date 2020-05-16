@@ -87,6 +87,15 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     assert_equal 3, Person.eager_load(:agents).joins(string_join).count
   end
 
+  def test_eager_load_with_arel_joins
+    agents = Person.arel_table.alias("agents_people")
+    agents_2 = Person.arel_table.alias("agents_people_2")
+    constraint = agents[:primary_contact_id].eq(agents_2[:id]).and(agents[:id].gt(agents_2[:id]))
+    arel_join = agents.create_join(agents, agents.create_on(constraint), Arel::Nodes::OuterJoin)
+
+    assert_equal 3, Person.eager_load(:agents).joins(arel_join).count
+  end
+
   def test_construct_finder_sql_ignores_empty_joins_hash
     sql = Author.joins({}).to_sql
     assert_no_match(/JOIN/i, sql)

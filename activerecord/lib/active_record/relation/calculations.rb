@@ -136,7 +136,7 @@ module ActiveRecord
             relation.select_values = [ klass.primary_key || table[Arel.star] ]
           end
           # PostgreSQL: ORDER BY expressions must appear in SELECT list when using DISTINCT
-          relation.order_values = []
+          relation.order_values = [] if group_values.empty?
         end
 
         relation.calculate(operation, column_name)
@@ -190,8 +190,9 @@ module ActiveRecord
         relation.pluck(*column_names)
       else
         klass.disallow_raw_sql!(column_names)
+        columns = arel_columns(column_names)
         relation = spawn
-        relation.select_values = column_names
+        relation.select_values = columns
         result = skip_query_cache_if_necessary do
           if where_clause.contradiction?
             ActiveRecord::Result.new([], [])
@@ -199,7 +200,7 @@ module ActiveRecord
             klass.connection.select_all(relation.arel, nil)
           end
         end
-        result.cast_values(klass.attribute_types)
+        type_cast_pluck_values(result, columns)
       end
     end
 
@@ -281,8 +282,7 @@ module ActiveRecord
         end
       end
 
-      def operation_over_aggregate_column(column_name, operation, distinct)
-        column = aggregate_column(column_name)
+      def operation_over_aggregate_column(column, operation, distinct)
         operation == "count" ? column.count(distinct) : column.send(operation)
       end
 
@@ -296,7 +296,8 @@ module ActiveRecord
           # PostgreSQL doesn't like ORDER BY when there are no GROUP BY
           relation = unscope(:order).distinct!(false)
 
-          select_value = operation_over_aggregate_column(column_name, operation, distinct)
+          column = aggregate_column(column_name)
+          select_value = operation_over_aggregate_column(column, operation, distinct)
           select_value.distinct = true if operation == "sum" && distinct
 
           relation.select_values = [select_value]
@@ -307,13 +308,10 @@ module ActiveRecord
         result = skip_query_cache_if_necessary { @klass.connection.select_all(query_builder) }
 
         type_cast_calculated_value(result.cast_values.first, operation) do |value|
-          if value.is_a?(String) &&
-              column = klass.columns_hash[column_name.to_s]
-            type = connection.lookup_cast_type_from_column(column)
-            type.deserialize(value)
-          else
-            value
+          type = column.try(:type_caster) || klass.attribute_types.fetch(name = column_name.to_s) do
+            lookup_cast_type_from_join_dependencies(name, build_join_dependencies) || Type.default_value
           end
+          type.deserialize(value)
         end
       end
 
@@ -333,8 +331,9 @@ module ActiveRecord
         }
         group_columns = group_aliases.zip(group_fields)
 
+        column = aggregate_column(column_name)
         column_alias = column_alias_for("#{operation} #{column_name.to_s.downcase}")
-        select_value = operation_over_aggregate_column(column_name, operation, distinct)
+        select_value = operation_over_aggregate_column(column, operation, distinct)
         select_value.as(column_alias)
 
         select_values = [select_value]
@@ -367,8 +366,8 @@ module ActiveRecord
         end
 
         hash_rows = calculated_data.cast_values(key_types).map! do |row|
-          calculated_data.columns.each_with_object({}).with_index do |(column, hash), i|
-            hash[column] = row[i]
+          calculated_data.columns.each_with_object({}).with_index do |(col_name, hash), i|
+            hash[col_name] = row[i]
           end
         end
 
@@ -379,13 +378,10 @@ module ActiveRecord
           key = key_records[key] if associated
 
           result[key] = type_cast_calculated_value(row[column_alias], operation) do |value|
-            if value.is_a?(String) &&
-                (type || column = klass.columns_hash[column_name.to_s])
-              type ||= connection.lookup_cast_type_from_column(column)
-              type.deserialize(value)
-            else
-              value
+            type ||= column.try(:type_caster) || klass.attribute_types.fetch(name = column_name.to_s) do
+              lookup_cast_type_from_join_dependencies(name, build_join_dependencies) || Type.default_value
             end
+            type.deserialize(value)
           end
         end
       end
@@ -412,10 +408,46 @@ module ActiveRecord
         @klass.type_for_attribute(field_name, &block)
       end
 
+      def build_join_dependencies
+        join_dependencies = []
+        join_dependencies.unshift construct_join_dependency(
+          select_association_list(joins_values + left_outer_joins_values, join_dependencies), nil
+        )
+      end
+
+      def lookup_cast_type_from_join_dependencies(name, join_dependencies)
+        join_dependencies.each do |join_dependency|
+          join_dependency.each do |join|
+            type = join.base_klass.attribute_types.fetch(name, nil)
+            return type if type
+          end
+        end
+        nil
+      end
+
+      def type_cast_pluck_values(result, columns)
+        join_dependencies = nil
+        cast_types = if result.columns.size != columns.size
+          klass.attribute_types
+        else
+          columns.map.with_index do |column, i|
+            column.try(:type_caster) ||
+              klass.attribute_types.fetch(name = result.columns[i]) do
+                join_dependencies ||= build_join_dependencies
+                lookup_cast_type_from_join_dependencies(name, join_dependencies) ||
+                  result.column_types[name] || Type.default_value
+              end
+          end
+        end
+        result.cast_values(cast_types)
+      end
+
       def type_cast_calculated_value(value, operation)
         case operation
-        when "count", "sum"
-          value || 0
+        when "count"
+          value.to_i
+        when "sum"
+          yield value || 0
         when "average"
           value&.respond_to?(:to_d) ? value.to_d : value
         else # "minimum", "maximum"

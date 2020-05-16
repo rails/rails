@@ -192,12 +192,12 @@ module Arel # :nodoc: all
 
         def visit_Arel_Nodes_With(o, collector)
           collector << "WITH "
-          inject_join o.children, collector, ", "
+          collect_ctes(o.children, collector)
         end
 
         def visit_Arel_Nodes_WithRecursive(o, collector)
           collector << "WITH RECURSIVE "
-          inject_join o.children, collector, ", "
+          collect_ctes(o.children, collector)
         end
 
         def visit_Arel_Nodes_Union(o, collector)
@@ -327,9 +327,9 @@ module Arel # :nodoc: all
           collector << quote_table_name(o.table_name) << "." << quote_column_name(o.column_name)
 
           if o.type == :in
-            collector << "IN ("
+            collector << " IN ("
           else
-            collector << "NOT IN ("
+            collector << " NOT IN ("
           end
 
           values = o.casted_values.map { |v| @connection.quote(v) }
@@ -873,6 +873,27 @@ module Arel # :nodoc: all
           collector = visit o.right, collector
           collector << " IS NULL)"
           collector << " THEN 0 ELSE 1 END"
+        end
+
+        def collect_ctes(children, collector)
+          children.each_with_index do |child, i|
+            collector << ", " unless i == 0
+
+            case child
+            when Arel::Nodes::As
+              name = child.left.name
+              relation = child.right
+            when Arel::Nodes::TableAlias
+              name = child.name
+              relation = child.relation
+            end
+
+            collector << quote_table_name(name)
+            collector << " AS "
+            visit relation, collector
+          end
+
+          collector
         end
     end
   end

@@ -199,7 +199,7 @@ module ActiveRecord
 
         private
           def singleton_method_added(name)
-            generate_relation_method(name) if Kernel.respond_to?(name)
+            generate_relation_method(name) if Kernel.respond_to?(name) && !ActiveRecord::Relation.method_defined?(name)
           end
 
           def valid_scope_name?(name)

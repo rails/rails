@@ -146,7 +146,6 @@ module ActiveRecord
       def serialize(value)
         mapping.fetch(value, value)
       end
-      alias :unchecked_serialize :serialize
 
       def assert_valid_value(value)
         unless serializable?(value)

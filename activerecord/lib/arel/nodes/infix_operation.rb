@@ -47,6 +47,18 @@ module Arel # :nodoc: all
       end
     end
 
+    class Contains < InfixOperation
+      def initialize(left, right)
+        super("@>", left, right)
+      end
+    end
+
+    class Overlaps < InfixOperation
+      def initialize(left, right)
+        super("&&", left, right)
+      end
+    end
+
     class BitwiseAnd < InfixOperation
       def initialize(left, right)
         super(:&, left, right)

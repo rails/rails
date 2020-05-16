@@ -437,16 +437,16 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     self.table_name = "books"
 
     belongs_to :author
-    enum read_status: { unread: 0, reading: 2, read: 3, forgotten: nil }
+    enum last_read: { unread: 0, reading: 2, read: 3, forgotten: nil }
   end
 
   def test_association_enum_works_properly
     author = SpecialAuthor.create!(name: "Test")
-    book = SpecialBook.create!(read_status: "reading")
+    book = SpecialBook.create!(last_read: "reading")
     author.books << book
 
-    assert_equal "reading", book.read_status
-    assert_not_equal 0, SpecialAuthor.joins(:books).where(books: { read_status: "reading" }).count
+    assert_equal "reading", book.last_read
+    assert_not_equal 0, SpecialAuthor.joins(:books).where(books: { last_read: "reading" }).count
   end
 
   # When creating objects on the association, we must not do it within a scope (even though it

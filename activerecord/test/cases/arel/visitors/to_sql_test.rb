@@ -708,6 +708,31 @@ module Arel
           }
         end
       end
+
+      describe "Nodes::With" do
+        it "handles table aliases" do
+          manager = Table.new(:foo).project(Arel.star).from(Arel.sql("expr2"))
+          expr1 = Table.new(:bar).project(Arel.star).as("expr1")
+          expr2 = Table.new(:baz).project(Arel.star).as("expr2")
+          manager.with(expr1, expr2)
+
+          _(compile(manager.ast)).must_be_like %{
+            WITH expr1 AS (SELECT * FROM "bar"), expr2 AS (SELECT * FROM "baz") SELECT * FROM expr2
+          }
+        end
+      end
+
+      describe "Nodes::WithRecursive" do
+        it "handles table aliases" do
+          manager = Table.new(:foo).project(Arel.star).from(Arel.sql("expr1"))
+          expr1 = Table.new(:bar).project(Arel.star).as("expr1")
+          manager.with(:recursive, expr1)
+
+          _(compile(manager.ast)).must_be_like %{
+            WITH RECURSIVE expr1 AS (SELECT * FROM "bar") SELECT * FROM expr1
+          }
+        end
+      end
     end
   end
 end

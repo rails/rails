@@ -135,11 +135,16 @@ module ActiveRecord
           if other.klass == relation.klass
             relation.left_outer_joins!(*other.left_outer_joins_values)
           else
-            associations = other.left_outer_joins_values
+            associations, others = other.left_outer_joins_values.partition do |join|
+              case join
+              when Hash, Symbol, Array; true
+              end
+            end
+
             join_dependency = other.construct_join_dependency(
               associations, Arel::Nodes::OuterJoin
             )
-            relation.joins!(join_dependency)
+            relation.left_outer_joins!(join_dependency, *others)
           end
         end
 

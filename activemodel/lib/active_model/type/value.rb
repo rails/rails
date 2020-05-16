@@ -53,7 +53,6 @@ module ActiveModel
       def serialize(value)
         value
       end
-      alias :unchecked_serialize :serialize
 
       # Type casts a value for schema dumping. This method is private, as we are
       # hoping to remove it entirely.
