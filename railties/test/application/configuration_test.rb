@@ -1421,22 +1421,22 @@ module ApplicationTests
       assert_equal 200, last_response.status
     end
 
-    test "config.action_controller.action_on_unpermitted_parameters is :log by default in development" do
+    test "config.action_controller.action_on_unpermitted_parameters is :raise by default in development" do
       app "development"
 
       require "action_controller/base"
       require "action_controller/api"
 
-      assert_equal :log, ActionController::Parameters.action_on_unpermitted_parameters
+      assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
     end
 
-    test "config.action_controller.action_on_unpermitted_parameters is :log by default in test" do
+    test "config.action_controller.action_on_unpermitted_parameters is :raise by default in test" do
       app "test"
 
       require "action_controller/base"
       require "action_controller/api"
 
-      assert_equal :log, ActionController::Parameters.action_on_unpermitted_parameters
+      assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
     end
 
     test "config.action_controller.action_on_unpermitted_parameters is false by default in production" do
