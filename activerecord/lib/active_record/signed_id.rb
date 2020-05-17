@@ -23,7 +23,7 @@ module ActiveRecord
       # +signed_id(expires_in: 15.minutes)+. If the time has elapsed before a signed find is attempted,
       # the signed id will no longer be valid, and nil is returned.
       #
-      # It's possibly to further restrict the use of a signed id with a purpose. This helps when you have a
+      # It's possible to further restrict the use of a signed id with a purpose. This helps when you have a
       # general base model, like a User, which might have signed ids for several things, like password reset
       # or email verification. The purpose that was set during generation must match the purpose set when
       # finding. If there's a mismatch, nil is again returned.
