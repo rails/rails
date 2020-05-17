@@ -100,6 +100,16 @@ module Rails
       end
     end
 
+    def yarn_when_updating
+      return if File.exist?("bin/yarn")
+
+      template "bin/yarn" do |content|
+        "#{shebang}\n" + content
+      end
+
+      chmod "bin", 0755 & ~File.umask, verbose: false
+    end
+
     def config
       empty_directory "config"
 
@@ -313,6 +323,11 @@ module Rails
         build(:bin_when_updating)
       end
       remove_task :update_bin_files
+
+      def update_bin_yarn
+        build(:yarn_when_updating)
+      end
+      remove_task :update_bin_yarn
 
       def update_active_storage
         unless skip_active_storage?
