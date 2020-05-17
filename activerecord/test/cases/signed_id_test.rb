@@ -31,15 +31,13 @@ class SignedIdTest < ActiveRecord::TestCase
   end
 
   test "fail to work without a signed_id_verifier_secret" do
-    begin
-      ActiveRecord::Base.signed_id_verifier_secret = nil
-      Account.instance_variable_set :@signed_id_verifier, nil
+    ActiveRecord::Base.signed_id_verifier_secret = nil
+    Account.instance_variable_set :@signed_id_verifier, nil
 
-      assert_raises(ArgumentError) do
-        @account.signed_id
-      end
-    ensure
-      ActiveRecord::Base.signed_id_verifier_secret = SIGNED_ID_VERIFIER_TEST_SECRET
+    assert_raises(ArgumentError) do
+      @account.signed_id
     end
+  ensure
+    ActiveRecord::Base.signed_id_verifier_secret = SIGNED_ID_VERIFIER_TEST_SECRET
   end
 end
