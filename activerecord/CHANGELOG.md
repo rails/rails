@@ -1,3 +1,24 @@
+*   Add support for finding records based on signed ids, which are tamper-proof, verified ids that can be
+    set to expire and scoped with a purpose. This is particularly useful for things like password reset 
+    or email verification, where you want the bearer of the signed id to be able to interact with the 
+    underlying record, but usually only within a certain time period.
+    
+    ```ruby
+    signed_id = User.first.signed_id expires_in: 15.minutes, purpose: :password_reset
+    
+    User.find_signed signed_id # => nil, since the purpose does not match
+    
+    travel 16.minutes
+    User.find_signed signed_id # => nil, since the signed id has expired
+    
+    travel_back
+    User.find_signed signed_id, purpose: :password_reset # => User.first
+
+    User.find_signed! "bad data" # => ActiveSupport::MessageVerifier::InvalidSignature
+    ```
+    
+    *DHH*
+
 *   Support `ALGORITHM = INSTANT` DDL option for index operations on MySQL.
 
     *Ryuta Kamizono*

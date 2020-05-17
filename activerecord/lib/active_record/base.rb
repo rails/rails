@@ -309,6 +309,7 @@ module ActiveRecord #:nodoc:
     include Serialization
     include Store
     include SecureToken
+    include SignedId
     include Suppressor
   end
 
