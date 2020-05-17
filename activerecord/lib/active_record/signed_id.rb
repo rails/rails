@@ -63,7 +63,9 @@ module ActiveRecord
         end
       end
 
-      # :nodoc:
+      # The verifier instance that all signed ids are generated and verified from. By default, it'll be initialized
+      # with the class-level +signed_id_verifier_secret+, which within Rails comes from the
+      # Rails.application.key_generator. By default, it's SHA256 for the digest and JSON for the serialization.
       def signed_id_verifier
         @signed_id_verifier ||= begin
           if signed_id_verifier_secret.nil?
@@ -72,6 +74,13 @@ module ActiveRecord
             ActiveSupport::MessageVerifier.new signed_id_verifier_secret, digest: "SHA256", serializer: JSON
           end
         end
+      end
+
+      # Allows you to pass in a custom verifier used for the signed ids. This also allows you to use different
+      # verifiers for different classes. This is also helpful if you need to rotate keys, as you can prepare
+      # your custom verifier for that in advance. See +ActiveSupport::MessageVerifier+ for details.
+      def signed_id_verifier=(verifier)
+        @signed_id_verifier = verifier
       end
 
       # :nodoc:

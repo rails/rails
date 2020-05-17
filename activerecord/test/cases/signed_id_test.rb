@@ -75,4 +75,13 @@ class SignedIdTest < ActiveRecord::TestCase
   ensure
     ActiveRecord::Base.signed_id_verifier_secret = SIGNED_ID_VERIFIER_TEST_SECRET
   end
+
+  test "use a custom verifier" do
+    old_verifier = Account.signed_id_verifier
+    Account.signed_id_verifier = ActiveSupport::MessageVerifier.new("sekret")
+    assert_not_equal ActiveRecord::Base.signed_id_verifier, Account.signed_id_verifier
+    assert_equal @account, Account.find_signed(@account.signed_id)
+  ensure
+    Account.signed_id_verifier = old_verifier
+  end
 end
