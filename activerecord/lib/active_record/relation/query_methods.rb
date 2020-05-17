@@ -1160,7 +1160,7 @@ module ActiveRecord
           when ActiveRecord::Associations::JoinDependency
             stashed_joins&.<< association
           else
-            yield if block_given?
+            yield association if block_given?
           end
         end
         result
@@ -1211,13 +1211,8 @@ module ActiveRecord
           end
         end
 
-        joins.each do |join|
-          case join
-          when Hash, Symbol, Array
-            buckets[:association_join] << join
-          when ActiveRecord::Associations::JoinDependency
-            buckets[:stashed_join] << join
-          when Arel::Nodes::Join
+        buckets[:association_join] = select_association_list(joins, buckets[:stashed_join]) do |join|
+          if join.is_a?(Arel::Nodes::Join)
             buckets[:join_node] << join
           else
             raise "unknown class: %s" % join.class.name
