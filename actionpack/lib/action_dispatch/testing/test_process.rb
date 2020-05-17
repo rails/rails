@@ -35,6 +35,8 @@ module ActionDispatch
               Please modify the call from
               `fixture_file_upload(#{original_path})` to `fixture_file_upload(#{non_deprecated_path})`.
             EOM
+          else
+            path = file_fixture(original_path)
           end
         elsif self.class.file_fixture_path && !File.exist?(path)
           path = file_fixture(path)
