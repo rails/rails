@@ -92,9 +92,6 @@ module Arel # :nodoc: all
           collector << " NULLS LAST"
         end
 
-        alias :visit_Arel_Nodes_Contains :visit_Arel_Nodes_InfixOperation
-        alias :visit_Arel_Nodes_Overlaps :visit_Arel_Nodes_InfixOperation
-
         # Used by Lateral visitor to enclose select queries in parentheses
         def grouping_parentheses(o, collector)
           if o.expr.is_a? Nodes::SelectStatement

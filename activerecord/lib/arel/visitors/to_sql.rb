@@ -729,11 +729,6 @@ module Arel # :nodoc: all
           visit o.right, collector
         end
 
-        alias :visit_Arel_Nodes_Addition       :visit_Arel_Nodes_InfixOperation
-        alias :visit_Arel_Nodes_Subtraction    :visit_Arel_Nodes_InfixOperation
-        alias :visit_Arel_Nodes_Multiplication :visit_Arel_Nodes_InfixOperation
-        alias :visit_Arel_Nodes_Division       :visit_Arel_Nodes_InfixOperation
-
         def visit_Arel_Nodes_UnaryOperation(o, collector)
           collector << " #{o.operator} "
           visit o.expr, collector

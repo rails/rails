@@ -470,6 +470,18 @@ module Arel
           _(compile(node)).must_equal %("users"."name" || "users"."name")
         end
 
+        it "should handle Contains" do
+          table = Table.new(:users)
+          node = table[:name].contains(table[:name])
+          _(compile(node)).must_equal %("users"."name" @> "users"."name")
+        end
+
+        it "should handle Overlaps" do
+          table = Table.new(:users)
+          node = table[:name].overlaps(table[:name])
+          _(compile(node)).must_equal %("users"."name" && "users"."name")
+        end
+
         it "should handle BitwiseAnd" do
           node = Arel::Attributes::Integer.new(Table.new(:products), :bitmap) & 16
           _(compile(node)).must_equal %(("products"."bitmap" & 16))
