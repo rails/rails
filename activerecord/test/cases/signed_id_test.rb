@@ -47,7 +47,7 @@ class SignedIdTest < ActiveRecord::TestCase
     end
   end
 
-  test "finding signed record within expiration date raises on the bang" do
+  test "finding signed record outside expiration date raises on the bang" do
     signed_id = @account.signed_id(expires_in: 1.minute)
     travel 2.minutes
 
