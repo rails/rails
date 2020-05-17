@@ -18,7 +18,7 @@ class SignedIdTest < ActiveRecord::TestCase
   end
 
   test "find signed record with a bang" do
-    assert_equal @account, Account.find_signed(@account.signed_id)
+    assert_equal @account, Account.find_signed!(@account.signed_id)
   end
 
   test "fail to find record from broken signed id" do
