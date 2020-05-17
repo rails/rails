@@ -308,9 +308,8 @@ module ActiveRecord
         result = skip_query_cache_if_necessary { @klass.connection.select_all(query_builder) }
 
         type_cast_calculated_value(result.cast_values.first, operation) do |value|
-          type = column.try(:type_caster) || klass.attribute_types.fetch(name = column_name.to_s) do
-            lookup_cast_type_from_join_dependencies(name, build_join_dependencies) || Type.default_value
-          end
+          type = column.try(:type_caster) ||
+            lookup_cast_type_from_join_dependencies(column_name.to_s, build_join_dependencies) || Type.default_value
           type.deserialize(value)
         end
       end
@@ -378,9 +377,8 @@ module ActiveRecord
           key = key_records[key] if associated
 
           result[key] = type_cast_calculated_value(row[column_alias], operation) do |value|
-            type ||= column.try(:type_caster) || klass.attribute_types.fetch(name = column_name.to_s) do
-              lookup_cast_type_from_join_dependencies(name, build_join_dependencies) || Type.default_value
-            end
+            type ||= column.try(:type_caster) ||
+              lookup_cast_type_from_join_dependencies(column_name.to_s, build_join_dependencies) || Type.default_value
             type.deserialize(value)
           end
         end
@@ -426,10 +424,10 @@ module ActiveRecord
       end
 
       def type_cast_pluck_values(result, columns)
-        join_dependencies = nil
         cast_types = if result.columns.size != columns.size
           klass.attribute_types
         else
+          join_dependencies = nil
           columns.map.with_index do |column, i|
             column.try(:type_caster) ||
               klass.attribute_types.fetch(name = result.columns[i]) do
