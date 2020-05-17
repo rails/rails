@@ -35,7 +35,7 @@ module ActiveRecord
       #   User.find_signed signed_id # => nil, since the purpose does not match
       #
       #   travel 16.minutes
-      #   User.find_signed signed_id # => nil, since the signed id has expired
+      #   User.find_signed signed_id, purpose: :password_reset # => nil, since the signed id has expired
       #
       #   travel_back
       #   User.find_signed signed_id, purpose: :password_reset # => User.first
