@@ -1,3 +1,8 @@
+*   The autoloading guide for Zeitwerk mode documents how to autoload classes
+    during application boot in a safe way.
+
+    *Haroon Ahmed*, *Xavier Noria*
+
 *   Use explicit `config/boot_with_spring.rb` boot file for bin/rails and bin/rake, which allows us to restrict Spring loading
     to only test and development, and everywhere to be able to skip spring by passing UNSPRUNG=1 as an env variable.
 
