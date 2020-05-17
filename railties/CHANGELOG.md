@@ -1,7 +1,9 @@
-*   Add default ENV variable option with BACKTRACE to turn off backtrace cleaning when debugging framework code in the 
+*   Add default ENV variable option with BACKTRACE to turn off backtrace cleaning when debugging framework code in the
     generated config/initializers/backtrace_silencers.rb.
-    
+
       `BACKTRACE=1 ./bin/rails runner "MyClass.perform"`
+
+    *DHH*
 
 *   The autoloading guide for Zeitwerk mode documents how to autoload classes
     during application boot in a safe way.
