@@ -58,11 +58,11 @@ namespace :app do
     task :upgrade_guide_info do
       Rails::AppUpdater.invoke_from_app_generator :display_upgrade_guide_info
     end
+  end
 
-    namespace :bin do
-      task :yarn do
-        Rails::AppUpdater.invoke_from_app_generator :update_bin_yarn
-      end
+  namespace :binstub do
+    task :yarn do
+      Rails::AppUpdater.invoke_from_app_generator :update_bin_yarn
     end
   end
 end

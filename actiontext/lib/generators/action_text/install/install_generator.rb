@@ -9,7 +9,7 @@ module ActionText
       source_root File.expand_path("templates", __dir__)
 
       def install_javascript_dependencies
-        rails_command "app:update:bin:yarn", inline: true
+        rails_command "app:binstub:yarn", inline: true
 
         say "Installing JavaScript dependencies", :green
         run "bin/yarn add #{js_dependencies.map { |name, version| "#{name}@#{version}" }.join(" ")}",
