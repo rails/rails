@@ -2,6 +2,7 @@
 
 require "cases/helper"
 require "models/account"
+require "models/company"
 
 SIGNED_ID_VERIFIER_TEST_SECRET = "This is normally set by the railtie initializer when used with Rails!"
 
@@ -13,6 +14,10 @@ class SignedIdTest < ActiveRecord::TestCase
   setup { @account = Account.first }
 
   test "find signed record" do
+    assert_equal @account, Account.find_signed(@account.signed_id)
+  end
+
+  test "find signed record with a bang" do
     assert_equal @account, Account.find_signed(@account.signed_id)
   end
 
@@ -28,6 +33,36 @@ class SignedIdTest < ActiveRecord::TestCase
     signed_id = @account.signed_id(expires_in: 1.minute)
     travel 2.minutes
     assert_nil Account.find_signed(signed_id)
+  end
+
+  test "fail to find record from that has since been destroyed" do
+    signed_id = @account.signed_id(expires_in: 1.minute)
+    @account.destroy
+    assert_nil Account.find_signed signed_id
+  end
+
+  test "finding record from broken signed id raises on the bang" do
+    assert_raises(ActiveSupport::MessageVerifier::InvalidSignature) do
+      Account.find_signed! "this will blow up"
+    end
+  end
+
+  test "finding signed record within expiration date raises on the bang" do
+    signed_id = @account.signed_id(expires_in: 1.minute)
+    travel 2.minutes
+
+    assert_raises(ActiveSupport::MessageVerifier::InvalidSignature) do
+      Account.find_signed!(signed_id)
+    end
+  end
+
+  test "finding signed record that has been destroyed raises on the bang" do
+    signed_id = @account.signed_id(expires_in: 1.minute)
+    @account.destroy
+
+    assert_raises(ActiveRecord::RecordNotFound) do
+      Account.find_signed!(signed_id)
+    end
   end
 
   test "fail to work without a signed_id_verifier_secret" do
