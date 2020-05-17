@@ -814,22 +814,31 @@ class EagerAssociationTest < ActiveRecord::TestCase
     e = assert_raise(ActiveRecord::AssociationNotFoundError) {
       Post.all.merge!(includes: :monkeys).find(6)
     }
-    assert_equal("Association named 'monkeys' was not found on Post; perhaps you misspelled it?", e.message)
+    assert_match(/Association named 'monkeys' was not found on Post; perhaps you misspelled it\?/, e.message)
 
     e = assert_raise(ActiveRecord::AssociationNotFoundError) {
       Post.all.merge!(includes: [ :monkeys ]).find(6)
     }
-    assert_equal("Association named 'monkeys' was not found on Post; perhaps you misspelled it?", e.message)
+    assert_match(/Association named 'monkeys' was not found on Post; perhaps you misspelled it\?/, e.message)
 
     e = assert_raise(ActiveRecord::AssociationNotFoundError) {
       Post.all.merge!(includes: [ "monkeys" ]).find(6)
     }
-    assert_equal("Association named 'monkeys' was not found on Post; perhaps you misspelled it?", e.message)
+    assert_match(/Association named 'monkeys' was not found on Post; perhaps you misspelled it\?/, e.message)
 
     e = assert_raise(ActiveRecord::AssociationNotFoundError) {
       Post.all.merge!(includes: [ :monkeys, :elephants ]).find(6)
     }
-    assert_equal("Association named 'monkeys' was not found on Post; perhaps you misspelled it?", e.message)
+    assert_match(/Association named 'monkeys' was not found on Post; perhaps you misspelled it\?/, e.message)
+  end
+
+  if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
+    test "exceptions have suggestions for fix" do
+      error = assert_raise(ActiveRecord::AssociationNotFoundError) {
+        Post.all.merge!(includes: :monkeys).find(6)
+      }
+      assert_match "Did you mean?", error.message
+    end
   end
 
   def test_eager_has_many_through_with_order

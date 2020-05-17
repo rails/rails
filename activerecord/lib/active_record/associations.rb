@@ -5,12 +5,38 @@ require "active_support/core_ext/string/conversions"
 
 module ActiveRecord
   class AssociationNotFoundError < ConfigurationError #:nodoc:
+    attr_reader :record, :association_name
     def initialize(record = nil, association_name = nil)
+      @record           = record
+      @association_name = association_name
       if record && association_name
         super("Association named '#{association_name}' was not found on #{record.class.name}; perhaps you misspelled it?")
       else
         super("Association was not found.")
       end
+    end
+
+    class Correction
+      def initialize(error)
+        @error = error
+      end
+
+      def corrections
+        if @error.association_name
+          maybe_these = @error.record.class.reflections.keys
+
+          maybe_these.sort_by { |n|
+            DidYouMean::Jaro.distance(@error.association_name.to_s, n)
+          }.reverse.first(4)
+        else
+          []
+        end
+      end
+    end
+
+    # We may not have DYM, and DYM might not let us register error handlers
+    if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
+      DidYouMean.correct_error(self, Correction)
     end
   end
 
