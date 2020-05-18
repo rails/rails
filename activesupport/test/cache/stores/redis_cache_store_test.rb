@@ -14,9 +14,10 @@ Redis::Connection.drivers.append(driver)
 # Emulates a latency on Redis's back-end for the key latency to facilitate
 # connection pool testing.
 class SlowRedis < Redis
-  def get(key, options = {})
+  def get(key)
     if key =~ /latency/
       sleep 3
+      super
     else
       super
     end
