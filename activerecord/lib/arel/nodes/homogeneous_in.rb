@@ -21,7 +21,7 @@ module Arel # :nodoc: all
       alias :== :eql?
 
       def equality?
-        true
+        type == :in
       end
 
       def invert
