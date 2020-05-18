@@ -320,7 +320,7 @@ module ActiveSupport
         # Read an entry from the cache.
         def read_entry(key, options = nil)
           failsafe :read_entry do
-            raw = options&.fetch(:raw, false)
+            raw = options && options.fetch(:raw, false)
             deserialize_entry(redis.with { |c| c.get(key) }, raw: raw)
           end
         end
@@ -336,7 +336,7 @@ module ActiveSupport
         def read_multi_mget(*names)
           options = names.extract_options!
           options = merged_options(options)
-          raw = options&.fetch(:raw, false)
+          raw = options && options.fetch(:raw, false)
 
           keys = names.map { |name| normalize_key(name, options) }
 
