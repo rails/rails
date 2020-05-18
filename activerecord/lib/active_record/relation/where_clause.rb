@@ -86,7 +86,7 @@ module ActiveRecord
       end
 
       def self.empty
-        @empty ||= new([]).tap(&:referenced_columns).freeze
+        @empty ||= new([]).freeze
       end
 
       def contradiction?
@@ -113,9 +113,12 @@ module ActiveRecord
         attr_reader :predicates
 
         def referenced_columns
-          @referenced_columns ||= begin
-            equality_nodes = predicates.select { |n| equality_node?(n) }
-            Set.new(equality_nodes, &:left)
+          predicates.each_with_object({}) do |node, hash|
+            attr = extract_attribute(node) || begin
+              node.left if equality_node?(node) && node.left.is_a?(Arel::Predications)
+            end
+
+            hash[attr] = node if attr
           end
         end
 
@@ -144,8 +147,27 @@ module ActiveRecord
         end
 
         def predicates_unreferenced_by(other)
-          predicates.reject do |n|
-            equality_node?(n) && other.referenced_columns.include?(n.left)
+          referenced_columns = other.referenced_columns
+
+          predicates.reject do |node|
+            attr = extract_attribute(node) || begin
+              node.left if equality_node?(node) && node.left.is_a?(Arel::Predications)
+            end
+            next false unless attr
+
+            ref = referenced_columns[attr]
+            next false unless ref
+
+            if equality_node?(node) && equality_node?(ref) || node == ref
+              true
+            else
+              ActiveSupport::Deprecation.warn(<<-MSG.squish)
+                Merging (#{node.to_sql}) and (#{ref.to_sql}) no longer maintain
+                both conditions, and will be replaced by the latter in Rails 6.2.
+                To migrate to Rails 6.2's behavior, use `relation.merge(other, rewhere: true)`.
+              MSG
+              false
+            end
           end
         end
 

@@ -23,18 +23,20 @@ class RelationMergingTest < ActiveRecord::TestCase
     assert_equal [mary, bob],   mary_and_bob
 
     assert_equal [mary], david_and_mary.merge(Author.where(id: mary))
-    assert_equal [bob],  david_and_mary.merge(Author.where(id: bob))
-
     assert_equal [mary], david_and_mary.merge(Author.rewhere(id: mary))
-    assert_equal [bob],  david_and_mary.merge(Author.rewhere(id: bob))
-
     assert_equal [mary], david_and_mary.merge(Author.where(id: mary), rewhere: true)
+
+    assert_equal [bob],  david_and_mary.merge(Author.where(id: bob))
+    assert_equal [bob],  david_and_mary.merge(Author.rewhere(id: bob))
     assert_equal [bob],  david_and_mary.merge(Author.where(id: bob), rewhere: true)
 
-    assert_equal [mary, bob], david_and_mary.merge(mary_and_bob)
-    assert_equal [david, mary], mary_and_bob.merge(david_and_mary)
+    assert_equal [david, bob], mary_and_bob.merge(Author.where(id: [david, bob]))
+    assert_equal [david, bob], mary_and_bob.merge(Author.where(id: [david, bob]), rewhere: true)
 
+    assert_equal [mary, bob], david_and_mary.merge(mary_and_bob)
     assert_equal [mary, bob], david_and_mary.merge(mary_and_bob, rewhere: true)
+
+    assert_equal [david, mary], mary_and_bob.merge(david_and_mary)
     assert_equal [david, mary], mary_and_bob.merge(david_and_mary, rewhere: true)
 
     david_and_bob = Author.where(id: david).or(Author.where(name: "Bob"))
@@ -52,19 +54,36 @@ class RelationMergingTest < ActiveRecord::TestCase
     assert_equal [david, mary], david_and_mary
     assert_equal [mary, bob],   mary_and_bob
 
-    assert_equal [mary], david_and_mary.merge(Author.where(id: mary))
-    assert_equal [],     david_and_mary.merge(Author.where(id: bob))
+    author_id = Regexp.escape(Author.connection.quote_table_name("authors.id"))
+    message = %r/Merging \(#{author_id} BETWEEN (\?|\W?\w?\d) AND \g<1>\) and \(#{author_id} (?:= \g<1>|IN \(\g<1>, \g<1>\))\) no longer maintain both conditions, and will be replaced by the latter in Rails 6\.2\./
 
+    assert_deprecated(message) do
+      assert_equal [mary], david_and_mary.merge(Author.where(id: mary))
+    end
     assert_equal [mary], david_and_mary.merge(Author.rewhere(id: mary))
-    assert_equal [bob],  david_and_mary.merge(Author.rewhere(id: bob))
-
     assert_equal [mary], david_and_mary.merge(Author.where(id: mary), rewhere: true)
+
+    assert_deprecated(message) do
+      assert_equal [], david_and_mary.merge(Author.where(id: bob))
+    end
+    assert_equal [bob],  david_and_mary.merge(Author.rewhere(id: bob))
     assert_equal [bob],  david_and_mary.merge(Author.where(id: bob), rewhere: true)
 
-    assert_equal [mary], david_and_mary.merge(mary_and_bob)
-    assert_equal [mary], mary_and_bob.merge(david_and_mary)
+    assert_deprecated(message) do
+      assert_equal [bob], mary_and_bob.merge(Author.where(id: [david, bob]))
+    end
+    assert_equal [david, bob], mary_and_bob.merge(Author.where(id: [david, bob]), rewhere: true)
 
+    message = %r/Merging \(#{author_id} BETWEEN (\?|\W?\w?\d) AND \g<1>\) and \(#{author_id} BETWEEN \g<1> AND \g<1>\) no longer maintain both conditions, and will be replaced by the latter in Rails 6\.2\./
+
+    assert_deprecated(message) do
+      assert_equal [mary], david_and_mary.merge(mary_and_bob)
+    end
     assert_equal [mary, bob], david_and_mary.merge(mary_and_bob, rewhere: true)
+
+    assert_deprecated(message) do
+      assert_equal [mary], mary_and_bob.merge(david_and_mary)
+    end
     assert_equal [david, mary], mary_and_bob.merge(david_and_mary, rewhere: true)
 
     david_and_bob = Author.where(id: david).or(Author.where(name: "Bob"))
@@ -82,19 +101,36 @@ class RelationMergingTest < ActiveRecord::TestCase
     assert_equal [david, mary], david_and_mary
     assert_equal [mary, bob],   mary_and_bob
 
-    assert_equal [mary], david_and_mary.merge(Author.where(id: mary))
-    assert_equal [],     david_and_mary.merge(Author.where(id: bob))
+    author_id = Regexp.escape(Author.connection.quote_table_name("authors.id"))
+    message = %r/Merging \(\(#{author_id} = (\?|\W?\w?\d) OR #{author_id} = \g<1>\)\) and \(#{author_id} (?:= \g<1>|IN \(\g<1>, \g<1>\))\) no longer maintain both conditions, and will be replaced by the latter in Rails 6\.2\./
 
+    assert_deprecated(message) do
+      assert_equal [mary], david_and_mary.merge(Author.where(id: mary))
+    end
     assert_equal [mary], david_and_mary.merge(Author.rewhere(id: mary))
-    assert_equal [bob],  david_and_mary.merge(Author.rewhere(id: bob))
-
     assert_equal [mary], david_and_mary.merge(Author.where(id: mary), rewhere: true)
+
+    assert_deprecated(message) do
+      assert_equal [], david_and_mary.merge(Author.where(id: bob))
+    end
+    assert_equal [bob],  david_and_mary.merge(Author.rewhere(id: bob))
     assert_equal [bob],  david_and_mary.merge(Author.where(id: bob), rewhere: true)
 
-    assert_equal [mary], david_and_mary.merge(mary_and_bob)
-    assert_equal [mary], mary_and_bob.merge(david_and_mary)
+    assert_deprecated(message) do
+      assert_equal [bob], mary_and_bob.merge(Author.where(id: [david, bob]))
+    end
+    assert_equal [david, bob], mary_and_bob.merge(Author.where(id: [david, bob]), rewhere: true)
 
+    message = %r/Merging \(\(#{author_id} = (\?|\W?\w?\d) OR #{author_id} = \g<1>\)\) and \(\(#{author_id} = \g<1> OR #{author_id} = \g<1>\)\) no longer maintain both conditions, and will be replaced by the latter in Rails 6\.2\./
+
+    assert_deprecated(message) do
+      assert_equal [mary], david_and_mary.merge(mary_and_bob)
+    end
     assert_equal [mary, bob], david_and_mary.merge(mary_and_bob, rewhere: true)
+
+    assert_deprecated(message) do
+      assert_equal [mary], mary_and_bob.merge(david_and_mary)
+    end
     assert_equal [david, mary], mary_and_bob.merge(david_and_mary, rewhere: true)
 
     david_and_bob = Author.where(id: david).or(Author.where(name: "Bob"))
@@ -109,8 +145,16 @@ class RelationMergingTest < ActiveRecord::TestCase
     non_mary_and_bob = Author.where.not(id: [mary, bob])
 
     assert_equal [david], non_mary_and_bob
-    assert_equal [david], Author.where(id: david).merge(non_mary_and_bob)
-    assert_equal [], Author.where(id: mary).merge(non_mary_and_bob)
+
+    assert_deprecated do
+      assert_equal [david], Author.where(id: david).merge(non_mary_and_bob)
+    end
+    assert_equal [david], Author.where(id: david).merge(non_mary_and_bob, rewhere: true)
+
+    assert_deprecated do
+      assert_equal [], Author.where(id: mary).merge(non_mary_and_bob)
+    end
+    assert_equal [david], Author.where(id: mary).merge(non_mary_and_bob, rewhere: true)
   end
 
   def test_merge_doesnt_duplicate_same_clauses
