@@ -1,3 +1,8 @@
+## Rails 6.0.3.1 (May 18, 2020) ##
+
+*   No changes.
+
+
 ## Rails 6.0.3 (May 06, 2020) ##
 
 *   No changes.
