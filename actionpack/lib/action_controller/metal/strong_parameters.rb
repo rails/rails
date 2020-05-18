@@ -364,6 +364,8 @@ module ActionController
       @parameters.each_pair do |key, value|
         yield [key, convert_hashes_to_parameters(key, value)]
       end
+
+      self
     end
     alias_method :each, :each_pair
 
@@ -374,6 +376,8 @@ module ActionController
       @parameters.each_pair do |key, value|
         yield convert_hashes_to_parameters(key, value)
       end
+
+      self
     end
 
     # Attribute that keeps track of converted arrays, if any, to avoid double

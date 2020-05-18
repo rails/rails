@@ -19,6 +19,18 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     )
   end
 
+  test "each returns self" do
+    assert_same @params, @params.each { |_| _ }
+  end
+
+  test "each_pair returns self" do
+    assert_same @params, @params.each_pair { |_| _ }
+  end
+
+  test "each_value returns self" do
+    assert_same @params, @params.each_value { |_| _ }
+  end
+
   test "[] retains permitted status" do
     @params.permit!
     assert_predicate @params[:person], :permitted?
