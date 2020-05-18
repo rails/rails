@@ -391,6 +391,19 @@ class Message < ApplicationRecord
   has_many_attached :images, service: :s3
 end
 ```
+### Attaching A Single Blob To Multiple Records
+
+Sometimes you want to attach the same blob to multiple records. One situation where
+this might occur is if you want to duplicate a record. Active Storage supports multiple
+records attached to a single blob. To do so, attach the original blob to a new record:
+
+```ruby
+@new_record.image.attach(@original.image.blob)
+```
+
+You don't have to worry about deleting the attachment from either of the records;
+Active Storage automatic purging is smart enough to only purge a blob without any
+attachments. As long as one record is attached to a blob, it won't be purged.
 
 ### Attaching File/IO Objects
 
