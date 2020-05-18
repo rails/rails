@@ -47,7 +47,7 @@ module ActiveRecord
 
         where_clause = @scope.send(:where_clause_factory).build(opts, rest)
 
-        @scope.references!(PredicateBuilder.references(opts)) if Hash === opts
+        @scope.references_values |= PredicateBuilder.references(opts) if Hash === opts
 
         if not_behaves_as_nor?(opts)
           ActiveSupport::Deprecation.warn(<<~MSG.squish)
@@ -182,9 +182,6 @@ module ActiveRecord
     end
 
     def includes!(*args) # :nodoc:
-      args.compact_blank!
-      args.flatten!
-
       self.includes_values |= args
       self
     end
@@ -248,7 +245,6 @@ module ActiveRecord
     end
 
     def references!(*table_names) # :nodoc:
-      table_names.flatten!
       table_names.map!(&:to_s)
 
       self.references_values |= table_names
@@ -304,13 +300,11 @@ module ActiveRecord
         return super()
       end
 
-      raise ArgumentError, "Call `select' with at least one field" if fields.empty?
+      check_if_method_has_arguments!(:select, fields, "Call `select' with at least one field.")
       spawn._select!(*fields)
     end
 
     def _select!(*fields) # :nodoc:
-      fields.compact_blank!
-      fields.flatten!
       self.select_values += fields
       self
     end
@@ -362,8 +356,6 @@ module ActiveRecord
     end
 
     def group!(*args) # :nodoc:
-      args.flatten!
-
       self.group_values += args
       self
     end
@@ -388,14 +380,15 @@ module ActiveRecord
     #   User.order('name DESC, email')
     #   # SELECT "users".* FROM "users" ORDER BY name DESC, email
     def order(*args)
-      check_if_method_has_arguments!(:order, args)
+      check_if_method_has_arguments!(:order, args) do
+        sanitize_order_arguments(args)
+      end
       spawn.order!(*args)
     end
 
     # Same as #order but operates on relation in-place instead of copying.
     def order!(*args) # :nodoc:
-      preprocess_order_args(args)
-
+      preprocess_order_args(args) unless args.empty?
       self.order_values += args
       self
     end
@@ -410,14 +403,15 @@ module ActiveRecord
     #
     # generates a query with 'ORDER BY id ASC, name ASC'.
     def reorder(*args)
-      check_if_method_has_arguments!(:reorder, args)
+      check_if_method_has_arguments!(:reorder, args) do
+        sanitize_order_arguments(args) unless args.all?(&:blank?)
+      end
       spawn.reorder!(*args)
     end
 
     # Same as #reorder but operates on relation in-place instead of copying.
     def reorder!(*args) # :nodoc:
       preprocess_order_args(args) unless args.all?(&:blank?)
-
       self.reordering_value = true
       self.order_values = args
       self
@@ -466,7 +460,6 @@ module ActiveRecord
     end
 
     def unscope!(*args) # :nodoc:
-      args.flatten!
       self.unscope_values += args
 
       args.each do |scope|
@@ -530,8 +523,6 @@ module ActiveRecord
     end
 
     def joins!(*args) # :nodoc:
-      args.compact!
-      args.flatten!
       self.joins_values |= args
       self
     end
@@ -548,8 +539,6 @@ module ActiveRecord
     alias :left_joins :left_outer_joins
 
     def left_outer_joins!(*args) # :nodoc:
-      args.compact!
-      args.flatten!
       self.left_outer_joins_values |= args
       self
     end
@@ -737,7 +726,7 @@ module ActiveRecord
 
       self.where_clause = self.where_clause.or(other.where_clause)
       self.having_clause = having_clause.or(other.having_clause)
-      self.references_values += other.references_values
+      self.references_values |= other.references_values
 
       self
     end
@@ -752,8 +741,7 @@ module ActiveRecord
 
     def having!(opts, *rest) # :nodoc:
       opts = sanitize_forbidden_attributes(opts)
-      references!(PredicateBuilder.references(opts)) if Hash === opts
-
+      self.references_values |= PredicateBuilder.references(opts) if Hash === opts
       self.having_clause += having_clause_factory.build(opts, rest)
       self
     end
@@ -1012,8 +1000,6 @@ module ActiveRecord
     end
 
     def optimizer_hints!(*args) # :nodoc:
-      args.flatten!
-
       self.optimizer_hints_values |= args
       self
     end
@@ -1084,7 +1070,7 @@ module ActiveRecord
 
       def build_where_clause(opts, *rest)
         opts = sanitize_forbidden_attributes(opts)
-        references!(PredicateBuilder.references(opts)) if Hash === opts
+        self.references_values |= PredicateBuilder.references(opts) if Hash === opts
         where_clause_factory.build(opts, rest)
       end
 
@@ -1098,23 +1084,18 @@ module ActiveRecord
         arel = Arel::SelectManager.new(table)
 
         if !joins_values.empty?
-          build_joins(arel, joins_values.flatten, aliases)
+          build_joins(arel, joins_values, aliases)
         elsif !left_outer_joins_values.empty?
-          build_left_outer_joins(arel, left_outer_joins_values.flatten, aliases)
+          build_left_outer_joins(arel, left_outer_joins_values, aliases)
         end
 
         arel.where(where_clause.ast) unless where_clause.empty?
         arel.having(having_clause.ast) unless having_clause.empty?
-        if limit_value
-          arel.take(build_cast_value("LIMIT", connection.sanitize_limit(limit_value)))
-        end
-        if offset_value
-          arel.skip(build_cast_value("OFFSET", offset_value.to_i))
-        end
-        arel.group(*arel_columns(group_values.uniq.compact_blank)) unless group_values.empty?
+        arel.take(build_cast_value("LIMIT", connection.sanitize_limit(limit_value))) if limit_value
+        arel.skip(build_cast_value("OFFSET", offset_value.to_i)) if offset_value
+        arel.group(*arel_columns(group_values.uniq)) unless group_values.empty?
 
         build_order(arel)
-
         build_select(arel)
 
         arel.optimizer_hints(*optimizer_hints_values) unless optimizer_hints_values.empty?
@@ -1181,10 +1162,11 @@ module ActiveRecord
 
         unless left_outer_joins_values.empty?
           stashed_left_joins = []
-          left_joins = valid_association_list(left_outer_joins_values.flatten, stashed_left_joins)
+          left_joins = valid_association_list(left_outer_joins_values, stashed_left_joins)
           stashed_left_joins.unshift construct_join_dependency(left_joins, Arel::Nodes::OuterJoin)
         end
 
+        joins = joins.dup
         if joins.last.is_a?(ActiveRecord::Associations::JoinDependency)
           stashed_eager_load = joins.pop if joins.last.base_klass == klass
         end
@@ -1346,7 +1328,6 @@ module ActiveRecord
       end
 
       def preprocess_order_args(order_args)
-        order_args = sanitize_order_arguments(order_args)
         @klass.disallow_raw_sql!(
           order_args.flat_map { |a| a.is_a?(Hash) ? a.keys : a },
           permit: connection.column_name_with_order_matcher
@@ -1355,7 +1336,7 @@ module ActiveRecord
         validate_order_args(order_args)
 
         references = column_references(order_args)
-        references!(references) if references.any?
+        self.references_values |= references unless references.empty?
 
         # if a symbol is given we prepend the quoted table name
         order_args.map! do |arg|
@@ -1378,7 +1359,7 @@ module ActiveRecord
       end
 
       def sanitize_order_arguments(order_args)
-        order_args.reject!(&:blank?)
+        order_args.compact_blank!
         order_args.map! do |arg|
           klass.sanitize_sql_for_order(arg)
         end
@@ -1442,9 +1423,14 @@ module ActiveRecord
       #   check_if_method_has_arguments!("references", args)
       #   ...
       # end
-      def check_if_method_has_arguments!(method_name, args)
+      def check_if_method_has_arguments!(method_name, args, message = "The method .#{method_name}() must contain arguments.")
         if args.blank?
-          raise ArgumentError, "The method .#{method_name}() must contain arguments."
+          raise ArgumentError, message
+        elsif block_given?
+          yield args
+        else
+          args.flatten!
+          args.compact_blank!
         end
       end
 
