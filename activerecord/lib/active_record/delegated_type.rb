@@ -110,7 +110,7 @@ module ActiveRecord
     #   Entry#message_id      # => returns entryable_id, when entryable_type == "Message", otherwise nil
     #   Entry.comments        # => Entry.where(entryable_type: "Comment")
     #   Entry#comment?        # => true when entryable_type == "Comment"
-    #   Entry#comment         # => returns the comment record, when entryable_type == "Message", otherwise nil
+    #   Entry#comment         # => returns the comment record, when entryable_type == "Comment", otherwise nil
     #   Entry#comment_id      # => returns entryable_id, when entryable_type == "Comment", otherwise nil
     #
     # The +options+ are passed directly to the +belongs_to+ call, so this is where you declare +dependent+ etc.
