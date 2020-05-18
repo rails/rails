@@ -1,3 +1,7 @@
+## Rails 5.2.4.3 (May 18, 2020) ##
+
+*   No changes.
+
 ## Rails 5.2.4.2 (March 19, 2020) ##
 
 *   No changes.

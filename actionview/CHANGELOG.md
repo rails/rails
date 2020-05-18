@@ -1,3 +1,8 @@
+## Rails 5.2.4.3 (May 18, 2020) ##
+
+*   [CVE-2020-8167] Check that request is same-origin prior to including CSRF token in XHRs
+
+
 ## Rails 5.2.4.2 (March 19, 2020) ##
 
 *   Fix possible XSS vector in `escape_javascript` helper

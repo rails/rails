@@ -337,6 +337,8 @@ module ActionController
       @parameters.each_pair do |key, value|
         yield [key, convert_hashes_to_parameters(key, value)]
       end
+
+      self
     end
     alias_method :each, :each_pair
 
