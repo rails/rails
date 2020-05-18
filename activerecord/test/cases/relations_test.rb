@@ -2204,6 +2204,13 @@ class RelationTest < ActiveRecord::TestCase
     assert_empty authors
   end
 
+  (ActiveRecord::Relation::MULTI_VALUE_METHODS - [:extending]).each do |method|
+    test "#{method} with blank value" do
+      authors = Author.public_send(method, [""])
+      assert_empty authors.public_send(:"#{method}_values")
+    end
+  end
+
   private
     def custom_post_relation(alias_name = "omg_posts")
       table_alias = Post.arel_table.alias(alias_name)

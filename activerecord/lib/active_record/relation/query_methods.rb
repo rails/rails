@@ -1359,12 +1359,11 @@ module ActiveRecord
       end
 
       def sanitize_order_arguments(order_args)
-        order_args.compact_blank!
         order_args.map! do |arg|
           klass.sanitize_sql_for_order(arg)
         end
         order_args.flatten!
-        order_args
+        order_args.compact_blank!
       end
 
       def column_references(order_args)
