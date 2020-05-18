@@ -6,14 +6,16 @@ require "action_dispatch/middleware/flash"
 module ActionDispatch
   module TestProcess
     module FixtureFile
-      # Shortcut for <tt>Rack::Test::UploadedFile.new(File.join(ActionDispatch::IntegrationTest.fixture_path, path), type)</tt>:
+      # Shortcut for <tt>Rack::Test::UploadedFile.new(File.join(ActionDispatch::IntegrationTest.file_fixture_path, path), type)</tt>:
       #
-      #   post :change_avatar, params: { avatar: fixture_file_upload('files/spongebob.png', 'image/png') }
+      #   post :change_avatar, params: { avatar: fixture_file_upload('spongebob.png', 'image/png') }
+      #
+      # Default fixture files location is <tt>test/fixtures/files</tt>.
       #
       # To upload binary files on Windows, pass <tt>:binary</tt> as the last parameter.
       # This will not affect other platforms:
       #
-      #   post :change_avatar, params: { avatar: fixture_file_upload('files/spongebob.png', 'image/png', :binary) }
+      #   post :change_avatar, params: { avatar: fixture_file_upload('spongebob.png', 'image/png', :binary) }
       def fixture_file_upload(path, mime_type = nil, binary = false)
         if self.class.respond_to?(:fixture_path) && self.class.fixture_path &&
             !File.exist?(path)
