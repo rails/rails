@@ -168,6 +168,16 @@ class PerformActionTest < ActionController::TestCase
     assert_equal "The action 'non_existent' could not be found for EmptyController", exception.message
   end
 
+  if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
+    def test_exceptions_have_suggestions_for_fix
+      use_controller SimpleController
+      exception = assert_raise AbstractController::ActionNotFound do
+        get :non_existent
+      end
+      assert_match "Did you mean?", exception.message
+    end
+  end
+
   def test_action_missing_should_work
     use_controller ActionMissingController
     get :arbitrary_action
