@@ -1056,6 +1056,23 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       assert_equal "This is a comment", column(:birthdate).comment
     end
 
+    def test_rename_columns
+      with_bulk_change_table do |t|
+        t.string :qualification
+      end
+
+      assert column(:qualification)
+
+      with_bulk_change_table do |t|
+        t.rename :qualification, :experience
+        t.string :qualification_experience
+      end
+
+      assert_not column(:qualification)
+      assert column(:experience)
+      assert column(:qualification_experience)
+    end
+
     def test_removing_columns
       with_bulk_change_table do |t|
         t.string :qualification, :experience
