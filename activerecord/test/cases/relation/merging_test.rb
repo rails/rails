@@ -88,6 +88,16 @@ class RelationMergingTest < ActiveRecord::TestCase
     assert_equal [david, mary], mary_and_bob.merge(david_and_mary, rewhere: true)
   end
 
+  def test_merge_not_in_clause
+    david, mary, bob = authors(:david, :mary, :bob)
+
+    non_mary_and_bob = Author.where.not(id: [mary, bob])
+
+    assert_equal [david], non_mary_and_bob
+    assert_equal [david], Author.where(id: david).merge(non_mary_and_bob)
+    assert_equal [], Author.where(id: mary).merge(non_mary_and_bob)
+  end
+
   def test_relation_merging
     devs = Developer.where("salary >= 80000").merge(Developer.limit(2)).merge(Developer.order("id ASC").where("id < 3"))
     assert_equal [developers(:david), developers(:jamis)], devs.to_a
