@@ -667,7 +667,7 @@ module ActiveRecord
         end
 
         def rename_column_for_alter(table_name, column_name, new_column_name)
-          return super if supports_rename_column?
+          return rename_column_sql(table_name, column_name, new_column_name) if supports_rename_column?
 
           column  = column_for(table_name, column_name)
           options = {
