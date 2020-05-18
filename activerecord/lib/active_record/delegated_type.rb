@@ -58,7 +58,7 @@ module ActiveRecord
   #   end
   #
   #   # Schema: comments[ id, content ]
-  #   class Message < ApplicationRecord
+  #   class Comment < ApplicationRecord
   #     include Entryable
   #   end
   #
