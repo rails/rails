@@ -10,21 +10,21 @@ module ActiveRecord
       end
 
       def +(other)
-        WhereClause.new(
-          predicates + other.predicates,
-        )
+        WhereClause.new(predicates + other.predicates)
       end
 
       def -(other)
-        WhereClause.new(
-          predicates - other.predicates,
-        )
+        WhereClause.new(predicates - other.predicates)
       end
 
-      def merge(other)
-        WhereClause.new(
-          predicates_unreferenced_by(other) + other.predicates,
-        )
+      def merge(other, rewhere = nil)
+        predicates = if rewhere
+          except_predicates(other.extract_attributes)
+        else
+          predicates_unreferenced_by(other)
+        end
+
+        WhereClause.new(predicates + other.predicates)
       end
 
       def except(*columns)
@@ -98,10 +98,12 @@ module ActiveRecord
         end
       end
 
-      def each_attribute(&block)
+      def extract_attributes
+        attrs = []
         predicates.each do |node|
-          Arel.fetch_attribute(node, &block)
+          Arel.fetch_attribute(node) { |attr| attrs << attr }
         end
+        attrs
       end
 
       protected
