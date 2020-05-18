@@ -35,7 +35,7 @@ module ActionDispatch
               In Rails 6.2, the path needs to be relative to `file_fixture_path`.
 
               Please modify the call from
-              `fixture_file_upload(#{original_path})` to `fixture_file_upload(#{non_deprecated_path})`.
+              `fixture_file_upload("#{original_path}")` to `fixture_file_upload("#{non_deprecated_path}")`.
             EOM
           else
             path = file_fixture(original_path)
