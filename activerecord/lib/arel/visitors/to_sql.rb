@@ -332,15 +332,14 @@ module Arel # :nodoc: all
             collector << " NOT IN ("
           end
 
-          values = o.casted_values.map { |v| @connection.quote(v) }
+          values = o.casted_values
 
-          expr = if values.empty?
-            @connection.quote(nil)
+          if values.empty?
+            collector << @connection.quote(nil)
           else
-            values.join(",")
+            collector.add_binds(values, &bind_block)
           end
 
-          collector << expr
           collector << ")"
           collector
         end
@@ -691,8 +690,13 @@ module Arel # :nodoc: all
           collector << quote_table_name(join_name) << "." << quote_column_name(o.name)
         end
 
+        BIND_BLOCK = proc { "?" }
+        private_constant :BIND_BLOCK
+
+        def bind_block; BIND_BLOCK; end
+
         def visit_Arel_Nodes_BindParam(o, collector)
-          collector.add_bind(o.value) { "?" }
+          collector.add_bind(o.value, &bind_block)
         end
 
         def visit_Arel_Nodes_SqlLiteral(o, collector)
