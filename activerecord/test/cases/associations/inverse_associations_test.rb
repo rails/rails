@@ -299,6 +299,17 @@ class InverseHasOneTests < ActiveRecord::TestCase
   def test_trying_to_use_inverses_that_dont_exist_should_raise_an_error
     assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Human.first.dirty_face }
   end
+
+  if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
+    def test_trying_to_use_inverses_that_dont_exist_should_have_suggestions_for_fix
+      error = assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) {
+        Human.first.dirty_face
+      }
+
+      assert_match "Did you mean?", error.message
+      assert_equal "horrible_human", error.corrections.first
+    end
+  end
 end
 
 class InverseHasManyTests < ActiveRecord::TestCase
@@ -649,6 +660,17 @@ class InverseBelongsToTests < ActiveRecord::TestCase
 
   def test_trying_to_use_inverses_that_dont_exist_should_raise_an_error
     assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Face.first.horrible_human }
+  end
+
+  if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
+    def test_trying_to_use_inverses_that_dont_exist_should_have_suggestions_for_fix
+      error = assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) {
+        Face.first.horrible_human
+      }
+
+      assert_match "Did you mean?", error.message
+      assert_equal "polymorphic_face", error.corrections.first
+    end
   end
 
   def test_building_has_many_parent_association_inverses_one_record
