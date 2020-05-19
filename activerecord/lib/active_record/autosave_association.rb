@@ -296,7 +296,7 @@ module ActiveRecord
         begin
           @_nested_records_changed_for_autosave_already_called = true
           self.class._reflections.values.any? do |reflection|
-            next if reflection.inverse_of == saving_from_reflection
+            next if saving_from_reflection && reflection.inverse_of == saving_from_reflection
 
             if reflection.options[:autosave]
               association = association_instance_get(reflection.name)
