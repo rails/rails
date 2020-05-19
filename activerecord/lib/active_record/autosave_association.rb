@@ -269,8 +269,8 @@ module ActiveRecord
 
     # Returns whether or not this record has been changed in any way (including whether
     # any of its nested autosave associations are likewise changed)
-    def changed_for_autosave?
-      new_record? || has_changes_to_save? || marked_for_destruction? || nested_records_changed_for_autosave?
+    def changed_for_autosave?(saving_from_reflection = nil)
+      new_record? || has_changes_to_save? || marked_for_destruction? || nested_records_changed_for_autosave?(saving_from_reflection)
     end
 
     private
@@ -290,12 +290,14 @@ module ActiveRecord
       # Go through nested autosave associations that are loaded in memory (without loading
       # any new ones), and return true if any are changed for autosave.
       # Returns false if already called to prevent an infinite loop.
-      def nested_records_changed_for_autosave?
+      def nested_records_changed_for_autosave?(saving_from_reflection)
         @_nested_records_changed_for_autosave_already_called ||= false
         return false if @_nested_records_changed_for_autosave_already_called
         begin
           @_nested_records_changed_for_autosave_already_called = true
           self.class._reflections.values.any? do |reflection|
+            next if reflection.inverse_of == saving_from_reflection
+
             if reflection.options[:autosave]
               association = association_instance_get(reflection.name)
               association && Array.wrap(association.target).any?(&:changed_for_autosave?)
@@ -488,7 +490,7 @@ module ActiveRecord
             self[reflection.foreign_key] = nil
             record.destroy
           elsif autosave != false
-            saved = record.save(validate: !autosave) if record.new_record? || (autosave && record.changed_for_autosave?)
+            saved = record.save(validate: !autosave) if record.new_record? || (autosave && record.changed_for_autosave?(reflection))
 
             if association.updated?
               association_id = record.send(reflection.options[:primary_key] || :id)
