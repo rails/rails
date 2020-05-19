@@ -55,7 +55,7 @@ Rails.application.configure do
   config.assets.quiet = true
 
   # Raises error for missing translations
-  # config.action_view.raise_on_missing_translations = true
+  # config.i18n.raise_on_missing_translations = true
 
   # Annotate rendered view with file names
   # config.action_view.annotate_rendered_view_with_filenames = true

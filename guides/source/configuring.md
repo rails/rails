@@ -348,6 +348,9 @@ All these configuration options are delegated to the `I18n` library.
 
 * `config.i18n.load_path` sets the path Rails uses to look for locale files. Defaults to `config/locales/*.{yml,rb}`.
 
+* `config.i18n.raise_on_missing_translations` determines whether an error should be raised for missing translations
+in controllers and views. This defaults to `false`.
+
 * `config.i18n.fallbacks` sets fallback behavior for missing translations. Here are 3 usage examples for this option:
 
   * You can set the option to `true` for using default locale as fallback, like so:
@@ -653,9 +656,6 @@ Defaults to `'signed cookie'`.
     ```
 
     The default setting is `true`, which uses the partial at `/admin/articles/_article.erb`. Setting the value to `false` would render `/articles/_article.erb`, which is the same behavior as rendering from a non-namespaced controller such as `ArticlesController`.
-
-* `config.action_view.raise_on_missing_translations` determines whether an
-  error should be raised for missing translations. This defaults to `false`.
 
 * `config.action_view.automatically_disable_submit_tag` determines whether
   `submit_tag` should automatically disable on click, this defaults to `true`.

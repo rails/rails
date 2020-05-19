@@ -43,6 +43,12 @@ module ActionView
     config.after_initialize do |app|
       ActiveSupport.on_load(:action_view) do
         app.config.action_view.each do |k, v|
+          if k == :raise_on_missing_translations
+            ActiveSupport::Deprecation.warn \
+              "action_view.raise_on_missing_translations is deprecated and will be removed in Rails 6.2. " \
+              "Set i18n.raise_on_missing_translations instead. " \
+              "Note that this new setting also affects how missing translations are handled in controllers."
+          end
           send "#{k}=", v
         end
       end
