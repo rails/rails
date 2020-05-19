@@ -1141,9 +1141,7 @@ module ActiveRecord
       class ::Arel::Nodes::LeadingJoin < Arel::Nodes::InnerJoin # :nodoc:
       end
 
-      def build_joins(manager, aliases)
-        return if joins_values.empty? && left_outer_joins_values.empty?
-
+      def build_join_buckets
         buckets = Hash.new { |h, k| h[k] = [] }
 
         unless left_outer_joins_values.empty?
@@ -1155,7 +1153,7 @@ module ActiveRecord
           if joins_values.empty?
             buckets[:association_join] = left_joins
             buckets[:stashed_join] = stashed_left_joins
-            return build_join_query(manager, buckets, Arel::Nodes::OuterJoin, aliases)
+            return buckets, Arel::Nodes::OuterJoin
           else
             stashed_left_joins.unshift construct_join_dependency(left_joins, Arel::Nodes::OuterJoin)
           end
@@ -1194,10 +1192,14 @@ module ActiveRecord
         buckets[:stashed_join].concat stashed_left_joins if stashed_left_joins
         buckets[:stashed_join] << stashed_eager_load if stashed_eager_load
 
-        build_join_query(manager, buckets, Arel::Nodes::InnerJoin, aliases)
+        return buckets, Arel::Nodes::InnerJoin
       end
 
-      def build_join_query(manager, buckets, join_type, aliases)
+      def build_joins(manager, aliases)
+        return if joins_values.empty? && left_outer_joins_values.empty?
+
+        buckets, join_type = build_join_buckets
+
         association_joins = buckets[:association_join]
         stashed_joins     = buckets[:stashed_join]
         leading_joins     = buckets[:leading_join]
