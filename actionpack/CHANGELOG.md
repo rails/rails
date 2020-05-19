@@ -1,3 +1,7 @@
+*   Added `compact` and `compact!` to `ActionController::Parameters`.
+
+    *Eugene Kenny*
+
 *   Calling `each_pair` or `each_value` on an `ActionController::Parameters`
     without passing a block now returns an enumerator.
 
