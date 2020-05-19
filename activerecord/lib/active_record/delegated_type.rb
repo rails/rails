@@ -63,7 +63,7 @@ module ActiveRecord
   #   end
   #
   # As you can see, neither Message nor Comment are meant to stand alone. Crucial metadata for both classes
-  # resides in the +Entry+ "superclass". But the entry absolutely can stand alone in terms of quering capacity
+  # resides in the +Entry+ "superclass". But the entry absolutely can stand alone in terms of querying capacity
   # in particular. You can now easily do things like:
   #
   #   Account.entries.order(created_at: :desc).limit(50)
