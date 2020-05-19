@@ -9,15 +9,11 @@ module ActiveSupport
 
       def convert
         number = self.number.to_s.strip
-        number_f = number.to_f
         format = options[:format]
 
-        if number_f.negative?
-          number = number_f.abs
-
-          unless options[:precision] == 0 && number < 0.5
-            format = options[:negative_format]
-          end
+        if number.sub!(/^-/, "") &&
+           (options[:precision] != 0 || number.to_f > 0.5)
+          format = options[:negative_format]
         end
 
         rounded_number = NumberToRoundedConverter.convert(number, options)
