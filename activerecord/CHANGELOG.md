@@ -1,3 +1,14 @@
+*   Resolve conflict between counter cache and optimistic locking.
+
+    Bump an Active Record instance's lock version after updating its counter
+    cache. This avoids raising an unnecessary `ActiveRecord::StaleObjectError`
+    upon subsequent transactions by maintaining parity with the corresponding
+    database record's `lock_version` column.
+
+    Fixes #16449.
+
+    *Aaron Lipman*
+
 *   Fix index creation to preserve index comment in bulk change table on MySQL.
 
     *Ryuta Kamizono*
