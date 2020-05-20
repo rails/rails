@@ -52,6 +52,7 @@ module ActiveRecord
 
   class HasManyThroughAssociationNotFoundError < ActiveRecordError #:nodoc:
     attr_reader :owner_class, :reflection
+
     def initialize(owner_class = nil, reflection = nil)
       if owner_class && reflection
         @owner_class = owner_class
