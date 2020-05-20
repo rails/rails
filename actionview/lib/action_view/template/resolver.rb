@@ -35,7 +35,7 @@ module ActionView
       alias :to_s :to_str
     end
 
-    class PathParser
+    class PathParser # :nodoc:
       def initialize
         @regex = build_path_regex
       end
