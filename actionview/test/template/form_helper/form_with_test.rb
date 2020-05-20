@@ -2,6 +2,7 @@
 
 require "abstract_unit"
 require "controller/fake_models"
+require "test_form_components"
 
 class FormWithTest < ActionView::TestCase
   include RenderERBUtils
@@ -1076,6 +1077,18 @@ class FormWithActsLikeFormForTest < FormWithTest
 
     expected = whole_form("/posts/123", method: :patch) do
       '<input type="text" name="post[comment][dont_exist_on_model]" id="post_comment_dont_exist_on_model" >'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_fields_render_in
+    form_with(model: @post) do |f|
+      concat view.render(FieldsComponent.new(form: f))
+    end
+
+    expected = whole_form("/posts/123", method: :patch) do
+      %Q(\n  <input type="text" name="post[comment][dont_exist_on_model]" id="post_comment_dont_exist_on_model">\n)
     end
 
     assert_dom_equal expected, output_buffer

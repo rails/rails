@@ -40,9 +40,16 @@ module ActionView
       #
       #   @greeting # => "Welcome to my shiny new web page! The date and time is 2018-09-06 11:09:16 -0500"
       #
-      def capture(*args)
+      def capture(*args, &block)
         value = nil
-        buffer = with_output_buffer { value = yield(*args) }
+        block_context = block.binding.receiver
+
+        buffer = if block_context.respond_to?(:render_in) && block_context.respond_to?(:with_output_buffer)
+          block_context.with_output_buffer { value = yield(*args) }
+        else
+          with_output_buffer { value = yield(*args) }
+        end
+
         if (string = buffer.presence || value) && string.is_a?(String)
           ERB::Util.html_escape string
         end

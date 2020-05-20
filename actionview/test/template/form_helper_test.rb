@@ -2,6 +2,7 @@
 
 require "abstract_unit"
 require "controller/fake_models"
+require "test_form_components"
 
 class FormHelperTest < ActionView::TestCase
   include RenderERBUtils
@@ -371,6 +372,18 @@ class FormHelperTest < ActionView::TestCase
       %{<label for="post_message">\n  Message\n  <input id="post_message" name="post[message]" type="text" />\n</label>},
       view.render("test/label_with_block")
     )
+  end
+
+  def test_label_with_block_render_in
+    form_for(@post, format: :json, html: { id: "edit_post_123", class: "edit_post" }) do |f|
+      view.render(FormLabelComponent.new(form: f))
+    end
+
+    expected = whole_form("/posts/123.json", "edit_post_123", "edit_post", method: "patch") do
+      "<label for='post_title'>\n  Test\n</label>"
+    end
+
+    assert_dom_equal expected, output_buffer
   end
 
   def test_label_with_to_model
@@ -2362,6 +2375,22 @@ class FormHelperTest < ActionView::TestCase
 
     expected = whole_form do
       "<input name='posts[post][0][comment][1][name]' type='text' id='posts_post_0_comment_1_name' value='comment #1' />"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
+  def test_nested_fields_for_with_render_in
+    form_for(@post, as: "post[]") do |f|
+      concat f.text_field(:title)
+      concat view.render(FieldsForComponent.new(form: f, comment: @comment))
+      concat f.text_field(:body)
+    end
+
+    expected = whole_form("/posts/123", "edit_post[]", "edit_post[]", method: "patch") do
+      "<input name='post[123][title]' type='text' id='post_123_title' value='Hello World' />" \
+      "\n  <input name='post[123][comment][][name]' type='text' id='post_123_comment__name' value='new comment' />\n" \
+      "<input name='post[123][body]' type='text' id='post_123_body' value='Back to the hill and over it again!' />"
     end
 
     assert_dom_equal expected, output_buffer
