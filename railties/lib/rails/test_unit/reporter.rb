@@ -17,8 +17,6 @@ module Rails
       end
 
       if output_inline? && result.failure && (!result.skipped? || options[:verbose])
-        result.failures.each { |f| f.backtrace.clear } if result.error?
-
         io.puts
         io.puts
         io.puts color_output(result, by: result)
