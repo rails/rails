@@ -490,7 +490,7 @@ module ActionDispatch
       private
         def _generate(route_name, options, recall)
           if recall
-            options = options.merge(:_recall => recall)
+            options = options.merge(_recall: recall)
           end
           path = @route_set.path_for(options, route_name)
           uri = URI.parse path
