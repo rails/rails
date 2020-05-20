@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "rack/utils"
 
 module ActionDispatch
   module Journey
@@ -230,7 +231,7 @@ module ActionDispatch
         path, params = _generate(
           nil, { id: 1, controller: "tasks", action: "show" }, {})
         assert_equal "/tasks/show", path
-        assert_equal({ id: 1 }, params)
+        assert_equal({ id: "1" }, params)
       end
 
       def test_generate_escapes
@@ -263,7 +264,7 @@ module ActionDispatch
                  relative_url_root: nil
         }, {})
         assert_equal "/tasks/show", path
-        assert_equal({ id: 1, relative_url_root: nil }, params)
+        assert_equal({ id: "1" }, params)
       end
 
       def test_generate_missing_keys_no_matches_different_format_keys
@@ -487,8 +488,14 @@ module ActionDispatch
       end
 
       private
-        def _generate(*args)
-          ActionDispatch::Routing::RouteSet::Generator.new(*args, @route_set).generate(nil).to_ary
+        def _generate(route_name, options, recall)
+          if recall
+            options = options.merge(:_recall => recall)
+          end
+          path = @route_set.path_for(options, route_name)
+          uri = URI.parse path
+          params = Rack::Utils.parse_nested_query(uri.query).symbolize_keys
+          [uri.path, params]
         end
 
         def get(*args)
