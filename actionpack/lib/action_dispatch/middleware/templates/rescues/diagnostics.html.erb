@@ -8,11 +8,8 @@
 </header>
 
 <div id="container">
-  <h2>
-    <%= h @exception.message %>
-
-    <%= render "rescues/actions", exception: @exception, request: @request %>
-  </h2>
+  <%= render "rescues/message_and_suggestions", exception: @exception %>
+  <%= render "rescues/actions", exception: @exception, request: @request %>
 
   <%= render "rescues/source", source_extracts: @source_extracts, show_source_idx: @show_source_idx, error_index: 0 %>
   <%= render "rescues/trace", traces: @traces, trace_to_show: @trace_to_show, error_index: 0 %>
