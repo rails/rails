@@ -153,7 +153,7 @@ class ResponseTest < ActiveSupport::TestCase
   end
 
   test "content length" do
-    [100, 101, 102, 204].each do |c|
+    [100, 101, 102, 103, 204].each do |c|
       @response = ActionDispatch::Response.new
       @response.status = c.to_s
       @response.set_header "Content-Length", "0"
@@ -163,7 +163,7 @@ class ResponseTest < ActiveSupport::TestCase
   end
 
   test "does not contain a message-body" do
-    [100, 101, 102, 204, 304].each do |c|
+    [100, 101, 102, 103, 204, 304].each do |c|
       @response = ActionDispatch::Response.new
       @response.status = c.to_s
       @response.body = "Body must not be included"
