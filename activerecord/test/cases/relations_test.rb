@@ -93,11 +93,15 @@ class RelationTest < ActiveRecord::TestCase
   def test_loaded_all
     topics = Topic.all
 
+    assert_not_predicate topics, :loaded?
+    assert_not_predicate topics, :loaded
+
     assert_queries(1) do
       2.times { assert_equal 5, topics.to_a.size }
     end
 
     assert_predicate topics, :loaded?
+    assert_predicate topics, :loaded
   end
 
   def test_scoped_first

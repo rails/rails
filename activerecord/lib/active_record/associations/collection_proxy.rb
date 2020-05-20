@@ -51,6 +51,7 @@ module ActiveRecord
       def loaded?
         @association.loaded?
       end
+      alias :loaded :loaded?
 
       ##
       # :method: select
