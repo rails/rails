@@ -1,3 +1,17 @@
+*   Add support for generated columns in PostgreSQL adapter
+
+    Generated columns are supported since version 12.0 of PostgreSQL. This adds
+    support of those to the PostgreSQL adapter.
+
+    ```ruby
+    create_table :users do |t|
+      t.string :name
+      t.virtual :name_upcased, type: :string, as: 'upper(name)'
+    end
+    ```
+
+    *Michał Begejowicz*
+
 *   Allow attribute's default to be configured but keeping its own type.
 
     ```ruby
