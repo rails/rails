@@ -503,14 +503,36 @@ irb> device.id
 NOTE: `gen_random_uuid()` (from `pgcrypto`) is assumed if no `:default` option was
 passed to `create_table`.
 
+Generated Columns
+-----------------
+
+NOTE: Generated columns are supported since version 12.0 of PostgreSQL.
+
+```ruby
+# db/migrate/20131220144913_create_users.rb
+create_table :users do |t|
+  t.string :name
+  t.virtual :name_upcased, type: :string, as: 'upper(name)'
+end
+
+# app/models/user.rb
+class User < ApplicationRecord
+end
+
+# Usage
+user = User.create(name: 'John')
+User.last.name_upcased # => "JOHN"
+```
+
+
 Full Text Search
 ----------------
 
 ```ruby
 # db/migrate/20131220144913_create_documents.rb
 create_table :documents do |t|
-  t.string 'title'
-  t.string 'body'
+  t.string :title
+  t.string :body
 end
 
 add_index :documents, "to_tsvector('english', title || ' ' || body)", using: :gin, name: 'documents_idx'
@@ -529,6 +551,27 @@ Document.create(title: "Cats and Dogs", body: "are nice!")
 ## all documents matching 'cat & dog'
 Document.where("to_tsvector('english', title || ' ' || body) @@ to_tsquery(?)",
                  "cat & dog")
+```
+
+Optionally, you can store the vector as automatically generated column (from PostgreSQL 12.0):
+
+```ruby
+# db/migrate/20131220144913_create_documents.rb
+create_table :documents do |t|
+  t.string :title
+  t.string :body
+
+  t.virtual :textsearchable_index_col,
+            type: :tsvector, as: "to_tsvector('english', title || ' ' || body)"
+end
+
+add_index :documents, :textsearchable_index_col, using: :gin, name: 'documents_idx'
+
+# Usage
+Document.create(title: "Cats and Dogs", body: "are nice!")
+
+## all documents matching 'cat & dog'
+Document.where("textsearchable_index_col @@ to_tsquery(?)", "cat & dog")
 ```
 
 Database Views

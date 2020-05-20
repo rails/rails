@@ -654,7 +654,7 @@ module ActiveRecord
           end
 
           def new_column_from_field(table_name, field)
-            column_name, type, default, notnull, oid, fmod, collation, comment = field
+            column_name, type, default, notnull, oid, fmod, collation, comment, attgenerated = field
             type_metadata = fetch_type_metadata(column_name, type, oid.to_i, fmod.to_i)
             default_value = extract_value_from_default(default)
             default_function = extract_default_function(default_value, default)
@@ -671,7 +671,8 @@ module ActiveRecord
               default_function,
               collation: collation,
               comment: comment.presence,
-              serial: serial
+              serial: serial,
+              generated: attgenerated
             )
           end
 
