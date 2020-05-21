@@ -32,7 +32,7 @@ module ActiveRecord
           reflection.chain.drop(1).each do |reflection|
             relation = reflection.klass.scope_for_association
             scope.merge!(
-              relation.except(:select, :create_with, :includes, :preload, :joins, :eager_load)
+              relation.except(:select, :create_with, :includes, :preload, :eager_load, :joins, :left_outer_joins)
             )
           end
           scope
