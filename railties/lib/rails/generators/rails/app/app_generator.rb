@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "rails/generators/app_base"
+require_relative "interactive_options"
 
 module Rails
   module ActionMethods # :nodoc:
@@ -293,6 +294,8 @@ module Rails
 
       class_option :minimal, type: :boolean,
                              desc: "Preconfigure a minimal rails app"
+      class_option :interactive, type: :boolean, default: false, aliases: "-i",
+                                 desc: "Interactive setup for your rails app"
 
       class_option :skip_bundle, type: :boolean, aliases: "-B", default: false,
                                  desc: "Don't run bundle install"
@@ -337,6 +340,10 @@ module Rails
                 option[:skip_javascript] = false
               end
             end.freeze
+        end
+
+        if options[:interactive]
+          self.options = options.merge(interactive_options).freeze
         end
 
         @after_bundle_callbacks = []
@@ -596,6 +603,10 @@ module Rails
 
       def get_builder_class
         defined?(::AppBuilder) ? ::AppBuilder : Rails::AppBuilder
+      end
+
+      def interactive_options
+        InteractiveOptions.perform(options.dup)
       end
     end
 

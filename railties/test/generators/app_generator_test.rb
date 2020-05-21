@@ -1238,6 +1238,40 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_gem "web-console", app_root
   end
 
+  def test_interactive_rails_app
+    app_root = File.join(destination_root, "myapp")
+
+    Rails::Generators::AppGenerator.class_eval do
+      def interactive_options
+        {
+          skip_active_job: false,
+          skip_active_storage: true,
+          skip_action_mailer: true,
+          skip_action_mailbox: true,
+          skip_action_text: true,
+          skip_action_cable: true,
+          skip_bootnap: true
+        }
+      end
+    end
+
+    run_generator [app_root, "--interactive"]
+    assert_file "#{app_root}/config/environment.rb", /Rails\.application\.initialize!/
+
+    assert_file "#{app_root}/config/boot.rb" do |content|
+      assert_no_match(/require "bootsnap\/setup"/, content)
+    end
+
+    assert_file "#{app_root}/config/application.rb" do |content|
+      assert_match(/\s+require\s+["']active_job\/railtie["']/, content)
+      assert_match(/#\s+require\s+["']active_storage\/engine["']/, content)
+      assert_match(/#\s+require\s+["']action_mailer\/railtie["']/, content)
+      assert_match(/#\s+require\s+["']action_mailbox\/engine["']/, content)
+      assert_match(/#\s+require\s+["']action_text\/engine["']/, content)
+      assert_match(/#\s+require\s+["']action_cable\/engine["']/, content)
+    end
+  end
+
   private
     def stub_rails_application(root)
       Rails.application.config.root = root
