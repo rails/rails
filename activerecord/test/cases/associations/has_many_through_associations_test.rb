@@ -1051,6 +1051,12 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_has_many_through_with_source_scope
+    expected = [readers(:michael_welcome).becomes(LazyReader)]
+    assert_equal expected, Author.preload(:lazy_readers_skimmers_or_not).first.lazy_readers_skimmers_or_not
+    assert_equal expected, Author.eager_load(:lazy_readers_skimmers_or_not).first.lazy_readers_skimmers_or_not
+  end
+
   def test_has_many_through_polymorphic_with_rewhere
     post = TaggedPost.create!(title: "Tagged", body: "Post")
     tag = post.tags.create!(name: "Tag")
