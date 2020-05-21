@@ -123,7 +123,7 @@ module ActiveModel
     def serializable_hash(options = nil)
       attribute_names = attributes.keys
 
-      return serializable_attributes(attribute_names) unless options
+      return serializable_attributes(attribute_names) if options.blank?
 
       if only = options[:only]
         attribute_names &= Array(only).map(&:to_s)
@@ -179,7 +179,7 @@ module ActiveModel
         return unless includes = options[:include]
 
         unless includes.is_a?(Hash)
-          includes = Hash[Array(includes).flat_map { |n| n.is_a?(Hash) ? n.to_a : [[n, nil]] }]
+          includes = Hash[Array(includes).flat_map { |n| n.is_a?(Hash) ? n.to_a : [[n, {}]] }]
         end
 
         includes.each do |association, opts|
