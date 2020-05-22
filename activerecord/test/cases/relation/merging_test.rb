@@ -98,6 +98,23 @@ class RelationMergingTest < ActiveRecord::TestCase
     assert_equal [], Author.where(id: mary).merge(non_mary_and_bob)
   end
 
+  def test_merge_doesnt_duplicate_same_clauses
+    david, mary, bob = authors(:david, :mary, :bob)
+
+    non_mary_and_bob = Author.where.not(id: [mary, bob])
+
+    author_id = Author.connection.quote_table_name("authors.id")
+    assert_sql(/WHERE #{Regexp.escape(author_id)} NOT IN \((\?|\W?\w?\d), \g<1>\)\z/) do
+      assert_equal [david], non_mary_and_bob.merge(non_mary_and_bob)
+    end
+
+    only_david = Author.where("#{author_id} IN (?)", david)
+
+    assert_sql(/WHERE \(#{Regexp.escape(author_id)} IN \(1\)\)\z/) do
+      assert_equal [david], only_david.merge(only_david)
+    end
+  end
+
   def test_relation_merging
     devs = Developer.where("salary >= 80000").merge(Developer.limit(2)).merge(Developer.order("id ASC").where("id < 3"))
     assert_equal [developers(:david), developers(:jamis)], devs.to_a

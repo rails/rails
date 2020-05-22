@@ -24,7 +24,7 @@ module ActiveRecord
           predicates_unreferenced_by(other)
         end
 
-        WhereClause.new(predicates + other.predicates)
+        WhereClause.new(predicates | other.predicates)
       end
 
       def except(*columns)
