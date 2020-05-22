@@ -47,8 +47,11 @@ module ActiveRecord
       end
 
       # Returns a string like "9.6.0"
+      # Aggressively returns nil in case of any error.
       def structure_dumper_version
         `pg_dump --version`.chomp.match(/[0-9]\.[0-9]+\.[0-9]+/)[0]
+      rescue
+        nil
       end
 
       def structure_dump(filename, extra_flags)

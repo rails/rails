@@ -41,8 +41,11 @@ module ActiveRecord
       end
 
       # Returns a string like "8.0.19"
+      # Aggressively returns nil in case of any error.
       def structure_dumper_version
         `mysqldump --version`.chomp.match(/[0-9]\.[0-9]+\.[0-9]+/)[0]
+      rescue
+        nil
       end
 
       def structure_dump(filename, extra_flags)
