@@ -206,6 +206,44 @@ module ActiveRecord
     end
   end
 
+  class DatabaseTasksDumpSchemaTest < ActiveRecord::TestCase
+    def test_dump_schema_with_preferred_version_match
+      if current_adapter?(:SQLite3Adapter)
+        sqlite3_version = `sqlite3 --version`.chomp.match(/[0-9]\.[0-9]+\.[0-9]+/)[0]
+
+        ActiveRecord::Base.preferred_database_version = sqlite3_version
+
+        Dir.mktmpdir do |dir|
+          ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, dir) do
+            ActiveRecord::Base.configurations.configs_for(env_name: "arunit").each do |db_config|
+              # asserts nothing raised
+              ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config)
+            end
+          end
+        end
+      end
+    end
+
+    def test_dump_schema_with_preferred_version_mismatch
+      if current_adapter?(:SQLite3Adapter)
+        sqlite3_version = `sqlite3 --version`.chomp.match(/[0-9]\.[0-9]+\.[0-9]+/)[0]
+        bad_version = (sqlite3_version.to_f + 1).to_s
+
+        ActiveRecord::Base.preferred_database_version = bad_version
+
+        Dir.mktmpdir do |dir|
+          ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, dir) do
+            ActiveRecord::Base.configurations.configs_for(env_name: "arunit").each do |db_config|
+              assert_raise(RuntimeError) do
+                ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config)
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+
   class DatabaseTasksDumpSchemaCacheTest < ActiveRecord::TestCase
     def test_dump_schema_cache
       Dir.mktmpdir do |dir|
