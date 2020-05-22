@@ -9,9 +9,8 @@ module ActiveRecord
         true
       end
 
-      def initialize(db_config, root = ActiveRecord::Tasks::DatabaseTasks.root)
+      def initialize(db_config)
         @db_config = db_config
-        @root = root
       end
 
       def create
