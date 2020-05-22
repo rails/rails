@@ -210,16 +210,11 @@ module ActiveRecord
     def test_dump_schema_with_preferred_version_match
       if current_adapter?(:SQLite3Adapter)
         sqlite3_version = `sqlite3 --version`.chomp.match(/[0-9]\.[0-9]+\.[0-9]+/)[0]
-
         ActiveRecord::Base.preferred_database_version = sqlite3_version
 
-        Dir.mktmpdir do |dir|
-          ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, dir) do
-            ActiveRecord::Base.configurations.configs_for(env_name: "arunit").each do |db_config|
-              # asserts nothing raised
-              ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config)
-            end
-          end
+        # asserts nothing raised
+        ActiveRecord::Base.configurations.configs_for(env_name: "arunit").each do |db_config|
+          ActiveRecord::Tasks::DatabaseTasks.send(:check_preferred_version!, db_config)
         end
       end
     end
@@ -228,16 +223,27 @@ module ActiveRecord
       if current_adapter?(:SQLite3Adapter)
         sqlite3_version = `sqlite3 --version`.chomp.match(/[0-9]\.[0-9]+\.[0-9]+/)[0]
         bad_version = (sqlite3_version.to_f + 1).to_s
-
         ActiveRecord::Base.preferred_database_version = bad_version
 
-        Dir.mktmpdir do |dir|
-          ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, dir) do
-            ActiveRecord::Base.configurations.configs_for(env_name: "arunit").each do |db_config|
-              assert_raise(RuntimeError) do
-                ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config)
-              end
-            end
+        assert_raise(RuntimeError) do
+          ActiveRecord::Base.configurations.configs_for(env_name: "arunit").each do |db_config|
+            ActiveRecord::Tasks::DatabaseTasks.send(:check_preferred_version!, db_config)
+          end
+        end
+      end
+    end
+
+    def test_dump_schema_with_preferred_version_mismatch_doesnt_error_if_no_db_version_returned
+      if current_adapter?(:SQLite3Adapter)
+        sqlite3_version = `sqlite3 --version`.chomp.match(/[0-9]\.[0-9]+\.[0-9]+/)[0]
+        ActiveRecord::Base.preferred_database_version = sqlite3_version
+
+        ActiveRecord::Tasks::DatabaseTasks.stub(:structure_dumper_version, nil) do
+          # assert nothing raised. we have set a preferred version, but gotten back *no*
+          # version from the db. rather than send this error (which may be confusing)
+          # we let the main dump command run (and presumably fail)
+          ActiveRecord::Base.configurations.configs_for(env_name: "arunit").each do |db_config|
+            ActiveRecord::Tasks::DatabaseTasks.send(:check_preferred_version!, db_config)
           end
         end
       end

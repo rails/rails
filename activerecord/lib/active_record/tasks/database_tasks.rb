@@ -379,19 +379,11 @@ module ActiveRecord
       end
 
       def dump_schema(db_config, format = ActiveRecord::Base.schema_format) # :nodoc:
+        check_preferred_version!(db_config)
+
         require "active_record/schema_dumper"
         filename = dump_filename(db_config.name, format)
         connection = ActiveRecord::Base.connection
-
-        if ActiveRecord::Base.preferred_database_version
-          db_version = structure_dumper_version(db_config)
-          if db_version != ActiveRecord::Base.preferred_database_version
-            raise "The version reported by the database (#{db_version}) doesn't match the preferred " \
-                  "database version for this application (#{ActiveRecord::Base.preferred_database_version}). " \
-                  "If you have recently updated your database, set config.active_record.preferred_database_version " \
-                  "Otherwise, should ensure you're using the correct version of your database schema dumper locally."
-          end
-        end
 
         case format
         when :ruby
@@ -480,6 +472,20 @@ module ActiveRecord
       end
 
       private
+        def check_preferred_version!(db_config)
+          return unless ActiveRecord::Base.preferred_database_version
+
+          db_version = structure_dumper_version(db_config)
+          return unless db_version
+
+          if db_version != ActiveRecord::Base.preferred_database_version
+            raise "The version reported by the database (#{db_version}) doesn't match the preferred " \
+                  "database version for this application (#{ActiveRecord::Base.preferred_database_version}). " \
+                  "If you have recently updated your database, set config.active_record.preferred_database_version " \
+                  "Otherwise, should ensure you're using the correct version of your database schema dumper locally."
+          end
+        end
+
         def resolve_configuration(configuration)
           Base.configurations.resolve(configuration)
         end
