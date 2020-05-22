@@ -45,6 +45,16 @@ module ActionText
         scope :"with_rich_text_#{name}", -> { includes("rich_text_#{name}") }
         scope :"with_rich_text_#{name}_and_embeds", -> { includes("rich_text_#{name}": { embeds_attachments: :blob }) }
       end
+
+      # Eager load all dependent RichText models in bulk.
+      def with_all_rich_text
+        eager_load(rich_text_association_names)
+      end
+
+      private
+        def rich_text_association_names
+          reflect_on_all_associations(:has_one).select { |r| r.name =~ /^rich_text_/ }.collect(&:name)
+        end
     end
   end
 end

@@ -1,3 +1,7 @@
+*   Add `with_all_rich_text` method to eager load all rich text associations on a model at once
+
+    *Matt Swanson*, *DHH*
+
 ## Rails 6.1.0.rc1 (November 02, 2020) ##
 
 *   Declare `ActionText::FixtureSet.attachment` to generate an
