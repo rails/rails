@@ -79,7 +79,7 @@ module ActionView
 
       private
         def annotate?(template)
-          ActionView::Base.annotate_template_file_names && template.format == :html
+          ActionView::Base.annotate_rendered_view_with_filenames && template.format == :html
         end
 
         def valid_encoding(string, encoding)

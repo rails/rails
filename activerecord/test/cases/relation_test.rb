@@ -52,6 +52,13 @@ module ActiveRecord
       assert_equal({}, relation.where_values_hash)
     end
 
+    def test_where_values_hash_with_in_clause
+      relation = Relation.new(Post)
+      relation.where!(title: ["foo", "bar", "hello"])
+
+      assert_equal({ "title" => ["foo", "bar", "hello"] }, relation.where_values_hash)
+    end
+
     def test_has_values
       relation = Relation.new(Post)
       relation.where!(id: 10)

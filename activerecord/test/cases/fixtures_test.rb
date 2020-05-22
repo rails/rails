@@ -529,7 +529,7 @@ class FixturesTest < ActiveRecord::TestCase
   end
 
   def test_binary_in_fixtures
-    data = File.open(ASSETS_ROOT + "/flowers.jpg", "rb") { |f| f.read }
+    data = File.binread(ASSETS_ROOT + "/flowers.jpg")
     data.force_encoding("ASCII-8BIT")
     data.freeze
     assert_equal data, @flowers.data
@@ -1391,30 +1391,59 @@ class FileFixtureConflictTest < ActiveRecord::TestCase
   end
 end
 
-class MultipleDatabaseFixturesTest < ActiveRecord::TestCase
-  test "enlist_fixture_connections ensures multiple databases share a connection pool" do
-    old_handlers = ActiveRecord::Base.connection_handlers
-    ActiveRecord::Base.connection_handlers = {}
+if current_adapter?(:SQLite3Adapter) && !in_memory_db?
+  class MultipleFixtureConnectionsTest < ActiveRecord::TestCase
+    include ActiveRecord::TestFixtures
 
-    with_temporary_connection_pool do
-      ActiveRecord::Base.connects_to database: { writing: :arunit, reading: :arunit2 }
+    fixtures :dogs
 
-      rw_conn = ActiveRecord::Base.connection
+    def setup
+      @old_handler = ActiveRecord::Base.connection_handler
+      @old_handlers = ActiveRecord::Base.connection_handlers
+      @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
+      db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(ENV["RAILS_ENV"], "readonly", readonly_config)
+
+      handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
+      handler.establish_connection(db_config)
+      ActiveRecord::Base.connection_handlers = {}
+      ActiveRecord::Base.connection_handler = handler
+      ActiveRecord::Base.connects_to(database: { writing: :default, reading: :readonly })
+    end
+
+    def teardown
+      ActiveRecord::Base.configurations = @prev_configs
+      ActiveRecord::Base.connection_handler = @old_handler
+      ActiveRecord::Base.connection_handlers = @old_handlers
+    end
+
+    def test_uses_writing_connection_for_fixtures
+      ActiveRecord::Base.connected_to(role: :reading) do
+        Dog.first
+
+        assert_nothing_raised do
+          ActiveRecord::Base.connected_to(role: :writing) { Dog.create! alias: "Doggo" }
+        end
+      end
+    end
+
+    def test_writing_and_reading_connections_are_the_same
+      rw_conn = ActiveRecord::Base.connection_handlers[:writing].connection_pool_list.first.connection
       ro_conn = ActiveRecord::Base.connection_handlers[:reading].connection_pool_list.first.connection
 
       assert_equal rw_conn, ro_conn
     end
-  ensure
-    ActiveRecord::Base.connection_handlers = old_handlers
-  end
 
-  private
-    def with_temporary_connection_pool
-      pool_config = ActiveRecord::Base.connection_handler.send(:owner_to_pool_manager).fetch("ActiveRecord::Base").get_pool_config(:default)
-      new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(pool_config)
-
-      pool_config.stub(:pool, new_pool) do
-        yield
+    private
+      def config
+        { "default" => default_config, "readonly" => readonly_config }
       end
-    end
+
+      def default_config
+        { "adapter" => "sqlite3", "database" => "test/fixtures/fixture_database.sqlite3" }
+      end
+
+      def readonly_config
+        default_config.merge("replica" => true)
+      end
+  end
 end

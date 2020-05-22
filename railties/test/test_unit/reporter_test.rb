@@ -72,7 +72,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     @reporter.record(errored_test)
     @reporter.report
 
-    expect = %r{\AE\n\nError:\nTestUnitReporterTest::ExampleTest#woot:\nArgumentError: wups\n    \n\nrails test .*test/test_unit/reporter_test\.rb:\d+\n\n\z}
+    expect = %r{\AE\n\nError:\nTestUnitReporterTest::ExampleTest#woot:\nArgumentError: wups\n    some_test.rb:4\n\nrails test .*test/test_unit/reporter_test\.rb:\d+\n\n\z}
     assert_match expect, @output.string
   end
 
@@ -150,9 +150,19 @@ class TestUnitReporterTest < ActiveSupport::TestCase
   test "outputs colored failed results" do
     @output.stub(:tty?, true) do
       colored = Rails::TestUnitReporter.new @output, color: true, output_inline: true
+      colored.record(failed_test)
+
+      expected = %r{\e\[31mF\e\[0m\n\n\e\[31mFailure:\nTestUnitReporterTest::ExampleTest#woot \[test/test_unit/reporter_test.rb:\d+\]:\nboo\n\e\[0m\n\nrails test .*test/test_unit/reporter_test.rb:\d+\n\n}
+      assert_match expected, @output.string
+    end
+  end
+
+  test "outputs colored error results" do
+    @output.stub(:tty?, true) do
+      colored = Rails::TestUnitReporter.new @output, color: true, output_inline: true
       colored.record(errored_test)
 
-      expected = %r{\e\[31mE\e\[0m\n\n\e\[31mError:\nTestUnitReporterTest::ExampleTest#woot:\nArgumentError: wups\n    \n\e\[0m}
+      expected = %r{\e\[31mE\e\[0m\n\n\e\[31mError:\nTestUnitReporterTest::ExampleTest#woot:\nArgumentError: wups\n    some_test.rb:4\n\e\[0m}
       assert_match expected, @output.string
     end
   end

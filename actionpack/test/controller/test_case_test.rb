@@ -874,7 +874,7 @@ XML
 
   def test_fixture_path_is_accessed_from_self_instead_of_active_support_test_case
     TestCaseTest.stub :fixture_path, File.expand_path("../fixtures", __dir__) do
-      expected = "`fixture_file_upload(multipart/ruby_on_rails.jpg)` to `fixture_file_upload(ruby_on_rails.jpg)`"
+      expected = "`fixture_file_upload(\"multipart/ruby_on_rails.jpg\")` to `fixture_file_upload(\"ruby_on_rails.jpg\")`"
 
       assert_deprecated(expected) do
         uploaded_file = fixture_file_upload("multipart/ruby_on_rails.jpg", "image/png")
@@ -930,9 +930,17 @@ XML
     end
   end
 
+  def test_fixture_file_upload_does_not_output_deprecation_when_file_fixture_path_is_set
+    TestCaseTest.stub :fixture_path, File.expand_path("../fixtures", __dir__) do
+      assert_not_deprecated do
+        fixture_file_upload("ruby_on_rails.jpg", "image/jpg")
+      end
+    end
+  end
+
   def test_fixture_file_upload_relative_to_fixture_path
     TestCaseTest.stub :fixture_path, File.expand_path("../fixtures", __dir__) do
-      expected = "`fixture_file_upload(multipart/ruby_on_rails.jpg)` to `fixture_file_upload(ruby_on_rails.jpg)`"
+      expected = "`fixture_file_upload(\"multipart/ruby_on_rails.jpg\")` to `fixture_file_upload(\"ruby_on_rails.jpg\")`"
 
       assert_deprecated(expected) do
         uploaded_file = fixture_file_upload("multipart/ruby_on_rails.jpg", "image/jpg")

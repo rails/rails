@@ -4,7 +4,7 @@ require "abstract_unit"
 
 module TestApiFileUtils
   def file_path() __FILE__ end
-  def file_data() @data ||= File.open(file_path, "rb") { |f| f.read } end
+  def file_data() @data ||= File.binread(file_path) end
 end
 
 class DataStreamingApiController < ActionController::API

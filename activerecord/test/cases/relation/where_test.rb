@@ -366,6 +366,12 @@ module ActiveRecord
       assert_equal 0, count
     end
 
+    def test_where_with_emoji_for_binary_column
+      Binary.create!(data: "🥦")
+      assert Binary.where(data: ["🥦", "🍦"]).to_sql.include?("f09fa5a6")
+      assert Binary.where(data: ["🥦", "🍦"]).to_sql.include?("f09f8da6")
+    end
+
     def test_where_on_association_with_custom_primary_key
       author = authors(:david)
       essay = Essay.where(writer: author).first

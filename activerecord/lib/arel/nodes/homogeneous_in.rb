@@ -21,7 +21,7 @@ module Arel # :nodoc: all
       alias :== :eql?
 
       def equality?
-        true
+        type == :in
       end
 
       def invert
@@ -30,6 +30,10 @@ module Arel # :nodoc: all
 
       def left
         attribute
+      end
+
+      def right
+        attribute.quoted_array(values)
       end
 
       def table_name
@@ -44,7 +48,7 @@ module Arel # :nodoc: all
         type = attribute.type_caster
 
         casted_values = values.map do |raw_value|
-          type.unchecked_serialize(raw_value) if type.serializable?(raw_value)
+          type.serialize(raw_value) if type.serializable?(raw_value)
         end
 
         casted_values.compact!

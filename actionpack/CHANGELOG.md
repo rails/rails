@@ -1,7 +1,19 @@
-*   `remote_ip` will no longer ignore IPs in X-Forwarded-For headers if they
-    are accompanied by port information.
+*   Add raise_on_missing_translations support for controllers.
 
-    *Duncan Brown*, *Prevenios Marinos*
+    This configuration determines whether an error should be raised for missing translations.
+    It can be enabled through `config.i18n.raise_on_missing_translations`. Note that described
+    configuration also affects raising error for missing translations in views.
+
+    *fatkodima*
+
+*   Added `compact` and `compact!` to `ActionController::Parameters`.
+
+    *Eugene Kenny*
+
+*   Calling `each_pair` or `each_value` on an `ActionController::Parameters`
+    without passing a block now returns an enumerator.
+
+    *Eugene Kenny*
 
 *   `fixture_file_upload` now uses path relative to `file_fixture_path`
 

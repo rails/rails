@@ -76,13 +76,13 @@ module ActiveSupport
 
         def after_fork
           Parallelization.after_fork_hooks.each do |cb|
-            cb.call(@id)
+            cb.call(@number)
           end
         end
 
         def run_cleanup
           Parallelization.run_cleanup_hooks.each do |cb|
-            cb.call(@id)
+            cb.call(@number)
           end
         end
 
