@@ -758,20 +758,42 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_proper_error_message_for_eager_load_and_includes_association_errors
-    includes_error = assert_raises(ActiveRecord::ConfigurationError) {
+    includes_error = assert_raises(ActiveRecord::AssociationForJoinNotFoundError) {
       Post.includes(:nonexistent_relation).where(nonexistent_relation: { name: "Rochester" }).find(1)
     }
-    assert_equal("Can't join 'Post' to association named 'nonexistent_relation'; perhaps you misspelled it?", includes_error.message)
+    assert_match(/Can't join 'Post' to association named 'nonexistent_relation'; perhaps you misspelled it\?/, includes_error.message)
 
-    eager_load_error = assert_raises(ActiveRecord::ConfigurationError) {
+    eager_load_error = assert_raises(ActiveRecord::AssociationForJoinNotFoundError) {
       Post.eager_load(:nonexistent_relation).where(nonexistent_relation: { name: "Rochester" }).find(1)
     }
-    assert_equal("Can't join 'Post' to association named 'nonexistent_relation'; perhaps you misspelled it?", eager_load_error.message)
+    assert_match(/Can't join 'Post' to association named 'nonexistent_relation'; perhaps you misspelled it\?/, eager_load_error.message)
 
-    includes_and_eager_load_error = assert_raises(ActiveRecord::ConfigurationError) {
+    includes_and_eager_load_error = assert_raises(ActiveRecord::AssociationForJoinNotFoundError) {
       Post.eager_load(:nonexistent_relation).includes(:nonexistent_relation).where(nonexistent_relation: { name: "Rochester" }).find(1)
     }
-    assert_equal("Can't join 'Post' to association named 'nonexistent_relation'; perhaps you misspelled it?", includes_and_eager_load_error.message)
+    assert_match(/Can't join 'Post' to association named 'nonexistent_relation'; perhaps you misspelled it\?/, includes_and_eager_load_error.message)
+  end
+
+  if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
+    def test_eager_load_and_includes_association_error_have_suggestions_for_fix
+      includes_error = assert_raises(ActiveRecord::AssociationForJoinNotFoundError) {
+        Post.includes(:nonexistent_relation).where(nonexistent_relation: { name: "Rochester" }).find(1)
+      }
+      assert_match "Did you mean?", includes_error.message
+      assert_equal "nonexistent_comments", includes_error.corrections.first
+
+      eager_load_error = assert_raises(ActiveRecord::AssociationForJoinNotFoundError) {
+        Post.eager_load(:nonexistent_relation).where(nonexistent_relation: { name: "Rochester" }).find(1)
+      }
+      assert_match "Did you mean?", eager_load_error.message
+      assert_equal "nonexistent_comments", eager_load_error.corrections.first
+
+      includes_and_eager_load_error = assert_raises(ActiveRecord::AssociationForJoinNotFoundError) {
+        Post.eager_load(:nonexistent_relation).includes(:nonexistent_relation).where(nonexistent_relation: { name: "Rochester" }).find(1)
+      }
+      assert_match "Did you mean?", includes_and_eager_load_error.message
+      assert_equal "nonexistent_comments", includes_and_eager_load_error.corrections.first
+    end
   end
 
   private

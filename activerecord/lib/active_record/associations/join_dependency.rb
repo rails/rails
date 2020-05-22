@@ -202,7 +202,7 @@ module ActiveRecord
 
         def find_reflection(klass, name)
           klass._reflect_on_association(name) ||
-            raise(ConfigurationError, "Can't join '#{klass.name}' to association named '#{name}'; perhaps you misspelled it?")
+            raise(AssociationForJoinNotFoundError.new(klass, name))
         end
 
         def build(associations, base_klass)

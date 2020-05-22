@@ -40,6 +40,42 @@ module ActiveRecord
     end
   end
 
+  class AssociationForJoinNotFoundError < ConfigurationError
+    attr_reader :klass, :association_name
+    def initialize(klass = nil, association_name = nil)
+      @klass = klass
+      @association_name = association_name
+      if klass && association_name
+        super("Can't join '#{klass.name}' to association named '#{association_name}'; perhaps you misspelled it?")
+      else
+        super("Can't join association.")
+      end
+    end
+
+    class Correction
+      def initialize(error)
+        @error = error
+      end
+
+      def corrections
+        if @error.association_name
+          maybe_these = @error.klass.reflections.keys
+
+          maybe_these.sort_by { |n|
+            DidYouMean::Jaro.distance(@error.association_name.to_s, n)
+          }.reverse.first(4)
+        else
+          []
+        end
+      end
+    end
+
+    # We may not have DYM, and DYM might not let us register error handlers
+    if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
+      DidYouMean.correct_error(self, Correction)
+    end
+  end
+
   class InverseOfAssociationNotFoundError < ActiveRecordError #:nodoc:
     def initialize(reflection = nil, associated_class = nil)
       if reflection
