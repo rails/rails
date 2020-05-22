@@ -217,6 +217,8 @@ module ActiveRecord
           ActiveRecord::Tasks::DatabaseTasks.send(:check_preferred_version!, db_config)
         end
       end
+    ensure
+      ActiveRecord::Base.preferred_database_version = nil
     end
 
     def test_dump_schema_with_preferred_version_mismatch
@@ -231,6 +233,8 @@ module ActiveRecord
           end
         end
       end
+    ensure
+      ActiveRecord::Base.preferred_database_version = nil
     end
 
     def test_dump_schema_with_preferred_version_mismatch_doesnt_error_if_no_db_version_returned
@@ -247,6 +251,8 @@ module ActiveRecord
           end
         end
       end
+    ensure
+      ActiveRecord::Base.preferred_database_version = nil
     end
   end
 
