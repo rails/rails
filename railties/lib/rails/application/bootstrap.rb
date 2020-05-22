@@ -69,12 +69,12 @@ module Rails
         ActiveSupport::Dependencies.mechanism = config.cache_classes ? :require : :load
       end
 
-      initializer :bootstrap_hook, group: :all do |app|
-        ActiveSupport.run_load_hooks(:before_initialize, app)
-      end
-
       initializer :set_secrets_root, group: :all do
         Rails::Secrets.root = root
+      end
+
+      initializer :bootstrap_hook, group: :all do |app|
+        ActiveSupport.run_load_hooks(:before_initialize, app)
       end
     end
   end
