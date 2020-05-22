@@ -23,10 +23,10 @@ module ActiveRecord
 
     def self.references(attributes)
       attributes.map do |key, value|
+        key = key.to_s
         if value.is_a?(Hash)
           key
         else
-          key = key.to_s
           key.split(".").first if key.include?(".")
         end
       end.compact

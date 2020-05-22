@@ -415,7 +415,6 @@ module ActiveRecord
       @previously_new_record    = false
       @destroyed                = false
       @_start_transaction_state = nil
-      @transaction_state        = nil
 
       super
     end
@@ -475,7 +474,6 @@ module ActiveRecord
 
     # Returns +true+ if the attributes hash has been frozen.
     def frozen?
-      sync_with_transaction_state if @transaction_state&.finalized?
       @attributes.frozen?
     end
 
@@ -594,7 +592,6 @@ module ActiveRecord
         @marked_for_destruction   = false
         @destroyed_by_association = nil
         @_start_transaction_state = nil
-        @transaction_state        = nil
         @strict_loading           = false
 
         self.class.define_attribute_methods

@@ -348,6 +348,9 @@ All these configuration options are delegated to the `I18n` library.
 
 * `config.i18n.load_path` sets the path Rails uses to look for locale files. Defaults to `config/locales/*.{yml,rb}`.
 
+* `config.i18n.raise_on_missing_translations` determines whether an error should be raised for missing translations
+in controllers and views. This defaults to `false`.
+
 * `config.i18n.fallbacks` sets fallback behavior for missing translations. Here are 3 usage examples for this option:
 
   * You can set the option to `true` for using default locale as fallback, like so:
@@ -654,9 +657,6 @@ Defaults to `'signed cookie'`.
 
     The default setting is `true`, which uses the partial at `/admin/articles/_article.erb`. Setting the value to `false` would render `/articles/_article.erb`, which is the same behavior as rendering from a non-namespaced controller such as `ArticlesController`.
 
-* `config.action_view.raise_on_missing_translations` determines whether an
-  error should be raised for missing translations. This defaults to `false`.
-
 * `config.action_view.automatically_disable_submit_tag` determines whether
   `submit_tag` should automatically disable on click, this defaults to `true`.
 
@@ -668,6 +668,7 @@ Defaults to `'signed cookie'`.
 
 * `config.action_view.default_enforce_utf8` determines whether forms are generated with a hidden tag that forces older versions of Internet Explorer to submit forms encoded in UTF-8. This defaults to `false`.
 
+* `config.action_view.annotate_rendered_view_with_filenames` determines whether to annotate rendered view with template file names. This defaults to `false`.
 
 ### Configuring Action Mailbox
 
@@ -770,7 +771,7 @@ There are a number of settings available on `config.action_mailer`:
 
 * `config.action_mailer.perform_caching` specifies whether the mailer templates should perform fragment caching or not. If it's not specified, the default will be `true`.
 
-* `config.action_mailer.delivery_job` specifies delivery job for mail. Defaults to `ActionMailer::MailDeliveryJob`.
+* `config.action_mailer.delivery_job` specifies delivery job for mail. Defaults to `ActionMailer::DeliveryJob`.
 
 
 ### Configuring Active Support
@@ -953,6 +954,14 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 * `config.active_storage.track_variants` determines whether variants are recorded in the database. The default is `true`.
 
 * `config.active_storage.draw_routes` can be used to toggle Active Storage route generation. The default is `true`.
+
+* `config.active_storage.resolve_model_to_route` can be used to globally change how Active Storage files are delivered.
+
+  Allowed values are:
+  * `:rails_storage_redirect`: Redirect to signed, short-lived service URLs.
+  * `:rails_storage_proxy`: Proxy files by downloading them.
+
+  The default is `:rails_storage_redirect`.
 
 ### Results of `config.load_defaults`
 

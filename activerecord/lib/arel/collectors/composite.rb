@@ -22,6 +22,12 @@ module Arel # :nodoc: all
         self
       end
 
+      def add_binds(binds, &block)
+        left.add_binds(binds, &block)
+        right.add_binds(binds, &block)
+        self
+      end
+
       def value
         [left.value, right.value]
       end

@@ -10,7 +10,7 @@ class Book < ActiveRecord::Base
   has_many :subscribers, through: :subscriptions
 
   enum status: [:proposed, :written, :published]
-  enum read_status: { unread: 0, reading: 2, read: 3, forgotten: nil }
+  enum last_read: { unread: 0, reading: 2, read: 3, forgotten: nil }
   enum nullable_status: [:single, :married]
   enum language: [:english, :spanish, :french], _prefix: :in
   enum author_visibility: [:visible, :invisible], _prefix: true

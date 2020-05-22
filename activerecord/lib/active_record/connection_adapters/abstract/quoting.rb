@@ -185,12 +185,16 @@ module ActiveRecord
       private
         def type_casted_binds(binds)
           case binds.first
-          when ActiveModel::Attribute
-            binds.map { |attr| type_cast(attr.value_for_database) }
           when Array
             binds.map { |column, value| type_cast(value, column) }
           else
-            binds.map { |value| type_cast(value) }
+            binds.map do |value|
+              if ActiveModel::Attribute === value
+                type_cast(value.value_for_database)
+              else
+                type_cast(value)
+              end
+            end
           end
         end
 

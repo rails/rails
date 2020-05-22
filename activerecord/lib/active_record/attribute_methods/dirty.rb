@@ -156,16 +156,6 @@ module ActiveRecord
       end
 
       private
-        def mutations_from_database
-          sync_with_transaction_state if @transaction_state&.finalized?
-          super
-        end
-
-        def mutations_before_last_save
-          sync_with_transaction_state if @transaction_state&.finalized?
-          super
-        end
-
         def write_attribute_without_type_cast(attr_name, value)
           result = super
           clear_attribute_change(attr_name)

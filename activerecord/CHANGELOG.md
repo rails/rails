@@ -2,6 +2,56 @@
 
     *Alex Ghiculescu*
 
+*   Resolve conflict between counter cache and optimistic locking.
+
+    Bump an Active Record instance's lock version after updating its counter
+    cache. This avoids raising an unnecessary `ActiveRecord::StaleObjectError`
+    upon subsequent transactions by maintaining parity with the corresponding
+    database record's `lock_version` column.
+
+    Fixes #16449.
+
+    *Aaron Lipman*
+
+*   Support merging option `:rewhere` to allow mergee side condition to be replaced exactly.
+
+    ```ruby
+    david_and_mary = Author.where(id: david.id..mary.id)
+
+    # both conflict conditions exists
+    david_and_mary.merge(Author.where(id: bob)) # => []
+
+    # mergee side condition is replaced by rewhere
+    david_and_mary.merge(Author.rewhere(id: bob)) # => [bob]
+
+    # mergee side condition is replaced by rewhere option
+    david_and_mary.merge(Author.where(id: bob), rewhere: true) # => [bob]
+    ```
+
+    *Ryuta Kamizono*
+
+*   Add support for finding records based on signed ids, which are tamper-proof, verified ids that can be
+    set to expire and scoped with a purpose. This is particularly useful for things like password reset
+    or email verification, where you want the bearer of the signed id to be able to interact with the
+    underlying record, but usually only within a certain time period.
+
+    ```ruby
+    signed_id = User.first.signed_id expires_in: 15.minutes, purpose: :password_reset
+
+    User.find_signed signed_id # => nil, since the purpose does not match
+
+    travel 16.minutes
+    User.find_signed signed_id, purpose: :password_reset # => nil, since the signed id has expired
+
+    travel_back
+    User.find_signed signed_id, purpose: :password_reset # => User.first
+
+    User.find_signed! "bad data" # => ActiveSupport::MessageVerifier::InvalidSignature
+    ```
+
+    *DHH*
+>>>>>>> master
+
 *   Support `ALGORITHM = INSTANT` DDL option for index operations on MySQL.
 
     *Ryuta Kamizono*
@@ -63,10 +113,6 @@
     *Ryuta Kamizono*
 
 *   Deprecate `in_clause_length` and `allowed_index_name_length` in `DatabaseLimits`.
-
-    *Ryuta Kamizono*
-
-*   Fix aggregate functions to return numeric value consistently even on custom attribute type.
 
     *Ryuta Kamizono*
 

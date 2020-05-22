@@ -1123,7 +1123,7 @@ module ApplicationTests
       assert_equal [::MyMailObserver, ::MyOtherMailObserver], ::Mail.class_variable_get(:@@delivery_notification_observers)
     end
 
-    test "allows setting the queue name for the ActionMailer::MailDeliveryJob" do
+    test "allows setting the queue name for the ActionMailer::DeliveryJob" do
       add_to_config <<-RUBY
         config.action_mailer.deliver_later_queue_name = 'test_default'
       RUBY
@@ -2503,6 +2503,27 @@ module ApplicationTests
       assert_equal ActionMailer::MailDeliveryJob, ActionMailer::Base.delivery_job
     end
 
+    test "ActionMailer::Base.delivery_job is ActionMailer::DeliveryJob in the 5.x defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "5.2"'
+
+      app "development"
+
+      assert_equal ActionMailer::DeliveryJob, ActionMailer::Base.delivery_job
+    end
+
+    test "ActionMailer::Base.delivery_job can be configured in the new framework defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
+        Rails.application.config.action_mailer.delivery_job = "ActionMailer::MailDeliveryJob"
+      RUBY
+
+      app "development"
+
+      assert_equal ActionMailer::MailDeliveryJob, ActionMailer::Base.delivery_job
+    end
+
     test "ActiveRecord::Base.filter_attributes should equal to filter_parameters" do
       app_file "config/initializers/filter_parameters_logging.rb", <<-RUBY
         Rails.application.config.filter_parameters += [ :password, :credit_card_number ]
@@ -2521,12 +2542,16 @@ module ApplicationTests
 
       output = rails("routes", "-g", "active_storage")
       assert_equal <<~MESSAGE, output
-                           Prefix Verb URI Pattern                                                               Controller#Action
-               rails_service_blob GET  /files/blobs/:signed_id/*filename(.:format)                               active_storage/blobs#show
-        rails_blob_representation GET  /files/representations/:signed_blob_id/:variation_key/*filename(.:format) active_storage/representations#show
-               rails_disk_service GET  /files/disk/:encoded_key/*filename(.:format)                              active_storage/disk#show
-        update_rails_disk_service PUT  /files/disk/:encoded_token(.:format)                                      active_storage/disk#update
-             rails_direct_uploads POST /files/direct_uploads(.:format)                                           active_storage/direct_uploads#create
+                               Prefix Verb URI Pattern                                                                        Controller#Action
+                   rails_service_blob GET  /files/blobs/redirect/:signed_id/*filename(.:format)                               active_storage/blobs/redirect#show
+             rails_service_blob_proxy GET  /files/blobs/proxy/:signed_id/*filename(.:format)                                  active_storage/blobs/proxy#show
+                                      GET  /files/blobs/:signed_id/*filename(.:format)                                        active_storage/blobs/redirect#show
+            rails_blob_representation GET  /files/representations/redirect/:signed_blob_id/:variation_key/*filename(.:format) active_storage/representations/redirect#show
+      rails_blob_representation_proxy GET  /files/representations/proxy/:signed_blob_id/:variation_key/*filename(.:format)    active_storage/representations/proxy#show
+                                      GET  /files/representations/:signed_blob_id/:variation_key/*filename(.:format)          active_storage/representations/redirect#show
+                   rails_disk_service GET  /files/disk/:encoded_key/*filename(.:format)                                       active_storage/disk#show
+            update_rails_disk_service PUT  /files/disk/:encoded_token(.:format)                                               active_storage/disk#update
+                 rails_direct_uploads POST /files/direct_uploads(.:format)                                                    active_storage/direct_uploads#create
       MESSAGE
     end
 

@@ -60,7 +60,7 @@ module ActionMailer
     # * <tt>:wait_until</tt> - Enqueue the email to be delivered at (after) a specific date / time
     # * <tt>:queue</tt> - Enqueue the email on the specified queue
     #
-    # By default, the email will be enqueued using <tt>ActionMailer::MailDeliveryJob</tt>. Each
+    # By default, the email will be enqueued using <tt>ActionMailer::DeliveryJob</tt>. Each
     # <tt>ActionMailer::Base</tt> class can specify the job to use by setting the class variable
     # +delivery_job+.
     #
@@ -84,7 +84,7 @@ module ActionMailer
     # * <tt>:wait_until</tt> - Enqueue the email to be delivered at (after) a specific date / time.
     # * <tt>:queue</tt> - Enqueue the email on the specified queue.
     #
-    # By default, the email will be enqueued using <tt>ActionMailer::MailDeliveryJob</tt>. Each
+    # By default, the email will be enqueued using <tt>ActionMailer::DeliveryJob</tt>. Each
     # <tt>ActionMailer::Base</tt> class can specify the job to use by setting the class variable
     # +delivery_job+.
     #
@@ -136,8 +136,15 @@ module ActionMailer
             "#deliver_later, 2. only touch the message *within your mailer " \
             "method*, or 3. use a custom Active Job instead of #deliver_later."
         else
-          @mailer_class.delivery_job.set(options).perform_later(
-            @mailer_class.name, @action.to_s, delivery_method.to_s, args: @args)
+          job = @mailer_class.delivery_job
+
+          if job <= MailDeliveryJob
+            job.set(options).perform_later(
+              @mailer_class.name, @action.to_s, delivery_method.to_s, args: @args)
+          else
+            job.set(options).perform_later(
+              @mailer_class.name, @action.to_s, delivery_method.to_s, *@args)
+          end
         end
       end
   end

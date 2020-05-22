@@ -98,9 +98,13 @@ module ActiveRecord
       #   index_exists?(:suppliers, :company_id, name: "idx_company_id")
       #
       def index_exists?(table_name, column_name, options = {})
-        column_names = Array(column_name).map(&:to_s)
         checks = []
-        checks << lambda { |i| Array(i.columns) == column_names }
+
+        if column_name.present?
+          column_names = Array(column_name).map(&:to_s)
+          checks << lambda { |i| Array(i.columns) == column_names }
+        end
+
         checks << lambda { |i| i.unique } if options[:unique]
         checks << lambda { |i| i.name == options[:name].to_s } if options[:name]
 
@@ -1501,6 +1505,10 @@ module ActiveRecord
           td = create_table_definition(table_name)
           cd = td.new_column_definition(column_name, type, **options)
           schema_creation.accept(AddColumnDefinition.new(cd))
+        end
+
+        def rename_column_sql(table_name, column_name, new_column_name)
+          "RENAME COLUMN #{quote_column_name(column_name)} TO #{quote_column_name(new_column_name)}"
         end
 
         def remove_column_for_alter(table_name, column_name, type = nil, **options)

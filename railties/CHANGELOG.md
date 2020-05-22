@@ -1,3 +1,26 @@
+*   Add default ENV variable option with BACKTRACE to turn off backtrace cleaning when debugging framework code in the
+    generated config/initializers/backtrace_silencers.rb.
+
+      `BACKTRACE=1 ./bin/rails runner "MyClass.perform"`
+
+    *DHH*
+
+*   The autoloading guide for Zeitwerk mode documents how to autoload classes
+    during application boot in a safe way.
+
+    *Haroon Ahmed*, *Xavier Noria*
+
+*   Use explicit `config/boot_with_spring.rb` boot file for bin/rails and bin/rake, which allows us to restrict Spring loading
+    to only test and development, and everywhere to be able to skip spring by passing UNSPRUNG=1 as an env variable.
+
+    *DHH*
+
+*   The `classic` autoloader starts its deprecation cycle.
+
+    New Rails projects are strongly discouraged from using `classic`, and we recommend that existing projects running on `classic` switch to `zeitwerk` mode when upgrading. Please check the [_Upgrading Ruby on Rails_](https://guides.rubyonrails.org/upgrading_ruby_on_rails.html) guide for tips.
+
+    *Xavier Noria*
+
 *   Adds `rails test:all` for running all tests in the test directory.
 
     This runs all test files in the test directory, including system tests.

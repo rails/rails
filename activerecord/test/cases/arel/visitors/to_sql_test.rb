@@ -470,6 +470,18 @@ module Arel
           _(compile(node)).must_equal %("users"."name" || "users"."name")
         end
 
+        it "should handle Contains" do
+          table = Table.new(:users)
+          node = table[:name].contains(table[:name])
+          _(compile(node)).must_equal %("users"."name" @> "users"."name")
+        end
+
+        it "should handle Overlaps" do
+          table = Table.new(:users)
+          node = table[:name].overlaps(table[:name])
+          _(compile(node)).must_equal %("users"."name" && "users"."name")
+        end
+
         it "should handle BitwiseAnd" do
           node = Arel::Attributes::Integer.new(Table.new(:products), :bitmap) & 16
           _(compile(node)).must_equal %(("products"."bitmap" & 16))
@@ -705,6 +717,31 @@ module Arel
 
           _(compile(node)).must_be_like %{
             CASE "users"."name" WHEN 'foo' THEN 'bar' ELSE 'baz' END
+          }
+        end
+      end
+
+      describe "Nodes::With" do
+        it "handles table aliases" do
+          manager = Table.new(:foo).project(Arel.star).from(Arel.sql("expr2"))
+          expr1 = Table.new(:bar).project(Arel.star).as("expr1")
+          expr2 = Table.new(:baz).project(Arel.star).as("expr2")
+          manager.with(expr1, expr2)
+
+          _(compile(manager.ast)).must_be_like %{
+            WITH expr1 AS (SELECT * FROM "bar"), expr2 AS (SELECT * FROM "baz") SELECT * FROM expr2
+          }
+        end
+      end
+
+      describe "Nodes::WithRecursive" do
+        it "handles table aliases" do
+          manager = Table.new(:foo).project(Arel.star).from(Arel.sql("expr1"))
+          expr1 = Table.new(:bar).project(Arel.star).as("expr1")
+          manager.with(:recursive, expr1)
+
+          _(compile(manager.ast)).must_be_like %{
+            WITH RECURSIVE expr1 AS (SELECT * FROM "bar") SELECT * FROM expr1
           }
         end
       end
