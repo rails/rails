@@ -93,6 +93,27 @@ You'll need to include a pack that requires these packages to use them in your R
 
 ## Using Webpacker for Static Assets
 
+The default Webpacker [configuration](https://github.com/rails/webpacker/blob/master/lib/install/config/webpacker.yml#L21) should work out of the box for static assets.
+The configuration includes a number of image and font file format extentions, allowing Webpack to include them in the generated `manifest.json` file.
+
+### Using images in rails views
+
+Webpacker comes with a set of view [helpers](https://github.com/rails/webpacker/blob/master/lib/webpacker/helper.rb) to help consume Webpack managed images in rails views.
+The `app/javascript/images` is a good directory to store your images, but can be anything under `app/javascript`.
+To use the helpers, enable the following lines in `application.js`:
+
+```
+// const images = require.context('../images', true)
+// const imagePath = (name) => images(name, true)
+```
+
+then replace the ActionView helpers according to the following table:
+
+|ActionView helper | Webpacker helper |
+|------------------|------------------|
+|favicon_link_tag  |favicon_pack_tag  |
+|image_tag         |image_pack_tag    |
+
 ## Webpacker in Rails Engines
 
 ## Running Webpacker in Development 
