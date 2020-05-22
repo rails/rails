@@ -89,7 +89,7 @@ module ActiveRecord
         end
 
         def find_target?
-          !loaded? && foreign_key_present? && klass
+          !loaded? && klass && foreign_key_present?
         end
 
         def require_counter_update?

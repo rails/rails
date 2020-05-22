@@ -25,6 +25,7 @@ require "models/admin/user"
 require "models/ship"
 require "models/treasure"
 require "models/parrot"
+require "models/broken"
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
@@ -849,6 +850,11 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     sponsor.sponsorable_type = "Member"
 
     assert_equal members(:groucho), sponsor.sponsorable
+  end
+
+  def test_missing_find_target_raise_name_error
+    p = Broken.create!
+    assert_raise(NameError) { p.foo }
   end
 
   def test_dont_find_target_when_foreign_key_is_null
