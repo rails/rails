@@ -1,3 +1,8 @@
+*   Added delegated type as an alternative to single-table inheritance for representing class hierarchies.
+    See ActiveRecord::DelegatedType for the full description.
+    
+    *DHH*
+
 *   Resolve conflict between counter cache and optimistic locking.
 
     Bump an Active Record instance's lock version after updating its counter
