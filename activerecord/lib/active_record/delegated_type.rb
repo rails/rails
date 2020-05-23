@@ -24,15 +24,15 @@ module ActiveRecord
   #
   # You can get around the pagination problem by using single-table inheritance, but now you're forced into
   # a single mega table with all the attributes from all subclasses. No matter how divergent. If a Message
-  # has a subject, but the comment does not, well, now the the comment does! So STI works best when there's
-  # little divergence between the subclasses.
+  # has a subject, but the comment does not, well, now the comment does anyway! So STI works best when there's
+  # little divergence between the subclasses and their attributes.
   #
   # But there's a third way: Delegated types. With this approach, the "superclass" is a concrete class
   # that is represented by its own table, where all the superclass attributes that are shared amongst all the
   # "subclasses" are stored. And then each of the subclasses have their own individual tables for additional
-  # attributes that are particular to their implementation. But in reality, the subclasses aren't even real
-  # subclasses, but rather use composition with the "superclass", to form the hierarchy, and to share
-  # responsibilities.
+  # attributes that are particular to their implementation. This is similar to what's called multi-table
+  # inheritance in Django, but instead of actual inheritance, this approach uses delegation to form the
+  # hiearchy and share responsibilities.
   #
   # Let's look at that entry/message/comment example using delegated types:
   #
@@ -62,8 +62,8 @@ module ActiveRecord
   #     include Entryable
   #   end
   #
-  # As you can see, neither Message nor Comment are meant to stand alone. Crucial metadata for both classes
-  # resides in the +Entry+ "superclass". But the entry absolutely can stand alone in terms of querying capacity
+  # As you can see, neither +Message+ nor +Comment+ are meant to stand alone. Crucial metadata for both classes
+  # resides in the +Entry+ "superclass". But the +Entry+ absolutely can stand alone in terms of querying capacity
   # in particular. You can now easily do things like:
   #
   #   Account.entries.order(created_at: :desc).limit(50)
@@ -84,6 +84,8 @@ module ActiveRecord
   #     <%= entry.creator.name %> said: <%= entry.comment.content %>
   #   </div>
   #
+  # == Sharing behavior with concerns and controllers
+  #
   # The entry "superclass" also serves as a perfect place to put all that shared logic that applies to both
   # messages and comments, and which acts primarily on the shared attributes. Imagine:
   #
@@ -93,6 +95,47 @@ module ActiveRecord
   #
   # Which allows you to have controllers for things like +ForwardsController+ and +RedeliverableController+
   # that both act on entries, and thus provide the shared functionality to both messages and comments.
+  #
+  # == Creating new records
+  #
+  # You create a new record that uses delegated typing by creating the delegator and delegatee at the same time,
+  # like so:
+  #
+  #   Entry.create! message: Comment.new(content: "Hello!"), creator: Current.user
+  #
+  # If you need more complicated composition, or you need to perform dependent validation, you should build a factory
+  # method or class to take care of the complicated needs. This could be as simple as:
+  #
+  #   class Entry < ApplicationRecord
+  #     def self.create_with_comment(content, creator: Current.user)
+  #       create! message: Comment.new(content: content), creator: creator
+  #     end
+  #   end
+  #
+  # == Adding further delegation
+  #
+  # The delegated type shouldn't just answer the question of what the underlying class is called. In fact, that's
+  # an anti-pattern most of the time. The reason you're building this hierarchy is to take advatange of polymorphism.
+  # So here's a simple example of that:
+  #
+  #   class Entry < ApplicationRecord
+  #     delegated_type :entryable, types: %w[ Message Comment ]
+  #     delegates :title, to: :entryable
+  #   end
+  #
+  #   class Message < ApplicationRecord
+  #     def title
+  #       subject
+  #     end
+  #   end
+  #
+  #   class Comment < ApplicationRecord
+  #     def title
+  #       content.truncate(20)
+  #     end
+  #   end
+  #
+  # Now you can list a bunch of entries, call +Entry#title+, and polymorphism will provide you with the answer.
   module DelegatedType
     # Defines this as a class that'll delegate its type for the passed +role+ to the class references in +types+.
     # That'll create a polymorphic +belongs_to+ relationship to that +role+, and it'll add all the delegated
