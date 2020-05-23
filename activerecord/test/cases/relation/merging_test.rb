@@ -98,6 +98,23 @@ class RelationMergingTest < ActiveRecord::TestCase
     assert_equal [], Author.where(id: mary).merge(non_mary_and_bob)
   end
 
+  def test_merge_doesnt_duplicate_same_clauses
+    david, mary, bob = authors(:david, :mary, :bob)
+
+    non_mary_and_bob = Author.where.not(id: [mary, bob])
+
+    author_id = Author.connection.quote_table_name("authors.id")
+    assert_sql(/WHERE #{Regexp.escape(author_id)} NOT IN \((\?|\W?\w?\d), \g<1>\)\z/) do
+      assert_equal [david], non_mary_and_bob.merge(non_mary_and_bob)
+    end
+
+    only_david = Author.where("#{author_id} IN (?)", david)
+
+    assert_sql(/WHERE \(#{Regexp.escape(author_id)} IN \(1\)\)\z/) do
+      assert_equal [david], only_david.merge(only_david)
+    end
+  end
+
   def test_relation_merging
     devs = Developer.where("salary >= 80000").merge(Developer.limit(2)).merge(Developer.order("id ASC").where("id < 3"))
     assert_equal [developers(:david), developers(:jamis)], devs.to_a
@@ -231,6 +248,34 @@ class RelationMergingTest < ActiveRecord::TestCase
     end
     assert_sql(%r{/\* foo \*/ /\* bar \*/ /\* baz \*/ /\* qux \*/}) do
       Post.annotate("foo").annotate("bar").merge(Post.annotate("baz").annotate("qux")).first
+    end
+  end
+
+  def test_merging_duplicated_annotations
+    posts = Post.annotate("foo")
+    assert_sql(%r{FROM #{Regexp.escape(Post.quoted_table_name)} /\* foo \*/\z}) do
+      posts.merge(posts).uniq!(:annotate).to_a
+    end
+
+    message = <<-MSG.squish
+      Duplicated query annotations are no longer shown in queries in Rails 6.2.
+      To migrate to Rails 6.2's behavior, use `uniq!(:annotate)` to deduplicate query annotations
+      (`posts.uniq!(:annotate)`).
+    MSG
+    assert_deprecated(message) do
+      assert_sql(%r{FROM #{Regexp.escape(Post.quoted_table_name)} /\* foo \*/ /\* foo \*/\z}) do
+        posts.merge(posts).to_a
+      end
+    end
+    assert_deprecated(message) do
+      assert_sql(%r{FROM #{Regexp.escape(Post.quoted_table_name)} /\* foo \*/ /\* bar \*/ /\* foo \*/\z}) do
+        Post.annotate("foo").merge(Post.annotate("bar")).merge(posts).to_a
+      end
+    end
+    assert_deprecated(message) do
+      assert_sql(%r{FROM #{Regexp.escape(Post.quoted_table_name)} /\* bar \*/ /\* foo \*/ /\* foo \*/\z}) do
+        Post.annotate("bar").merge(Post.annotate("foo")).merge(posts).to_a
+      end
     end
   end
 end

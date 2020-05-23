@@ -3,18 +3,33 @@
 require "cases/helper"
 require "models/account"
 require "models/company"
+require "models/toy"
+require "models/matey"
 
 SIGNED_ID_VERIFIER_TEST_SECRET = "This is normally set by the railtie initializer when used with Rails!"
 
 ActiveRecord::Base.signed_id_verifier_secret = SIGNED_ID_VERIFIER_TEST_SECRET
 
 class SignedIdTest < ActiveRecord::TestCase
-  fixtures :accounts
+  fixtures :accounts, :toys
 
-  setup { @account = Account.first }
+  setup do
+    @account = Account.first
+    @toy = Toy.first
+  end
 
   test "find signed record" do
     assert_equal @account, Account.find_signed(@account.signed_id)
+  end
+
+  test "find signed record with custom primary key" do
+    assert_equal @toy, Toy.find_signed(@toy.signed_id)
+  end
+
+  test "raise UnknownPrimaryKey when model have no primary key" do
+    assert_raises(ActiveRecord::UnknownPrimaryKey) do
+      Matey.find_signed("this will not be even verified")
+    end
   end
 
   test "find signed record with a bang" do

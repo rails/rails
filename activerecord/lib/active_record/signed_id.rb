@@ -40,8 +40,10 @@ module ActiveRecord
       #   travel_back
       #   User.find_signed signed_id, purpose: :password_reset # => User.first
       def find_signed(signed_id, purpose: nil)
+        raise UnknownPrimaryKey.new(@klass) if primary_key.nil?
+
         if id = signed_id_verifier.verified(signed_id, purpose: combine_signed_id_purposes(purpose))
-          find_by id: id
+          find_by primary_key => id
         end
       end
 
