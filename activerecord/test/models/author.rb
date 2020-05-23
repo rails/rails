@@ -172,6 +172,7 @@ class Author < ActiveRecord::Base
   has_many :other_top_posts, -> { order(id: :asc) }, class_name: "Post"
 
   has_many :lazy_readers_skimmers_or_not, through: :posts
+  has_many :lazy_readers_skimmers_or_not_2, through: :posts_with_no_comments, source: :lazy_readers_skimmers_or_not
 
   attr_accessor :post_log
   after_initialize :set_post_log
