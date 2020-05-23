@@ -40,7 +40,7 @@ module ActiveRecord
   #   class Entry < ApplicationRecord
   #     belongs_to :account
   #     belongs_to :creator
-  #     delegates_type_to :entryable, types: %w[ Message Comment ]
+  #     delegated_type :entryable, types: %w[ Message Comment ]
   #   end
   #
   #   module Entryable
