@@ -300,6 +300,11 @@ module ActiveRecord
         if id && !td.as
           pk = primary_key || Base.get_primary_key(table_name.to_s.singularize)
 
+          if id.is_a?(Hash)
+            options.merge!(id.except(:type))
+            id = id.fetch(:type, :primary_key)
+          end
+
           if pk.is_a?(Array)
             td.primary_keys pk
           else
