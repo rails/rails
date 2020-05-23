@@ -33,6 +33,13 @@ module ActiveRecord
 
             join_scope = reflection.join_scope(table, foreign_table, foreign_klass)
 
+            unless join_scope.references_values.empty?
+              join_dependency = join_scope.construct_join_dependency(
+                join_scope.eager_load_values | join_scope.includes_values, Arel::Nodes::OuterJoin
+              )
+              join_scope.joins!(join_dependency)
+            end
+
             arel = join_scope.arel(alias_tracker.aliases)
             nodes = arel.constraints.first
 
