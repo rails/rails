@@ -43,6 +43,7 @@ module ActiveRecord
   autoload :ConnectionHandling
   autoload :CounterCache
   autoload :DynamicMatchers
+  autoload :DelegatedType
   autoload :Enum
   autoload :InternalMetadata
   autoload :Explain
