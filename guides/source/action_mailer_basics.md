@@ -164,21 +164,21 @@ When you call the `mail` method now, Action Mailer will detect the two templates
 #### Calling the Mailer
 
 Mailers are really just another way to render a view. Instead of rendering a
-view and sending it over the HTTP protocol, they are just sending it out through
-the email protocols instead. Due to this, it makes sense to just have your
+view and sending it over the HTTP protocol, they are sending it out through
+the email protocols instead. Due to this, it makes sense to have your
 controller tell the Mailer to send an email when a user is successfully created.
 
 Setting this up is simple.
 
-First, let's create a simple `User` scaffold:
+First, let's create a `User` scaffold:
 
 ```bash
 $ bin/rails generate scaffold user name email login
 $ bin/rails db:migrate
 ```
 
-Now that we have a user model to play with, we will just edit the
-`app/controllers/users_controller.rb` make it instruct the `UserMailer` to deliver
+Now that we have a user model to play with, we will edit the
+`app/controllers/users_controller.rb` file, make it instruct the `UserMailer` to deliver
 an email to the newly created user by editing the create action and inserting a
 call to `UserMailer.with(user: @user).welcome_email` right after the user is successfully saved.
 
@@ -208,8 +208,8 @@ class UsersController < ApplicationController
 end
 ```
 
-NOTE: Active Job's default behavior is to execute jobs via the `:async` adapter. So, you can use
-`deliver_later` now to send emails asynchronously.
+NOTE: Active Job's default behavior is to execute jobs via the `:async` adapter. 
+So, you can use `deliver_later` to send emails asynchronously.
 Active Job's default adapter runs jobs with an in-process thread pool.
 It's well-suited for the development/test environments, since it doesn't require
 any external infrastructure, but it's a poor fit for production since it drops
@@ -217,7 +217,7 @@ pending jobs on restart.
 If you need a persistent backend, you will need to use an Active Job adapter
 that has a persistent backend (Sidekiq, Resque, etc).
 
-NOTE: When calling `deliver_later` the job will be placed under `mailers` queue. Make sure Active Job adapter support it otherwise the job may be silently ignored preventing email delivery. You can change that by specifying `config.action_mailer.deliver_later_queue_name` option.
+NOTE: When calling `deliver_later` the job will be placed under `mailers` queue. Make sure Active Job adapter supports this queue, otherwise the job may be silently ignored preventing email delivery. You can change this queue name by specifying `config.action_mailer.deliver_later_queue_name` option.
 
 If you want to send emails right away (from a cronjob for example) just call
 `deliver_now`:
@@ -238,8 +238,8 @@ action. So `with(user: @user, account: @user.account)` makes `params[:user]` and
 params.
 
 The method `welcome_email` returns an `ActionMailer::MessageDelivery` object which
-can then just be told `deliver_now` or `deliver_later` to send itself out. The
-`ActionMailer::MessageDelivery` object is just a wrapper around a `Mail::Message`. If
+can then be told to `deliver_now` or `deliver_later` to send itself out. The
+`ActionMailer::MessageDelivery` object is a wrapper around a `Mail::Message`. If
 you want to inspect, alter, or do anything else with the `Mail::Message` object you can
 access it with the `message` method on the `ActionMailer::MessageDelivery` object.
 
