@@ -1,3 +1,10 @@
+*   `with_options` copies its options hash again to avoid leaking mutations.
+
+    Fixes #39343.
+
+    *Eugene Kenny*
+
+
 ## Rails 6.0.3.1 (May 18, 2020) ##
 
 *   [CVE-2020-8165] Deprecate Marshal.load on raw cache read in RedisCacheStore

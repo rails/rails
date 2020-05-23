@@ -37,6 +37,12 @@ class OptionMergerTest < ActiveSupport::TestCase
     end
   end
 
+  def test_method_with_options_copies_options_when_options_are_missing
+    with_options(@options) do |o|
+      assert_not_same @options, o.method_with_options
+    end
+  end
+
   def test_method_with_options_allows_to_overwrite_options
     local_options = { hello: "moon" }
     assert_equal @options.keys, local_options.keys
