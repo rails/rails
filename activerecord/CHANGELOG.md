@@ -1,3 +1,8 @@
+*   Added delegated type as an alternative to single-table inheritance for representing class hierarchies.
+    See ActiveRecord::DelegatedType for the full description.
+    
+    *DHH*
+
 *   Deprecate aggregations with group by duplicated fields.
 
     To migrate to Rails 6.2's behavior, use `uniq!(:group)` to deduplicate group fields.

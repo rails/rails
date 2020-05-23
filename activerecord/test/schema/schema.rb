@@ -347,6 +347,11 @@ ActiveRecord::Schema.define do
     t.integer :course_id, null: false
   end
 
+  create_table :entries, force: true do |t|
+    t.string  :entryable_type, null: false
+    t.integer :entryable_id, null: false
+  end
+
   create_table :essays, force: true do |t|
     t.string :name, **case_sensitive_options
     t.string :writer_id
@@ -540,6 +545,10 @@ ActiveRecord::Schema.define do
 
   create_table :mentors, force: true do |t|
     t.string :name
+  end
+
+  create_table :messages, force: true do |t|
+    t.string :subject
   end
 
   create_table :minivans, force: true, id: false do |t|

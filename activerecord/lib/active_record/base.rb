@@ -274,6 +274,7 @@ module ActiveRecord #:nodoc:
     extend Querying
     extend Translation
     extend DynamicMatchers
+    extend DelegatedType
     extend Explain
     extend Enum
     extend Delegation::DelegateCache
