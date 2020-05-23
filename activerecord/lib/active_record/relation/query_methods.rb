@@ -1185,13 +1185,9 @@ module ActiveRecord
           stashed_eager_load = joins.pop if joins.last.base_klass == klass
         end
 
-        joins.map! do |join|
-          if join.is_a?(String)
-            table.create_string_join(Arel.sql(join.strip)) unless join.blank?
-          else
-            join
-          end
-        end.compact_blank!.uniq!
+        joins.each_with_index do |join, i|
+          joins[i] = table.create_string_join(Arel.sql(join.strip)) if join.is_a?(String)
+        end
 
         while joins.first.is_a?(Arel::Nodes::Join)
           join_node = joins.shift
