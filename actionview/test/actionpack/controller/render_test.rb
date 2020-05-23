@@ -1455,7 +1455,7 @@ class RenderTest < ActionController::TestCase
   end
 
   def test_template_annotations
-    ActionView::Base.annotate_template_file_names = true
+    ActionView::Base.annotate_rendered_view_with_filenames = true
 
     get :greeting
 
@@ -1469,22 +1469,22 @@ class RenderTest < ActionController::TestCase
     assert_includes lines.last, "<!-- END"
     assert_includes lines.last, "test/fixtures/actionpack/test/greeting.html.erb -->"
   ensure
-    ActionView::Base.annotate_template_file_names = false
+    ActionView::Base.annotate_rendered_view_with_filenames = false
   end
 
   def test_template_annotations_do_not_render_for_non_html_format
-    ActionView::Base.annotate_template_file_names = true
+    ActionView::Base.annotate_rendered_view_with_filenames = true
 
     get :render_with_explicit_template_with_locals
 
     assert_not_includes @response.body, "BEGIN"
     assert_equal @response.body.split("\n").length, 1
   ensure
-    ActionView::Base.annotate_template_file_names = false
+    ActionView::Base.annotate_rendered_view_with_filenames = false
   end
 
   def test_line_offset_with_annotations_enabled
-    ActionView::Base.annotate_template_file_names = true
+    ActionView::Base.annotate_rendered_view_with_filenames = true
 
     exc = assert_raises ActionView::Template::Error do
       get :render_line_offset
@@ -1494,6 +1494,6 @@ class RenderTest < ActionController::TestCase
     assert_equal "1", $1,
       "The line offset is wrong, perhaps the wrong exception has been raised, exception was: #{exc.inspect}"
   ensure
-    ActionView::Base.annotate_template_file_names = false
+    ActionView::Base.annotate_rendered_view_with_filenames = false
   end
 end

@@ -123,7 +123,7 @@ module ActiveModel
     def serializable_hash(options = nil)
       attribute_names = attributes.keys
 
-      return serializable_attributes(attribute_names) unless options
+      return serializable_attributes(attribute_names) if options.blank?
 
       if only = options[:only]
         attribute_names &= Array(only).map(&:to_s)

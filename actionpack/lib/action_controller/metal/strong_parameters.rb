@@ -19,11 +19,35 @@ module ActionController
   #   params.require(:a)
   #   # => ActionController::ParameterMissing: param is missing or the value is empty: a
   class ParameterMissing < KeyError
-    attr_reader :param # :nodoc:
+    attr_reader :param, :keys # :nodoc:
 
-    def initialize(param) # :nodoc:
+    def initialize(param, keys = nil) # :nodoc:
       @param = param
+      @keys  = keys
       super("param is missing or the value is empty: #{param}")
+    end
+
+    class Correction
+      def initialize(error)
+        @error = error
+      end
+
+      def corrections
+        if @error.param && @error.keys
+          maybe_these = @error.keys
+
+          maybe_these.sort_by { |n|
+            DidYouMean::Jaro.distance(@error.param.to_s, n)
+          }.reverse.first(4)
+        else
+          []
+        end
+      end
+    end
+
+    # We may not have DYM, and DYM might not let us register error handlers
+    if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
+      DidYouMean.correct_error(self, Correction)
     end
   end
 
@@ -480,7 +504,7 @@ module ActionController
       if value.present? || value == false
         value
       else
-        raise ParameterMissing.new(key)
+        raise ParameterMissing.new(key, @parameters.keys)
       end
     end
 
@@ -617,7 +641,7 @@ module ActionController
           if block_given?
             yield
           else
-            args.fetch(0) { raise ActionController::ParameterMissing.new(key) }
+            args.fetch(0) { raise ActionController::ParameterMissing.new(key, @parameters.keys) }
           end
         }
       )
@@ -762,6 +786,16 @@ module ActionController
       self
     end
     alias_method :delete_if, :reject!
+
+    # Returns a new instance of <tt>ActionController::Parameters</tt> with +nil+ values removed.
+    def compact
+      new_instance_with_inherited_permitted_status(@parameters.compact)
+    end
+
+    # Removes all +nil+ values in place and returns +self+, or +nil+ if no changes were made.
+    def compact!
+      self if @parameters.compact!
+    end
 
     # Returns a new instance of <tt>ActionController::Parameters</tt> without the blank values.
     # Uses Object#blank? for determining if a value is blank.

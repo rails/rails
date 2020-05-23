@@ -1083,11 +1083,7 @@ module ActiveRecord
       def build_arel(aliases)
         arel = Arel::SelectManager.new(table)
 
-        if !joins_values.empty?
-          build_joins(arel, joins_values, aliases)
-        elsif !left_outer_joins_values.empty?
-          build_left_outer_joins(arel, left_outer_joins_values, aliases)
-        end
+        build_joins(arel, aliases)
 
         arel.where(where_clause.ast) unless where_clause.empty?
         arel.having(having_clause.ast) unless having_clause.empty?
@@ -1142,31 +1138,28 @@ module ActiveRecord
         result
       end
 
-      def valid_association_list(associations, stashed_joins)
-        select_association_list(associations, stashed_joins) do
-          raise ArgumentError, "only Hash, Symbol and Array are allowed"
-        end
-      end
-
-      def build_left_outer_joins(manager, outer_joins, aliases)
-        buckets = Hash.new { |h, k| h[k] = [] }
-        buckets[:association_join] = valid_association_list(outer_joins, buckets[:stashed_join])
-        build_join_query(manager, buckets, Arel::Nodes::OuterJoin, aliases)
-      end
-
       class ::Arel::Nodes::LeadingJoin < Arel::Nodes::InnerJoin # :nodoc:
       end
 
-      def build_joins(manager, joins, aliases)
+      def build_join_buckets
         buckets = Hash.new { |h, k| h[k] = [] }
 
         unless left_outer_joins_values.empty?
           stashed_left_joins = []
-          left_joins = valid_association_list(left_outer_joins_values, stashed_left_joins)
-          stashed_left_joins.unshift construct_join_dependency(left_joins, Arel::Nodes::OuterJoin)
+          left_joins = select_association_list(left_outer_joins_values, stashed_left_joins) do
+            raise ArgumentError, "only Hash, Symbol and Array are allowed"
+          end
+
+          if joins_values.empty?
+            buckets[:association_join] = left_joins
+            buckets[:stashed_join] = stashed_left_joins
+            return buckets, Arel::Nodes::OuterJoin
+          else
+            stashed_left_joins.unshift construct_join_dependency(left_joins, Arel::Nodes::OuterJoin)
+          end
         end
 
-        joins = joins.dup
+        joins = joins_values.dup
         if joins.last.is_a?(ActiveRecord::Associations::JoinDependency)
           stashed_eager_load = joins.pop if joins.last.base_klass == klass
         end
@@ -1199,10 +1192,14 @@ module ActiveRecord
         buckets[:stashed_join].concat stashed_left_joins if stashed_left_joins
         buckets[:stashed_join] << stashed_eager_load if stashed_eager_load
 
-        build_join_query(manager, buckets, Arel::Nodes::InnerJoin, aliases)
+        return buckets, Arel::Nodes::InnerJoin
       end
 
-      def build_join_query(manager, buckets, join_type, aliases)
+      def build_joins(manager, aliases)
+        return if joins_values.empty? && left_outer_joins_values.empty?
+
+        buckets, join_type = build_join_buckets
+
         association_joins = buckets[:association_join]
         stashed_joins     = buckets[:stashed_join]
         leading_joins     = buckets[:leading_join]

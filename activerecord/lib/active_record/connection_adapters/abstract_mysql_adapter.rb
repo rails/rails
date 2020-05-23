@@ -365,10 +365,9 @@ module ActiveRecord
       end
 
       def add_index(table_name, column_name, options = {}) #:nodoc:
-        return if options[:if_not_exists] && index_exists?(table_name, column_name, options)
-
         index, algorithm, _ = add_index_options(table_name, column_name, **options)
 
+        return if options[:if_not_exists] && index_exists?(table_name, column_name, name: index.name)
         create_index = CreateIndexDefinition.new(index, algorithm)
         execute schema_creation.accept(create_index)
       end

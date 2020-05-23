@@ -923,7 +923,7 @@ module ActiveRecord
 
       def check_validity!
         if through_reflection.nil?
-          raise HasManyThroughAssociationNotFoundError.new(active_record.name, self)
+          raise HasManyThroughAssociationNotFoundError.new(active_record, self)
         end
 
         if through_reflection.polymorphic?

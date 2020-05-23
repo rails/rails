@@ -2545,8 +2545,10 @@ module ApplicationTests
                                Prefix Verb URI Pattern                                                                        Controller#Action
                    rails_service_blob GET  /files/blobs/redirect/:signed_id/*filename(.:format)                               active_storage/blobs/redirect#show
              rails_service_blob_proxy GET  /files/blobs/proxy/:signed_id/*filename(.:format)                                  active_storage/blobs/proxy#show
+                                      GET  /files/blobs/:signed_id/*filename(.:format)                                        active_storage/blobs/redirect#show
             rails_blob_representation GET  /files/representations/redirect/:signed_blob_id/:variation_key/*filename(.:format) active_storage/representations/redirect#show
       rails_blob_representation_proxy GET  /files/representations/proxy/:signed_blob_id/:variation_key/*filename(.:format)    active_storage/representations/proxy#show
+                                      GET  /files/representations/:signed_blob_id/:variation_key/*filename(.:format)          active_storage/representations/redirect#show
                    rails_disk_service GET  /files/disk/:encoded_key/*filename(.:format)                                       active_storage/disk#show
             update_rails_disk_service PUT  /files/disk/:encoded_token(.:format)                                               active_storage/disk#update
                  rails_direct_uploads POST /files/direct_uploads(.:format)                                                    active_storage/direct_uploads#create
