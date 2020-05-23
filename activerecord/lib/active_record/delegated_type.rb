@@ -32,7 +32,7 @@ module ActiveRecord
   # "subclasses" are stored. And then each of the subclasses have their own individual tables for additional
   # attributes that are particular to their implementation. This is similar to what's called multi-table
   # inheritance in Django, but instead of actual inheritance, this approach uses delegation to form the
-  # hiearchy and share responsibilities.
+  # hierarchy and share responsibilities.
   #
   # Let's look at that entry/message/comment example using delegated types:
   #
@@ -115,7 +115,7 @@ module ActiveRecord
   # == Adding further delegation
   #
   # The delegated type shouldn't just answer the question of what the underlying class is called. In fact, that's
-  # an anti-pattern most of the time. The reason you're building this hierarchy is to take advatange of polymorphism.
+  # an anti-pattern most of the time. The reason you're building this hierarchy is to take advantage of polymorphism.
   # So here's a simple example of that:
   #
   #   class Entry < ApplicationRecord
