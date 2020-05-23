@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/string/inquiry"
-
 require "cases/helper"
 require "models/entry"
 require "models/message"
