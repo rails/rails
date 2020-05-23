@@ -53,7 +53,7 @@ class DelegatedTypeTest < ActiveRecord::TestCase
     assert_equal @entry_with_message.entryable_id, @entry_with_message.message_id
     assert_nil @entry_with_message.comment_id
 
-    assert_equal @entry_with_message.entryable_id, @entry_with_comment.comment_id
+    assert_equal @entry_with_comment.entryable_id, @entry_with_comment.comment_id
     assert_nil @entry_with_comment.message_id
   end
 end
