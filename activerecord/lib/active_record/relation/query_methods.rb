@@ -1048,6 +1048,14 @@ module ActiveRecord
       self
     end
 
+    # Deduplicate multiple values.
+    def uniq!(name)
+      if values = @values[name]
+        values.uniq! if values.is_a?(Array) && !values.empty?
+      end
+      self
+    end
+
     # Returns the Arel object associated with the relation.
     def arel(aliases = nil) # :nodoc:
       @arel ||= build_arel(aliases)
@@ -1098,7 +1106,20 @@ module ActiveRecord
         arel.distinct(distinct_value)
         arel.from(build_from) unless from_clause.empty?
         arel.lock(lock_value) if lock_value
-        arel.comment(*annotate_values) unless annotate_values.empty?
+
+        unless annotate_values.empty?
+          annotates = annotate_values
+          annotates = annotates.uniq if annotates.size > 1
+          unless annotates == annotate_values
+            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+              Duplicated query annotations are no longer shown in queries in Rails 6.2.
+              To migrate to Rails 6.2's behavior, use `uniq!(:annotate)` to deduplicate query annotations
+              (`#{klass.name&.tableize || klass.table_name}.uniq!(:annotate)`).
+            MSG
+            annotates = annotate_values
+          end
+          arel.comment(*annotates)
+        end
 
         arel
       end

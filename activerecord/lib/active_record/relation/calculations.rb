@@ -316,6 +316,16 @@ module ActiveRecord
 
       def execute_grouped_calculation(operation, column_name, distinct) #:nodoc:
         group_fields = group_values
+        group_fields = group_fields.uniq if group_fields.size > 1
+
+        unless group_fields == group_values
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            `#{operation}` with group by duplicated fields does no longer affect to result in Rails 6.2.
+            To migrate to Rails 6.2's behavior, use `uniq!(:group)` to deduplicate group fields
+            (`#{klass.name&.tableize || klass.table_name}.uniq!(:group).#{operation}(#{column_name.inspect})`).
+          MSG
+          group_fields = group_values
+        end
 
         if group_fields.size == 1 && group_fields.first.respond_to?(:to_sym)
           association  = klass._reflect_on_association(group_fields.first)
