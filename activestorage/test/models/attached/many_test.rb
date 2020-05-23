@@ -325,12 +325,12 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
 
   test "attaching an existing blob from a signed ID to a new record" do
     User.new(name: "Jason").tap do |user|
-      user.avatar.attach create_blob(filename: "funky.jpg").signed_id
+      user.highlights.attach create_blob(filename: "funky.jpg").signed_id
       assert user.new_record?
-      assert_equal "funky.jpg", user.avatar.filename.to_s
+      assert_equal "funky.jpg", user.highlights.first.filename.to_s
 
       user.save!
-      assert_equal "funky.jpg", user.reload.avatar.filename.to_s
+      assert_equal "funky.jpg", user.reload.highlights.first.filename.to_s
     end
   end
 
