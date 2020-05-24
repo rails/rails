@@ -295,12 +295,15 @@ module ActiveRecord
       #
       # See also TableDefinition#column for details on how to create columns.
       def create_table(table_name, id: :primary_key, primary_key: nil, force: nil, **options)
-        td = create_table_definition(
-          table_name, **options.extract!(:temporary, :if_not_exists, :options, :as, :comment)
-        )
+        td = create_table_definition(table_name, **extract_table_options!(options))
 
         if id && !td.as
           pk = primary_key || Base.get_primary_key(table_name.to_s.singularize)
+
+          if id.is_a?(Hash)
+            options.merge!(id.except(:type))
+            id = id.fetch(:type, :primary_key)
+          end
 
           if pk.is_a?(Array)
             td.primary_keys pk
@@ -1379,12 +1382,16 @@ module ActiveRecord
           SchemaCreation.new(self)
         end
 
-        def create_table_definition(*args, **options)
-          TableDefinition.new(self, *args, **options)
+        def create_table_definition(name, **options)
+          TableDefinition.new(self, name, **options)
         end
 
         def create_alter_table(name)
           AlterTable.new create_table_definition(name)
+        end
+
+        def extract_table_options!(options)
+          options.extract!(:temporary, :if_not_exists, :options, :as, :comment, :charset, :collation)
         end
 
         def fetch_type_metadata(sql_type)

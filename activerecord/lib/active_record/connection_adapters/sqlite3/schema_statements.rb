@@ -87,8 +87,8 @@ module ActiveRecord
             SQLite3::SchemaCreation.new(self)
           end
 
-          def create_table_definition(*args, **options)
-            SQLite3::TableDefinition.new(self, *args, **options)
+          def create_table_definition(name, **options)
+            SQLite3::TableDefinition.new(self, name, **options)
           end
 
           def validate_index_length!(table_name, new_name, internal = false)

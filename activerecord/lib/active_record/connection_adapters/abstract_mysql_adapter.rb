@@ -414,24 +414,31 @@ module ActiveRecord
       end
 
       def table_options(table_name) # :nodoc:
-        table_options = {}
-
         create_table_info = create_table_info(table_name)
 
         # strip create_definitions and partition_options
         # Be aware that `create_table_info` might not include any table options due to `NO_TABLE_OPTIONS` sql mode.
         raw_table_options = create_table_info.sub(/\A.*\n\) ?/m, "").sub(/\n\/\*!.*\*\/\n\z/m, "").strip
 
+        return if raw_table_options.empty?
+
+        table_options = {}
+
+        if / DEFAULT CHARSET=(?<charset>\w+)(?: COLLATE=(?<collation>\w+))?/ =~ raw_table_options
+          raw_table_options = $` + $' # before part + after part
+          table_options[:charset] = charset
+          table_options[:collation] = collation if collation
+        end
+
         # strip AUTO_INCREMENT
         raw_table_options.sub!(/(ENGINE=\w+)(?: AUTO_INCREMENT=\d+)/, '\1')
-
-        table_options[:options] = raw_table_options unless raw_table_options.blank?
 
         # strip COMMENT
         if raw_table_options.sub!(/ COMMENT='.+'/, "")
           table_options[:comment] = table_comment(table_name)
         end
 
+        table_options[:options] = raw_table_options unless raw_table_options == "ENGINE=InnoDB"
         table_options
       end
 

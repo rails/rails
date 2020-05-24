@@ -125,7 +125,10 @@ HEADER
             tbl.print ", primary_key: #{pk.inspect}" unless pk == "id"
             pkcol = columns.detect { |c| c.name == pk }
             pkcolspec = column_spec_for_primary_key(pkcol)
-            if pkcolspec.present?
+            unless pkcolspec.empty?
+              if pkcolspec != pkcolspec.slice(:id, :default)
+                pkcolspec = { id: { type: pkcolspec.delete(:id), **pkcolspec }.compact }
+              end
               tbl.print ", #{format_colspec(pkcolspec)}"
             end
           when Array
@@ -240,7 +243,9 @@ HEADER
       end
 
       def format_colspec(colspec)
-        colspec.map { |key, value| "#{key}: #{value}" }.join(", ")
+        colspec.map do |key, value|
+          "#{key}: #{ value.is_a?(Hash) ? "{ #{format_colspec(value)} }" : value }"
+        end.join(", ")
       end
 
       def format_options(options)
