@@ -1668,8 +1668,8 @@ module ActionView
 
         convert_to_legacy_options(@options)
 
-        if @object_name.to_s.match(/\[\]$/)
-          if (object ||= @template.instance_variable_get("@#{Regexp.last_match.pre_match}")) && object.respond_to?(:to_param)
+        if @object_name.to_s.end_with?("[]")
+          if (object ||= @template.instance_variable_get("@#{@object_name.to_s.delete_suffix("[]")}")) && object.respond_to?(:to_param)
             @auto_index = object.to_param
           else
             raise ArgumentError, "object[] naming but object param and @object var don't exist or don't respond to to_param: #{object.inspect}"

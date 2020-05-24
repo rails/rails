@@ -358,8 +358,8 @@ module Rails
         end
 
         def method_missing(method, *args)
-          if method =~ /=$/
-            @configurations[$`.to_sym] = args.first
+          if method.to_s.end_with?("=")
+            @configurations[method.to_s.delete_suffix("=").to_sym] = args.first
           else
             @configurations.fetch(method) {
               @configurations[method] = ActiveSupport::OrderedOptions.new

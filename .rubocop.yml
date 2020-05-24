@@ -263,3 +263,9 @@ Performance/ReverseEach:
 
 Performance/UnfreezeString:
   Enabled: true
+
+Performance/DeletePrefix:
+  Enabled: true
+
+Performance/DeleteSuffix:
+  Enabled: true

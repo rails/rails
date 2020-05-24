@@ -1945,7 +1945,7 @@ module ActionDispatch
 
             path_without_format = path.sub(/\(\.:format\)$/, "")
             if using_match_shorthand?(path_without_format)
-              path_without_format.gsub(%r{^/}, "").sub(%r{/([^/]*)$}, '#\1').tr("-", "_")
+              path_without_format.delete_prefix("/").sub(%r{/([^/]*)$}, '#\1').tr("-", "_")
             else
               nil
             end
