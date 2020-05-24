@@ -49,7 +49,7 @@ module ActiveRecord
           end
 
           def schema_limit(column)
-            super unless /\A(?:enum|set|(?:tiny|medium|long)?(?:text|blob))\b/.match?(column.sql_type)
+            super unless /\A(?:tiny|medium|long)?(?:text|blob)\b/.match?(column.sql_type)
           end
 
           def schema_precision(column)
