@@ -93,6 +93,7 @@ db_namespace = namespace :db do
     ActiveRecord::Base.establish_connection(original_db_config)
   end
 
+  # IMPORTANT: This task won't dump the schema if ActiveRecord::Base.dump_schema_after_migration is set to false
   task :_dump do
     if ActiveRecord::Base.dump_schema_after_migration
       db_namespace["schema:dump"].invoke
@@ -141,6 +142,7 @@ db_namespace = namespace :db do
 
   namespace :_dump do
     ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name, db_config|
+      # IMPORTANT: This task won't dump the schema if ActiveRecord::Base.dump_schema_after_migration is set to false
       task name do
         if ActiveRecord::Base.dump_schema_after_migration
           db_namespace["schema:dump:#{name}"].invoke
