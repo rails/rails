@@ -722,7 +722,7 @@ module ActiveSupport #:nodoc:
     # A module, class, symbol, or string may be provided.
     def to_constant_name(desc) #:nodoc:
       case desc
-      when String then desc.sub(/^::/, "")
+      when String then desc.delete_prefix("::")
       when Symbol then desc.to_s
       when Module
         real_mod_name(desc) ||

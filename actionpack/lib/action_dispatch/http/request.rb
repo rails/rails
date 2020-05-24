@@ -50,9 +50,9 @@ module ActionDispatch
     ENV_METHODS.each do |env|
       class_eval <<-METHOD, __FILE__, __LINE__ + 1
         # frozen_string_literal: true
-        def #{env.sub(/^HTTP_/n, '').downcase}  # def accept_charset
-          get_header "#{env}"                   #   get_header "HTTP_ACCEPT_CHARSET"
-        end                                     # end
+        def #{env.delete_prefix("HTTP_").downcase}  # def accept_charset
+          get_header "#{env}"                       #   get_header "HTTP_ACCEPT_CHARSET"
+        end                                         # end
       METHOD
     end
 

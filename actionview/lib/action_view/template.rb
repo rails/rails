@@ -190,7 +190,7 @@ module ActionView
     end
 
     def short_identifier
-      @short_identifier ||= defined?(Rails.root) ? identifier.sub("#{Rails.root}/", "") : identifier
+      @short_identifier ||= defined?(Rails.root) ? identifier.delete_prefix("#{Rails.root}/") : identifier
     end
 
     def inspect

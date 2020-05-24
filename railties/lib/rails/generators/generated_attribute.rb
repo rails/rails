@@ -107,11 +107,11 @@ module Rails
       end
 
       def plural_name
-        name.sub(/_id$/, "").pluralize
+        name.delete_suffix("_id").pluralize
       end
 
       def singular_name
-        name.sub(/_id$/, "").singularize
+        name.delete_suffix("_id").singularize
       end
 
       def human_name

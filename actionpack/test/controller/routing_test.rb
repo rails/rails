@@ -171,7 +171,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     end
 
     u = URI("http://example.org/foo/bar.html")
-    assert_equal u.path.sub(/^\//, ""), get(u)
+    assert_equal u.path.delete_prefix("/"), get(u)
   end
 
   def test_star_paths_are_greedy_but_not_too_much
@@ -196,7 +196,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     end
 
     u = URI("http://example.org/ne_27.065938,-80.6092/sw_25.489856,-82.542794")
-    assert_equal u.path.sub(/^\//, ""), get(u)
+    assert_equal u.path.delete_prefix("/"), get(u)
   end
 
   def test_optional_star_paths_are_greedy_but_not_too_much

@@ -150,7 +150,7 @@ module ActiveRecord
       #   Person.attribute_method?(:age=)    # => true
       #   Person.attribute_method?(:nothing) # => false
       def attribute_method?(attribute)
-        super || (table_exists? && column_names.include?(attribute.to_s.sub(/=$/, "")))
+        super || (table_exists? && column_names.include?(attribute.to_s.delete_suffix("=")))
       end
 
       # Returns an array of column names as strings if it's not an abstract class and

@@ -213,7 +213,7 @@ module Rails
         end
 
         rails = groups.delete("rails")
-        rails.map! { |n| n.sub(/^rails:/, "") }
+        rails.map! { |n| n.delete_prefix("rails:") }
         rails.delete("app")
         rails.delete("plugin")
         rails.delete("encrypted_secrets")

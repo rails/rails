@@ -1650,7 +1650,7 @@ Mailer test cases obtain the mailer being tested from the name of the test class
 ```ruby
 # action_mailer/test_case.rb
 def determine_default_mailer(name)
-  name.sub(/Test$/, '').constantize
+  name.delete_suffix("Test").constantize
 rescue NameError => e
   raise NonInferrableMailerError.new(name)
 end
@@ -3662,7 +3662,7 @@ For example, when an action of `ArticlesController` is called Rails tries optimi
 
 ```ruby
 def default_helper_module!
-  module_name = name.sub(/Controller$/, '')
+  module_name = name.delete_suffix("Controller")
   module_path = module_name.underscore
   helper module_path
 rescue LoadError => e
@@ -3685,7 +3685,7 @@ For example, when an action of `ArticlesController` is called Rails tries to loa
 
 ```ruby
 def default_helper_module!
-  module_name = name.sub(/Controller$/, '')
+  module_name = name.delete_suffix("Controller")
   module_path = module_name.underscore
   helper module_path
 rescue LoadError => e

@@ -85,7 +85,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
   def assert_url(url, args)
     host = self.class.default_url_options[:host]
 
-    assert_equal url.sub(/http:\/\/#{host}/, ""), polymorphic_path(args)
+    assert_equal url.delete_prefix("http://#{host}"), polymorphic_path(args)
     assert_equal url, polymorphic_url(args)
     assert_equal url, url_for(args)
   end
@@ -733,7 +733,7 @@ class PolymorphicPathRoutesTest < PolymorphicRoutesTest
   def assert_url(url, args)
     host = self.class.default_url_options[:host]
 
-    assert_equal url.sub(/http:\/\/#{host}/, ""), url_for(args)
+    assert_equal url.delete_prefix("http://#{host}"), url_for(args)
   end
 end
 

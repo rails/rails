@@ -430,7 +430,7 @@ end
 
       def relative_path
         return unless inside_application?
-        app_path.sub(/^#{rails_app_path}\//, "")
+        app_path.delete_prefix("#{rails_app_path}/")
       end
     end
   end

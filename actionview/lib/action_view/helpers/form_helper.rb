@@ -2175,7 +2175,7 @@ module ActionView
         index = if options.has_key?(:index)
           options[:index]
         elsif defined?(@auto_index)
-          object_name = object_name.to_s.sub(/\[\]$/, "")
+          object_name = object_name.to_s.delete_suffix("[]")
           @auto_index
         end
 

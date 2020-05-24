@@ -42,7 +42,7 @@ module GeneratorsTestHelper
       setup :prepare_destination
 
       begin
-        base.tests Rails::Generators.const_get(base.name.sub(/Test$/, ""))
+        base.tests Rails::Generators.const_get(base.name.delete_suffix("Test"))
       rescue
       end
     end

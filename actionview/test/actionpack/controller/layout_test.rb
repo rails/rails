@@ -11,7 +11,7 @@ ActionController::Base.view_paths = [ File.expand_path("../../fixtures/actionpac
 
 class LayoutTest < ActionController::Base
   def self.controller_path; "views" end
-  def self._implied_layout_name; to_s.underscore.gsub(/_controller$/, "") ; end
+  def self._implied_layout_name; to_s.underscore.delete_suffix("_controller") ; end
   self.view_paths = ActionController::Base.view_paths.dup
 end
 
