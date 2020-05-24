@@ -606,7 +606,15 @@ module Rails
       end
 
       def self.default_rc_file
-        File.expand_path("~/.railsrc")
+        return File.expand_path("~/.railsrc") unless ENV["XDG_CONFIG_HOME"]
+
+        xdg_railsrc = ENV["XDG_CONFIG_HOME"] + "/rails/railsrc"
+        rc_file = if File.exist?(xdg_railsrc)
+          xdg_railsrc
+        else
+          "~/.railsrc"
+        end
+        File.expand_path(rc_file)
       end
 
       private
