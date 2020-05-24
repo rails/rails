@@ -1668,7 +1668,7 @@ module ActionView
 
         convert_to_legacy_options(@options)
 
-        if @object_name.to_s.end_with?("[]")
+        if @object_name&.end_with?("[]")
           if (object ||= @template.instance_variable_get("@#{@object_name.to_s.delete_suffix("[]")}")) && object.respond_to?(:to_param)
             @auto_index = object.to_param
           else

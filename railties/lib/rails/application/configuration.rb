@@ -358,7 +358,7 @@ module Rails
         end
 
         def method_missing(method, *args)
-          if method.to_s.end_with?("=")
+          if method.end_with?("=")
             @configurations[method.to_s.delete_suffix("=").to_sym] = args.first
           else
             @configurations.fetch(method) {

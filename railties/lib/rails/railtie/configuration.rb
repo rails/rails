@@ -88,7 +88,7 @@ module Rails
 
     private
       def method_missing(name, *args, &blk)
-        if name.to_s.end_with?("=")
+        if name.end_with?("=")
           @@options[name.to_s.delete_suffix("=").to_sym] = args.first
         elsif @@options.key?(name)
           @@options[name]
