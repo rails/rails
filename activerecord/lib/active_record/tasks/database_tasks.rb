@@ -160,17 +160,16 @@ module ActiveRecord
         end
       end
 
-      def for_each(databases, options={})
+      def for_each(databases)
         return {} unless defined?(Rails)
-        options = options.reverse_merge(skip_single_database: true)
 
         database_configs = ActiveRecord::DatabaseConfigurations.new(databases).configs_for(env_name: Rails.env)
 
         # if this is a single database application we don't want tasks for each primary database
-        return if options[:skip_single_database] && database_configs.count == 1
+        return if database_configs.count == 1
 
         database_configs.each do |db_config|
-          yield db_config.name, db_config, database_configs.count == 1
+          yield db_config.name, db_config
         end
       end
 
