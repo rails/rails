@@ -133,7 +133,7 @@ module AbstractController
       # ==== Returns
       # * <tt>String</tt>
       def controller_path
-        @controller_path ||= name.sub(/Controller$/, "").underscore unless anonymous?
+        @controller_path ||= name.delete_suffix("Controller").underscore unless anonymous?
       end
 
       # Refresh the cached action_methods when a new action_method is added.

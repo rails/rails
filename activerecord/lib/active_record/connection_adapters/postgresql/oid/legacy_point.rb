@@ -35,7 +35,7 @@ module ActiveRecord
 
           private
             def number_for_point(number)
-              number.to_s.gsub(/\.0$/, "")
+              number.to_s.delete_suffix(".0")
             end
         end
       end

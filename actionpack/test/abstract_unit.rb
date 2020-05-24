@@ -176,7 +176,7 @@ end
 class Rack::TestCase < ActionDispatch::IntegrationTest
   def self.testing(klass = nil)
     if klass
-      @testing = "/#{klass.name.underscore}".sub(/_controller$/, "")
+      @testing = "/#{klass.name.underscore}".delete_suffix("_controller")
     else
       @testing
     end
