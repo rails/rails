@@ -704,7 +704,7 @@ module ActiveRecord
     #
     # The two relations must be structurally compatible: they must be scoping the same model, and
     # they must differ only by #where (if no #group has been defined) or #having (if a #group is
-    # present). Neither relation may have a #limit, #offset, or #distinct set.
+    # present).
     #
     #    Post.where("id = 1").or(Post.where("author_id = 3"))
     #    # SELECT `posts`.* FROM `posts` WHERE ((id = 1) OR (author_id = 3))
