@@ -129,7 +129,7 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     pirate = Pirate.new
     ship_built_first = pirate.build_ship
     pirate.ship_attributes = { name: "Ship 1" }
-    assert_equal ship_built_first.object_id, pirate.ship.object_id
+    assert_same ship_built_first, pirate.ship
   end
 
   def test_do_not_allow_assigning_foreign_key_when_reusing_existing_new_record

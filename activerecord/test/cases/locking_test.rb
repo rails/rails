@@ -161,7 +161,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
 
     p2.first_name = "sue"
     error = assert_raise(ActiveRecord::StaleObjectError) { p2.save! }
-    assert_equal(error.record.object_id, p2.object_id)
+    assert_same error.record, p2
   end
 
   def test_lock_new_when_explicitly_passing_nil

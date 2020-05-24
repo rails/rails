@@ -2425,7 +2425,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     ary    = topics(:first).replies.to_a
     target = topics(:first).replies.target
 
-    assert_not_equal target.object_id, ary.object_id
+    assert_not_same target, ary
   end
 
   def test_merging_with_custom_attribute_writer

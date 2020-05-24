@@ -97,11 +97,11 @@ module ActiveRecord
       def instantiate(result_set, strict_loading_value, &block)
         primary_key = aliases.column_alias(join_root, join_root.primary_key)
 
-        seen = Hash.new { |i, object_id|
-          i[object_id] = Hash.new { |j, child_class|
+        seen = Hash.new { |i, parent|
+          i[parent] = Hash.new { |j, child_class|
             j[child_class] = {}
           }
-        }
+        }.compare_by_identity
 
         model_cache = Hash.new { |h, klass| h[klass] = {} }
         parents = model_cache[join_root]
@@ -240,14 +240,14 @@ module ActiveRecord
               next
             end
 
-            model = seen[ar_parent.object_id][node][id]
+            model = seen[ar_parent][node][id]
 
             if model
               construct(model, node, row, seen, model_cache, strict_loading_value)
             else
               model = construct_model(ar_parent, node, row, model_cache, id, strict_loading_value)
 
-              seen[ar_parent.object_id][node][id] = model
+              seen[ar_parent][node][id] = model
               construct(model, node, row, seen, model_cache, strict_loading_value)
             end
           end

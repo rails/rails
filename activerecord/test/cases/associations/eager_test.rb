@@ -721,7 +721,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     post1 = general.posts.to_a.find { |p| p == welcome }
     post2 = technology.posts.to_a.find { |p| p == welcome }
 
-    assert_equal post1.object_id, post2.object_id
+    assert_same post1, post2
   end
 
   def test_eager_with_has_many_and_limit_and_conditions_on_the_eagers
