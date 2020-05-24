@@ -15,7 +15,7 @@ begin
 rescue LoadError
 end
 
-require "digest/sha2"
+require "openssl"
 require "active_support/core_ext/marshal"
 
 module ActiveSupport
@@ -443,7 +443,7 @@ module ActiveSupport
 
         def truncate_key(key)
           if key && key.bytesize > max_key_bytesize
-            suffix = ":sha2:#{::Digest::SHA2.hexdigest(key)}"
+            suffix = ":sha2:#{OpenSSL::Digest.hexdigest("SHA256", key)}"
             truncate_at = max_key_bytesize - suffix.bytesize
             "#{key.byteslice(0, truncate_at)}#{suffix}"
           else

@@ -414,7 +414,7 @@ module ActionController #:nodoc:
 
       def csrf_token_hmac(session, identifier) # :doc:
         OpenSSL::HMAC.digest(
-          OpenSSL::Digest::SHA256.new,
+          OpenSSL::Digest.new("SHA256"),
           real_csrf_token(session),
           identifier
         )

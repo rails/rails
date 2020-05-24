@@ -21,7 +21,7 @@ if SERVICE_CONFIGURATIONS[:azure_public]
     test "direct upload" do
       key          = SecureRandom.base58(24)
       data         = "Something else entirely!"
-      checksum     = Digest::MD5.base64digest(data)
+      checksum     = OpenSSL::Digest.base64digest("MD5", data)
       content_type = "text/xml"
       url          = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: content_type, content_length: data.size, checksum: checksum)
 

@@ -25,7 +25,7 @@ class ActiveStorage::Service::MirrorServiceTest < ActiveSupport::TestCase
     key      = SecureRandom.base58(24)
     data     = "Something else entirely!"
     io       = StringIO.new(data)
-    checksum = Digest::MD5.base64digest(data)
+    checksum = OpenSSL::Digest.base64digest("MD5", data)
 
     @service.upload key, io.tap(&:read), checksum: checksum
     assert_predicate io, :eof?
@@ -41,7 +41,7 @@ class ActiveStorage::Service::MirrorServiceTest < ActiveSupport::TestCase
   test "downloading from primary service" do
     key      = SecureRandom.base58(24)
     data     = "Something else entirely!"
-    checksum = Digest::MD5.base64digest(data)
+    checksum = OpenSSL::Digest.base64digest("MD5", data)
 
     @service.primary.upload key, StringIO.new(data), checksum: checksum
 
@@ -60,7 +60,7 @@ class ActiveStorage::Service::MirrorServiceTest < ActiveSupport::TestCase
   test "mirroring a file from the primary service to secondary services where it doesn't exist" do
     key      = SecureRandom.base58(24)
     data     = "Something else entirely!"
-    checksum = Digest::MD5.base64digest(data)
+    checksum = OpenSSL::Digest.base64digest("MD5", data)
 
     @service.primary.upload key, StringIO.new(data), checksum: checksum
     @service.mirrors.third.upload key, StringIO.new("Surprise!")

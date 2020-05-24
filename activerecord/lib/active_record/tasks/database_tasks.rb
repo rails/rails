@@ -523,7 +523,7 @@ module ActiveRecord
         end
 
         def schema_sha1(file)
-          Digest::SHA1.hexdigest(File.read(file))
+          OpenSSL::Digest.hexdigest("SHA1", File.read(file))
         end
     end
   end

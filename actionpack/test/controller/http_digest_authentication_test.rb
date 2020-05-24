@@ -9,7 +9,7 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
     before_action :authenticate_with_request, only: :display
 
     USERS = { "lifo" => "world", "pretty" => "please",
-              "dhh" => ::Digest::MD5.hexdigest(["dhh", "SuperSecret", "secret"].join(":")) }
+              "dhh" => OpenSSL::Digest.hexdigest("MD5", ["dhh", "SuperSecret", "secret"].join(":")) }
 
     def index
       render plain: "Hello Secret"
@@ -185,7 +185,7 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
   test "authentication request with password stored as ha1 digest hash" do
     @request.env["HTTP_AUTHORIZATION"] = encode_credentials(
       username: "dhh",
-      password: ::Digest::MD5.hexdigest(["dhh", "SuperSecret", "secret"].join(":")),
+      password: OpenSSL::Digest.hexdigest("MD5", ["dhh", "SuperSecret", "secret"].join(":")),
       password_is_ha1: true)
     get :display
 

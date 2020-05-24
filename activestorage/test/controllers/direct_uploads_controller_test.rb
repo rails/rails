@@ -15,7 +15,7 @@ if SERVICE_CONFIGURATIONS[:s3] && SERVICE_CONFIGURATIONS[:s3][:access_key_id].pr
     end
 
     test "creating new direct upload" do
-      checksum = Digest::MD5.base64digest("Hello")
+      checksum = OpenSSL::Digest.base64digest("MD5", "Hello")
 
       post rails_direct_uploads_url, params: { blob: {
         filename: "hello.txt", byte_size: 6, checksum: checksum, content_type: "text/plain" } }
@@ -50,7 +50,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
     end
 
     test "creating new direct upload" do
-      checksum = Digest::MD5.base64digest("Hello")
+      checksum = OpenSSL::Digest.base64digest("MD5", "Hello")
 
       post rails_direct_uploads_url, params: { blob: {
         filename: "hello.txt", byte_size: 6, checksum: checksum, content_type: "text/plain" } }
@@ -84,7 +84,7 @@ if SERVICE_CONFIGURATIONS[:azure]
     end
 
     test "creating new direct upload" do
-      checksum = Digest::MD5.base64digest("Hello")
+      checksum = OpenSSL::Digest.base64digest("MD5", "Hello")
 
       post rails_direct_uploads_url, params: { blob: {
         filename: "hello.txt", byte_size: 6, checksum: checksum, content_type: "text/plain" } }
@@ -106,7 +106,7 @@ end
 
 class ActiveStorage::DiskDirectUploadsControllerTest < ActionDispatch::IntegrationTest
   test "creating new direct upload" do
-    checksum = Digest::MD5.base64digest("Hello")
+    checksum = OpenSSL::Digest.base64digest("MD5", "Hello")
 
     post rails_direct_uploads_url, params: { blob: {
       filename: "hello.txt", byte_size: 6, checksum: checksum, content_type: "text/plain" } }
@@ -123,7 +123,7 @@ class ActiveStorage::DiskDirectUploadsControllerTest < ActionDispatch::Integrati
   end
 
   test "creating new direct upload does not include root in json" do
-    checksum = Digest::MD5.base64digest("Hello")
+    checksum = OpenSSL::Digest.base64digest("MD5", "Hello")
 
     set_include_root_in_json(true) do
       post rails_direct_uploads_url, params: { blob: {

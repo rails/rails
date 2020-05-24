@@ -16,12 +16,12 @@ module Digest
     #
     # See RFC 4122 for details of UUID at: https://www.ietf.org/rfc/rfc4122.txt
     def self.uuid_from_hash(hash_class, uuid_namespace, name)
-      if hash_class == Digest::MD5
+      if hash_class == OpenSSL::Digest::MD5
         version = 3
-      elsif hash_class == Digest::SHA1
+      elsif hash_class == OpenSSL::Digest::SHA1
         version = 5
       else
-        raise ArgumentError, "Expected Digest::SHA1 or Digest::MD5, got #{hash_class.name}."
+        raise ArgumentError, "Expected OpenSSL::Digest::SHA1 or OpenSSL::Digest::MD5, got #{hash_class.name}."
       end
 
       hash = hash_class.new
@@ -37,12 +37,12 @@ module Digest
 
     # Convenience method for uuid_from_hash using Digest::MD5.
     def self.uuid_v3(uuid_namespace, name)
-      uuid_from_hash(Digest::MD5, uuid_namespace, name)
+      uuid_from_hash(OpenSSL::Digest::MD5, uuid_namespace, name)
     end
 
     # Convenience method for uuid_from_hash using Digest::SHA1.
     def self.uuid_v5(uuid_namespace, name)
-      uuid_from_hash(Digest::SHA1, uuid_namespace, name)
+      uuid_from_hash(OpenSSL::Digest::SHA1, uuid_namespace, name)
     end
 
     # Convenience method for SecureRandom.uuid.

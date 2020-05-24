@@ -26,7 +26,7 @@ if SERVICE_CONFIGURATIONS[:s3_public]
     test "direct upload" do
       key      = SecureRandom.base58(24)
       data     = "Something else entirely!"
-      checksum = Digest::MD5.base64digest(data)
+      checksum = OpenSSL::Digest.base64digest("MD5", data)
       url      = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
 
       uri = URI.parse url

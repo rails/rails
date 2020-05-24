@@ -116,7 +116,7 @@ module ActionMailbox
           end
 
           def expected_signature
-            OpenSSL::HMAC.hexdigest OpenSSL::Digest::SHA256.new, key, "#{timestamp}#{token}"
+            OpenSSL::HMAC.hexdigest OpenSSL::Digest.new("SHA256"), key, "#{timestamp}#{token}"
           end
       end
   end

@@ -59,7 +59,7 @@ class ActiveStorage::Variation
   end
 
   def digest
-    Digest::SHA1.base64digest Marshal.dump(transformations)
+    OpenSSL::Digest.base64digest("SHA1", Marshal.dump(transformations))
   end
 
   private

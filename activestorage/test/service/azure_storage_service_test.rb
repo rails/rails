@@ -12,7 +12,7 @@ if SERVICE_CONFIGURATIONS[:azure]
     test "direct upload with content type" do
       key          = SecureRandom.base58(24)
       data         = "Something else entirely!"
-      checksum     = Digest::MD5.base64digest(data)
+      checksum     = OpenSSL::Digest.base64digest("MD5", data)
       content_type = "text/xml"
       url          = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: content_type, content_length: data.size, checksum: checksum)
 
@@ -34,7 +34,7 @@ if SERVICE_CONFIGURATIONS[:azure]
     test "direct upload with content disposition" do
       key      = SecureRandom.base58(24)
       data     = "Something else entirely!"
-      checksum = Digest::MD5.base64digest(data)
+      checksum = OpenSSL::Digest.base64digest("MD5", data)
       url      = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
 
       uri = URI.parse url
@@ -56,7 +56,7 @@ if SERVICE_CONFIGURATIONS[:azure]
       key      = SecureRandom.base58(24)
       data     = "Foobar"
 
-      @service.upload(key, StringIO.new(data), checksum: Digest::MD5.base64digest(data), filename: ActiveStorage::Filename.new("test.txt"), content_type: "text/plain")
+      @service.upload(key, StringIO.new(data), checksum: OpenSSL::Digest.base64digest("MD5", data), filename: ActiveStorage::Filename.new("test.txt"), content_type: "text/plain")
 
       url = @service.url(key, expires_in: 2.minutes, disposition: :attachment, content_type: nil, filename: ActiveStorage::Filename.new("test.html"))
       response = Net::HTTP.get_response(URI(url))
@@ -70,7 +70,7 @@ if SERVICE_CONFIGURATIONS[:azure]
       key  = SecureRandom.base58(24)
       data = "Foobar"
 
-      @service.upload(key, StringIO.new(data), checksum: Digest::MD5.base64digest(data), filename: ActiveStorage::Filename.new("test.txt"), disposition: :inline)
+      @service.upload(key, StringIO.new(data), checksum: OpenSSL::Digest.base64digest("MD5", data), filename: ActiveStorage::Filename.new("test.txt"), disposition: :inline)
 
       assert_equal("inline; filename=\"test.txt\"; filename*=UTF-8''test.txt", @service.client.get_blob_properties(@service.container, key).properties[:content_disposition])
 

@@ -14,7 +14,7 @@ module ActionMailbox::InboundEmail::MessageId
     # attachment called +raw_email+. Before the upload, extract the Message-ID from the +source+ and set
     # it as an attribute on the new +InboundEmail+.
     def create_and_extract_message_id!(source, **options)
-      message_checksum = Digest::SHA1.hexdigest(source)
+      message_checksum = OpenSSL::Digest.hexdigest("SHA1", source)
       message_id = extract_message_id(source) || generate_missing_message_id(message_checksum)
 
       create! options.merge(message_id: message_id, message_checksum: message_checksum) do |inbound_email|
