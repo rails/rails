@@ -101,14 +101,14 @@ module ActiveRecord
   # You create a new record that uses delegated typing by creating the delegator and delegatee at the same time,
   # like so:
   #
-  #   Entry.create! message: Comment.new(content: "Hello!"), creator: Current.user
+  #   Entry.create! entryable: Comment.new(content: "Hello!"), creator: Current.user
   #
   # If you need more complicated composition, or you need to perform dependent validation, you should build a factory
   # method or class to take care of the complicated needs. This could be as simple as:
   #
   #   class Entry < ApplicationRecord
   #     def self.create_with_comment(content, creator: Current.user)
-  #       create! message: Comment.new(content: content), creator: creator
+  #       create! entryable: Comment.new(content: content), creator: creator
   #     end
   #   end
   #
