@@ -465,7 +465,14 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_with_polymorphic_and_condition
     sponsor = Sponsor.create
     member = Member.create name: "Bert"
+
     sponsor.sponsorable = member
+    sponsor.save!
+
+    assert_equal member, sponsor.sponsorable
+    assert_nil sponsor.sponsorable_with_conditions
+
+    sponsor = Sponsor.preload(:sponsorable, :sponsorable_with_conditions).last
 
     assert_equal member, sponsor.sponsorable
     assert_nil sponsor.sponsorable_with_conditions
