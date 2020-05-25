@@ -906,17 +906,17 @@ module ApplicationTests
       test "schema generation with schema dump only for secondary" do
         add_to_config("config.active_record.dump_schema_after_migration = true")
 
-          app_file "config/database.yml", <<~EOS
-            development:
-              primary:
-                adapter: sqlite3
-                database: primary_dev_db
-                schema_dump: false
-              secondary:
-                adapter: sqlite3
-                database: secondary_dev_db
-                schema_dump: true
-          EOS
+        app_file "config/database.yml", <<~EOS
+          development:
+            primary:
+              adapter: sqlite3
+              database: primary_dev_db
+              schema_dump: false
+            secondary:
+              adapter: sqlite3
+              database: secondary_dev_db
+              schema_dump: true
+        EOS
 
         Dir.chdir(app_path) do
           rails "generate", "model", "book", "title:string"
