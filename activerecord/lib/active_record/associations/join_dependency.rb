@@ -81,11 +81,9 @@ module ActiveRecord
       def join_constraints(joins_to_add, alias_tracker)
         @alias_tracker = alias_tracker
 
-        construct_tables!(join_root)
         joins = make_join_constraints(join_root, join_type)
 
         joins.concat joins_to_add.flat_map { |oj|
-          construct_tables!(oj.join_root)
           if join_root.match? oj.join_root
             walk(join_root, oj.join_root, oj.join_type)
           else
@@ -157,12 +155,6 @@ module ActiveRecord
           }
         end
 
-        def construct_tables!(join_root)
-          join_root.each_children do |parent, child|
-            child.tables = table_aliases_for(parent, child)
-          end
-        end
-
         def make_join_constraints(join_root, join_type)
           join_root.children.flat_map do |child|
             make_constraints(join_root, child, join_type)
@@ -172,18 +164,13 @@ module ActiveRecord
         def make_constraints(parent, child, join_type)
           foreign_table = parent.table
           foreign_klass = parent.base_klass
-          joins = child.join_constraints(foreign_table, foreign_klass, join_type, alias_tracker)
-          joins.concat child.children.flat_map { |c| make_constraints(child, c, join_type) }
-        end
-
-        def table_aliases_for(parent, node)
-          node.reflection.chain.map { |reflection|
+          child.join_constraints(foreign_table, foreign_klass, join_type, alias_tracker) do |reflection|
             alias_tracker.aliased_table_for(
               reflection.table_name,
-              table_alias_for(reflection, parent, reflection != node.reflection),
+              table_alias_for(reflection, parent, reflection != child.reflection),
               reflection.klass.type_caster
             )
-          }
+          end.concat child.children.flat_map { |c| make_constraints(child, c, join_type) }
         end
 
         def table_alias_for(reflection, parent, join)

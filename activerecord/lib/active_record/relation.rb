@@ -749,8 +749,7 @@ module ActiveRecord
     end
 
     def alias_tracker(joins = [], aliases = nil) # :nodoc:
-      joins += [aliases] if aliases
-      ActiveRecord::Associations::AliasTracker.create(connection, table.name, joins)
+      ActiveRecord::Associations::AliasTracker.create(connection, table.name, joins, aliases)
     end
 
     class StrictLoadingScope

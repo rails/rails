@@ -6,9 +6,14 @@ module ActiveRecord
   module Associations
     # Keeps track of table aliases for ActiveRecord::Associations::JoinDependency
     class AliasTracker # :nodoc:
-      def self.create(connection, initial_table, joins)
+      def self.create(connection, initial_table, joins, aliases = nil)
         if joins.empty?
-          aliases = Hash.new(0)
+          aliases ||= Hash.new(0)
+        elsif aliases
+          default_proc = aliases.default_proc || proc { 0 }
+          aliases.default_proc = proc { |h, k|
+            h[k] = initial_count_for(connection, k, joins) + default_proc.call(h, k)
+          }
         else
           aliases = Hash.new { |h, k|
             h[k] = initial_count_for(connection, k, joins)
@@ -32,8 +37,6 @@ module ActiveRecord
             ).size
           elsif join.is_a?(Arel::Nodes::Join)
             join.left.name == name ? 1 : 0
-          elsif join.is_a?(Hash)
-            join[name]
           else
             raise ArgumentError, "joins list should be initialized by list of Arel::Nodes::Join"
           end
