@@ -1,0 +1,21 @@
+# Documentation: https://github.com/jonathanhefner/verba-sequentur
+
+"support request":
+  comment: >
+    This appears to be a request for technical support. We reserve the
+    issue tracker for issues only. For technical support questions,
+    please use the [rubyonrails-talk](https://discuss.rubyonrails.org/c/rubyonrails-talk/7)
+    forum or [Stack Overflow](https://stackoverflow.com/questions/tagged/ruby-on-rails),
+    where a wider community can help you.
+  close: true
+
+"feature request":
+  comment: >
+    This appears to be a feature request. We generally do not take
+    feature requests, and we reserve the issue tracker for issues only.
+    We recommend you [try to implement the feature](
+    https://guides.rubyonrails.org/contributing_to_ruby_on_rails.html#contributing-to-the-rails-code),
+    and send us a pull request instead. If you are unsure if the feature
+    would be accepted, please ask on the [rubyonrails-core](
+    https://discuss.rubyonrails.org/c/rubyonrails-core/5) forum.
+  close: true
