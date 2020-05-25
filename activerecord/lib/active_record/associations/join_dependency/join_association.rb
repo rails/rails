@@ -23,13 +23,23 @@ module ActiveRecord
 
         def join_constraints(foreign_table, foreign_klass, join_type, alias_tracker, &block)
           joins = []
-          tables = reflection.chain.map(&block)
-          @table = tables.first
+          chain = []
+
+          reflection.chain.each do |reflection|
+            table, terminated = yield reflection
+
+            if terminated
+              foreign_table, foreign_klass = table, reflection.klass
+              break
+            end
+
+            @table ||= table
+            chain << [reflection, table]
+          end
 
           # The chain starts with the target table, but we want to end with it here (makes
           # more sense in this context), so we reverse
-          reflection.chain.reverse_each.with_index(1) do |reflection, i|
-            table = tables[-i]
+          chain.reverse_each do |reflection, table|
             klass = reflection.klass
 
             join_scope = reflection.join_scope(table, foreign_table, foreign_klass)

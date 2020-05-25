@@ -1069,6 +1069,14 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal expected, Author.eager_load(:lazy_readers_skimmers_or_not_2).last.lazy_readers_skimmers_or_not_2
   end
 
+  def test_duplicated_has_many_through_with_join_scope
+    Categorization.create!(author: authors(:david), post: posts(:thinking), category: categories(:technology))
+
+    expected = [posts(:welcome)]
+    assert_equal expected, Author.preload(:general_categorizations, :general_posts).first.general_posts
+    assert_equal expected, Author.eager_load(:general_categorizations, :general_posts).first.general_posts
+  end
+
   def test_has_many_through_polymorphic_with_rewhere
     post = TaggedPost.create!(title: "Tagged", body: "Post")
     tag = post.tags.create!(name: "Tag")
