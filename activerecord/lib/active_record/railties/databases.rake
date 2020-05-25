@@ -133,6 +133,30 @@ db_namespace = namespace :db do
     #       end
     #     end
     #   end
+
+    # dump_all = ActiveRecord::Base.dump_schema_after_migration
+    # database_configs = ActiveRecord::DatabaseConfigurations.new(databases).configs_for(env_name: Rails.env)
+
+    # if database_configs.count == 1
+    #   if dump_all && database_configs.first.schema_dump
+    #     case ActiveRecord::Base.schema_format
+    #     when :ruby then db_namespace["schema:dump"].invoke
+    #     when :sql  then db_namespace["structure:dump"].invoke
+    #     else
+    #       raise "unknown schema format #{ActiveRecord::Base.schema_format}"
+    #     end
+    #   end
+    # else
+    #   ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name, db_config|
+    #     if dump_all && db_config.schema_dump
+    #       case ActiveRecord::Base.schema_format
+    #       when :ruby then db_namespace["schema:dump:#{name}"].invoke
+    #       when :sql  then db_namespace["structure:dump:#{name}"].invoke
+    #       else
+    #         raise "unknown schema format #{ActiveRecord::Base.schema_format}"
+    #       end
+    #     end
+    #   end
     end
 
     # Allow this task to be called as many times as required. An example is the
