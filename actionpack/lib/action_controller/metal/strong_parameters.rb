@@ -252,7 +252,7 @@ module ActionController
     # to change these is to specify `always_permitted_parameters` in your
     # config. For instance:
     #
-    #    config.always_permitted_parameters = %w( controller action format )
+    #    config.action_controller.always_permitted_parameters = %w( controller action format )
     cattr_accessor :always_permitted_parameters, default: %w( controller action )
 
     class << self
