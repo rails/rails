@@ -201,9 +201,9 @@ module ActiveRecord
         klass_scope
       end
 
-      def join_scopes(table, predicate_builder) # :nodoc:
+      def join_scopes(table, predicate_builder, klass = self.klass) # :nodoc:
         if scope
-          [scope_for(build_scope(table, predicate_builder))]
+          [scope_for(build_scope(table, predicate_builder, klass))]
         else
           []
         end
@@ -292,7 +292,7 @@ module ActiveRecord
         JoinKeys.new(join_primary_key(association_klass), join_foreign_key)
       end
 
-      def build_scope(table, predicate_builder = predicate_builder(table))
+      def build_scope(table, predicate_builder = predicate_builder(table), klass = self.klass)
         Relation.create(
           klass,
           table: table,
@@ -839,8 +839,8 @@ module ActiveRecord
         source_reflection.scopes + super
       end
 
-      def join_scopes(table, predicate_builder) # :nodoc:
-        source_reflection.join_scopes(table, predicate_builder) + super
+      def join_scopes(table, predicate_builder, klass = self.klass) # :nodoc:
+        source_reflection.join_scopes(table, predicate_builder, klass) + super
       end
 
       def has_scope?
@@ -1003,9 +1003,9 @@ module ActiveRecord
         @previous_reflection = previous_reflection
       end
 
-      def join_scopes(table, predicate_builder) # :nodoc:
+      def join_scopes(table, predicate_builder, klass = self.klass) # :nodoc:
         scopes = @previous_reflection.join_scopes(table, predicate_builder) + super
-        scopes << build_scope(table, predicate_builder).instance_exec(nil, &source_type_scope)
+        scopes << build_scope(table, predicate_builder, klass).instance_exec(nil, &source_type_scope)
       end
 
       def constraints
