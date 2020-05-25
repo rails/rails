@@ -44,27 +44,38 @@ In order to use Webpacker you must be using the Yarn package manager, version 1.
 
 Webpacker is installed by default in Rails 6.0 and up. In an older version, you can install it when a new project is created by adding `--webpack` to a `rails new` command. In an existing project, webpacker can be added by installing `bundle exec rails webpacker:install`. This installation command creates local files:
 
-* The Webpacker configuration at `config/webpacker.yml`
-* Configuration files for Babel (`babel.confg.js`), PostCSS (`postcss.config.js`), and Browserslist (`.browserslistrc`) all go in the application root.
-* A place for your front-end source at `app/javascript`
+|File                    |Location                |Explanation                                                 |
+|------------------------|------------------------|------------------------------------------------------------|
+|Javascript Folder       | `app/javascript`       |A place for your front-end source                           |
+|Webpacker Configuration | `config/webpacker.yml` |Configure the Webpacker gem                                 |
+|Babel Configuration     | `babel.config.js`      |Configuration for the https://babeljs.io JavaScript Compiler|
+|PostCSS Configuration   | `postcss.config.js`    |Configuration for the https://postcss.org CSS Post-Processor|
+|Browserlist             | `.browserslistrc`      |https://github.com/browserslist/browserslist                |
+
 
 The installation also calls the `yarn` package manager, creates a `package.json` file with a basic set of packages listed, and uses Yarn to install these dependencies.
 
 ### Integrating Frameworks with Webpacker
 
-Webpacker also contains support for many popular JavaScript frameworks and tools. Typically, these are installed either when the application is created with something like `rails new myapp --webpack=whatever` or with a separate command line task, like `rails:install:whatever`.
+Webpacker also contains support for many popular JavaScript frameworks and tools. Typically, these are installed either when the application is created with something like `rails new myapp --webpack=<framework_name>` or with a separate command line task, like `rails webpacker:install:<framework_name>`.
 
-These integrations typically install the set of NPM packages needed to get started with the framework or tool, a "hello world" page to show that it works, and any other webpack loaders or transformations needed to compile the tool. The supported frameworks and tools are (use the tool name in all lowercase in the installation command):
+These integrations typically install the set of NPM packages needed to get started with the framework or tool, a "hello world" page to show that it works, and any other webpack loaders or transformations needed to compile the tool. The supported frameworks and tools are:
 
-* Angular (also installs TypeScript)
-* CoffeeScript
-* Elm
-* ERB
-* React
-* Stimulus
-* Svelte
-* TypeScript
-* Vue
+INFO. It's possible to install frameworks not included in this list. These are basic integrations of popular choices.
+
+|Framework         |Install command                     |Description                                       |
+|------------------|------------------------------------|--------------------------------------------------|
+|Angular           |`rails webpacker:install:angular`   |Sets up Angular and Typescript                    |
+|CoffeeScript      |`rails webpacker:install:coffee`    |Sets up CoffeeScript                              |
+|Elm               |`rails webpacker:install:elm`       |Sets up Elm                                       |
+|ERB               |`rails webpacker:install:erb`       |Sets up ERB support on your Javascript files      |
+|React             |`rails webpacker:install:react`     |Sets up ReactJS                                   |
+|Stimulus          |`rails webpacker:install:stimulus`  |Sets up StimulusJS                                |
+|Svelte            |`rails webpacker:install:svelte`    |Sets up Svelte JS                                 |
+|TypeScript        |`rails webpacker:install:typescript`|Sets up the Typescript Transpiler for your project|
+|Vue               |`rails webpacker:install:vue`       |Sets up VueJS                                     |
+
+INFO. More information about the existing integrations: https://github.com/rails/webpacker/blob/master/docs/integrations.md
 
 ## Using Webpacker for JavaScript
 
