@@ -565,17 +565,8 @@ module ActiveRecord
           m.alias_type %r(year)i,          "integer"
           m.alias_type %r(bit)i,           "binary"
 
-          m.register_type(%r(enum)i) do |sql_type|
-            limit = sql_type[/^enum\s*\((.+)\)/i, 1]
-              .split(",").map { |enum| enum.strip.length - 2 }.max
-            MysqlString.new(limit: limit)
-          end
-
-          m.register_type(%r(^set)i) do |sql_type|
-            limit = sql_type[/^set\s*\((.+)\)/i, 1]
-              .split(",").map { |set| set.strip.length - 1 }.sum - 1
-            MysqlString.new(limit: limit)
-          end
+          m.register_type %r(^enum)i, MysqlString.new
+          m.register_type %r(^set)i,  MysqlString.new
         end
 
         def register_integer_type(mapping, key, **options)
