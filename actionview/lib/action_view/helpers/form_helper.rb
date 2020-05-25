@@ -1793,7 +1793,7 @@ module ActionView
       # Wraps ActionView::Helpers::FormHelper#time_field for form builders:
       #
       #   <%= form_with model: @user do |f| %>
-      #     <%= f.time_field :borned_at %>
+      #     <%= f.time_field :born_at %>
       #   <% end %>
       #
       # Please refer to the documentation of the base helper for details.
