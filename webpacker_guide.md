@@ -2,7 +2,7 @@
 
 This guide will show you how to install and use Webpacker to package  JavaScript, CSS, and other assets for the client-side of your Rails application.
 
-After reading this guide, you will know:
+After reading this guide, you will know: 
 
 * What Webpacker does and why it is different from Sprockets.
 * How to install Webpacker and integrate it with your framework of choice.
@@ -47,15 +47,11 @@ Webpacker is installed by default in Rails 6.0 and up. In an older version, you 
 |File                    |Location                |Explanation                                                 |
 |------------------------|------------------------|------------------------------------------------------------|
 |Javascript Folder       | `app/javascript`       |A place for your front-end source                           |
-|Webpacker Configuration | `config/webpacker.html`|Configure the Webpacker gem                                 |
+|Webpacker Configuration | `config/webpacker.yml` |Configure the Webpacker gem                                 |
 |Babel Configuration     | `babel.config.js`      |Configuration for the https://babeljs.io JavaScript Compiler|
 |PostCSS Configuration   | `postcss.config.js`    |Configuration for the https://postcss.org CSS Post-Processor|
 |Browserlist             | `.browserslistrc`      |https://github.com/browserslist/browserslist                |
 
-
-* The Webpacker configuration at `config/webpacker.html`
-* Configuration files for Babel, PostCSS, and Browserslist
-* A place for your front-end source at `app/javascript`
 
 The installation also calls the `yarn` package manager, creates a `package.json` file with a basic set of packages listed, and uses Yarn to install these dependencies.
 
