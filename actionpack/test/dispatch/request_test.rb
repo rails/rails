@@ -1290,3 +1290,21 @@ class EarlyHintsRequestTest < BaseRequestTest
     assert_equal expected_hints, early_hints
   end
 end
+
+class RequestInspectTest < BaseRequestTest
+  test "inspect" do
+    request = stub_request(
+      "REQUEST_METHOD" => "POST",
+      "REMOTE_ADDR" => "1.2.3.4",
+      "HTTP_X_FORWARDED_PROTO" => "https",
+      "HTTP_X_FORWARDED_HOST" => "glu.ttono.us:443",
+      "PATH_INFO" => "/path/of/some/uri",
+      "QUERY_STRING" => "mapped=1",
+      "CONTENT_TYPE" => "application/x-www-form-urlencoded; charset=utf-8",
+    )
+    assert_match %r(#<ActionDispatch::Request method="POST"), request.inspect
+    assert_match %r(original_url="https://glu.ttono.us/path/of/some/uri\?mapped=1"), request.inspect
+    assert_match %r(remote_ip="1.2.3.4"), request.inspect
+    assert_match %r(media_type="application/x-www-form-urlencoded">), request.inspect
+  end
+end
