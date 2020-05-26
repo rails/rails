@@ -608,6 +608,20 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     end
   end
 
+  test "duped record does not share attachments" do
+    @user.highlights.attach [ create_blob(filename: "funky.jpg") ]
+
+    assert_not_equal @user.highlights.first, @user.dup.highlights.first
+  end
+
+  test "duped record does not share attachment changes" do
+    @user.highlights.attach [ create_blob(filename: "funky.jpg") ]
+    assert_not_predicate @user, :changed_for_autosave?
+
+    @user.dup.highlights.attach [ create_blob(filename: "town.mp4") ]
+    assert_not_predicate @user, :changed_for_autosave?
+  end
+
   test "clearing change on reload" do
     @user.highlights = [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ]
     assert @user.highlights.attached?
