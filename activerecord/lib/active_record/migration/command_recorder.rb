@@ -74,12 +74,7 @@ module ActiveRecord
       #   recorder.record(:method_name, [:arg1, :arg2])
       def record(*command, &block)
         if @reverting
-          inverse_command = inverse_of(*command, &block)
-          if inverse_command[0].is_a?(Array)
-            @commands = @commands.concat(inverse_command)
-          else
-            @commands << inverse_command
-          end
+          @commands << inverse_of(*command, &block)
         else
           @commands << (command << block)
         end
@@ -186,11 +181,7 @@ module ActiveRecord
             raise ActiveRecord::IrreversibleMigration, "remove_columns is only reversible if given a type."
           end
 
-          column_options = args.extract_options!
-          type = column_options.delete(:type)
-          args[1..-1].map do |arg|
-            [:add_column, [args[0], arg, type, column_options]]
-          end
+          [:add_columns, args]
         end
 
         def invert_rename_index(args)

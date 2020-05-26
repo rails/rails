@@ -612,6 +612,12 @@ module ActiveRecord
         execute schema_creation.accept at
       end
 
+      def add_columns(table_name, *column_names, type:, **options) # :nodoc:
+        column_names.each do |column_name|
+          add_column(table_name, column_name, type, **options)
+        end
+      end
+
       # Removes the given columns from the table definition.
       #
       #   remove_columns(:suppliers, :qualification, :experience)
@@ -619,9 +625,11 @@ module ActiveRecord
       # +type+ and other column options can be passed to make migration reversible.
       #
       #    remove_columns(:suppliers, :qualification, :experience, type: :string, null: false)
-      def remove_columns(table_name, *column_names, **options)
-        raise ArgumentError.new("You must specify at least one column name. Example: remove_columns(:people, :first_name)") if column_names.empty?
-        type = options.delete(:type)
+      def remove_columns(table_name, *column_names, type: nil, **options)
+        if column_names.empty?
+          raise ArgumentError.new("You must specify at least one column name. Example: remove_columns(:people, :first_name)")
+        end
+
         column_names.each do |column_name|
           remove_column(table_name, column_name, type, **options)
         end
