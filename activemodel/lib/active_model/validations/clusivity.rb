@@ -12,6 +12,14 @@ module ActiveModel
         unless delimiter.respond_to?(:include?) || delimiter.respond_to?(:call) || delimiter.respond_to?(:to_sym)
           raise ArgumentError, ERROR_MESSAGE
         end
+
+        return if delimiter.respond_to?(:call)
+
+        members = delimiter.respond_to?(:to_sym) ? record.send(delimiter) : delimiter
+        if members.is_a?(Range) && (members.first.is_a?(Time) || members.first.is_a?(DateTime) || members.first.is_a?(Date))
+          raise ArgumentError, "You should not use a #{members.first.class} as range parameter in your :in clause, because they are evaluated only once and might lead to unexpected behaviours.
+              Please use a proc or a lambda instead. in: ->(_) { start...end }"
+        end
       end
 
     private
