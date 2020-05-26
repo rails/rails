@@ -327,7 +327,7 @@ module ActiveRecord
                   `Timeout.timeout(duration)`, pass an exception class as a second
                   argument so it doesn't use `throw` to abort its block. This results
                   in the transaction being committed, but in the next release of Rails
-                  it will raise and rollback.
+                  it will rollback.
                 EOW
               end
               begin
