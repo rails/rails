@@ -724,8 +724,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_pluck_with_empty_in
-    Topic.send(:load_schema)
-    assert_no_queries do
+    assert_queries(0) do
       assert_equal [], Topic.where(id: []).pluck(:id)
     end
   end

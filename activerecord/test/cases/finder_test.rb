@@ -397,22 +397,19 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_with_large_number
-    Topic.send(:load_schema)
-    assert_no_queries do
+    assert_queries(0) do
       assert_raises(ActiveRecord::RecordNotFound) { Topic.find("9999999999999999999999999999999") }
     end
   end
 
   def test_find_by_with_large_number
-    Topic.send(:load_schema)
-    assert_no_queries do
+    assert_queries(0) do
       assert_nil Topic.find_by(id: "9999999999999999999999999999999")
     end
   end
 
   def test_find_by_id_with_large_number
-    Topic.send(:load_schema)
-    assert_no_queries do
+    assert_queries(0) do
       assert_nil Topic.find_by_id("9999999999999999999999999999999")
     end
   end
