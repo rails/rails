@@ -149,9 +149,8 @@ module ActiveRecord
       end
 
       def add_to(table)
-        columns.each do |column_options|
-          kwargs = column_options.extract_options!
-          table.column(*column_options, **kwargs)
+        columns.each do |name, type, options|
+          table.column(name, type, **options)
         end
 
         if index
@@ -619,8 +618,8 @@ module ActiveRecord
       #  t.change(:description, :text)
       #
       # See TableDefinition#column for details of the options you can use.
-      def change(column_name, type, options = {})
-        @base.change_column(name, column_name, type, options)
+      def change(column_name, type, **options)
+        @base.change_column(name, column_name, type, **options)
       end
 
       # Sets a new default value for a column.

@@ -267,7 +267,11 @@ module ActiveRecord
 
       def test_change_changes_column
         with_change_table do |t|
-          @connection.expect :change_column, nil, [:delete_me, :bar, :string, {}]
+          if RUBY_VERSION < "2.7"
+            @connection.expect :change_column, nil, [:delete_me, :bar, :string, {}]
+          else
+            @connection.expect :change_column, nil, [:delete_me, :bar, :string]
+          end
           t.change :bar, :string
         end
       end

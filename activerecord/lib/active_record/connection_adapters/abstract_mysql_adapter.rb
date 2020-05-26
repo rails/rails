@@ -322,7 +322,7 @@ module ActiveRecord
       # Although this command ignores most +options+ and the block if one is given,
       # it can be helpful to provide these in a migration's +change+ method so it can be reverted.
       # In that case, +options+ and the block will be used by create_table.
-      def drop_table(table_name, options = {})
+      def drop_table(table_name, **options)
         schema_cache.clear_data_source_cache!(table_name.to_s)
         execute "DROP#{' TEMPORARY' if options[:temporary]} TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}#{' CASCADE' if options[:force] == :cascade}"
       end
@@ -355,8 +355,8 @@ module ActiveRecord
         change_column table_name, column_name, nil, comment: comment
       end
 
-      def change_column(table_name, column_name, type, options = {}) #:nodoc:
-        execute("ALTER TABLE #{quote_table_name(table_name)} #{change_column_for_alter(table_name, column_name, type, options)}")
+      def change_column(table_name, column_name, type, **options) #:nodoc:
+        execute("ALTER TABLE #{quote_table_name(table_name)} #{change_column_for_alter(table_name, column_name, type, **options)}")
       end
 
       def rename_column(table_name, column_name, new_column_name) #:nodoc:
@@ -643,7 +643,7 @@ module ActiveRecord
           end
         end
 
-        def change_column_for_alter(table_name, column_name, type, options = {})
+        def change_column_for_alter(table_name, column_name, type, **options)
           column = column_for(table_name, column_name)
           type ||= column.sql_type
 

@@ -274,16 +274,11 @@ module ActiveRecord
         end
       end
 
-      def change_column(table_name, column_name, type, options = {}) #:nodoc:
+      def change_column(table_name, column_name, type, **options) #:nodoc:
         alter_table(table_name) do |definition|
           definition[column_name].instance_eval do
-            self.type    = type
-            self.limit   = options[:limit] if options.include?(:limit)
-            self.default = options[:default] if options.include?(:default)
-            self.null    = options[:null] if options.include?(:null)
-            self.precision = options[:precision] if options.include?(:precision)
-            self.scale = options[:scale] if options.include?(:scale)
-            self.collation = options[:collation] if options.include?(:collation)
+            self.type = type
+            self.options.merge!(options)
           end
         end
       end

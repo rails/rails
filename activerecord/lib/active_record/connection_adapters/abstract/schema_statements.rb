@@ -661,7 +661,7 @@ module ActiveRecord
       #   change_column(:suppliers, :name, :string, limit: 80)
       #   change_column(:accounts, :description, :text)
       #
-      def change_column(table_name, column_name, type, options = {})
+      def change_column(table_name, column_name, type, **options)
         raise NotImplementedError, "change_column is not implemented"
       end
 

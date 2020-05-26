@@ -186,11 +186,13 @@ module ActiveRecord
         end
 
         def invert_rename_index(args)
-          [:rename_index, [args.first] + args.last(2).reverse]
+          table_name, old_name, new_name = args
+          [:rename_index, [table_name, new_name, old_name]]
         end
 
         def invert_rename_column(args)
-          [:rename_column, [args.first] + args.last(2).reverse]
+          table_name, old_name, new_name = args
+          [:rename_column, [table_name, new_name, old_name]]
         end
 
         def invert_remove_index(args)
@@ -215,9 +217,9 @@ module ActiveRecord
         alias :invert_remove_belongs_to :invert_remove_reference
 
         def invert_change_column_default(args)
-          table, column, options = *args
+          table, column, options = args
 
-          unless options && options.is_a?(Hash) && options.has_key?(:from) && options.has_key?(:to)
+          unless options.is_a?(Hash) && options.has_key?(:from) && options.has_key?(:to)
             raise ActiveRecord::IrreversibleMigration, "change_column_default is only reversible if given a :from and :to option."
           end
 
@@ -244,9 +246,9 @@ module ActiveRecord
         end
 
         def invert_change_column_comment(args)
-          table, column, options = *args
+          table, column, options = args
 
-          unless options && options.is_a?(Hash) && options.has_key?(:from) && options.has_key?(:to)
+          unless options.is_a?(Hash) && options.has_key?(:from) && options.has_key?(:to)
             raise ActiveRecord::IrreversibleMigration, "change_column_comment is only reversible if given a :from and :to option."
           end
 
@@ -254,9 +256,9 @@ module ActiveRecord
         end
 
         def invert_change_table_comment(args)
-          table, options = *args
+          table, options = args
 
-          unless options && options.is_a?(Hash) && options.has_key?(:from) && options.has_key?(:to)
+          unless options.is_a?(Hash) && options.has_key?(:from) && options.has_key?(:to)
             raise ActiveRecord::IrreversibleMigration, "change_table_comment is only reversible if given a :from and :to option."
           end
 

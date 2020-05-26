@@ -54,7 +54,7 @@ module ActiveRecord
           execute "DROP DATABASE IF EXISTS #{quote_table_name(name)}"
         end
 
-        def drop_table(table_name, options = {}) # :nodoc:
+        def drop_table(table_name, **options) # :nodoc:
           schema_cache.clear_data_source_cache!(table_name.to_s)
           execute "DROP TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}#{' CASCADE' if options[:force] == :cascade}"
         end
@@ -212,7 +212,7 @@ module ActiveRecord
         end
 
         # Drops the schema for the given schema name.
-        def drop_schema(schema_name, options = {})
+        def drop_schema(schema_name, **options)
           execute "DROP SCHEMA#{' IF EXISTS' if options[:if_exists]} #{quote_schema_name(schema_name)} CASCADE"
         end
 
@@ -399,9 +399,9 @@ module ActiveRecord
           change_column_comment(table_name, column_name, options[:comment]) if options.key?(:comment)
         end
 
-        def change_column(table_name, column_name, type, options = {}) #:nodoc:
+        def change_column(table_name, column_name, type, **options) #:nodoc:
           clear_cache!
-          sqls, procs = Array(change_column_for_alter(table_name, column_name, type, options)).partition { |v| v.is_a?(String) }
+          sqls, procs = Array(change_column_for_alter(table_name, column_name, type, **options)).partition { |v| v.is_a?(String) }
           execute "ALTER TABLE #{quote_table_name(table_name)} #{sqls.join(", ")}"
           procs.each(&:call)
         end
@@ -687,7 +687,7 @@ module ActiveRecord
             [super, Proc.new { change_column_comment(table_name, column_name, options[:comment]) }]
           end
 
-          def change_column_for_alter(table_name, column_name, type, options = {})
+          def change_column_for_alter(table_name, column_name, type, **options)
             td = create_table_definition(table_name)
             cd = td.new_column_definition(column_name, type, **options)
             sqls = [schema_creation.accept(ChangeColumnDefinition.new(cd, column_name))]
