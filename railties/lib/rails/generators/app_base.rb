@@ -187,12 +187,12 @@ module Rails
         return [] if options[:skip_active_record]
         gem_name, gem_version = gem_for_database
         GemfileEntry.version gem_name, gem_version,
-                            ["Use #{options[:database]} as the database.", "To change database, read https://guides.rubyonrails.org/configuring.html#configuring-a-database"]
+                            ["Use #{options[:database]} as the database.", "To use a different database, read https://guides.rubyonrails.org/configuring.html#configuring-a-database"]
       end
 
       def web_server_gemfile_entry # :doc:
         return [] if options[:skip_puma]
-        comment = "Puma is the app server Rails runs on. Learn about Puma: https://puma.io"
+        comment = "Puma is the default application server that Rails runs on. Learn about Puma: https://puma.io"
         GemfileEntry.new("puma", "~> 4.1", comment)
       end
 
@@ -320,7 +320,7 @@ module Rails
       def assets_gemfile_entry
         return [] if options[:skip_sprockets]
 
-        GemfileEntry.version("sass-rails", ">= 6", "Use SCSS for easy to write CSS: https://sass-lang.com/guide")
+        GemfileEntry.version("sass-rails", ">= 6", "Use SCSS for writing CSS: https://sass-lang.com/guide")
       end
 
       def webpacker_gemfile_entry

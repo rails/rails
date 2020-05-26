@@ -35,7 +35,7 @@ ruby <%= "'#{RUBY_VERSION}'" -%>
 # gem 'rack-cors'
 
 <%- end -%>
-# The gems below will make development easier, but if they cause problems it's OK to remove them
+# The gems below are used in development, but if they cause problems it's OK to remove them
 
 <% if RUBY_ENGINE == 'ruby' -%>
 group :development, :test do
@@ -46,7 +46,7 @@ end
 <% end -%>
 group :development do
 <%- unless options.api? -%>
-  # Access an interactive console on exception pages or by calling 'console' anywhere in the code.
+  # Access an interactive console on exception pages or by calling 'console' anywhere in the code
   <%- if options.dev? || options.edge? || options.master? -%>
   gem 'web-console', github: 'rails/web-console'
   <%- else -%>
@@ -67,7 +67,7 @@ end
 
 <%- if depends_on_system_test? -%>
 group :test do
-  # These gems are needed for https://guides.rubyonrails.org/testing.html#system-testing
+  # These gems are needed for System Testing: https://guides.rubyonrails.org/testing.html#system-testing
 
   # Adds support for Capybara system testing and selenium driver
   gem 'capybara', '>= 3.26'
@@ -79,10 +79,10 @@ end
 <%- end -%>
 
 <% if depend_on_bootsnap? -%>
-# Reduces boot times through caching; required in config/boot.rb
+# Speed up boot time by caching dependencies; configured in config/boot.rb
 gem 'bootsnap', '>= 1.4.4', require: false
 
 <%- end -%>
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
-# If you & your team don't use Windows, you can remove this gem
+# If your won't be run on Windows, you can remove this gem
 gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
