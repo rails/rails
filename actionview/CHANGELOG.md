@@ -1,3 +1,12 @@
+*   Ensure cache fragment digests include all relevant template dependencies when
+    fragments are contained in a block passed to the render helper. Remove the
+    virtual_path keyword arguments found in CacheHelper as they no longer possess
+    any function following 1581cab.
+
+    Fixes #38984
+
+    *Aaron Lipman*
+
 *   Deprecate `config.action_view.raise_on_missing_translations` in favor of
     `config.i18n.raise_on_missing_translations`.
 
