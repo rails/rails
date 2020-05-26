@@ -663,7 +663,7 @@ module ActiveRecord
     #
     # If the condition is any blank-ish object, then #where is a no-op and returns
     # the current relation.
-    def where(opts = :chain, *rest)
+    def where(opts = :chain, *rest, &block)
       new_scope = if :chain == opts && block_given?
         self
       elsif :chain == opts
@@ -676,7 +676,7 @@ module ActiveRecord
 
       if block_given?
         composer = QueryComposer.new(model)
-        constraints = yield composer
+        constraints = composer.instance_exec(composer, &block)
         new_scope.where!(constraints)
       else
         new_scope
