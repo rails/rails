@@ -136,7 +136,6 @@ module Rails
          javascript_gemfile_entry,
          jbuilder_gemfile_entry,
          psych_gemfile_entry,
-         cable_gemfile_entry,
          @extra_entries].flatten.find_all(&@gem_filter)
       end
 
@@ -188,12 +187,12 @@ module Rails
         return [] if options[:skip_active_record]
         gem_name, gem_version = gem_for_database
         GemfileEntry.version gem_name, gem_version,
-                            "Use #{options[:database]} as the database for Active Record"
+                            ["Use #{options[:database]} as the database.", "To change database, read https://guides.rubyonrails.org/configuring.html#configuring-a-database"]
       end
 
       def web_server_gemfile_entry # :doc:
         return [] if options[:skip_puma]
-        comment = "Use Puma as the app server"
+        comment = "Puma is the app server Rails runs on. Learn about Puma: https://puma.io"
         GemfileEntry.new("puma", "~> 4.1", comment)
       end
 
@@ -203,9 +202,9 @@ module Rails
             :skip_active_record,
             :skip_action_mailer,
             :skip_test,
-            :skip_sprockets,
-            :skip_action_cable
+            :skip_sprockets
           ),
+          skip_action_cable?,
           skip_active_storage?,
           skip_action_mailbox?,
           skip_action_text?
@@ -237,6 +236,10 @@ module Rails
         options[:skip_active_storage] || options[:skip_active_record]
       end
 
+      def skip_action_cable? # :doc:
+        options[:skip_action_cable]
+      end
+
       def skip_action_mailbox? # :doc:
         options[:skip_action_mailbox] || skip_active_storage?
       end
@@ -266,6 +269,10 @@ module Rails
           new(name, nil, comment, path: path)
         end
 
+        def comments
+          Array(comment)
+        end
+
         def version
           version = super
 
@@ -293,7 +300,7 @@ module Rails
         else
           [GemfileEntry.version("rails",
                             rails_version_specifier,
-                            "Bundle edge Rails instead: gem 'rails', github: 'rails/rails'")]
+                            ["The base Rails gem, where most of the magic happens!", "https://guides.rubyonrails.org/getting_started.html"])]
         end
       end
 
@@ -313,14 +320,14 @@ module Rails
       def assets_gemfile_entry
         return [] if options[:skip_sprockets]
 
-        GemfileEntry.version("sass-rails", ">= 6", "Use SCSS for stylesheets")
+        GemfileEntry.version("sass-rails", ">= 6", "Use SCSS for easy to write CSS: https://sass-lang.com/guide")
       end
 
       def webpacker_gemfile_entry
         return [] if options[:skip_javascript]
 
         if options.dev? || options.edge? || options.master?
-          GemfileEntry.github "webpacker", "rails/webpacker", nil, "Use development version of Webpacker"
+          GemfileEntry.github "webpacker", "rails/webpacker", nil, "Use development version of Webpacker: https://github.com/rails/webpacker"
         else
           GemfileEntry.version "webpacker", "~> 5.0", "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
         end
@@ -346,14 +353,6 @@ module Rails
         comment = "Use Psych as the YAML engine, instead of Syck, so serialized " \
                   "data can be read safely from different rubies (see http://git.io/uuLVag)"
         GemfileEntry.new("psych", "~> 2.0", comment, platforms: :rbx)
-      end
-
-      def cable_gemfile_entry
-        return [] if options[:skip_action_cable]
-        comment = "Use Redis adapter to run Action Cable in production"
-        gems = []
-        gems << GemfileEntry.new("redis", "~> 4.0", comment, {}, true)
-        gems
       end
 
       def bundle_command(command, env = {})

@@ -370,15 +370,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_gem_for_active_storage
+  def test_gem_for_action_cable
     run_generator
-    assert_file "Gemfile", /^# gem 'image_processing'/
+    assert_file "Gemfile", /^# gem 'redis'/
   end
 
-  def test_gem_for_active_storage_when_skip_active_storage_is_given
-    run_generator [destination_root, "--skip-active-storage"]
+  def test_gem_for_action_cable_when_skip_action_cable_is_given
+    run_generator [destination_root, "--skip-action-cable"]
 
-    assert_no_gem "image_processing"
+    assert_no_gem "redis"
   end
 
   def test_app_update_does_not_generate_active_storage_contents_when_skip_active_storage_is_given

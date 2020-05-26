@@ -34,6 +34,10 @@ module GeneratorsTestHelper
     def initialize(name, version, comment, options = {}, commented_out = false)
       super
     end
+
+    def comments
+      Array(comment)
+    end
   end
 
   def self.included(base)
@@ -96,6 +100,7 @@ module GeneratorsTestHelper
     def gemfile_locals
       {
         skip_active_storage: true,
+        skip_action_cable: false,
         depend_on_bootsnap: false,
         depend_on_listen: false,
         spring_install: false,
