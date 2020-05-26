@@ -334,7 +334,7 @@ module ActionDispatch
     # variable is already set, wrap it in a StringIO.
     def body
       if raw_post = get_header("RAW_POST_DATA")
-        raw_post = raw_post.dup.force_encoding(Encoding::BINARY)
+        (+raw_post).force_encoding(Encoding::BINARY)
         StringIO.new(raw_post)
       else
         body_stream
