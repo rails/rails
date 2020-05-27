@@ -104,7 +104,7 @@ module ActiveRecord
         attrs = []
         predicates.each do |node|
           Arel.fetch_attribute(node) { |attr| attrs << attr } || begin
-            attrs << node.left if node.equality? && node.left.is_a?(Arel::Nodes::Node)
+            attrs << node.left if node.equality? && node.left.is_a?(Arel::Predications)
           end
         end
         attrs
@@ -157,18 +157,14 @@ module ActiveRecord
         end
 
         def except_predicates(columns)
-          non_attrs = columns.extract! { |node| node.is_a?(Arel::Nodes::Node) }
+          attrs = columns.extract! { |node| node.is_a?(Arel::Attribute) }
+          non_attrs = columns.extract! { |node| node.is_a?(Arel::Predications) }
+
           predicates.reject do |node|
-            if !non_attrs.empty? && node.equality? && node.left.is_a?(Arel::Nodes::Node)
+            if !non_attrs.empty? && node.equality? && node.left.is_a?(Arel::Predications)
               non_attrs.include?(node.left)
             end || Arel.fetch_attribute(node) do |attr|
-              columns.any? do |column|
-                if column.is_a?(Arel::Attributes::Attribute)
-                  attr == column
-                else
-                  attr.name.to_s == column.to_s
-                end
-              end
+              attrs.include?(attr) || columns.include?(attr.name.to_s)
             end
           end
         end

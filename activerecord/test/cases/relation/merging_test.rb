@@ -137,6 +137,9 @@ class RelationMergingTest < ActiveRecord::TestCase
 
     devs = Developer.where(salary_attr.eq(80000)).merge(Developer.where(salary_attr.eq(9000)), rewhere: true)
     assert_equal [developers(:poor_jamis)], devs.to_a
+
+    devs = Developer.where(salary_attr.eq(80000)).rewhere(salary_attr.eq(9000))
+    assert_equal [developers(:poor_jamis)], devs.to_a
   end
 
   def test_relation_merging_with_arel_equalities_keeps_last_equality_with_non_attribute_left_hand
@@ -147,6 +150,9 @@ class RelationMergingTest < ActiveRecord::TestCase
     assert_equal [developers(:poor_jamis)], devs.to_a
 
     devs = Developer.where(abs_salary.eq(80000)).merge(Developer.where(abs_salary.eq(9000)), rewhere: true)
+    assert_equal [developers(:poor_jamis)], devs.to_a
+
+    devs = Developer.where(abs_salary.eq(80000)).rewhere(abs_salary.eq(9000))
     assert_equal [developers(:poor_jamis)], devs.to_a
   end
 

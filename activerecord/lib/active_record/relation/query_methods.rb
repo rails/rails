@@ -1399,7 +1399,7 @@ module ActiveRecord
       def resolve_arel_attributes(attrs)
         attrs.flat_map do |attr|
           case attr
-          when Arel::Attributes::Attribute
+          when Arel::Predications
             attr
           when Hash
             attr.flat_map do |table, columns|
