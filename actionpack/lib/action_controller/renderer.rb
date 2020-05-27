@@ -103,12 +103,7 @@ module ActionController
     private
       def normalize_keys(defaults, env)
         new_env = {}
-        env.each_pair { |k, v| new_env[rack_key_for(k)] = rack_value_for(k, v) }
-
-        defaults.each_pair do |k, v|
-          key = rack_key_for(k)
-          new_env[key] = rack_value_for(k, v) unless new_env.key?(key)
-        end
+        defaults.merge(env).each { |k, v| new_env[rack_key_for(k)] = rack_value_for(k, v) }
 
         new_env["rack.url_scheme"] = new_env["HTTPS"] == "on" ? "https" : "http"
         new_env
