@@ -75,6 +75,7 @@ module ActiveRecord
 
     class Transaction #:nodoc:
       attr_reader :connection, :state, :savepoint_name, :isolation_level
+      attr_accessor :written
 
       def initialize(connection, isolation: nil, joinable: true, run_commit_callbacks: false)
         @connection = connection
@@ -320,7 +321,7 @@ module ActiveRecord
             if Thread.current.status == "aborting"
               rollback_transaction
             else
-              unless completed
+              if !completed && transaction.written
                 ActiveSupport::Deprecation.warn(<<~EOW)
                   Using `return`, `break` or `throw` to exit a transaction block is
                   deprecated without replacement. If the `throw` came from
