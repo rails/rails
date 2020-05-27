@@ -2,6 +2,7 @@
 
 require "active_record/relation/from_clause"
 require "active_record/relation/query_attribute"
+require "active_record/relation/query_composer"
 require "active_record/relation/where_clause"
 require "active_record/relation/where_clause_factory"
 require "active_model/forbidden_attributes_protection"
@@ -663,12 +664,22 @@ module ActiveRecord
     # If the condition is any blank-ish object, then #where is a no-op and returns
     # the current relation.
     def where(opts = :chain, *rest)
-      if :chain == opts
+      new_scope = if :chain == opts && block_given?
+        self
+      elsif :chain == opts
         WhereChain.new(spawn)
       elsif opts.blank?
         self
       else
         spawn.where!(opts, *rest)
+      end
+
+      if block_given?
+        composer = QueryComposer.new(model)
+        constraints = yield composer
+        new_scope.where!(constraints)
+      else
+        new_scope
       end
     end
 

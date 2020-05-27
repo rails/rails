@@ -367,10 +367,10 @@ class NestedRelationScopingTest < ActiveRecord::TestCase
     Developer.where("name = 'Jamis'").scoping do
       assert_equal "Jamis", Developer.first.name
 
-      Developer.unscoped.where("name = 'David'") do
+      Developer.unscoped.where("name = 'David'").scoping do
         assert_equal "David", Developer.first.name
 
-        Developer.unscoped.where("name = 'Maiha'") do
+        Developer.unscoped.where("name = 'Maiha'").scoping do
           assert_nil Developer.first
         end
 
