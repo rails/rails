@@ -84,5 +84,5 @@ gem 'bootsnap', '>= 1.4.4', require: false
 
 <%- end -%>
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
-# If your won't be run on Windows, you can remove this gem
+# If your application won't be run on Windows, you can remove this gem
 gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
