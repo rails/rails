@@ -101,13 +101,12 @@ module ActiveRecord
       end
 
       def extract_attributes
-        attrs = []
-        predicates.each do |node|
-          Arel.fetch_attribute(node) { |attr| attrs << attr } || begin
-            attrs << node.left if node.equality? && node.left.is_a?(Arel::Predications)
+        predicates.each_with_object([]) do |node, attrs|
+          attr = extract_attribute(node) || begin
+            node.left if node.equality? && node.left.is_a?(Arel::Predications)
           end
+          attrs << attr if attr
         end
-        attrs
       end
 
       protected
@@ -121,6 +120,15 @@ module ActiveRecord
         end
 
       private
+        def extract_attribute(node)
+          attr_node = nil
+          Arel.fetch_attribute(node) do |attr|
+            return if attr_node&.!= attr # all attr nodes should be the same
+            attr_node = attr
+          end
+          attr_node
+        end
+
         def equalities(predicates)
           equalities = []
 

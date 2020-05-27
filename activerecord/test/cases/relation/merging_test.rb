@@ -36,6 +36,11 @@ class RelationMergingTest < ActiveRecord::TestCase
 
     assert_equal [mary, bob], david_and_mary.merge(mary_and_bob, rewhere: true)
     assert_equal [david, mary], mary_and_bob.merge(david_and_mary, rewhere: true)
+
+    david_and_bob = Author.where(id: david).or(Author.where(name: "Bob"))
+
+    assert_equal [david], david_and_mary.merge(david_and_bob)
+    assert_equal [david], david_and_mary.merge(david_and_bob, rewhere: true)
   end
 
   def test_merge_between_clause
@@ -61,6 +66,11 @@ class RelationMergingTest < ActiveRecord::TestCase
 
     assert_equal [mary, bob], david_and_mary.merge(mary_and_bob, rewhere: true)
     assert_equal [david, mary], mary_and_bob.merge(david_and_mary, rewhere: true)
+
+    david_and_bob = Author.where(id: david).or(Author.where(name: "Bob"))
+
+    assert_equal [david], david_and_mary.merge(david_and_bob)
+    assert_equal [david], david_and_mary.merge(david_and_bob, rewhere: true)
   end
 
   def test_merge_or_clause
@@ -86,6 +96,11 @@ class RelationMergingTest < ActiveRecord::TestCase
 
     assert_equal [mary, bob], david_and_mary.merge(mary_and_bob, rewhere: true)
     assert_equal [david, mary], mary_and_bob.merge(david_and_mary, rewhere: true)
+
+    david_and_bob = Author.where(id: david).or(Author.where(name: "Bob"))
+
+    assert_equal [david], david_and_mary.merge(david_and_bob)
+    assert_equal [david], david_and_mary.merge(david_and_bob, rewhere: true)
   end
 
   def test_merge_not_in_clause
