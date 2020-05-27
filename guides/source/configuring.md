@@ -865,7 +865,7 @@ There are a few configuration options available in Active Support:
 
 * `config.active_job.log_arguments` controls if the arguments of a job are logged. Defaults to `true`.
 
-* `config.active_job.retry_jitter` controls the amount of "jitter" (random variation) applied to the delay time calculated when retrying failed jobs. Defaults to `0.15`.
+* `config.active_job.retry_jitter` controls the amount of "jitter" (random variation) applied to the delay time calculated when retrying failed jobs. Defaults to `0.0`.
 
 ### Configuring Action Cable
 
@@ -971,6 +971,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
 - `config.active_record.has_many_inversing`: `true`
 - `config.active_storage.track_variants`: `true`
+- `config.active_job.retry_jitter`: `0.15`
 
 #### For '6.0', new defaults from previous versions below and:
 
