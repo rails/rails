@@ -138,9 +138,10 @@ make it easier for users to click the inputs.
 
 ### Other Helpers of Interest
 
-Other form controls worth mentioning are hidden fields, password fields, number fields, date and time fields, and many more:
+Other form controls worth mentioning are text areas, hidden fields, password fields, number fields, date and time fields, and many more:
 
 ```erb
+<%= form.text_area :message, size: "70x5" %>
 <%= form.hidden_field :parent_id, value: "foo" %>
 <%= form.password_field :password %>
 <%= form.number_field :price, in: 1.0..20.0, step: 0.5 %>
@@ -160,6 +161,7 @@ Other form controls worth mentioning are hidden fields, password fields, number 
 Output:
 
 ```html
+<textarea name="message" id="message" cols="70" rows="5"></textarea>
 <input type="hidden" name="parent_id" id="parent_id" value="foo" />
 <input type="password" name="password" id="password" />
 <input type="number" name="price" id="price" step="0.5" min="1.0" max="20.0" />
@@ -199,9 +201,7 @@ For example, if we have an `@article` model object like:
 
 ```ruby
 @article = Article.find(42)
-
-puts @article.title  # => My Title
-puts @article.body   # => My Body
+# => #<Article id: 42, title: "My Title", body: "My Body">
 ```
 
 The following form:
