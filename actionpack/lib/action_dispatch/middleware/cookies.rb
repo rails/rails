@@ -458,7 +458,13 @@ module ActionDispatch
 
       def [](name)
         if data = @parent_jar[name.to_s]
-          parse(name, data, purpose: "cookie.#{name}") || parse(name, data)
+          result = parse(name, data, purpose: "cookie.#{name}")
+
+          if result.nil?
+            parse(name, data)
+          else
+            result
+          end
         end
       end
 

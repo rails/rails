@@ -1,3 +1,9 @@
+*   Signed and encrypted cookies can now store `false` as their value when
+    `action_dispatch.use_cookies_with_metadata` is enabled.
+
+    *Rolandas Barysas*
+
+
 ## Rails 6.0.3.1 (May 18, 2020) ##
 
 *   [CVE-2020-8166] HMAC raw CSRF token before masking it, so it cannot be used to reconstruct a per-form token

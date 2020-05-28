@@ -1185,6 +1185,20 @@ class CookiesTest < ActionController::TestCase
     end
   end
 
+  def test_signed_cookie_with_false_value_and_metadata
+    request.env["action_dispatch.use_cookies_with_metadata"] = true
+
+    cookies.signed[:foo] = false
+    assert_equal false, cookies.signed[:foo]
+  end
+
+  def test_encrypted_cookie_with_false_value_and_metadata
+    request.env["action_dispatch.use_cookies_with_metadata"] = true
+
+    cookies.encrypted[:foo] = false
+    assert_equal false, cookies.encrypted[:foo]
+  end
+
   def test_purpose_metadata_for_encrypted_cookies
     get :encrypted_discount_and_user_id_cookie
 
