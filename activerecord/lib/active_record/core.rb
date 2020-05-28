@@ -104,7 +104,7 @@ module ActiveRecord
 
       ##
       # :singleton-method:
-      # Specifies which database schemas to dump when calling db:structure:dump.
+      # Specifies which database schemas to dump when calling db:schema:dump.
       # If the value is :schema_search_path (the default), any schemas listed in
       # schema_search_path are dumped. Use :all to dump all schemas regardless
       # of schema_search_path, or a string of comma separated schemas for a

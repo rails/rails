@@ -85,24 +85,27 @@ module ApplicationTests
         end
       end
 
-      def db_migrate_and_schema_dump_and_load(format)
+      def db_migrate_and_schema_dump_and_load(schema_format)
+        add_to_config "config.active_record.schema_format = :#{schema_format}"
+        require "#{app_path}/config/environment"
+
         Dir.chdir(app_path) do
           generate_models_for_animals
-          rails "db:migrate", "db:#{format}:dump"
+          rails "db:migrate", "db:schema:dump"
 
-          if format == "schema"
-            schema_dump = File.read("db/#{format}.rb")
-            schema_dump_animals = File.read("db/animals_#{format}.rb")
+          if schema_format == "ruby"
+            schema_dump = File.read("db/schema.rb")
+            schema_dump_animals = File.read("db/animals_schema.rb")
             assert_match(/create_table \"books\"/, schema_dump)
             assert_match(/create_table \"dogs\"/, schema_dump_animals)
           else
-            schema_dump = File.read("db/#{format}.sql")
-            schema_dump_animals = File.read("db/animals_#{format}.sql")
+            schema_dump = File.read("db/structure.sql")
+            schema_dump_animals = File.read("db/animals_structure.sql")
             assert_match(/CREATE TABLE (?:IF NOT EXISTS )?\"books\"/, schema_dump)
             assert_match(/CREATE TABLE (?:IF NOT EXISTS )?\"dogs\"/, schema_dump_animals)
           end
 
-          rails "db:#{format}:load"
+          rails "db:schema:load"
 
           ar_tables = lambda { rails("runner", "p ActiveRecord::Base.connection.tables").strip }
           animals_tables = lambda { rails("runner", "p AnimalsBase.connection.tables").strip }
@@ -199,20 +202,10 @@ module ApplicationTests
         Dir.chdir(app_path) do
           generate_models_for_animals
 
-          if schema_format == "ruby"
-            dump_command = "db:schema:dump:#{name}"
-          else
-            dump_command = "db:structure:dump:#{name}"
-          end
-
-          rails("db:migrate:#{name}", dump_command)
+          rails("db:migrate:#{name}", "db:schema:dump:#{name}")
 
           output = rails("db:test:prepare:#{name}", "--trace")
-          if schema_format == "ruby"
-            assert_match(/Execute db:test:load_schema:#{name}/, output)
-          else
-            assert_match(/Execute db:test:load_structure:#{name}/, output)
-          end
+          assert_match(/Execute db:test:load_schema:#{name}/, output)
 
           ar_tables = lambda { rails("runner", "-e", "test", "p ActiveRecord::Base.connection.tables").strip }
           animals_tables = lambda { rails("runner",  "-e", "test", "p AnimalsBase.connection.tables").strip }
@@ -435,15 +428,12 @@ module ApplicationTests
       end
 
       test "db:migrate and db:schema:dump and db:schema:load works on all databases" do
-        require "#{app_path}/config/environment"
-        db_migrate_and_schema_dump_and_load "schema"
+        db_migrate_and_schema_dump_and_load "ruby"
       end
 
-      test "db:migrate and db:structure:dump and db:structure:load works on all databases" do
-        require "#{app_path}/config/environment"
-        db_migrate_and_schema_dump_and_load "structure"
+      test "db:migrate and db:schema:dump and db:schema:load works on all databases with sql option" do
+        db_migrate_and_schema_dump_and_load "sql"
       end
-
 
       test "db:migrate:name dumps the schema for the primary database" do
         db_migrate_name_dumps_the_schema("primary", "ruby")
@@ -471,12 +461,33 @@ module ApplicationTests
         db_migrate_and_schema_dump_and_load_one_database("schema", "animals")
       end
 
+      ["dump", "load"].each do |command|
+        test "db:structure:#{command}:NAME is deprecated" do
+          app_file "config/database.yml", <<-YAML
+            default: &default
+              adapter: sqlite3
+            development:
+              primary:
+                <<: *default
+              animals:
+                <<: *default
+                database: db/animals_development.sqlite3
+          YAML
+
+          add_to_config("config.active_support.deprecation = :stderr")
+          stderr_output = capture(:stderr) { rails("db:structure:#{command}:animals", stderr: true, allow_failure: true) }
+          assert_match(/DEPRECATION WARNING: Using `bin\/rails db:structure:#{command}:animals` is deprecated and will be removed in Rails 6.2/, stderr_output)
+        end
+      end
+
       test "db:migrate:name and db:structure:dump:name and db:structure:load:name works for the primary database" do
+        add_to_config "config.active_record.schema_format = :sql"
         require "#{app_path}/config/environment"
         db_migrate_and_schema_dump_and_load_one_database("structure", "primary")
       end
 
       test "db:migrate:name and db:structure:dump:name and db:structure:load:name works for the animals database" do
+        add_to_config "config.active_record.schema_format = :sql"
         require "#{app_path}/config/environment"
         db_migrate_and_schema_dump_and_load_one_database("structure", "animals")
       end
@@ -681,7 +692,7 @@ module ApplicationTests
         ENV.delete "RAILS_ENV"
         ENV.delete "RACK_ENV"
 
-        db_migrate_and_schema_dump_and_load "schema"
+        db_migrate_and_schema_dump_and_load "ruby"
 
         app_file "db/seeds.rb", <<-RUBY
           print Book.connection.pool.db_config.database

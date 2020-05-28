@@ -38,12 +38,12 @@ module ActiveRecord
     module DatabaseTasks
       ##
       # :singleton-method:
-      # Extra flags passed to database CLI tool (mysqldump/pg_dump) when calling db:structure:dump
+      # Extra flags passed to database CLI tool (mysqldump/pg_dump) when calling db:schema:dump
       mattr_accessor :structure_dump_flags, instance_accessor: false
 
       ##
       # :singleton-method:
-      # Extra flags passed to database CLI tool when calling db:structure:load
+      # Extra flags passed to database CLI tool when calling db:schema:load
       mattr_accessor :structure_load_flags, instance_accessor: false
 
       extend self

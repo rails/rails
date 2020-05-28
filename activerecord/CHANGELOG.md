@@ -1,3 +1,9 @@
+*   Deprecate `rails db:structure:{load, dump}` tasks and extend
+    `rails db:schema:{load, dump}` tasks to work with either `:ruby` or `:sql` format,
+    depending on `config.active_record.schema_format` configuration value.
+
+    *fatkodima*
+
 *   Allow attribute's default to be configured but keeping its own type.
 
     ```ruby
