@@ -8,12 +8,12 @@ module ActiveRecord
         @predicate_builder = predicate_builder
       end
 
-      def build(opts, other)
+      def build(opts, other, &block)
         case opts
         when String, Array
           parts = [klass.sanitize_sql(other.empty? ? opts : ([opts] + other))]
         when Hash
-          parts = predicate_builder.build_from_hash(opts)
+          parts = predicate_builder.build_from_hash(opts, &block)
         when Arel::Nodes::Node
           parts = [opts]
         else

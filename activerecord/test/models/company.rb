@@ -9,6 +9,7 @@ class Company < AbstractCompany
 
   validates_presence_of :name
 
+  has_one :account, foreign_key: "firm_id"
   has_one :dummy_account, foreign_key: "firm_id", class_name: "Account"
   has_many :contracts
   has_many :developers, through: :contracts
@@ -16,8 +17,7 @@ class Company < AbstractCompany
   attribute :metadata, :json
 
   scope :of_first_firm, lambda {
-    joins(account: :firm).
-    where("firms.id" => 1)
+    joins(account: :firm).where("companies.id": 1)
   }
 
   def arbitrary_method
