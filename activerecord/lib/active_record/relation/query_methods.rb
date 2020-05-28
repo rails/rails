@@ -673,7 +673,7 @@ module ActiveRecord
     end
 
     def where!(opts, *rest) # :nodoc:
-      self.where_clause += build_where_clause(opts, *rest)
+      self.where_clause += build_where_clause(opts, rest)
       self
     end
 
@@ -740,9 +740,7 @@ module ActiveRecord
     end
 
     def having!(opts, *rest) # :nodoc:
-      opts = sanitize_forbidden_attributes(opts)
-      self.references_values |= PredicateBuilder.references(opts) if Hash === opts
-      self.having_clause += having_clause_factory.build(opts, rest)
+      self.having_clause += build_having_clause(opts, rest)
       self
     end
 
@@ -1076,11 +1074,12 @@ module ActiveRecord
         end
       end
 
-      def build_where_clause(opts, *rest)
+      def build_where_clause(opts, rest = []) # :nodoc:
         opts = sanitize_forbidden_attributes(opts)
         self.references_values |= PredicateBuilder.references(opts) if Hash === opts
         where_clause_factory.build(opts, rest)
       end
+      alias :build_having_clause :build_where_clause
 
     private
       def assert_mutability!
@@ -1461,6 +1460,5 @@ module ActiveRecord
       def where_clause_factory
         @where_clause_factory ||= Relation::WhereClauseFactory.new(klass, predicate_builder)
       end
-      alias having_clause_factory where_clause_factory
   end
 end
