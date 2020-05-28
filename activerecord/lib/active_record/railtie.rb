@@ -266,7 +266,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
 
     initializer "active_record.set_signed_id_verifier_secret" do
       ActiveSupport.on_load(:active_record) do
-        self.signed_id_verifier_secret ||= Rails.application.key_generator.generate_key("active_record/signed_id")
+        self.signed_id_verifier_secret ||= -> { Rails.application.key_generator.generate_key("active_record/signed_id") }
       end
     end
   end
