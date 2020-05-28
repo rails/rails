@@ -2,13 +2,13 @@
 
 module ActiveRecord
   class TableMetadata # :nodoc:
-    delegate :foreign_type, :foreign_key, :join_primary_key, :join_foreign_key, to: :association, prefix: true
+    delegate :foreign_type, :foreign_key, :join_primary_key, :join_foreign_key, to: :reflection, prefix: :association
 
-    def initialize(klass, arel_table, association = nil, types = klass)
+    def initialize(klass, arel_table, reflection = nil, types = klass)
       @klass = klass
       @types = types
       @arel_table = arel_table
-      @association = association
+      @reflection = reflection
     end
 
     def arel_attribute(column_name)
@@ -32,18 +32,18 @@ module ActiveRecord
     end
 
     def associated_table(table_name)
-      association = klass._reflect_on_association(table_name) || klass._reflect_on_association(table_name.to_s.singularize)
+      reflection = klass._reflect_on_association(table_name) || klass._reflect_on_association(table_name.to_s.singularize)
 
-      if !association && table_name == arel_table.name
+      if !reflection && table_name == arel_table.name
         self
-      elsif association && !association.polymorphic?
-        association_klass = association.klass
+      elsif reflection && !reflection.polymorphic?
+        association_klass = reflection.klass
         arel_table = association_klass.arel_table.alias(table_name)
-        TableMetadata.new(association_klass, arel_table, association)
+        TableMetadata.new(association_klass, arel_table, reflection)
       else
         type_caster = TypeCaster::Connection.new(klass, table_name)
         arel_table = Arel::Table.new(table_name, type_caster: type_caster)
-        TableMetadata.new(nil, arel_table, association, type_caster)
+        TableMetadata.new(nil, arel_table, reflection, type_caster)
       end
     end
 
@@ -52,7 +52,7 @@ module ActiveRecord
     end
 
     def polymorphic_association?
-      association && association.polymorphic?
+      reflection&.polymorphic?
     end
 
     def aggregated_with?(aggregation_name)
@@ -75,6 +75,6 @@ module ActiveRecord
       end
 
     private
-      attr_reader :klass, :types, :arel_table, :association
+      attr_reader :klass, :types, :arel_table, :reflection
   end
 end
