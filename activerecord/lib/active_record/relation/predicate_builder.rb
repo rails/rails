@@ -92,13 +92,7 @@ module ActiveRecord
               expand_from_hash(query)
             end
 
-            if queries.one?
-              queries.first
-            else
-              queries.map! { |query| query.reduce(&:and) }
-              queries = queries.reduce { |result, query| Arel::Nodes::Or.new(result, query) }
-              Arel::Nodes::Grouping.new(queries)
-            end
+            grouping_queries(queries)
           elsif table.aggregated_with?(key)
             mapping = table.reflect_on_aggregation(key).mapping
             values = value.nil? ? [nil] : Array.wrap(value)
@@ -112,9 +106,10 @@ module ActiveRecord
               queries = values.map do |object|
                 mapping.map do |field_attr, aggregate_attr|
                   build(table.arel_attribute(field_attr), object.try!(aggregate_attr))
-                end.reduce(&:and)
+                end
               end
-              queries.reduce(&:or)
+
+              grouping_queries(queries)
             end
           else
             build(table.arel_attribute(key), value)
@@ -124,6 +119,16 @@ module ActiveRecord
 
     private
       attr_reader :table
+
+      def grouping_queries(queries)
+        if queries.one?
+          queries.first
+        else
+          queries.map! { |query| query.reduce(&:and) }
+          queries = queries.reduce { |result, query| Arel::Nodes::Or.new(result, query) }
+          Arel::Nodes::Grouping.new(queries)
+        end
+      end
 
       def convert_dot_notation_to_hash(attributes)
         dot_notation = attributes.select do |k, v|

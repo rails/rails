@@ -1051,8 +1051,9 @@ class FinderTest < ActiveRecord::TestCase
   def test_hash_condition_find_with_aggregate_having_three_mappings
     address = customers(:david).address
     assert_kind_of Address, address
-    found_customer = Customer.where(address: address).first
-    assert_equal customers(:david), found_customer
+    customers = Customer.where(address: address).order(:id)
+    assert_equal [customers(:david)], customers
+    assert_equal customers(:david, :mary), customers.unscope(where: [:address_city, :address_country])
   end
 
   def test_hash_condition_find_with_one_condition_being_aggregate_and_another_not
