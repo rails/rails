@@ -253,7 +253,7 @@
 
     *Eugene Kenny*
 
-*   Deprecate using `return`, `break` or `throw` to exit a transaction block.
+*   Deprecate using `return`, `break` or `throw` to exit a transaction block after writes.
 
     *Dylan Thacker-Smith*
 
