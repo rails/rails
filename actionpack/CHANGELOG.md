@@ -1,3 +1,9 @@
+*   Added support for exclusive no-store Cache-Control header.
+
+    If `no-store` is set on Cache-Control header it is exclusive (all other cache directives are dropped).
+
+    *Chris Kruger*
+
 *   Catch invalid UTF-8 parameters for POST requests and respond with BadRequest.
 
     Additionally, perform `#set_binary_encoding` in `ActionDispatch::Http::Request#GET` and
