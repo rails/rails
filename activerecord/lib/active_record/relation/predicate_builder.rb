@@ -14,11 +14,11 @@ module ActiveRecord
       register_handler(Set, ArrayHandler.new(self))
     end
 
-    def build_from_hash(attributes)
+    def build_from_hash(attributes, &block)
       attributes = attributes.stringify_keys
       attributes = convert_dot_notation_to_hash(attributes)
 
-      expand_from_hash(attributes)
+      expand_from_hash(attributes, &block)
     end
 
     def self.references(attributes)
@@ -61,17 +61,18 @@ module ActiveRecord
       Arel::Nodes::BindParam.new(attr)
     end
 
-    def resolve_arel_attribute(table_name, column_name)
-      table.associated_table(table_name).arel_attribute(column_name)
+    def resolve_arel_attribute(table_name, column_name, &block)
+      table.associated_table(table_name, &block).arel_attribute(column_name)
     end
 
     protected
-      def expand_from_hash(attributes)
+      def expand_from_hash(attributes, &block)
         return ["1=0"] if attributes.empty?
 
         attributes.flat_map do |key, value|
           if value.is_a?(Hash) && !table.has_column?(key)
-            table.associated_predicate_builder(key).expand_from_hash(value)
+            table.associated_table(key, &block)
+              .predicate_builder.expand_from_hash(value.stringify_keys)
           elsif table.associated_with?(key)
             # Find the foreign key when using queries such as:
             # Post.where(author: author)
