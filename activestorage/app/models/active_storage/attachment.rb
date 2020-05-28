@@ -14,6 +14,7 @@ class ActiveStorage::Attachment < ActiveRecord::Base
   belongs_to :blob, class_name: "ActiveStorage::Blob"
 
   delegate_missing_to :blob
+  delegate :signed_id, to: :blob
 
   after_create_commit :mirror_blob_later, :analyze_blob_later, :identify_blob
   after_destroy_commit :purge_dependent_blob_later
