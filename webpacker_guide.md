@@ -116,14 +116,28 @@ If you are using a CSS framework, you can add it to Webpacker by following the i
 The default Webpacker [configuration](https://github.com/rails/webpacker/blob/master/lib/install/config/webpacker.yml#L21) should work out of the box for static assets.
 The configuration includes a number of image and font file format extentions, allowing Webpack to include them in the generated `manifest.json` file.
 
-The default `application.js` has a template for importing these files, which you can uncomment for every directory you want to have static files in. The directories are relative to `app/javascript`. The template uses the directory `images`, but you can use anything in `app/javascript`:
+With webpack, static assets can be imported directly in JavaScript files. The imported value represents the url to the asset. For example:
+
+```javascript
+import myImageUrl from '../images/my-image.jpg'
+
+// ...
+let myImage = new Image();
+myImage.src = myImageUrl;
+myImage.alt = "I'm a Webpacker-bundled image";
+document.body.appendChild(myImage);
+```
+
+To reference Webpacker static assets from a Rails view, the assets need to be explicitly required from Webpacker-bundled JavaScript files. Unlike Sprockets, Webpacker does not import your static assets by default. The default `app/javascript/packs/application.js` file has a template for importing files from a given directory, which you can uncomment for every directory you want to have static files in. The directories are relative to `app/javascript`. The template uses the directory `images`, but you can use anything in `app/javascript`:
 
 ```
 const images = require.context("../images", true)
 const imagePath = name => images(name, true)
 ```
+ 
+Static assets will be output into a directory under `public/packs/media`. For example, an image located and imported at `app/javascript/images/my-image.jpg` will be output at `public/packs/media/images/my-image-abcd1234.jpg`. To render an image tag for this image in a Rails view, use `image_pack_tag 'media/images/my-image.jpg`.
 
-Then replace the ActionView helpers according to the following table:
+The Webpacker ActionView helpers for static assets correspond to asset pipeline helpers according to the following table:
 
 |ActionView helper | Webpacker helper |
 |------------------|------------------|
