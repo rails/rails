@@ -2257,6 +2257,17 @@ module ApplicationTests
       end
     end
 
+    test "raises when unknown configuration option is set for ActiveJob" do
+      add_to_config <<-RUBY
+        config.active_job.unknown = "test"
+      RUBY
+
+      assert_raise(NoMethodError) do
+        app "development"
+        ActiveJob::Base # load active_job
+      end
+    end
+
     test "ActiveJob::Base.retry_jitter is 0.15 by default for new apps" do
       app "development"
 
