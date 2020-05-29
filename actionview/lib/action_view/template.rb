@@ -138,7 +138,7 @@ module ActionView
       @virtual_path      = virtual_path
 
       @variable = if @virtual_path
-        base = @virtual_path[-1] == "/" ? "" : ::File.basename(@virtual_path)
+        base = @virtual_path.end_with?("/") ? "" : ::File.basename(@virtual_path)
         base =~ /\A_?(.*?)(?:\.\w+)*\z/
         $1.to_sym
       end

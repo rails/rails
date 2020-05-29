@@ -18,7 +18,7 @@ module ActiveRecord
             when ::String
               return if value.blank?
 
-              if value[0] == "(" && value[-1] == ")"
+              if value.start_with?("(") && value.end_with?(")")
                 value = value[1...-1]
               end
               x, y = value.split(",")
