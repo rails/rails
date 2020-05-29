@@ -285,12 +285,12 @@ module ActiveRecord
         false
       end
 
-      private
-        def cached_find_by_statement(key, &block)
-          cache = @find_by_statement_cache[connection.prepared_statements]
-          cache.compute_if_absent(key) { StatementCache.create(connection, &block) }
-        end
+      def cached_find_by_statement(key, &block) # :nodoc:
+        cache = @find_by_statement_cache[connection.prepared_statements]
+        cache.compute_if_absent(key) { StatementCache.create(connection, &block) }
+      end
 
+      private
         def relation
           relation = Relation.create(self)
 

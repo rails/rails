@@ -1,3 +1,9 @@
+*   Reset statement cache for association if `table_name` is changed.
+
+    Fixes #36453.
+
+    *Ryuta Kamizono*
+
 *   Prevent collection associations from being autosaved multiple times.
 
     Fixes #39173.
