@@ -335,6 +335,7 @@ module ApplicationTests
 
     test "connections checked out during initialization are returned to the pool" do
       app_file "config/initializers/active_record.rb", <<-RUBY
+        ActiveSupport.silence_prematurely_loading_warnings
         ActiveRecord::Base.connection
       RUBY
       require "#{app_path}/config/environment"

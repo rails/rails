@@ -14,6 +14,14 @@ module ActiveSupport
       app.deprecators[:active_support] = ActiveSupport.deprecator
     end
 
+    initializer "active_support.silence_prematurely_loading_warnings" do |app|
+      config.before_configuration do
+        if app.config.eager_load
+          ActiveSupport.silence_prematurely_loading_warnings
+        end
+      end
+    end
+
     initializer "active_support.isolation_level" do |app|
       config.after_initialize do
         if level = app.config.active_support.delete(:isolation_level)

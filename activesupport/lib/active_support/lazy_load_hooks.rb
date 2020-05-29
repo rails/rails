@@ -44,6 +44,7 @@ module ActiveSupport
         @load_hooks = Hash.new { |h, k| h[k] = [] }
         @loaded     = Hash.new { |h, k| h[k] = [] }
         @run_once   = Hash.new { |h, k| h[k] = [] }
+        @silence_prematurely_loading_warnings = false
       end
     end
 
@@ -63,6 +64,14 @@ module ActiveSupport
       @load_hooks[name] << [block, options]
     end
 
+    # Silences all prematurely loading load hooks warnings. This method
+    # gets called when eager loading frameworks but it shouldn't be called in
+    # initializers. Instead consider wrapping the code that generates the
+    # warning in a load hook.
+    def silence_prematurely_loading_warnings
+      @silence_prematurely_loading_warnings = true
+    end
+
     # Executes all blocks registered to +name+ via on_load, using +base+ as the
     # evaluation context.
     #
@@ -74,6 +83,27 @@ module ActiveSupport
       @loaded[name] << base
       @load_hooks[name].each do |hook, options|
         execute_hook(name, base, options, hook)
+      end
+    end
+
+    def warn_if_prematurely_loaded(name, before:)
+      if @loaded[before].empty? && !@silence_prematurely_loading_warnings
+        puts <<~MSG
+
+          Load hook #{name.inspect} was called before load hook #{before.inspect}.
+          Prematurely loading frameworks may slow down your boot time and could
+          cause conflicts with load order and boot of your application.
+
+          Consider wrapping your code with an on_load hook:
+
+              ActiveSupport.on_load(#{name.inspect}) do
+                # your code
+              end
+
+          Called from:
+        MSG
+
+        puts caller
       end
     end
 
