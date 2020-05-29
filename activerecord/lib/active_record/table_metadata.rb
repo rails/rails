@@ -55,6 +55,10 @@ module ActiveRecord
       reflection&.polymorphic?
     end
 
+    def through_association?
+      reflection&.through_reflection?
+    end
+
     def reflect_on_aggregation(aggregation_name)
       klass&.reflect_on_aggregation(aggregation_name)
     end

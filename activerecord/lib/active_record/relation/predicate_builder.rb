@@ -86,6 +86,10 @@ module ActiveRecord
                 value = [value] unless value.is_a?(Array)
                 klass = PolymorphicArrayValue
               end
+            elsif associated_table.through_association?
+              next associated_table.predicate_builder.expand_from_hash(
+                associated_table.association_join_foreign_key => value
+              )
             end
 
             klass ||= AssociationQueryValue
