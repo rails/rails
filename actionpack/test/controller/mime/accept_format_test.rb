@@ -86,7 +86,7 @@ class MimeControllerLayoutsTest < ActionController::TestCase
     assert_equal '<html><div id="super_iphone">Super iPhone</div></html>', @response.body
   end
 
-  def test_non_navigational_format_with_no_template_raises
+  def test_js_format_with_no_template_does_not_fall_back_to_html_template
     assert_raise ActionController::UnknownFormat do
       get :index, format: :js
     end
