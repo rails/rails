@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/string/filters"
-require "concurrent/map"
 
 module ActiveRecord
   # = Active Record Reflection
@@ -436,19 +435,18 @@ module ActiveRecord
         @type         = options[:as] && (options[:foreign_type] || "#{options[:as]}_type")
         @foreign_type = options[:polymorphic] && (options[:foreign_type] || "#{name}_type")
         @constructable = calculate_constructable(macro, options)
-        @association_scope_cache = Concurrent::Map.new
 
         if options[:class_name] && options[:class_name].class == Class
           raise ArgumentError, "A class was passed to `:class_name` but we are expecting a string."
         end
       end
 
-      def association_scope_cache(conn, owner, &block)
-        key = conn.prepared_statements
+      def association_scope_cache(klass, owner, &block)
+        key = self
         if polymorphic?
           key = [key, owner._read_attribute(@foreign_type)]
         end
-        @association_scope_cache.compute_if_absent(key) { StatementCache.create(conn, &block) }
+        klass.cached_find_by_statement(key, &block)
       end
 
       def constructable? # :nodoc:
@@ -514,7 +512,7 @@ module ActiveRecord
       # This is for clearing cache on the reflection. Useful for tests that need to compare
       # SQL queries on associations.
       def clear_association_scope_cache # :nodoc:
-        @association_scope_cache.clear
+        klass.initialize_find_by_cache
       end
 
       def nested?
