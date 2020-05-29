@@ -294,7 +294,7 @@ module ActionView #:nodoc:
       old_view_renderer  = @view_renderer
       old_lookup_context = @lookup_context
 
-      if !lookup_context.html_fallback_for_js && options[:formats]
+      if options[:formats]
         formats = Array(options[:formats])
         if formats == [:js]
           formats << :html

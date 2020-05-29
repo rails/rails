@@ -172,7 +172,7 @@ module ActionView
 
       def prepend_formats(formats) # :doc:
         formats = Array(formats)
-        return if formats.empty? || @lookup_context.html_fallback_for_js
+        return if formats.empty?
 
         @lookup_context.formats = formats | @lookup_context.formats
       end

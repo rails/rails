@@ -123,7 +123,7 @@ module ActionView
 
     # Helpers related to template lookup using the lookup context information.
     module ViewPaths
-      attr_reader :view_paths, :html_fallback_for_js
+      attr_reader :view_paths
 
       def find(name, prefixes = [], partial = false, keys = [], options = {})
         @view_paths.find(*args_for_lookup(name, prefixes, partial, keys, options))
@@ -285,11 +285,6 @@ module ActionView
         invalid_values = (values - Template::Types.symbols)
         unless invalid_values.empty?
           raise ArgumentError, "Invalid formats: #{invalid_values.map(&:inspect).join(", ")}"
-        end
-
-        if values == [:js]
-          values << :html
-          @html_fallback_for_js = true
         end
       end
       super(values)

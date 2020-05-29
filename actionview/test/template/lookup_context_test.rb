@@ -72,7 +72,7 @@ class LookupContextTest < ActiveSupport::TestCase
 
   test "adds :html fallback to :js formats" do
     @lookup_context.formats = [:js]
-    assert_equal [:js, :html], @lookup_context.formats
+    assert_equal [:js], @lookup_context.formats
   end
 
   test "raises on invalid format assignment" do
