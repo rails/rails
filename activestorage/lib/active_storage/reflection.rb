@@ -30,7 +30,7 @@ module ActiveStorage
 
     module ReflectionExtension # :nodoc:
       def add_attachment_reflection(model, name, reflection)
-        model.attachment_reflections = model.attachment_reflections.merge(name.to_s => reflection)
+        model.update_heritable_value_of(:attachment_reflections, name.to_s, reflection)
       end
 
       private

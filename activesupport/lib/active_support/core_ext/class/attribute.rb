@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/class/subclasses"
 require "active_support/core_ext/module/redefine_method"
 
 class Class
@@ -127,5 +128,34 @@ class Class
     class_eval(["class << self", *class_methods, "end", *methods].join(";").tr("\n", ";"), location.path, location.lineno)
 
     attrs.each { |name| public_send("#{name}=", default) }
+  end
+
+  def update_heritable_value_of(attr, key, value, inheriting = false) # :nodoc:
+    hashmap = self.send(attr)
+    inherited_keys = if hashmap.instance_variable_defined?(:@_class_attribute_inherited_keys)
+      hashmap.instance_variable_get(:@_class_attribute_inherited_keys)
+    end
+
+    if inheriting
+      # if value is set but not inherited, do not inherit new value
+      return if hashmap.include?(key) && !inherited_keys&.include?(key)
+
+      (inherited_keys ||= Set.new).add(key)
+    else
+      unless singleton_class.method_defined?(attr, false)
+        hashmap = self.send(:"#{attr}=", hashmap.dup)
+        inherited_keys = hashmap.empty? ? nil : Set.new(hashmap.keys) # avoid allocation when possible
+      end
+      inherited_keys&.delete(key)
+    end
+
+    hashmap[key] = value
+    hashmap.instance_variable_set(:@_class_attribute_inherited_keys, inherited_keys)
+
+    subclasses.each do |subclass|
+      subclass.update_heritable_value_of(attr, key, value, true)
+    end
+
+    hashmap
   end
 end

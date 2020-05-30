@@ -22,7 +22,7 @@ module ActiveModel
         cast_type = Type.lookup(cast_type, **options) if Symbol === cast_type
         cast_type ||= attribute_types[name]
 
-        self.attribute_types = attribute_types.merge(name => cast_type)
+        update_heritable_value_of(:attribute_types, name, cast_type)
         define_default_attribute(name, default, cast_type)
         define_attribute_method(name)
       end
