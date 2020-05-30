@@ -432,6 +432,10 @@ in controllers and views. This defaults to `false`.
   controls whether a record fails validation if `belongs_to` association is not
   present.
 
+* `config.active_record.strict_loading_by_default` is a boolean value
+  that either enables or disables strict_loading mode by default.
+  Defaults to `false`.
+
 * `config.active_record.warn_on_records_fetched_greater_than` allows setting a
   warning threshold for query result size. If the number of records returned
   by a query exceeds the threshold, a warning is logged. This can be used to
