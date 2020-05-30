@@ -59,6 +59,7 @@ DEFAULT_APP_FILES = %w(
   config/initializers/filter_parameter_logging.rb
   config/initializers/inflections.rb
   config/initializers/mime_types.rb
+  config/initializers/time_formats.rb
   config/initializers/wrap_parameters.rb
   config/locales
   config/locales/en.yml

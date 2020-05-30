@@ -1,0 +1,23 @@
+# Rails ships with the following default date / time formats which are declared
+# in Time::DATE_FORMATS
+#
+# datetime = DateTime.civil(2007, 12, 4, 0, 0, 0, 0)   # => Tue, 04 Dec 2007 00:00:00 +0000
+#
+# datetime.to_formatted_s(:db)            # => "2007-12-04 00:00:00"
+# datetime.to_formatted_s(:number)        # => "20071204000000"
+# datetime.to_formatted_s(:usec)          # => "20071204000000000000"
+# datetime.to_formatted_s(:nsec)          # => "20071204000000000000000"
+# datetime.to_formatted_s(:time)          # => "00:00"
+# datetime.to_formatted_s(:short)         # => "04 Dec 00:00"
+# datetime.to_formatted_s(:long)          # => "December 04, 2007 00:00"
+# datetime.to_formatted_s(:long_ordinal)  # => "December 4th, 2007 00:00"
+# datetime.to_formatted_s(:rfc822)        # => "Tue, 04 Dec 2007 00:00:00 +0000"
+# datetime.to_formatted_s(:iso8601)       # => "2007-12-04T00:00:00+00:00"
+#
+# You can add your own formats to the Time::DATE_FORMATS hash
+# Use the format name as the hash key and either a strftime string or
+# Proc instance that takes a time argument as the value.
+#
+# Time::DATE_FORMATS[:month_and_year] = '%B %Y'
+# Time::DATE_FORMATS[:short_ordinal]  = ->(time) { time.strftime("%B #{time.day.ordinalize}") }
+#
