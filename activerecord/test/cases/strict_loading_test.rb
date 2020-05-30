@@ -12,6 +12,18 @@ class StrictLoadingTest < ActiveRecord::TestCase
   fixtures :projects
   fixtures :ships
 
+  def test_strict_loading!
+    developer = Developer.first
+    assert_not_predicate developer, :strict_loading?
+
+    developer.strict_loading!
+    assert_predicate developer, :strict_loading?
+
+    assert_raises ActiveRecord::StrictLoadingViolationError do
+      developer.audit_logs.to_a
+    end
+  end
+
   def test_strict_loading
     Developer.all.each { |d| assert_not d.strict_loading? }
     Developer.strict_loading.each { |d| assert d.strict_loading? }
