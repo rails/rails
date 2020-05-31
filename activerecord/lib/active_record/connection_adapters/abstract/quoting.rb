@@ -9,7 +9,13 @@ module ActiveRecord
       # Quotes the column value to help prevent
       # {SQL injection attacks}[https://en.wikipedia.org/wiki/SQL_injection].
       def quote(value)
-        value = id_value_for_database(value) if value.is_a?(Base)
+        if value.is_a?(Base)
+          ActiveSupport::Deprecation.warn(<<~MSG)
+            Passing an Active Record object to `quote` directly is deprecated
+            and will be no longer quoted as id value in Rails 6.2.
+          MSG
+          value = value.id_for_database
+        end
 
         _quote(value)
       end
@@ -18,7 +24,13 @@ module ActiveRecord
       # SQLite does not understand dates, so this method will convert a Date
       # to a String.
       def type_cast(value, column = nil)
-        value = id_value_for_database(value) if value.is_a?(Base)
+        if value.is_a?(Base)
+          ActiveSupport::Deprecation.warn(<<~MSG)
+            Passing an Active Record object to `type_cast` directly is deprecated
+            and will be no longer type casted as id value in Rails 6.2.
+          MSG
+          value = value.id_for_database
+        end
 
         if column
           ActiveSupport::Deprecation.warn(<<~MSG)
@@ -200,10 +212,6 @@ module ActiveRecord
 
         def lookup_cast_type(sql_type)
           type_map.lookup(sql_type)
-        end
-
-        def id_value_for_database(value)
-          value.id_for_database
         end
 
         def _quote(value)
