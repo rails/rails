@@ -752,7 +752,7 @@ module ActiveRecord
       ActiveRecord::Associations::AliasTracker.create(connection, table.name, joins, aliases)
     end
 
-    class StrictLoadingScope
+    class StrictLoadingScope # :nodoc:
       def self.empty_scope?
         true
       end
