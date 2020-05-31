@@ -169,7 +169,7 @@ module ActiveRecord
         return if database_configs.count == 1
 
         database_configs.each do |db_config|
-          yield db_config.name, db_config
+          yield db_config.name
         end
       end
 
