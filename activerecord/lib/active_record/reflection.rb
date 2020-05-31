@@ -7,8 +7,15 @@ module ActiveRecord
   module Reflection # :nodoc:
     extend ActiveSupport::Concern
 
+    class LiloHash < Hash
+      def []=(key, value)
+        delete(key)
+        super
+      end
+    end
+
     included do
-      class_attribute :_reflections, instance_writer: false, default: {}
+      class_attribute :_reflections, instance_writer: false, default: LiloHash.new
       class_attribute :aggregate_reflections, instance_writer: false, default: {}
     end
 
@@ -20,27 +27,15 @@ module ActiveRecord
 
       def add_reflection(ar, name, reflection)
         ar.clear_reflections_cache
-        name = -name.to_s
+        ar.descendants.each { |sub| sub.clear_reflections_cache }
 
         ar._reflections = ar._reflections.dup
-        prev_reflection = ar._reflections.delete(name)
-        ar._reflections[name] = reflection
-
-        ar.descendants.each do |sub|
-          sub.clear_reflections_cache
-          next if sub._reflections.equal?(ar._reflections)
-
-          if prev_reflection&.equal?(sub._reflections[name])
-            sub._reflections.delete(name)
-            sub._reflections[name] = reflection
-          else
-            sub._reflections[name] ||= reflection
-          end
-        end
+        ar._inplace_update_reflections(-name.to_s, reflection)
       end
 
       def add_aggregate_reflection(ar, name, reflection)
-        ar.aggregate_reflections = ar.aggregate_reflections.merge(-name.to_s => reflection)
+        ar.aggregate_reflections = ar.aggregate_reflections.dup
+        ar.inplace_update_aggregate_reflections(-name.to_s, reflection)
       end
 
       private
