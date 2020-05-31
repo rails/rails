@@ -72,17 +72,17 @@ module ActiveRecord
 
       def test_default_schema_dump_value
         config = HashConfig.new("default_env", "primary", { schema_dump: nil })
-        assert_equal config.schema_dump, true
+        assert_equal true, config.schema_dump
       end
 
       def test_schema_dump_value_set_to_true
         config = HashConfig.new("default_env", "primary", { schema_dump: true })
-        assert_equal config.schema_dump, true
+        assert_equal true, config.schema_dump
       end
 
       def test_schema_dump_value_set_to_false
         config = HashConfig.new("default_env", "primary", { schema_dump: false })
-        assert_equal config.schema_dump, false
+        assert_equal true, config.schema_dump
       end
     end
   end
