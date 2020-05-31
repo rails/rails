@@ -36,7 +36,7 @@ If you are familiar with Sprockets, the following guide might give you some idea
 |Attach CSS        |stylesheet_link_tag|stylesheet_pack_tag|
 |Link to an image  |image_url          |image_pack_tag     |
 |Link to an asset  |asset_url          |asset_pack_tag     |
-|Require a script  |//= require        |require or include |
+|Require a script  |//= require        |import or require  |
 
 ## Installing Webpacker
 
