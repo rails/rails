@@ -173,6 +173,11 @@ class UniquenessValidationTest < ActiveRecord::TestCase
 
     r2 = t.replies.create "title" => "r2", "content" => "hello world"
     assert_not r2.valid?, "Saving r2 first time"
+
+    Topic.where(id: t.id).delete_all
+
+    r3 = Reply.create(parent_id: t.id, title: "r3", content: "hello world")
+    assert_not r3.valid?, "Saving r3 first time"
   end
 
   def test_validate_uniqueness_with_polymorphic_object_scope
