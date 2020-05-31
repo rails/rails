@@ -343,10 +343,13 @@ module ActiveRecord
     end
 
     def compute_cache_version(timestamp_column) # :nodoc:
+      timestamp_column = timestamp_column.to_s
+      timestamp_column = klass.attribute_aliases[timestamp_column] || timestamp_column
+
       if loaded? || distinct_value
         size = records.size
         if size > 0
-          timestamp = max_by(&timestamp_column)._read_attribute(timestamp_column)
+          timestamp = records.map { |record| record._read_attribute(timestamp_column) }.max
         end
       else
         collection = eager_loading? ? apply_join_dependency : self

@@ -295,15 +295,15 @@ ActiveRecord::Schema.define do
     t.references :firm, index: false
     t.integer :mentor_id
     if supports_datetime_with_precision?
-      t.datetime :created_at, precision: 6
-      t.datetime :updated_at, precision: 6
-      t.datetime :created_on, precision: 6
-      t.datetime :updated_on, precision: 6
+      t.datetime :legacy_created_at, precision: 6
+      t.datetime :legacy_updated_at, precision: 6
+      t.datetime :legacy_created_on, precision: 6
+      t.datetime :legacy_updated_on, precision: 6
     else
-      t.datetime :created_at
-      t.datetime :updated_at
-      t.datetime :created_on
-      t.datetime :updated_on
+      t.datetime :legacy_created_at
+      t.datetime :legacy_updated_at
+      t.datetime :legacy_created_on
+      t.datetime :legacy_updated_on
     end
   end
 

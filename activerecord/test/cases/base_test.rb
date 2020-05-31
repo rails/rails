@@ -1106,8 +1106,8 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_find_keeps_multiple_group_values
-    combined = Developer.all.merge!(group: "developers.name, developers.salary, developers.id, developers.created_at, developers.updated_at, developers.created_on, developers.updated_on").to_a
-    assert_equal combined, Developer.all.merge!(group: ["developers.name", "developers.salary", "developers.id", "developers.created_at", "developers.updated_at", "developers.created_on", "developers.updated_on"]).to_a
+    combined = Developer.merge(group: "developers.name, developers.salary, developers.id, developers.legacy_created_at, developers.legacy_updated_at, developers.legacy_created_on, developers.legacy_updated_on").to_a
+    assert_equal combined, Developer.merge(group: ["developers.name", "developers.salary", "developers.id", "developers.created_at", "developers.updated_at", "developers.created_on", "developers.updated_on"]).to_a
   end
 
   def test_find_symbol_ordered_last
