@@ -165,7 +165,7 @@ module ActionView
           options[:prefixes] ||= _prefixes
         end
 
-        options[:template] ||= (options[:action] || action_name).to_s
+        options[:template] ||= (options.delete(:action) || action_name).to_s
         options
       end
   end

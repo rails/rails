@@ -68,6 +68,16 @@ module RenderTestCases
     assert_match(/You invoked render but did not give any of (.+) option\./, e.message)
   end
 
+  def test_render_throws_exception_when_given_partial_and_invalid_options
+    e = assert_raises(ArgumentError) { @view.render(template: "test/hello_world", invalid_option: true) }
+    assert_includes e.message, "Unknown key: :invalid_option"
+  end
+
+  def test_render_throws_exception_when_given_template_and_invalid_options
+    e = assert_raises(ArgumentError) { @view.render(partial: "test/partial", invalid_option: true) }
+    assert_includes e.message, "Unknown key: :invalid_option"
+  end
+
   def test_render_template
     assert_equal "Hello world!", @view.render(template: "test/hello_world")
   end

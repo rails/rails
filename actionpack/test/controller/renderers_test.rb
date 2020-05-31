@@ -69,8 +69,8 @@ class RenderersTest < ActionController::TestCase
     ActionController.remove_renderer :simon
   end
 
-  def test_raises_missing_template_no_renderer
-    assert_raise ActionView::MissingTemplate do
+  def test_raises_argument_error_no_renderer
+    assert_raise ArgumentError do
       get :respond_to_mime, format: "csv"
     end
     assert_equal Mime[:csv], @response.media_type
