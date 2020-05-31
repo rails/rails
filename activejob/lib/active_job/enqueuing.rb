@@ -23,6 +23,21 @@ module ActiveJob
       end
       ruby2_keywords(:perform_later) if respond_to?(:ruby2_keywords, true)
 
+      # Push many jobs onto the queue at once. The parameter +args+ is an array of arrays.
+      # Each entry is an array arguments for a single job. For example, the following arguments
+      # would enqueue two jobs.
+      #
+      # +args+: [[1, "String arg", <#SomeModel ...>], [2, "String arg", <#SomeModel ...>]]
+      # First job enqueued with [1, "String arg", <#SomeModel ...>]
+      # Second job enqueued with [2, "String arg", <#SomeModel ...>]
+      def perform_all_later(args)
+        jobs = args.flat_map do |single_job_arguments|
+          job_or_instantiate(*single_job_arguments)
+        end
+
+        queue_adapter.enqueue_all(jobs)
+      end
+
       private
         def job_or_instantiate(*args) # :doc:
           args.first.is_a?(self) ? args.first : new(*args)

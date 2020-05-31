@@ -35,6 +35,14 @@ module ActiveJob
           "at"      => timestamp
       end
 
+      def enqueue_all(jobs)
+        Sidekiq::Client.push_bulk \
+          "class"   => JobWrapper,
+          "wrapped" => jobs.first.class,
+          "queue"   => jobs.first.queue_name,
+          "args"    => jobs.map { |j| [j.serialize] }
+      end
+
       class JobWrapper #:nodoc:
         include Sidekiq::Worker
 
