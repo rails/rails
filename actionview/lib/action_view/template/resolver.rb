@@ -36,10 +36,6 @@ module ActionView
     end
 
     class PathParser # :nodoc:
-      def initialize
-        @regex = build_path_regex
-      end
-
       def build_path_regex
         handlers = Template::Handlers.extensions.map { |x| Regexp.escape(x) }.join("|")
         formats = Template::Types.symbols.map { |x| Regexp.escape(x) }.join("|")
@@ -60,6 +56,7 @@ module ActionView
       end
 
       def parse(path)
+        @regex ||= build_path_regex
         match = @regex.match(path)
         {
           prefix: match[:prefix] || "",
