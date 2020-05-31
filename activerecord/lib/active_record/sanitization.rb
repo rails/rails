@@ -193,13 +193,14 @@ module ActiveRecord
 
         def quote_bound_value(value, c = connection)
           if value.respond_to?(:map) && !value.acts_like?(:string)
-            quoted = value.map { |v| c.quote(v) }
-            if quoted.empty?
+            values = value.map { |v| v.respond_to?(:id_for_database) ? v.id_for_database : v }
+            if values.empty?
               c.quote(nil)
             else
-              quoted.join(",")
+              values.map! { |v| c.quote(v) }.join(",")
             end
           else
+            value = value.id_for_database if value.respond_to?(:id_for_database)
             c.quote(value)
           end
         end
