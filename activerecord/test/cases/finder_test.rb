@@ -485,6 +485,11 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal Account.where(firm_id: firm).take, Account.find_by(firm_id: firm)
   end
 
+  def test_find_by_with_alias
+    account = accounts(:last_account)
+    assert_equal account, Account.find_by(available_credit: account.available_credit)
+  end
+
   def test_take
     assert_equal topics(:first), Topic.where("title = 'The First Topic'").take
   end

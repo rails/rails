@@ -198,22 +198,22 @@ module ActiveRecord
                         columns_hash.key?(inheritance_column) && !base_class?
 
         hash = args.first
+        return super unless Hash === hash
 
-        return super if !(Hash === hash) || hash.values.any? { |v|
-          StatementCache.unsupported_value?(v)
-        }
+        values = hash.values
+        return super if values.any? { |v| StatementCache.unsupported_value?(v) }
 
         # We can't cache Post.find_by(author: david) ...yet
-        return super unless hash.keys.all? { |k| columns_hash.has_key?(k.to_s) }
-
-        keys = hash.keys
+        keys = hash.keys.map! { |key| attribute_aliases[name = key.to_s] || name }
+        return super unless keys.all? { |k| columns_hash.key?(k) }
 
         statement = cached_find_by_statement(keys) { |params|
           wheres = keys.index_with { params.bind }
           where(wheres).limit(1)
         }
+
         begin
-          statement.execute(hash.values, connection)&.first
+          statement.execute(values, connection)&.first
         rescue TypeError
           raise ActiveRecord::StatementInvalid
         end
