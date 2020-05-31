@@ -1358,7 +1358,7 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
-  def test_first_or_create_with_valid_array
+  def test_first_or_create_bang_with_valid_array
     several_green_birds = Bird.where(color: "green").first_or_create!([{ name: "parrot" }, { name: "parakeet" }])
     assert_kind_of Array, several_green_birds
     several_green_birds.each { |bird| assert bird.persisted? }
@@ -1368,7 +1368,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal several_green_birds.first, same_parrot
   end
 
-  def test_first_or_create_with_invalid_array
+  def test_first_or_create_bang_with_invalid_array
     assert_raises(ActiveRecord::RecordInvalid) { Bird.where(color: "green").first_or_create!([ { name: "parrot" }, { pirate_id: 1 } ]) }
   end
 
