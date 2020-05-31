@@ -82,7 +82,7 @@ module ActiveRecord
 
       def test_schema_dump_value_set_to_false
         config = HashConfig.new("default_env", "primary", { schema_dump: false })
-        assert_equal true, config.schema_dump
+        assert_equal false, config.schema_dump
       end
     end
   end
