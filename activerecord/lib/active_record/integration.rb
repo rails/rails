@@ -97,16 +97,14 @@ module ActiveRecord
     def cache_version
       return unless cache_versioning
 
-      timestamp_column = self.class.attribute_aliases["updated_at"] || "updated_at"
-
-      if has_attribute?(timestamp_column)
+      if has_attribute?("updated_at")
         timestamp = updated_at_before_type_cast
         if can_use_fast_cache_version?(timestamp)
           raw_timestamp_to_cache_version(timestamp)
         elsif timestamp = updated_at
           timestamp.utc.to_s(cache_timestamp_format)
         end
-      elsif self.class.has_attribute?(timestamp_column)
+      elsif self.class.has_attribute?("updated_at")
         raise ActiveModel::MissingAttributeError, "missing attribute: updated_at"
       end
     end
