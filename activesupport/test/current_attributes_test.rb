@@ -47,8 +47,17 @@ class CurrentAttributesTest < ActiveSupport::TestCase
   # Eagerly set-up `instance`s by reference.
   [ Current.instance, Session.instance ]
 
-  setup    { @original_time_zone = Time.zone }
-  teardown { Time.zone = @original_time_zone }
+  # Use library specific minitest hook to catch Time.zone before reset is called via TestHelper
+  def before_setup
+    @original_time_zone = Time.zone
+    super
+  end
+
+  # Use library specific minitest hook to set Time.zone after reset is called via TestHelper
+  def after_teardown
+    super
+    Time.zone = @original_time_zone
+  end
 
   setup { assert_nil Session.previous, "Expected Session to not have leaked state" }
 
