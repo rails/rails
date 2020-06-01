@@ -84,7 +84,8 @@ module ActiveRecord
       end
 
       def migrations_paths
-        current_db_config&.migrations_paths || [DatabaseConfigurations::DatabaseConfig::DEFAULT_MIGRATION_PATH]
+        paths = current_db_config&.migrations_paths || [DatabaseConfigurations::DatabaseConfig::DEFAULT_MIGRATION_PATH]
+        @migrations_paths ||= Rails.application.paths[paths.first].to_a
       end
 
       def fixtures_path
@@ -527,7 +528,6 @@ module ActiveRecord
         end
 
         def current_db_config
-          p ActiveRecord::Base.configurations
           ActiveRecord::Base.configurations.configs_for(env_name: env, name: name)
         end
     end
