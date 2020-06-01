@@ -166,10 +166,10 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_unscope_string_where_clauses_involved
-    dev_relation = Developer.order("salary DESC").where("created_at > ?", 1.year.ago)
+    dev_relation = Developer.order("salary DESC").where("legacy_created_at > ?", 1.year.ago)
     expected = dev_relation.collect(&:name)
 
-    dev_ordered_relation = DeveloperOrderedBySalary.where(name: "Jamis").where("created_at > ?", 1.year.ago)
+    dev_ordered_relation = DeveloperOrderedBySalary.where(name: "Jamis").where("legacy_created_at > ?", 1.year.ago)
     received = dev_ordered_relation.unscope(where: [:name]).collect(&:name)
 
     assert_equal expected.sort, received.sort
