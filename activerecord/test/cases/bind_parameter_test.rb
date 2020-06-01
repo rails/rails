@@ -80,11 +80,11 @@ if ActiveRecord::Base.connection.prepared_statements
         assert_equal 1, Topic.find_by!(id: 1).id
         assert_raises(RecordNotFound) { SillyReply.find_by!(id: 2) }
 
-        topic_sql = cached_statement(Topic, [:id])
+        topic_sql = cached_statement(Topic, ["id"])
         assert_includes statement_cache, to_sql_key(topic_sql)
 
-        e = assert_raise { cached_statement(SillyReply, [:id]) }
-        assert_equal "SillyReply has no cached statement by [:id]", e.message
+        e = assert_raise { cached_statement(SillyReply, ["id"]) }
+        assert_equal "SillyReply has no cached statement by [\"id\"]", e.message
 
         replies = SillyReply.where(id: 2).limit(1)
         assert_includes statement_cache, to_sql_key(replies.arel)
