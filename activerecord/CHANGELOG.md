@@ -1,3 +1,23 @@
+*   Add `ActiveRecord::Base.strict_loading_by_default` and `ActiveRecord::Base.strict_loading_by_default=`
+    to enable/disable strict_loading mode by default for a model. The configuration's value is
+    inheritable by subclasses, but they can override that value and it will not impact parent class.
+
+    Usage:
+
+    ```ruby
+    class Developer < ApplicationRecord
+      self.strict_loading_by_default = true
+
+      has_many :projects
+    end
+
+    dev = Developer.first
+    dev.projects.first
+    # => ActiveRecord::StrictLoadingViolationError Exception: Developer is marked as strict_loading and Project cannot be lazily loaded.
+    ```
+
+    *bogdanvlviv*
+
 *   Deprecate passing an Active Record object to `quote`/`type_cast` directly.
 
     *Ryuta Kamizono*

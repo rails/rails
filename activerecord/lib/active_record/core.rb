@@ -123,6 +123,8 @@ module ActiveRecord
 
       class_attribute :belongs_to_required_by_default, instance_accessor: false
 
+      class_attribute :strict_loading_by_default, instance_accessor: false, default: false
+
       mattr_accessor :connection_handlers, instance_accessor: false, default: {}
 
       mattr_accessor :writing_role, instance_accessor: false, default: :writing
@@ -600,7 +602,7 @@ module ActiveRecord
         @marked_for_destruction   = false
         @destroyed_by_association = nil
         @_start_transaction_state = nil
-        @strict_loading           = false
+        @strict_loading           = self.class.strict_loading_by_default
 
         self.class.define_attribute_methods
       end
