@@ -1,8 +1,5 @@
 require_relative "boot"
 
-<% if include_all_railties? -%>
-require "rails/all"
-<% else -%>
 require "rails"
 # Pick the frameworks you want:
 require "active_model/railtie"
@@ -17,7 +14,6 @@ require "action_view/railtie"
 <%= comment_if :skip_action_cable %>require "action_cable/engine"
 <%= comment_if :skip_sprockets %>require "sprockets/railtie"
 <%= comment_if :skip_test %>require "rails/test_unit/railtie"
-<% end -%>
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
