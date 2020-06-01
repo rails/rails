@@ -1,3 +1,7 @@
+*   Deprecate passing an Active Record object to `quote`/`type_cast` directly.
+
+    *Ryuta Kamizono*
+
 *   Default engine `ENGINE=InnoDB` is no longer dumped to make schema more agnostic.
 
     Before:
