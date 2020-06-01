@@ -77,7 +77,9 @@ module ApplicationTests
             source
           end
         end
-        ActionView::Template.register_template_handler(:rubby, RubbyHandler)
+        ActiveSupport.on_load :action_view do
+          ActionView::Template.register_template_handler(:rubby, RubbyHandler)
+        end
       RUBY
 
       get "/"
