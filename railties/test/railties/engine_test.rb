@@ -34,6 +34,7 @@ module RailtiesTest
 
     def migrations
       migration_root = File.expand_path(ActiveRecord::Migrator.migrations_paths.first, app_path)
+      p migration_root
       ActiveRecord::MigrationContext.new(migration_root, ActiveRecord::SchemaMigration).migrations
     end
 

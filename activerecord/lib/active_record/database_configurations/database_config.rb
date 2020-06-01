@@ -76,8 +76,10 @@ module ActiveRecord
         raise NotImplementedError
       end
 
+      DEFAULT_MIGRATION_PATH = "db/migrate"
+
       def default_migrations_paths
-        [name == "primary" ? "db/migrate" : "db/#{name}_migrate"]
+        [name == "primary" ? DEFAULT_MIGRATION_PATH : "db/#{name}_migrate"]
       end
     end
   end
