@@ -23,4 +23,10 @@ class DigestUUIDExt < ActiveSupport::TestCase
       Digest::UUID.uuid_from_hash(Digest::SHA2, Digest::UUID::OID_NAMESPACE, "1.2.3")
     end
   end
+
+  def test_hash_class_passing_deprecation
+    assert_deprecated(/Passing a Hash Class to `uuid_from_hash` is deprecated and will be removed in Rails 6/) do
+      Digest::UUID.uuid_from_hash(Digest::SHA1, Digest::UUID::OID_NAMESPACE, "1.2.3")
+    end
+  end
 end

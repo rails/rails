@@ -1,3 +1,17 @@
+*   Passing a Hash Class to `uuid_from_hash` is deprecated in favour of String.
+    
+    Before:
+
+        Digest::UUID.uuid_from_hash(Digest::SHA1, Digest::UUID::OID_NAMESPACE, "1.2.3")
+        # => "42d5e23b-3a02-5135-85c6-52d1102f1f00"       
+
+    After:
+
+        Digest::UUID.uuid_from_hash("SHA1", Digest::UUID::OID_NAMESPACE, "1.2.3")
+        # => "42d5e23b-3a02-5135-85c6-52d1102f1f00"
+               
+    *Vipul A M*
+
 *   `require_dependency` has been documented to be _obsolete_ in `:zeitwerk`
     mode. The method is not deprecated as such (yet), but applications are
     encouraged to not use it.
