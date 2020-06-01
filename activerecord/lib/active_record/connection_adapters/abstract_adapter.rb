@@ -168,6 +168,8 @@ module ActiveRecord
                                 spec_name = conn.pool.spec.name
                                 name = "#{spec_name}::SchemaMigration"
 
+                                return ActiveRecord::SchemaMigration if spec_name == "primary"
+
                                 Class.new(ActiveRecord::SchemaMigration) do
                                   define_singleton_method(:name) { name }
                                   define_singleton_method(:to_s) { name }
