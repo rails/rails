@@ -100,7 +100,10 @@ module ActiveRecord
         end
 
         def find_target?
-          !loaded? && foreign_key_present? && klass
+          return unless foreign_key_present? && klass
+          return true unless loaded?
+
+          target && owner._read_attribute(reflection.foreign_key) != target._read_attribute(primary_key(klass))
         end
 
         def require_counter_update?
