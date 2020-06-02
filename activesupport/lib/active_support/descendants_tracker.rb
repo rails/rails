@@ -13,6 +13,7 @@ module ActiveSupport
         descendants = @@direct_descendants[klass]
         descendants ? descendants.to_a : []
       end
+      alias_method :subclasses, :direct_descendants
 
       def descendants(klass)
         arr = []
@@ -59,6 +60,7 @@ module ActiveSupport
     def direct_descendants
       DescendantsTracker.direct_descendants(self)
     end
+    alias_method :subclasses, :direct_descendants
 
     def descendants
       DescendantsTracker.descendants(self)
