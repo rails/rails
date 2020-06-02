@@ -4,6 +4,7 @@ class Person < ActiveRecord::Base
   has_many :readers
   has_many :secure_readers
   has_one  :reader
+  has_one :bird, foreign_key: :pirate_id
 
   has_many :posts, through: :readers
   has_many :secure_posts, through: :secure_readers

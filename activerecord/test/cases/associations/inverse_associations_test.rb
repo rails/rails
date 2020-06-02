@@ -22,6 +22,7 @@ require "models/project"
 require "models/author"
 require "models/user"
 require "models/room"
+require "models/bird"
 
 class AutomaticInverseFindingTests < ActiveRecord::TestCase
   fixtures :ratings, :comments, :cars
@@ -197,7 +198,7 @@ class InverseAssociationTests < ActiveRecord::TestCase
     has_many_without_inverse_ref = Club.reflect_on_association(:memberships)
     assert_not_predicate has_many_without_inverse_ref, :has_inverse?
 
-    belongs_to_without_inverse_ref = Sponsor.reflect_on_association(:sponsor_club)
+    belongs_to_without_inverse_ref = Sponsor.reflect_on_association(:sponsorable_with_conditions)
     assert_not_predicate belongs_to_without_inverse_ref, :has_inverse?
   end
 
@@ -219,7 +220,7 @@ class InverseAssociationTests < ActiveRecord::TestCase
     has_many_ref = Club.reflect_on_association(:memberships)
     assert_nil has_many_ref.inverse_of
 
-    belongs_to_ref = Sponsor.reflect_on_association(:sponsor_club)
+    belongs_to_ref = Sponsor.reflect_on_association(:sponsorable_with_conditions)
     assert_nil belongs_to_ref.inverse_of
   end
 
@@ -904,6 +905,22 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
     assert_nothing_raised { Face.first.polymorphic_human = Human.first }
     # fails because Interest does have the correct inverse_of
     assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Face.first.polymorphic_human = Interest.first }
+  end
+
+  def test_automatic_inverse_of_for_has_many_with_foreign_key_option
+    post = Post.create!(title: "My Post", body: "Empty")
+    post.categorizations.create!
+    categorization = post.reload.categorizations.first
+    assert categorization.association(:post).loaded?
+    assert_equal post, categorization.post
+  end
+
+  def test_automatic_inverse_of_for_has_one_with_foreign_key_option
+    person = Person.create!(first_name: "Donald")
+    person.create_bird!(name: "Raven")
+    bird = person.reload.bird
+    assert bird.association(:person).loaded?
+    assert_equal person, bird.person
   end
 end
 

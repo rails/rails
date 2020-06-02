@@ -639,9 +639,9 @@ module ActiveRecord
         # Anything with a scope can additionally ruin our attempt at finding an
         # inverse, so we exclude reflections with scopes.
         def can_find_inverse_of_automatically?(reflection)
+          reflection.active_record.name &&
           reflection.options[:inverse_of] != false &&
             !reflection.options[:through] &&
-            !reflection.options[:foreign_key] &&
             !reflection.scope
         end
 
