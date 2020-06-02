@@ -315,7 +315,7 @@ module ActiveRecord
 
         # Returns true if record contains the foreign_key
         def foreign_key_for?(record)
-          record._has_attribute?(reflection.foreign_key.to_s)
+          record._has_attribute?(reflection.foreign_key)
         end
 
         # This should be implemented to return the values of the relevant key(s) on the owner,
