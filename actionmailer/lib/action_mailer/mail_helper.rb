@@ -54,19 +54,19 @@ module ActionMailer
     #   # => "    Here is a sample text with\n    more than 40 characters"
     def format_paragraph(text, len = 72, indent = 2)
       sentences = [[]]
+      space = " "
+      new_line = "\n"
+      indentation = " " * indent
 
       text.split.each do |word|
-        if sentences.first.present? && (sentences.last + [word]).join(" ").length > len
+        if sentences.first.any? && (sentences.last + [word]).join(space).length > len
           sentences << [word]
         else
           sentences.last << word
         end
       end
 
-      indentation = " " * indent
-      sentences.map! { |sentence|
-        "#{indentation}#{sentence.join(' ')}"
-      }.join "\n"
+      sentences.map! { |sentence| "#{indentation}#{sentence.join(space)}" }.join(new_line)
     end
   end
 end
