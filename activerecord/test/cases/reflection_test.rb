@@ -69,6 +69,8 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal :string, @first.column_for_attribute(:title).type
     assert_equal :string, @first.type_for_attribute("title").type
     assert_equal :string, @first.type_for_attribute(:title).type
+    assert_equal :string, @first.type_for_attribute("heading").type
+    assert_equal :string, @first.type_for_attribute(:heading).type
     assert_equal 250, @first.column_for_attribute("title").limit
   end
 
