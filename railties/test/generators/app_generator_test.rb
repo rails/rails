@@ -618,6 +618,22 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_directory("test")
   end
 
+  def test_generator_if_skip_jbuilder_is_given
+    run_generator [destination_root, "--skip-jbuilder"]
+    assert_no_gem "jbuilder"
+  end
+
+  def test_generator_if_skip_active_job_is_given
+    run_generator [destination_root, "--skip-active-job"]
+    assert_no_file "app/jobs/application.rb"
+    assert_file "config/environments/production.rb" do |content|
+      assert_no_match(/config\.active_job/, content)
+    end
+    assert_file "config/application.rb" do |content|
+      assert_match(/#\s+require\s+["']active_job\/railtie["']/, content)
+    end
+  end
+
   def test_generator_if_skip_system_test_is_given
     run_generator [destination_root, "--skip-system-test"]
     assert_no_gem "capybara"
@@ -828,7 +844,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_bundler_command_called("install")
     assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["']$}
   end
-
 
   def test_master_option
     generator([destination_root], master: true, skip_webpack_install: true)
@@ -1110,6 +1125,46 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_minimal_rails_app
+    app_root = File.join(destination_root, "myapp")
+    run_generator [app_root, "--minimal"]
+
+    assert_no_file "#{app_root}/config/storage.yml"
+    assert_no_file "#{app_root}/config/webpacker.yml"
+    assert_no_file "#{app_root}/config/cable.yml"
+    assert_no_file "#{app_root}/bin/yarn"
+    assert_no_file "#{app_root}/views/layouts/mailer.html.erb"
+    assert_no_file "#{app_root}/config/spring.rb"
+    assert_no_file "#{app_root}/app/jobs/application.rb"
+    assert_file "#{app_root}/app/views/layouts/application.html.erb" do |content|
+      assert_no_match(/data-turbolinks-track/, content)
+    end
+    assert_file "#{app_root}/config/environments/development.rb" do |content|
+      assert_no_match(/config\.active_storage/, content)
+    end
+    assert_file "#{app_root}/config/environments/production.rb" do |content|
+      assert_no_match(/config\.active_job/, content)
+    end
+    assert_file "#{app_root}/config/boot.rb" do |content|
+      assert_no_match(/require "bootsnap\/setup"/, content)
+    end
+    assert_file "#{app_root}/config/application.rb" do |content|
+      assert_match(/#\s+require\s+["']active_job\/railtie["']/, content)
+      assert_match(/#\s+require\s+["']active_storage\/engine["']/, content)
+      assert_match(/#\s+require\s+["']action_mailer\/railtie["']/, content)
+      assert_match(/#\s+require\s+["']action_mailbox\/engine["']/, content)
+      assert_match(/#\s+require\s+["']action_text\/engine["']/, content)
+      assert_match(/#\s+require\s+["']action_cable\/engine["']/, content)
+      assert_match(/\s+require\s+["']sprockets\/railtie["']/, content)
+    end
+
+    assert_no_gem "webpacker", app_root
+    assert_no_gem "jbuilder", app_root
+    assert_no_gem "rack-mini-profiler", app_root
+    assert_no_gem "spring", app_root
+    assert_no_gem "web-console", app_root
+  end
+
   private
     def stub_rails_application(root)
       Rails.application.config.root = root
@@ -1122,16 +1177,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
       capture(:stdout) { generator.send(*args, &block) }
     end
 
-    def assert_gem(gem, constraint = nil)
+    def assert_gem(gem, constraint = nil, app_path = ".")
       if constraint
-        assert_file "Gemfile", /^\s*gem\s+["']#{gem}["'], #{constraint}$*/
+        assert_file File.join(app_path, "Gemfile"), /^\s*gem\s+["']#{gem}["'], #{constraint}$*/
       else
-        assert_file "Gemfile", /^\s*gem\s+["']#{gem}["']$*/
+        assert_file File.join(app_path, "Gemfile"), /^\s*gem\s+["']#{gem}["']$*/
       end
     end
 
-    def assert_no_gem(gem)
-      assert_file "Gemfile" do |content|
+    def assert_no_gem(gem, app_path = ".")
+      assert_file File.join(app_path, "Gemfile") do |content|
         assert_no_match(gem, content)
       end
     end
