@@ -470,7 +470,7 @@ module ActiveRecord
       def association_foreign_key_changed?(reflection, record, key)
         return false if reflection.through_reflection?
 
-        record.has_attribute?(reflection.foreign_key) && record[reflection.foreign_key] != key
+        record._has_attribute?(reflection.foreign_key.to_s) && record._read_attribute(reflection.foreign_key) != key
       end
 
       # Saves the associated record if it's new or <tt>:autosave</tt> is enabled.

@@ -14,6 +14,7 @@ class Company < AbstractCompany
   has_many :contracts
   has_many :developers, through: :contracts
 
+  alias_attribute :new_name, :name
   attribute :metadata, :json
 
   scope :of_first_firm, lambda {
