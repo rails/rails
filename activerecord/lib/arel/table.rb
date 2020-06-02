@@ -97,8 +97,8 @@ module Arel # :nodoc: all
     end
     alias :== :eql?
 
-    def type_cast_for_database(attribute_name, value)
-      type_caster.type_cast_for_database(attribute_name, value)
+    def type_cast_for_database(attr_name, value)
+      type_caster.type_cast_for_database(attr_name, value)
     end
 
     def type_for_attribute(name)

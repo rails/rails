@@ -15,8 +15,8 @@ module Arel # :nodoc: all
         relation.respond_to?(:name) ? relation.name : name
       end
 
-      def type_cast_for_database(*args)
-        relation.type_cast_for_database(*args)
+      def type_cast_for_database(attr_name, value)
+        relation.type_cast_for_database(attr_name, value)
       end
 
       def type_for_attribute(name)
