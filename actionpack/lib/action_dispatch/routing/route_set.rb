@@ -232,6 +232,9 @@ module ActionDispatch
                 @arg_size.times { |i|
                   key = @required_parts[i]
                   value = args[i].to_param
+                  if key != :id
+                    value = args[i].try(key) || value
+                  end
                   yield key if value.nil? || value.empty?
                   params[key] = value
                 }
