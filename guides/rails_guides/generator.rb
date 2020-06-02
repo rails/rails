@@ -9,7 +9,6 @@ require "action_controller"
 require "action_view"
 
 require "rails_guides/markdown"
-require "rails_guides/indexer"
 require "rails_guides/helpers"
 require "rails_guides/levenshtein"
 

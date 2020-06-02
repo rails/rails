@@ -1,7 +1,7 @@
 class CreateActiveStorageVariantRecords < ActiveRecord::Migration[6.0]
-  def up
+  def change
     return unless table_exists?(:active_storage_blobs)
-
+    
     create_table :active_storage_variant_records do |t|
       t.belongs_to :blob, null: false, index: false
       t.string :variation_digest, null: false

@@ -110,7 +110,16 @@ module ActiveModel
       @options = @options.deep_dup
     end
 
-    attr_reader :base, :attribute, :type, :raw_type, :options
+    # The object which the error belongs to
+    attr_reader :base
+    # The attribute of +base+ which the error belongs to
+    attr_reader :attribute
+    # The type of error, defaults to `:invalid` unless specified
+    attr_reader :type
+    # The raw value provided as the second parameter when calling `errors#add`
+    attr_reader :raw_type
+    # The options provided when calling `errors#add`
+    attr_reader :options
 
     def message
       case raw_type
@@ -157,6 +166,10 @@ module ActiveModel
 
     def hash
       attributes_for_hash.hash
+    end
+
+    def inspect # :nodoc:
+      "<##{self.class.name} attribute=#{@attribute}, type=#{@type}, options=#{@options.inspect}>"
     end
 
     protected

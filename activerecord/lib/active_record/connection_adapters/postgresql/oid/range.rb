@@ -67,12 +67,12 @@ module ActiveRecord
             end
 
             def extract_bounds(value)
-              from, to = value[1..-2].split(",")
+              from, to = value[1..-2].split(",", 2)
               {
-                from:          (value[1] == "," || from == "-infinity") ? infinity(negative: true) : from,
-                to:            (value[-2] == "," || to == "infinity") ? infinity : to,
-                exclude_start: (value[0] == "("),
-                exclude_end:   (value[-1] == ")")
+                from:          (from == "" || from == "-infinity") ? infinity(negative: true) : from,
+                to:            (to == "" || to == "infinity") ? infinity : to,
+                exclude_start: value.start_with?("("),
+                exclude_end:   value.end_with?(")")
               }
             end
 

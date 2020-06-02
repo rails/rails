@@ -139,12 +139,16 @@ module ActiveRecord
         mapping.key(subtype.deserialize(value))
       end
 
+      def serializable?(value)
+        (value.blank? || mapping.has_key?(value) || mapping.has_value?(value)) && super
+      end
+
       def serialize(value)
         mapping.fetch(value, value)
       end
 
       def assert_valid_value(value)
-        unless value.blank? || mapping.has_key?(value) || mapping.has_value?(value)
+        unless serializable?(value)
           raise ArgumentError, "'#{value}' is not a valid #{name}"
         end
       end

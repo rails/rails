@@ -25,22 +25,22 @@ class DatabaseConfigurationsTest < ActiveRecord::TestCase
     assert_equal ["arunit"], configs.map(&:env_name)
   end
 
-  def test_configs_for_getter_with_spec_name
+  def test_configs_for_getter_with_name
     previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "arunit2"
 
-    config = ActiveRecord::Base.configurations.configs_for(spec_name: "primary")
+    config = ActiveRecord::Base.configurations.configs_for(name: "primary")
 
     assert_equal "arunit2", config.env_name
-    assert_equal "primary", config.spec_name
+    assert_equal "primary", config.name
   ensure
     ENV["RAILS_ENV"] = previous_env
   end
 
-  def test_configs_for_getter_with_env_and_spec_name
-    config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+  def test_configs_for_getter_with_env_and_name
+    config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
 
     assert_equal "arunit", config.env_name
-    assert_equal "primary", config.spec_name
+    assert_equal "primary", config.name
   end
 
   def test_default_hash_returns_config_hash_from_default_env
@@ -48,7 +48,7 @@ class DatabaseConfigurationsTest < ActiveRecord::TestCase
     ENV["RAILS_ENV"] = "arunit"
 
     assert_deprecated do
-      assert_equal ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary").configuration_hash, ActiveRecord::Base.configurations.default_hash
+      assert_equal ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary").configuration_hash, ActiveRecord::Base.configurations.default_hash
     end
   ensure
     ENV["RAILS_ENV"] = original_rails_env
@@ -58,7 +58,7 @@ class DatabaseConfigurationsTest < ActiveRecord::TestCase
     config = ActiveRecord::Base.configurations.find_db_config("arunit2")
 
     assert_equal "arunit2", config.env_name
-    assert_equal "primary", config.spec_name
+    assert_equal "primary", config.name
   end
 
   def test_to_h_turns_db_config_object_back_into_a_hash_and_is_deprecated
@@ -118,7 +118,7 @@ class LegacyDatabaseConfigurationsTest < ActiveRecord::TestCase
     assert_deprecated do
       db_config = ActiveRecord::Base.configurations.fetch("arunit").first
       assert_equal "arunit", db_config.env_name
-      assert_equal "primary", db_config.spec_name
+      assert_equal "primary", db_config.name
     end
   end
 
@@ -130,7 +130,7 @@ class LegacyDatabaseConfigurationsTest < ActiveRecord::TestCase
   end
 
   def test_deprecated_config_method
-    db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+    db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
 
     assert_equal db_config.configuration_hash.stringify_keys, assert_deprecated { db_config.config }
   end
@@ -138,6 +138,22 @@ class LegacyDatabaseConfigurationsTest < ActiveRecord::TestCase
   def test_unsupported_method_raises
     assert_raises NotImplementedError do
       ActiveRecord::Base.configurations.select { |a| a == "foo" }
+    end
+  end
+
+  def test_spec_name_in_configs_for_is_deprecated
+    assert_deprecated do
+      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+
+      assert_equal "primary", db_config.name
+    end
+  end
+
+  def test_spec_name_getter_is_deprecated
+    db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+
+    assert_deprecated do
+      assert_equal "primary", db_config.spec_name
     end
   end
 end

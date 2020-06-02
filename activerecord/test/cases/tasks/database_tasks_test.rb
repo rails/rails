@@ -458,8 +458,8 @@ module ActiveRecord
     end
 
     private
-      def config_for(env_name, spec_name)
-        ActiveRecord::Base.configurations.configs_for(env_name: env_name, spec_name: spec_name)
+      def config_for(env_name, name)
+        ActiveRecord::Base.configurations.configs_for(env_name: env_name, name: name)
       end
 
       def with_stubbed_configurations_establish_connection
@@ -575,8 +575,8 @@ module ActiveRecord
     end
 
     private
-      def config_for(env_name, spec_name)
-        ActiveRecord::Base.configurations.configs_for(env_name: env_name, spec_name: spec_name)
+      def config_for(env_name, name)
+        ActiveRecord::Base.configurations.configs_for(env_name: env_name, name: name)
       end
 
       def with_stubbed_configurations_establish_connection
@@ -766,8 +766,8 @@ module ActiveRecord
     end
 
     private
-      def config_for(env_name, spec_name)
-        ActiveRecord::Base.configurations.configs_for(env_name: env_name, spec_name: spec_name)
+      def config_for(env_name, name)
+        ActiveRecord::Base.configurations.configs_for(env_name: env_name, name: name)
       end
 
       def with_stubbed_configurations
@@ -867,8 +867,8 @@ module ActiveRecord
     end
 
     private
-      def config_for(env_name, spec_name)
-        ActiveRecord::Base.configurations.configs_for(env_name: env_name, spec_name: spec_name)
+      def config_for(env_name, name)
+        ActiveRecord::Base.configurations.configs_for(env_name: env_name, name: name)
       end
 
       def with_stubbed_configurations
@@ -1067,7 +1067,7 @@ module ActiveRecord
       assert_called_with(
         ActiveRecord::Tasks::DatabaseTasks,
         :purge,
-        [ActiveRecord::Base.configurations.configs_for(env_name: "production", spec_name: "primary")]
+        [ActiveRecord::Base.configurations.configs_for(env_name: "production", name: "primary")]
       ) do
         assert_called_with(ActiveRecord::Base, :establish_connection, [:production]) do
           ActiveRecord::Tasks::DatabaseTasks.purge_current("production")
@@ -1087,7 +1087,7 @@ module ActiveRecord
       assert_called_with(
         ActiveRecord::Tasks::DatabaseTasks,
         :purge,
-        [ActiveRecord::Base.configurations.configs_for(env_name: "development", spec_name: "primary")]
+        [ActiveRecord::Base.configurations.configs_for(env_name: "development", name: "primary")]
       ) do
         ActiveRecord::Tasks::DatabaseTasks.purge_all
       end
@@ -1122,7 +1122,7 @@ module ActiveRecord
         assert_operator AuthorAddress.count, :>, 0
 
         old_configurations = ActiveRecord::Base.configurations
-        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
         configurations = { development: db_config.configuration_hash }
         ActiveRecord::Base.configurations = configurations
 
@@ -1257,8 +1257,8 @@ module ActiveRecord
     end
 
     private
-      def config_for(env_name, spec_name)
-        ActiveRecord::Base.configurations.configs_for(env_name: env_name, spec_name: spec_name)
+      def config_for(env_name, name)
+        ActiveRecord::Base.configurations.configs_for(env_name: env_name, name: name)
       end
 
       def with_stubbed_configurations
@@ -1295,7 +1295,7 @@ module ActiveRecord
       assert_called_with(
         ActiveRecord::Tasks::DatabaseTasks,
         :charset,
-        [ActiveRecord::Base.configurations.configs_for(env_name: "production", spec_name: "primary")]
+        [ActiveRecord::Base.configurations.configs_for(env_name: "production", name: "primary")]
       ) do
         ActiveRecord::Tasks::DatabaseTasks.charset_current("production", "primary")
       end
@@ -1328,7 +1328,7 @@ module ActiveRecord
       assert_called_with(
         ActiveRecord::Tasks::DatabaseTasks,
         :collation,
-        [ActiveRecord::Base.configurations.configs_for(env_name: "production", spec_name: "primary")]
+        [ActiveRecord::Base.configurations.configs_for(env_name: "production", name: "primary")]
       ) do
         ActiveRecord::Tasks::DatabaseTasks.collation_current("production", "primary")
       end

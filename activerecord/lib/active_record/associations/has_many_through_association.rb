@@ -8,7 +8,7 @@ module ActiveRecord
 
       def initialize(owner, reflection)
         super
-        @through_records = {}
+        @through_records = {}.compare_by_identity
       end
 
       def concat(*records)
@@ -54,7 +54,7 @@ module ActiveRecord
         # However, after insert_record has been called, the cache is cleared in
         # order to allow multiple instances of the same record in an association.
         def build_through_record(record)
-          @through_records[record.object_id] ||= begin
+          @through_records[record] ||= begin
             ensure_mutable
 
             attributes = through_scope_attributes
@@ -77,7 +77,7 @@ module ActiveRecord
             association.save!
           end
         ensure
-          @through_records.delete(record.object_id)
+          @through_records.delete(record)
         end
 
         def build_record(attributes)
@@ -202,7 +202,7 @@ module ActiveRecord
               end
             end
 
-            @through_records.delete(record.object_id)
+            @through_records.delete(record)
           end
         end
 

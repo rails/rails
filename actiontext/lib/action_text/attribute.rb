@@ -13,6 +13,7 @@ module ActionText
       #   end
       #
       #   message = Message.create!(content: "<h1>Funny times!</h1>")
+      #   message.content? #=> true
       #   message.content.to_s # => "<h1>Funny times!</h1>"
       #   message.content.to_plain_text # => "Funny times!"
       #
@@ -27,6 +28,10 @@ module ActionText
         class_eval <<-CODE, __FILE__, __LINE__ + 1
           def #{name}
             rich_text_#{name} || build_rich_text_#{name}
+          end
+
+          def #{name}?
+            rich_text_#{name}.present?
           end
 
           def #{name}=(body)

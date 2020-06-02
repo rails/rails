@@ -70,9 +70,4 @@ class PooledConnectionsTest < ActiveRecord::TestCase
     ActiveRecord::Base.connection_pool.remove(extra_connection)
     assert_equal ActiveRecord::Base.connection, old_connection
   end
-
-  private
-    def add_record(name)
-      ActiveRecord::Base.connection_pool.with_connection { Project.create! name: name }
-    end
 end unless in_memory_db?

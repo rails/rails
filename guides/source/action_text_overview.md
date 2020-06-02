@@ -112,6 +112,15 @@ class MessagesController < ApplicationController
 end
 ```
 
+## Avoid N+1 queries
+
+If you wish to preload the dependent `ActionText::RichText` model, you can use the named scope:
+
+```ruby
+Message.all.with_rich_text_content # Preload the body without attachments.
+Message.all.with_rich_text_content_and_embeds # Preload both body and attachments.
+```
+
 ## Custom styling
 
 By default, the Action Text editor and content is styled by the Trix defaults.

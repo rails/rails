@@ -1,7 +1,7 @@
-require_relative 'boot'
+require_relative "boot"
 
 <% if include_all_railties? -%>
-require 'rails/all'
+require "rails/all"
 <% else -%>
 require "rails"
 # Pick the frameworks you want:

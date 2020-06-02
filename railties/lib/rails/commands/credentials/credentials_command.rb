@@ -109,7 +109,7 @@ module Rails
         end
 
         def extract_environment_from_path(path)
-          available_environments.find { |env| path.include? env } if path.match?(/\.yml\.enc$/)
+          available_environments.find { |env| path.include? env } if path.end_with?(".yml.enc")
         end
 
         def encryption_key_file_generator

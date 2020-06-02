@@ -1,8 +1,11 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "models/author"
 require "models/book"
 require "models/speedometer"
+require "models/subscription"
+require "models/subscriber"
 
 class ReadonlyNameBook < Book
   attr_readonly :name
@@ -10,6 +13,14 @@ end
 
 class InsertAllTest < ActiveRecord::TestCase
   fixtures :books
+
+  def setup
+    Arel::Table.engine = nil # should not rely on the global Arel::Table.engine
+  end
+
+  def teardown
+    Arel::Table.engine = ActiveRecord::Base
+  end
 
   def test_insert
     skip unless supports_insert_on_duplicate_skip?
@@ -274,10 +285,133 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_equal ["Out of the Silent Planet", "Perelandra"], Book.where(isbn: "1974522598").order(:name).pluck(:name)
   end
 
+  def test_upsert_all_does_not_touch_updated_at_when_values_do_not_change
+    skip unless supports_insert_on_duplicate_update?
+
+    updated_at = Time.now.utc - 5.years
+    Book.insert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 1), updated_at: updated_at }]
+    Book.upsert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 1) }]
+
+    assert_in_delta updated_at, Book.find(101).updated_at, 1
+  end
+
+  def test_upsert_all_touches_updated_at_and_updated_on_when_values_change
+    skip unless supports_insert_on_duplicate_update?
+
+    Book.insert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 1), updated_at: 5.years.ago, updated_on: 5.years.ago }]
+    Book.upsert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 8) }]
+
+    assert_equal Time.now.year, Book.find(101).updated_at.year
+    assert_equal Time.now.year, Book.find(101).updated_on.year
+  end
+
+  def test_upsert_all_uses_given_updated_at_over_implicit_updated_at
+    skip unless supports_insert_on_duplicate_update?
+
+    updated_at = Time.now.utc - 1.year
+    Book.insert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 1), updated_at: 5.years.ago }]
+    Book.upsert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 8), updated_at: updated_at }]
+
+    assert_in_delta updated_at, Book.find(101).updated_at, 1
+  end
+
+  def test_upsert_all_uses_given_updated_on_over_implicit_updated_on
+    skip unless supports_insert_on_duplicate_update?
+
+    updated_on = Time.now.utc.to_date - 30
+    Book.insert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 1), updated_on: 5.years.ago }]
+    Book.upsert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 8), updated_on: updated_on }]
+
+    assert_equal updated_on, Book.find(101).updated_on
+  end
+
   def test_insert_all_raises_on_unknown_attribute
     assert_raise ActiveRecord::UnknownAttributeError do
       Book.insert_all! [{ unknown_attribute: "Test" }]
     end
+  end
+
+  def test_upsert_all_works_with_partitioned_indexes
+    skip unless supports_insert_on_duplicate_update? && supports_insert_conflict_target? && supports_partitioned_indexes?
+
+    require "models/measurement"
+
+    Measurement.upsert_all([{ city_id: "1", logdate: 1.days.ago, peaktemp: 1, unitsales: 1 },
+                            { city_id: "2", logdate: 2.days.ago, peaktemp: 2, unitsales: 2 },
+                            { city_id: "2", logdate: 3.days.ago, peaktemp: 0, unitsales: 0 }],
+                            unique_by: %i[logdate city_id])
+    assert_equal [[1.day.ago.to_date, 1, 1]],
+                 Measurement.where(city_id: 1).pluck(:logdate, :peaktemp, :unitsales)
+    assert_equal [[2.days.ago.to_date, 2, 2], [3.days.ago.to_date, 0, 0]],
+                 Measurement.where(city_id: 2).pluck(:logdate, :peaktemp, :unitsales)
+  end
+
+  def test_insert_all_with_enum_values
+    Book.insert_all! [{ status: :published, isbn: "1234566", name: "Rework", author_id: 1 },
+                      { status: :proposed, isbn: "1234567", name: "Remote", author_id: 2 }]
+    assert_equal ["published", "proposed"], Book.where(isbn: ["1234566", "1234567"]).order(:id).pluck(:status)
+  end
+
+  def test_insert_all_on_relation
+    author = Author.create!(name: "Jimmy")
+
+    assert_difference "author.books.count", +1 do
+      author.books.insert_all!([{ name: "My little book", isbn: "1974522598" }])
+    end
+  end
+
+  def test_insert_all_on_relation_precedence
+    author = Author.create!(name: "Jimmy")
+    second_author = Author.create!(name: "Bob")
+
+    assert_difference "author.books.count", +1 do
+      author.books.insert_all!([{ name: "My little book", isbn: "1974522598", author_id: second_author.id }])
+    end
+  end
+
+  def test_insert_all_create_with
+    assert_difference "Book.where(format: 'X').count", +2 do
+      Book.create_with(format: "X").insert_all!([ { name: "A" }, { name: "B" } ])
+    end
+  end
+
+  def test_insert_all_has_many_through
+    book = Book.first
+    assert_raise(ArgumentError) { book.subscribers.insert_all!([ { nick: "Jimmy" } ]) }
+  end
+
+  def test_upsert_all_on_relation
+    skip unless supports_insert_on_duplicate_update?
+
+    author = Author.create!(name: "Jimmy")
+
+    assert_difference "author.books.count", +1 do
+      author.books.upsert_all([{ name: "My little book", isbn: "1974522598" }])
+    end
+  end
+
+  def test_upsert_all_on_relation_precedence
+    skip unless supports_insert_on_duplicate_update?
+
+    author = Author.create!(name: "Jimmy")
+    second_author = Author.create!(name: "Bob")
+
+    assert_difference "author.books.count", +1 do
+      author.books.upsert_all([{ name: "My little book", isbn: "1974522598", author_id: second_author.id }])
+    end
+  end
+
+  def test_upsert_all_create_with
+    skip unless supports_insert_on_duplicate_update?
+
+    assert_difference "Book.where(format: 'X').count", +2 do
+      Book.create_with(format: "X").upsert_all([ { name: "A" }, { name: "B" } ])
+    end
+  end
+
+  def test_upsert_all_has_many_through
+    book = Book.first
+    assert_raise(ArgumentError) { book.subscribers.upsert_all([ { nick: "Jimmy" } ]) }
   end
 
   private

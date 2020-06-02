@@ -53,6 +53,7 @@ module ActiveStorage
   mattr_accessor :paths, default: {}
 
   mattr_accessor :variable_content_types,           default: []
+  mattr_accessor :web_image_content_types,          default: []
   mattr_accessor :binary_content_type,              default: "application/octet-stream"
   mattr_accessor :content_types_to_serve_as_binary, default: []
   mattr_accessor :content_types_allowed_inline,     default: []
@@ -61,6 +62,7 @@ module ActiveStorage
 
   mattr_accessor :routes_prefix, default: "/rails/active_storage"
   mattr_accessor :draw_routes, default: true
+  mattr_accessor :resolve_model_to_route, default: :rails_storage_redirect
 
   mattr_accessor :replace_on_assign_to_many, default: false
   mattr_accessor :track_variants, default: false

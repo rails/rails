@@ -100,6 +100,16 @@ module Rails
       end
     end
 
+    def yarn_when_updating
+      return if File.exist?("bin/yarn")
+
+      template "bin/yarn" do |content|
+        "#{shebang}\n" + content
+      end
+
+      chmod "bin", 0755 & ~File.umask, verbose: false
+    end
+
     def config
       empty_directory "config"
 
@@ -314,9 +324,14 @@ module Rails
       end
       remove_task :update_bin_files
 
+      def update_bin_yarn
+        build(:yarn_when_updating)
+      end
+      remove_task :update_bin_yarn
+
       def update_active_storage
         unless skip_active_storage?
-          rails_command "active_storage:update"
+          rails_command "active_storage:update", inline: true
         end
       end
       remove_task :update_active_storage
@@ -345,6 +360,11 @@ module Rails
 
       def create_boot_file
         template "config/boot.rb"
+      end
+
+      def create_boot_with_spring_file
+        return if options[:skip_spring]
+        template "config/boot_with_spring.rb"
       end
 
       def create_active_record_files
@@ -489,7 +509,7 @@ module Rails
       end
 
       public_task :apply_rails_template, :run_bundle
-      public_task :generate_bundler_binstub, :generate_spring_binstubs
+      public_task :generate_bundler_binstub, :generate_spring_binstub
       public_task :run_webpack
 
       def run_after_bundle_callbacks

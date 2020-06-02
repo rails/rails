@@ -11,4 +11,8 @@ class AddServiceNameToActiveStorageBlobs < ActiveRecord::Migration[6.0]
 
     change_column :active_storage_blobs, :service_name, :string, null: false
   end
+
+  def down
+    remove_column :active_storage_blobs, :service_name
+  end
 end

@@ -12,4 +12,22 @@ class Rails::Command::BaseTest < ActiveSupport::TestCase
     assert_equal %w(secrets:setup secrets:edit secrets:show), Rails::Command::SecretsCommand.printing_commands
     assert_equal %w(db:system:change), Rails::Command::Db::System::ChangeCommand.printing_commands
   end
+
+  test "ARGV is isolated" do
+    class Rails::Command::ArgvCommand < Rails::Command::Base
+      def check_isolation
+        raise "not isolated" unless ARGV.empty?
+        ARGV << "isolate this"
+      end
+    end
+
+    old_argv = ARGV.dup
+    new_argv = ["foo", "bar"]
+    ARGV.replace(new_argv)
+
+    Rails::Command.invoke("argv:check_isolation") # should not raise
+    assert_equal new_argv, ARGV
+  ensure
+    ARGV.replace(old_argv)
+  end
 end

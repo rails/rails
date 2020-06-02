@@ -194,7 +194,7 @@ class UpdateAllTest < ActiveRecord::TestCase
       people = Person.where(id: people(:michael, :david, :susan))
       expected = people.pluck(:lock_version)
       expected.map! { |version| version + 1 }
-      people.update_counters(touch: [time: now])
+      people.update_counters(touch: { time: now })
 
       assert_equal [now] * 3, people.pluck(:updated_at)
       assert_equal expected, people.pluck(:lock_version)

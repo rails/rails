@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/string/filters"
-require "concurrent/map"
 
 module ActiveRecord
   # = Active Record Reflection
@@ -183,25 +182,27 @@ module ActiveRecord
         scope_chain_items = join_scopes(table, predicate_builder)
         klass_scope       = klass_join_scope(table, predicate_builder)
 
+        if type
+          klass_scope.where!(type => foreign_klass.polymorphic_name)
+        end
+
+        scope_chain_items.inject(klass_scope, &:merge!)
+
         key         = join_keys.key
         foreign_key = join_keys.foreign_key
 
         klass_scope.where!(table[key].eq(foreign_table[foreign_key]))
 
-        if type
-          klass_scope.where!(type => foreign_klass.polymorphic_name)
-        end
-
         if klass.finder_needs_type_condition?
           klass_scope.where!(klass.send(:type_condition, table))
         end
 
-        scope_chain_items.inject(klass_scope, &:merge!)
+        klass_scope
       end
 
-      def join_scopes(table, predicate_builder) # :nodoc:
+      def join_scopes(table, predicate_builder, klass = self.klass) # :nodoc:
         if scope
-          [scope_for(build_scope(table, predicate_builder))]
+          [scope_for(build_scope(table, predicate_builder, klass))]
         else
           []
         end
@@ -290,7 +291,7 @@ module ActiveRecord
         JoinKeys.new(join_primary_key(association_klass), join_foreign_key)
       end
 
-      def build_scope(table, predicate_builder = predicate_builder(table))
+      def build_scope(table, predicate_builder = predicate_builder(table), klass = self.klass)
         Relation.create(
           klass,
           table: table,
@@ -304,6 +305,10 @@ module ActiveRecord
 
       def join_foreign_key
         active_record_primary_key
+      end
+
+      def strict_loading?
+        options[:strict_loading]
       end
 
       protected
@@ -430,19 +435,18 @@ module ActiveRecord
         @type         = options[:as] && (options[:foreign_type] || "#{options[:as]}_type")
         @foreign_type = options[:polymorphic] && (options[:foreign_type] || "#{name}_type")
         @constructable = calculate_constructable(macro, options)
-        @association_scope_cache = Concurrent::Map.new
 
         if options[:class_name] && options[:class_name].class == Class
           raise ArgumentError, "A class was passed to `:class_name` but we are expecting a string."
         end
       end
 
-      def association_scope_cache(conn, owner, &block)
-        key = conn.prepared_statements
+      def association_scope_cache(klass, owner, &block)
+        key = self
         if polymorphic?
           key = [key, owner._read_attribute(@foreign_type)]
         end
-        @association_scope_cache.compute_if_absent(key) { StatementCache.create(conn, &block) }
+        klass.cached_find_by_statement(key, &block)
       end
 
       def constructable? # :nodoc:
@@ -508,7 +512,7 @@ module ActiveRecord
       # This is for clearing cache on the reflection. Useful for tests that need to compare
       # SQL queries on associations.
       def clear_association_scope_cache # :nodoc:
-        @association_scope_cache.clear
+        klass.initialize_find_by_cache
       end
 
       def nested?
@@ -847,8 +851,8 @@ module ActiveRecord
         source_reflection.scopes + super
       end
 
-      def join_scopes(table, predicate_builder) # :nodoc:
-        source_reflection.join_scopes(table, predicate_builder) + super
+      def join_scopes(table, predicate_builder, klass = self.klass) # :nodoc:
+        source_reflection.join_scopes(table, predicate_builder, klass) + super
       end
 
       def has_scope?
@@ -917,7 +921,7 @@ module ActiveRecord
 
       def check_validity!
         if through_reflection.nil?
-          raise HasManyThroughAssociationNotFoundError.new(active_record.name, self)
+          raise HasManyThroughAssociationNotFoundError.new(active_record, self)
         end
 
         if through_reflection.polymorphic?
@@ -1011,9 +1015,9 @@ module ActiveRecord
         @previous_reflection = previous_reflection
       end
 
-      def join_scopes(table, predicate_builder) # :nodoc:
+      def join_scopes(table, predicate_builder, klass = self.klass) # :nodoc:
         scopes = @previous_reflection.join_scopes(table, predicate_builder) + super
-        scopes << build_scope(table, predicate_builder).instance_exec(nil, &source_type_scope)
+        scopes << build_scope(table, predicate_builder, klass).instance_exec(nil, &source_type_scope)
       end
 
       def constraints

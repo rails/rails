@@ -43,7 +43,19 @@ module Arel # :nodoc: all
 
     class Concat < InfixOperation
       def initialize(left, right)
-        super("||", left, right)
+        super(:"||", left, right)
+      end
+    end
+
+    class Contains < InfixOperation
+      def initialize(left, right)
+        super(:"@>", left, right)
+      end
+    end
+
+    class Overlaps < InfixOperation
+      def initialize(left, right)
+        super(:"&&", left, right)
       end
     end
 

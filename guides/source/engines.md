@@ -1125,7 +1125,7 @@ module MyApp
 end
 ```
 
-and in `classsic` mode this:
+and in `classic` mode this:
 
 ```ruby
 # config/application.rb
@@ -1417,8 +1417,8 @@ required, you should require them before the engine's initialization. For
 example:
 
 ```ruby
-require 'other_engine/engine'
-require 'yet_another_engine/engine'
+require "other_engine/engine"
+require "yet_another_engine/engine"
 
 module MyEngine
   class Engine < ::Rails::Engine

@@ -86,6 +86,7 @@ module ActiveRecord
           t.column :name, :string
           t.column :color, :string
           t.index [:name, :color]
+          t.index [:color]
         end
       end
     end
@@ -94,6 +95,7 @@ module ActiveRecord
       def change
         change_table("horses") do |t|
           t.remove_index [:name, :color]
+          t.remove_index [:color], if_exists: true
         end
       end
     end

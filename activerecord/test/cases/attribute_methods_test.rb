@@ -39,7 +39,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   test "attribute_for_inspect with a date" do
     t = topics(:first)
 
-    assert_equal %("#{t.written_on.to_s(:db)}"), t.attribute_for_inspect(:written_on)
+    assert_equal %("#{t.written_on.to_s(:inspect)}"), t.attribute_for_inspect(:written_on)
   end
 
   test "attribute_for_inspect with an array" do
@@ -263,9 +263,6 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   test "case-sensitive attributes hash" do
-    # DB2 is not case-sensitive.
-    return true if current_adapter?(:DB2Adapter)
-
     assert_equal @loaded_fixtures["computers"]["workstation"].to_hash, Computer.first.attributes
   end
 
@@ -279,14 +276,16 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   test "hashes are not mangled" do
-    new_topic = { title: "New Topic" }
-    new_topic_values = { title: "AnotherTopic" }
+    new_topic = { title: "New Topic", content: { key: "First value" } }
+    new_topic_values = { title: "AnotherTopic", content: { key: "Second value" } }
 
     topic = Topic.new(new_topic)
     assert_equal new_topic[:title], topic.title
+    assert_equal new_topic[:content], topic.content
 
     topic.attributes = new_topic_values
     assert_equal new_topic_values[:title], topic.title
+    assert_equal new_topic_values[:content], topic.content
   end
 
   test "create through factory" do
@@ -609,7 +608,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   test "typecast attribute from select to false" do
     Topic.create(title: "Budget")
     # Oracle does not support boolean expressions in SELECT.
-    if current_adapter?(:OracleAdapter, :FbAdapter)
+    if current_adapter?(:OracleAdapter)
       topic = Topic.all.merge!(select: "topics.*, 0 as is_test").first
     else
       topic = Topic.all.merge!(select: "topics.*, 1=2 as is_test").first
@@ -620,7 +619,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   test "typecast attribute from select to true" do
     Topic.create(title: "Budget")
     # Oracle does not support boolean expressions in SELECT.
-    if current_adapter?(:OracleAdapter, :FbAdapter)
+    if current_adapter?(:OracleAdapter)
       topic = Topic.all.merge!(select: "topics.*, 1 as is_test").first
     else
       topic = Topic.all.merge!(select: "topics.*, 2=2 as is_test").first

@@ -27,58 +27,69 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_add_index
-    expected = "CREATE  INDEX `index_people_on_last_name`  ON `people` (`last_name`) "
+    expected = "CREATE INDEX `index_people_on_last_name` ON `people` (`last_name`)"
     assert_equal expected, add_index(:people, :last_name, length: nil)
 
-    expected = "CREATE  INDEX `index_people_on_last_name`  ON `people` (`last_name`(10)) "
+    expected = "CREATE INDEX `index_people_on_last_name` ON `people` (`last_name`(10))"
     assert_equal expected, add_index(:people, :last_name, length: 10)
 
-    expected = "CREATE  INDEX `index_people_on_last_name_and_first_name`  ON `people` (`last_name`(15), `first_name`(15)) "
+    expected = "CREATE INDEX `index_people_on_last_name_and_first_name` ON `people` (`last_name`(15), `first_name`(15))"
     assert_equal expected, add_index(:people, [:last_name, :first_name], length: 15)
     assert_equal expected, add_index(:people, ["last_name", "first_name"], length: 15)
 
-    expected = "CREATE  INDEX `index_people_on_last_name_and_first_name`  ON `people` (`last_name`(15), `first_name`) "
+    expected = "CREATE INDEX `index_people_on_last_name_and_first_name` ON `people` (`last_name`(15), `first_name`)"
     assert_equal expected, add_index(:people, [:last_name, :first_name], length: { last_name: 15 })
     assert_equal expected, add_index(:people, ["last_name", "first_name"], length: { last_name: 15 })
 
-    expected = "CREATE  INDEX `index_people_on_last_name_and_first_name`  ON `people` (`last_name`(15), `first_name`(10)) "
+    expected = "CREATE INDEX `index_people_on_last_name_and_first_name` ON `people` (`last_name`(15), `first_name`(10))"
     assert_equal expected, add_index(:people, [:last_name, :first_name], length: { last_name: 15, first_name: 10 })
     assert_equal expected, add_index(:people, ["last_name", :first_name], length: { last_name: 15, "first_name" => 10 })
 
     %w(SPATIAL FULLTEXT UNIQUE).each do |type|
-      expected = "CREATE #{type} INDEX `index_people_on_last_name`  ON `people` (`last_name`) "
+      expected = "CREATE #{type} INDEX `index_people_on_last_name` ON `people` (`last_name`)"
       assert_equal expected, add_index(:people, :last_name, type: type)
     end
 
     %w(btree hash).each do |using|
-      expected = "CREATE  INDEX `index_people_on_last_name` USING #{using} ON `people` (`last_name`) "
+      expected = "CREATE INDEX `index_people_on_last_name` USING #{using} ON `people` (`last_name`)"
       assert_equal expected, add_index(:people, :last_name, using: using)
     end
 
-    expected = "CREATE  INDEX `index_people_on_last_name` USING btree ON `people` (`last_name`(10)) "
+    expected = "CREATE INDEX `index_people_on_last_name` USING btree ON `people` (`last_name`(10))"
     assert_equal expected, add_index(:people, :last_name, length: 10, using: :btree)
 
-    expected = "CREATE  INDEX `index_people_on_last_name` USING btree ON `people` (`last_name`(10)) ALGORITHM = COPY"
-    assert_equal expected, add_index(:people, :last_name, length: 10, using: :btree, algorithm: :copy)
+    %i(default copy inplace instant).each do |algorithm|
+      expected = "CREATE INDEX `index_people_on_last_name` USING btree ON `people` (`last_name`(10)) ALGORITHM = #{algorithm.upcase}"
+      assert_equal expected, add_index(:people, :last_name, length: 10, using: :btree, algorithm: algorithm)
+    end
+
+    with_real_execute do
+      add_index(:people, :first_name)
+      assert index_exists?(:people, :first_name)
+
+      assert_nothing_raised do
+        add_index(:people, :first_name, if_not_exists: true)
+      end
+    end
 
     assert_raise ArgumentError do
       add_index(:people, :last_name, algorithm: :coyp)
     end
 
-    expected = "CREATE  INDEX `index_people_on_last_name_and_first_name` USING btree ON `people` (`last_name`(15), `first_name`(15)) "
+    expected = "CREATE INDEX `index_people_on_last_name_and_first_name` USING btree ON `people` (`last_name`(15), `first_name`(15))"
     assert_equal expected, add_index(:people, [:last_name, :first_name], length: 15, using: :btree)
   end
 
   def test_index_in_create
     %w(SPATIAL FULLTEXT UNIQUE).each do |type|
-      expected = /\ACREATE TABLE `people` \(#{type} INDEX `index_people_on_last_name`  \(`last_name`\)\)/
+      expected = /\ACREATE TABLE `people` \(#{type} INDEX `index_people_on_last_name` \(`last_name`\)\)/
       actual = ActiveRecord::Base.connection.create_table(:people, id: false) do |t|
         t.index :last_name, type: type
       end
       assert_match expected, actual
     end
 
-    expected = /\ACREATE TABLE `people` \( INDEX `index_people_on_last_name` USING btree \(`last_name`\(10\)\)\)/
+    expected = /\ACREATE TABLE `people` \(INDEX `index_people_on_last_name` USING btree \(`last_name`\(10\)\)\)/
     actual = ActiveRecord::Base.connection.create_table(:people, id: false) do |t|
       t.index :last_name, length: 10, using: :btree
     end
@@ -87,7 +98,7 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
 
   def test_index_in_bulk_change
     %w(SPATIAL FULLTEXT UNIQUE).each do |type|
-      expected = "ALTER TABLE `people` ADD #{type} INDEX `index_people_on_last_name`  (`last_name`)"
+      expected = "ALTER TABLE `people` ADD #{type} INDEX `index_people_on_last_name` (`last_name`)"
       assert_sql(expected) do
         ActiveRecord::Base.connection.change_table(:people, bulk: true) do |t|
           t.index :last_name, type: type
@@ -95,7 +106,7 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
       end
     end
 
-    expected = "ALTER TABLE `people` ADD  INDEX `index_people_on_last_name` USING btree (`last_name`(10)), ALGORITHM = COPY"
+    expected = "ALTER TABLE `people` ADD INDEX `index_people_on_last_name` USING btree (`last_name`(10)), ALGORITHM = COPY"
     assert_sql(expected) do
       ActiveRecord::Base.connection.change_table(:people, bulk: true) do |t|
         t.index :last_name, length: 10, using: :btree, algorithm: :copy
@@ -161,7 +172,7 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_indexes_in_create
-    expected = /\ACREATE TEMPORARY TABLE `temp` \( INDEX `index_temp_on_zip`  \(`zip`\)\)(?: ROW_FORMAT=DYNAMIC)? AS SELECT id, name, zip FROM a_really_complicated_query/
+    expected = /\ACREATE TEMPORARY TABLE `temp` \(INDEX `index_temp_on_zip` \(`zip`\)\)(?: ROW_FORMAT=DYNAMIC)? AS SELECT id, name, zip FROM a_really_complicated_query/
     actual = ActiveRecord::Base.connection.create_table(:temp, temporary: true, as: "SELECT id, name, zip FROM a_really_complicated_query") do |t|
       t.index :zip
     end

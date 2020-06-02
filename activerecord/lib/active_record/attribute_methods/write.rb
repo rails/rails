@@ -11,16 +11,14 @@ module ActiveRecord
 
       module ClassMethods # :nodoc:
         private
-          def define_method_attribute=(name)
+          def define_method_attribute=(name, owner:)
             ActiveModel::AttributeMethods::AttrNames.define_attribute_accessor_method(
-              generated_attribute_methods, name, writer: true,
+              owner, name, writer: true,
             ) do |temp_method_name, attr_name_expr|
-              generated_attribute_methods.module_eval <<-RUBY, __FILE__, __LINE__ + 1
-                def #{temp_method_name}(value)
-                  name = #{attr_name_expr}
-                  _write_attribute(name, value)
-                end
-              RUBY
+              owner <<
+                "def #{temp_method_name}(value)" <<
+                "  _write_attribute(#{attr_name_expr}, value)" <<
+                "end"
             end
           end
       end
@@ -39,14 +37,12 @@ module ActiveRecord
       # This method exists to avoid the expensive primary_key check internally, without
       # breaking compatibility with the write_attribute API
       def _write_attribute(attr_name, value) # :nodoc:
-        sync_with_transaction_state if @transaction_state&.finalized?
         @attributes.write_from_user(attr_name.to_s, value)
         value
       end
 
       private
         def write_attribute_without_type_cast(attr_name, value)
-          sync_with_transaction_state if @transaction_state&.finalized?
           @attributes.write_cast_value(attr_name.to_s, value)
           value
         end

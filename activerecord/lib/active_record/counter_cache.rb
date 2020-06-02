@@ -51,7 +51,10 @@ module ActiveRecord
 
           if touch
             names = touch if touch != true
-            updates.merge!(touch_attributes_with_time(*names))
+            names = Array.wrap(names)
+            options = names.extract_options!
+            touch_updates = touch_attributes_with_time(*names, **options)
+            updates.merge!(touch_updates)
           end
 
           unscoped.where(primary_key => object.id).update_all(updates)

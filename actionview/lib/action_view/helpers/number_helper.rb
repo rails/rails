@@ -425,9 +425,9 @@ module ActionView
         end
 
         def escape_units(units)
-          Hash[units.map do |k, v|
-            [k, ERB::Util.html_escape(v)]
-          end]
+          units.transform_values do |v|
+            ERB::Util.html_escape(v)
+          end
         end
 
         def wrap_with_output_safety_handling(number, raise_on_invalid, &block)

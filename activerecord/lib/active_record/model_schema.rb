@@ -288,7 +288,8 @@ module ActiveRecord
       # Sets the columns names the model should ignore. Ignored columns won't have attribute
       # accessors defined, and won't be referenced in SQL queries.
       def ignored_columns=(columns)
-        @ignored_columns = columns.map(&:to_s)
+        reload_schema_from_cache
+        @ignored_columns = columns.map(&:to_s).freeze
       end
 
       def sequence_name
@@ -355,7 +356,7 @@ module ActiveRecord
 
       def columns
         load_schema
-        @columns ||= columns_hash.values
+        @columns ||= columns_hash.values.freeze
       end
 
       def attribute_types # :nodoc:
@@ -391,7 +392,7 @@ module ActiveRecord
       # default values when instantiating the Active Record object for this table.
       def column_defaults
         load_schema
-        @column_defaults ||= _default_attributes.deep_dup.to_hash
+        @column_defaults ||= _default_attributes.deep_dup.to_hash.freeze
       end
 
       def _default_attributes # :nodoc:
@@ -401,7 +402,7 @@ module ActiveRecord
 
       # Returns an array of column names as strings.
       def column_names
-        @column_names ||= columns.map(&:name)
+        @column_names ||= columns.map(&:name).freeze
       end
 
       def symbol_column_to_string(name_symbol) # :nodoc:
@@ -416,7 +417,7 @@ module ActiveRecord
           c.name == primary_key ||
           c.name == inheritance_column ||
           c.name.end_with?("_id", "_count")
-        end
+        end.freeze
       end
 
       # Resets all the cached information about columns, which will cause them
@@ -426,7 +427,7 @@ module ActiveRecord
       # when just after creating a table you want to populate it with some default
       # values, eg:
       #
-      #  class CreateJobLevels < ActiveRecord::Migration[5.0]
+      #  class CreateJobLevels < ActiveRecord::Migration[6.0]
       #    def up
       #      create_table :job_levels do |t|
       #        t.integer :id
@@ -487,7 +488,10 @@ module ActiveRecord
           unless table_name
             raise ActiveRecord::TableNotSpecified, "#{self} has no table configured. Set one with #{self}.table_name="
           end
-          @columns_hash = connection.schema_cache.columns_hash(table_name).except(*ignored_columns)
+
+          columns_hash = connection.schema_cache.columns_hash(table_name)
+          columns_hash = columns_hash.except(*ignored_columns) unless ignored_columns.empty?
+          @columns_hash = columns_hash.freeze
           @columns_hash.each do |name, column|
             define_attribute(
               name,

@@ -15,7 +15,7 @@ module ActiveRecord
 
       delegate :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql,
         :options_include_default?, :supports_indexes_in_create?, :supports_foreign_keys?, :foreign_key_options,
-        to: :@conn, private: true
+        :quoted_columns_for_index, :supports_partial_index?, to: :@conn, private: true
 
       private
         def visit_AlterTable(o)
@@ -53,7 +53,7 @@ module ActiveRecord
           end
 
           create_sql << "(#{statements.join(', ')})" if statements.present?
-          add_table_options!(create_sql, table_options(o))
+          add_table_options!(create_sql, o)
           create_sql << " AS #{to_sql(o.as)}" if o.as
           create_sql
         end
@@ -81,17 +81,33 @@ module ActiveRecord
           "DROP CONSTRAINT #{quote_column_name(name)}"
         end
 
-        def table_options(o)
-          table_options = {}
-          table_options[:comment] = o.comment
-          table_options[:options] = o.options
-          table_options
+        def visit_CreateIndexDefinition(o)
+          index = o.index
+
+          sql = ["CREATE"]
+          sql << "UNIQUE" if index.unique
+          sql << "INDEX"
+          sql << "IF NOT EXISTS" if o.if_not_exists
+          sql << o.algorithm if o.algorithm
+          sql << index.type if index.type
+          sql << "#{quote_column_name(index.name)} ON #{quote_table_name(index.table)}"
+          sql << "USING #{index.using}" if supports_index_using? && index.using
+          sql << "(#{quoted_columns(index)})"
+          sql << "WHERE #{index.where}" if supports_partial_index? && index.where
+
+          sql.join(" ")
         end
 
-        def add_table_options!(create_sql, options)
-          if options_sql = options[:options]
-            create_sql << " #{options_sql}"
-          end
+        def quoted_columns(o)
+          String === o.columns ? o.columns : quoted_columns_for_index(o.columns, o.column_options)
+        end
+
+        def supports_index_using?
+          true
+        end
+
+        def add_table_options!(create_sql, o)
+          create_sql << " #{o.options}" if o.options
           create_sql
         end
 

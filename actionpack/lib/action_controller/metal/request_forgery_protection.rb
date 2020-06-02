@@ -32,29 +32,21 @@ module ActionController #:nodoc:
   # response may be extracted. To prevent this, only XmlHttpRequest (known as XHR or
   # Ajax) requests are allowed to make requests for JavaScript responses.
   #
-  # It's important to remember that XML or JSON requests are also checked by default. If
-  # you're building an API or an SPA you could change forgery protection method in
-  # <tt>ApplicationController</tt> (by default: <tt>:exception</tt>):
+  # Subclasses of <tt>ActionController::Base</tt> are protected by default with the
+  # <tt>:exception</tt> strategy, which raises an
+  # <tt>ActionController::InvalidAuthenticityToken</tt> error on unverified requests.
+  #
+  # APIs may want to disable this behavior since they are typically designed to be
+  # state-less: that is, the request API client handles the session instead of Rails.
+  # One way to achieve this is to use the <tt>:null_session</tt> strategy instead,
+  # which allows unverified requests to be handled, but with an empty session:
   #
   #   class ApplicationController < ActionController::Base
-  #     protect_from_forgery unless: -> { request.format.json? }
+  #     protect_from_forgery with: :null_session
   #   end
   #
-  # It is generally safe to exclude XHR requests from CSRF protection
-  # (like the code snippet above does), because XHR requests can only be made from
-  # the same origin. Note however that any cross-origin third party domain
-  # allowed via {CORS}[https://en.wikipedia.org/wiki/Cross-origin_resource_sharing]
-  # will also be able to create XHR requests. Be sure to check your
-  # CORS configuration before disabling forgery protection for XHR.
-  #
-  # CSRF protection is turned on with the <tt>protect_from_forgery</tt> method.
-  # By default <tt>protect_from_forgery</tt> protects your session with
-  # <tt>:null_session</tt> method, which provides an empty session
-  # during request.
-  #
-  # We may want to disable CSRF protection for APIs since they are typically
-  # designed to be state-less. That is, the request API client will handle
-  # the session for you instead of Rails.
+  # Note that API only applications don't include this module or a session middleware
+  # by default, and so don't require CSRF protection to be configured.
   #
   # The token parameter is named <tt>authenticity_token</tt> by default. The name and
   # value of this token must be added to every layout that renders forms by including
@@ -322,13 +314,10 @@ module ActionController #:nodoc:
           action_path = normalize_action_path(action)
           per_form_csrf_token(session, action_path, method)
         else
-          real_csrf_token(session)
+          global_csrf_token(session)
         end
 
-        one_time_pad = SecureRandom.random_bytes(AUTHENTICITY_TOKEN_LENGTH)
-        encrypted_csrf_token = xor_byte_strings(one_time_pad, raw_token)
-        masked_token = one_time_pad + encrypted_csrf_token
-        Base64.strict_encode64(masked_token)
+        mask_token(raw_token)
       end
 
       # Checks the client's masked token to see if it matches the
@@ -340,7 +329,7 @@ module ActionController #:nodoc:
         end
 
         begin
-          masked_token = Base64.strict_decode64(encoded_masked_token)
+          masked_token = Base64.urlsafe_decode64(encoded_masked_token)
         rescue ArgumentError # encoded_masked_token is invalid Base64
           return false
         end
@@ -358,7 +347,8 @@ module ActionController #:nodoc:
         elsif masked_token.length == AUTHENTICITY_TOKEN_LENGTH * 2
           csrf_token = unmask_token(masked_token)
 
-          compare_with_real_token(csrf_token, session) ||
+          compare_with_global_token(csrf_token, session) ||
+            compare_with_real_token(csrf_token, session) ||
             valid_per_form_csrf_token?(csrf_token, session)
         else
           false # Token is malformed.
@@ -373,8 +363,19 @@ module ActionController #:nodoc:
         xor_byte_strings(one_time_pad, encrypted_csrf_token)
       end
 
+      def mask_token(raw_token) # :doc:
+        one_time_pad = SecureRandom.random_bytes(AUTHENTICITY_TOKEN_LENGTH)
+        encrypted_csrf_token = xor_byte_strings(one_time_pad, raw_token)
+        masked_token = one_time_pad + encrypted_csrf_token
+        Base64.urlsafe_encode64(masked_token, padding: false)
+      end
+
       def compare_with_real_token(token, session) # :doc:
         ActiveSupport::SecurityUtils.fixed_length_secure_compare(token, real_csrf_token(session))
+      end
+
+      def compare_with_global_token(token, session) # :doc:
+        ActiveSupport::SecurityUtils.fixed_length_secure_compare(token, global_csrf_token(session))
       end
 
       def valid_per_form_csrf_token?(token, session) # :doc:
@@ -392,15 +393,26 @@ module ActionController #:nodoc:
       end
 
       def real_csrf_token(session) # :doc:
-        session[:_csrf_token] ||= SecureRandom.base64(AUTHENTICITY_TOKEN_LENGTH)
-        Base64.strict_decode64(session[:_csrf_token])
+        session[:_csrf_token] ||= SecureRandom.urlsafe_base64(AUTHENTICITY_TOKEN_LENGTH, padding: false)
+        Base64.urlsafe_decode64(session[:_csrf_token])
       end
 
       def per_form_csrf_token(session, action_path, method) # :doc:
+        csrf_token_hmac(session, [action_path, method.downcase].join("#"))
+      end
+
+      GLOBAL_CSRF_TOKEN_IDENTIFIER = "!real_csrf_token"
+      private_constant :GLOBAL_CSRF_TOKEN_IDENTIFIER
+
+      def global_csrf_token(session) # :doc:
+        csrf_token_hmac(session, GLOBAL_CSRF_TOKEN_IDENTIFIER)
+      end
+
+      def csrf_token_hmac(session, identifier) # :doc:
         OpenSSL::HMAC.digest(
           OpenSSL::Digest::SHA256.new,
           real_csrf_token(session),
-          [action_path, method.downcase].join("#")
+          identifier
         )
       end
 

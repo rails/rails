@@ -3,6 +3,7 @@
 require "zlib"
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/array/wrap"
+require "active_support/core_ext/enumerable"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/numeric/bytes"
 require "active_support/core_ext/numeric/time"
@@ -53,13 +54,13 @@ module ActiveSupport
       #
       #   ActiveSupport::Cache.lookup_store(MyOwnCacheStore.new)
       #   # => returns MyOwnCacheStore.new
-      def lookup_store(*store_option)
-        store, *parameters = *Array.wrap(store_option).flatten
-
+      def lookup_store(store = nil, *parameters)
         case store
         when Symbol
           options = parameters.extract_options!
           retrieve_store_class(store).new(*parameters, **options)
+        when Array
+          lookup_store(*store)
         when nil
           ActiveSupport::Cache::MemoryStore.new
         else
@@ -80,7 +81,7 @@ module ActiveSupport
       #
       # The +key+ argument can also respond to +cache_key+ or +to_param+.
       def expand_cache_key(key, namespace = nil)
-        expanded_cache_key = (namespace ? "#{namespace}/" : "").dup
+        expanded_cache_key = namespace ? +"#{namespace}/" : +""
 
         if prefix = ENV["RAILS_CACHE_ID"] || ENV["RAILS_APP_VERSION"]
           expanded_cache_key << "#{prefix}/"
@@ -313,7 +314,7 @@ module ActiveSupport
       #     :bar
       #   end
       #   cache.fetch('foo') # => "bar"
-      def fetch(name, options = nil)
+      def fetch(name, options = nil, &block)
         if block_given?
           options = merged_options(options)
           key = normalize_key(name, options)
@@ -330,7 +331,7 @@ module ActiveSupport
           if entry
             get_entry_value(entry, name, options)
           else
-            save_block_result_to_cache(name, **options) { |_name| yield _name }
+            save_block_result_to_cache(name, options, &block)
           end
         elsif options && options[:force]
           raise ArgumentError, "Missing block: Calling `Cache#fetch` with `force: true` requires a block."
@@ -442,8 +443,8 @@ module ActiveSupport
         instrument :read_multi, names, options do |payload|
           reads   = read_multi_entries(names, **options)
           writes  = {}
-          ordered = names.each_with_object({}) do |name, hash|
-            hash[name] = reads.fetch(name) { writes[name] = yield(name) }
+          ordered = names.index_with do |name|
+            reads.fetch(name) { writes[name] = yield(name) }
           end
 
           payload[:hits] = reads.keys
@@ -735,7 +736,7 @@ module ActiveSupport
           entry.value
         end
 
-        def save_block_result_to_cache(name, **options)
+        def save_block_result_to_cache(name, options)
           result = instrument(:generate, name, options) do
             yield(name)
           end

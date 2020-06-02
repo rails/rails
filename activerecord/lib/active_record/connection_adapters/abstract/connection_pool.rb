@@ -116,16 +116,16 @@ module ActiveRecord
           end
         end
 
-        if defined?(JRUBY_VERSION)
+        if RUBY_ENGINE == "ruby"
+          # Returns the number of threads currently waiting on this queue.
+          attr_reader :num_waiting
+        else
           # Returns the number of threads currently waiting on this queue.
           def num_waiting
             synchronize do
               @num_waiting
             end
           end
-        else
-          # Returns the number of threads currently waiting on this queue.
-          attr_reader :num_waiting
         end
 
         # Add +element+ to the queue.  Never blocks.
@@ -826,12 +826,12 @@ module ActiveRecord
         end
 
         def with_new_connections_blocked
-          if defined?(JRUBY_VERSION)
+          if RUBY_ENGINE == "ruby"
+            @threads_blocking_new_connections += 1
+          else
             synchronize do
               @threads_blocking_new_connections += 1
             end
-          else
-            @threads_blocking_new_connections += 1
           end
 
           yield
@@ -996,7 +996,7 @@ module ActiveRecord
     # should use.
     #
     # The ConnectionHandler class is not coupled with the Active models, as it has no knowledge
-    # about the model. The model needs to pass a specification name to the handler,
+    # about the model. The model needs to pass a connection specification name to the handler,
     # in order to look up the correct connection pool.
     class ConnectionHandler
       FINALIZER = lambda { |_| ActiveSupport::ForkTracker.check! }
@@ -1039,8 +1039,10 @@ module ActiveRecord
       end
       alias :connection_pools :connection_pool_list
 
-      def establish_connection(config, pool_key = :default)
-        pool_config = resolve_pool_config(config)
+      def establish_connection(config, pool_key = Base.default_pool_key, owner_name = Base.name)
+        owner_name = config.to_s if config.is_a?(Symbol)
+
+        pool_config = resolve_pool_config(config, owner_name)
         db_config = pool_config.db_config
 
         # Protects the connection named `ActiveRecord::Base` from being removed
@@ -1100,16 +1102,19 @@ module ActiveRecord
       # active or defined connection: if it is the latter, it will be
       # opened and set as the active connection for the class it was defined
       # for (not necessarily the current class).
-      def retrieve_connection(spec_name) # :nodoc:
-        pool = retrieve_connection_pool(spec_name)
+      def retrieve_connection(spec_name, pool_key = ActiveRecord::Base.default_pool_key) # :nodoc:
+        pool = retrieve_connection_pool(spec_name, pool_key)
 
         unless pool
-          # multiple database application
-          if ActiveRecord::Base.connection_handler != ActiveRecord::Base.default_connection_handler
-            raise ConnectionNotEstablished, "No connection pool for '#{spec_name}' found for the '#{ActiveRecord::Base.current_role}' role."
+          if pool_key != ActiveRecord::Base.default_pool_key
+            message = "No connection pool for '#{spec_name}' found for the '#{pool_key}' shard."
+          elsif ActiveRecord::Base.connection_handler != ActiveRecord::Base.default_connection_handler
+            message = "No connection pool for '#{spec_name}' found for the '#{ActiveRecord::Base.current_role}' role."
           else
-            raise ConnectionNotEstablished, "No connection pool for '#{spec_name}' found."
+            message = "No connection pool for '#{spec_name}' found."
           end
+
+          raise ConnectionNotEstablished, message
         end
 
         pool.connection
@@ -1117,7 +1122,7 @@ module ActiveRecord
 
       # Returns true if a connection that's accessible to this class has
       # already been opened.
-      def connected?(spec_name, pool_key = :default)
+      def connected?(spec_name, pool_key = ActiveRecord::Base.default_pool_key)
         pool = retrieve_connection_pool(spec_name, pool_key)
         pool && pool.connected?
       end
@@ -1126,12 +1131,12 @@ module ActiveRecord
       # connection and the defined connection (if they exist). The result
       # can be used as an argument for #establish_connection, for easily
       # re-establishing the connection.
-      def remove_connection(owner, pool_key = :default)
+      def remove_connection(owner, pool_key = ActiveRecord::Base.default_pool_key)
         remove_connection_pool(owner, pool_key)&.configuration_hash
       end
       deprecate remove_connection: "Use #remove_connection_pool, which now returns a DatabaseConfig object instead of a Hash"
 
-      def remove_connection_pool(owner, pool_key = :default)
+      def remove_connection_pool(owner, pool_key = ActiveRecord::Base.default_pool_key)
         if pool_manager = get_pool_manager(owner)
           pool_config = pool_manager.remove_pool_config(pool_key)
 
@@ -1145,7 +1150,7 @@ module ActiveRecord
       # Retrieving the connection pool happens a lot, so we cache it in @owner_to_pool_manager.
       # This makes retrieving the connection pool O(1) once the process is warm.
       # When a connection is established or removed, we invalidate the cache.
-      def retrieve_connection_pool(owner, pool_key = :default)
+      def retrieve_connection_pool(owner, pool_key = ActiveRecord::Base.default_pool_key)
         pool_config = get_pool_manager(owner)&.get_pool_config(pool_key)
         pool_config&.pool
       end
@@ -1179,10 +1184,8 @@ module ActiveRecord
         #   pool_config.db_config.configuration_hash
         #   # => { host: "localhost", database: "foo", adapter: "sqlite3" }
         #
-        def resolve_pool_config(config)
-          pool_name = config if config.is_a?(Symbol)
-
-          db_config = Base.configurations.resolve(config, pool_name)
+        def resolve_pool_config(config, owner_name)
+          db_config = Base.configurations.resolve(config)
 
           raise(AdapterNotSpecified, "database configuration does not specify adapter") unless db_config.adapter
 
@@ -1211,9 +1214,7 @@ module ActiveRecord
             raise AdapterNotFound, "database configuration specifies nonexistent #{db_config.adapter} adapter"
           end
 
-          pool_name = db_config.owner_name || Base.name
-          db_config.owner_name = nil
-          ConnectionAdapters::PoolConfig.new(pool_name, db_config)
+          ConnectionAdapters::PoolConfig.new(owner_name, db_config)
         end
     end
   end

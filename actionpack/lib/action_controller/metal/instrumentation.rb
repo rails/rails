@@ -72,7 +72,7 @@ module ActionController
 
   private
     # A hook invoked every time a before callback is halted.
-    def halted_callback_hook(filter)
+    def halted_callback_hook(filter, _)
       ActiveSupport::Notifications.instrument("halted_callback.action_controller", filter: filter)
     end
 

@@ -8,10 +8,19 @@ require "active_support/logger"
 module ActiveSupport
   # Wraps any standard Logger object to provide tagging capabilities.
   #
+  # May be called with a block:
+  #
   #   logger = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT))
   #   logger.tagged('BCX') { logger.info 'Stuff' }                            # Logs "[BCX] Stuff"
   #   logger.tagged('BCX', "Jason") { logger.info 'Stuff' }                   # Logs "[BCX] [Jason] Stuff"
   #   logger.tagged('BCX') { logger.tagged('Jason') { logger.info 'Stuff' } } # Logs "[BCX] [Jason] Stuff"
+  #
+  # If called without a block, a new logger will be returned with applied tags:
+  #
+  #   logger = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT))
+  #   logger.tagged("BCX").info "Stuff"                 # Logs "[BCX] Stuff"
+  #   logger.tagged("BCX", "Jason").info "Stuff"        # Logs "[BCX] [Jason] Stuff"
+  #   logger.tagged("BCX").tagged("Jason").info "Stuff" # Logs "[BCX] [Jason] Stuff"
   #
   # This is used by the default Rails.logger as configured by Railties to make
   # it easy to stamp log lines with subdomains, request ids, and anything else
@@ -66,6 +75,14 @@ module ActiveSupport
       end
     end
 
+    module LocalTagStorage # :nodoc:
+      attr_accessor :current_tags
+
+      def self.extended(base)
+        base.current_tags = []
+      end
+    end
+
     def self.new(logger)
       logger = logger.dup
 
@@ -83,7 +100,14 @@ module ActiveSupport
     delegate :push_tags, :pop_tags, :clear_tags!, to: :formatter
 
     def tagged(*tags)
-      formatter.tagged(*tags) { yield self }
+      if block_given?
+        formatter.tagged(*tags) { yield self }
+      else
+        logger = ActiveSupport::TaggedLogging.new(self)
+        logger.formatter.extend LocalTagStorage
+        logger.push_tags(*formatter.current_tags, *tags)
+        logger
+      end
     end
 
     def flush

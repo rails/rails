@@ -32,13 +32,11 @@ module ActiveRecord
           end
 
           def invert_change_column_comment(args)
-            table_name, column_name, comment = args
-            [:change_column_comment, [table_name, column_name, from: comment, to: comment]]
+            [:change_column_comment, args]
           end
 
           def invert_change_table_comment(args)
-            table_name, comment = args
-            [:change_table_comment, [table_name, from: comment, to: comment]]
+            [:change_table_comment, args]
           end
         end
 
@@ -89,9 +87,9 @@ module ActiveRecord
       end
 
       class V5_1 < V5_2
-        def change_column(table_name, column_name, type, options = {})
+        def change_column(table_name, column_name, type, **options)
           if connection.adapter_name == "PostgreSQL"
-            super(table_name, column_name, type, options.except(:default, :null, :comment))
+            super(table_name, column_name, type, **options.except(:default, :null, :comment))
             connection.change_column_default(table_name, column_name, options[:default]) if options.key?(:default)
             connection.change_column_null(table_name, column_name, options[:null], options[:default]) if options.key?(:null)
             connection.change_column_comment(table_name, column_name, options[:comment]) if options.key?(:comment)
@@ -197,7 +195,7 @@ module ActiveRecord
           super
         end
 
-        def index_exists?(table_name, column_name, options = {})
+        def index_exists?(table_name, column_name, **options)
           column_names = Array(column_name).map(&:to_s)
           options[:name] =
             if options[:name].present?
@@ -208,10 +206,9 @@ module ActiveRecord
           super
         end
 
-        def remove_index(table_name, options = {})
-          options = { column: options } unless options.is_a?(Hash)
-          options[:name] = index_name_for_remove(table_name, options)
-          super(table_name, options)
+        def remove_index(table_name, column_name = nil, **options)
+          options[:name] = index_name_for_remove(table_name, column_name, options)
+          super
         end
 
         private
@@ -222,13 +219,12 @@ module ActiveRecord
             super
           end
 
-          def index_name_for_remove(table_name, options = {})
-            index_name = connection.index_name(table_name, options)
+          def index_name_for_remove(table_name, column_name, options)
+            index_name = connection.index_name(table_name, column_name || options)
 
             unless connection.index_name_exists?(table_name, index_name)
-              if options.is_a?(Hash) && options.has_key?(:name)
-                options_without_column = options.dup
-                options_without_column.delete :column
+              if options.key?(:name)
+                options_without_column = options.except(:column)
                 index_name_without_column = connection.index_name(table_name, options_without_column)
 
                 if connection.index_name_exists?(table_name, index_name_without_column)

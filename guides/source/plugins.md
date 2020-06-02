@@ -455,6 +455,22 @@ gem "yaffle", git: "https://github.com/rails/yaffle.git"
 After running `bundle install`, your gem functionality will be available to the application.
 
 When the gem is ready to be shared as a formal release, it can be published to [RubyGems](https://rubygems.org).
+
+Alternatively, you can benefit from Bundler's Rake tasks. You can see a full list with the following:
+
+```
+bundle exec rake -T
+
+bundle exec rake build
+# Build yaffle-0.1.0.gem into the pkg directory
+
+bundle exec rake install
+# Build and install yaffle-0.1.0.gem into system gems
+
+bundle exec rake release
+# Create tag v0.1.0 and build and push yaffle-0.1.0.gem to Rubygems
+```
+
 For more information about publishing gems to RubyGems, see: [Publishing your gem](https://guides.rubygems.org/publishing).
 
 RDoc Documentation

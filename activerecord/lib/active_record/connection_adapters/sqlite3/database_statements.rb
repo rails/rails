@@ -24,6 +24,7 @@ module ActiveRecord
           end
 
           materialize_transactions
+          mark_transaction_written_if_write(sql)
 
           log(sql, name) do
             ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
@@ -38,6 +39,7 @@ module ActiveRecord
           end
 
           materialize_transactions
+          mark_transaction_written_if_write(sql)
 
           type_casted_binds = type_casted_binds(binds)
 
@@ -63,7 +65,7 @@ module ActiveRecord
                 records = stmt.to_a
               end
 
-              ActiveRecord::Result.new(cols, records)
+              build_result(columns: cols, rows: records)
             end
           end
         end
@@ -113,6 +115,7 @@ module ActiveRecord
             end
 
             materialize_transactions
+            mark_transaction_written_if_write(sql)
 
             log(sql, name) do
               ActiveSupport::Dependencies.interlock.permit_concurrent_loads do

@@ -44,5 +44,26 @@ if supports_optimizer_hints?
         posts.unscope(:optimizer_hints).load
       end
     end
+
+    def test_optimizer_hints_with_or
+      assert_sql(%r{\ASELECT /\*\+ NO_RANGE_OPTIMIZATION\(posts index_posts_on_author_id\) \*/}) do
+        Post.optimizer_hints("NO_RANGE_OPTIMIZATION(posts index_posts_on_author_id)")
+          .or(Post.all).load
+      end
+
+      queries = capture_sql do
+        Post.optimizer_hints("NO_RANGE_OPTIMIZATION(posts index_posts_on_author_id)")
+          .or(Post.optimizer_hints("NO_ICP(posts)")).load
+      end
+      assert_equal 1, queries.length
+      assert_includes queries.first, "NO_RANGE_OPTIMIZATION(posts index_posts_on_author_id)"
+      assert_not_includes queries.first, "NO_ICP(posts)"
+
+      queries = capture_sql do
+        Post.all.or(Post.optimizer_hints("NO_ICP(posts)")).load
+      end
+      assert_equal 1, queries.length
+      assert_not_includes queries.first, "NO_ICP(posts)"
+    end
   end
 end

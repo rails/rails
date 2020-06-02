@@ -650,6 +650,16 @@ class InverseBelongsToTests < ActiveRecord::TestCase
   def test_trying_to_use_inverses_that_dont_exist_should_raise_an_error
     assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Face.first.horrible_man }
   end
+
+  def test_building_has_many_parent_association_inverses_one_record
+    with_has_many_inversing do
+      interest = Interest.new
+      interest.build_man
+      assert_equal 1, interest.man.interests.size
+      interest.save!
+      assert_equal 1, interest.man.interests.size
+    end
+  end
 end
 
 class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
@@ -706,7 +716,7 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
     new_man.save!
     new_inversed_man = face.man
 
-    assert_equal old_inversed_man.object_id, new_inversed_man.object_id
+    assert_same old_inversed_man, new_inversed_man
   end
 
   def test_inversed_instance_should_not_be_reloaded_after_stale_state_changed_with_validation
@@ -716,7 +726,7 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
     face.save!
     new_inversed_man = face.man
 
-    assert_equal old_inversed_man.object_id, new_inversed_man.object_id
+    assert_same old_inversed_man, new_inversed_man
   end
 
   def test_should_not_try_to_set_inverse_instances_when_the_inverse_is_a_has_many

@@ -26,7 +26,7 @@ module ActiveRecord
       # Allow database path relative to Rails.root, but only if the database
       # path is not the special path that tells sqlite to build a database only
       # in memory.
-      if ":memory:" != config[:database] && !config[:database].to_s.starts_with?("file:")
+      if ":memory:" != config[:database] && !config[:database].to_s.start_with?("file:")
         config[:database] = File.expand_path(config[:database], Rails.root) if defined?(Rails.root)
         dirname = File.dirname(config[:database])
         Dir.mkdir(dirname) unless File.directory?(dirname)
@@ -179,13 +179,6 @@ module ActiveRecord
         true
       end
 
-      # Returns 62. SQLite supports index names up to 64
-      # characters. The rest is used by Rails internally to perform
-      # temporary rename operations
-      def allowed_index_name_length
-        index_name_length - 2
-      end
-
       def native_database_types #:nodoc:
         NATIVE_DATABASE_TYPES
       end
@@ -226,8 +219,11 @@ module ActiveRecord
         pks.sort_by { |f| f["pk"] }.map { |f| f["name"] }
       end
 
-      def remove_index(table_name, column_name, options = {}) #:nodoc:
+      def remove_index(table_name, column_name = nil, **options) # :nodoc:
+        return if options[:if_exists] && !index_exists?(table_name, column_name, **options)
+
         index_name = index_name_for_remove(table_name, column_name, options)
+
         exec_query "DROP INDEX #{quote_column_name(index_name)}"
       end
 
@@ -278,16 +274,11 @@ module ActiveRecord
         end
       end
 
-      def change_column(table_name, column_name, type, options = {}) #:nodoc:
+      def change_column(table_name, column_name, type, **options) #:nodoc:
         alter_table(table_name) do |definition|
           definition[column_name].instance_eval do
-            self.type    = type
-            self.limit   = options[:limit] if options.include?(:limit)
-            self.default = options[:default] if options.include?(:default)
-            self.null    = options[:null] if options.include?(:null)
-            self.precision = options[:precision] if options.include?(:precision)
-            self.scale = options[:scale] if options.include?(:scale)
-            self.collation = options[:collation] if options.include?(:collation)
+            self.type = type
+            self.options.merge!(options)
           end
         end
       end
@@ -323,6 +314,7 @@ module ActiveRecord
           sql << " ON CONFLICT #{insert.conflict_target} DO NOTHING"
         elsif insert.update_duplicates?
           sql << " ON CONFLICT #{insert.conflict_target} DO UPDATE SET "
+          sql << insert.touch_model_timestamps_unless { |column| "#{column} IS excluded.#{column}" }
           sql << insert.updatable_columns.map { |column| "#{column}=excluded.#{column}" }.join(",")
         end
 
@@ -448,10 +440,10 @@ module ActiveRecord
 
             unless columns.empty?
               # index name can't be the same
-              opts = { name: name.gsub(/(^|_)(#{from})_/, "\\1#{to}_"), internal: true }
-              opts[:unique] = true if index.unique
-              opts[:where] = index.where if index.where
-              add_index(to, columns, opts)
+              options = { name: name.gsub(/(^|_)(#{from})_/, "\\1#{to}_"), internal: true }
+              options[:unique] = true if index.unique
+              options[:where] = index.where if index.where
+              add_index(to, columns, **options)
             end
           end
         end

@@ -194,7 +194,7 @@ module ActionDispatch
               @arg_size       = @required_parts.size
             end
 
-            def call(t, args, inner_options, url_strategy)
+            def call(t, method_name, args, inner_options, url_strategy)
               if args.size == arg_size && !inner_options && optimize_routes_generation?(t)
                 options = t.url_options.merge @options
                 options[:path] = optimized_helper(args)
@@ -258,7 +258,7 @@ module ActionDispatch
             @route_name   = route_name
           end
 
-          def call(t, args, inner_options, url_strategy)
+          def call(t, method_name, args, inner_options, url_strategy)
             controller_options = t.url_options
             options = controller_options.merge @options
             hash = handle_positional_args(controller_options,
@@ -267,7 +267,7 @@ module ActionDispatch
                                           options,
                                           @segment_keys)
 
-            t._routes.url_for(hash, route_name, url_strategy)
+            t._routes.url_for(hash, route_name, url_strategy, method_name)
           end
 
           def handle_positional_args(controller_options, inner_options, args, result, path_params)
@@ -323,7 +323,7 @@ module ActionDispatch
                 when ActionController::Parameters
                   args.pop.to_h
                 end
-              helper.call(self, args, options, url_strategy)
+              helper.call(self, name, args, options, url_strategy)
             end
           end
       end
@@ -650,14 +650,6 @@ module ActionDispatch
       end
 
       class Generator
-        PARAMETERIZE = lambda do |name, value|
-          if name == :controller
-            value
-          else
-            value.to_param
-          end
-        end
-
         attr_reader :options, :recall, :set, :named_route
 
         def initialize(named_route, options, recall, set)
@@ -743,8 +735,8 @@ module ActionDispatch
 
         # Generates a path from routes, returns [path, params].
         # If no route is generated the formatter will raise ActionController::UrlGenerationError
-        def generate
-          @set.formatter.generate(named_route, options, recall, PARAMETERIZE)
+        def generate(method_name)
+          @set.formatter.generate(named_route, options, recall, method_name)
         end
 
         def different_controller?
@@ -774,8 +766,8 @@ module ActionDispatch
         return path, params.keys
       end
 
-      def generate(route_key, options, recall = {})
-        Generator.new(route_key, options, recall, self).generate
+      def generate(route_key, options, recall = {}, method_name = nil)
+        Generator.new(route_key, options, recall, self).generate(method_name)
       end
       private :generate
 
@@ -800,7 +792,7 @@ module ActionDispatch
       end
 
       # The +options+ argument must be a hash whose keys are *symbols*.
-      def url_for(options, route_name = nil, url_strategy = UNKNOWN)
+      def url_for(options, route_name = nil, url_strategy = UNKNOWN, method_name = nil)
         options = default_url_options.merge options
 
         user = password = nil
@@ -822,7 +814,7 @@ module ActionDispatch
         path_options = options.dup
         RESERVED_OPTIONS.each { |ro| path_options.delete ro }
 
-        path, params = generate(route_name, path_options, recall)
+        path, params = generate(route_name, path_options, recall, method_name)
 
         if options.key? :params
           params.merge! options[:params]

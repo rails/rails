@@ -209,7 +209,7 @@ module ActionCable
           end
         end
 
-        # Setup test connection with the specified identifiers:
+        # Set up test connection with the specified identifiers:
         #
         #   class ApplicationCable < ActionCable::Connection::Base
         #     identified_by :user, :token

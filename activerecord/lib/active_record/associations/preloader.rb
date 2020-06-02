@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/enumerable"
+
 module ActiveRecord
   module Associations
     # Implements the details of eager loading of Active Record associations.
@@ -171,8 +173,8 @@ module ActiveRecord
           end
 
           def records_by_owner
-            @records_by_owner ||= owners.each_with_object({}) do |owner, result|
-              result[owner] = Array(owner.association(reflection.name).target)
+            @records_by_owner ||= owners.index_with do |owner|
+              Array(owner.association(reflection.name).target)
             end
           end
 

@@ -176,14 +176,14 @@ module ActionView
   class HelperExposureTest < ActionView::TestCase
     helper(Module.new do
       def render_from_helper
-        from_test_case
+        from_test_case(suffix: "!")
       end
     end)
     test "is able to make methods available to the view" do
       assert_equal "Word!", render(partial: "test/from_helper")
     end
 
-    def from_test_case; "Word!"; end
+    def from_test_case(suffix: "?"); "Word#{suffix}"; end
     helper_method :from_test_case
   end
 

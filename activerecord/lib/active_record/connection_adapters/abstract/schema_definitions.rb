@@ -33,6 +33,14 @@ module ActiveRecord
         @comment = comment
       end
 
+      def column_options
+        {
+          length: lengths,
+          order: orders,
+          opclass: opclasses,
+        }
+      end
+
       private
         def concise_options(options)
           if columns.size == options.size && options.values.uniq.size == 1
@@ -68,6 +76,8 @@ module ActiveRecord
     AddColumnDefinition = Struct.new(:column) # :nodoc:
 
     ChangeColumnDefinition = Struct.new(:column, :name) #:nodoc:
+
+    CreateIndexDefinition = Struct.new(:index, :algorithm, :if_not_exists) # :nodoc:
 
     PrimaryKeyDefinition = Struct.new(:name) # :nodoc:
 
@@ -105,8 +115,9 @@ module ActiveRecord
         !ActiveRecord::SchemaDumper.fk_ignore_pattern.match?(name) if name
       end
 
-      def defined_for?(to_table: nil, **options)
+      def defined_for?(to_table: nil, validate: nil, **options)
         (to_table.nil? || to_table.to_s == self.to_table) &&
+          (validate.nil? || validate == options.fetch(:validate, validate)) &&
           options.all? { |k, v| self.options[k].to_s == v.to_s }
       end
 
@@ -138,13 +149,12 @@ module ActiveRecord
       end
 
       def add_to(table)
-        columns.each do |column_options|
-          kwargs = column_options.extract_options!
-          table.column(*column_options, **kwargs)
+        columns.each do |name, type, options|
+          table.column(name, type, **options)
         end
 
         if index
-          table.index(column_names, index_options)
+          table.index(column_names, **index_options)
         end
 
         if foreign_key
@@ -242,7 +252,7 @@ module ActiveRecord
     # Inside migration files, the +t+ object in {create_table}[rdoc-ref:SchemaStatements#create_table]
     # is actually of this type:
     #
-    #   class SomeMigration < ActiveRecord::Migration[5.0]
+    #   class SomeMigration < ActiveRecord::Migration[6.0]
     #     def up
     #       create_table :foo do |t|
     #         puts t.class  # => "ActiveRecord::ConnectionAdapters::TableDefinition"
@@ -266,7 +276,8 @@ module ActiveRecord
         if_not_exists: false,
         options: nil,
         as: nil,
-        comment: nil
+        comment: nil,
+        **
       )
         @conn = conn
         @columns_hash = {}
@@ -361,7 +372,7 @@ module ActiveRecord
       #     t.references :tagger, polymorphic: true
       #     t.references :taggable, polymorphic: { default: 'Photo' }, index: false
       #   end
-      def column(name, type, **options)
+      def column(name, type, index: nil, **options)
         name = name.to_s
         type = type.to_sym if type
 
@@ -373,9 +384,13 @@ module ActiveRecord
           end
         end
 
-        index_options = options.delete(:index)
-        index(name, index_options.is_a?(Hash) ? index_options : {}) if index_options
         @columns_hash[name] = new_column_definition(name, type, **options)
+
+        if index
+          index_options = index.is_a?(Hash) ? index : {}
+          index(name, **index_options)
+        end
+
         self
       end
 
@@ -389,7 +404,7 @@ module ActiveRecord
       # This is primarily used to track indexes that need to be created after the table
       #
       #   index(:account_id, name: 'index_projects_on_account_id')
-      def index(column_name, options = {})
+      def index(column_name, **options)
         indexes << [column_name, options]
       end
 
@@ -496,6 +511,7 @@ module ActiveRecord
     #     t.timestamps
     #     t.change
     #     t.change_default
+    #     t.change_null
     #     t.rename
     #     t.references
     #     t.belongs_to
@@ -538,10 +554,12 @@ module ActiveRecord
       #  t.column(:name, :string)
       #
       # See TableDefinition#column for details of the options you can use.
-      def column(column_name, type, **options)
-        index_options = options.delete(:index)
+      def column(column_name, type, index: nil, **options)
         @base.add_column(name, column_name, type, **options)
-        index(column_name, index_options.is_a?(Hash) ? index_options : {}) if index_options
+        if index
+          index_options = index.is_a?(Hash) ? index : {}
+          index(column_name, **index_options)
+        end
       end
 
       # Checks to see if a column exists.
@@ -561,8 +579,8 @@ module ActiveRecord
       #  t.index([:branch_id, :party_id], unique: true, name: 'by_branch_party')
       #
       # See {connection.add_index}[rdoc-ref:SchemaStatements#add_index] for details of the options you can use.
-      def index(column_name, options = {})
-        @base.add_index(name, column_name, options)
+      def index(column_name, **options)
+        @base.add_index(name, column_name, **options)
       end
 
       # Checks to see if an index exists.
@@ -600,8 +618,8 @@ module ActiveRecord
       #  t.change(:description, :text)
       #
       # See TableDefinition#column for details of the options you can use.
-      def change(column_name, type, options = {})
-        @base.change_column(name, column_name, type, options)
+      def change(column_name, type, **options)
+        @base.change_column(name, column_name, type, **options)
       end
 
       # Sets a new default value for a column.
@@ -613,6 +631,16 @@ module ActiveRecord
       # See {connection.change_column_default}[rdoc-ref:SchemaStatements#change_column_default]
       def change_default(column_name, default_or_changes)
         @base.change_column_default(name, column_name, default_or_changes)
+      end
+
+      # Sets or removes a NOT NULL constraint on a column.
+      #
+      #  t.change_null(:qualification, true)
+      #  t.change_null(:qualification, false, 0)
+      #
+      # See {connection.change_column_null}[rdoc-ref:SchemaStatements#change_column_null]
+      def change_null(column_name, null, default = nil)
+        @base.change_column_null(name, column_name, null, default)
       end
 
       # Removes the column(s) from the table definition.
@@ -633,8 +661,8 @@ module ActiveRecord
       #   t.remove_index(:branch_id, name: :by_branch_party)
       #
       # See {connection.remove_index}[rdoc-ref:SchemaStatements#remove_index]
-      def remove_index(column_name = nil, options = {})
-        @base.remove_index(name, column_name, options)
+      def remove_index(column_name = nil, **options)
+        @base.remove_index(name, column_name, **options)
       end
 
       # Removes the timestamp columns (+created_at+ and +updated_at+) from the table.
@@ -706,8 +734,8 @@ module ActiveRecord
       #  t.foreign_key(:authors) unless t.foreign_key_exists?(:authors)
       #
       # See {connection.foreign_key_exists?}[rdoc-ref:SchemaStatements#foreign_key_exists?]
-      def foreign_key_exists?(*args)
-        @base.foreign_key_exists?(name, *args)
+      def foreign_key_exists?(*args, **options)
+        @base.foreign_key_exists?(name, *args, **options)
       end
     end
   end

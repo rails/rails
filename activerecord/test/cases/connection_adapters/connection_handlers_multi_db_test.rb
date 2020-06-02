@@ -15,7 +15,7 @@ module ActiveRecord
         @rw_handler = @handlers[:writing]
         @ro_handler = @handlers[:reading]
         @owner_name = "ActiveRecord::Base"
-        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
         @rw_pool = @handlers[:writing].establish_connection(db_config)
         @ro_pool = @handlers[:reading].establish_connection(db_config)
       end
@@ -90,8 +90,8 @@ module ActiveRecord
 
           config = {
             "default_env" => {
-              "readonly" => { "adapter" => "sqlite3", "database" => "db/readonly.sqlite3", "replica" => true },
-              "default"  => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" }
+              "readonly" => { "adapter" => "sqlite3", "database" => "test/db/readonly.sqlite3", "replica" => true },
+              "default"  => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" }
             }
           }
           @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
@@ -99,12 +99,12 @@ module ActiveRecord
           ActiveRecord::Base.connects_to(database: { writing: :default, reading: :readonly })
 
           assert_not_nil pool = ActiveRecord::Base.connection_handlers[:writing].retrieve_connection_pool("ActiveRecord::Base")
-          assert_equal "db/primary.sqlite3", pool.db_config.database
-          assert_equal "default", pool.db_config.spec_name
+          assert_equal "test/db/primary.sqlite3", pool.db_config.database
+          assert_equal "default", pool.db_config.name
 
           assert_not_nil pool = ActiveRecord::Base.connection_handlers[:reading].retrieve_connection_pool("ActiveRecord::Base")
-          assert_equal "db/readonly.sqlite3", pool.db_config.database
-          assert_equal "readonly", pool.db_config.spec_name
+          assert_equal "test/db/readonly.sqlite3", pool.db_config.database
+          assert_equal "readonly", pool.db_config.name
         ensure
           ActiveRecord::Base.configurations = @prev_configs
           ActiveRecord::Base.establish_connection(:arunit)
@@ -116,8 +116,8 @@ module ActiveRecord
 
           config = {
             "default_env" => {
-              "readonly" => { "adapter" => "sqlite3", "database" => "db/readonly.sqlite3" },
-              "primary"  => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" }
+              "readonly" => { "adapter" => "sqlite3", "database" => "test/db/readonly.sqlite3" },
+              "primary"  => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" }
             }
           }
           @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
@@ -145,7 +145,6 @@ module ActiveRecord
           ActiveRecord::Base.configurations = @prev_configs
           ActiveRecord::Base.establish_connection(:arunit)
           ENV["RAILS_ENV"] = previous_env
-          FileUtils.rm_rf("db")
         end
 
         def test_establish_connection_using_3_levels_config_with_non_default_handlers
@@ -153,8 +152,8 @@ module ActiveRecord
 
           config = {
             "default_env" => {
-              "readonly" => { "adapter" => "sqlite3", "database" => "db/readonly.sqlite3" },
-              "primary"  => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" }
+              "readonly" => { "adapter" => "sqlite3", "database" => "test/db/readonly.sqlite3" },
+              "primary"  => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" }
             }
           }
           @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
@@ -162,10 +161,10 @@ module ActiveRecord
           ActiveRecord::Base.connects_to(database: { default: :primary, readonly: :readonly })
 
           assert_not_nil pool = ActiveRecord::Base.connection_handlers[:default].retrieve_connection_pool("ActiveRecord::Base")
-          assert_equal "db/primary.sqlite3", pool.db_config.database
+          assert_equal "test/db/primary.sqlite3", pool.db_config.database
 
           assert_not_nil pool = ActiveRecord::Base.connection_handlers[:readonly].retrieve_connection_pool("ActiveRecord::Base")
-          assert_equal "db/readonly.sqlite3", pool.db_config.database
+          assert_equal "test/db/readonly.sqlite3", pool.db_config.database
         ensure
           ActiveRecord::Base.configurations = @prev_configs
           ActiveRecord::Base.establish_connection(:arunit)
@@ -193,7 +192,7 @@ module ActiveRecord
 
         def test_switching_connections_with_database_config_hash
           previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
-          config = { adapter: "sqlite3", database: "db/readonly.sqlite3" }
+          config = { adapter: "sqlite3", database: "test/db/readonly.sqlite3" }
 
           ActiveRecord::Base.connects_to(database: { writing: config })
           assert_equal :writing, ActiveRecord::Base.current_role
@@ -215,14 +214,14 @@ module ActiveRecord
               ActiveRecord::Base.connected_to(database: :readonly, role: :writing) { }
             end
           end
-          assert_equal "connected_to can only accept a `database` or a `role` argument, but not both arguments.", error.message
+          assert_equal "`connected_to` cannot accept a `database` argument with any other arguments.", error.message
         end
 
         def test_switching_connections_without_database_and_role_raises
           error = assert_raises(ArgumentError) do
             ActiveRecord::Base.connected_to { }
           end
-          assert_equal "must provide a `database` or a `role`.", error.message
+          assert_equal "must provide a `shard` and/or `role`.", error.message
         end
 
         def test_switching_connections_with_database_symbol_uses_default_role
@@ -230,8 +229,8 @@ module ActiveRecord
 
           config = {
             "default_env" => {
-              "animals" => { adapter: "sqlite3", database: "db/animals.sqlite3" },
-              "primary" => { adapter: "sqlite3", database: "db/primary.sqlite3" }
+              "animals" => { adapter: "sqlite3", database: "test/db/animals.sqlite3" },
+              "primary" => { adapter: "sqlite3", database: "test/db/primary.sqlite3" }
             }
           }
           @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
@@ -256,8 +255,8 @@ module ActiveRecord
 
           config = {
             "default_env" => {
-              "animals" => { adapter: "sqlite3", database: "db/animals.sqlite3" },
-              "primary" => { adapter: "sqlite3", database: "db/primary.sqlite3" }
+              "animals" => { adapter: "sqlite3", database: "test/db/animals.sqlite3" },
+              "primary" => { adapter: "sqlite3", database: "test/db/primary.sqlite3" }
             }
           }
           @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
@@ -279,7 +278,7 @@ module ActiveRecord
 
         def test_connects_to_with_single_configuration
           config = {
-            "development" => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" },
+            "development" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" },
           }
           @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
 
@@ -296,15 +295,15 @@ module ActiveRecord
 
         def test_connects_to_using_top_level_key_in_two_level_config
           config = {
-            "development" => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" },
-            "development_readonly" => { "adapter" => "sqlite3", "database" => "db/readonly.sqlite3" }
+            "development" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" },
+            "development_readonly" => { "adapter" => "sqlite3", "database" => "test/db/readonly.sqlite3" }
           }
           @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
 
           ActiveRecord::Base.connects_to database: { writing: :development, reading: :development_readonly }
 
           assert_not_nil pool = ActiveRecord::Base.connection_handlers[:reading].retrieve_connection_pool("ActiveRecord::Base")
-          assert_equal "db/readonly.sqlite3", pool.db_config.database
+          assert_equal "test/db/readonly.sqlite3", pool.db_config.database
         ensure
           ActiveRecord::Base.configurations = @prev_configs
           ActiveRecord::Base.establish_connection(:arunit)
@@ -312,8 +311,8 @@ module ActiveRecord
 
         def test_connects_to_returns_array_of_established_connections
           config = {
-            "development" => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" },
-            "development_readonly" => { "adapter" => "sqlite3", "database" => "db/readonly.sqlite3" }
+            "development" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" },
+            "development_readonly" => { "adapter" => "sqlite3", "database" => "test/db/readonly.sqlite3" }
           }
           @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
 
@@ -376,7 +375,7 @@ module ActiveRecord
 
         reading_handler = ActiveRecord::Base.connection_handlers[:reading]
 
-        reading = ActiveRecord::Base.with_handler(:reading) do
+        reading = ActiveRecord::Base.connected_to(role: :reading) do
           Person.connection_handler
         end
 
@@ -397,7 +396,7 @@ module ActiveRecord
           r << ActiveRecord::Base.connection_handler
         end
 
-        reading = ActiveRecord::Base.with_handler(:reading) do
+        reading = ActiveRecord::Base.connected_to(role: :reading) do
           enum.next
         end
 

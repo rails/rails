@@ -96,6 +96,16 @@ class LogSubscriberTest < ActiveRecord::TestCase
     end
   end
 
+  def test_logging_sql_coloration_disabled
+    logger = TestDebugLogSubscriber.new
+    logger.colorize_logging = false
+
+    SQL_COLORINGS.each do |verb, color_regex|
+      logger.sql(Event.new(0.9, sql: verb.to_s))
+      assert_no_match(/#{REGEXP_BOLD}#{color_regex}#{verb}#{REGEXP_CLEAR}/i, logger.debugs.last)
+    end
+  end
+
   def test_basic_payload_name_logging_coloration_generic_sql
     logger = TestDebugLogSubscriber.new
     logger.colorize_logging = true

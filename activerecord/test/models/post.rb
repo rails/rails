@@ -23,6 +23,8 @@ class Post < ActiveRecord::Base
     end
   end
 
+  alias_attribute :text, :body
+
   scope :containing_the_letter_a, -> { where("body LIKE '%a%'") }
   scope :titled_with_an_apostrophe, -> { where("title LIKE '%''%'") }
   scope :ranked_by_comments, -> { order(arel_attribute(:comments_count).desc) }

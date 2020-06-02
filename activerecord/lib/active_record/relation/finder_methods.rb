@@ -114,14 +114,7 @@ module ActiveRecord
     #   Person.first(3) # returns the first three objects fetched by SELECT * FROM people ORDER BY people.id LIMIT 3
     #
     def first(limit = nil)
-      if !order_values.empty? && order_values.all?(&:blank?)
-        blank_value = order_values.first
-        ActiveSupport::Deprecation.warn(<<~MSG.squish)
-          `.reorder(#{blank_value.inspect})` with `.first` / `.first!` no longer
-          takes non-deterministic result in Rails 6.2.
-          To continue taking non-deterministic result, use `.take` / `.take!` instead.
-        MSG
-      end
+      check_reorder_deprecation unless loaded?
 
       if limit
         find_nth_with_limit(0, limit)
@@ -284,9 +277,9 @@ module ActiveRecord
     # * Integer - Finds the record with this primary key.
     # * String - Finds the record with a primary key corresponding to this
     #   string (such as <tt>'5'</tt>).
-    # * Array - Finds the record that matches these +find+-style conditions
+    # * Array - Finds the record that matches these +where+-style conditions
     #   (such as <tt>['name LIKE ?', "%#{query}%"]</tt>).
-    # * Hash - Finds the record that matches these +find+-style conditions
+    # * Hash - Finds the record that matches these +where+-style conditions
     #   (such as <tt>{name: 'David'}</tt>).
     # * +false+ - Returns always +false+.
     # * No args - Returns +false+ if the relation is empty, +true+ otherwise.
@@ -355,8 +348,15 @@ module ActiveRecord
     end
 
     private
-      def offset_index
-        offset_value || 0
+      def check_reorder_deprecation
+        if !order_values.empty? && order_values.all?(&:blank?)
+          blank_value = order_values.first
+          ActiveSupport::Deprecation.warn(<<~MSG.squish)
+            `.reorder(#{blank_value.inspect})` with `.first` / `.first!` no longer
+            takes non-deterministic result in Rails 6.2.
+            To continue taking non-deterministic result, use `.take` / `.take!` instead.
+          MSG
+        end
       end
 
       def construct_relation_for_exists(conditions)
@@ -380,7 +380,7 @@ module ActiveRecord
 
       def apply_join_dependency(eager_loading: group_values.empty?)
         join_dependency = construct_join_dependency(
-          eager_load_values + includes_values, Arel::Nodes::OuterJoin
+          eager_load_values | includes_values, Arel::Nodes::OuterJoin
         )
         relation = except(:includes, :eager_load, :preload).joins!(join_dependency)
 
@@ -518,7 +518,7 @@ module ActiveRecord
       end
 
       def find_nth(index)
-        @offsets[offset_index + index] ||= find_nth_with_limit(index, 1).first
+        @offsets[index] ||= find_nth_with_limit(index, 1).first
       end
 
       def find_nth_with_limit(index, limit)
@@ -532,7 +532,7 @@ module ActiveRecord
           end
 
           if limit > 0
-            relation = relation.offset(offset_index + index) unless index.zero?
+            relation = relation.offset((offset_value || 0) + index) unless index.zero?
             relation.limit(limit).to_a
           else
             []

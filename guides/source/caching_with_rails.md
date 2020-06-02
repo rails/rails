@@ -387,7 +387,7 @@ gem 'connection_pool'
 Next, pass the `:pool_size` and/or `:pool_timeout` options when configuring the cache store:
 
 ```ruby
-config.cache_store = :mem_cache_store, "cache.example.com", pool_size: 5, pool_timeout: 5
+config.cache_store = :mem_cache_store, "cache.example.com", { pool_size: 5, pool_timeout: 5 }
 ```
 
 * `:pool_size` - This option sets the number of connections per process (defaults to 5).

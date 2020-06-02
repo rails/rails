@@ -170,17 +170,12 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
         end
 
         class CreateDogsMigration < ActiveRecord::Migration::Current
-          def up
+          def change
             create_table :dog_owners
 
             create_table :dogs do |t|
               t.references :dog_owner, foreign_key: true
             end
-          end
-
-          def down
-            drop_table :dogs, if_exists: true
-            drop_table :dog_owners, if_exists: true
           end
         end
 

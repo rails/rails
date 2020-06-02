@@ -194,6 +194,11 @@ class MimeTypeTest < ActiveSupport::TestCase
     assert_equal 'text/html; parameter=abc; parameter2="xyz"', Mime::Type.new('text/html; parameter=abc; parameter2="xyz"').to_s
   end
 
+  test "can be initialized with parameters without having space after ;" do
+    assert_equal "text/html;parameter", Mime::Type.new("text/html;parameter").to_s
+    assert_equal 'text/html;parameter=abc;parameter2="xyz"', Mime::Type.new('text/html;parameter=abc;parameter2="xyz"').to_s
+  end
+
   test "invalid mime types raise error" do
     assert_raises Mime::Type::InvalidMimeType do
       Mime::Type.new("too/many/slash")

@@ -52,6 +52,13 @@ module ActiveRecord
       assert_equal({}, relation.where_values_hash)
     end
 
+    def test_where_values_hash_with_in_clause
+      relation = Relation.new(Post)
+      relation.where!(title: ["foo", "bar", "hello"])
+
+      assert_equal({ "title" => ["foo", "bar", "hello"] }, relation.where_values_hash)
+    end
+
     def test_has_values
       relation = Relation.new(Post)
       relation.where!(id: 10)
@@ -412,15 +419,13 @@ module ActiveRecord
     end
 
     test "no queries on empty IN" do
-      Post.send(:load_schema)
-      assert_no_queries do
+      assert_queries(0) do
         Post.where(id: []).load
       end
     end
 
     test "can unscope empty IN" do
-      Post.send(:load_schema)
-      assert_queries 1 do
+      assert_queries(1) do
         Post.where(id: []).unscope(where: :id).load
       end
     end

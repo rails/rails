@@ -79,7 +79,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   def test_raw_values_with_marshal
     cache = lookup_store(raw: true)
     cache.write("foo", Marshal.dump([]))
-    assert_equal [], cache.read("foo")
+    assert_equal Marshal.dump([]), cache.read("foo")
   end
 
   def test_local_cache_raw_values
@@ -108,7 +108,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     cache = lookup_store(raw: true)
     cache.with_local_cache do
       cache.write("foo", Marshal.dump([]))
-      assert_equal [], cache.read("foo")
+      assert_equal Marshal.dump([]), cache.read("foo")
     end
   end
 

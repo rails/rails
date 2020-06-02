@@ -15,15 +15,24 @@
 # update a blob's metadata on a subsequent pass, but you should not update the key or change the uploaded file.
 # If you need to create a derivative or otherwise change the blob, simply create a new blob and purge the old one.
 class ActiveStorage::Blob < ActiveRecord::Base
-  unless Rails.autoloaders.zeitwerk_enabled?
-    require_dependency "active_storage/blob/analyzable"
-    require_dependency "active_storage/blob/identifiable"
-    require_dependency "active_storage/blob/representable"
-  end
-
-  include Analyzable
-  include Identifiable
-  include Representable
+  # We use constant paths in the following include calls to avoid a gotcha of
+  # classic mode: If the parent application defines a top-level Analyzable, for
+  # example, and ActiveStorage::Blob::Analyzable is not yet loaded, a bare
+  #
+  #   include Analyzable
+  #
+  # would resolve to the top-level one, const_missing would not be triggered,
+  # and therefore ActiveStorage::Blob::Analyzable would not be autoloaded.
+  #
+  # By using qualified names, we ensure const_missing is invoked if needed.
+  # Please, note that Ruby 2.5 or newer is required, so Object is not checked
+  # when looking up the ancestors of ActiveStorage::Blob.
+  #
+  # Zeitwerk mode does not have this gotcha. If we ever drop classic mode, this
+  # can be simplified, bare constant names would just work.
+  include ActiveStorage::Blob::Analyzable
+  include ActiveStorage::Blob::Identifiable
+  include ActiveStorage::Blob::Representable
 
   self.table_name = "active_storage_blobs"
 
@@ -37,7 +46,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
 
   has_many :attachments
 
-  scope :unattached, -> { left_joins(:attachments).where(ActiveStorage::Attachment.table_name => { blob_id: nil }) }
+  scope :unattached, -> { where.missing(:attachments) }
 
   after_initialize do
     self.service_name ||= self.class.service.name

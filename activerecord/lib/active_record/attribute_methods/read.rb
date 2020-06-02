@@ -7,16 +7,14 @@ module ActiveRecord
 
       module ClassMethods # :nodoc:
         private
-          def define_method_attribute(name)
+          def define_method_attribute(name, owner:)
             ActiveModel::AttributeMethods::AttrNames.define_attribute_accessor_method(
-              generated_attribute_methods, name
+              owner, name
             ) do |temp_method_name, attr_name_expr|
-              generated_attribute_methods.module_eval <<-RUBY, __FILE__, __LINE__ + 1
-                def #{temp_method_name}
-                  name = #{attr_name_expr}
-                  _read_attribute(name) { |n| missing_attribute(n, caller) }
-                end
-              RUBY
+              owner <<
+                "def #{temp_method_name}" <<
+                "  _read_attribute(#{attr_name_expr}) { |n| missing_attribute(n, caller) }" <<
+                "end"
             end
           end
       end
@@ -35,7 +33,6 @@ module ActiveRecord
       # This method exists to avoid the expensive primary_key check internally, without
       # breaking compatibility with the read_attribute API
       def _read_attribute(attr_name, &block) # :nodoc
-        sync_with_transaction_state if @transaction_state&.finalized?
         @attributes.fetch_value(attr_name.to_s, &block)
       end
 

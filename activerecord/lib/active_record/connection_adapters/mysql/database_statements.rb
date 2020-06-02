@@ -54,17 +54,17 @@ module ActiveRecord
           if without_prepared_statement?(binds)
             execute_and_free(sql, name) do |result|
               if result
-                ActiveRecord::Result.new(result.fields, result.to_a)
+                build_result(columns: result.fields, rows: result.to_a)
               else
-                ActiveRecord::Result.new([], [])
+                build_result(columns: [], rows: [])
               end
             end
           else
             exec_stmt_and_free(sql, name, binds, cache_stmt: prepare) do |_, result|
               if result
-                ActiveRecord::Result.new(result.fields, result.to_a)
+                build_result(columns: result.fields, rows: result.to_a)
               else
-                ActiveRecord::Result.new([], [])
+                build_result(columns: [], rows: [])
               end
             end
           end
@@ -97,39 +97,27 @@ module ActiveRecord
             @connection.last_id
           end
 
-          def supports_set_server_option?
-            @connection.respond_to?(:set_server_option)
-          end
+          def multi_statements_enabled?
+            flags = @config[:flags]
 
-          def multi_statements_enabled?(flags)
             if flags.is_a?(Array)
               flags.include?("MULTI_STATEMENTS")
             else
-              (flags & Mysql2::Client::MULTI_STATEMENTS) != 0
+              flags.anybits?(Mysql2::Client::MULTI_STATEMENTS)
             end
           end
 
           def with_multi_statements
-            previous_flags = @config[:flags]
+            multi_statements_was = multi_statements_enabled?
 
-            unless multi_statements_enabled?(previous_flags)
-              if supports_set_server_option?
-                @connection.set_server_option(Mysql2::Client::OPTION_MULTI_STATEMENTS_ON)
-              else
-                @config[:flags] = Mysql2::Client::MULTI_STATEMENTS
-                reconnect!
-              end
+            unless multi_statements_was
+              @connection.set_server_option(Mysql2::Client::OPTION_MULTI_STATEMENTS_ON)
             end
 
             yield
           ensure
-            unless multi_statements_enabled?(previous_flags)
-              if supports_set_server_option?
-                @connection.set_server_option(Mysql2::Client::OPTION_MULTI_STATEMENTS_OFF)
-              else
-                @config[:flags] = previous_flags
-                reconnect!
-              end
+            unless multi_statements_was
+              @connection.set_server_option(Mysql2::Client::OPTION_MULTI_STATEMENTS_OFF)
             end
           end
 
@@ -166,6 +154,7 @@ module ActiveRecord
             end
 
             materialize_transactions
+            mark_transaction_written_if_write(sql)
 
             # make sure we carry over any changes to ActiveRecord::Base.default_timezone that have been
             # made since we established the connection

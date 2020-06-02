@@ -26,7 +26,7 @@ In order to have a near-zero default footprint, Active Support does not load any
 Thus, after a simple require like:
 
 ```ruby
-require 'active_support'
+require "active_support"
 ```
 
 objects do not even respond to `blank?`. Let's see how to load its definition.
@@ -42,8 +42,8 @@ NOTE: Defined in `active_support/core_ext/object/blank.rb`.
 That means that you can require it like this:
 
 ```ruby
-require 'active_support'
-require 'active_support/core_ext/object/blank'
+require "active_support"
+require "active_support/core_ext/object/blank"
 ```
 
 Active Support has been carefully revised so that cherry-picking a file loads only strictly needed dependencies, if any.
@@ -55,8 +55,8 @@ The next level is to simply load all extensions to `Object`. As a rule of thumb,
 Thus, to load all extensions to `Object` (including `blank?`):
 
 ```ruby
-require 'active_support'
-require 'active_support/core_ext/object'
+require "active_support"
+require "active_support/core_ext/object"
 ```
 
 #### Loading All Core Extensions
@@ -64,8 +64,8 @@ require 'active_support/core_ext/object'
 You may prefer just to load all core extensions, there is a file for that:
 
 ```ruby
-require 'active_support'
-require 'active_support/core_ext'
+require "active_support"
+require "active_support/core_ext"
 ```
 
 #### Loading All Active Support
@@ -73,7 +73,7 @@ require 'active_support/core_ext'
 And finally, if you want to have all Active Support available just issue:
 
 ```ruby
-require 'active_support/all'
+require "active_support/all"
 ```
 
 That does not even put the entire Active Support in memory upfront indeed, some stuff is configured via `autoload`, so it is only loaded if used.
@@ -1758,6 +1758,20 @@ INFO: The three of them return `nil` for blank receivers.
 
 NOTE: Defined in `active_support/core_ext/string/conversions.rb`.
 
+Extensions to `Symbol`
+----------------------
+
+### `starts_with?` and `ends_with?`
+
+Active Support defines 3rd person aliases of `Symbol#start_with?` and `Symbol#end_with?`:
+
+```ruby
+:foo.starts_with?("f") # => true
+:foo.ends_with?("o")   # => true
+```
+
+NOTE: Defined in `active_support/core_ext/symbol/starts_ends_with.rb`.
+
 Extensions to `Numeric`
 -----------------------
 
@@ -2119,10 +2133,22 @@ NOTE: Defined in `active_support/core_ext/enumerable.rb`.
 
 ### `pluck`
 
-The method `pluck` returns an array based on the given key:
+The method `pluck` extracts the given key from each element:
 
 ```ruby
 [{ name: "David" }, { name: "Rafael" }, { name: "Aaron" }].pluck(:name) # => ["David", "Rafael", "Aaron"]
+[{ id: 1, name: "David" }, { id: 2, name: "Rafael" }].pluck(:id, :name) # => [[1, "David"], [2, "Rafael"]]
+```
+
+NOTE: Defined in `active_support/core_ext/enumerable.rb`.
+
+### `pick`
+
+The method `pick` extracts the given key from the first element:
+
+```ruby
+[{ name: "David" }, { name: "Rafael" }, { name: "Aaron" }].pick(:name) # => "David"
+[{ id: 1, name: "David" }, { id: 2, name: "Rafael" }].pick(:id, :name) # => [1, "David"]
 ```
 
 NOTE: Defined in `active_support/core_ext/enumerable.rb`.
@@ -2717,17 +2743,18 @@ In case of key collision, the value will be the one most recently inserted into 
 # => {:a=>2}
 ```
 
-This method may be useful for example to easily accept both symbols and strings as options. For instance `ActionController::UrlRewriter` defines
+This method may be useful for example to easily accept both symbols and strings as options. For instance `ActionText::TagHelper` defines
 
 ```ruby
-def rewrite_path(options)
+def rich_text_area_tag(name, value = nil, options = {})
   options = options.symbolize_keys
-  options.update(options[:params].symbolize_keys) if options[:params]
+
+  options[:input] ||= "trix_input_#{ActionText::TagHelper.id += 1}
   ...
 end
 ```
 
-The second line can safely access the `:params` key, and let the user to pass either `:params` or "params".
+The third line can safely access the `:input` key, and let the user to pass either `:input` or "input".
 
 There's also the bang variant `symbolize_keys!` that symbolizes keys in the very receiver.
 
@@ -2916,7 +2943,7 @@ INFO: The following calculation methods have edge cases in October 1582, since d
 
 #### `Date.current`
 
-Active Support defines `Date.current` to be today in the current time zone. That's like `Date.today`, except that it honors the user time zone, if defined. It also defines `Date.yesterday` and `Date.tomorrow`, and the instance predicates `past?`, `today?`, `future?`, `on_weekday?` and `on_weekend?`, all of them relative to `Date.current`.
+Active Support defines `Date.current` to be today in the current time zone. That's like `Date.today`, except that it honors the user time zone, if defined. It also defines `Date.yesterday` and `Date.tomorrow`, and the instance predicates `past?`, `today?`, `tomorrow?`, `next_day?`, `yesterday?`, `prev_day?`, `future?`, `on_weekday?` and `on_weekend?`, all of them relative to `Date.current`.
 
 When making Date comparisons using methods which honor the user time zone, make sure to use `Date.current` and not `Date.today`. There are cases where the user time zone might be in the future compared to the system time zone, which `Date.today` uses by default. This means `Date.today` may equal `Date.yesterday`.
 
@@ -3429,7 +3456,7 @@ t.advance(seconds: 1)
 
 #### `Time.current`
 
-Active Support defines `Time.current` to be today in the current time zone. That's like `Time.now`, except that it honors the user time zone, if defined. It also defines the instance predicates `past?`, `today?`, and `future?`, all of them relative to `Time.current`.
+Active Support defines `Time.current` to be today in the current time zone. That's like `Time.now`, except that it honors the user time zone, if defined. It also defines the instance predicates `past?`, `today?`, `tomorrow?`, `next_day?`, `yesterday?`, `prev_day?` and `future?`, all of them relative to `Time.current`.
 
 When making Time comparisons using methods which honor the user time zone, make sure to use `Time.current` instead of `Time.now`. There are cases where the user time zone might be in the future compared to the system time zone, which `Time.now` uses by default. This means `Time.now.to_date` may equal `Date.yesterday`.
 

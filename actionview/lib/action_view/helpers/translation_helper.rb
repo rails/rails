@@ -57,9 +57,8 @@ module ActionView
       # that include HTML tags so that you know what kind of output to expect
       # when you call translate in a template and translators know which keys
       # they can provide HTML values for.
-      def translate(key, options = {})
-        options = options.dup
-        if options.has_key?(:default)
+      def translate(key, **options)
+        unless options[:default].nil?
           remaining_defaults = Array.wrap(options.delete(:default)).compact
           options[:default] = remaining_defaults unless remaining_defaults.first.kind_of?(Symbol)
         end
@@ -93,7 +92,7 @@ module ActionView
         end
       rescue I18n::MissingTranslationData => e
         if remaining_defaults.present?
-          translate remaining_defaults.shift, options.merge(default: remaining_defaults)
+          translate remaining_defaults.shift, **options.merge(default: remaining_defaults)
         else
           raise e if raise_error
 
@@ -116,19 +115,19 @@ module ActionView
       #
       # See https://www.rubydoc.info/github/svenfuchs/i18n/master/I18n/Backend/Base:localize
       # for more information.
-      def localize(*args)
-        I18n.localize(*args)
+      def localize(object, **options)
+        I18n.localize(object, **options)
       end
       alias :l :localize
 
       private
         def scope_key_by_partial(key)
           stringified_key = key.to_s
-          if stringified_key.first == "."
-            if @virtual_path
+          if stringified_key.start_with?(".")
+            if @current_template&.virtual_path
               @_scope_key_by_partial_cache ||= {}
-              @_scope_key_by_partial_cache[@virtual_path] ||= @virtual_path.gsub(%r{/_?}, ".")
-              "#{@_scope_key_by_partial_cache[@virtual_path]}#{stringified_key}"
+              @_scope_key_by_partial_cache[@current_template.virtual_path] ||= @current_template.virtual_path.gsub(%r{/_?}, ".")
+              "#{@_scope_key_by_partial_cache[@current_template.virtual_path]}#{stringified_key}"
             else
               raise "Cannot use t(#{key.inspect}) shortcut because path is not available"
             end

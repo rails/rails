@@ -50,17 +50,6 @@ module ApplicationTests
       assert_equal "test.rails", ActionMailer::Base.default_url_options[:host]
     end
 
-    test "Default to HTTPS for ActionMailer URLs when force_ssl is on" do
-      app_file "config/environments/development.rb", <<-RUBY
-        Rails.application.configure do
-          config.force_ssl = true
-        end
-      RUBY
-
-      require "#{app_path}/config/environment"
-      assert_equal "https", ActionMailer::Base.default_url_options[:protocol]
-    end
-
     test "includes URL helpers as action methods" do
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
@@ -183,6 +172,17 @@ module ApplicationTests
       assert_equal charset, ActionDispatch::Response.default_charset
     end
 
+    test "URL builder is configured to use HTTPS when force_ssl is on" do
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure do
+          config.force_ssl = true
+        end
+      RUBY
+
+      require "#{app_path}/config/environment"
+      assert_equal true, ActionDispatch::Http::URL.secure_protocol
+    end
+
     # AS
     test "if there's no config.active_support.bare, all of ActiveSupport is required" do
       use_frameworks []
@@ -236,8 +236,8 @@ module ApplicationTests
       orig_rails_env, Rails.env = Rails.env, "development"
       ActiveRecord::Base.establish_connection
       assert ActiveRecord::Base.connection
-      assert_match(/#{ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, spec_name: "primary").database}/, ActiveRecord::Base.connection_db_config.database)
-      db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, spec_name: "primary")
+      assert_match(/#{ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: "primary").database}/, ActiveRecord::Base.connection_db_config.database)
+      db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: "primary")
       assert_match(/#{db_config.database}/, ActiveRecord::Base.connection_db_config.database)
     ensure
       ActiveRecord::Base.remove_connection

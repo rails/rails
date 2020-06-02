@@ -161,7 +161,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
 
     p2.first_name = "sue"
     error = assert_raise(ActiveRecord::StaleObjectError) { p2.save! }
-    assert_equal(error.record.object_id, p2.object_id)
+    assert_same error.record, p2
   end
 
   def test_lock_new_when_explicitly_passing_nil
@@ -238,14 +238,37 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_update_with_dirty_locking_column
+    person = Person.find(1)
+    person.first_name = "Douglas Adams"
+    person.lock_version = 42
+
+    changes = {
+      "first_name" => ["Michael", "Douglas Adams"],
+      "lock_version" => [0, 42],
+    }
+    assert_equal changes, person.changes
+
+    assert person.save!
+    assert_empty person.changes
+  end
+
   def test_explicit_update_lock_column_raise_error
     person = Person.find(1)
 
+    person2 = Person.find(1)
+    person2.lock_version = 42
+    person2.save!
+
     assert_raises(ActiveRecord::StaleObjectError) do
       person.first_name = "Douglas Adams"
-      person.lock_version = 42
+      person.lock_version = person2.lock_version
 
-      assert_predicate person, :lock_version_changed?
+      changes = {
+        "first_name" => ["Michael", "Douglas Adams"],
+        "lock_version" => [0, 43],
+      }
+      assert_equal changes, person.changes
 
       person.save
     end
@@ -486,6 +509,12 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal 3, car.lock_version
     assert_operator previously_updated_at, :<, car.updated_at
     assert_operator previously_wheels_owned_at, :<, car.wheels_owned_at
+
+    car.wheels << Wheel.create!
+    assert_equal 1, car.wheels_count
+    assert_equal 4, car.lock_version
+    assert_not car.lock_version_changed?
+    assert_nothing_raised { car.update(name: "herbie") }
   end
 
   def test_polymorphic_destroy_with_dependencies_and_lock_version

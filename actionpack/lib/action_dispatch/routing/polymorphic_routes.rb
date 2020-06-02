@@ -145,6 +145,7 @@ module ActionDispatch
 
       %w(edit new).each do |action|
         module_eval <<-EOT, __FILE__, __LINE__ + 1
+          # frozen_string_literal: true
           def #{action}_polymorphic_url(record_or_hash, options = {})
             polymorphic_url_for_action("#{action}", record_or_hash, options)
           end

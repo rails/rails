@@ -1,4 +1,15 @@
-*   The `fill_in_rich_text_area` system test helper locates a Trix editor and fills it in with the given HTML:
+*   Add method to confirm rich text content existence by adding `?` after rich
+    text attribute.
+
+    ```ruby
+    message = Message.create!(body: "<h1>Funny times!</h1>")
+    message.body? #=> true
+    ```
+
+    *Kyohei Toyoda*
+
+*   The `fill_in_rich_text_area` system test helper locates a Trix editor
+    and fills it in with the given HTML.
 
     ```ruby
     # <trix-editor id="message_content" ...></trix-editor>

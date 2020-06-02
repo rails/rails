@@ -1,3 +1,13 @@
+*   `ActionCable::Connection::Base` now allows intercepting unhandled exceptions
+    with `rescue_from` before they are logged, which is useful for error reporting
+    tools and other integrations.
+
+    *Justin Talbott*
+
+*   Add `ActionCable::Channel#stream_or_reject_for` to stream if record is present, otherwise reject the connection
+
+    *Atul Bhosale*
+
 *   Add `ActionCable::Channel#stop_stream_from` and `#stop_stream_for` to unsubscribe from a specific stream.
 
     *Zhang Kang*

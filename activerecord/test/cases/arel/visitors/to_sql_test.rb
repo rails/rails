@@ -395,11 +395,6 @@ module Arel
           _(compile(node)).must_be_like %{
             "users"."id" IN (1, 2, 3)
           }
-
-          node = @attr.in [1, 2, 3, 4, 5]
-          _(compile(node)).must_be_like %{
-            ("users"."id" IN (1, 2, 3) OR "users"."id" IN (4, 5))
-          }
         end
 
         it "should return 1=0 when empty right which is always false" do
@@ -473,6 +468,18 @@ module Arel
           table = Table.new(:users)
           node = table[:name].concat(table[:name])
           _(compile(node)).must_equal %("users"."name" || "users"."name")
+        end
+
+        it "should handle Contains" do
+          table = Table.new(:users)
+          node = table[:name].contains(table[:name])
+          _(compile(node)).must_equal %("users"."name" @> "users"."name")
+        end
+
+        it "should handle Overlaps" do
+          table = Table.new(:users)
+          node = table[:name].overlaps(table[:name])
+          _(compile(node)).must_equal %("users"."name" && "users"."name")
         end
 
         it "should handle BitwiseAnd" do
@@ -549,11 +556,6 @@ module Arel
           node = @attr.not_in [1, 2, 3]
           _(compile(node)).must_be_like %{
             "users"."id" NOT IN (1, 2, 3)
-          }
-
-          node = @attr.not_in [1, 2, 3, 4, 5]
-          _(compile(node)).must_be_like %{
-            "users"."id" NOT IN (1, 2, 3) AND "users"."id" NOT IN (4, 5)
           }
         end
 
@@ -715,6 +717,31 @@ module Arel
 
           _(compile(node)).must_be_like %{
             CASE "users"."name" WHEN 'foo' THEN 'bar' ELSE 'baz' END
+          }
+        end
+      end
+
+      describe "Nodes::With" do
+        it "handles table aliases" do
+          manager = Table.new(:foo).project(Arel.star).from(Arel.sql("expr2"))
+          expr1 = Table.new(:bar).project(Arel.star).as("expr1")
+          expr2 = Table.new(:baz).project(Arel.star).as("expr2")
+          manager.with(expr1, expr2)
+
+          _(compile(manager.ast)).must_be_like %{
+            WITH expr1 AS (SELECT * FROM "bar"), expr2 AS (SELECT * FROM "baz") SELECT * FROM expr2
+          }
+        end
+      end
+
+      describe "Nodes::WithRecursive" do
+        it "handles table aliases" do
+          manager = Table.new(:foo).project(Arel.star).from(Arel.sql("expr1"))
+          expr1 = Table.new(:bar).project(Arel.star).as("expr1")
+          manager.with(:recursive, expr1)
+
+          _(compile(manager.ast)).must_be_like %{
+            WITH RECURSIVE expr1 AS (SELECT * FROM "bar") SELECT * FROM expr1
           }
         end
       end

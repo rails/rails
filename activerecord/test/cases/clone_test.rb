@@ -13,6 +13,7 @@ module ActiveRecord
       assert topic.persisted?, "topic persisted"
       assert cloned.persisted?, "topic persisted"
       assert_not cloned.new_record?, "topic is not new"
+      assert_not cloned.previously_new_record?, "topic was not previously new"
     end
 
     def test_stays_frozen

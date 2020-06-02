@@ -29,7 +29,7 @@ module ActiveJob
           "#{operation}.active_job", payload.merge(adapter: queue_adapter, job: self), &enhanced_block
       end
 
-      def halted_callback_hook(_)
+      def halted_callback_hook(*)
         super
         @_halted_callback_hook_called = true
       end

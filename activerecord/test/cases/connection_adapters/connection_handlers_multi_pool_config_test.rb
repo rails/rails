@@ -24,7 +24,7 @@ module ActiveRecord
 
           config = {
             "default_env" => {
-              "primary" => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" }
+              "primary" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" }
             }
           }
 
@@ -52,7 +52,7 @@ module ActiveRecord
 
           config = {
             "default_env" => {
-              "primary" => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" }
+              "primary" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" }
             }
           }
 
@@ -77,7 +77,7 @@ module ActiveRecord
 
           config = {
             "default_env" => {
-              "primary" => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" }
+              "primary" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" }
             }
           }
 
@@ -96,7 +96,6 @@ module ActiveRecord
           ActiveRecord::Base.configurations = @prev_configs
           ActiveRecord::Base.establish_connection(:arunit)
           ENV["RAILS_ENV"] = previous_env
-          FileUtils.rm_rf "db"
         end
       end
     end

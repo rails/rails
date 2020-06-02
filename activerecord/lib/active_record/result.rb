@@ -110,13 +110,21 @@ module ActiveRecord
       if columns.one?
         # Separated to avoid allocating an array per row
 
-        type = column_type(columns.first, type_overrides)
+        type = if type_overrides.is_a?(Array)
+          type_overrides.first
+        else
+          column_type(columns.first, type_overrides)
+        end
 
         rows.map do |(value)|
           type.deserialize(value)
         end
       else
-        types = columns.map { |name| column_type(name, type_overrides) }
+        types = if type_overrides.is_a?(Array)
+          type_overrides
+        else
+          columns.map { |name| column_type(name, type_overrides) }
+        end
 
         rows.map do |values|
           Array.new(values.size) { |i| types[i].deserialize(values[i]) }

@@ -177,7 +177,7 @@ module TestHelpers
               <<: *default
               database: db/production_animals.sqlite3
               migrations_paths: db/animals_migrate
-              readonly: true
+              replica: true
           YAML
         end
       else
@@ -513,7 +513,7 @@ Module.new do
 
   sh "#{Gem.ruby} #{RAILS_FRAMEWORK_ROOT}/railties/exe/rails new #{app_template_path} --skip-bundle --skip-listen --no-rc --skip-webpack-install --quiet"
   File.open("#{app_template_path}/config/boot.rb", "w") do |f|
-    f.puts "require 'rails/all'"
+    f.puts 'require "rails/all"'
   end
 
   unless File.exist?("#{RAILS_FRAMEWORK_ROOT}/actionview/lib/assets/compiled/rails-ujs.js")

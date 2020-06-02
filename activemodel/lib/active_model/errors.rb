@@ -11,7 +11,7 @@ require "forwardable"
 module ActiveModel
   # == Active \Model \Errors
   #
-  # Provides a modified +Hash+ that you can include in your object
+  # Provides error related functionalities you can include in your object
   # for handling error messages and interacting with Action View helpers.
   #
   # A minimal implementation could be:
@@ -68,7 +68,10 @@ module ActiveModel
     def_delegators :@errors, :count
 
     LEGACY_ATTRIBUTES = [:messages, :details].freeze
+    private_constant :LEGACY_ATTRIBUTES
 
+    # The actual array of +Error+ objects
+    # This method is aliased to <tt>objects</tt>.
     attr_reader :errors
     alias :objects :errors
 
@@ -205,17 +208,27 @@ module ActiveModel
       DeprecationHandlingMessageArray.new(messages_for(attribute), self, attribute)
     end
 
-    # Iterates through each error key, value pair in the error messages hash.
+    # Iterates through each error object.
+    #
+    #   person.errors.add(:name, :too_short, count: 2)
+    #   person.errors.each do |error|
+    #     # Will yield <#ActiveModel::Error attribute=name, type=too_short,
+    #                                       options={:count=>3}>
+    #   end
+    #
+    # To be backward compatible with past deprecated hash-like behavior,
+    # when block accepts two parameters instead of one, it
+    # iterates through each error key, value pair in the error messages hash.
     # Yields the attribute and the error for that attribute. If the attribute
     # has more than one error message, yields once for each error message.
     #
     #   person.errors.add(:name, :blank, message: "can't be blank")
-    #   person.errors.each do |attribute, error|
+    #   person.errors.each do |attribute, message|
     #     # Will yield :name and "can't be blank"
     #   end
     #
     #   person.errors.add(:name, :not_specified, message: "must be specified")
-    #   person.errors.each do |attribute, error|
+    #   person.errors.each do |attribute, message|
     #     # Will yield :name and "can't be blank"
     #     # then yield :name and "must be specified"
     #   end
@@ -230,7 +243,8 @@ module ActiveModel
           parameter like this:
 
           person.errors.each do |error|
-            error.full_message
+            attribute = error.attribute
+            message = error.message
           end
 
           You are passing a block expecting two parameters,
@@ -248,7 +262,7 @@ module ActiveModel
     #   person.errors.messages # => {:name=>["cannot be nil", "must be specified"]}
     #   person.errors.values   # => [["cannot be nil", "must be specified"]]
     def values
-      deprecation_removal_warning(:values)
+      deprecation_removal_warning(:values, "errors.map { |error| error.message }")
       @errors.map(&:message).freeze
     end
 
@@ -257,10 +271,18 @@ module ActiveModel
     #   person.errors.messages # => {:name=>["cannot be nil", "must be specified"]}
     #   person.errors.keys     # => [:name]
     def keys
-      deprecation_removal_warning(:keys)
+      deprecation_removal_warning(:keys, "errors.attribute_names")
       keys = @errors.map(&:attribute)
       keys.uniq!
       keys.freeze
+    end
+
+    # Returns all error attribute names
+    #
+    #   person.errors.messages        # => {:name=>["cannot be nil", "must be specified"]}
+    #   person.errors.attribute_names # => [:name]
+    def attribute_names
+      @errors.map(&:attribute).uniq.freeze
     end
 
     # Returns an xml formatted representation of the Errors hash.
@@ -329,25 +351,25 @@ module ActiveModel
       @errors.group_by(&:attribute)
     end
 
-    # Adds +message+ to the error messages and used validator type to +details+ on +attribute+.
+    # Adds a new error of +type+ on +attribute+.
     # More than one error can be added to the same +attribute+.
-    # If no +message+ is supplied, <tt>:invalid</tt> is assumed.
+    # If no +type+ is supplied, <tt>:invalid</tt> is assumed.
     #
     #   person.errors.add(:name)
-    #   # => ["is invalid"]
+    #   # Adds <#ActiveModel::Error attribute=name, type=invalid>
     #   person.errors.add(:name, :not_implemented, message: "must be implemented")
-    #   # => ["is invalid", "must be implemented"]
+    #   # Adds <#ActiveModel::Error attribute=name, type=not_implemented,
+    #                               options={:message=>"must be implemented"}>
     #
     #   person.errors.messages
     #   # => {:name=>["is invalid", "must be implemented"]}
     #
-    #   person.errors.details
-    #   # => {:name=>[{error: :not_implemented}, {error: :invalid}]}
+    # If +type+ is a string, it will be used as error message.
     #
-    # If +message+ is a symbol, it will be translated using the appropriate
+    # If +type+ is a symbol, it will be translated using the appropriate
     # scope (see +generate_message+).
     #
-    # If +message+ is a proc, it will be called, allowing for things like
+    # If +type+ is a proc, it will be called, allowing for things like
     # <tt>Time.now</tt> to be used within an error.
     #
     # If the <tt>:strict</tt> option is set to +true+, it will raise
@@ -384,14 +406,14 @@ module ActiveModel
       error
     end
 
-    # Returns +true+ if an error on the attribute with the given message is
-    # present, or +false+ otherwise. +message+ is treated the same as for +add+.
+    # Returns +true+ if an error matches provided +attribute+ and +type+,
+    # or +false+ otherwise. +type+ is treated the same as for +add+.
     #
     #   person.errors.add :name, :blank
     #   person.errors.added? :name, :blank           # => true
     #   person.errors.added? :name, "can't be blank" # => true
     #
-    # If the error message requires options, then it returns +true+ with
+    # If the error requires options, then it returns +true+ with
     # the correct options, or +false+ with incorrect or missing options.
     #
     #   person.errors.add :name, :too_long, { count: 25 }
@@ -412,8 +434,8 @@ module ActiveModel
       end
     end
 
-    # Returns +true+ if an error on the attribute with the given message is
-    # present, or +false+ otherwise. +message+ is treated the same as for +add+.
+    # Returns +true+ if an error on the attribute with the given type is
+    # present, or +false+ otherwise. +type+ is treated the same as for +add+.
     #
     #   person.errors.add :age
     #   person.errors.add :name, :too_long, { count: 25 }
@@ -423,13 +445,13 @@ module ActiveModel
     #   person.errors.of_kind? :name, "is too long (maximum is 25 characters)" # => true
     #   person.errors.of_kind? :name, :not_too_long                            # => false
     #   person.errors.of_kind? :name, "is too long"                            # => false
-    def of_kind?(attribute, message = :invalid)
-      attribute, message = normalize_arguments(attribute, message)
+    def of_kind?(attribute, type = :invalid)
+      attribute, type = normalize_arguments(attribute, type)
 
-      if message.is_a? Symbol
-        !where(attribute, message).empty?
+      if type.is_a? Symbol
+        !where(attribute, type).empty?
       else
-        messages_for(attribute).include?(message)
+        messages_for(attribute).include?(type)
       end
     end
 
@@ -541,8 +563,13 @@ module ActiveModel
         }
       end
 
-      def deprecation_removal_warning(method_name)
-        ActiveSupport::Deprecation.warn("ActiveModel::Errors##{method_name} is deprecated and will be removed in Rails 6.2")
+      def deprecation_removal_warning(method_name, alternative_message = nil)
+        message = +"ActiveModel::Errors##{method_name} is deprecated and will be removed in Rails 6.2."
+        if alternative_message
+          message << "\n\nTo achieve the same use:\n\n  "
+          message << alternative_message
+        end
+        ActiveSupport::Deprecation.warn(message)
       end
 
       def deprecation_rename_warning(old_method_name, new_method_name)

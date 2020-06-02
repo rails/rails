@@ -21,14 +21,14 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_database_exists_returns_false_if_database_does_not_exist
-    db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+    db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
     config = db_config.configuration_hash.merge(database: "inexistent_activerecord_unittest")
     assert_not ActiveRecord::ConnectionAdapters::Mysql2Adapter.database_exists?(config),
       "expected database to not exist"
   end
 
   def test_database_exists_returns_true_when_the_database_exists
-    db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+    db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
     assert ActiveRecord::ConnectionAdapters::Mysql2Adapter.database_exists?(db_config.configuration_hash),
       "expected database #{db_config.database} to exist"
   end
@@ -62,12 +62,13 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_columns_for_distinct_with_arel_order
-    order = Object.new
-    def order.to_sql
-      "posts.created_at desc"
-    end
+    Arel::Table.engine = nil # should not rely on the global Arel::Table.engine
+
+    order = Arel.sql("posts.created_at").desc
     assert_equal "posts.created_at AS alias_0, posts.id",
       @conn.columns_for_distinct("posts.id", [order])
+  ensure
+    Arel::Table.engine = ActiveRecord::Base
   end
 
   def test_errors_for_bigint_fks_on_integer_pk_table_in_alter_table
@@ -248,7 +249,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_read_timeout_exception
-    db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+    db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
 
     ActiveRecord::Base.establish_connection(
       db_config.configuration_hash.merge("read_timeout" => 1)
@@ -281,7 +282,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
 
   def test_doesnt_error_when_a_use_query_is_called_while_preventing_writes
     @connection_handler.while_preventing_writes do
-      db_name = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary").database
+      db_name = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary").database
       assert_nil @conn.execute("USE #{db_name}")
     end
   end

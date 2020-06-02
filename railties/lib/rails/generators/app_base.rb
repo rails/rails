@@ -91,6 +91,9 @@ module Rails
         class_option :edge,                type: :boolean, default: false,
                                            desc: "Set up the #{name} with Gemfile pointing to Rails repository"
 
+        class_option :master,              type: :boolean, default: false,
+                                           desc: "Set up the #{name} with Gemfile pointing to Rails repository master branch"
+
         class_option :rc,                  type: :string, default: nil,
                                            desc: "Path to file containing extra configuration options for rails command"
 
@@ -283,6 +286,10 @@ module Rails
           [
             GemfileEntry.github("rails", "rails/rails")
           ]
+        elsif options.master?
+          [
+            GemfileEntry.github("rails", "rails/rails", "master")
+          ]
         else
           [GemfileEntry.version("rails",
                             rails_version_specifier,
@@ -312,10 +319,10 @@ module Rails
       def webpacker_gemfile_entry
         return [] if options[:skip_javascript]
 
-        if options.dev? || options.edge?
+        if options.dev? || options.edge? || options.master?
           GemfileEntry.github "webpacker", "rails/webpacker", nil, "Use development version of Webpacker"
         else
-          GemfileEntry.version "webpacker", "~> 4.0", "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
+          GemfileEntry.version "webpacker", "~> 5.0", "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
         end
       end
 
@@ -410,7 +417,9 @@ module Rails
       def run_webpack
         if webpack_install?
           rails_command "webpacker:install"
-          rails_command "webpacker:install:#{options[:webpack]}" if options[:webpack] && options[:webpack] != "webpack"
+          if options[:webpack] && options[:webpack] != "webpack"
+            rails_command "webpacker:install:#{options[:webpack]}"
+          end
         end
       end
 
@@ -420,9 +429,9 @@ module Rails
         end
       end
 
-      def generate_spring_binstubs
+      def generate_spring_binstub
         if bundle_install? && spring_install?
-          bundle_command("exec spring binstub --all")
+          bundle_command("exec spring binstub")
         end
       end
 

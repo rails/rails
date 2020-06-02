@@ -22,7 +22,7 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
 
   def test_bad_connection
     assert_raise ActiveRecord::NoDatabaseError do
-      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", spec_name: "primary")
+      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
       configuration = db_config.configuration_hash.merge(database: "inexistent_activerecord_unittest")
       connection = ActiveRecord::Base.mysql2_connection(configuration)
       connection.drop_table "ex", if_exists: true
@@ -170,7 +170,11 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
     @connection.execute "CREATE TABLE `bar_baz` (`foo` varchar(255))"
     @subscriber.logged.clear
     @connection.send(:rename_column_for_alter, "bar_baz", "foo", "foo2")
-    assert_equal "SCHEMA", @subscriber.logged[0][1]
+    if @connection.send(:supports_rename_column?)
+      assert_empty @subscriber.logged
+    else
+      assert_equal "SCHEMA", @subscriber.logged[0][1]
+    end
   ensure
     @connection.execute "DROP TABLE `bar_baz`"
   end

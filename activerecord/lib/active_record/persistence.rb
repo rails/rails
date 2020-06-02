@@ -424,26 +424,30 @@ module ActiveRecord
     # Returns true if this object hasn't been saved yet -- that is, a record
     # for the object doesn't exist in the database yet; otherwise, returns false.
     def new_record?
-      sync_with_transaction_state if @transaction_state&.finalized?
       @new_record
+    end
+
+    # Returns true if this object was just created -- that is, prior to the last
+    # save, the object didn't exist in the database and new_record? would have
+    # returned true.
+    def previously_new_record?
+      @previously_new_record
     end
 
     # Returns true if this object has been destroyed, otherwise returns false.
     def destroyed?
-      sync_with_transaction_state if @transaction_state&.finalized?
       @destroyed
     end
 
     # Returns true if the record is persisted, i.e. it's not a new record and it was
     # not destroyed, otherwise returns false.
     def persisted?
-      sync_with_transaction_state if @transaction_state&.finalized?
       !(@new_record || @destroyed)
     end
 
     ##
     # :call-seq:
-    #   save(*args)
+    #   save(**options)
     #
     # Saves the model.
     #
@@ -466,15 +470,15 @@ module ActiveRecord
     #
     # Attributes marked as readonly are silently ignored if the record is
     # being updated.
-    def save(*args, **options, &block)
-      create_or_update(*args, **options, &block)
+    def save(**options, &block)
+      create_or_update(**options, &block)
     rescue ActiveRecord::RecordInvalid
       false
     end
 
     ##
     # :call-seq:
-    #   save!(*args)
+    #   save!(**options)
     #
     # Saves the model.
     #
@@ -499,8 +503,8 @@ module ActiveRecord
     # being updated.
     #
     # Unless an error is raised, returns true.
-    def save!(*args, **options, &block)
-      create_or_update(*args, **options, &block) || raise(RecordNotSaved.new("Failed to save the record", self))
+    def save!(**options, &block)
+      create_or_update(**options, &block) || raise(RecordNotSaved.new("Failed to save the record", self))
     end
 
     # Deletes the record in the database and freezes this instance to
@@ -811,6 +815,7 @@ module ActiveRecord
 
       @attributes = fresh_object.instance_variable_get(:@attributes)
       @new_record = false
+      @previously_new_record = false
       self
     end
 
@@ -914,6 +919,8 @@ module ActiveRecord
         @_trigger_update_callback = affected_rows == 1
       end
 
+      @previously_new_record = false
+
       yield(self) if block_given?
 
       affected_rows
@@ -931,6 +938,7 @@ module ActiveRecord
       self.id ||= new_id if @primary_key
 
       @new_record = false
+      @previously_new_record = true
 
       yield(self) if block_given?
 
