@@ -1820,6 +1820,20 @@ class RelationTest < ActiveRecord::TestCase
     assert_nil relation.order_values.first
   end
 
+  def test_default_order
+    comments = posts(:welcome).comments
+    assert_equal [1, 2], comments.pluck(:id)
+    assert_equal 1, comments.first.id
+
+    comments = comments.default_order(:body)
+    assert_equal [2, 1], comments.pluck(:id)
+    assert_equal 2, comments.first.id
+
+    comments = comments.order(:id)
+    assert_equal [1, 2], comments.pluck(:id)
+    assert_equal 1, comments.first.id
+  end
+
   def test_reorder_with_first
     sql_log = capture_sql do
       message = <<~MSG.squish

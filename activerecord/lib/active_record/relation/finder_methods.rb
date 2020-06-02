@@ -585,8 +585,10 @@ module ActiveRecord
       end
 
       def ordered_relation
-        if order_values.empty? && (implicit_order_column || primary_key)
-          if implicit_order_column && primary_key && implicit_order_column != primary_key
+        if order_values.empty? && (default_order_values.present? || implicit_order_column || primary_key)
+          if default_order_values.present?
+            order(default_order_values)
+          elsif implicit_order_column && primary_key && implicit_order_column != primary_key
             order(table[implicit_order_column].asc, table[primary_key].asc)
           else
             order(table[implicit_order_column || primary_key].asc)
