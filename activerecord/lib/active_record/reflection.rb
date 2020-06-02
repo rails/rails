@@ -167,10 +167,6 @@ module ActiveRecord
 
       JoinKeys = Struct.new(:key, :foreign_key) # :nodoc:
 
-      def join_keys
-        @join_keys ||= get_join_keys(klass)
-      end
-
       # Returns a list of scopes that should be applied for this Reflection
       # object when querying the database.
       def scopes
@@ -188,10 +184,10 @@ module ActiveRecord
 
         scope_chain_items.inject(klass_scope, &:merge!)
 
-        key         = join_keys.key
-        foreign_key = join_keys.foreign_key
+        primary_key = join_primary_key
+        foreign_key = join_foreign_key
 
-        klass_scope.where!(table[key].eq(foreign_table[foreign_key]))
+        klass_scope.where!(table[primary_key].eq(foreign_table[foreign_key]))
 
         if klass.finder_needs_type_condition?
           klass_scope.where!(klass.send(:type_condition, table))
@@ -287,10 +283,6 @@ module ActiveRecord
         collect_join_chain
       end
 
-      def get_join_keys(association_klass)
-        JoinKeys.new(join_primary_key(association_klass), join_foreign_key)
-      end
-
       def build_scope(table, predicate_builder = predicate_builder(table), klass = self.klass)
         Relation.create(
           klass,
@@ -299,7 +291,7 @@ module ActiveRecord
         )
       end
 
-      def join_primary_key(*)
+      def join_primary_key(klass = nil)
         foreign_key
       end
 
@@ -754,8 +746,8 @@ module ActiveRecord
     # Holds all the metadata about a :through association as it was specified
     # in the Active Record class.
     class ThroughReflection < AbstractReflection #:nodoc:
-      delegate :foreign_key, :foreign_type, :association_foreign_key, :join_id_for,
-               :active_record_primary_key, :type, :get_join_keys, to: :source_reflection
+      delegate :foreign_key, :foreign_type, :association_foreign_key, :join_id_for, :type,
+               :active_record_primary_key, :join_foreign_key, to: :source_reflection
 
       def initialize(delegate_reflection)
         @delegate_reflection = delegate_reflection
@@ -873,6 +865,10 @@ module ActiveRecord
         # Get the "actual" source reflection if the immediate source reflection has a
         # source reflection itself
         actual_source_reflection.options[:primary_key] || primary_key(klass || self.klass)
+      end
+
+      def join_primary_key(klass = self.klass)
+        source_reflection.join_primary_key(klass)
       end
 
       # Gets an array of possible <tt>:through</tt> source reflection names in both singular and plural form.
@@ -1008,7 +1004,8 @@ module ActiveRecord
     end
 
     class PolymorphicReflection < AbstractReflection # :nodoc:
-      delegate :klass, :scope, :plural_name, :type, :get_join_keys, :scope_for, to: :@reflection
+      delegate :klass, :scope, :plural_name, :type, :join_primary_key, :join_foreign_key,
+               :scope_for, to: :@reflection
 
       def initialize(reflection, previous_reflection)
         @reflection = reflection
@@ -1033,7 +1030,7 @@ module ActiveRecord
     end
 
     class RuntimeReflection < AbstractReflection # :nodoc:
-      delegate :scope, :type, :constraints, :get_join_keys, to: :@reflection
+      delegate :scope, :type, :constraints, :join_foreign_key, to: :@reflection
 
       def initialize(reflection, association)
         @reflection = reflection
@@ -1046,6 +1043,10 @@ module ActiveRecord
 
       def aliased_table
         @aliased_table ||= Arel::Table.new(table_name, type_caster: klass.type_caster)
+      end
+
+      def join_primary_key(klass = self.klass)
+        @reflection.join_primary_key(klass)
       end
 
       def all_includes; yield; end
