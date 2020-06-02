@@ -145,7 +145,7 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
     end
   end
 
-  def test_blank_type_defaults_to_string_raises_exception
+  def test_blank_type_defaults_to_string
     assert_equal :string, create_generated_attribute(nil, "title").type
     assert_equal :string, create_generated_attribute("", "title").type
   end
