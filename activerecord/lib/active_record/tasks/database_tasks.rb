@@ -88,9 +88,9 @@ module ActiveRecord
 
         @migrations_paths = current_db_config&.migrations_paths || [DatabaseConfigurations::DatabaseConfig::DEFAULT_MIGRATION_PATH]
 
-        if defined?(Rails) && Rails.application
-          @migrations_paths = Rails.application.paths[@migrations_paths.first].to_a
-        end
+        #if defined?(Rails) && Rails.application
+        #  @migrations_paths = Rails.application.paths[@migrations_paths.first].to_a
+        #end
 
         @migrations_paths
       end
