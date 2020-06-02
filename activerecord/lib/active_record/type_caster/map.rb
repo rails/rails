@@ -3,8 +3,8 @@
 module ActiveRecord
   module TypeCaster
     class Map # :nodoc:
-      def initialize(types)
-        @types = types
+      def initialize(klass)
+        @klass = klass
       end
 
       def type_cast_for_database(attr_name, value)
@@ -13,11 +13,11 @@ module ActiveRecord
       end
 
       def type_for_attribute(name)
-        types.type_for_attribute(name)
+        klass.type_for_attribute(name)
       end
 
       private
-        attr_reader :types
+        attr_reader :klass
     end
   end
 end

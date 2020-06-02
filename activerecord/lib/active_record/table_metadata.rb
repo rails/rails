@@ -4,9 +4,8 @@ module ActiveRecord
   class TableMetadata # :nodoc:
     delegate :foreign_type, :foreign_key, :join_primary_key, :join_foreign_key, to: :reflection, prefix: :association
 
-    def initialize(klass, arel_table, reflection = nil, types = klass)
+    def initialize(klass, arel_table, reflection = nil)
       @klass = klass
-      @types = types
       @arel_table = arel_table
       @reflection = reflection
     end
@@ -20,7 +19,7 @@ module ActiveRecord
     end
 
     def type(column_name)
-      types.type_for_attribute(column_name)
+      arel_table.type_for_attribute(column_name)
     end
 
     def has_column?(column_name)
@@ -47,7 +46,7 @@ module ActiveRecord
       else
         type_caster = TypeCaster::Connection.new(klass, table_name)
         arel_table = Arel::Table.new(table_name, type_caster: type_caster)
-        TableMetadata.new(nil, arel_table, reflection, type_caster)
+        TableMetadata.new(nil, arel_table, reflection)
       end
     end
 
@@ -75,6 +74,6 @@ module ActiveRecord
     end
 
     private
-      attr_reader :klass, :types, :arel_table, :reflection
+      attr_reader :klass, :arel_table, :reflection
   end
 end
