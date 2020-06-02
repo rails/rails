@@ -52,8 +52,9 @@ module ActiveRecord
     end
 
     MULTI_VALUE_METHODS  = [:includes, :eager_load, :preload, :select, :group,
-                            :order, :joins, :left_outer_joins, :references,
-                            :extending, :unscope, :optimizer_hints, :annotate,
+                            :order, :default_order, :joins, :left_outer_joins,
+                            :references, :extending, :unscope, :optimizer_hints,
+                            :annotate,
                             :with].freeze
 
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :reordering, :strict_loading,
