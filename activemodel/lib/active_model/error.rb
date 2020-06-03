@@ -169,7 +169,7 @@ module ActiveModel
     end
 
     def inspect # :nodoc:
-      "<##{self.class.name} attribute=#{@attribute}, type=#{@type}, options=#{@options.inspect}>"
+      "#<#{self.class.name} attribute=#{@attribute}, type=#{@type}, options=#{@options.inspect}>"
     end
 
     protected

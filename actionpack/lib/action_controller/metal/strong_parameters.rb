@@ -855,7 +855,7 @@ module ActionController
     end
 
     def inspect
-      "<#{self.class} #{@parameters} permitted: #{@permitted}>"
+      "#<#{self.class} #{@parameters} permitted: #{@permitted}>"
     end
 
     def self.hook_into_yaml_loading # :nodoc:

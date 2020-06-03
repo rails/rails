@@ -195,7 +195,7 @@ module ActiveSupport
 
       def inspect
         instance = @redis || @redis_options
-        "<##{self.class} options=#{options.inspect} redis=#{instance.inspect}>"
+        "#<#{self.class} options=#{options.inspect} redis=#{instance.inspect}>"
       end
 
       # Cache Store API implementation.

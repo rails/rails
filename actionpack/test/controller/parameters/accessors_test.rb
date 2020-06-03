@@ -369,7 +369,7 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
 
   test "inspect shows both class name, parameters and permitted flag" do
     assert_equal(
-      '<ActionController::Parameters {"person"=>{"age"=>"32", '\
+      '#<ActionController::Parameters {"person"=>{"age"=>"32", '\
         '"name"=>{"first"=>"David", "last"=>"Heinemeier Hansson"}, ' \
         '"addresses"=>[{"city"=>"Chicago", "state"=>"Illinois"}]}} permitted: false>',
       @params.inspect
