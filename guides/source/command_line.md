@@ -267,7 +267,7 @@ ActiveRecord options:
 ...
 
 Description:
-    Stubs out a new model. Pass the model name, either CamelCased or
+    Generates a new model. Pass the model name, either CamelCased or
     under_scored, and an optional list of attribute pairs as arguments.
 
 ...
