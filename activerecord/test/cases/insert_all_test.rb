@@ -173,6 +173,20 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_insert_all_and_upsert_all_with_expression_index
+    skip unless supports_expression_index? && supports_insert_conflict_target?
+
+    book = Book.create!(external_id: "abc")
+
+    assert_no_difference "Book.count" do
+      Book.insert_all [{ external_id: "ABC" }], unique_by: :index_books_on_lower_external_id
+    end
+
+    Book.upsert_all [{ external_id: "Abc" }], unique_by: :index_books_on_lower_external_id
+
+    assert_equal "Abc", book.reload.external_id
+  end
+
   def test_insert_all_and_upsert_all_raises_when_index_is_missing
     skip unless supports_insert_conflict_target?
 

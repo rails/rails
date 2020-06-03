@@ -168,7 +168,7 @@ module ActiveRecord
           end
 
           def format_columns(columns)
-            quote_columns(columns).join(",")
+            columns.respond_to?(:map) ? quote_columns(columns).join(",") : columns
           end
 
           def quote_columns(columns)
