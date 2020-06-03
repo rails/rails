@@ -318,6 +318,13 @@ module ActiveRecord
       end
     end
 
+    test "serialize boolean for both string types" do
+      default_string_type = Type.lookup(:string)
+      immutable_string_type = Type.lookup(:immutable_string)
+      assert_equal default_string_type.serialize(true), immutable_string_type.serialize(true)
+      assert_equal default_string_type.serialize(false), immutable_string_type.serialize(false)
+    end
+
     private
       def with_immutable_strings
         old_value = ActiveRecord::Base.immutable_strings_by_default

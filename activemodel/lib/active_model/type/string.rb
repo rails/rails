@@ -13,6 +13,8 @@ module ActiveModel
 
       def to_immutable_string
         ImmutableString.new(
+          true: @true,
+          false: @false,
           limit: limit,
           precision: precision,
           scale: scale,
@@ -23,8 +25,8 @@ module ActiveModel
         def cast_value(value)
           case value
           when ::String then ::String.new(value)
-          when true then "t"
-          when false then "f"
+          when true then @true
+          when false then @false
           else value.to_s
           end
         end
