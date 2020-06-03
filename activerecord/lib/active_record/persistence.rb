@@ -707,9 +707,9 @@ module ActiveRecord
     # Returns +self+.
     def increment!(attribute, by = 1, touch: nil)
       increment(attribute, by)
-      change = public_send(attribute) - (attribute_in_database(attribute.to_s) || 0)
+      change = public_send(attribute) - (public_send(:"#{attribute}_in_database") || 0)
       self.class.update_counters(id, attribute => change, touch: touch)
-      clear_attribute_change(attribute) # eww
+      public_send(:"clear_#{attribute}_change")
       self
     end
 

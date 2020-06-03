@@ -154,8 +154,28 @@ class DirtyTest < ActiveRecord::TestCase
     pirate = Pirate.create!(catchphrase: "Yar!")
     pirate.catchphrase = "Ahoy!"
 
+    assert_equal "Ahoy!", pirate.catchphrase
+    assert_equal ["Yar!", "Ahoy!"], pirate.catchphrase_change
+
     pirate.restore_catchphrase!
+
+    assert_nil pirate.catchphrase_change
     assert_equal "Yar!", pirate.catchphrase
+    assert_equal Hash.new, pirate.changes
+    assert_not_predicate pirate, :catchphrase_changed?
+  end
+
+  def test_clear_attribute_change
+    pirate = Pirate.create!(catchphrase: "Yar!")
+    pirate.catchphrase = "Ahoy!"
+
+    assert_equal "Ahoy!", pirate.catchphrase
+    assert_equal ["Yar!", "Ahoy!"], pirate.catchphrase_change
+
+    pirate.clear_catchphrase_change
+
+    assert_nil pirate.catchphrase_change
+    assert_equal "Ahoy!", pirate.catchphrase
     assert_equal Hash.new, pirate.changes
     assert_not_predicate pirate, :catchphrase_changed?
   end
