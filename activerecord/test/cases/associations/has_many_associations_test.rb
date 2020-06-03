@@ -517,15 +517,19 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       new_clients << company.clients_of_firm.build(name: "Another Client III")
     end
 
-    assert_not_predicate company.clients_of_firm, :loaded?
-    assert_queries(1) do
+    assert_queries(3) do
       assert_same new_clients[0], company.clients_of_firm.third
       assert_same new_clients[1], company.clients_of_firm.fourth
       assert_same new_clients[2], company.clients_of_firm.fifth
+    end
+
+    assert_queries(0) do
       assert_same new_clients[0], company.clients_of_firm.third_to_last
       assert_same new_clients[1], company.clients_of_firm.second_to_last
       assert_same new_clients[2], company.clients_of_firm.last
     end
+
+    assert_not_predicate company.clients_of_firm, :loaded?
   end
 
   def test_finder_bang_method_with_dirty_target
@@ -538,15 +542,19 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       new_clients << company.clients_of_firm.build(name: "Another Client III")
     end
 
-    assert_not_predicate company.clients_of_firm, :loaded?
-    assert_queries(1) do
+    assert_queries(3) do
       assert_same new_clients[0], company.clients_of_firm.third!
       assert_same new_clients[1], company.clients_of_firm.fourth!
       assert_same new_clients[2], company.clients_of_firm.fifth!
+    end
+
+    assert_queries(0) do
       assert_same new_clients[0], company.clients_of_firm.third_to_last!
       assert_same new_clients[1], company.clients_of_firm.second_to_last!
       assert_same new_clients[2], company.clients_of_firm.last!
     end
+
+    assert_not_predicate company.clients_of_firm, :loaded?
   end
 
   def test_create_resets_cached_counters
@@ -661,6 +669,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [posts(:misc_by_bob)], bob.posts.take(1)
     assert_equal [posts(:misc_by_bob), posts(:other_by_bob)], bob.posts.take(2)
     assert_equal [posts(:misc_by_bob), posts(:other_by_bob), new_post], bob.posts.take(3)
+    assert_not_predicate bob.posts, :loaded?
 
     # taking from loaded Relation
     bob.posts.load
@@ -2161,18 +2170,18 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_calling_first_nth_or_last_on_existing_record_with_build_should_load_association
+  def test_calling_first_nth_or_last_on_existing_record_with_build_should_not_load_association
     firm = companies(:first_firm)
     firm.clients.build(name: "Foo")
     assert_not_predicate firm.clients, :loaded?
 
-    assert_queries 1 do
+    assert_queries 3 do
       firm.clients.first
       firm.clients.second
-      firm.clients.last
+      firm.clients.third
     end
 
-    assert_predicate firm.clients, :loaded?
+    assert_not_predicate firm.clients, :loaded?
 
     author = Author.create!(name: "Carl")
     third  = topics(:third)
@@ -2191,6 +2200,18 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
 
     assert_predicate author.topics_without_type, :loaded?
+  end
+
+  def test_calling_last_on_existing_record_with_build_should_not_use_query
+    firm = companies(:first_firm)
+    firm.clients.build(name: "Foo")
+    assert_not_predicate firm.clients, :loaded?
+
+    assert_queries 0 do
+      firm.clients.last
+    end
+
+    assert_not_predicate firm.clients, :loaded?
   end
 
   def test_calling_first_nth_or_last_on_existing_record_with_create_should_not_load_association

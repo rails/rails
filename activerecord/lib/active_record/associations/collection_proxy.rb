@@ -255,8 +255,15 @@ module ActiveRecord
       #   another_person_without.pets.last    # => nil
       #   another_person_without.pets.last(3) # => []
       def last(limit = nil)
-        load_target if find_from_target?
-        super
+        load_target if strict_loading?
+
+        if loaded?
+          super
+        elsif limit.nil?
+          unsaved_records.last || super
+        else
+          super.concat(unsaved_records).last(limit)
+        end
       end
 
       # Gives a record (or N records if a parameter is supplied) from the collection
@@ -285,8 +292,15 @@ module ActiveRecord
       #   another_person_without.pets.take    # => nil
       #   another_person_without.pets.take(2) # => []
       def take(limit = nil)
-        load_target if find_from_target?
-        super
+        load_target if strict_loading?
+
+        if loaded?
+          super
+        elsif limit.nil?
+          super || unsaved_records.first
+        else
+          super.concat(unsaved_records).first(limit)
+        end
       end
 
       # Returns a new object of the collection type that has been instantiated
@@ -1109,22 +1123,27 @@ module ActiveRecord
       delegate(*delegate_methods, to: :scope)
 
       private
-        def find_nth_with_limit(index, limit)
-          load_target if find_from_target?
+        def find_nth_with_limit(index, limit, unsaved_records = self.unsaved_records)
+          load_target if strict_loading?
           super
         end
 
         def find_nth_from_last(index)
-          load_target if find_from_target?
-          super
+          load_target if strict_loading?
+
+          if loaded?
+            super
+          else
+            unsaved_records[-index] || super(unsaved_records.length - index)
+          end
         end
 
         def null_scope?
           @association.null_scope?
         end
 
-        def find_from_target?
-          @association.find_from_target?
+        def strict_loading?
+          @association.owner.strict_loading? || @association.reflection.strict_loading?
         end
 
         def exec_queries

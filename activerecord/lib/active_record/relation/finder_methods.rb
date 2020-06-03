@@ -522,21 +522,18 @@ module ActiveRecord
         @offsets[index] ||= find_nth_with_limit(index, 1).first
       end
 
-      def find_nth_with_limit(index, limit)
-        if loaded?
-          records[index, limit] || []
-        else
-          relation = ordered_relation
+      def find_nth_with_limit(index, limit, unsaved_records = [])
+        return records[index, limit] || [] if loaded?
 
-          if limit_value
-            limit = [limit_value - index, limit].min
-          end
+        limit = [limit_value - index, limit].min if limit_value
+        return [] if limit < 1
 
-          if limit > 0
-            relation = relation.offset((offset_value || 0) + index) unless index.zero?
-            relation.limit(limit).to_a
-          else
-            []
+        ordered_relation.limit(limit + index).to_a.tap do |result|
+          offset_records_length = result.shift(index).length
+
+          if result.length < limit
+            padding = unsaved_records.slice(index - offset_records_length, limit - result.length) || []
+            result.concat(padding)
           end
         end
       end

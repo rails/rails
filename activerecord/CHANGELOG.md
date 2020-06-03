@@ -1,3 +1,13 @@
+*   Avoid loading association when calling first, last or other finder methods (e.g.
+    take, second, third) on a dirty association. Instead of loading all records in
+    an association from the database, load no more than the requested limit. If the
+    number of available database records falls short of the requested limit, pad as
+    needed with new records.
+
+    Fixes #39455.
+
+    *Aaron Lipman*
+
 *   Allow attribute's default to be configured but keeping its own type.
 
     ```ruby

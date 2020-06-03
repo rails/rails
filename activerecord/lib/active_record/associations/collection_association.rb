@@ -310,14 +310,6 @@ module ActiveRecord
         owner.new_record? && !foreign_key_present?
       end
 
-      def find_from_target?
-        loaded? ||
-          owner.strict_loading? ||
-          reflection.strict_loading? ||
-          owner.new_record? ||
-          target.any? { |record| record.new_record? || record.changed? }
-      end
-
       private
         # We have some records loaded from the database (persisted) and some that are
         # in-memory (memory). The same record may be represented in the persisted array

@@ -317,7 +317,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_not_predicate devel.projects, :loaded?
 
     assert_equal devel.projects.last, proj
-    assert_predicate devel.projects, :loaded?
+    assert_not_predicate devel.projects, :loaded?
 
     assert_not_predicate proj, :persisted?
     devel.save
@@ -333,7 +333,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_not_predicate devel.projects, :loaded?
 
     assert_equal devel.projects.last, proj
-    assert_predicate devel.projects, :loaded?
+    assert_not_predicate devel.projects, :loaded?
 
     assert_not_predicate proj, :persisted?
     devel.save
