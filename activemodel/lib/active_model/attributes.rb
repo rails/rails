@@ -124,20 +124,25 @@ module ActiveModel
         name = attr_name.to_s
         name = self.class.attribute_aliases[name] || name
 
-        @attributes.write_from_user(name, value)
-        value
+        _write_attribute(name, value)
       end
 
-      def attribute(attr_name)
+      def _write_attribute(attr_name, value)
+        @attributes.write_from_user(attr_name, value)
+        value
+      end
+      alias :attribute= :_write_attribute
+
+      def read_attribute(attr_name)
         name = attr_name.to_s
         name = self.class.attribute_aliases[name] || name
 
-        @attributes.fetch_value(name)
+        _read_attribute(name)
       end
 
-      # Dispatch target for <tt>*=</tt> attribute methods.
-      def attribute=(attribute_name, value)
-        write_attribute(attribute_name, value)
+      def _read_attribute(attr_name)
+        @attributes.fetch_value(attr_name)
       end
+      alias :attribute :_read_attribute
   end
 end

@@ -304,6 +304,7 @@ module ActiveRecord
     #   person.attribute_for_inspect(:tag_ids)
     #   # => "[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]"
     def attribute_for_inspect(attr_name)
+      attr_name = attr_name.to_s
       value = _read_attribute(attr_name)
       format_for_inspect(value)
     end
@@ -323,8 +324,9 @@ module ActiveRecord
     #   task.is_done = true
     #   task.attribute_present?(:title)   # => true
     #   task.attribute_present?(:is_done) # => true
-    def attribute_present?(attribute)
-      value = _read_attribute(attribute)
+    def attribute_present?(attr_name)
+      attr_name = attr_name.to_s
+      value = _read_attribute(attr_name)
       !value.nil? && !(value.respond_to?(:empty?) && value.empty?)
     end
 
