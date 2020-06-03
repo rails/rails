@@ -22,17 +22,17 @@ class ActionControllerRequiredParamsTest < ActionController::TestCase
     end
   end
 
-  if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
+  if defined?(DidYouMean::SpellChecker)
     test "exceptions have suggestions for fix" do
       error = assert_raise ActionController::ParameterMissing do
         post :create, params: { magazine: { name: "Mjallo!" } }
       end
-      assert_match "Did you mean?", error.message
+      assert_no_match "Did you mean?", error.message
 
       error = assert_raise ActionController::ParameterMissing do
-        post :create, params: { book: { title: "Mjallo!" } }
+        post :create, params: { boko: { title: "Mjallo!" } }
       end
-      assert_match "Did you mean?", error.message
+      assert_match 'Did you mean?  "boko"', error.message
     end
   end
 

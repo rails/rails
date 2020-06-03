@@ -33,28 +33,15 @@ module ActionController
       super(message)
     end
 
-    class Correction
-      def initialize(error)
-        @error = error
-      end
+    if defined?(DidYouMean::SpellChecker) && defined?(DidYouMean::Correctable)
+      include DidYouMean::Correctable
 
       def corrections
-        if @error.method_name
-          maybe_these = @error.routes.named_routes.helper_names.grep(/#{@error.route_name}/)
-          maybe_these -= [@error.method_name.to_s] # remove exact match
+        maybe_these = routes&.named_routes&.helper_names&.grep(/#{route_name}/) || []
+        maybe_these -= [method_name.to_s] # remove exact match
 
-          maybe_these.sort_by { |n|
-            DidYouMean::Jaro.distance(@error.route_name, n)
-          }.reverse.first(4)
-        else
-          []
-        end
+        DidYouMean::SpellChecker.new(dictionary: maybe_these).correct(route_name)
       end
-    end
-
-    # We may not have DYM, and DYM might not let us register error handlers
-    if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
-      DidYouMean.correct_error(self, Correction)
     end
   end
 

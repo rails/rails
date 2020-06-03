@@ -16,27 +16,12 @@ module ActiveRecord
       end
     end
 
-    class Correction
-      def initialize(error)
-        @error = error
-      end
+    if defined?(DidYouMean::SpellChecker) && defined?(DidYouMean::Correctable)
+      include DidYouMean::Correctable
 
       def corrections
-        if @error.association_name
-          maybe_these = @error.record.class.reflections.keys
-
-          maybe_these.sort_by { |n|
-            DidYouMean::Jaro.distance(@error.association_name.to_s, n)
-          }.reverse.first(4)
-        else
-          []
-        end
+        DidYouMean::SpellChecker.new(dictionary: record.class.reflections.keys).correct(association_name.to_s)
       end
-    end
-
-    # We may not have DYM, and DYM might not let us register error handlers
-    if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
-      DidYouMean.correct_error(self, Correction)
     end
   end
 
@@ -63,28 +48,15 @@ module ActiveRecord
       end
     end
 
-    class Correction
-      def initialize(error)
-        @error = error
-      end
+    if defined?(DidYouMean::SpellChecker) && defined?(DidYouMean::Correctable)
+      include DidYouMean::Correctable
 
       def corrections
-        if @error.reflection && @error.owner_class
-          maybe_these = @error.owner_class.reflections.keys
-          maybe_these -= [@error.reflection.name.to_s] # remove failing reflection
+        maybe_these = @error.owner_class.reflections.keys
+        maybe_these -= [@error.reflection.name.to_s] # remove failing reflection
 
-          maybe_these.sort_by { |n|
-            DidYouMean::Jaro.distance(@error.reflection.options[:through].to_s, n)
-          }.reverse.first(4)
-        else
-          []
-        end
+        DidYouMean::SpellChecker.new(dictionary: maybe_these).correct(reflection.options[:through].to_s)
       end
-    end
-
-    # We may not have DYM, and DYM might not let us register error handlers
-    if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
-      DidYouMean.correct_error(self, Correction)
     end
   end
 

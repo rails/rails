@@ -16,27 +16,12 @@ module AbstractController
       super(message)
     end
 
-    class Correction
-      def initialize(error)
-        @error = error
-      end
+    if defined?(DidYouMean::SpellChecker) && defined?(DidYouMean::Correctable)
+      include DidYouMean::Correctable
 
       def corrections
-        if @error.action
-          maybe_these = @error.controller.class.action_methods
-
-          maybe_these.sort_by { |n|
-            DidYouMean::Jaro.distance(@error.action.to_s, n)
-          }.reverse.first(4)
-        else
-          []
-        end
+        DidYouMean::SpellChecker.new(dictionary: controller.class.action_methods).correct(action)
       end
-    end
-
-    # We may not have DYM, and DYM might not let us register error handlers
-    if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
-      DidYouMean.correct_error(self, Correction)
     end
   end
 

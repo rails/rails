@@ -19,35 +19,36 @@ module ActionController
   #   params.require(:a)
   #   # => ActionController::ParameterMissing: param is missing or the value is empty: a
   class ParameterMissing < KeyError
-    attr_reader :param, :keys # :nodoc:
+    # In Ruby <= 2.5 +KeyError#new+ does not take the +key+ or +receiver+
+    # arguments and we need this feature detection.
+    takes_key_and_receiver = begin
+                               !!new(nil, key: nil, receiver: nil)
+                             rescue ArgumentError
+                               false
+                             end
 
-    def initialize(param, keys = nil) # :nodoc:
-      @param = param
-      @keys  = keys
-      super("param is missing or the value is empty: #{param}")
+    if takes_key_and_receiver
+      attr_reader :param # :nodoc:
+
+      def initialize(param, receiver: nil) # :nodoc:
+        @param = param
+        super("param is missing or the value is empty: #{param}", key: param, receiver: receiver)
+      end
+    else
+      attr_reader :param, :key, :receiver # :nodoc:
+
+      def initialize(param, receiver: nil) # :nodoc:
+        @param = param
+        @key = param
+        @receiver = receiver
+        super("param is missing or the value is empty: #{param}")
+      end
     end
 
-    class Correction
-      def initialize(error)
-        @error = error
-      end
-
+    if defined?(DidYouMean::KeyErrorChecker)
       def corrections
-        if @error.param && @error.keys
-          maybe_these = @error.keys
-
-          maybe_these.sort_by { |n|
-            DidYouMean::Jaro.distance(@error.param.to_s, n)
-          }.reverse.first(4)
-        else
-          []
-        end
+        DidYouMean::KeyErrorChecker.new(self).corrections
       end
-    end
-
-    # We may not have DYM, and DYM might not let us register error handlers
-    if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
-      DidYouMean.correct_error(self, Correction)
     end
   end
 
@@ -504,7 +505,7 @@ module ActionController
       if value.present? || value == false
         value
       else
-        raise ParameterMissing.new(key, @parameters.keys)
+        raise ParameterMissing.new(key, receiver: @parameters)
       end
     end
 
@@ -641,7 +642,7 @@ module ActionController
           if block_given?
             yield
           else
-            args.fetch(0) { raise ActionController::ParameterMissing.new(key, @parameters.keys) }
+            args.fetch(0) { raise ActionController::ParameterMissing.new(key, receiver: @parameters) }
           end
         }
       )
