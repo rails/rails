@@ -116,10 +116,12 @@ ActiveRecord::Schema.define do
     t.column :difficulty, :integer, **default_zero
     t.column :cover, :string, default: "hard"
     t.string :isbn, **case_sensitive_options
+    t.string :external_id
     t.datetime :published_on
     t.boolean :boolean_status
     t.index [:author_id, :name], unique: true
     t.index :isbn, where: "published_on IS NOT NULL", unique: true
+    t.index "(lower(external_id))", unique: true if supports_expression_index?
 
     t.datetime :created_at
     t.datetime :updated_at
