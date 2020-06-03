@@ -49,7 +49,12 @@ module Rails
         if command && command.all_commands[command_name]
           command.perform(command_name, args, config)
         else
-          find_by_namespace("rake").perform(full_namespace, args, config)
+          rake_namespace = find_by_namespace("rake")
+          if rake_namespace.performable_commands_and_options.include?(full_namespace)
+            rake_namespace.perform(full_namespace, args, config)
+          else
+            suggest_commands(full_namespace)
+          end
         end
       ensure
         ARGV.replace(old_argv)
@@ -77,6 +82,22 @@ module Rails
 
         namespaces = subclasses.index_by(&:namespace)
         namespaces[(lookups & namespaces.keys).first]
+      end
+
+      def suggest_commands(full_namespace)
+        maybe_these = subclasses.flat_map(&:printing_commands) + COMMANDS_IN_USAGE
+        suggestions = Rails::Command::Spellchecker.suggestions(full_namespace, from: maybe_these)
+        if suggestions.any?
+          suggestion_msg = +"\nMaybe you meant? "
+          suggestion_msg << suggestions.join("\n                 ")
+          suggestion_msg << "\n "
+        end
+
+        puts <<~MSG
+              Could not find command '#{full_namespace}'.
+              #{suggestion_msg}
+              Run `bin/rails --help` for more options.
+        MSG
       end
 
       # Returns the root of the Rails engine or app running the command.
