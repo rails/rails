@@ -1,3 +1,7 @@
+*   Do not mark Postgresql MAC address and UUID attributes as changed when the assigned value only varies by case.
+
+    *Peter Fry*
+
 *   Resolve issue with insert_all unique_by option when used with expression index.
 
     When the `:unique_by` option of `ActiveRecord::Persistence.insert_all` and

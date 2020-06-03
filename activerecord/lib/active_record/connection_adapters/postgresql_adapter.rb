@@ -535,7 +535,7 @@ module ActiveRecord
           m.register_type "uuid", OID::Uuid.new
           m.register_type "xml", OID::Xml.new
           m.register_type "tsvector", OID::SpecializedString.new(:tsvector)
-          m.register_type "macaddr", OID::SpecializedString.new(:macaddr)
+          m.register_type "macaddr", OID::Macaddr.new
           m.register_type "citext", OID::SpecializedString.new(:citext)
           m.register_type "ltree", OID::SpecializedString.new(:ltree)
           m.register_type "line", OID::SpecializedString.new(:line)
