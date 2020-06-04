@@ -1,3 +1,8 @@
+*   Add `config.action_dispatch.request_id_header` to allow changing the name of
+    the unique X-Request-Id header
+
+    *Arlston Fernandes*
+
 *   Deprecate `config.action_dispatch.return_only_media_type_on_content_type`.
 
     *Rafael Mendonça França*
