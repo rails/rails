@@ -1541,7 +1541,7 @@ would output:
 </a>
 ```
 
-See [the API Doc for more info](https://api.rubyonrails.org/v6.0/classes/ActionView/Helpers/UrlHelper.html#method-i-link_to)
+See [the API Doc for more info](https://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-link_to)
 
 #### button_to
 
@@ -1562,7 +1562,7 @@ would roughly output something like:
 </form>
 ```
 
-See [the API Doc for more info](https://api.rubyonrails.org/v6.0/classes/ActionView/Helpers/UrlHelper.html#method-i-button_to)
+See [the API Doc for more info](https://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-button_to)
 
 ### CsrfHelper
 
