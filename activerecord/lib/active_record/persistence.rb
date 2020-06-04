@@ -670,11 +670,8 @@ module ActiveRecord
 
       attributes = attributes.transform_keys do |key|
         name = key.to_s
-        self.class.attribute_aliases[name] || name
-      end
-
-      attributes.each_key do |key|
-        verify_readonly_attribute(key)
+        name = self.class.attribute_aliases[name] || name
+        verify_readonly_attribute(name) || name
       end
 
       id_in_database = self.id_in_database
@@ -857,9 +854,10 @@ module ActiveRecord
       _raise_record_not_touched_error unless persisted?
 
       attribute_names = timestamp_attributes_for_update_in_model
-      attribute_names |= names.map!(&:to_s).map! { |name|
+      attribute_names |= names.map! do |name|
+        name = name.to_s
         self.class.attribute_aliases[name] || name
-      }
+      end unless names.empty?
 
       unless attribute_names.empty?
         affected_rows = _touch_row(attribute_names, time)

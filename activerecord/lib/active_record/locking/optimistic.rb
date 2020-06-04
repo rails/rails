@@ -90,6 +90,7 @@ module ActiveRecord
           begin
             locking_column = self.class.locking_column
             previous_lock_value = read_attribute_before_type_cast(locking_column)
+            attribute_names = attribute_names.dup if attribute_names.frozen?
             attribute_names << locking_column
 
             self[locking_column] += 1
