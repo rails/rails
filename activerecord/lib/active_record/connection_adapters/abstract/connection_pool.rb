@@ -148,7 +148,7 @@ module ActiveRecord
 
         # Remove the head of the queue.
         #
-        # If +timeout+ is not given, remove and return the head the
+        # If +timeout+ is not given, remove and return the head of the
         # queue if the number of available elements is strictly
         # greater than the number of threads currently waiting (that
         # is, don't jump ahead in line).  Otherwise, return +nil+.
@@ -191,7 +191,7 @@ module ActiveRecord
             @queue.pop
           end
 
-          # Remove and return the head the queue if the number of
+          # Remove and return the head of the queue if the number of
           # available elements is strictly greater than the number of
           # threads currently waiting.  Otherwise, return +nil+.
           def no_wait_poll
