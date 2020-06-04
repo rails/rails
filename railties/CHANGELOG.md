@@ -1,3 +1,7 @@
+*   Raise an error in generators if a field type is invalid.
+
+    *Petrik de Heus*
+
 *   `bin/rails tmp:clear` deletes also files and directories in `tmp/storage`.
 
     *George Claghorn*
