@@ -822,12 +822,8 @@ module ActiveRecord
         end
 
         def with_new_connections_blocked
-          if RUBY_ENGINE == "ruby"
+          synchronize do
             @threads_blocking_new_connections += 1
-          else
-            synchronize do
-              @threads_blocking_new_connections += 1
-            end
           end
 
           yield
