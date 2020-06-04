@@ -1,3 +1,18 @@
+*   Calling `iso8601` on negative durations retains the negative sign on individual 
+    digits instead of prepending it.
+
+    Before:
+
+        (-1.year - 1.day).iso8601
+        # => "-P1Y1D"
+
+    After:
+
+        (-1.year - 1.day).iso8601
+        # => "P-1Y-1D"
+
+    *Vipul A M*
+    
 *   `require_dependency` has been documented to be _obsolete_ in `:zeitwerk`
     mode. The method is not deprecated as such (yet), but applications are
     encouraged to not use it.
