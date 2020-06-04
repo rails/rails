@@ -8,6 +8,25 @@ module Rails
     class GeneratedAttribute # :nodoc:
       INDEX_OPTIONS = %w(index uniq)
       UNIQ_INDEX_OPTIONS = %w(uniq)
+      DEFAULT_TYPES = %w(
+        attachment
+        attachments
+        belongs_to
+        boolean
+        date
+        datetime
+        decimal
+        digest
+        float
+        integer
+        references
+        rich_text
+        string
+        text
+        time
+        timestamp
+        token
+      )
 
       attr_accessor :name, :type
       attr_reader   :attr_options
@@ -25,6 +44,10 @@ module Rails
           type, attr_options = *parse_type_and_options(type)
           type = type.to_sym if type
 
+          if type && !valid_type?(type)
+            raise Thor::Error, "Unknown type '#{type}' for attribute '#{name}'."
+          end
+
           if type && reference?(type)
             if UNIQ_INDEX_OPTIONS.include?(has_index)
               attr_options[:index] = { unique: true }
@@ -32,6 +55,11 @@ module Rails
           end
 
           new(name, type, has_index, attr_options)
+        end
+
+        def valid_type?(type)
+          DEFAULT_TYPES.include?(type.to_s) ||
+            ActiveRecord::Base.connection.valid_type?(type)
         end
 
         def reference?(type)

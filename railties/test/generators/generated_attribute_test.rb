@@ -9,6 +9,7 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
   def setup
     @old_belongs_to_required_by_default = Rails.application.config.active_record.belongs_to_required_by_default
     Rails.application.config.active_record.belongs_to_required_by_default = true
+    ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
   end
 
   def teardown
@@ -57,9 +58,11 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
     end
   end
 
-  def test_field_type_with_unknown_type_returns_text_field
+  def test_field_type_with_unknown_type_raises_error
     %w(foo bar baz).each do |attribute_type|
-      assert_field_type attribute_type, :text_field
+      assert_raise Thor::Error do
+        assert_field_type attribute_type, :text_field
+      end
     end
   end
 
@@ -109,7 +112,7 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
   end
 
   def test_default_value_is_empty_string
-    %w(foo bar baz).each do |attribute_type|
+    %w(digest token).each do |attribute_type|
       assert_field_default_value attribute_type, ""
     end
   end
@@ -128,7 +131,7 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
   end
 
   def test_reference_is_false
-    %w(foo bar baz).each do |attribute_type|
+    %w(string text float).each do |attribute_type|
       assert_not_predicate create_generated_attribute(attribute_type), :reference?
     end
   end
@@ -140,8 +143,8 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
   end
 
   def test_polymorphic_reference_is_false
-    %w(foo bar baz).each do |attribute_type|
-      assert_not_predicate create_generated_attribute("#{attribute_type}{polymorphic}"), :polymorphic?
+    %w(references belongs_to).each do |attribute_type|
+      assert_not_predicate create_generated_attribute(attribute_type), :polymorphic?
     end
   end
 
@@ -161,6 +164,12 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
     assert_equal "post", create_generated_attribute("string", "post").column_name
     assert_equal "post_id", create_generated_attribute("references", "post").column_name
     assert_equal "post_id", create_generated_attribute("belongs_to", "post").column_name
+  end
+
+  def test_parse_works_with_adapter_specific_types
+    att = Rails::Generators::GeneratedAttribute.parse("document:json")
+    assert_equal "document", att.name
+    assert_equal :json, att.type
   end
 
   def test_parse_required_attribute_with_index
