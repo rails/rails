@@ -1,3 +1,15 @@
+*   Passing a Class to `ActiveSupport::Digest.hash_digest_class` is deprecated in favour of String.
+
+    Before:
+
+        ActiveSupport::Digest.hash_digest_class = OpenSSL::Digest::SHA256
+              
+    After:
+
+        ActiveSupport::Digest.hash_digest_class = "SHA256"
+
+    *Vipul A M*
+
 *   `require_dependency` has been documented to be _obsolete_ in `:zeitwerk`
     mode. The method is not deprecated as such (yet), but applications are
     encouraged to not use it.
