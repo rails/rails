@@ -2,10 +2,11 @@
   typeof exports === "object" && typeof module !== "undefined" ? factory(exports) : typeof define === "function" && define.amd ? define([ "exports" ], factory) : factory(global.ActionCable = {});
 })(this, function(exports) {
   "use strict";
-  var adapters = {
-    logger: self.console,
-    WebSocket: self.WebSocket
-  };
+  var adapters = {};
+  if (typeof self !== "undefined") {
+    adapters.WebSocket = self.WebSocket;
+    adapters.logger = self.console;
+  }
   var logger = {
     log: function log() {
       if (this.enabled) {
