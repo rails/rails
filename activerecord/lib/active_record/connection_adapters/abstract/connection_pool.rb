@@ -116,15 +116,11 @@ module ActiveRecord
           end
         end
 
-        if RUBY_ENGINE == "ruby"
-          # Returns the number of threads currently waiting on this queue.
-          attr_reader :num_waiting
-        else
-          # Returns the number of threads currently waiting on this queue.
-          def num_waiting
-            synchronize do
-              @num_waiting
-            end
+        # Returns the number of threads currently waiting on this
+        # queue.
+        def num_waiting
+          synchronize do
+            @num_waiting
           end
         end
 
