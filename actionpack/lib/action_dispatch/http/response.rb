@@ -215,15 +215,9 @@ module ActionDispatch # :nodoc:
       end
     end
 
-    if RUBY_ENGINE == "ruby"
-      def sending?;   @sending;   end
-      def committed?; @committed; end
-      def sent?;      @sent;      end
-    else
-      def sending?;   synchronize { @sending };   end
-      def committed?; synchronize { @committed }; end
-      def sent?;      synchronize { @sent };      end
-    end
+    def sending?;   synchronize { @sending };   end
+    def committed?; synchronize { @committed }; end
+    def sent?;      synchronize { @sent };      end
 
     # Sets the HTTP status code.
     def status=(status)
