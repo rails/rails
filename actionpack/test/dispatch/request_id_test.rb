@@ -7,6 +7,10 @@ class RequestIdTest < ActiveSupport::TestCase
     assert_equal "external-uu-rid", stub_request("HTTP_X_REQUEST_ID" => "external-uu-rid").request_id
   end
 
+  test "passing on the request id via a configured header" do
+    assert_equal "external-uu-rid", stub_request({ "HTTP_TRACER_ID" => "external-uu-rid" }, header: "Tracer-Id").request_id
+  end
+
   test "ensure that only alphanumeric uurids are accepted" do
     assert_equal "X-Hacked-HeaderStuff", stub_request("HTTP_X_REQUEST_ID" => "; X-Hacked-Header: Stuff").request_id
   end
@@ -29,8 +33,8 @@ class RequestIdTest < ActiveSupport::TestCase
   end
 
   private
-    def stub_request(env = {})
-      ActionDispatch::RequestId.new(lambda { |environment| [ 200, environment, [] ] }).call(env)
+    def stub_request(env = {}, header: nil)
+      ActionDispatch::RequestId.new(lambda { |environment| [ 200, environment, [] ] }, header: header).call(env)
       ActionDispatch::Request.new(env)
     end
 end
@@ -56,15 +60,22 @@ class RequestIdResponseTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "using a custom request_id header key" do
+    with_test_route_set(header: "X-Tracer-Id") do
+      get "/"
+      assert_match(/\w+/, @response.headers["X-Tracer-Id"])
+    end
+  end
+
   private
-    def with_test_route_set
+    def with_test_route_set(header: nil)
       with_routing do |set|
         set.draw do
           get "/", to: ::RequestIdResponseTest::TestController.action(:index)
         end
 
         @app = self.class.build_app(set) do |middleware|
-          middleware.use ActionDispatch::RequestId
+          middleware.use ActionDispatch::RequestId, header: header
         end
 
         yield
