@@ -15,7 +15,48 @@ module ActionDispatch
         @cache  = nil
       end
 
-      def generate(name, options, path_parameters, method_name = nil)
+      class RouteWithParams
+        attr_reader :params
+
+        def initialize(route, parameterized_parts, params)
+          @route = route
+          @parameterized_parts = parameterized_parts
+          @params = params
+        end
+
+        def path(_)
+          @route.format(@parameterized_parts)
+        end
+      end
+
+      class MissingRoute
+        attr_reader :routes, :name, :constraints, :missing_keys, :unmatched_keys
+
+        def initialize(constraints, missing_keys, unmatched_keys, routes, name)
+          @constraints = constraints
+          @missing_keys = missing_keys
+          @unmatched_keys = unmatched_keys
+          @routes = routes
+          @name = name
+        end
+
+        def path(method_name)
+          raise ActionController::UrlGenerationError.new(message, routes, name, method_name)
+        end
+
+        def params
+          path("unknown")
+        end
+
+        def message
+          message = +"No route matches #{Hash[constraints.sort_by { |k, v| k.to_s }].inspect}"
+          message << ", missing required keys: #{missing_keys.sort.inspect}" if missing_keys && !missing_keys.empty?
+          message << ", possible unmatched constraints: #{unmatched_keys.sort.inspect}" if unmatched_keys && !unmatched_keys.empty?
+          message
+        end
+      end
+
+      def generate(name, options, path_parameters)
         constraints = path_parameters.merge(options)
         missing_keys = nil
 
@@ -44,17 +85,13 @@ module ActionDispatch
             parameterized_parts.delete(key)
           end
 
-          return [route.format(parameterized_parts), params]
+          return RouteWithParams.new(route, parameterized_parts, params)
         end
 
         unmatched_keys = (missing_keys || []) & constraints.keys
         missing_keys = (missing_keys || []) - unmatched_keys
 
-        message = +"No route matches #{Hash[constraints.sort_by { |k, v| k.to_s }].inspect}"
-        message << ", missing required keys: #{missing_keys.sort.inspect}" if missing_keys && !missing_keys.empty?
-        message << ", possible unmatched constraints: #{unmatched_keys.sort.inspect}" if unmatched_keys && !unmatched_keys.empty?
-
-        raise ActionController::UrlGenerationError.new(message, routes, name, method_name)
+        MissingRoute.new(constraints, missing_keys, unmatched_keys, routes, name)
       end
 
       def clear
