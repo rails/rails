@@ -31,14 +31,13 @@ module ActiveRecord
         name = self.class.attribute_aliases[name] || name
 
         name = @primary_key if name == "id" && @primary_key
-        _write_attribute(name, value)
+        @attributes.write_from_user(name, value)
       end
 
       # This method exists to avoid the expensive primary_key check internally, without
       # breaking compatibility with the write_attribute API
       def _write_attribute(attr_name, value) # :nodoc:
         @attributes.write_from_user(attr_name, value)
-        value
       end
 
       alias :attribute= :_write_attribute
@@ -47,7 +46,6 @@ module ActiveRecord
       private
         def write_attribute_without_type_cast(attr_name, value)
           @attributes.write_cast_value(attr_name, value)
-          value
         end
     end
   end

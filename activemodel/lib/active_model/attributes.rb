@@ -48,7 +48,7 @@ module ActiveModel
           ) do |temp_method_name, attr_name_expr|
             owner <<
               "def #{temp_method_name}(value)" <<
-              "  write_attribute(#{attr_name_expr}, value)" <<
+              "  _write_attribute(#{attr_name_expr}, value)" <<
               "end"
           end
         end
@@ -124,12 +124,11 @@ module ActiveModel
         name = attr_name.to_s
         name = self.class.attribute_aliases[name] || name
 
-        _write_attribute(name, value)
+        @attributes.write_from_user(name, value)
       end
 
       def _write_attribute(attr_name, value)
         @attributes.write_from_user(attr_name, value)
-        value
       end
       alias :attribute= :_write_attribute
 
@@ -137,12 +136,11 @@ module ActiveModel
         name = attr_name.to_s
         name = self.class.attribute_aliases[name] || name
 
-        _read_attribute(name)
+        @attributes.fetch_value(name)
       end
 
-      def _read_attribute(attr_name)
+      def attribute(attr_name)
         @attributes.fetch_value(attr_name)
       end
-      alias :attribute :_read_attribute
   end
 end

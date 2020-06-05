@@ -182,7 +182,7 @@ module ActiveRecord
       def has_attribute?(attr_name)
         attr_name = attr_name.to_s
         attr_name = attribute_aliases[attr_name] || attr_name
-        _has_attribute?(attr_name)
+        attribute_types.key?(attr_name)
       end
 
       def _has_attribute?(attr_name) # :nodoc:
@@ -256,7 +256,7 @@ module ActiveRecord
     def has_attribute?(attr_name)
       attr_name = attr_name.to_s
       attr_name = self.class.attribute_aliases[attr_name] || attr_name
-      _has_attribute?(attr_name)
+      @attributes.key?(attr_name)
     end
 
     def _has_attribute?(attr_name) # :nodoc:
