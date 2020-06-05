@@ -89,6 +89,18 @@ module Enumerable
     end
   end
 
+  # Returns the only element of the enumerable and raises if there is not exactly
+  # 1 element in the enumerable
+  #
+  #   [1].single    # => 1
+  #   [].single     # => RangeError: Empty enumerable
+  #   [1, 2].single # => RangeError: Multiple elements in enumerable
+  def single
+    raise RangeError, "Empty enumerable" if count == 0
+    raise RangeError, "Multiple elements in enumerable" if count > 1
+    first
+  end
+
   # Returns +true+ if the enumerable has more than 1 element. Functionally
   # equivalent to <tt>enum.to_a.size > 1</tt>. Can be called with a block too,
   # much like any?, so <tt>people.many? { |p| p.age > 26 }</tt> returns +true+

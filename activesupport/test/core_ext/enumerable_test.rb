@@ -194,6 +194,15 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal({ Payment.new(5) => 5, Payment.new(15) => 15, Payment.new(10) => 10 }, payments.index_with.each(&:price))
   end
 
+  def test_single
+    assert_equal 1, [1].single
+
+    expected_raise = RangeError
+
+    assert_raise(expected_raise) { [].single }
+    assert_raise(expected_raise) { [ 1, 2 ].single }
+  end
+
   def test_many
     assert_equal false, GenericEnumerable.new([]).many?
     assert_equal false, GenericEnumerable.new([ 1 ]).many?

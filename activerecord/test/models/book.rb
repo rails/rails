@@ -11,7 +11,7 @@ class Book < ActiveRecord::Base
 
   enum status: [:proposed, :written, :published]
   enum last_read: { unread: 0, reading: 2, read: 3, forgotten: nil }
-  enum nullable_status: [:single, :married]
+  enum nullable_status: [:single, :married], _prefix: :true
   enum language: [:english, :spanish, :french], _prefix: :in
   enum author_visibility: [:visible, :invisible], _prefix: true
   enum illustrator_visibility: [:visible, :invisible], _prefix: true

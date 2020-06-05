@@ -1,3 +1,8 @@
+*   Add `Enumerable#single` to return the only element contained in an Enumerable.
+    Will raise RangeError if the Enumerable is empty or contins multiple elements.
+
+    *Ryan O'Neill*
+
 *   `require_dependency` has been documented to be _obsolete_ in `:zeitwerk`
     mode. The method is not deprecated as such (yet), but applications are
     encouraged to not use it.
