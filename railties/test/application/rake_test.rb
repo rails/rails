@@ -25,6 +25,22 @@ module ApplicationTests
       assert $task_loaded
     end
 
+    test "task backtrace is silenced" do
+      add_to_config <<-RUBY
+        rake_tasks do
+          task :boom do
+            raise "boom"
+          end
+        end
+      RUBY
+
+      backtrace = rails("boom", allow_failure: true).lines.grep(/:\d+:in /)
+      app_lines, framework_lines = backtrace.partition { |line| line.start_with?(app_path) }
+
+      assert_not_empty app_lines
+      assert_empty framework_lines
+    end
+
     test "task is protected when previous migration was production" do
       with_rails_env "production" do
         rails "generate", "model", "product", "name:string"
