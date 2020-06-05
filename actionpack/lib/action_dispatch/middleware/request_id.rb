@@ -22,7 +22,7 @@ module ActionDispatch
 
     def call(env)
       req = ActionDispatch::Request.new env
-      req.request_id = make_request_id(req.get_header("HTTP_#{@header.underscore.upcase}"))
+      req.request_id = make_request_id(req.headers[@header])
       @app.call(env).tap { |_status, headers, _body| headers[@header] = req.request_id }
     end
 
