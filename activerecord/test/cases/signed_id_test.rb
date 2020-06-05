@@ -26,9 +26,16 @@ class SignedIdTest < ActiveRecord::TestCase
     assert_equal @toy, Toy.find_signed(@toy.signed_id)
   end
 
-  test "raise UnknownPrimaryKey when model have no primary key" do
+  test "find_signed raise UnknownPrimaryKey when model has no primary key" do
     error = assert_raises(ActiveRecord::UnknownPrimaryKey) do
       Matey.find_signed("this will not be even verified")
+    end
+    assert_equal "Unknown primary key for table mateys in model Matey.", error.message
+  end
+
+  test "find_signed! raise UnknownPrimaryKey when model has no primary key" do
+    error = assert_raises(ActiveRecord::UnknownPrimaryKey) do
+      Matey.find_signed!("this will not be even verified")
     end
     assert_equal "Unknown primary key for table mateys in model Matey.", error.message
   end

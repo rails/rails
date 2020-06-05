@@ -60,8 +60,10 @@ module ActiveRecord
       #   User.first.destroy
       #   User.find_signed! signed_id # => ActiveRecord::RecordNotFound
       def find_signed!(signed_id, purpose: nil)
+        raise UnknownPrimaryKey.new(self) if primary_key.nil?
+
         if id = signed_id_verifier.verify(signed_id, purpose: combine_signed_id_purposes(purpose))
-          find(id)
+          find_by! primary_key => id
         end
       end
 
