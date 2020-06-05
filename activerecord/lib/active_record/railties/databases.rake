@@ -19,7 +19,6 @@ db_namespace = namespace :db do
 
   task load_config: :environment do
     ActiveRecord::Base.configurations       = ActiveRecord::Tasks::DatabaseTasks.database_configuration || {}
-    ActiveRecord::Migrator.migrations_paths = ActiveRecord::Tasks::DatabaseTasks.migrations_paths
   end
 
   namespace :create do
@@ -670,8 +669,9 @@ namespace :railties do
         puts "Copied migration #{migration.basename} from #{name}"
       end
 
-      ActiveRecord::Migration.copy(ActiveRecord::Tasks::DatabaseTasks.migrations_paths.first, railties,
-                                    on_skip: on_skip, on_copy: on_copy)
+      destination = Rails.application.paths[ActiveRecord::Tasks::DatabaseTasks.migrations_paths.first].first
+
+      ActiveRecord::Migration.copy(destination, railties, on_skip: on_skip, on_copy: on_copy)
     end
   end
 end

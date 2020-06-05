@@ -182,24 +182,6 @@ class MigratorTest < ActiveRecord::TestCase
     ], ActiveRecord::MigrationContext.new(path, schema_migration).migrations_status
   end
 
-  def test_migrations_status_with_schema_define_in_subdirectories
-    path = MIGRATIONS_ROOT + "/valid_with_subdirectories"
-    prev_paths = ActiveRecord::Migrator.migrations_paths
-    schema_migration = ActiveRecord::Base.connection.schema_migration
-    ActiveRecord::Migrator.migrations_paths = path
-
-    ActiveRecord::Schema.define(version: 3) do
-    end
-
-    assert_equal [
-      ["up", "001", "Valid people have last names"],
-      ["up", "002", "We need reminders"],
-      ["up", "003", "Innocent jointable"],
-    ], ActiveRecord::MigrationContext.new(path, schema_migration).migrations_status
-  ensure
-    ActiveRecord::Migrator.migrations_paths = prev_paths
-  end
-
   def test_migrations_status_from_two_directories
     paths = [MIGRATIONS_ROOT + "/valid_with_timestamps", MIGRATIONS_ROOT + "/to_copy_with_timestamps"]
     schema_migration = ActiveRecord::Base.connection.schema_migration

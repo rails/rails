@@ -1188,15 +1188,17 @@ module ActiveRecord
 
   class Migrator # :nodoc:
     class << self
-      attr_accessor :migrations_paths
+      attr_writer :migrations_paths
+
+      def migrations_paths
+        @migrations_paths || ActiveRecord::Tasks::DatabaseTasks.migrations_paths
+      end
 
       # For cases where a table doesn't exist like loading from schema cache
       def current_version
         MigrationContext.new(migrations_paths, SchemaMigration).current_version
       end
     end
-
-    self.migrations_paths = ["db/migrate"]
 
     def initialize(direction, migrations, schema_migration, target_version = nil)
       @direction         = direction

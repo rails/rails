@@ -84,7 +84,7 @@ module ActiveRecord
       end
 
       def migrations_paths
-        @migrations_paths ||= Rails.application.paths["db/migrate"].to_a
+        @migrations_paths ||= current_db_config&.migrations_paths || [DatabaseConfigurations::DatabaseConfig::DEFAULT_MIGRATION_PATH]
       end
 
       def fixtures_path
@@ -524,6 +524,10 @@ module ActiveRecord
 
         def schema_sha1(file)
           Digest::SHA1.hexdigest(File.read(file))
+        end
+
+        def current_db_config
+          ActiveRecord::Base.configurations.configs_for(env_name: env, name: name)
         end
     end
   end

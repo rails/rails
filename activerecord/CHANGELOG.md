@@ -1,3 +1,11 @@
+*   Infer `migrations_paths` based on the database configuration name.
+
+    Applications don't need to set a `migrations_paths` if they want the directory name
+    to match the configuration name. The directory will automatically be created when
+    the first migration is generated for that database.
+
+    *John Crepezzi*, *Eileen M. Uchitelle*
+
 *   Do not mark Postgresql MAC address and UUID attributes as changed when the assigned value only varies by case.
 
     *Peter Fry*

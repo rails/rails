@@ -47,7 +47,7 @@ module ActiveRecord
       # +migrations_paths+ key is present in the config, +migrations_paths+
       # will return its value.
       def migrations_paths
-        configuration_hash[:migrations_paths]
+        configuration_hash.fetch(:migrations_paths) { default_migrations_paths }
       end
 
       def host

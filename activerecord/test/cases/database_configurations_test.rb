@@ -69,6 +69,40 @@ class DatabaseConfigurationsTest < ActiveRecord::TestCase
       assert_equal ["arunit", "arunit2", "arunit_without_prepared_statements"], ActiveRecord::Base.configurations.to_h.keys.sort
     end
   end
+
+  def test_infers_migrations_paths
+    config = {
+      "default_env" => {
+        "primary" => { "pool" => 5 },
+        "animals" => { "pool" => 5 }
+      }
+    }
+
+    configs = ActiveRecord::DatabaseConfigurations.new(config)
+
+    actual = configs.configs_for(env_name: "default_env", name: "primary")
+    assert_equal ["db/migrate"], actual.migrations_paths
+
+    actual = configs.configs_for(env_name: "default_env", name: "animals")
+    assert_equal ["db/animals_migrate"], actual.migrations_paths
+  end
+
+  def test_allows_overriding_migrations_paths
+    config = {
+      "default_env" => {
+        "primary" => { "pool" => 5, "migrations_paths": ["foo"] },
+        "animals" => { "pool" => 5, "migrations_paths": ["bar"] }
+      }
+    }
+
+    configs = ActiveRecord::DatabaseConfigurations.new(config)
+
+    actual = configs.configs_for(env_name: "default_env", name: "primary")
+    assert_equal ["foo"], actual.migrations_paths
+
+    actual = configs.configs_for(env_name: "default_env", name: "animals")
+    assert_equal ["bar"], actual.migrations_paths
+  end
 end
 
 class LegacyDatabaseConfigurationsTest < ActiveRecord::TestCase

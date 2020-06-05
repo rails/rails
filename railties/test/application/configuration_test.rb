@@ -153,14 +153,10 @@ module ApplicationTests
 
       app "development"
 
-      ActiveRecord::Migrator.migrations_paths = ["#{app_path}/db/migrate"]
-
-      begin
+      Dir.chdir(app_path) do
         get "/foo"
         assert_equal 500, last_response.status
         assert_match "ActiveRecord::PendingMigrationError", last_response.body
-      ensure
-        ActiveRecord::Migrator.migrations_paths = nil
       end
     end
 

@@ -138,11 +138,9 @@ module TestHelpers
             animals:
               <<: *default
               database: db/development_animals.sqlite3
-              migrations_paths: db/animals_migrate
             animals_readonly:
               <<: *default
               database: db/development_animals.sqlite3
-              migrations_paths: db/animals_migrate
               replica: true
           test:
             primary:
@@ -155,11 +153,9 @@ module TestHelpers
             animals:
               <<: *default
               database: db/test_animals.sqlite3
-              migrations_paths: db/animals_migrate
             animals_readonly:
               <<: *default
               database: db/test_animals.sqlite3
-              migrations_paths: db/animals_migrate
               replica: true
           production:
             primary:
@@ -172,11 +168,9 @@ module TestHelpers
             animals:
               <<: *default
               database: db/production_animals.sqlite3
-              migrations_paths: db/animals_migrate
             animals_readonly:
               <<: *default
               database: db/production_animals.sqlite3
-              migrations_paths: db/animals_migrate
               replica: true
           YAML
         end
@@ -462,7 +456,6 @@ module TestHelpers
             animals:
               <<: *default
               database: railties_animals_test
-              migrations_paths: db/animals_migrate
           YAML
         end
       else
