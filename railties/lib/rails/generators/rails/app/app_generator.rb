@@ -248,6 +248,10 @@ module Rails
       empty_directory_with_keep_file "vendor"
     end
 
+    def script
+      empty_directory_with_keep_file "script"
+    end
+
     def config_target_version
       defined?(@config_target_version) ? @config_target_version : Rails::VERSION::STRING.to_f
     end
@@ -540,6 +544,10 @@ module Rails
 
       def finish_template
         build(:leftovers)
+      end
+
+      def create_script_folder
+        build(:script)
       end
 
       public_task :apply_rails_template, :run_bundle

@@ -216,6 +216,7 @@ of the files and folders that Rails created by default:
 |test/|Unit tests, fixtures, and other test apparatus. These are covered in [Testing Rails Applications](testing.html).|
 |tmp/|Temporary files (like cache and pid files).|
 |vendor/|A place for all third-party code. In a typical Rails application this includes vendored gems.|
+|script/|A place for all one-off or general purpose scripts. This could include benchmarks or cleanup code.|
 |.gitignore|This file tells git which files (or patterns) it should ignore. See [GitHub - Ignoring files](https://help.github.com/articles/ignoring-files) for more info about ignoring files.
 |.ruby-version|This file contains the default Ruby version.|
 

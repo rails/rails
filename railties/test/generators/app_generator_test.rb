@@ -88,6 +88,7 @@ DEFAULT_APP_FILES = %w(
   test/integration
   test/system
   vendor
+  script
   tmp
   tmp/cache
   tmp/cache/assets
@@ -1051,6 +1052,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       lib/tasks
       lib/assets
       log
+      script
       test/fixtures/files
       test/controllers
       test/mailers
