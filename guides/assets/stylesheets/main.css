@@ -733,10 +733,16 @@ div.important p, div.caution p, div.warning p, div.note p, div.info p {
 
 #edge-badge {
   position: fixed;
-  right: 0px;
-  top: 0px;
+  right: 0;
+  top: 0;
   z-index: 100;
-  border: none;
+  color: white;
+  font-size: 30px;
+  transform: rotate(45deg) translate(27.5%, -40%);
+  min-width: 200px;
+  font-weight: bold;
+  background: #222;
+  border: red 2px solid;
 }
 
 /* Foundation v2.1.4 http://foundation.zurb.com */
