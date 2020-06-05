@@ -4,8 +4,8 @@
   "use strict";
   var adapters = {};
   if (typeof self !== "undefined") {
-    adapters.WebSocket = self.WebSocket;
     adapters.logger = self.console;
+    adapters.WebSocket = self.WebSocket;
   }
   var logger = {
     log: function log() {
