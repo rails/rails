@@ -415,7 +415,7 @@ GEM
       rexml
       ruby-progressbar (~> 1.7)
       unicode-display_width (>= 1.4.0, < 2.0)
-    rubocop-performance (1.6.0)
+    rubocop-performance (1.6.1)
       rubocop (>= 0.71.0)
     rubocop-rails (2.5.2)
       activesupport
