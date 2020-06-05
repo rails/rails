@@ -21,7 +21,7 @@ if SERVICE_CONFIGURATIONS[:s3] && SERVICE_CONFIGURATIONS[:s3][:access_key_id].pr
         filename: "hello.txt", byte_size: 6, checksum: checksum, content_type: "text/plain" } }
 
       response.parsed_body.tap do |details|
-        assert_equal ActiveStorage::Blob.find(details["id"]), ActiveStorage::Blob.find_signed(details["signed_id"])
+        assert_equal ActiveStorage::Blob.find(details["id"]), ActiveStorage::Blob.find_signed!(details["signed_id"])
         assert_equal "hello.txt", details["filename"]
         assert_equal 6, details["byte_size"]
         assert_equal checksum, details["checksum"]
@@ -56,7 +56,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
         filename: "hello.txt", byte_size: 6, checksum: checksum, content_type: "text/plain" } }
 
       @response.parsed_body.tap do |details|
-        assert_equal ActiveStorage::Blob.find(details["id"]), ActiveStorage::Blob.find_signed(details["signed_id"])
+        assert_equal ActiveStorage::Blob.find(details["id"]), ActiveStorage::Blob.find_signed!(details["signed_id"])
         assert_equal "hello.txt", details["filename"]
         assert_equal 6, details["byte_size"]
         assert_equal checksum, details["checksum"]
@@ -90,7 +90,7 @@ if SERVICE_CONFIGURATIONS[:azure]
         filename: "hello.txt", byte_size: 6, checksum: checksum, content_type: "text/plain" } }
 
       @response.parsed_body.tap do |details|
-        assert_equal ActiveStorage::Blob.find(details["id"]), ActiveStorage::Blob.find_signed(details["signed_id"])
+        assert_equal ActiveStorage::Blob.find(details["id"]), ActiveStorage::Blob.find_signed!(details["signed_id"])
         assert_equal "hello.txt", details["filename"]
         assert_equal 6, details["byte_size"]
         assert_equal checksum, details["checksum"]
@@ -112,7 +112,7 @@ class ActiveStorage::DiskDirectUploadsControllerTest < ActionDispatch::Integrati
       filename: "hello.txt", byte_size: 6, checksum: checksum, content_type: "text/plain" } }
 
     @response.parsed_body.tap do |details|
-      assert_equal ActiveStorage::Blob.find(details["id"]), ActiveStorage::Blob.find_signed(details["signed_id"])
+      assert_equal ActiveStorage::Blob.find(details["id"]), ActiveStorage::Blob.find_signed!(details["signed_id"])
       assert_equal "hello.txt", details["filename"]
       assert_equal 6, details["byte_size"]
       assert_equal checksum, details["checksum"]
