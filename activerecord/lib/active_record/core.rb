@@ -196,7 +196,7 @@ module ActiveRecord
       end
 
       def find_by(*args) # :nodoc:
-        return super if scope_attributes? || reflect_on_all_aggregations.any? ||
+        return super if scope_attributes? ||
                         columns_hash.key?(inheritance_column) && !base_class?
 
         hash = args.first
@@ -210,6 +210,8 @@ module ActiveRecord
             reflection = _reflect_on_association(name)
             if reflection&.belongs_to? && !reflection.polymorphic?
               reflection.join_foreign_key
+            elsif reflect_on_aggregation(name)
+              return super
             else
               name
             end
