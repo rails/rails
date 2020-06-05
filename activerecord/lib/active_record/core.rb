@@ -202,11 +202,20 @@ module ActiveRecord
         hash = args.first
         return super unless Hash === hash
 
-        values = hash.values
+        values = hash.values.map! { |value| value.is_a?(Base) ? value.id : value }
         return super if values.any? { |v| StatementCache.unsupported_value?(v) }
 
-        # We can't cache Post.find_by(author: david) ...yet
-        keys = hash.keys.map! { |key| attribute_aliases[name = key.to_s] || name }
+        keys = hash.keys.map! do |key|
+          attribute_aliases[name = key.to_s] || begin
+            reflection = _reflect_on_association(name)
+            if reflection&.belongs_to? && !reflection.polymorphic?
+              reflection.join_foreign_key
+            else
+              name
+            end
+          end
+        end
+
         return super unless keys.all? { |k| columns_hash.key?(k) }
 
         statement = cached_find_by_statement(keys) { |params|
