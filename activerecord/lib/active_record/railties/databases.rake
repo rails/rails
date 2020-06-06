@@ -95,10 +95,11 @@ db_namespace = namespace :db do
 
   # IMPORTANT: This task won't dump the schema if ActiveRecord::Base.dump_schema_after_migration is set to false
   task :_dump do
-<<<<<<< HEAD
-    if ActiveRecord::Base.dump_schema_after_migration
+    configs = ActiveRecord::DatabaseConfigurations.new(databases).configs_for(env_name: Rails.env)
+
+    if ActiveRecord::Base.dump_schema_after_migration && configs.first.schema_dump
       db_namespace["schema:dump"].invoke
-      #
+
     # dump_all = ActiveRecord::Base.dump_schema_after_migration
 
     # ActiveRecord::Tasks::DatabaseTasks.for_each(databases, skip_single_database: false) do |name, db_config, single_db|
@@ -191,10 +192,12 @@ db_namespace = namespace :db do
   end
 
   namespace :_dump do
+
     ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
       # IMPORTANT: This task won't dump the schema if ActiveRecord::Base.dump_schema_after_migration is set to false
       task name do
-        if ActiveRecord::Base.dump_schema_after_migration
+        db_config = ActiveRecord::DatabaseConfigurations.new(databases).configs_for(env_name: Rails.env, name: name)
+        if db_config.schema_dump && ActiveRecord::Base.dump_schema_after_migration
           db_namespace["schema:dump:#{name}"].invoke
         # dump_all = ActiveRecord::Base.dump_schema_after_migration
 

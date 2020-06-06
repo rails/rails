@@ -1,3 +1,19 @@
+*   Add `schema_dump` to database.yml, in order to control whether
+    a specific database should dump or not its schema after a migration.
+
+    ```yaml
+    # config/database.yml
+    production:
+      primary:
+        schema_dump: true
+        database: my_primary_database
+      secondary:
+        schema_dump: false
+        database: my_secondary_database
+    ```
+
+    *Luis Vasconcellos*
+
 *   Deprecate `rails db:structure:{load, dump}` tasks and extend
     `rails db:schema:{load, dump}` tasks to work with either `:ruby` or `:sql` format,
     depending on `config.active_record.schema_format` configuration value.
