@@ -699,6 +699,38 @@ module ActiveRecord
       scope
     end
 
+    # Returns a new relation, which is the logical intersection of this relation and the one passed
+    # as an argument.
+    #
+    # The two relations must be structurally compatible: they must be scoping the same model, and
+    # they must differ only by #where (if no #group has been defined) or #having (if a #group is
+    # present).
+    #
+    #    Post.where(id: [1, 2]).and(Post.where(id: [2, 3]))
+    #    # SELECT `posts`.* FROM `posts` WHERE `posts`.`id` IN (1, 2) AND `posts`.`id` IN (2, 3)
+    #
+    def and(other)
+      if other.is_a?(Relation)
+        spawn.and!(other)
+      else
+        raise ArgumentError, "You have passed #{other.class.name} object to #and. Pass an ActiveRecord::Relation object instead."
+      end
+    end
+
+    def and!(other) # :nodoc:
+      incompatible_values = structurally_incompatible_values_for_or(other)
+
+      unless incompatible_values.empty?
+        raise ArgumentError, "Relation passed to #and must be structurally compatible. Incompatible values: #{incompatible_values}"
+      end
+
+      self.where_clause |= other.where_clause
+      self.having_clause |= other.having_clause
+      self.references_values |= other.references_values
+
+      self
+    end
+
     # Returns a new relation, which is the logical union of this relation and the one passed as an
     # argument.
     #
@@ -710,11 +742,11 @@ module ActiveRecord
     #    # SELECT `posts`.* FROM `posts` WHERE ((id = 1) OR (author_id = 3))
     #
     def or(other)
-      unless other.is_a? Relation
+      if other.is_a?(Relation)
+        spawn.or!(other)
+      else
         raise ArgumentError, "You have passed #{other.class.name} object to #or. Pass an ActiveRecord::Relation object instead."
       end
-
-      spawn.or!(other)
     end
 
     def or!(other) # :nodoc:

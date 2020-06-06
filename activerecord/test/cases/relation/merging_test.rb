@@ -14,7 +14,7 @@ class RelationMergingTest < ActiveRecord::TestCase
   fixtures :developers, :comments, :authors, :author_addresses, :posts
 
   def test_merge_in_clause
-    david, mary, bob = authors(:david, :mary, :bob)
+    david, mary, bob = authors = authors(:david, :mary, :bob)
 
     david_and_mary = Author.where(id: [david, mary]).order(:id)
     mary_and_bob   = Author.where(id: [mary, bob]).order(:id)
@@ -35,18 +35,24 @@ class RelationMergingTest < ActiveRecord::TestCase
 
     assert_equal [mary, bob], david_and_mary.merge(mary_and_bob)
     assert_equal [mary, bob], david_and_mary.merge(mary_and_bob, rewhere: true)
+    assert_equal [mary], david_and_mary.and(mary_and_bob)
+    assert_equal authors, david_and_mary.or(mary_and_bob)
 
     assert_equal [david, mary], mary_and_bob.merge(david_and_mary)
     assert_equal [david, mary], mary_and_bob.merge(david_and_mary, rewhere: true)
+    assert_equal [mary], david_and_mary.and(mary_and_bob)
+    assert_equal authors, david_and_mary.or(mary_and_bob)
 
-    david_and_bob = Author.where(id: david).or(Author.where(name: "Bob"))
+    david_and_bob = Author.where(id: david).or(Author.where(name: "Bob")).order(:id)
 
     assert_equal [david], david_and_mary.merge(david_and_bob)
     assert_equal [david], david_and_mary.merge(david_and_bob, rewhere: true)
+    assert_equal [david], david_and_mary.and(david_and_bob)
+    assert_equal authors, david_and_mary.or(david_and_bob)
   end
 
   def test_merge_between_clause
-    david, mary, bob = authors(:david, :mary, :bob)
+    david, mary, bob = authors = authors(:david, :mary, :bob)
 
     david_and_mary = Author.where(id: david.id..mary.id).order(:id)
     mary_and_bob   = Author.where(id: mary.id..bob.id).order(:id)
@@ -80,20 +86,26 @@ class RelationMergingTest < ActiveRecord::TestCase
       assert_equal [mary], david_and_mary.merge(mary_and_bob)
     end
     assert_equal [mary, bob], david_and_mary.merge(mary_and_bob, rewhere: true)
+    assert_equal [mary], david_and_mary.and(mary_and_bob)
+    assert_equal authors, david_and_mary.or(mary_and_bob)
 
     assert_deprecated(message) do
       assert_equal [mary], mary_and_bob.merge(david_and_mary)
     end
     assert_equal [david, mary], mary_and_bob.merge(david_and_mary, rewhere: true)
+    assert_equal [mary], david_and_mary.and(mary_and_bob)
+    assert_equal authors, david_and_mary.or(mary_and_bob)
 
-    david_and_bob = Author.where(id: david).or(Author.where(name: "Bob"))
+    david_and_bob = Author.where(id: david).or(Author.where(name: "Bob")).order(:id)
 
     assert_equal [david], david_and_mary.merge(david_and_bob)
     assert_equal [david], david_and_mary.merge(david_and_bob, rewhere: true)
+    assert_equal [david], david_and_mary.and(david_and_bob)
+    assert_equal authors, david_and_mary.or(david_and_bob)
   end
 
   def test_merge_or_clause
-    david, mary, bob = authors(:david, :mary, :bob)
+    david, mary, bob = authors = authors(:david, :mary, :bob)
 
     david_and_mary = Author.where(id: david).or(Author.where(id: mary)).order(:id)
     mary_and_bob   = Author.where(id: mary).or(Author.where(id: bob)).order(:id)
@@ -127,16 +139,22 @@ class RelationMergingTest < ActiveRecord::TestCase
       assert_equal [mary], david_and_mary.merge(mary_and_bob)
     end
     assert_equal [mary, bob], david_and_mary.merge(mary_and_bob, rewhere: true)
+    assert_equal [mary], david_and_mary.and(mary_and_bob)
+    assert_equal authors, david_and_mary.or(mary_and_bob)
 
     assert_deprecated(message) do
       assert_equal [mary], mary_and_bob.merge(david_and_mary)
     end
     assert_equal [david, mary], mary_and_bob.merge(david_and_mary, rewhere: true)
+    assert_equal [mary], david_and_mary.and(mary_and_bob)
+    assert_equal authors, david_and_mary.or(mary_and_bob)
 
-    david_and_bob = Author.where(id: david).or(Author.where(name: "Bob"))
+    david_and_bob = Author.where(id: david).or(Author.where(name: "Bob")).order(:id)
 
     assert_equal [david], david_and_mary.merge(david_and_bob)
     assert_equal [david], david_and_mary.merge(david_and_bob, rewhere: true)
+    assert_equal [david], david_and_mary.and(david_and_bob)
+    assert_equal authors, david_and_mary.or(david_and_bob)
   end
 
   def test_merge_not_in_clause
