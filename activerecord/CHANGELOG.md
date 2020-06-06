@@ -1,3 +1,24 @@
+*   Merging conditions on the same column no longer maintain both conditions,
+    and will be consistently replaced by the latter condition in Rails 6.2.
+    To migrate to Rails 6.2's behavior, use `relation.merge(other, rewhere: true)`.
+
+    ```ruby
+    # Rails 6.1 (IN clause is replaced by merger side equality condition)
+    Author.where(id: [david.id, mary.id]).merge(Author.where(id: bob)) # => [bob]
+
+    # Rails 6.1 (both conflict conditions exists, deprecated)
+    Author.where(id: david.id..mary.id).merge(Author.where(id: bob)) # => []
+
+    # Rails 6.1 with rewhere to migrate to Rails 6.2's behavior
+    Author.where(id: david.id..mary.id).merge(Author.where(id: bob), rewhere: true) # => [bob]
+
+    # Rails 6.2 (same behavior with IN clause, mergee side condition is consistently replaced)
+    Author.where(id: [david.id, mary.id]).merge(Author.where(id: bob)) # => [bob]
+    Author.where(id: david.id..mary.id).merge(Author.where(id: bob)) # => [bob]
+    ```
+
+    *Ryuta Kamizono*
+
 *   Do not mark Postgresql MAC address and UUID attributes as changed when the assigned value only varies by case.
 
     *Peter Fry*
