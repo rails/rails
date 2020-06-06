@@ -1106,6 +1106,27 @@ class CookiesTest < ActionController::TestCase
     assert_cookie_header "user_name=rizwanreza; domain=example1.com; path=/; SameSite=Lax"
   end
 
+  def test_cookie_with_several_preset_domains_using_subdomain
+    @request.host = "subdomain.example1.com"
+    get :set_cookie_with_domains
+    assert_response :success
+    assert_cookie_header "user_name=rizwanreza; domain=example1.com; path=/; SameSite=Lax"
+  end
+
+  def test_cookie_with_several_preset_domains_using_similar_tld
+    @request.host = "example1.com.au"
+    get :set_cookie_with_domains
+    assert_response :success
+    assert_cookie_header "user_name=rizwanreza; path=/; SameSite=Lax"
+  end
+
+  def test_cookie_with_several_preset_domains_using_similar_domain
+    @request.host = "myexample1.com"
+    get :set_cookie_with_domains
+    assert_response :success
+    assert_cookie_header "user_name=rizwanreza; path=/; SameSite=Lax"
+  end
+
   def test_cookie_with_several_preset_domains_using_other_domain
     @request.host = "other-domain.com"
     get :set_cookie_with_domains

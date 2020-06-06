@@ -457,8 +457,11 @@ module ActionDispatch
               ".#{$&}"
             end
           elsif options[:domain].is_a? Array
-            # If host matches one of the supplied domains without a dot in front of it.
-            options[:domain] = options[:domain].find { |domain| request.host.include? domain.sub(/^\./, "") }
+            # If host matches one of the supplied domains.
+            options[:domain] = options[:domain].find do |domain|
+              domain = domain.delete_prefix(".")
+              request.host == domain || request.host.end_with?(".#{domain}")
+            end
           end
         end
     end

@@ -1,3 +1,8 @@
+*   When multiple domains are specified for a cookie, a domain will now be
+    chosen only if it is equal to or is a superdomain of the request host.
+
+    *Jonathan Hefner*
+
 *   `ActionDispatch::Static` handles precompiled Brotli (.br) files.
 
     Adds to existing support for precompiled gzip (.gz) files.
