@@ -9,10 +9,15 @@ module ActiveRecord
             :macaddr
           end
 
-          private
-            def cast_value(value)
-              value.to_s.downcase
-            end
+          def changed?(old_value, new_value, _new_value_before_type_cast)
+            old_value.class != new_value.class ||
+              new_value && old_value.casecmp(new_value) != 0
+          end
+
+          def changed_in_place?(raw_old_value, new_value)
+            raw_old_value.class != new_value.class ||
+              new_value && raw_old_value.casecmp(new_value) != 0
+          end
         end
       end
     end
