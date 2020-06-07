@@ -128,7 +128,7 @@ module ActiveSupport
     #    ActiveSupport::MessageEncryptor.new('secret', 'signature_secret')
     #
     # Options:
-    # * <tt>:cipher</tt>     - Cipher to use. Can be any cipher returned by
+    # * <tt>:cipher</tt> - Cipher to use. Can be any cipher returned by
     #   <tt>OpenSSL::Cipher.ciphers</tt>. Default is 'aes-256-gcm'.
     # * <tt>:digest</tt> - String of digest to use for signing. Default is
     #   +SHA1+. Ignored when using an AEAD cipher like 'aes-256-gcm'.

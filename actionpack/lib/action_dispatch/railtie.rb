@@ -22,6 +22,7 @@ module ActionDispatch
     config.action_dispatch.authenticated_encrypted_cookie_salt = "authenticated encrypted cookie"
     config.action_dispatch.use_authenticated_cookie_encryption = false
     config.action_dispatch.use_cookies_with_metadata = false
+    config.action_dispatch.use_sha256_for_cookie_digest = false
     config.action_dispatch.perform_deep_munge = true
     config.action_dispatch.return_only_media_type_on_content_type = true
 

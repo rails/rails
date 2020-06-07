@@ -16,7 +16,7 @@ module ActiveSupport
       @iterations = options[:iterations] || 2**16
     end
 
-    # Returns a derived key suitable for use.  The default key_size is chosen
+    # Returns a derived key suitable for use. The default key_size is chosen
     # to be compatible with the default settings of ActiveSupport::MessageVerifier.
     # i.e. OpenSSL::Digest::SHA1#block_length
     def generate_key(salt, key_size = 64)

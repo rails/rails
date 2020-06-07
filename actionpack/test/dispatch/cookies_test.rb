@@ -523,6 +523,21 @@ class CookiesTest < ActionController::TestCase
     assert_equal verifier.generate(45), cookies[:user_id]
   end
 
+
+  def test_signed_cookie_using_sha256_for_cookie_digest
+    @request.env["action_dispatch.use_sha256_for_cookie_digest"] = true
+    get :set_signed_cookie
+    cookies = @controller.send :cookies
+    assert_not_equal 45, cookies[:user_id]
+    assert_equal 45, cookies.signed[:user_id]
+
+    key_generator = @request.env["action_dispatch.key_generator"]
+    secret = key_generator.generate_key(@request.env["action_dispatch.signed_cookie_salt"])
+
+    verifier = ActiveSupport::MessageVerifier.new(secret, serializer: Marshal, digest: "SHA256")
+    assert_equal verifier.generate(45), cookies[:user_id]
+  end
+
   def test_signed_cookie_using_custom_digest
     @request.env["action_dispatch.signed_cookie_digest"] = "SHA256"
 
@@ -612,7 +627,7 @@ class CookiesTest < ActionController::TestCase
     key_generator = @request.env["action_dispatch.key_generator"]
     secret = key_generator.generate_key(@request.env["action_dispatch.signed_cookie_salt"])
 
-    json_value = ActiveSupport::MessageVerifier.new(secret, serializer: JSON).generate(45)
+    json_value = ActiveSupport::MessageVerifier.new(secret, serializer: JSON, digest: "SHA1").generate(45)
     @request.headers["Cookie"] = "user_id=#{json_value}"
 
     get :get_signed_cookie
@@ -630,7 +645,7 @@ class CookiesTest < ActionController::TestCase
     key_generator = @request.env["action_dispatch.key_generator"]
     secret = key_generator.generate_key(@request.env["action_dispatch.signed_cookie_salt"])
 
-    marshal_value = ActiveSupport::MessageVerifier.new(secret, serializer: Marshal).generate(45)
+    marshal_value = ActiveSupport::MessageVerifier.new(secret, serializer: Marshal, digest: "SHA1").generate(45)
     @request.headers["Cookie"] = "user_id=#{marshal_value}"
 
     get :get_signed_cookie
@@ -639,7 +654,7 @@ class CookiesTest < ActionController::TestCase
     assert_not_equal 45, cookies[:user_id]
     assert_equal 45, cookies.signed[:user_id]
 
-    verifier = ActiveSupport::MessageVerifier.new(secret, serializer: JSON)
+    verifier = ActiveSupport::MessageVerifier.new(secret, serializer: JSON, digest: "SHA1")
     assert_equal 45, verifier.verify(@response.cookies["user_id"])
   end
 
@@ -649,7 +664,7 @@ class CookiesTest < ActionController::TestCase
     key_generator = @request.env["action_dispatch.key_generator"]
     secret = key_generator.generate_key(@request.env["action_dispatch.signed_cookie_salt"])
 
-    json_value = ActiveSupport::MessageVerifier.new(secret, serializer: JSON).generate(45)
+    json_value = ActiveSupport::MessageVerifier.new(secret, serializer: JSON, digest: "SHA1").generate(45)
     @request.headers["Cookie"] = "user_id=#{json_value}"
 
     get :get_signed_cookie

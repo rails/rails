@@ -53,6 +53,10 @@ module ActionDispatch
       get_header Cookies::USE_AUTHENTICATED_COOKIE_ENCRYPTION
     end
 
+    def use_sha256_for_cookie_digest
+      get_header Cookies::USE_SHA256_FOR_COOKIE_DIGEST
+    end
+
     def encrypted_cookie_cipher
       get_header Cookies::ENCRYPTED_COOKIE_CIPHER
     end
@@ -183,6 +187,7 @@ module ActionDispatch
     USE_AUTHENTICATED_COOKIE_ENCRYPTION = "action_dispatch.use_authenticated_cookie_encryption"
     ENCRYPTED_COOKIE_CIPHER = "action_dispatch.encrypted_cookie_cipher"
     SIGNED_COOKIE_DIGEST = "action_dispatch.signed_cookie_digest"
+    USE_SHA256_FOR_COOKIE_DIGEST = "action_dispatch.use_sha256_for_cookie_digest"
     SECRET_KEY_BASE = "action_dispatch.secret_key_base"
     COOKIES_SERIALIZER = "action_dispatch.cookies_serializer"
     COOKIES_DIGEST = "action_dispatch.cookies_digest"
@@ -277,7 +282,7 @@ module ActionDispatch
         end
 
         def signed_cookie_digest
-          request.signed_cookie_digest || "SHA1"
+          request.signed_cookie_digest || (request.use_sha256_for_cookie_digest ? "SHA256" : "SHA1")
         end
     end
 
@@ -590,7 +595,7 @@ module ActionDispatch
         end
 
         def digest
-          request.cookies_digest || "SHA1"
+          request.cookies_digest || (request.use_sha256_for_cookie_digest ? "SHA256" : "SHA1")
         end
     end
 
@@ -606,6 +611,10 @@ module ActionDispatch
         request.cookies_rotations.signed.each do |(*secrets)|
           options = secrets.extract_options!
           @verifier.rotate(*secrets, serializer: SERIALIZER, **options)
+        end
+
+        if request.use_sha256_for_cookie_digest
+          @verifier.rotate digest: "SHA1"
         end
       end
 
@@ -643,6 +652,10 @@ module ActionDispatch
         request.cookies_rotations.encrypted.each do |(*secrets)|
           options = secrets.extract_options!
           @encryptor.rotate(*secrets, serializer: SERIALIZER, **options)
+        end
+
+        if request.use_sha256_for_cookie_digest
+          @encryptor.rotate digest: "SHA1"
         end
 
         if upgrade_legacy_hmac_aes_cbc_cookies?
