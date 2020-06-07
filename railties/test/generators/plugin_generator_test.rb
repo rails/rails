@@ -81,6 +81,11 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_no_file "bin/rails"
   end
 
+  def test_initializes_git_repo
+    run_generator
+    assert_directory ".git"
+  end
+
   def test_generating_in_full_mode_with_almost_of_all_skip_options
     run_generator [destination_root, "--full", "-M", "-O", "-C", "-S", "-T", "--skip-active-storage"]
     assert_file "bin/rails" do |content|
@@ -154,23 +159,31 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_no_directory "test"
   end
 
-  def test_database_entry_is_generated_for_sqlite3_by_default_in_full_mode
-    run_generator([destination_root, "--full"])
-    assert_file "test/dummy/config/database.yml", /sqlite/
-    assert_file "bukkits.gemspec", /sqlite3/
-  end
-
-  def test_config_another_database
-    run_generator([destination_root, "-d", "mysql", "--full"])
-    assert_file "test/dummy/config/database.yml", /mysql/
-    assert_file "bukkits.gemspec", /mysql/
-  end
-
-  def test_dont_generate_development_dependency
-    run_generator [destination_root, "--skip-active-record"]
-
+  def test_no_development_dependencies_in_gemspec
+    run_generator
     assert_file "bukkits.gemspec" do |contents|
-      assert_no_match(/s\.add_development_dependency "sqlite3"/, contents)
+      assert_no_match(/add_development_dependency/, contents)
+    end
+  end
+
+  def test_default_database_dependency_is_sqlite
+    run_generator
+    assert_file "test/dummy/config/database.yml", /sqlite/
+    assert_file "Gemfile" do |contents|
+      assert_match_sqlite3(contents)
+    end
+  end
+
+  def test_custom_database_dependency
+    run_generator [destination_root, "-d", "mysql"]
+    assert_file "test/dummy/config/database.yml", /mysql/
+    assert_file "Gemfile", /mysql/
+  end
+
+  def test_skip_database_dependency
+    run_generator [destination_root, "--skip-active-record"]
+    assert_file "Gemfile" do |contents|
+      assert_no_match(/sqlite/, contents)
     end
   end
 
@@ -401,8 +414,8 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "bin/rails", /ENGINE_PATH = File\.expand_path\('\.\.\/lib\/bukkits\/engine', __dir__\)/
     assert_file "bin/rails", /ENGINE_ROOT = File\.expand_path\('\.\.', __dir__\)/
     assert_file "bin/rails", %r|APP_PATH = File\.expand_path\('\.\./test/dummy/config/application', __dir__\)|
-    assert_file "bin/rails", /require 'rails\/all'/
-    assert_file "bin/rails", /require 'rails\/engine\/commands'/
+    assert_file "bin/rails", /require "rails\/all"/
+    assert_file "bin/rails", /require "rails\/engine\/commands"/
   end
 
   def test_shebang
@@ -442,6 +455,14 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_dummy_application_uses_dynamic_rails_version_number
+    run_generator
+
+    assert_file "test/dummy/config/application.rb" do |contents|
+      assert_match(/^\s*config\.load_defaults Rails::VERSION::STRING\.to_f/, contents)
+    end
+  end
+
   def test_dummy_application_skip_listen_by_default
     run_generator
 
@@ -461,6 +482,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   def test_unnecessary_files_are_not_generated_in_dummy_application
     run_generator
     assert_no_file "test/dummy/.gitignore"
+    assert_no_file "test/dummy/.ruby-version"
     assert_no_file "test/dummy/db/seeds.rb"
     assert_no_file "test/dummy/Gemfile"
     assert_no_file "test/dummy/public/robots.txt"
@@ -487,7 +509,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile" do |contents|
       assert_no_match("gemspec", contents)
       assert_match(/gem 'rails'/, contents)
-      assert_match_sqlite3(contents)
     end
   end
 
@@ -497,7 +518,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile" do |contents|
       assert_no_match("gemspec", contents)
       assert_match(/gem 'rails'/, contents)
-      assert_match_sqlite3(contents)
     end
   end
 
@@ -592,6 +612,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
       assert_match name, contents
       assert_match email, contents
     end
+    assert_no_directory ".git"
   end
 
   def test_skipping_useless_folders_generation_for_api_engines
@@ -713,7 +734,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   end
 
   private
-
     def action(*args, &block)
       silence(:stdout) { generator.send(*args, &block) }
     end

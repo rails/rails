@@ -68,7 +68,6 @@ module CodeTools
     end
 
     private
-
       def assert_ruby_file_exists(path)
         fail Error.new("No such file") unless File.exist?(path)
         fail Error.new("#{path} is a directory") if File.directory?(path)

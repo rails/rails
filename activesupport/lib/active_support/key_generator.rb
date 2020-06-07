@@ -35,7 +35,7 @@ module ActiveSupport
 
     # Returns a derived key suitable for use.
     def generate_key(*args)
-      @cache_keys[args.join] ||= @key_generator.generate_key(*args)
+      @cache_keys[args.join("|")] ||= @key_generator.generate_key(*args)
     end
   end
 end

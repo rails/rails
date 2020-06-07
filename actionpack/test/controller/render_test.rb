@@ -4,6 +4,11 @@ require "abstract_unit"
 require "controller/fake_models"
 
 class TestControllerWithExtraEtags < ActionController::Base
+  self.view_paths = [ActionView::FixtureResolver.new(
+    "test/with_implicit_template.erb" => "Hello explicitly!",
+    "test/hello_world.erb" => "Hello world!"
+  )]
+
   def self.controller_name; "test"; end
   def self.controller_path; "test"; end
 
@@ -37,6 +42,11 @@ class TestControllerWithExtraEtags < ActionController::Base
 end
 
 class ImplicitRenderTestController < ActionController::Base
+  self.view_paths = [ActionView::FixtureResolver.new(
+    "implicit_render_test/hello_world.erb" => "Hello world!",
+    "implicit_render_test/empty_action_with_template.html.erb" => "<h1>Empty action rendered this implicitly.</h1>\n"
+  )]
+
   def empty_action
   end
 
@@ -46,6 +56,10 @@ end
 
 module Namespaced
   class ImplicitRenderTestController < ActionController::Base
+    self.view_paths = [ActionView::FixtureResolver.new(
+      "namespaced/implicit_render_test/hello_world.erb" => "Hello world!"
+    )]
+
     def hello_world
       fresh_when(etag: "abc")
     end
@@ -209,6 +223,10 @@ class TestController < ActionController::Base
     head :ok, content_type: "image/png"
   end
 
+  def head_ok_with_string_key_content_type
+    head :ok, "Content-Type" => "application/pdf"
+  end
+
   def head_with_location_header
     head :ok, location: "/foo"
   end
@@ -265,7 +283,6 @@ class TestController < ActionController::Base
   end
 
   private
-
     def set_variable_for_layout
       @variable_for_layout = nil
     end
@@ -294,13 +311,15 @@ end
 module TemplateModificationHelper
   private
     def modify_template(name)
-      path = File.expand_path("../fixtures/#{name}.erb", __dir__)
-      original = File.read(path)
-      File.write(path, "#{original} Modified!")
+      hash = @controller.view_paths.first.instance_variable_get(:@hash)
+      key = name + ".erb"
+      original = hash[key]
+      hash[key] = "#{original} Modified!"
       ActionView::LookupContext::DetailsKey.clear
       yield
     ensure
-      File.write(path, original)
+      hash[key] = original
+      ActionView::LookupContext::DetailsKey.clear
     end
 end
 
@@ -323,11 +342,12 @@ class ExpiresInRenderTest < ActionController::TestCase
   end
 
   def test_dynamic_render_with_file
-    # This is extremely bad, but should be possible to do.
     assert File.exist?(File.expand_path("../../test/abstract_unit.rb", __dir__))
-    response = get :dynamic_render_with_file, params: { id: '../\\../test/abstract_unit.rb' }
-    assert_equal File.read(File.expand_path("../../test/abstract_unit.rb", __dir__)),
-      response.body
+    assert_deprecated do
+      assert_raises ActionView::MissingTemplate do
+        get :dynamic_render_with_file, params: { id: '../\\../test/abstract_unit.rb' }
+      end
+    end
   end
 
   def test_dynamic_render_with_absolute_path
@@ -345,15 +365,19 @@ class ExpiresInRenderTest < ActionController::TestCase
   def test_dynamic_render
     assert File.exist?(File.expand_path("../../test/abstract_unit.rb", __dir__))
     assert_raises ActionView::MissingTemplate do
-      get :dynamic_render, params: { id: '../\\../test/abstract_unit.rb' }
+      assert_deprecated do
+        get :dynamic_render, params: { id: '../\\../test/abstract_unit.rb' }
+      end
     end
   end
 
   def test_permitted_dynamic_render_file_hash
     assert File.exist?(File.expand_path("../../test/abstract_unit.rb", __dir__))
-    response = get :dynamic_render_permit, params: { id: { file: '../\\../test/abstract_unit.rb' } }
-    assert_equal File.read(File.expand_path("../../test/abstract_unit.rb", __dir__)),
-      response.body
+    assert_deprecated do
+      assert_raises ActionView::MissingTemplate do
+        get :dynamic_render_permit, params: { id: { file: '../\\../test/abstract_unit.rb' } }
+      end
+    end
   end
 
   def test_dynamic_render_file_hash
@@ -739,6 +763,11 @@ class HeadRenderTest < ActionController::TestCase
     assert_response :ok
   end
 
+  def test_head_respect_string_content_type
+    get :head_ok_with_string_key_content_type
+    assert_equal "application/pdf", @response.header["Content-Type"]
+  end
+
   def test_head_with_location_header
     get :head_with_location_header
     assert_predicate @response.body, :blank?
@@ -837,6 +866,38 @@ class HeadRenderTest < ActionController::TestCase
   def test_head_default_content_type
     post :head_default_content_type
     assert_equal "text/html", @response.header["Content-Type"]
+  end
+end
+
+class LiveTestController < ActionController::Base
+  include ActionController::Live
+
+  def test_action
+    head :ok
+  end
+end
+
+class LiveHeadRenderTest < ActionController::TestCase
+  tests LiveTestController
+
+  def setup
+    super
+
+    def @controller.new_controller_thread
+      Thread.new { yield }
+    end
+
+    def @controller.response_body=(body)
+      super
+      sleep 0.1
+    end
+  end
+
+  def test_live_head_ok
+    get :test_action, format: "json"
+
+    @response.stream.on_error { flunk "action should not raise any errors" }
+    sleep 0.2
   end
 end
 

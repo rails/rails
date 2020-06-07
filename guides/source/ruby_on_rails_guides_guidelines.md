@@ -15,7 +15,7 @@ After reading this guide, you will know:
 Markdown
 -------
 
-Guides are written in [GitHub Flavored Markdown](https://help.github.com/articles/github-flavored-markdown). There is comprehensive [documentation for Markdown](http://daringfireball.net/projects/markdown/syntax), as well as a [cheatsheet](http://daringfireball.net/projects/markdown/basics).
+Guides are written in [GitHub Flavored Markdown](https://help.github.com/articles/github-flavored-markdown). There is comprehensive [documentation for Markdown](https://daringfireball.net/projects/markdown/syntax), as well as a [cheatsheet](https://daringfireball.net/projects/markdown/basics).
 
 Prologue
 --------
@@ -40,6 +40,7 @@ Section
 When writing headings, capitalize all words except for prepositions, conjunctions, internal articles, and forms of the verb "to be":
 
 ```
+#### Assertions and Testing Jobs inside Components
 #### Middleware Stack is an Array
 #### When are Objects Saved?
 ```
@@ -139,7 +140,7 @@ By default, guides that have not been modified are not processed, so `ONLY` is r
 
 To force processing all the guides, pass `ALL=1`.
 
-If you want to generate guides in a language other than English, you can keep them in a separate directory under `source` (eg. `source/es`) and use the `GUIDES_LANGUAGE` environment variable:
+If you want to generate guides in a language other than English, you can keep them in a separate directory under `source` (e.g. `source/es`) and use the `GUIDES_LANGUAGE` environment variable:
 
 ```
 bundle exec rake guides:generate GUIDES_LANGUAGE=es

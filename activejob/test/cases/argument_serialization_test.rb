@@ -8,6 +8,12 @@ require "jobs/kwargs_job"
 require "support/stubs/strong_parameters"
 
 class ArgumentSerializationTest < ActiveSupport::TestCase
+  module ModuleArgument
+    class ClassArgument; end
+  end
+
+  class ClassArgument; end
+
   setup do
     @person = Person.find("5")
   end
@@ -18,14 +24,17 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     DateTime.new(2001, 2, 3, 4, 5, 6, "+03:00"),
     ActiveSupport::TimeWithZone.new(Time.utc(1999, 12, 31, 23, 59, 59), ActiveSupport::TimeZone["UTC"]),
     [ 1, "a" ],
-    { "a" => 1 }
+    { "a" => 1 },
+    ModuleArgument,
+    ModuleArgument::ClassArgument,
+    ClassArgument
   ].each do |arg|
     test "serializes #{arg.class} - #{arg} verbatim" do
       assert_arguments_unchanged arg
     end
   end
 
-  [ Object.new, self, Person.find("5").to_gid ].each do |arg|
+  [ Object.new, Person.find("5").to_gid ].each do |arg|
     test "does not serialize #{arg.class}" do
       assert_raises ActiveJob::SerializationError do
         ActiveJob::Arguments.serialize [ arg ]
@@ -161,7 +170,7 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
   end
 
   test "allows for keyword arguments" do
-    KwargsJob.perform_later(argument: 2)
+    KwargsJob.perform_now(argument: 2)
 
     assert_equal "Job with argument: 2", JobBuffer.last_value
   end

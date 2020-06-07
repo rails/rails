@@ -21,6 +21,7 @@ module ActionCable
           logger.error "Received unrecognized command in #{data.inspect}"
         end
       rescue Exception => e
+        @connection.rescue_with_handler(e)
         logger.error "Could not execute command from (#{data.inspect}) [#{e.class} - #{e.message}]: #{e.backtrace.first(5).join(" | ")}"
       end
 

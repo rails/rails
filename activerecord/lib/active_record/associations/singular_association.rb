@@ -17,7 +17,7 @@ module ActiveRecord
         replace(record)
       end
 
-      def build(attributes = {}, &block)
+      def build(attributes = nil, &block)
         record = build_record(attributes, &block)
         set_new_record(record)
         record

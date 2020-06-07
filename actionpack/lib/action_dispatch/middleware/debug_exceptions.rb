@@ -5,7 +5,6 @@ require "action_dispatch/middleware/exception_wrapper"
 require "action_dispatch/routing/inspector"
 
 require "action_view"
-require "action_view/base"
 
 module ActionDispatch
   # This middleware is responsible for logging exceptions and
@@ -42,7 +41,6 @@ module ActionDispatch
     end
 
     private
-
       def invoke_interceptors(request, exception)
         backtrace_cleaner = request.get_header("action_dispatch.backtrace_cleaner")
         wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
@@ -60,7 +58,11 @@ module ActionDispatch
         log_error(request, wrapper)
 
         if request.get_header("action_dispatch.show_detailed_exceptions")
-          content_type = request.formats.first
+          begin
+            content_type = request.formats.first
+          rescue Mime::Type::InvalidMimeType
+            render_for_api_request(Mime[:text], wrapper)
+          end
 
           if api_request?(content_type)
             render_for_api_request(content_type, wrapper)
@@ -131,30 +133,31 @@ module ActionDispatch
 
       def log_error(request, wrapper)
         logger = logger(request)
+
         return unless logger
 
         exception = wrapper.exception
+        trace = wrapper.exception_trace
 
-        trace = wrapper.application_trace
-        trace = wrapper.framework_trace if trace.empty?
+        message = []
+        message << "  "
+        message << "#{exception.class} (#{exception.message}):"
+        message.concat(exception.annotated_source_code) if exception.respond_to?(:annotated_source_code)
+        message << "  "
+        message.concat(trace)
 
-        ActiveSupport::Deprecation.silence do
-          message = []
-          message << "  "
-          message << "#{exception.class} (#{exception.message}):"
-          message.concat(exception.annoted_source_code) if exception.respond_to?(:annoted_source_code)
-          message << "  "
-          message.concat(trace)
-
-          log_array(logger, message)
-        end
+        log_array(logger, message)
       end
 
       def log_array(logger, array)
+        lines = Array(array)
+
+        return if lines.empty?
+
         if logger.formatter && logger.formatter.respond_to?(:tags_text)
-          logger.fatal array.join("\n#{logger.formatter.tags_text}")
+          logger.fatal lines.join("\n#{logger.formatter.tags_text}")
         else
-          logger.fatal array.join("\n")
+          logger.fatal lines.join("\n")
         end
       end
 

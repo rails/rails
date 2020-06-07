@@ -15,7 +15,7 @@ Note that the `data` attributes this library adds are a feature of HTML5. If you
 
 ## Installation
 
-### NPM
+### npm
 
     npm install @rails/ujs --save
 

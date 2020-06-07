@@ -43,7 +43,9 @@ class OutputSafetyHelperTest < ActionView::TestCase
       joined = safe_join(["a", "b"])
       assert_equal "ab", joined
 
-      $, = "|"
+      silence_warnings do
+        $, = "|"
+      end
       joined = safe_join(["a", "b"])
       assert_equal "a|b", joined
     ensure
@@ -108,7 +110,9 @@ class OutputSafetyHelperTest < ActionView::TestCase
 
   test "to_sentence is not affected by $," do
     separator_was = $,
-    $, = "|"
+    silence_warnings do
+      $, = "|"
+    end
     begin
       assert_equal "one and two", to_sentence(["one", "two"])
       assert_equal "one, two, and three", to_sentence(["one", "two", "three"])

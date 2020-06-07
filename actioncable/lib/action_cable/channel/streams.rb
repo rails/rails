@@ -82,7 +82,7 @@ module ActionCable
         # Build a stream handler by wrapping the user-provided callback with
         # a decoder or defaulting to a JSON-decoding retransmitter.
         handler = worker_pool_stream_handler(broadcasting, callback || block, coder: coder)
-        streams << [ broadcasting, handler ]
+        streams[broadcasting] = handler
 
         connection.server.event_loop.post do
           pubsub.subscribe(broadcasting, handler, lambda do
@@ -102,6 +102,20 @@ module ActionCable
         stream_from(broadcasting_for(model), callback || block, coder: coder)
       end
 
+      # Unsubscribes streams from the named <tt>broadcasting</tt>.
+      def stop_stream_from(broadcasting)
+        callback = streams.delete(broadcasting)
+        if callback
+          pubsub.unsubscribe(broadcasting, callback)
+          logger.info "#{self.class.name} stopped streaming from #{broadcasting}"
+        end
+      end
+
+      # Unsubscribes streams for the <tt>model</tt>.
+      def stop_stream_for(model)
+        stop_stream_from(broadcasting_for(model))
+      end
+
       # Unsubscribes all streams associated with this channel from the pubsub queue.
       def stop_all_streams
         streams.each do |broadcasting, callback|
@@ -110,11 +124,23 @@ module ActionCable
         end.clear
       end
 
+      # Calls stream_for if record is present, otherwise calls reject.
+      # This method is intended to be called when you're looking
+      # for a record based on a parameter, if its found it will start
+      # streaming. If the record is nil then it will reject the connection.
+      def stream_or_reject_for(record)
+        if record
+          stream_for record
+        else
+          reject
+        end
+      end
+
       private
         delegate :pubsub, to: :connection
 
         def streams
-          @_streams ||= []
+          @_streams ||= {}
         end
 
         # Always wrap the outermost handler to invoke the user handler on the

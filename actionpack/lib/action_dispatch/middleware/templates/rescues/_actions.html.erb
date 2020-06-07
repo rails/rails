@@ -1,0 +1,13 @@
+<% actions = ActiveSupport::ActionableError.actions(exception) %>
+
+<% if actions.any? %>
+  <div class="actions">
+    <% actions.each do |action, _| %>
+      <%= button_to action, ActionDispatch::ActionableExceptions.endpoint, params: {
+        error: exception.class.name,
+        action: action,
+        location: request.path
+      } %>
+    <% end %>
+  </div>
+<% end %>

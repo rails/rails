@@ -1,9 +1,7 @@
 # frozen_string_literal: true
 
 require "concurrent/map"
-require "active_support/core_ext/module/remove_method"
 require "active_support/core_ext/module/attribute_accessors"
-require "active_support/deprecation"
 require "action_view/template/resolver"
 
 module ActionView
@@ -30,7 +28,7 @@ module ActionView
       Accessors.define_method(:"default_#{name}", &block)
       Accessors.module_eval <<-METHOD, __FILE__, __LINE__ + 1
         def #{name}
-          @details.fetch(:#{name}, [])
+          @details[:#{name}] || []
         end
 
         def #{name}=(value)
@@ -61,6 +59,7 @@ module ActionView
 
       @details_keys = Concurrent::Map.new
       @digest_cache = Concurrent::Map.new
+      @view_context_mutex = Mutex.new
 
       def self.digest_cache(details)
         @digest_cache[details_cache_key(details)] ||= Concurrent::Map.new
@@ -89,7 +88,9 @@ module ActionView
       end
 
       def self.view_context_class(klass)
-        @view_context_class ||= klass.with_empty_template_cache
+        @view_context_mutex.synchronize do
+          @view_context_class ||= klass.with_empty_template_cache
+        end
       end
     end
 
@@ -112,7 +113,6 @@ module ActionView
       end
 
     private
-
       def _set_detail(key, value) # :doc:
         @details = @details.dup if @digest_cache || @details_key
         @digest_cache = nil
@@ -130,9 +130,8 @@ module ActionView
       end
       alias :find_template :find
 
-      def find_file(name, prefixes = [], partial = false, keys = [], options = {})
-        @view_paths.find_file(*args_for_lookup(name, prefixes, partial, keys, options))
-      end
+      alias :find_file :find
+      deprecate :find_file
 
       def find_all(name, prefixes = [], partial = false, keys = [], options = {})
         @view_paths.find_all(*args_for_lookup(name, prefixes, partial, keys, options))
@@ -154,7 +153,7 @@ module ActionView
         view_paths = build_view_paths((@view_paths.paths + self.class.fallbacks).uniq)
 
         if block_given?
-          ActiveSupport::Deprecation.warn <<~eowarn
+          ActiveSupport::Deprecation.warn <<~eowarn.squish
           Calling `with_fallbacks` with a block is deprecated.  Call methods on
           the lookup context returned by `with_fallbacks` instead.
           eowarn
@@ -172,7 +171,6 @@ module ActionView
       end
 
     private
-
       # Whenever setting view paths, makes a copy so that we can manipulate them in
       # instance objects as we wish.
       def build_view_paths(paths)
@@ -280,7 +278,15 @@ module ActionView
     # add :html as fallback to :js.
     def formats=(values)
       if values
+        values = values.dup
         values.concat(default_formats) if values.delete "*/*"
+        values.uniq!
+
+        invalid_values = (values - Template::Types.symbols)
+        unless invalid_values.empty?
+          raise ArgumentError, "Invalid formats: #{invalid_values.map(&:inspect).join(", ")}"
+        end
+
         if values == [:js]
           values << :html
           @html_fallback_for_js = true

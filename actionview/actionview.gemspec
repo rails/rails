@@ -15,15 +15,18 @@ Gem::Specification.new do |s|
 
   s.author   = "David Heinemeier Hansson"
   s.email    = "david@loudthinking.com"
-  s.homepage = "http://rubyonrails.org"
+  s.homepage = "https://rubyonrails.org"
 
   s.files        = Dir["CHANGELOG.md", "README.rdoc", "MIT-LICENSE", "lib/**/*"]
   s.require_path = "lib"
   s.requirements << "none"
 
   s.metadata = {
-    "source_code_uri" => "https://github.com/rails/rails/tree/v#{version}/actionview",
-    "changelog_uri"   => "https://github.com/rails/rails/blob/v#{version}/actionview/CHANGELOG.md"
+    "bug_tracker_uri"   => "https://github.com/rails/rails/issues",
+    "changelog_uri"     => "https://github.com/rails/rails/blob/v#{version}/actionview/CHANGELOG.md",
+    "documentation_uri" => "https://api.rubyonrails.org/v#{version}/",
+    "mailing_list_uri"  => "https://discuss.rubyonrails.org/c/rubyonrails-talk",
+    "source_code_uri"   => "https://github.com/rails/rails/tree/v#{version}/actionview",
   }
 
   # NOTE: Please read our dependency guidelines before updating versions:
@@ -33,7 +36,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency "builder",       "~> 3.1"
   s.add_dependency "erubi",         "~> 1.4"
-  s.add_dependency "rails-html-sanitizer", "~> 1.0", ">= 1.0.3"
+  s.add_dependency "rails-html-sanitizer", "~> 1.1", ">= 1.2.0"
   s.add_dependency "rails-dom-testing", "~> 2.0"
 
   s.add_development_dependency "actionpack",  version

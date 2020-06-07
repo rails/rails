@@ -20,7 +20,6 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
     end
 
     private
-
       def authenticate
         authenticate_or_request_with_http_digest("SuperSecret") do |username|
           # Returns the password
@@ -254,7 +253,6 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
   end
 
   private
-
     def encode_credentials(options)
       options.reverse_merge!(nc: "00000001", cnonce: "0a4f113b", password_is_ha1: false)
       password = options.delete(:password)

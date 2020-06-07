@@ -4,7 +4,7 @@ module ActiveRecord
   # = Active Record \Callbacks
   #
   # \Callbacks are hooks into the life cycle of an Active Record object that allow you to trigger logic
-  # before or after an alteration of the object state. This can be used to make sure that associated and
+  # before or after a change in the object state. This can be used to make sure that associated and
   # dependent objects are deleted when {ActiveRecord::Base#destroy}[rdoc-ref:Persistence#destroy] is called (by overwriting +before_destroy+) or
   # to massage attributes before they're validated (by overwriting +before_validation+).
   # As an example of the callbacks initiated, consider the {ActiveRecord::Base#save}[rdoc-ref:Persistence#save] call for a new record:
@@ -32,7 +32,7 @@ module ActiveRecord
   # is found and instantiated by a finder, with <tt>after_initialize</tt> being triggered after new objects
   # are instantiated as well.
   #
-  # There are nineteen callbacks in total, which give you immense power to react and prepare for each state in the
+  # There are nineteen callbacks in total, which give a lot of control over how to react and prepare for each state in the
   # Active Record life cycle. The sequence for calling {ActiveRecord::Base#save}[rdoc-ref:Persistence#save] for an existing record is similar,
   # except that each <tt>_create</tt> callback is replaced by the corresponding <tt>_update</tt> callback.
   #
@@ -64,7 +64,7 @@ module ActiveRecord
   #
   # Besides the overwritable callback methods, it's also possible to register callbacks through the
   # use of the callback macros. Their main advantage is that the macros add behavior into a callback
-  # queue that is kept intact down through an inheritance hierarchy.
+  # queue that is kept intact through an inheritance hierarchy.
   #
   #   class Topic < ActiveRecord::Base
   #     before_destroy :destroy_author
@@ -74,7 +74,7 @@ module ActiveRecord
   #     before_destroy :destroy_readers
   #   end
   #
-  # Now, when <tt>Topic#destroy</tt> is run only +destroy_author+ is called. When <tt>Reply#destroy</tt> is
+  # When <tt>Topic#destroy</tt> is run only +destroy_author+ is called. When <tt>Reply#destroy</tt> is
   # run, both +destroy_author+ and +destroy_readers+ are called.
   #
   # *IMPORTANT:* In order for inheritance to work for the callback queues, you must specify the
@@ -83,10 +83,9 @@ module ActiveRecord
   #
   # == Types of callbacks
   #
-  # There are four types of callbacks accepted by the callback macros: Method references (symbol), callback objects,
-  # inline methods (using a proc). Method references and callback objects
-  # are the recommended approaches, inline methods using a proc are sometimes appropriate (such as for
-  # creating mix-ins).
+  # There are three types of callbacks accepted by the callback macros: method references (symbol), callback objects,
+  # inline methods (using a proc). Method references and callback objects are the recommended approaches,
+  # inline methods using a proc are sometimes appropriate (such as for creating mix-ins).
   #
   # The method reference callbacks work by specifying a protected or private method available in the object, like this:
   #
@@ -179,8 +178,8 @@ module ActiveRecord
   #
   # == Ordering callbacks
   #
-  # Sometimes the code needs that the callbacks execute in a specific order. For example, a +before_destroy+
-  # callback (+log_children+ in this case) should be executed before the children get destroyed by the
+  # Sometimes application code requires that callbacks execute in a specific order. For example, a +before_destroy+
+  # callback (+log_children+ in this case) should be executed before records in the +children+ association are destroyed by the
   # <tt>dependent: :destroy</tt> option.
   #
   # Let's look at the code below:
@@ -196,8 +195,8 @@ module ActiveRecord
   #       end
   #   end
   #
-  # In this case, the problem is that when the +before_destroy+ callback is executed, the children are not available
-  # because the {ActiveRecord::Base#destroy}[rdoc-ref:Persistence#destroy] callback gets executed first.
+  # In this case, the problem is that when the +before_destroy+ callback is executed, records in the +children+ association no
+  # longer exist because the {ActiveRecord::Base#destroy}[rdoc-ref:Persistence#destroy] callback was executed first.
   # You can use the +prepend+ option on the +before_destroy+ callback to avoid this.
   #
   #   class Topic < ActiveRecord::Base
@@ -211,7 +210,7 @@ module ActiveRecord
   #       end
   #   end
   #
-  # This way, the +before_destroy+ gets executed before the <tt>dependent: :destroy</tt> is called, and the data is still available.
+  # This way, the +before_destroy+ is executed before the <tt>dependent: :destroy</tt> is called, and the data is still available.
   #
   # Also, there are cases when you want several callbacks of the same type to
   # be executed in order.
@@ -235,10 +234,10 @@ module ActiveRecord
   #     end
   #   end
   #
-  # In this case the +log_children+ gets executed before +do_something_else+.
+  # In this case the +log_children+ is executed before +do_something_else+.
   # The same applies to all non-transactional callbacks.
   #
-  # In case there are multiple transactional callbacks as seen below, the order
+  # As seen below, in case there are multiple transactional callbacks the order
   # is reversed.
   #
   # For example:
@@ -260,16 +259,16 @@ module ActiveRecord
   #     end
   #   end
   #
-  # In this case the +do_something_else+ gets executed before +log_children+.
+  # In this case the +do_something_else+ is executed before +log_children+.
   #
   # == \Transactions
   #
   # The entire callback chain of a {#save}[rdoc-ref:Persistence#save], {#save!}[rdoc-ref:Persistence#save!],
   # or {#destroy}[rdoc-ref:Persistence#destroy] call runs within a transaction. That includes <tt>after_*</tt> hooks.
-  # If everything goes fine a COMMIT is executed once the chain has been completed.
+  # If everything goes fine a +COMMIT+ is executed once the chain has been completed.
   #
-  # If a <tt>before_*</tt> callback cancels the action a ROLLBACK is issued. You
-  # can also trigger a ROLLBACK raising an exception in any of the callbacks,
+  # If a <tt>before_*</tt> callback cancels the action a +ROLLBACK+ is issued. You
+  # can also trigger a +ROLLBACK+ raising an exception in any of the callbacks,
   # including <tt>after_*</tt> hooks. Note, however, that in that case the client
   # needs to be aware of it because an ordinary {#save}[rdoc-ref:Persistence#save] will raise such exception
   # instead of quietly returning +false+.
@@ -280,17 +279,17 @@ module ActiveRecord
   # <tt>:before</tt>, <tt>:after</tt> and <tt>:around</tt> as values for the <tt>kind</tt> property. The <tt>kind</tt> property
   # defines what part of the chain the callback runs in.
   #
-  # To find all callbacks in the before_save callback chain:
+  # To find all callbacks in the +before_save+ callback chain:
   #
   #   Topic._save_callbacks.select { |cb| cb.kind.eql?(:before) }
   #
-  # Returns an array of callback objects that form the before_save chain.
+  # Returns an array of callback objects that form the +before_save+ chain.
   #
   # To further check if the before_save chain contains a proc defined as <tt>rest_when_dead</tt> use the <tt>filter</tt> property of the callback object:
   #
   #   Topic._save_callbacks.select { |cb| cb.kind.eql?(:before) }.collect(&:filter).include?(:rest_when_dead)
   #
-  # Returns true or false depending on whether the proc is contained in the before_save callback chain on a Topic model.
+  # Returns true or false depending on whether the proc is contained in the +before_save+ callback chain on a Topic model.
   #
   module Callbacks
     extend ActiveSupport::Concern
@@ -301,6 +300,17 @@ module ActiveRecord
       :after_create, :before_update, :around_update, :after_update,
       :before_destroy, :around_destroy, :after_destroy, :after_commit, :after_rollback
     ]
+
+    module ClassMethods # :nodoc:
+      include ActiveModel::Callbacks
+    end
+
+    included do
+      include ActiveModel::Validations::Callbacks
+
+      define_model_callbacks :initialize, :find, :touch, only: :after
+      define_model_callbacks :save, :create, :update, :destroy
+    end
 
     def destroy #:nodoc:
       @_destroy_callback_already_called ||= false
@@ -314,7 +324,7 @@ module ActiveRecord
       @_destroy_callback_already_called = false
     end
 
-    def touch(*) #:nodoc:
+    def touch(*, **) #:nodoc:
       _run_touch_callbacks { super }
     end
 
@@ -323,7 +333,6 @@ module ActiveRecord
     end
 
   private
-
     def create_or_update(**)
       _run_save_callbacks { super }
     end

@@ -20,6 +20,7 @@ module ApplicationTests
         config.active_support.deprecation = :log
         config.eager_load = false
         config.hosts << proc { true }
+        config.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
       end
 
       Rails.application.initialize!

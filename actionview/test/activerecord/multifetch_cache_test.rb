@@ -1,9 +1,6 @@
 # frozen_string_literal: true
 
 require "active_record_unit"
-require "active_record/railties/collection_cache_association_loading"
-
-ActionView::PartialRenderer.prepend(ActiveRecord::Railties::CollectionCacheAssociationLoading)
 
 class MultifetchCacheTest < ActiveRecordTestCase
   fixtures :topics, :replies
@@ -22,6 +19,10 @@ class MultifetchCacheTest < ActiveRecordTestCase
         [ :views, key ]
       end
     end.with_view_paths(view_paths, {})
+
+    controller = ActionController::Base.new
+    controller.perform_caching = true
+    @view.controller = controller
   end
 
   def test_only_preloading_for_records_that_miss_the_cache

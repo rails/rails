@@ -23,6 +23,12 @@ module ActiveRecord
     # should not be dumped to db/schema.rb.
     cattr_accessor :fk_ignore_pattern, default: /^fk_rails_[0-9a-f]{10}$/
 
+    ##
+    # :singleton-method:
+    # Specify a custom regular expression matching check constraints which name
+    # should not be dumped to db/schema.rb.
+    cattr_accessor :chk_ignore_pattern, default: /^chk_rails_[0-9a-f]{10}$/
+
     class << self
       def dump(connection = ActiveRecord::Base.connection, stream = STDOUT, config = ActiveRecord::Base)
         connection.create_schema_dumper(generate_options(config)).dump(stream)
@@ -47,6 +53,7 @@ module ActiveRecord
     end
 
     private
+      attr_accessor :table_name
 
       def initialize(connection, options = {})
         @connection = connection
@@ -71,8 +78,8 @@ module ActiveRecord
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
 #
-# This file is the source Rails uses to define your schema when running `rails
-# db:schema:load`. When creating a new database, `rails db:schema:load` tends to
+# This file is the source Rails uses to define your schema when running `bin/rails
+# db:schema:load`. When creating a new database, `bin/rails db:schema:load` tends to
 # be faster and is potentially less error prone than running all of your
 # migrations from scratch. Old migrations may fail to apply correctly if those
 # migrations use external dependencies or application code.
@@ -110,6 +117,8 @@ HEADER
       def table(table, stream)
         columns = @connection.columns(table)
         begin
+          self.table_name = table
+
           tbl = StringIO.new
 
           # first dump primary key column
@@ -122,7 +131,10 @@ HEADER
             tbl.print ", primary_key: #{pk.inspect}" unless pk == "id"
             pkcol = columns.detect { |c| c.name == pk }
             pkcolspec = column_spec_for_primary_key(pkcol)
-            if pkcolspec.present?
+            unless pkcolspec.empty?
+              if pkcolspec != pkcolspec.slice(:id, :default)
+                pkcolspec = { id: { type: pkcolspec.delete(:id), **pkcolspec }.compact }
+              end
               tbl.print ", #{format_colspec(pkcolspec)}"
             end
           when Array
@@ -143,12 +155,17 @@ HEADER
             raise StandardError, "Unknown type '#{column.sql_type}' for column '#{column.name}'" unless @connection.valid_type?(column.type)
             next if column.name == pk
             type, colspec = column_spec(column)
-            tbl.print "    t.#{type} #{column.name.inspect}"
+            if type.is_a?(Symbol)
+              tbl.print "    t.#{type} #{column.name.inspect}"
+            else
+              tbl.print "    t.column #{column.name.inspect}, #{type.inspect}"
+            end
             tbl.print ", #{format_colspec(colspec)}" if colspec.present?
             tbl.puts
           end
 
           indexes_in_create(table, tbl)
+          check_constraints_in_create(table, tbl) if @connection.supports_check_constraints?
 
           tbl.puts "  end"
           tbl.puts
@@ -159,6 +176,8 @@ HEADER
           stream.puts "# Could not dump table #{table.inspect} because of following #{e.class}"
           stream.puts "#   #{e.message}"
           stream.puts
+        ensure
+          self.table_name = nil
         end
       end
 
@@ -200,6 +219,24 @@ HEADER
         index_parts
       end
 
+      def check_constraints_in_create(table, stream)
+        if (check_constraints = @connection.check_constraints(table)).any?
+          add_check_constraint_statements = check_constraints.map do |check_constraint|
+            parts = [
+              "t.check_constraint #{check_constraint.expression.inspect}"
+            ]
+
+            if check_constraint.export_name_on_schema_dump?
+              parts << "name: #{check_constraint.name.inspect}"
+            end
+
+            "    #{parts.join(', ')}"
+          end
+
+          stream.puts add_check_constraint_statements.sort.join("\n")
+        end
+      end
+
       def foreign_keys(table, stream)
         if (foreign_keys = @connection.foreign_keys(table)).any?
           add_foreign_key_statements = foreign_keys.map do |foreign_key|
@@ -231,7 +268,9 @@ HEADER
       end
 
       def format_colspec(colspec)
-        colspec.map { |key, value| "#{key}: #{value}" }.join(", ")
+        colspec.map do |key, value|
+          "#{key}: #{ value.is_a?(Hash) ? "{ #{format_colspec(value)} }" : value }"
+        end.join(", ")
       end
 
       def format_options(options)

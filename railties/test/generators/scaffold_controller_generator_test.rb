@@ -12,6 +12,8 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
   arguments %w(User name:string age:integer)
 
+  setup :copy_routes
+
   def test_controller_skeleton_is_created
     run_generator
 
@@ -77,6 +79,40 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     assert_file "app/controllers/line_items_controller.rb" do |content|
       assert_match(/def line_item_params/, content)
       assert_match(/params\.require\(:line_item\)\.permit\(:product_id, :product_type\)/, content)
+    end
+  end
+
+  def test_controller_permit_attachment_attributes
+    run_generator ["Message", "video:attachment", "photos:attachments"]
+
+    assert_file "app/controllers/messages_controller.rb" do |content|
+      assert_match(/def message_params/, content)
+      assert_match(/params\.require\(:message\)\.permit\(:video, photos: \[\]\)/, content)
+    end
+  end
+
+  def test_controller_permit_attachments_attributes_only
+    run_generator ["Message", "photos:attachments"]
+
+    assert_file "app/controllers/messages_controller.rb" do |content|
+      assert_match(/def message_params/, content)
+      assert_match(/params\.require\(:message\)\.permit\(photos: \[\]\)/, content)
+    end
+  end
+
+  def test_controller_route_are_added
+    run_generator ["Message", "photos:attachments"]
+
+    assert_file "config/routes.rb" do |route|
+      assert_match(/resources :messages$/, route)
+    end
+  end
+
+  def test_controller_route_are_skipped
+    run_generator ["Message", "photos:attachments", "--skip-routes"]
+
+    assert_file "config/routes.rb" do |route|
+      assert_no_match(/resources :messages$/, route)
     end
   end
 
@@ -275,5 +311,22 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       assert_match(/patch user_url\(@user\), params: \{ user: \{ age: @user\.age, name: @user\.name, organization_id: @user\.organization_id, organization_type: @user\.organization_type \} \}, as: :json/, content)
       assert_no_match(/assert_redirected_to/, content)
     end
+  end
+
+  def test_api_only_generates_params_for_attachments
+    run_generator ["Message", "video:attachment", "photos:attachments", "--api"]
+
+    assert_file "app/controllers/messages_controller.rb" do |content|
+      assert_match(/def message_params/, content)
+      assert_match(/params\.require\(:message\)\.permit\(:video, photos: \[\]\)/, content)
+    end
+  end
+
+  def test_check_class_collision
+    Object.send :const_set, :UsersController, Class.new
+    content = capture(:stderr) { run_generator }
+    assert_match(/The name 'UsersController' is either already used in your application or reserved/, content)
+  ensure
+    Object.send :remove_const, :UsersController
   end
 end

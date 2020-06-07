@@ -11,6 +11,8 @@ end
 
 class DummyCompiler < ERB::Compiler # :nodoc:
   def compile_content(stag, out)
-    out.push "_erbout << 'dummy_compiler'"
+    if stag == "<%="
+      out.push "_erbout << ''"
+    end
   end
 end

@@ -11,6 +11,7 @@ require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/string/output_safety"
 require "active_support/core_ext/string/inflections"
+require "active_support/core_ext/symbol/starts_ends_with"
 
 module ActionView
   # = Action View Form Helpers
@@ -739,7 +740,7 @@ module ActionView
       #   def labelled_form_with(**options, &block)
       #     form_with(**options.merge(builder: LabellingFormBuilder), &block)
       #   end
-      def form_with(model: nil, scope: nil, url: nil, format: nil, **options)
+      def form_with(model: nil, scope: nil, url: nil, format: nil, **options, &block)
         options[:allow_method_names_outside_object] = true
         options[:skip_default_ids] = !form_with_generates_ids
 
@@ -752,13 +753,13 @@ module ActionView
 
         if block_given?
           builder = instantiate_builder(scope, model, options)
-          output  = capture(builder, &Proc.new)
+          output  = capture(builder, &block)
           options[:multipart] ||= builder.multipart?
 
-          html_options = html_options_for_form_with(url, model, options)
+          html_options = html_options_for_form_with(url, model, **options)
           form_tag_with_body(html_options, output)
         else
-          html_options = html_options_for_form_with(url, model, options)
+          html_options = html_options_for_form_with(url, model, **options)
           form_tag_html(html_options)
         end
       end
@@ -888,7 +889,7 @@ module ActionView
       #
       # Now, when you use a form element with the <tt>_destroy</tt> parameter,
       # with a value that evaluates to +true+, you will destroy the associated
-      # model (eg. 1, '1', true, or 'true'):
+      # model (e.g. 1, '1', true, or 'true'):
       #
       #   <%= form_for @person do |person_form| %>
       #     ...
@@ -977,7 +978,7 @@ module ActionView
       # This will allow you to specify which models to destroy in the
       # attributes hash by adding a form element for the <tt>_destroy</tt>
       # parameter with a value that evaluates to +true+
-      # (eg. 1, '1', true, or 'true'):
+      # (e.g. 1, '1', true, or 'true'):
       #
       #   <%= form_for @person do |person_form| %>
       #     ...
@@ -1668,8 +1669,8 @@ module ActionView
 
         convert_to_legacy_options(@options)
 
-        if @object_name.to_s.match(/\[\]$/)
-          if (object ||= @template.instance_variable_get("@#{Regexp.last_match.pre_match}")) && object.respond_to?(:to_param)
+        if @object_name&.end_with?("[]")
+          if (object ||= @template.instance_variable_get("@#{@object_name[0..-3]}")) && object.respond_to?(:to_param)
             @auto_index = object.to_param
           else
             raise ArgumentError, "object[] naming but object param and @object var don't exist or don't respond to to_param: #{object.inspect}"
@@ -1792,7 +1793,7 @@ module ActionView
       # Wraps ActionView::Helpers::FormHelper#time_field for form builders:
       #
       #   <%= form_with model: @user do |f| %>
-      #     <%= f.time_field :borned_at %>
+      #     <%= f.time_field :born_at %>
       #   <% end %>
       #
       # Please refer to the documentation of the base helper for details.
@@ -1905,7 +1906,7 @@ module ActionView
         class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
           def #{selector}(method, options = {})  # def text_field(method, options = {})
             @template.send(                      #   @template.send(
-              #{selector.inspect},               #     "text_field",
+              #{selector.inspect},               #     :text_field,
               @object_name,                      #     @object_name,
               method,                            #     method,
               objectify_options(options))        #     objectify_options(options))
@@ -2038,7 +2039,7 @@ module ActionView
       #
       # Now, when you use a form element with the <tt>_destroy</tt> parameter,
       # with a value that evaluates to +true+, you will destroy the associated
-      # model (eg. 1, '1', true, or 'true'):
+      # model (e.g. 1, '1', true, or 'true'):
       #
       #   <%= form_for @person do |person_form| %>
       #     ...
@@ -2127,7 +2128,7 @@ module ActionView
       # This will allow you to specify which models to destroy in the
       # attributes hash by adding a form element for the <tt>_destroy</tt>
       # parameter with a value that evaluates to +true+
-      # (eg. 1, '1', true, or 'true'):
+      # (e.g. 1, '1', true, or 'true'):
       #
       #   <%= form_for @person do |person_form| %>
       #     ...
@@ -2180,9 +2181,8 @@ module ActionView
 
         record_name = if index
           "#{object_name}[#{index}][#{record_name}]"
-        elsif record_name.to_s.end_with?("[]")
-          record_name = record_name.to_s.sub(/(.*)\[\]$/, "[\\1][#{record_object.id}]")
-          "#{object_name}#{record_name}"
+        elsif record_name.end_with?("[]")
+          "#{object_name}[#{record_name[0..-3]}][#{record_object.id}]"
         else
           "#{object_name}[#{record_name}]"
         end
@@ -2480,7 +2480,9 @@ module ActionView
 
       private
         def objectify_options(options)
-          @default_options.merge(options.merge(object: @object))
+          result = @default_options.merge(options)
+          result[:object] = @object
+          result
         end
 
         def submit_default_value

@@ -35,10 +35,10 @@ module ActiveRecord
     #   config.active_record.database_resolver = MyResolver
     #   config.active_record.database_resolver_context = MyResolver::MySession
     class DatabaseSelector
-      def initialize(app, resolver_klass = Resolver, context_klass = Resolver::Session, options = {})
+      def initialize(app, resolver_klass = nil, context_klass = nil, options = {})
         @app = app
-        @resolver_klass = resolver_klass
-        @context_klass = context_klass
+        @resolver_klass = resolver_klass || Resolver
+        @context_klass = context_klass || Resolver::Session
         @options = options
       end
 
@@ -55,16 +55,18 @@ module ActiveRecord
       end
 
       private
-
         def select_database(request, &blk)
           context = context_klass.call(request)
           resolver = resolver_klass.call(context, options)
 
-          if reading_request?(request)
+          response = if reading_request?(request)
             resolver.read(&blk)
           else
             resolver.write(&blk)
           end
+
+          resolver.update_context(response)
+          response
         end
 
         def reading_request?(request)

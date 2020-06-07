@@ -67,12 +67,20 @@ class LookupContextTest < ActiveSupport::TestCase
 
   test "handles explicitly defined */* formats fallback to :js" do
     @lookup_context.formats = [:js, Mime::ALL]
-    assert_equal [:js, *Mime::SET.symbols], @lookup_context.formats
+    assert_equal [:js, *Mime::SET.symbols].uniq, @lookup_context.formats
   end
 
   test "adds :html fallback to :js formats" do
     @lookup_context.formats = [:js]
     assert_equal [:js, :html], @lookup_context.formats
+  end
+
+  test "raises on invalid format assignment" do
+    ex = assert_raises ArgumentError do
+      @lookup_context.formats = [:html, :invalid, "also bad"]
+    end
+
+    assert_equal 'Invalid formats: :invalid, "also bad"', ex.message
   end
 
   test "provides getters and setters for locale" do
@@ -135,16 +143,16 @@ class LookupContextTest < ActiveSupport::TestCase
     assert_deprecated do
       @lookup_context.with_fallbacks do
         assert_equal 3, @lookup_context.view_paths.size
-        assert_includes @lookup_context.view_paths, ActionView::FallbackFileSystemResolver.new("")
-        assert_includes @lookup_context.view_paths, ActionView::FallbackFileSystemResolver.new("/")
+        assert_includes @lookup_context.view_paths, ActionView::FallbackFileSystemResolver.instances[0]
+        assert_includes @lookup_context.view_paths, ActionView::FallbackFileSystemResolver.instances[1]
       end
     end
 
     @lookup_context = @lookup_context.with_fallbacks
 
     assert_equal 3, @lookup_context.view_paths.size
-    assert_includes @lookup_context.view_paths, ActionView::FallbackFileSystemResolver.new("")
-    assert_includes @lookup_context.view_paths, ActionView::FallbackFileSystemResolver.new("/")
+    assert_includes @lookup_context.view_paths, ActionView::FallbackFileSystemResolver.instances[0]
+    assert_includes @lookup_context.view_paths, ActionView::FallbackFileSystemResolver.instances[1]
   end
 
   test "add fallbacks just once in nested fallbacks calls" do
@@ -182,33 +190,30 @@ class LookupContextTest < ActiveSupport::TestCase
     assert_equal 3, keys.uniq.size
   end
 
-  test "gives the key forward to the resolver, so it can be used as cache key" do
-    @lookup_context = build_lookup_context(ActionView::FixtureResolver.new("test/_foo.erb" => "Foo"), {})
+  test "uses details as part of cache key" do
+    fixtures = {
+      "test/_foo.erb" => "Foo",
+      "test/_foo.da.erb" => "Bar",
+    }
+    @lookup_context = build_lookup_context(ActionView::FixtureResolver.new(fixtures), {})
+
     template = @lookup_context.find("foo", %w(test), true)
+    original_template = template
     assert_equal "Foo", template.source
 
-    # Now we are going to change the template, but it won't change the returned template
-    # since we will hit the cache.
-    @lookup_context.view_paths.first.data["test/_foo.erb"] = "Bar"
+    # We should get the same template
     template = @lookup_context.find("foo", %w(test), true)
-    assert_equal "Foo", template.source
+    assert_same original_template, template
 
-    # This time we will change the locale. The updated template should be picked since
-    # lookup_context generated a new key after we changed the locale.
+    # Using a different locale we get a different view
     @lookup_context.locale = :da
     template = @lookup_context.find("foo", %w(test), true)
     assert_equal "Bar", template.source
 
-    # Now we will change back the locale and it will still pick the old template.
-    # This is expected because lookup_context will reuse the previous key for :en locale.
+    # Using en we get the original view
     @lookup_context.locale = :en
     template = @lookup_context.find("foo", %w(test), true)
-    assert_equal "Foo", template.source
-
-    # Finally, we can expire the cache. And the expected template will be used.
-    @lookup_context.view_paths.first.clear_cache
-    template = @lookup_context.find("foo", %w(test), true)
-    assert_equal "Bar", template.source
+    assert_same original_template, template
   end
 
   test "can disable the cache on demand" do
@@ -232,56 +237,6 @@ class LookupContextTest < ActiveSupport::TestCase
     assert_equal [], @lookup_context.prefixes
     @lookup_context.prefixes = ["foo"]
     assert_equal ["foo"], @lookup_context.prefixes
-  end
-end
-
-class LookupContextWithFalseCaching < ActiveSupport::TestCase
-  def setup
-    @resolver = ActionView::FixtureResolver.new("test/_foo.erb" => ["Foo", Time.utc(2000)])
-    @lookup_context = ActionView::LookupContext.new(@resolver, {})
-  end
-
-  test "templates are always found in the resolver but timestamp is checked before being compiled" do
-    ActionView::Resolver.stub(:caching?, false) do
-      template = @lookup_context.find("foo", %w(test), true)
-      assert_equal "Foo", template.source
-
-      # Now we are going to change the template, but it won't change the returned template
-      # since the timestamp is the same.
-      @resolver.data["test/_foo.erb"][0] = "Bar"
-      template = @lookup_context.find("foo", %w(test), true)
-      assert_equal "Foo", template.source
-
-      # Now update the timestamp.
-      @resolver.data["test/_foo.erb"][1] = Time.now.utc
-      template = @lookup_context.find("foo", %w(test), true)
-      assert_equal "Bar", template.source
-    end
-  end
-
-  test "if no template was found in the second lookup, with no cache, raise error" do
-    ActionView::Resolver.stub(:caching?, false) do
-      template = @lookup_context.find("foo", %w(test), true)
-      assert_equal "Foo", template.source
-
-      @resolver.data.clear
-      assert_raise ActionView::MissingTemplate do
-        @lookup_context.find("foo", %w(test), true)
-      end
-    end
-  end
-
-  test "if no template was cached in the first lookup, retrieval should work in the second call" do
-    ActionView::Resolver.stub(:caching?, false) do
-      @resolver.data.clear
-      assert_raise ActionView::MissingTemplate do
-        @lookup_context.find("foo", %w(test), true)
-      end
-
-      @resolver.data["test/_foo.erb"] = ["Foo", Time.utc(2000)]
-      template = @lookup_context.find("foo", %w(test), true)
-      assert_equal "Foo", template.source
-    end
   end
 end
 

@@ -12,6 +12,7 @@ module ActiveRecord
     def setup
       @connection = ActiveRecord::Base.connection
       @connection.materialize_transactions
+      @connection_handler = ActiveRecord::Base.connection_handler
     end
 
     ##
@@ -103,9 +104,20 @@ module ActiveRecord
       @connection.remove_index(:accounts, name: index_name)
     end
 
+    def test_remove_index_when_name_and_wrong_column_name_specified_positional_argument
+      index_name = "accounts_idx"
+
+      @connection.add_index :accounts, :firm_id, name: index_name
+      assert_raises ArgumentError do
+        @connection.remove_index :accounts, :wrong_column_name, name: index_name
+      end
+    ensure
+      @connection.remove_index(:accounts, name: index_name)
+    end
+
     def test_current_database
       if @connection.respond_to?(:current_database)
-        assert_equal ARTest.connection_config["arunit"]["database"], @connection.current_database
+        assert_equal ARTest.test_configuration_hashes["arunit"]["database"], @connection.current_database
       end
     end
 
@@ -133,9 +145,10 @@ module ActiveRecord
 
       def test_not_specifying_database_name_for_cross_database_selects
         assert_nothing_raised do
-          ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations["arunit"].except(:database))
+          db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+          ActiveRecord::Base.establish_connection(db_config.configuration_hash.except(:database))
 
-          config = ARTest.connection_config
+          config = ARTest.test_configuration_hashes
           ActiveRecord::Base.connection.execute(
             "SELECT #{config['arunit']['database']}.pirates.*, #{config['arunit2']['database']}.courses.* " \
             "FROM #{config['arunit']['database']}.pirates, #{config['arunit2']['database']}.courses"
@@ -166,7 +179,7 @@ module ActiveRecord
     def test_preventing_writes_predicate
       assert_not_predicate @connection, :preventing_writes?
 
-      @connection.while_preventing_writes do
+      @connection_handler.while_preventing_writes do
         assert_predicate @connection, :preventing_writes?
       end
 
@@ -176,7 +189,7 @@ module ActiveRecord
     def test_errors_when_an_insert_query_is_called_while_preventing_writes
       assert_no_queries do
         assert_raises(ActiveRecord::ReadOnlyError) do
-          @connection.while_preventing_writes do
+          @connection_handler.while_preventing_writes do
             @connection.transaction do
               @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')", nil, false)
             end
@@ -190,7 +203,7 @@ module ActiveRecord
 
       assert_no_queries do
         assert_raises(ActiveRecord::ReadOnlyError) do
-          @connection.while_preventing_writes do
+          @connection_handler.while_preventing_writes do
             @connection.transaction do
               @connection.update("UPDATE subscribers SET nick = '9989' WHERE nick = '138853948594'")
             end
@@ -204,7 +217,7 @@ module ActiveRecord
 
       assert_no_queries do
         assert_raises(ActiveRecord::ReadOnlyError) do
-          @connection.while_preventing_writes do
+          @connection_handler.while_preventing_writes do
             @connection.transaction do
               @connection.delete("DELETE FROM subscribers WHERE nick = '138853948594'")
             end
@@ -216,9 +229,23 @@ module ActiveRecord
     def test_doesnt_error_when_a_select_query_is_called_while_preventing_writes
       @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')")
 
-      @connection.while_preventing_writes do
+      @connection_handler.while_preventing_writes do
         result = @connection.select_all("SELECT subscribers.* FROM subscribers WHERE nick = '138853948594'")
         assert_equal 1, result.length
+      end
+    end
+
+    if ActiveRecord::Base.connection.supports_common_table_expressions?
+      def test_doesnt_error_when_a_read_query_with_a_cte_is_called_while_preventing_writes
+        @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')")
+
+        @connection_handler.while_preventing_writes do
+          result = @connection.select_all(<<~SQL)
+            WITH matching_subscribers AS (SELECT subscribers.* FROM subscribers WHERE nick = '138853948594')
+            SELECT * FROM matching_subscribers
+          SQL
+          assert_equal 1, result.length
+        end
       end
     end
 
@@ -285,41 +312,72 @@ module ActiveRecord
     end
 
     if ActiveRecord::Base.connection.prepared_statements
-      def test_select_all_with_legacy_binds
-        post = Post.create!(title: "foo", body: "bar")
-        expected = @connection.select_all("SELECT * FROM posts WHERE id = #{post.id}")
-        result = @connection.select_all("SELECT * FROM posts WHERE id = #{Arel::Nodes::BindParam.new(nil).to_sql}", nil, [[nil, post.id]])
-        assert_equal expected.to_a, result.to_a
+      def test_select_all_insert_update_delete_with_legacy_binds
+        binds = [[Event.column_for_attribute("id"), 1]]
+        bind_param = Arel::Nodes::BindParam.new(nil)
+
+        assert_deprecated do
+          id = @connection.insert("INSERT INTO events(id) VALUES (#{bind_param.to_sql})", nil, nil, nil, nil, binds)
+          assert_equal 1, id
+        end
+
+        assert_deprecated do
+          updated = @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
+          assert_equal 1, updated
+        end
+
+        assert_deprecated do
+          result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+          assert_equal({ "id" => 1, "title" => "foo" }, result.first)
+        end
+
+        assert_deprecated do
+          deleted = @connection.delete("DELETE FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+          assert_equal 1, deleted
+        end
+
+        assert_deprecated do
+          result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+          assert_nil result.first
+        end
       end
 
-      def test_insert_update_delete_with_legacy_binds
-        binds = [[nil, 1]]
+      def test_select_all_insert_update_delete_with_casted_binds
+        binds = [Event.type_for_attribute("id").serialize(1)]
         bind_param = Arel::Nodes::BindParam.new(nil)
 
         id = @connection.insert("INSERT INTO events(id) VALUES (#{bind_param.to_sql})", nil, nil, nil, nil, binds)
         assert_equal 1, id
 
-        @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
+        updated = @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
+        assert_equal 1, updated
+
         result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
         assert_equal({ "id" => 1, "title" => "foo" }, result.first)
 
-        @connection.delete("DELETE FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        deleted = @connection.delete("DELETE FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        assert_equal 1, deleted
+
         result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
         assert_nil result.first
       end
 
-      def test_insert_update_delete_with_binds
-        binds = [Relation::QueryAttribute.new("id", 1, Type.default_value)]
+      def test_select_all_insert_update_delete_with_binds
+        binds = [Relation::QueryAttribute.new("id", 1, Event.type_for_attribute("id"))]
         bind_param = Arel::Nodes::BindParam.new(nil)
 
         id = @connection.insert("INSERT INTO events(id) VALUES (#{bind_param.to_sql})", nil, nil, nil, nil, binds)
         assert_equal 1, id
 
-        @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
+        updated = @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
+        assert_equal 1, updated
+
         result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
         assert_equal({ "id" => 1, "title" => "foo" }, result.first)
 
-        @connection.delete("DELETE FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        deleted = @connection.delete("DELETE FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        assert_equal 1, deleted
+
         result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
         assert_nil result.first
       end
@@ -382,6 +440,16 @@ module ActiveRecord
 
     def test_joins_per_query_is_deprecated
       assert_deprecated { @connection.joins_per_query }
+    end
+
+    def test_allowed_index_name_length_is_deprecated
+      assert_deprecated { @connection.allowed_index_name_length }
+    end
+
+    unless current_adapter?(:OracleAdapter)
+      def test_in_clause_length_is_deprecated
+        assert_deprecated { @connection.in_clause_length }
+      end
     end
   end
 
@@ -452,19 +520,21 @@ module ActiveRecord
   class AdapterTestWithoutTransaction < ActiveRecord::TestCase
     self.use_transactional_tests = false
 
-    class Klass < ActiveRecord::Base
-    end
+    fixtures :posts, :authors, :author_addresses
 
     def setup
-      Klass.establish_connection :arunit
-      @connection = Klass.connection
-    end
-
-    teardown do
-      Klass.remove_connection
+      @connection = ActiveRecord::Base.connection
     end
 
     unless in_memory_db?
+      test "reconnect after a disconnect" do
+        assert_predicate @connection, :active?
+        @connection.disconnect!
+        assert_not_predicate @connection, :active?
+        @connection.reconnect!
+        assert_predicate @connection, :active?
+      end
+
       test "transaction state is reset after a reconnect" do
         @connection.begin_transaction
         assert_predicate @connection, :transaction_open?
@@ -477,7 +547,63 @@ module ActiveRecord
         assert_predicate @connection, :transaction_open?
         @connection.disconnect!
         assert_not_predicate @connection, :transaction_open?
+      ensure
+        @connection.reconnect!
       end
+    end
+
+    def test_truncate
+      assert_operator Post.count, :>, 0
+
+      @connection.truncate("posts")
+
+      assert_equal 0, Post.count
+    ensure
+      reset_fixtures("posts")
+    end
+
+    def test_truncate_with_query_cache
+      @connection.enable_query_cache!
+
+      assert_operator Post.count, :>, 0
+
+      @connection.truncate("posts")
+
+      assert_equal 0, Post.count
+    ensure
+      reset_fixtures("posts")
+      @connection.disable_query_cache!
+    end
+
+    def test_truncate_tables
+      assert_operator Post.count, :>, 0
+      assert_operator Author.count, :>, 0
+      assert_operator AuthorAddress.count, :>, 0
+
+      @connection.truncate_tables("author_addresses", "authors", "posts")
+
+      assert_equal 0, Post.count
+      assert_equal 0, Author.count
+      assert_equal 0, AuthorAddress.count
+    ensure
+      reset_fixtures("posts", "authors", "author_addresses")
+    end
+
+    def test_truncate_tables_with_query_cache
+      @connection.enable_query_cache!
+
+      assert_operator Post.count, :>, 0
+      assert_operator Author.count, :>, 0
+      assert_operator AuthorAddress.count, :>, 0
+
+      @connection.truncate_tables("author_addresses", "authors", "posts")
+
+      assert_equal 0, Post.count
+      assert_equal 0, Author.count
+      assert_equal 0, AuthorAddress.count
+    ensure
+      reset_fixtures("posts", "authors", "author_addresses")
+      @connection.disable_query_cache!
     end
 
     # test resetting sequences in odd tables in PostgreSQL
@@ -499,6 +625,15 @@ module ActiveRecord
         assert_nothing_raised { sub.save! }
       end
     end
+
+    private
+      def reset_fixtures(*fixture_names)
+        ActiveRecord::FixtureSet.reset_cache
+
+        fixture_names.each do |fixture_name|
+          ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, fixture_name)
+        end
+      end
   end
 end
 

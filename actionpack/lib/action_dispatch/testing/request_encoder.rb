@@ -38,8 +38,8 @@ module ActionDispatch
     end
 
     def self.parser(content_type)
-      mime = Mime::Type.lookup(content_type)
-      encoder(mime ? mime.ref : nil).response_parser
+      type = Mime::Type.lookup(content_type).ref if content_type
+      encoder(type).response_parser
     end
 
     def self.encoder(name)

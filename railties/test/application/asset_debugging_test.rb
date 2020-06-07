@@ -13,6 +13,11 @@ module ApplicationTests
 
       app_file "app/assets/javascripts/application.js", "//= require_tree ."
       app_file "app/assets/javascripts/xmlhr.js", "function f1() { alert(); }"
+      app_file "app/assets/config/manifest.js", <<~JS
+        //= link_tree ../images
+        //= link_directory ../stylesheets .css
+        //= link_directory ../javascripts .js
+      JS
       app_file "app/views/posts/index.html.erb", "<%= javascript_include_tag 'application' %>"
 
       app_file "config/routes.rb", <<-RUBY
@@ -49,7 +54,7 @@ module ApplicationTests
       assert_no_match(/<script src="\/assets\/xmlhr-([0-z]+)\.js"><\/script>/, last_response.body)
     end
 
-    test "assets aren't concatenated when compile is true is on and debug_assets params is true" do
+    test "assets are debug when compile is true is on and debug_assets params is true" do
       add_to_env_config "production", "config.assets.compile = true"
 
       # Load app env
@@ -58,8 +63,7 @@ module ApplicationTests
       class ::PostsController < ActionController::Base ; end
 
       get "/posts?debug_assets=true"
-      assert_match(/<script src="\/assets\/application(\.self)?-([0-z]+)\.js\?body=1"><\/script>/, last_response.body)
-      assert_match(/<script src="\/assets\/xmlhr(\.self)?-([0-z]+)\.js\?body=1"><\/script>/, last_response.body)
+      assert_match(/<script src="\/assets\/application(\.debug|\.self)?-([0-z]+)\.js(\?body=1)?"><\/script>/, last_response.body)
     end
 
     test "public path and tag methods are not over-written by the asset pipeline" do
@@ -95,7 +99,7 @@ module ApplicationTests
       end
     end
 
-    test "public url methods are not over-written by the asset pipeline" do
+    test "public URL methods are not over-written by the asset pipeline" do
       contents = "doesnotexist"
       cases = {
         asset_url:       %r{http://example.org/#{contents}},

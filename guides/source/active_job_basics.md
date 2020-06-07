@@ -16,8 +16,8 @@ After reading this guide, you will know:
 --------------------------------------------------------------------------------
 
 
-Introduction
-------------
+What is Active Job?
+-------------------
 
 Active Job is a framework for declaring jobs and making them run on a variety
 of queuing backends. These jobs can be everything from regularly scheduled
@@ -50,7 +50,7 @@ Active Job provides a Rails generator to create jobs. The following will create 
 job in `app/jobs` (with an attached test case under `test/jobs`):
 
 ```bash
-$ rails generate job guests_cleanup
+$ bin/rails generate job guests_cleanup
 invoke  test_unit
 create    test/jobs/guests_cleanup_job_test.rb
 create  app/jobs/guests_cleanup_job.rb
@@ -59,7 +59,7 @@ create  app/jobs/guests_cleanup_job.rb
 You can also create a job that will run on a specific queue:
 
 ```bash
-$ rails generate job guests_cleanup --queue urgent
+$ bin/rails generate job guests_cleanup --queue urgent
 ```
 
 If you don't want to use a generator, you could create your own file inside of
@@ -111,7 +111,7 @@ Job Execution
 -------------
 
 For enqueuing and executing jobs in production you need to set up a queuing backend,
-that is to say you need to decide for a 3rd-party queuing library that Rails should use.
+that is to say you need to decide on a 3rd-party queuing library that Rails should use.
 Rails itself only provides an in-process queuing system, which only keeps the jobs in RAM.
 If the process crashes or the machine is reset, then all outstanding jobs are lost with the
 default async backend. This may be fine for smaller apps or non-critical jobs, but most
@@ -166,6 +166,7 @@ Here is a noncomprehensive list of documentation:
 - [Sucker Punch](https://github.com/brandonhilkert/sucker_punch#active-job)
 - [Queue Classic](https://github.com/QueueClassic/queue_classic#active-job)
 - [Delayed Job](https://github.com/collectiveidea/delayed_job#active-job)
+- [Que](https://github.com/que-rb/que#additional-rails-specific-setup)
 
 Queues
 ------
@@ -200,6 +201,19 @@ end
 # Now your job will run on queue production_low_priority on your
 # production environment and on staging_low_priority
 # on your staging environment
+```
+
+You can also configure the prefix on a per job basis.
+
+```ruby
+class GuestsCleanupJob < ApplicationJob
+  queue_as :low_priority
+  self.queue_name_prefix = nil
+  #....
+end
+
+# Now your job's queue won't be prefixed, overriding what
+# was configured in `config.active_job.queue_name_prefix`.
 ```
 
 The default queue name prefix delimiter is '\_'.  This can be changed by setting
@@ -355,6 +369,8 @@ ActiveJob supports the following types of arguments by default:
   - `Hash` (Keys should be of `String` or `Symbol` type)
   - `ActiveSupport::HashWithIndifferentAccess`
   - `Array`
+  - `Module`
+  - `Class`
 
 ### GlobalID
 
@@ -438,7 +454,11 @@ class GuestsCleanupJob < ApplicationJob
 end
 ```
 
+If the exception is not rescued within the job, e.g. as shown above, then the job is referred to as "failed".
+
 ### Retrying or Discarding failed jobs
+
+A failed job will not be retried, unless configured otherwise.
 
 It's also possible to retry or discard a job if an exception is raised during execution.
 For example:

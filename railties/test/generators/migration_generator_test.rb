@@ -2,9 +2,20 @@
 
 require "generators/generators_test_helper"
 require "rails/generators/rails/migration/migration_generator"
+require "active_record/migration"
 
 class MigrationGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
+
+  def setup
+    @old_belongs_to_required_by_default = Rails.application.config.active_record.belongs_to_required_by_default
+
+    Rails.application.config.active_record.belongs_to_required_by_default = true
+  end
+
+  def teardown
+    Rails.application.config.active_record.belongs_to_required_by_default = @old_belongs_to_required_by_default
+  end
 
   def test_migration
     migration = "change_title_body_from_posts"
@@ -122,6 +133,17 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_remove_migration_with_references_removes_foreign_keys_when_primary_key_uuid
+    migration = "remove_references_from_books"
+    run_generator [migration, "author:belongs_to", "--primary_key_type=uuid"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/remove_reference :books, :author,.*\sforeign_key: true, type: :uuid/, change)
+      end
+    end
+  end
+
   def test_add_migration_with_attributes_and_indices
     migration = "add_title_with_index_and_body_to_posts"
     run_generator [migration, "title:string:index", "body:text", "user_id:integer:uniq"]
@@ -196,14 +218,29 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_add_migration_with_required_references
+  def test_add_migration_with_references_adds_null_false_by_default
     migration = "add_references_to_books"
-    run_generator [migration, "author:belongs_to{required}", "distributor:references{polymorphic,required}"]
+    run_generator [migration, "author:belongs_to", "distributor:references{polymorphic}"]
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |change|
         assert_match(/add_reference :books, :author, null: false/, change)
         assert_match(/add_reference :books, :distributor, polymorphic: true, null: false/, change)
+      end
+    end
+  end
+
+  def test_add_migration_with_references_does_not_add_belongs_to_when_required_by_default_global_config_is_false
+    Rails.application.config.active_record.belongs_to_required_by_default = false
+
+    migration = "add_references_to_books"
+
+    run_generator [migration, "author:belongs_to", "distributor:references{polymorphic}"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/add_reference :books, :author/, change)
+        assert_match(/add_reference :books, :distributor, polymorphic: true/, change)
       end
     end
   end
@@ -245,6 +282,21 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_create_table_migration_with_timestamps
+    run_generator ["create_books", "title:string", "content:text"]
+    assert_migration "db/migrate/create_books.rb", /t.timestamps/
+  end
+
+  def test_create_table_timestamps_are_skipped
+    run_generator ["create_books", "title:string", "content:text", "--no-timestamps"]
+
+    assert_migration "db/migrate/create_books.rb" do |m|
+      assert_method :change, m do |change|
+        assert_no_match(/t.timestamps/, change)
+      end
+    end
+  end
+
   def test_add_uuid_to_create_table_migration
     run_generator ["create_books", "--primary_key_type=uuid"]
     assert_migration "db/migrate/create_books.rb" do |content|
@@ -254,9 +306,30 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_add_migration_with_references_options_when_primary_key_uuid
+    migration = "add_references_to_books"
+    run_generator [migration, "author:belongs_to", "--primary_key_type=uuid"]
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/add_reference :books, :author,.*\sforeign_key: true, type: :uuid/, change)
+      end
+    end
+  end
+
   def test_database_puts_migrations_in_configured_folder
     with_secondary_database_configuration do
       run_generator ["create_books", "--database=secondary"]
+      assert_migration "db/secondary_migrate/create_books.rb" do |content|
+        assert_method :change, content do |change|
+          assert_match(/create_table :books/, change)
+        end
+      end
+    end
+  end
+
+  def test_database_puts_migrations_in_configured_folder_with_aliases
+    with_secondary_database_configuration do
+      run_generator ["create_books", "--db=secondary"]
       assert_migration "db/secondary_migrate/create_books.rb" do |content|
         assert_method :change, content do |change|
           assert_match(/create_table :books/, change)
@@ -355,8 +428,45 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     Rails.application.config.paths["db/migrate"] = old_paths
   end
 
-  private
+  def test_add_migration_ignores_virtual_attributes
+    migration = "add_rich_text_content_to_messages"
+    run_generator [migration, "content:rich_text", "video:attachment", "photos:attachments"]
 
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_no_match(/add_column :messages, :content, :rich_text/, change)
+        assert_no_match(/add_column :messages, :video, :attachment/, change)
+        assert_no_match(/add_column :messages, :photos, :attachments/, change)
+      end
+    end
+  end
+
+  def test_create_table_migration_ignores_virtual_attributes
+    run_generator ["create_messages", "content:rich_text", "video:attachment", "photos:attachments"]
+    assert_migration "db/migrate/create_messages.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/create_table :messages/, change)
+        assert_no_match(/  t\.rich_text :content/, change)
+        assert_no_match(/  t\.attachment :video/, change)
+        assert_no_match(/  t\.attachments :photos/, change)
+      end
+    end
+  end
+
+  def test_remove_migration_with_virtual_attributes
+    migration = "remove_content_from_messages"
+    run_generator [migration, "content:rich_text", "video:attachment", "photos:attachments"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_no_match(/remove_column :messages, :content, :rich_text/, change)
+        assert_no_match(/remove_column :messages, :video, :attachment/, change)
+        assert_no_match(/remove_column :messages, :photos, :attachments/, change)
+      end
+    end
+  end
+
+  private
     def with_singular_table_name
       old_state = ActiveRecord::Base.pluralize_table_names
       ActiveRecord::Base.pluralize_table_names = false

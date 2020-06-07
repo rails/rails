@@ -9,7 +9,7 @@ module ActiveModel
 
       def serialize(value)
         case value
-        when ::Numeric, ActiveSupport::Duration then value.to_s
+        when ::Numeric, ::Symbol, ActiveSupport::Duration then value.to_s
         when true then "t"
         when false then "f"
         else super
@@ -17,7 +17,6 @@ module ActiveModel
       end
 
       private
-
         def cast_value(value)
           result = \
             case value

@@ -9,6 +9,9 @@ class ActiveStorage::ReflectionTest < ActiveSupport::TestCase
     assert_equal :avatar, reflection.name
     assert_equal :has_one_attached, reflection.macro
     assert_equal :purge_later, reflection.options[:dependent]
+
+    reflection = User.reflect_on_attachment(:cover_photo)
+    assert_equal :local, reflection.options[:service_name]
   end
 
   test "reflection on a singular attachment with the same name as an attachment on another model" do
@@ -22,6 +25,9 @@ class ActiveStorage::ReflectionTest < ActiveSupport::TestCase
     assert_equal :highlights, reflection.name
     assert_equal :has_many_attached, reflection.macro
     assert_equal :purge_later, reflection.options[:dependent]
+
+    reflection = User.reflect_on_attachment(:vlogs)
+    assert_equal :local, reflection.options[:service_name]
   end
 
   test "reflecting on all attachments" do

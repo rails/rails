@@ -192,4 +192,14 @@ class ERBTrackerTest < Minitest::Test
       "comments/comment"
     ], tracker.dependencies
   end
+
+  def test_dependencies_with_interpolation
+    template = FakeTemplate.new(%q{
+      <%# render "double/#{quote}" %>
+      <%# render 'single/#{quote}' %>
+    }, :erb)
+    tracker = make_tracker("interpolation/_string", template)
+
+    assert_equal ["single/\#{quote}"], tracker.dependencies
+  end
 end

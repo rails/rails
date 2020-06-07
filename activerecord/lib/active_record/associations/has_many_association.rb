@@ -37,7 +37,6 @@ module ActiveRecord
       end
 
       private
-
         # Returns the number of records in this collection.
         #
         # If the association has a counter cache it gets that value. Otherwise

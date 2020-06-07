@@ -12,7 +12,7 @@ task :package
 
 Rake::TestTask.new do |t|
   t.libs << "test"
-  t.test_files = Dir.glob("#{__dir__}/test/**/*_test.rb")
+  t.test_files = FileList["#{__dir__}/test/**/*_test.rb"]
   t.warning = true
   t.verbose = true
   t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
@@ -38,7 +38,7 @@ namespace :assets do
     require "action_cable"
 
     File.open(File.join(__dir__, "app/javascript/action_cable/internal.js").to_s, "w+") do |file|
-      file.write("export default #{JSON.generate(ActionCable::INTERNAL)}")
+      file.write("export default #{JSON.pretty_generate(ActionCable::INTERNAL)}\n")
     end
   end
 end

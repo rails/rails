@@ -176,14 +176,14 @@ module ActionView
   class HelperExposureTest < ActionView::TestCase
     helper(Module.new do
       def render_from_helper
-        from_test_case
+        from_test_case(suffix: "!")
       end
     end)
     test "is able to make methods available to the view" do
       assert_equal "Word!", render(partial: "test/from_helper")
     end
 
-    def from_test_case; "Word!"; end
+    def from_test_case(suffix: "?"); "Word#{suffix}"; end
     helper_method :from_test_case
   end
 
@@ -284,7 +284,7 @@ module ActionView
       @controller.controller_path = "test"
 
       @customers = [DeveloperStruct.new("Eloy"), DeveloperStruct.new("Manfred")]
-      assert_match(/Hello: EloyHello: Manfred/, render(file: "test/list"))
+      assert_match(/Hello: EloyHello: Manfred/, render(template: "test/list"))
     end
 
     test "is able to render partials from templates and also use instance variables after view has been referenced" do
@@ -293,7 +293,7 @@ module ActionView
       view
 
       @customers = [DeveloperStruct.new("Eloy"), DeveloperStruct.new("Manfred")]
-      assert_match(/Hello: EloyHello: Manfred/, render(file: "test/list"))
+      assert_match(/Hello: EloyHello: Manfred/, render(template: "test/list"))
     end
 
     test "is able to use helpers that depend on the view flow" do

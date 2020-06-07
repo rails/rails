@@ -53,17 +53,29 @@ module ActiveStorage
         when ActiveStorage::Blob
           attachable
         when ActionDispatch::Http::UploadedFile, Rack::Test::UploadedFile
-          ActiveStorage::Blob.build_after_unfurling \
+          ActiveStorage::Blob.build_after_unfurling(
             io: attachable.open,
             filename: attachable.original_filename,
-            content_type: attachable.content_type
+            content_type: attachable.content_type,
+            record: record,
+            service_name: attachment_service_name
+          )
         when Hash
-          ActiveStorage::Blob.build_after_unfurling(attachable)
+          ActiveStorage::Blob.build_after_unfurling(
+            **attachable.reverse_merge(
+              record: record,
+              service_name: attachment_service_name
+            )
+          )
         when String
-          ActiveStorage::Blob.find_signed(attachable)
+          ActiveStorage::Blob.find_signed(attachable, record: record)
         else
           raise ArgumentError, "Could not find or build blob: expected attachable, got #{attachable.inspect}"
         end
+      end
+
+      def attachment_service_name
+        record.attachment_reflections[name].options[:service_name]
       end
   end
 end

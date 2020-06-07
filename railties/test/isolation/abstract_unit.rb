@@ -18,7 +18,9 @@ require "active_support/testing/method_call_assertions"
 require "active_support/test_case"
 require "minitest/retry"
 
-Minitest::Retry.use!(verbose: false, retry_count: 1)
+if ENV["BUILDKITE"]
+  Minitest::Retry.use!(verbose: false, retry_count: 1)
+end
 
 RAILS_FRAMEWORK_ROOT = File.expand_path("../../..", __dir__)
 
@@ -123,6 +125,8 @@ module TestHelpers
             adapter: sqlite3
             pool: 5
             timeout: 5000
+            variables:
+              statement_timeout: 1000
           development:
             primary:
               <<: *default
@@ -173,7 +177,7 @@ module TestHelpers
               <<: *default
               database: db/production_animals.sqlite3
               migrations_paths: db/animals_migrate
-              readonly: true
+              replica: true
           YAML
         end
       else
@@ -226,6 +230,7 @@ module TestHelpers
       @app.config.session_store :cookie_store, key: "_myapp_session"
       @app.config.active_support.deprecation = :log
       @app.config.log_level = :info
+      @app.secrets.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
 
       yield @app if block_given?
       @app.initialize!
@@ -443,18 +448,36 @@ module TestHelpers
       $:.reject! { |path| path =~ %r'/(#{to_remove.join('|')})/' }
     end
 
-    def use_postgresql
-      File.open("#{app_path}/config/database.yml", "w") do |f|
-        f.puts <<-YAML
-        default: &default
-          adapter: postgresql
-          pool: 5
-          database: railties_test
-        development:
-          <<: *default
-        test:
-          <<: *default
-        YAML
+    def use_postgresql(multi_db: false)
+      if multi_db
+        File.open("#{app_path}/config/database.yml", "w") do |f|
+          f.puts <<-YAML
+          default: &default
+            adapter: postgresql
+            pool: 5
+          development:
+            primary:
+              <<: *default
+              database: railties_test
+            animals:
+              <<: *default
+              database: railties_animals_test
+              migrations_paths: db/animals_migrate
+          YAML
+        end
+      else
+        File.open("#{app_path}/config/database.yml", "w") do |f|
+          f.puts <<-YAML
+          default: &default
+            adapter: postgresql
+            pool: 5
+            database: railties_test
+          development:
+            <<: *default
+          test:
+            <<: *default
+          YAML
+        end
       end
     end
   end
@@ -479,28 +502,48 @@ end
 Module.new do
   extend TestHelpers::Paths
 
+  def self.sh(cmd)
+    output = `#{cmd}`
+    raise "Command #{cmd.inspect} failed. Output:\n#{output}" unless $?.success?
+  end
+
   # Build a rails app
   FileUtils.rm_rf(app_template_path)
   FileUtils.mkdir_p(app_template_path)
 
-  `#{Gem.ruby} #{RAILS_FRAMEWORK_ROOT}/railties/exe/rails new #{app_template_path} --skip-bundle --skip-listen --no-rc --skip-webpack-install`
+  sh "#{Gem.ruby} #{RAILS_FRAMEWORK_ROOT}/railties/exe/rails new #{app_template_path} --skip-bundle --skip-listen --no-rc --skip-webpack-install --quiet"
   File.open("#{app_template_path}/config/boot.rb", "w") do |f|
-    f.puts "require 'rails/all'"
+    f.puts 'require "rails/all"'
   end
 
   unless File.exist?("#{RAILS_FRAMEWORK_ROOT}/actionview/lib/assets/compiled/rails-ujs.js")
-    Dir.chdir("#{RAILS_FRAMEWORK_ROOT}/actionview") { `yarn build` }
+    Dir.chdir("#{RAILS_FRAMEWORK_ROOT}/actionview") do
+      sh "yarn build"
+    end
   end
 
   assets_path = "#{RAILS_FRAMEWORK_ROOT}/railties/test/isolation/assets"
   unless Dir.exist?("#{assets_path}/node_modules")
-    Dir.chdir(assets_path) { `yarn install` }
+    Dir.chdir(assets_path) do
+      sh "yarn install"
+    end
   end
-  FileUtils.cp("#{assets_path}/package.json", "#{app_template_path}/package.json")
+
+  # Fix relative file paths
+  package_json = File.read("#{assets_path}/package.json")
+  package_json.gsub!(%r{"file:(\.\./[^"]+)"}) do
+    path = Pathname.new($1).expand_path(assets_path).relative_path_from(Pathname.new(app_template_path))
+    "\"file:#{path}\""
+  end
+  File.write("#{app_template_path}/package.json", package_json)
+
   FileUtils.cp("#{assets_path}/config/webpacker.yml", "#{app_template_path}/config/webpacker.yml")
   FileUtils.cp_r("#{assets_path}/config/webpack", "#{app_template_path}/config/webpack")
   FileUtils.ln_s("#{assets_path}/node_modules", "#{app_template_path}/node_modules")
-  FileUtils.chdir(app_template_path) { `bin/rails webpacker:binstubs` }
+  FileUtils.chdir(app_template_path) do
+    sh "yarn install"
+    sh "bin/rails webpacker:binstubs"
+  end
 
   # Fake 'Bundler.require' -- we run using the repo's Gemfile, not an
   # app-specific one: we don't want to require every gem that lists.

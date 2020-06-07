@@ -1,216 +1,105 @@
-## Rails 6.0.0.beta2 (February 25, 2019) ##
+*   Ensure cache fragment digests include all relevant template dependencies when
+    fragments are contained in a block passed to the render helper. Remove the
+    virtual_path keyword arguments found in CacheHelper as they no longer possess
+    any function following 1581cab.
 
-*   ActionView::Template.finalize_compiled_template_methods is deprecated with
-    no replacement.
+    Fixes #38984.
 
-    *tenderlove*
+    *Aaron Lipman*
 
-*   config.action_view.finalize_compiled_template_methods is deprecated with
-    no replacement.
+*   Deprecate `config.action_view.raise_on_missing_translations` in favor of
+    `config.i18n.raise_on_missing_translations`.
 
-    *tenderlove*
+    New generalized configuration option now determines whether an error should be raised
+    for missing translations in controllers and views.
 
-*   Ensure unique DOM IDs for collection inputs with float values.
-    Fixes #34974
+    *fatkodima*
 
-    *Mark Edmondson*
+*   Instrument layout rendering in `TemplateRenderer#render_with_layout` as `render_layout.action_view`,
+    and include (when necessary) the layout's virtual path in notification payloads for collection and partial renders.
 
+    *Zach Kemp*
 
-## Rails 6.0.0.beta1 (January 18, 2019) ##
+*   `ActionView::Base.annotate_rendered_view_with_filenames` annotates HTML output with template file names.
 
-*   [Rename npm package](https://github.com/rails/rails/pull/34905) from
-    [`rails-ujs`](https://www.npmjs.com/package/rails-ujs) to
-    [`@rails/ujs`](https://www.npmjs.com/package/@rails/ujs).
+    *Joel Hawksley*, *Aaron Patterson*
 
-    *Javan Makhmali*
+*   `ActionView::Helpers::TranslationHelper#translate` returns nil when
+    passed `default: nil` without a translation matching `I18n#translate`.
 
-*   Remove deprecated `image_alt` helper.
+    *Stefan Wrobel*
 
-    *Rafael Mendonça França*
+*   `OptimizedFileSystemResolver` prefers template details in order of locale,
+    formats, variants, handlers.
 
-*   Fix the need of `#protect_against_forgery?` method defined in
-    `ActionView::Base` subclasses. This prevents the use of forms and buttons.
+    *Iago Pimenta*
 
-    *Genadi Samokovarov*
+*   Added `class_names` helper to create a CSS class value with conditional classes.
 
-*   Fix UJS permanently showing disabled text in a[data-remote][data-disable-with] elements within forms.
+    *Joel Hawksley*, *Aaron Patterson*
 
-    Fixes #33889.
+*   Add support for conditional values to TagBuilder.
 
-    *Wolfgang Hobmaier*
+    *Joel Hawksley*
 
-*   Prevent non-primary mouse keys from triggering Rails UJS click handlers.
-    Firefox fires click events even if the click was triggered by non-primary mouse keys such as right- or scroll-wheel-clicks.
-    For example, right-clicking a link such as the one described below (with an underlying ajax request registered on click) should not cause that request to occur.
+*   `ActionView::Helpers::FormOptionsHelper#select` should mark option for `nil` as selected.
 
-    ```
-    <%= link_to 'Remote', remote_path, class: 'remote', remote: true, data: { type: :json } %>
-    ```
+    ```ruby
+    @post = Post.new
+    @post.category = nil
 
-    Fixes #34541.
+    # Before
+    select("post", "category", none: nil, programming: 1, economics: 2)
+    # =>
+    # <select name="post[category]" id="post_category">
+    #   <option value="">none</option>
+    #  <option value="1">programming</option>
+    #  <option value="2">economics</option>
+    # </select>
 
-    *Wolfgang Hobmaier*
-
-*   Prevent `ActionView::TextHelper#word_wrap` from unexpectedly stripping white space from the _left_ side of lines.
-
-    For example, given input like this:
-
-    ```
-        This is a paragraph with an initial indent,
-    followed by additional lines that are not indented,
-    and finally terminated with a blockquote:
-      "A pithy saying"
-    ```
-
-    Calling `word_wrap` should not trim the indents on the first and last lines.
-
-    Fixes #34487.
-
-    *Lyle Mullican*
-
-*   Add allocations to template rendering instrumentation.
-
-    Adds the allocations for template and partial rendering to the server output on render.
-
-    ```
-      Rendered posts/_form.html.erb (Duration: 7.1ms | Allocations: 6004)
-      Rendered posts/new.html.erb within layouts/application (Duration: 8.3ms | Allocations: 6654)
-    Completed 200 OK in 858ms (Views: 848.4ms | ActiveRecord: 0.4ms | Allocations: 1539564)
+    # After
+    select("post", "category", none: nil, programming: 1, economics: 2)
+    # =>
+    # <select name="post[category]" id="post_category">
+    #   <option selected="selected" value="">none</option>
+    #  <option value="1">programming</option>
+    #  <option value="2">economics</option>
+    # </select>
     ```
 
-    *Eileen M. Uchitelle*, *Aaron Patterson*
+    *bogdanvlviv*
 
-*   Respect the `only_path` option passed to `url_for` when the options are passed in as an array
+*   Log lines for partial renders and started template renders are now
+    emitted at the `DEBUG` level instead of `INFO`.
 
-    Fixes #33237.
+    Completed template renders are still logged at the `INFO` level.
 
-    *Joel Ambass*
+    *DHH*
 
-*   Deprecate calling private model methods from view helpers.
+*   ActionView::Helpers::SanitizeHelper: support rails-html-sanitizer 1.1.0.
 
-    For example, in methods like `options_from_collection_for_select`
-    and `collection_select` it is possible to call private methods from
-    the objects used.
+    *Juanito Fatas*
 
-    Fixes #33546.
+*   Added `phone_to` helper method to create a link from mobile numbers.
 
-    *Ana María Martínez Gómez*
+    *Pietro Moro*
 
-*   Fix issue with `button_to`'s `to_form_params`
+*   annotated_source_code returns an empty array so TemplateErrors without a
+    template in the backtrace are surfaced properly by DebugExceptions.
 
-    `button_to` was throwing exception when invoked with `params` hash that
-    contains symbol and string keys. The reason for the exception was that
-    `to_form_params` was comparing the given symbol and string keys.
+    *Guilherme Mansur*, *Kasper Timm Hansen*
 
-    The issue is fixed by turning all keys to strings inside
-    `to_form_params` before comparing them.
+*   Add autoload for SyntaxErrorInTemplate so syntax errors are correctly raised by DebugExceptions.
 
-    *Georgi Georgiev*
+    *Guilherme Mansur*, *Gannon McGibbon*
 
-*   Mark arrays of translations as trusted safe by using the `_html` suffix.
+*   `RenderingHelper` supports rendering objects that `respond_to?` `:render_in`.
 
-    Example:
+    *Joel Hawksley*, *Natasha Umer*, *Aaron Patterson*, *Shawn Allen*, *Emily Plummer*, *Diana Mounter*, *John Hawthorn*, *Nathan Herald*, *Zaid Zawaideh*, *Zach Ahn*
 
-        en:
-          foo_html:
-            - "One"
-            - "<strong>Two</strong>"
-            - "Three &#128075; &#128578;"
+*   Fix `select_tag` so that it doesn't change `options` when `include_blank` is present.
 
-    *Juan Broullon*
-
-*   Add `year_format` option to date_select tag. This option makes it possible to customize year
-    names. Lambda should be passed to use this option.
-
-    Example:
-
-        date_select('user_birthday', '', start_year: 1998, end_year: 2000, year_format: ->year { "Heisei #{year - 1988}" })
-
-    The HTML produced:
-
-        <select id="user_birthday__1i" name="user_birthday[(1i)]">
-        <option value="1998">Heisei 10</option>
-        <option value="1999">Heisei 11</option>
-        <option value="2000">Heisei 12</option>
-        </select>
-        /* The rest is omitted */
-
-    *Koki Ryu*
-
-*   Fix JavaScript views rendering does not work with Firefox when using
-    Content Security Policy.
-
-    Fixes #32577.
-
-    *Yuji Yaginuma*
-
-*   Add the `nonce: true` option for `javascript_include_tag` helper to
-    support automatic nonce generation for Content Security Policy.
-    Works the same way as `javascript_tag nonce: true` does.
-
-    *Yaroslav Markin*
-
-*   Remove `ActionView::Helpers::RecordTagHelper`.
-
-    *Yoshiyuki Hirano*
-
-*   Disable `ActionView::Template` finalizers in test environment.
-
-    Template finalization can be expensive in large view test suites.
-    Add a configuration option,
-    `action_view.finalize_compiled_template_methods`, and turn it off in
-    the test environment.
-
-    *Simon Coffey*
-
-*   Extract the `confirm` call in its own, overridable method in `rails_ujs`.
-
-    Example:
-
-        Rails.confirm = function(message, element) {
-          return (my_bootstrap_modal_confirm(message));
-        }
-
-    *Mathieu Mahé*
-
-*   Enable select tag helper to mark `prompt` option as `selected` and/or `disabled` for `required`
-    field.
-
-    Example:
-
-        select :post,
-               :category,
-               ["lifestyle", "programming", "spiritual"],
-               { selected: "", disabled: "", prompt: "Choose one" },
-               { required: true }
-
-    Placeholder option would be selected and disabled.
-
-    The HTML produced:
-
-        <select required="required" name="post[category]" id="post_category">
-        <option disabled="disabled" selected="selected" value="">Choose one</option>
-        <option value="lifestyle">lifestyle</option>
-        <option value="programming">programming</option>
-        <option value="spiritual">spiritual</option></select>
-
-    *Sergey Prikhodko*
-
-*   Don't enforce UTF-8 by default.
-
-    With the disabling of TLS 1.0 by most major websites, continuing to run
-    IE8 or lower becomes increasingly difficult so default to not enforcing
-    UTF-8 encoding as it's not relevant to other browsers.
-
-    *Andrew White*
-
-*   Change translation key of `submit_tag` from `module_name_class_name` to `module_name/class_name`.
-
-    *Rui Onodera*
-
-*   Rails 6 requires Ruby 2.5.0 or newer.
-
-    *Jeremy Daer*, *Kasper Timm Hansen*
+    *Younes SERRAJ*
 
 
-Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/actionview/CHANGELOG.md) for previous changes.
+Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/actionview/CHANGELOG.md) for previous changes.

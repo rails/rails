@@ -44,7 +44,6 @@ module ActiveRecord
         end
 
         private
-
           # Use this macro in your model to set a default scope for all operations on
           # the model.
           #
@@ -86,8 +85,8 @@ module ActiveRecord
           #       # Should return a scope, you can call 'super' here etc.
           #     end
           #   end
-          def default_scope(scope = nil) # :doc:
-            scope = Proc.new if block_given?
+          def default_scope(scope = nil, &block) # :doc:
+            scope = block if block_given?
 
             if scope.is_a?(Relation) || !scope.respond_to?(:call)
               raise ArgumentError,

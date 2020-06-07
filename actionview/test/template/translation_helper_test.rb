@@ -54,9 +54,10 @@ class TranslationHelperTest < ActiveSupport::TestCase
 
   def test_delegates_localize_to_i18n
     @time = Time.utc(2008, 7, 8, 12, 18, 38)
-    assert_called_with(I18n, :localize, [@time]) do
-      localize @time
+    assert_called_with(I18n, :localize, [@time, locale: "en"]) do
+      localize @time, locale: "en"
     end
+    assert_equal "Tue, 08 Jul 2008 12:18:38 +0000", localize(@time, locale: "en")
   end
 
   def test_returns_missing_translation_message_without_span_wrap
@@ -121,26 +122,31 @@ class TranslationHelperTest < ActiveSupport::TestCase
     I18n.exception_handler = old_exception_handler
   end
 
+  def test_hash_default
+    default = { separator: ".", delimiter: "," }
+    assert_equal default, translate(:'special.number.format', default: default)
+  end
+
   def test_translation_returning_an_array
     expected = %w(foo bar)
     assert_equal expected, translate(:"translations.array")
   end
 
   def test_finds_translation_scoped_by_partial
-    assert_equal "Foo", view.render(file: "translations/templates/found").strip
+    assert_equal "Foo", view.render(template: "translations/templates/found").strip
   end
 
   def test_finds_array_of_translations_scoped_by_partial
-    assert_equal "Foo Bar", @view.render(file: "translations/templates/array").strip
+    assert_equal "Foo Bar", @view.render(template: "translations/templates/array").strip
   end
 
   def test_default_lookup_scoped_by_partial
-    assert_equal "Foo", view.render(file: "translations/templates/default").strip
+    assert_equal "Foo", view.render(template: "translations/templates/default").strip
   end
 
   def test_missing_translation_scoped_by_partial
     expected = '<span class="translation_missing" title="translation missing: en.translations.templates.missing.missing">Missing</span>'
-    assert_equal expected, view.render(file: "translations/templates/missing").strip
+    assert_equal expected, view.render(template: "translations/templates/missing").strip
   end
 
   def test_translate_does_not_mark_plain_text_as_safe_html
@@ -236,9 +242,23 @@ class TranslationHelperTest < ActiveSupport::TestCase
     assert_equal [], translation
   end
 
+  def test_translate_with_false_default
+    translation = translate(:'translations.missing', default: false)
+    assert_equal false, translation
+  end
+
+  def test_translate_with_nil_default
+    translation = translate(:'translations.missing', default: nil)
+    assert_nil translation
+  end
+
   def test_translate_does_not_change_options
     options = {}
-    translate(:'translations.missing', options)
+    if RUBY_VERSION >= "2.7"
+      translate(:'translations.missing', **options)
+    else
+      translate(:'translations.missing', options)
+    end
     assert_equal({}, options)
   end
 end

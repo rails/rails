@@ -32,6 +32,12 @@ module ActiveStorage
       debug event, color("Generated URL for file at key: #{key_in(event)} (#{event.payload[:url]})", BLUE)
     end
 
+    def service_mirror(event)
+      message = "Mirrored file at key: #{key_in(event)}"
+      message += " (checksum: #{event.payload[:checksum]})" if event.payload[:checksum]
+      debug event, color(message, GREEN)
+    end
+
     def logger
       ActiveStorage.logger
     end

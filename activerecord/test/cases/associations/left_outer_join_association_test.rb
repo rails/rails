@@ -3,6 +3,7 @@
 require "cases/helper"
 require "models/post"
 require "models/comment"
+require "models/rating"
 require "models/author"
 require "models/essay"
 require "models/category"
@@ -10,7 +11,15 @@ require "models/categorization"
 require "models/person"
 
 class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
-  fixtures :authors, :author_addresses, :essays, :posts, :comments, :categorizations, :people
+  fixtures :authors, :author_addresses, :essays, :posts, :comments, :ratings, :categorizations, :people
+
+  def test_merging_multiple_left_joins_from_different_associations
+    count = Author.joins(:posts).merge(Post.left_joins(:comments).merge(Comment.left_joins(:ratings))).count
+    assert_equal 16, count
+
+    count = Author.left_joins(:posts).merge(Post.left_joins(:comments).merge(Comment.left_joins(:ratings))).count
+    assert_equal 16, count
+  end
 
   def test_construct_finder_sql_applies_aliases_tables_on_association_conditions
     result = Author.left_outer_joins(:thinking_posts, :welcome_posts).to_a
@@ -32,6 +41,10 @@ class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
     assert_equal 17, Post.left_outer_joins(:comments).count
   end
 
+  def test_merging_left_joins_should_be_left_joins
+    assert_equal 5, Author.left_joins(:posts).merge(Post.no_comments).count
+  end
+
   def test_left_joins_aliases_left_outer_joins
     assert_equal Post.left_outer_joins(:comments).to_sql, Post.left_joins(:comments).to_sql
   end
@@ -46,6 +59,12 @@ class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
     assert queries.any? { |sql| /LEFT OUTER JOIN/i.match?(sql) }
   end
 
+  def test_left_outer_joins_is_deduped_when_same_association_is_joined
+    queries = capture_sql { Author.joins(:posts).left_outer_joins(:posts).to_a }
+    assert queries.any? { |sql| /INNER JOIN/i.match?(sql) }
+    assert queries.none? { |sql| /LEFT OUTER JOIN/i.match?(sql) }
+  end
+
   def test_construct_finder_sql_ignores_empty_left_outer_joins_hash
     queries = capture_sql { Author.left_outer_joins({}).to_a }
     assert queries.none? { |sql| /LEFT OUTER JOIN/i.match?(sql) }
@@ -58,6 +77,19 @@ class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
 
   def test_left_outer_joins_forbids_to_use_string_as_argument
     assert_raise(ArgumentError) { Author.left_outer_joins('LEFT OUTER JOIN "posts" ON "posts"."user_id" = "users"."id"').to_a }
+  end
+
+  def test_left_outer_joins_with_string_join
+    assert_equal 16, Author.left_outer_joins(:posts).joins("LEFT OUTER JOIN comments ON comments.post_id = posts.id").count
+  end
+
+  def test_left_outer_joins_with_arel_join
+    comments = Comment.arel_table
+    posts = Post.arel_table
+    constraint = comments[:post_id].eq(posts[:id])
+    arel_join = comments.create_join(comments, comments.create_on(constraint), Arel::Nodes::OuterJoin)
+
+    assert_equal 16, Author.left_outer_joins(:posts).joins(arel_join).count
   end
 
   def test_join_conditions_added_to_join_clause

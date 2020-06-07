@@ -98,6 +98,7 @@ class ACLogSubscriberTest < ActionController::TestCase
 
     @cache_path = Dir.mktmpdir(%w[tmp cache])
     @controller.cache_store = :file_store, @cache_path
+    @controller.config.perform_caching = true
     ActionController::LogSubscriber.attach_to :action_controller
   end
 
@@ -120,6 +121,20 @@ class ACLogSubscriberTest < ActionController::TestCase
     assert_equal "Processing by Another::LogSubscribersController#show as HTML", logs.first
   end
 
+  def test_start_processing_as_json
+    get :show, format: "json"
+    wait
+    assert_equal 2, logs.size
+    assert_equal "Processing by Another::LogSubscribersController#show as JSON", logs.first
+  end
+
+  def test_start_processing_as_non_exten
+    get :show, format: "noext"
+    wait
+    assert_equal 2, logs.size
+    assert_equal "Processing by Another::LogSubscribersController#show as */*", logs.first
+  end
+
   def test_halted_callback
     get :never_executed
     wait
@@ -138,7 +153,7 @@ class ACLogSubscriberTest < ActionController::TestCase
   def test_process_action_without_parameters
     get :show
     wait
-    assert_nil logs.detect { |l| l =~ /Parameters/ }
+    assert_nil logs.detect { |l| /Parameters/.match?(l) }
   end
 
   def test_process_action_with_parameters
@@ -211,6 +226,7 @@ class ACLogSubscriberTest < ActionController::TestCase
 
     assert_equal 3, logs.size
     assert_equal "Redirected to http://foo.bar/", logs[1]
+    assert_match(/Completed 302/, logs.last)
   end
 
   def test_filter_redirect_url_by_string
@@ -249,19 +265,15 @@ class ACLogSubscriberTest < ActionController::TestCase
   end
 
   def test_with_fragment_cache
-    @controller.config.perform_caching = true
     get :with_fragment_cache
     wait
 
     assert_equal 4, logs.size
     assert_match(/Read fragment views\/foo/, logs[1])
     assert_match(/Write fragment views\/foo/, logs[2])
-  ensure
-    @controller.config.perform_caching = true
   end
 
   def test_with_fragment_cache_when_log_disabled
-    @controller.config.perform_caching = true
     ActionController::Base.enable_fragment_cache_logging = false
     get :with_fragment_cache
     wait
@@ -269,69 +281,52 @@ class ACLogSubscriberTest < ActionController::TestCase
     assert_equal 2, logs.size
     assert_equal "Processing by Another::LogSubscribersController#with_fragment_cache as HTML", logs[0]
     assert_match(/Completed 200 OK in \d+ms/, logs[1])
-  ensure
-    @controller.config.perform_caching = true
     ActionController::Base.enable_fragment_cache_logging = true
   end
 
   def test_with_fragment_cache_if_with_true
-    @controller.config.perform_caching = true
     get :with_fragment_cache_if_with_true_condition
     wait
 
     assert_equal 4, logs.size
     assert_match(/Read fragment views\/foo/, logs[1])
     assert_match(/Write fragment views\/foo/, logs[2])
-  ensure
-    @controller.config.perform_caching = true
   end
 
   def test_with_fragment_cache_if_with_false
-    @controller.config.perform_caching = true
     get :with_fragment_cache_if_with_false_condition
     wait
 
     assert_equal 2, logs.size
     assert_no_match(/Read fragment views\/foo/, logs[1])
     assert_no_match(/Write fragment views\/foo/, logs[2])
-  ensure
-    @controller.config.perform_caching = true
   end
 
   def test_with_fragment_cache_unless_with_true
-    @controller.config.perform_caching = true
     get :with_fragment_cache_unless_with_true_condition
     wait
 
     assert_equal 2, logs.size
     assert_no_match(/Read fragment views\/foo/, logs[1])
     assert_no_match(/Write fragment views\/foo/, logs[2])
-  ensure
-    @controller.config.perform_caching = true
   end
 
   def test_with_fragment_cache_unless_with_false
-    @controller.config.perform_caching = true
     get :with_fragment_cache_unless_with_false_condition
     wait
 
     assert_equal 4, logs.size
     assert_match(/Read fragment views\/foo/, logs[1])
     assert_match(/Write fragment views\/foo/, logs[2])
-  ensure
-    @controller.config.perform_caching = true
   end
 
   def test_with_fragment_cache_and_percent_in_key
-    @controller.config.perform_caching = true
     get :with_fragment_cache_and_percent_in_key
     wait
 
     assert_equal 4, logs.size
     assert_match(/Read fragment views\/foo/, logs[1])
     assert_match(/Write fragment views\/foo/, logs[2])
-  ensure
-    @controller.config.perform_caching = true
   end
 
   def test_process_action_with_exception_includes_http_status_code

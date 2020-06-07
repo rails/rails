@@ -38,6 +38,19 @@ module ActiveSupport
   #     payload # => Hash, the payload
   #   end
   #
+  # Here, the +start+ and +finish+ values represent wall-clock time. If you are
+  # concerned about accuracy, you can register a monotonic subscriber.
+  #
+  #   ActiveSupport::Notifications.monotonic_subscribe('render') do |name, start, finish, id, payload|
+  #     name    # => String, name of the event (such as 'render' from above)
+  #     start   # => Monotonic time, when the instrumented block started execution
+  #     finish  # => Monotonic time, when the instrumented block ended execution
+  #     id      # => String, unique ID for the instrumenter that fired the event
+  #     payload # => Hash, the payload
+  #   end
+  #
+  # The +start+ and +finish+ values above represent monotonic time.
+  #
   # For instance, let's store all "render" events in an array:
   #
   #   events = []
@@ -135,6 +148,16 @@ module ActiveSupport
   # during the execution of the block. The callback is unsubscribed automatically
   # after that.
   #
+  # To record +started+ and +finished+ values with monotonic time,
+  # specify the optional <tt>:monotonic</tt> option to the
+  # <tt>subscribed</tt> method. The <tt>:monotonic</tt> option is set
+  # to +false+ by default.
+  #
+  #   callback = lambda {|name, started, finished, unique_id, payload| ... }
+  #   ActiveSupport::Notifications.subscribed(callback, "sql.active_record", monotonic: true) do
+  #     ...
+  #   end
+  #
   # === Manual Unsubscription
   #
   # The +subscribe+ method returns a subscriber object:
@@ -208,12 +231,16 @@ module ActiveSupport
       #   ActiveSupport::Notifications.subscribe(/render/) do |event|
       #     @event = event
       #   end
-      def subscribe(*args, &block)
-        notifier.subscribe(*args, &block)
+      def subscribe(pattern = nil, callback = nil, &block)
+        notifier.subscribe(pattern, callback, monotonic: false, &block)
       end
 
-      def subscribed(callback, *args, &block)
-        subscriber = subscribe(*args, &callback)
+      def monotonic_subscribe(pattern = nil, callback = nil, &block)
+        notifier.subscribe(pattern, callback, monotonic: true, &block)
+      end
+
+      def subscribed(callback, pattern = nil, monotonic: false, &block)
+        subscriber = notifier.subscribe(pattern, callback, monotonic: monotonic)
         yield
       ensure
         unsubscribe(subscriber)

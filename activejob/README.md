@@ -1,4 +1,4 @@
-# Active Job -- Make work happen later
+# Active Job – Make work happen later
 
 Active Job is a framework for declaring jobs and making them run on a variety
 of queuing backends. These jobs can be everything from regularly scheduled
@@ -17,6 +17,7 @@ about API differences between Delayed Job and Resque. Picking your queuing
 backend becomes more of an operational concern, then. And you'll be able to
 switch between them without having to rewrite your jobs.
 
+You can read more about Active Job in the [Active Job Basics](https://edgeguides.rubyonrails.org/active_job_basics.html) guide.
 
 ## Usage
 
@@ -94,9 +95,6 @@ their gem, or as a stand-alone gem. For discussion about this see the
 following PRs: [23311](https://github.com/rails/rails/issues/23311#issuecomment-176275718),
 [21406](https://github.com/rails/rails/pull/21406#issuecomment-138813484), and [#32285](https://github.com/rails/rails/pull/32285).
 
-## Auxiliary gems
-
-* [activejob-stats](https://github.com/seuros/activejob-stats)
 
 ## Download and installation
 
@@ -109,6 +107,7 @@ The latest version of Active Job can be installed with RubyGems:
 Source code can be downloaded as part of the Rails project on GitHub:
 
 * https://github.com/rails/rails/tree/master/activejob
+
 
 ## License
 
@@ -129,4 +128,4 @@ Bug reports for the Ruby on Rails project can be filed here:
 
 Feature requests should be discussed on the rails-core mailing list here:
 
-* https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core
+* https://discuss.rubyonrails.org/c/rubyonrails-core

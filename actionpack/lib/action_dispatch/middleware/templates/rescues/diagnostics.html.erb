@@ -1,14 +1,18 @@
 <header>
   <h1>
     <%= @exception.class.to_s %>
-    <% if @request.parameters['controller'] %>
+    <% if params_valid? && @request.parameters['controller'] %>
       in <%= @request.parameters['controller'].camelize %>Controller<% if @request.parameters['action'] %>#<%= @request.parameters['action'] %><% end %>
     <% end %>
   </h1>
 </header>
 
 <div id="container">
-  <h2><%= h @exception.message %></h2>
+  <h2>
+    <%= h @exception.message %>
+
+    <%= render "rescues/actions", exception: @exception, request: @request %>
+  </h2>
 
   <%= render "rescues/source", source_extracts: @source_extracts, show_source_idx: @show_source_idx, error_index: 0 %>
   <%= render "rescues/trace", traces: @traces, trace_to_show: @trace_to_show, error_index: 0 %>

@@ -15,6 +15,7 @@ module ActiveJob
     autoload :DateSerializer
     autoload :TimeWithZoneSerializer
     autoload :TimeSerializer
+    autoload :ModuleSerializer
 
     mattr_accessor :_additional_serializers
     self._additional_serializers = Set.new
@@ -58,6 +59,7 @@ module ActiveJob
       DateTimeSerializer,
       DateSerializer,
       TimeWithZoneSerializer,
-      TimeSerializer
+      TimeSerializer,
+      ModuleSerializer
   end
 end

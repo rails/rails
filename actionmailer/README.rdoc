@@ -13,6 +13,8 @@ Additionally, an Action Mailer class can be used to process incoming email,
 such as allowing a blog to accept new posts from an email (which could even
 have been sent from a phone).
 
+You can read more about Action Mailer in the {Action Mailer Basics}[https://edgeguides.rubyonrails.org/action_mailer_basics.html] guide.
+
 == Sending emails
 
 The framework works by initializing any instance variables you want to be
@@ -136,4 +138,4 @@ Bug reports for the Ruby on Rails project can be filed here:
 
 Feature requests should be discussed on the rails-core mailing list here:
 
-* https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core
+* https://discuss.rubyonrails.org/c/rubyonrails-core

@@ -41,8 +41,8 @@ Major Features
 [Pull Request](https://github.com/rails/rails/pull/26836)
 
 Rails 5.1 allows managing JavaScript dependencies
-from NPM via Yarn. This will make it easy to use libraries like React, VueJS
-or any other library from NPM world. The Yarn support is integrated with
+from npm via Yarn. This will make it easy to use libraries like React, VueJS
+or any other library from npm world. The Yarn support is integrated with
 the asset pipeline so that all dependencies will work seamlessly with the
 Rails 5.1 app.
 
@@ -89,7 +89,7 @@ screenshots.
 Rails now allows management of application secrets in a secure way,
 inspired by the [sekrets](https://github.com/ahoward/sekrets) gem.
 
-Run `bin/rails secrets:setup` to setup a new encrypted secrets file. This will
+Run `bin/rails secrets:setup` to set up a new encrypted secrets file. This will
 also generate a master key, which must be stored outside of the repository. The
 secrets themselves can then be safely checked into the revision control system,
 in an encrypted form.
@@ -350,9 +350,9 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 *   Removed deprecated methods related to controller filters.
     ([Commit](https://github.com/rails/rails/commit/d7be30e8babf5e37a891522869e7b0191b79b757))
-    
+
 *   Removed deprecated support to `:text` and `:nothing` in `render`.
-    ([Commit](https://github.com/rails/rails/commit/79a5ea9eadb4d43b62afacedc0706cbe88c54496), 
+    ([Commit](https://github.com/rails/rails/commit/79a5ea9eadb4d43b62afacedc0706cbe88c54496),
     [Commit](https://github.com/rails/rails/commit/57e1c99a280bdc1b324936a690350320a1cd8111))
 
 *   Removed deprecated support for calling `HashWithIndifferentAccess` methods on `ActionController::Parameters`.
@@ -644,7 +644,7 @@ Credits
 -------
 
 See the
-[full list of contributors to Rails](http://contributors.rubyonrails.org/) for
+[full list of contributors to Rails](https://contributors.rubyonrails.org/) for
 the many people who spent many hours making Rails, the stable and robust
 framework it is. Kudos to all of them.
 

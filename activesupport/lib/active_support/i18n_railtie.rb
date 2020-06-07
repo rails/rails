@@ -12,6 +12,8 @@ module I18n
     config.i18n.load_path = []
     config.i18n.fallbacks = ActiveSupport::OrderedOptions.new
 
+    config.eager_load_namespaces << I18n
+
     # Set the i18n configuration after initialization since a lot of
     # configuration is still usually done in application initializers.
     config.after_initialize do |app|
@@ -46,6 +48,8 @@ module I18n
           app.config.i18n.load_path.unshift(*value.flat_map(&:existent))
         when :load_path
           I18n.load_path += value
+        when :raise_on_missing_translations
+          forward_raise_on_missing_translations_config(app)
         else
           I18n.send("#{setting}=", value)
         end
@@ -60,8 +64,6 @@ module I18n
       reloader = app.config.file_watcher.new(I18n.load_path.dup, directories) do
         I18n.load_path.keep_if { |p| File.exist?(p) }
         I18n.load_path |= reloadable_paths.flat_map(&:existent)
-
-        I18n.reload!
       end
 
       app.reloaders << reloader
@@ -71,6 +73,16 @@ module I18n
       reloader.execute
 
       @i18n_inited = true
+    end
+
+    def self.forward_raise_on_missing_translations_config(app)
+      ActiveSupport.on_load(:action_view) do
+        self.raise_on_missing_translations = app.config.i18n.raise_on_missing_translations
+      end
+
+      ActiveSupport.on_load(:action_controller) do
+        AbstractController::Translation.raise_on_missing_translations = app.config.i18n.raise_on_missing_translations
+      end
     end
 
     def self.include_fallbacks_module
@@ -97,7 +109,8 @@ module I18n
           If you desire the default locale to be included in the defaults, please
           explicitly configure it with `config.i18n.fallbacks.defaults =
           [I18n.default_locale]` or `config.i18n.fallbacks = [I18n.default_locale,
-          {...}]`
+          {...}]`. If you want to opt-in to the new behavior, use
+          `config.i18n.fallbacks.defaults = [nil, {...}]`.
         MSG
         args.unshift I18n.default_locale
       end

@@ -6,10 +6,8 @@ $:.unshift(activesupport_path) if File.directory?(activesupport_path) && !$:.inc
 require "thor/group"
 require "rails/command"
 
-require "active_support"
-require "active_support/core_ext/object/blank"
-require "active_support/core_ext/kernel/singleton_class"
 require "active_support/core_ext/array/extract_options"
+require "active_support/core_ext/enumerable"
 require "active_support/core_ext/hash/deep_merge"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/string/indent"
@@ -35,6 +33,8 @@ module Rails
       rails: {
         actions: "-a",
         orm: "-o",
+        javascripts: "-j",
+        javascript_engine: "-je",
         resource_controller: "-c",
         scaffold_controller: "-c",
         stylesheets: "-y",
@@ -79,6 +79,7 @@ module Rails
         templates_path.concat config.templates
         templates_path.uniq!
         hide_namespaces(*config.hidden_namespaces)
+        after_generate_callbacks.replace config.after_generate_callbacks
       end
 
       def templates_path #:nodoc:
@@ -91,6 +92,10 @@ module Rails
 
       def options #:nodoc:
         @options ||= DEFAULT_OPTIONS.dup
+      end
+
+      def after_generate_callbacks # :nodoc:
+        @after_generate_callbacks ||= []
       end
 
       # Hold configured generators fallbacks. If a plugin developer wants a
@@ -123,14 +128,8 @@ module Rails
           template_engine: nil
         )
 
-        if ARGV.first == "mailer"
-          options[:rails][:template_engine] = :erb
-        end
-      end
-
-      # Remove the color from output.
-      def no_color!
-        Thor::Base.shell = Thor::Shell::Basic
+        options[:mailer] ||= {}
+        options[:mailer][:template_engine] ||= :erb
       end
 
       # Returns an array of generator namespaces that are hidden.
@@ -165,7 +164,9 @@ module Rails
             "#{css}:scaffold",
             "#{css}:assets",
             "css:assets",
-            "css:scaffold"
+            "css:scaffold",
+            "action_text:install",
+            "action_mailbox:install"
           ]
         end
       end
@@ -255,7 +256,7 @@ module Rails
 
         lookup(lookups)
 
-        namespaces = Hash[subclasses.map { |klass| [klass.namespace, klass] }]
+        namespaces = subclasses.index_by(&:namespace)
         lookups.each do |namespace|
           klass = namespaces[namespace]
           return klass if klass
@@ -272,6 +273,7 @@ module Rails
         if klass = find_by_namespace(names.pop, names.any? && names.join(":"))
           args << "--help" if args.empty? && klass.arguments.any?(&:required?)
           klass.start(args, config)
+          run_after_generate_callback if config[:behavior] == :invoke
         else
           options     = sorted_groups.flat_map(&:last)
           suggestion  = Rails::Command::Spellchecker.suggest(namespace.to_s, from: options)
@@ -279,13 +281,17 @@ module Rails
 
           puts <<~MSG
             Could not find generator '#{namespace}'. #{suggestion_msg}
-            Run `rails generate --help` for more options.
+            Run `bin/rails generate --help` for more options.
           MSG
         end
       end
 
-      private
+      def add_generated_file(file) # :nodoc:
+        (@@generated_files ||= []) << file
+        file
+      end
 
+      private
         def print_list(base, namespaces) # :doc:
           namespaces = namespaces.reject { |n| hidden_namespaces.include?(n) }
           super
@@ -317,6 +323,15 @@ module Rails
 
         def file_lookup_paths # :doc:
           @file_lookup_paths ||= [ "{#{lookup_paths.join(',')}}", "**", "*_generator.rb" ]
+        end
+
+        def run_after_generate_callback
+          if defined?(@@generated_files) && !@@generated_files.empty?
+            @after_generate_callbacks.each do |callback|
+              callback.call(@@generated_files)
+            end
+            @@generated_files = []
+          end
         end
     end
   end

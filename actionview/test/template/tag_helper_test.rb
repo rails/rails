@@ -37,6 +37,24 @@ class TagHelperTest < ActionView::TestCase
     assert_match(/class="elsewhere"/, str)
   end
 
+  def test_tag_options_with_array_of_numeric
+    str = tag(:input, value: [123, 456])
+
+    assert_equal("<input value=\"123 456\" />", str)
+  end
+
+  def test_tag_options_with_array_of_random_objects
+    klass = Class.new do
+      def to_s
+        "hello"
+      end
+    end
+
+    str = tag(:input, value: [klass.new])
+
+    assert_equal("<input value=\"hello\" />", str)
+  end
+
   def test_tag_options_rejects_nil_option
     assert_equal "<p />", tag("p", ignored: nil)
   end
@@ -70,13 +88,20 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_tag_options_converts_boolean_option
-    assert_dom_equal '<p disabled="disabled" itemscope="itemscope" multiple="multiple" readonly="readonly" allowfullscreen="allowfullscreen" seamless="seamless" typemustmatch="typemustmatch" sortable="sortable" default="default" inert="inert" truespeed="truespeed" />',
-      tag("p", disabled: true, itemscope: true, multiple: true, readonly: true, allowfullscreen: true, seamless: true, typemustmatch: true, sortable: true, default: true, inert: true, truespeed: true)
+    assert_dom_equal '<p disabled="disabled" itemscope="itemscope" multiple="multiple" readonly="readonly" allowfullscreen="allowfullscreen" seamless="seamless" typemustmatch="typemustmatch" sortable="sortable" default="default" inert="inert" truespeed="truespeed" allowpaymentrequest="allowpaymentrequest" nomodule="nomodule" playsinline="playsinline" />',
+      tag("p", disabled: true, itemscope: true, multiple: true, readonly: true, allowfullscreen: true, seamless: true, typemustmatch: true, sortable: true, default: true, inert: true, truespeed: true, allowpaymentrequest: true, nomodule: true, playsinline: true)
   end
 
   def test_tag_builder_options_converts_boolean_option
-    assert_dom_equal '<p disabled="disabled" itemscope="itemscope" multiple="multiple" readonly="readonly" allowfullscreen="allowfullscreen" seamless="seamless" typemustmatch="typemustmatch" sortable="sortable" default="default" inert="inert" truespeed="truespeed" />',
-      tag.p(disabled: true, itemscope: true, multiple: true, readonly: true, allowfullscreen: true, seamless: true, typemustmatch: true, sortable: true, default: true, inert: true, truespeed: true)
+    assert_dom_equal '<p disabled="disabled" itemscope="itemscope" multiple="multiple" readonly="readonly" allowfullscreen="allowfullscreen" seamless="seamless" typemustmatch="typemustmatch" sortable="sortable" default="default" inert="inert" truespeed="truespeed" allowpaymentrequest="allowpaymentrequest" nomodule="nomodule" playsinline="playsinline" />',
+      tag.p(disabled: true, itemscope: true, multiple: true, readonly: true, allowfullscreen: true, seamless: true, typemustmatch: true, sortable: true, default: true, inert: true, truespeed: true, allowpaymentrequest: true, nomodule: true, playsinline: true)
+  end
+
+  def test_tag_builder_do_not_modify_html_safe_options
+    html_safe_str = '"'.html_safe
+    assert_equal "<p value=\"&quot;\" />", tag("p", value: html_safe_str)
+    assert_equal '"', html_safe_str
+    assert html_safe_str.html_safe?
   end
 
   def test_content_tag
@@ -237,6 +262,92 @@ class TagHelperTest < ActionView::TestCase
   def test_tag_builder_with_unescaped_empty_array_class
     str = tag.p "limelight", class: [], escape_attributes: false
     assert_equal '<p class="">limelight</p>', str
+  end
+
+  def test_content_tag_with_conditional_hash_classes
+    str = content_tag("p", "limelight", class: { "song": true, "play": false })
+    assert_equal "<p class=\"song\">limelight</p>", str
+
+    str = content_tag("p", "limelight", class: [{ "song": true }, { "play": false }])
+    assert_equal "<p class=\"song\">limelight</p>", str
+
+    str = content_tag("p", "limelight", class: { song: true, play: false })
+    assert_equal "<p class=\"song\">limelight</p>", str
+
+    str = content_tag("p", "limelight", class: [{ song: true }, nil, false])
+    assert_equal "<p class=\"song\">limelight</p>", str
+
+    str = content_tag("p", "limelight", class: ["song", { foo: false }])
+    assert_equal "<p class=\"song\">limelight</p>", str
+
+    str = content_tag("p", "limelight", class: [1, 2, 3])
+    assert_equal "<p class=\"1 2 3\">limelight</p>", str
+
+    klass = Class.new do
+      def to_s
+        "1"
+      end
+    end
+
+    str = content_tag("p", "limelight", class: [klass.new])
+    assert_equal "<p class=\"1\">limelight</p>", str
+
+    str = content_tag("p", "limelight", class: { "song": true, "play": true })
+    assert_equal "<p class=\"song play\">limelight</p>", str
+
+    str = content_tag("p", "limelight", class: { "song": false, "play": false })
+    assert_equal '<p class="">limelight</p>', str
+  end
+
+  def test_tag_builder_with_conditional_hash_classes
+    str = tag.p "limelight", class: { "song": true, "play": false }
+    assert_equal "<p class=\"song\">limelight</p>", str
+
+    str = tag.p "limelight", class: [{ "song": true }, { "play": false }]
+    assert_equal "<p class=\"song\">limelight</p>", str
+
+    str = tag.p "limelight", class: { song: true, play: false }
+    assert_equal "<p class=\"song\">limelight</p>", str
+
+    str = tag.p "limelight", class: [{ song: true }, nil, false]
+    assert_equal "<p class=\"song\">limelight</p>", str
+
+    str = tag.p "limelight", class: ["song", { foo: false }]
+    assert_equal "<p class=\"song\">limelight</p>", str
+
+    str = tag.p "limelight", class: { "song": true, "play": true }
+    assert_equal "<p class=\"song play\">limelight</p>", str
+
+    str = tag.p "limelight", class: { "song": false, "play": false }
+    assert_equal '<p class="">limelight</p>', str
+  end
+
+  def test_content_tag_with_unescaped_conditional_hash_classes
+    str = content_tag("p", "limelight", { class: { "song": true, "play>": true } }, false)
+    assert_equal "<p class=\"song play>\">limelight</p>", str
+
+    str = content_tag("p", "limelight", { class: ["song", { "play>": true }] }, false)
+    assert_equal "<p class=\"song play>\">limelight</p>", str
+  end
+
+  def test_tag_builder_with_unescaped_conditional_hash_classes
+    str = tag.p "limelight", class: { "song": true, "play>": true }, escape_attributes: false
+    assert_equal "<p class=\"song play>\">limelight</p>", str
+
+    str = tag.p "limelight", class: ["song", { "play>": true }], escape_attributes: false
+    assert_equal "<p class=\"song play>\">limelight</p>", str
+  end
+
+  def test_class_names
+    assert_equal "song play", class_names(["song", { "play": true }])
+    assert_equal "song", class_names({ "song": true, "play": false })
+    assert_equal "song", class_names([{ "song": true }, { "play": false }])
+    assert_equal "song", class_names({ song: true, play: false })
+    assert_equal "song", class_names([{ song: true }, nil, false])
+    assert_equal "song", class_names(["song", { foo: false }])
+    assert_equal "song play", class_names({ "song": true, "play": true })
+    assert_equal "", class_names({ "song": false, "play": false })
+    assert_equal "123", class_names(nil, "", false, 123, { "song": false, "play": false })
   end
 
   def test_content_tag_with_data_attributes

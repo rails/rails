@@ -22,8 +22,11 @@ Gem::Specification.new do |s|
   s.requirements << "none"
 
   s.metadata = {
-    "source_code_uri" => "https://github.com/rails/rails/tree/v#{version}/actionpack",
-    "changelog_uri"   => "https://github.com/rails/rails/blob/v#{version}/actionpack/CHANGELOG.md"
+    "bug_tracker_uri"   => "https://github.com/rails/rails/issues",
+    "changelog_uri"     => "https://github.com/rails/rails/blob/v#{version}/actionpack/CHANGELOG.md",
+    "documentation_uri" => "https://api.rubyonrails.org/v#{version}/",
+    "mailing_list_uri"  => "https://discuss.rubyonrails.org/c/rubyonrails-talk",
+    "source_code_uri"   => "https://github.com/rails/rails/tree/v#{version}/actionpack",
   }
 
   # NOTE: Please read our dependency guidelines before updating versions:
@@ -31,9 +34,9 @@ Gem::Specification.new do |s|
 
   s.add_dependency "activesupport", version
 
-  s.add_dependency "rack",      "~> 2.0"
+  s.add_dependency "rack",      "~> 2.0", ">= 2.0.9"
   s.add_dependency "rack-test", ">= 0.6.3"
-  s.add_dependency "rails-html-sanitizer", "~> 1.0", ">= 1.0.2"
+  s.add_dependency "rails-html-sanitizer", "~> 1.0", ">= 1.2.0"
   s.add_dependency "rails-dom-testing", "~> 2.0"
   s.add_dependency "actionview", version
 

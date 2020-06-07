@@ -12,26 +12,24 @@ module ActiveRecord
       delegate :connection, :establish_connection, :clear_active_connections!,
         to: ActiveRecord::Base
 
-      def initialize(configuration)
-        @configuration = configuration
+      def self.using_database_configurations?
+        true
+      end
+
+      def initialize(db_config)
+        @db_config = db_config
+        @configuration_hash = db_config.configuration_hash
       end
 
       def create(master_established = false)
         establish_master_connection unless master_established
-        connection.create_database configuration["database"],
-          configuration.merge("encoding" => encoding)
-        establish_connection configuration
-      rescue ActiveRecord::StatementInvalid => error
-        if error.cause.is_a?(PG::DuplicateDatabase)
-          raise DatabaseAlreadyExists
-        else
-          raise
-        end
+        connection.create_database(db_config.database, configuration_hash.merge(encoding: encoding))
+        establish_connection(db_config)
       end
 
       def drop
         establish_master_connection
-        connection.drop_database configuration["database"]
+        connection.drop_database(db_config.database)
       end
 
       def charset
@@ -48,32 +46,20 @@ module ActiveRecord
         create true
       end
 
-      def truncate_tables(*table_names)
-        return if table_names.empty?
-
-        ActiveRecord::Base.connection.disable_referential_integrity do
-          quoted_table_names = table_names.map do |table_name|
-            ActiveRecord::Base.connection.quote_table_name(table_name)
-          end
-
-          ActiveRecord::Base.connection.execute "TRUNCATE TABLE #{quoted_table_names.join(", ")}"
-        end
-      end
-
       def structure_dump(filename, extra_flags)
         set_psql_env
 
         search_path = \
           case ActiveRecord::Base.dump_schemas
           when :schema_search_path
-            configuration["schema_search_path"]
+            configuration_hash[:schema_search_path]
           when :all
             nil
           when String
             ActiveRecord::Base.dump_schemas
           end
 
-        args = ["-s", "-x", "-O", "-f", filename]
+        args = ["--schema-only", "--no-privileges", "--no-owner", "--file", filename]
         args.concat(Array(extra_flags)) if extra_flags
         unless search_path.blank?
           args += search_path.split(",").map do |part|
@@ -86,7 +72,7 @@ module ActiveRecord
           args += ignore_tables.flat_map { |table| ["-T", table] }
         end
 
-        args << configuration["database"]
+        args << db_config.database
         run_cmd("pg_dump", args, "dumping")
         remove_sql_header_comments(filename)
         File.open(filename, "a") { |f| f << "SET search_path TO #{connection.schema_search_path};\n\n" }
@@ -94,32 +80,31 @@ module ActiveRecord
 
       def structure_load(filename, extra_flags)
         set_psql_env
-        args = ["-v", ON_ERROR_STOP_1, "-q", "-X", "-f", filename]
+        args = ["--set", ON_ERROR_STOP_1, "--quiet", "--no-psqlrc", "--file", filename]
         args.concat(Array(extra_flags)) if extra_flags
-        args << configuration["database"]
+        args << db_config.database
         run_cmd("psql", args, "loading")
       end
 
       private
-
-        attr_reader :configuration
+        attr_reader :db_config, :configuration_hash
 
         def encoding
-          configuration["encoding"] || DEFAULT_ENCODING
+          configuration_hash[:encoding] || DEFAULT_ENCODING
         end
 
         def establish_master_connection
-          establish_connection configuration.merge(
-            "database"           => "postgres",
-            "schema_search_path" => "public"
+          establish_connection configuration_hash.merge(
+            database: "postgres",
+            schema_search_path: "public"
           )
         end
 
         def set_psql_env
-          ENV["PGHOST"]     = configuration["host"]          if configuration["host"]
-          ENV["PGPORT"]     = configuration["port"].to_s     if configuration["port"]
-          ENV["PGPASSWORD"] = configuration["password"].to_s if configuration["password"]
-          ENV["PGUSER"]     = configuration["username"].to_s if configuration["username"]
+          ENV["PGHOST"]     = db_config.host                     if db_config.host
+          ENV["PGPORT"]     = configuration_hash[:port].to_s     if configuration_hash[:port]
+          ENV["PGPASSWORD"] = configuration_hash[:password].to_s if configuration_hash[:password]
+          ENV["PGUSER"]     = configuration_hash[:username].to_s if configuration_hash[:username]
         end
 
         def run_cmd(cmd, args, action)

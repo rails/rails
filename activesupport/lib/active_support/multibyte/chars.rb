@@ -3,6 +3,7 @@
 require "active_support/json"
 require "active_support/core_ext/string/access"
 require "active_support/core_ext/string/behavior"
+require "active_support/core_ext/symbol/starts_ends_with"
 require "active_support/core_ext/module/delegation"
 
 module ActiveSupport #:nodoc:
@@ -48,7 +49,7 @@ module ActiveSupport #:nodoc:
       alias to_s wrapped_string
       alias to_str wrapped_string
 
-      delegate :<=>, :=~, :acts_like_string?, to: :wrapped_string
+      delegate :<=>, :=~, :match?, :acts_like_string?, to: :wrapped_string
 
       # Creates a new Chars instance by wrapping _string_.
       def initialize(string)
@@ -59,7 +60,7 @@ module ActiveSupport #:nodoc:
       # Forward all undefined methods to the wrapped string.
       def method_missing(method, *args, &block)
         result = @wrapped_string.__send__(method, *args, &block)
-        if /!$/.match?(method)
+        if method.end_with?("!")
           self if result
         else
           result.kind_of?(String) ? chars(result) : result
@@ -122,7 +123,7 @@ module ActiveSupport #:nodoc:
       #
       #   'こんにちは'.mb_chars.limit(7).to_s # => "こん"
       def limit(limit)
-        truncate_bytes(limit, omission: nil)
+        chars(@wrapped_string.truncate_bytes(limit, omission: nil))
       end
 
       # Capitalizes the first letter of every word, when possible.
@@ -207,7 +208,6 @@ module ActiveSupport #:nodoc:
       end
 
       private
-
         def chars(string)
           self.class.new(string)
         end

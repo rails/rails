@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "../helper"
+require "active_model/attribute"
 
 module Arel
   module Visitors
@@ -37,6 +38,7 @@ module Arel
         Arel::Nodes::Offset,
         Arel::Nodes::Ordering,
         Arel::Nodes::UnqualifiedColumn,
+        Arel::Nodes::ValuesList,
         Arel::Nodes::Limit,
       ].each do |klass|
         define_method("test_#{klass.name.gsub('::', '_')}") do
@@ -61,7 +63,6 @@ module Arel
         Arel::Nodes::NotIn,
         Arel::Nodes::Or,
         Arel::Nodes::TableAlias,
-        Arel::Nodes::Values,
         Arel::Nodes::As,
         Arel::Nodes::DeleteStatement,
         Arel::Nodes::JoinSource,
@@ -77,6 +78,12 @@ module Arel
         node = Arel::Nodes::BindParam.new(1)
         collector = Collectors::PlainString.new
         assert_match '[label="<f0>Arel::Nodes::BindParam"]', @visitor.accept(node, collector).value
+      end
+
+      def test_ActiveModel_Attribute
+        node = ActiveModel::Attribute.with_cast_value("LIMIT", 1, nil)
+        collector = Collectors::PlainString.new
+        assert_match '[label="<f0>ActiveModel::Attribute::WithCastValue"]', @visitor.accept(node, collector).value
       end
     end
   end

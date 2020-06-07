@@ -8,13 +8,13 @@ module ActionDispatch
   # contain the address, and then picking the last-set address that is not
   # on the list of trusted IPs. This follows the precedent set by e.g.
   # {the Tomcat server}[https://issues.apache.org/bugzilla/show_bug.cgi?id=50453],
-  # with {reasoning explained at length}[http://blog.gingerlime.com/2012/rails-ip-spoofing-vulnerabilities-and-protection]
+  # with {reasoning explained at length}[https://blog.gingerlime.com/2012/rails-ip-spoofing-vulnerabilities-and-protection]
   # by @gingerlime. A more detailed explanation of the algorithm is given
   # at GetIp#calculate_ip.
   #
   # Some Rack servers concatenate repeated headers, like {HTTP RFC 2616}[https://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2]
   # requires. Some Rack servers simply drop preceding headers, and only report
-  # the value that was {given in the last header}[http://andre.arko.net/2011/12/26/repeated-headers-and-ruby-web-servers].
+  # the value that was {given in the last header}[https://andre.arko.net/2011/12/26/repeated-headers-and-ruby-web-servers].
   # If you are behind multiple proxy servers (like NGINX to HAProxy to Unicorn)
   # then you should test your Rack server to make sure your data is good.
   #
@@ -33,7 +33,7 @@ module ActionDispatch
     # not be the ultimate client IP in production, and so are discarded. See
     # https://en.wikipedia.org/wiki/Private_network for details.
     TRUSTED_PROXIES = [
-      "127.0.0.1",      # localhost IPv4
+      "127.0.0.0/8",    # localhost IPv4 range, per RFC-3330
       "::1",            # localhost IPv6
       "fc00::/7",       # private IPv6 range fc00::/7
       "10.0.0.0/8",     # private IPv4 range 10.x.x.x
@@ -102,7 +102,7 @@ module ActionDispatch
       # proxies, that header may contain a list of IPs. Other proxy services
       # set the Client-Ip header instead, so we check that too.
       #
-      # As discussed in {this post about Rails IP Spoofing}[http://blog.gingerlime.com/2012/rails-ip-spoofing-vulnerabilities-and-protection/],
+      # As discussed in {this post about Rails IP Spoofing}[https://blog.gingerlime.com/2012/rails-ip-spoofing-vulnerabilities-and-protection/],
       # while the first IP in the list is likely to be the "originating" IP,
       # it could also have been set by the client maliciously.
       #
@@ -143,10 +143,11 @@ module ActionDispatch
         #   - X-Forwarded-For will be a list of IPs, one per proxy, or blank
         #   - Client-Ip is propagated from the outermost proxy, or is blank
         #   - REMOTE_ADDR will be the IP that made the request to Rack
-        ips = [forwarded_ips, client_ips, remote_addr].flatten.compact
+        ips = [forwarded_ips, client_ips].flatten.compact
 
-        # If every single IP option is in the trusted list, just return REMOTE_ADDR
-        filter_proxies(ips).first || remote_addr
+        # If every single IP option is in the trusted list, return the IP
+        # that's furthest away
+        filter_proxies(ips + [remote_addr]).first || ips.last || remote_addr
       end
 
       # Memoizes the value returned by #calculate_ip and returns it for
@@ -156,7 +157,6 @@ module ActionDispatch
       end
 
     private
-
       def ips_from(header) # :doc:
         return [] unless header
         # Split the comma-separated list into an array of strings.

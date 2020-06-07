@@ -25,28 +25,20 @@ module ActiveRecord
       super
     end
 
-    def test_truncate
-      count = ActiveRecord::Base.connection.execute("select count(*) from comments").first["count"].to_i
-      assert_operator count, :>, 0
-      ActiveRecord::Base.connection.truncate("comments")
-      count = ActiveRecord::Base.connection.execute("select count(*) from comments").first["count"].to_i
-      assert_equal 0, count
-    end
-
     def test_encoding
-      assert_queries(1) do
+      assert_queries(1, ignore_none: true) do
         assert_not_nil @connection.encoding
       end
     end
 
     def test_collation
-      assert_queries(1) do
+      assert_queries(1, ignore_none: true) do
         assert_not_nil @connection.collation
       end
     end
 
     def test_ctype
-      assert_queries(1) do
+      assert_queries(1, ignore_none: true) do
         assert_not_nil @connection.ctype
       end
     end
@@ -58,7 +50,7 @@ module ActiveRecord
     # Ensure, we can set connection params using the example of Generic
     # Query Optimizer (geqo). It is 'on' per default.
     def test_connection_options
-      params = ActiveRecord::Base.connection_config.dup
+      params = ActiveRecord::Base.connection_db_config.configuration_hash.dup
       params[:options] = "-c geqo=off"
       NonExistentTable.establish_connection(params)
 
@@ -247,7 +239,6 @@ module ActiveRecord
     end
 
     private
-
       def with_warning_suppression
         log_level = @connection.client_min_messages
         @connection.client_min_messages = "error"

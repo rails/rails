@@ -3,7 +3,7 @@
 require "cases/helper"
 require "support/schema_dumping_helper"
 
-if subsecond_precision_supported?
+if supports_datetime_with_precision?
   class TimePrecisionTest < ActiveRecord::TestCase
     include SchemaDumpingHelper
     self.use_transactional_tests = false
@@ -75,7 +75,7 @@ if subsecond_precision_supported?
     end
 
     def test_invalid_time_precision_raises_error
-      assert_raises ActiveRecord::ActiveRecordError do
+      assert_raises ArgumentError do
         @connection.create_table(:foos, force: true) do |t|
           t.time :start,  precision: 7
           t.time :finish, precision: 7

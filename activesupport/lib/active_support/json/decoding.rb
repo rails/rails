@@ -10,8 +10,8 @@ module ActiveSupport
 
   module JSON
     # matches YAML-formatted dates
-    DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
-    DATETIME_REGEX = /^(?:\d{4}-\d{2}-\d{2}|\d{4}-\d{1,2}-\d{1,2}[T \t]+\d{1,2}:\d{2}:\d{2}(\.[0-9]*)?(([ \t]*)Z|[-+]\d{2}?(:\d{2})?)?)$/
+    DATE_REGEX = /\A\d{4}-\d{2}-\d{2}\z/
+    DATETIME_REGEX = /\A(?:\d{4}-\d{2}-\d{2}|\d{4}-\d{1,2}-\d{1,2}[T \t]+\d{1,2}:\d{2}:\d{2}(\.[0-9]*)?(([ \t]*)Z|[-+]\d{2}?(:\d{2})?)?)\z/
 
     class << self
       # Parses a JSON string (JavaScript Object Notation) into a hash.
@@ -44,7 +44,6 @@ module ActiveSupport
       end
 
       private
-
         def convert_dates_from(data)
           case data
           when nil

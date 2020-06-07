@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 require "concurrent/atomic/count_down_latch"
 require "active_support/concurrency/share_lock"
 
@@ -488,12 +488,10 @@ class ShareLockTest < ActiveSupport::TestCase
   end
 
   private
-
     module CustomAssertions
       SUFFICIENT_TIMEOUT = 0.2
 
       private
-
         def assert_threads_stuck_but_releasable_by_latch(threads, latch)
           assert_threads_stuck threads
           latch.count_down

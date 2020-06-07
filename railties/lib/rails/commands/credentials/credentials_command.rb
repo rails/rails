@@ -1,15 +1,20 @@
 # frozen_string_literal: true
 
+require "pathname"
 require "active_support"
 require "rails/command/helpers/editor"
+require "rails/command/environment_argument"
 
 module Rails
   module Command
     class CredentialsCommand < Rails::Command::Base # :nodoc:
       include Helpers::Editor
+      include EnvironmentArgument
 
-      class_option :environment, aliases: "-e", type: :string,
-        desc: "Uses credentials from config/credentials/:environment.yml.enc encrypted by config/credentials/:environment.key key"
+      require_relative "credentials_command/diffing"
+      include Diffing
+
+      self.environment_desc = "Uses credentials from config/credentials/:environment.yml.enc encrypted by config/credentials/:environment.key key"
 
       no_commands do
         def help
@@ -20,12 +25,14 @@ module Rails
       end
 
       def edit
+        extract_environment_option_from_argument(default_environment: nil)
         require_application!
 
         ensure_editor_available(command: "bin/rails credentials:edit") || (return)
 
         ensure_encryption_key_has_been_added if credentials.key.nil?
         ensure_credentials_have_been_added
+        ensure_rails_credentials_driver_is_set
 
         catch_editing_exceptions do
           change_credentials_in_system_editor
@@ -37,9 +44,27 @@ module Rails
       end
 
       def show
+        extract_environment_option_from_argument(default_environment: nil)
         require_application!
 
         say credentials.read.presence || missing_credentials_message
+      end
+
+      option :enroll, type: :boolean, default: false,
+        desc: "Enrolls project in credential file diffing with `git diff`"
+
+      def diff(content_path = nil)
+        if @content_path = content_path
+          extract_environment_option_from_argument(default_environment: extract_environment_from_path(content_path))
+          require_application!
+
+          say credentials.read.presence || credentials.content_path.read
+        else
+          require_application!
+          enroll_project_in_credentials_diffing if options[:enroll]
+        end
+      rescue ActiveSupport::MessageEncryptor::InvalidMessage
+        say credentials.content_path.read
       end
 
       private
@@ -53,7 +78,11 @@ module Rails
         end
 
         def ensure_credentials_have_been_added
-          encrypted_file_generator.add_encrypted_file_silently(content_path, key_path)
+          if options[:environment]
+            encrypted_file_generator.add_encrypted_file_silently(content_path, key_path)
+          else
+            credentials_generator.add_credentials_file_silently
+          end
         end
 
         def change_credentials_in_system_editor
@@ -72,13 +101,16 @@ module Rails
 
 
         def content_path
-          options[:environment] ? "config/credentials/#{options[:environment]}.yml.enc" : "config/credentials.yml.enc"
+          @content_path ||= options[:environment] ? "config/credentials/#{options[:environment]}.yml.enc" : "config/credentials.yml.enc"
         end
 
         def key_path
           options[:environment] ? "config/credentials/#{options[:environment]}.key" : "config/master.key"
         end
 
+        def extract_environment_from_path(path)
+          available_environments.find { |env| path.include? env } if path.end_with?(".yml.enc")
+        end
 
         def encryption_key_file_generator
           require "rails/generators"
@@ -92,6 +124,13 @@ module Rails
           require "rails/generators/rails/encrypted_file/encrypted_file_generator"
 
           Rails::Generators::EncryptedFileGenerator.new
+        end
+
+        def credentials_generator
+          require "rails/generators"
+          require "rails/generators/rails/credentials/credentials_generator"
+
+          Rails::Generators::CredentialsGenerator.new
         end
     end
   end

@@ -2,6 +2,7 @@
 
 ORIG_ARGV = ARGV.dup
 
+require "bundler/setup"
 require "active_support/core_ext/kernel/reporting"
 
 silence_warnings do
@@ -27,6 +28,8 @@ ActiveSupport.to_time_preserves_timezone = ENV["PRESERVE_TIMEZONES"] == "1"
 I18n.enforce_available_locales = false
 
 class ActiveSupport::TestCase
+  parallelize
+
   include ActiveSupport::Testing::MethodCallAssertions
 
   private
@@ -40,3 +43,5 @@ class ActiveSupport::TestCase
       skip message if defined?(JRUBY_VERSION)
     end
 end
+
+require_relative "../../tools/test_common"

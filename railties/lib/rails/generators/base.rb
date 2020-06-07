@@ -20,9 +20,15 @@ module Rails
 
       class_option :skip_namespace, type: :boolean, default: false,
                                     desc: "Skip namespace (affects only isolated applications)"
+      class_option :skip_collision_check, type: :boolean, default: false,
+                                          desc: "Skip collision check"
 
       add_runtime_options!
       strict_args_position!
+
+      def self.exit_on_failure? # :nodoc:
+        false
+      end
 
       # Returns the source root for this generator using default_source_root as default.
       def self.source_root(path = nil)
@@ -73,7 +79,7 @@ module Rails
       #
       # For example, if the user invoke the controller generator as:
       #
-      #   rails generate controller Account --test-framework=test_unit
+      #   bin/rails generate controller Account --test-framework=test_unit
       #
       # The controller generator will then try to invoke the following generators:
       #
@@ -128,11 +134,11 @@ module Rails
       # All hooks come with switches for user interface. If you do not want
       # to use any test framework, you can do:
       #
-      #   rails generate controller Account --skip-test-framework
+      #   bin/rails generate controller Account --skip-test-framework
       #
       # Or similarly:
       #
-      #   rails generate controller Account --no-test-framework
+      #   bin/rails generate controller Account --no-test-framework
       #
       # ==== Boolean hooks
       #
@@ -144,7 +150,7 @@ module Rails
       #
       # Then, if you want webrat to be invoked, just supply:
       #
-      #   rails generate controller Account --webrat
+      #   bin/rails generate controller Account --webrat
       #
       # The hooks lookup is similar as above:
       #
@@ -231,7 +237,7 @@ module Rails
         # Invoke source_root so the default_source_root is set.
         base.source_root
 
-        if base.name && base.name !~ /Base$/
+        if base.name && !base.name.end_with?("Base")
           Rails::Generators.subclasses << base
 
           Rails::Generators.templates_path.each do |path|
@@ -245,11 +251,12 @@ module Rails
       end
 
       private
-
         # Check whether the given class names are already taken by user
         # application or Ruby on Rails.
         def class_collisions(*class_names)
           return unless behavior == :invoke
+          return if options.skip_collision_check?
+          return if options.force?
 
           class_names.flatten.each do |class_name|
             class_name = class_name.to_s
@@ -262,8 +269,8 @@ module Rails
 
             if last && last.const_defined?(last_name.camelize, false)
               raise Error, "The name '#{class_name}' is either already used in your application " \
-                           "or reserved by Ruby on Rails. Please choose an alternative and run "  \
-                           "this generator again."
+                           "or reserved by Ruby on Rails. Please choose an alternative or use --skip-collision-check "  \
+                           "or --force to skip this check and run this generator again."
             end
           end
         end

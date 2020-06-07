@@ -34,17 +34,17 @@ module ActionDispatch
         end
 
         {
-          "/:controller(/:action)"       => %r{\A/(#{x})(?:/([^/.?]+))?(?:\b|\Z)},
-          "/:controller/foo"             => %r{\A/(#{x})/foo(?:\b|\Z)},
-          "/:controller/:action"         => %r{\A/(#{x})/([^/.?]+)(?:\b|\Z)},
-          "/:controller"                 => %r{\A/(#{x})(?:\b|\Z)},
-          "/:controller(/:action(/:id))" => %r{\A/(#{x})(?:/([^/.?]+)(?:/([^/.?]+))?)?(?:\b|\Z)},
-          "/:controller/:action.xml"     => %r{\A/(#{x})/([^/.?]+)\.xml(?:\b|\Z)},
-          "/:controller.:format"         => %r{\A/(#{x})\.([^/.?]+)(?:\b|\Z)},
-          "/:controller(.:format)"       => %r{\A/(#{x})(?:\.([^/.?]+))?(?:\b|\Z)},
-          "/:controller/*foo"            => %r{\A/(#{x})/(.+)(?:\b|\Z)},
-          "/:controller/*foo/bar"        => %r{\A/(#{x})/(.+)/bar(?:\b|\Z)},
-          "/:foo|*bar"                   => %r{\A/(?:([^/.?]+)|(.+))(?:\b|\Z)},
+          "/:controller(/:action)"       => %r{\A/(#{x})(?:/([^/.?]+))?(?:\b|\Z|/)},
+          "/:controller/foo"             => %r{\A/(#{x})/foo(?:\b|\Z|/)},
+          "/:controller/:action"         => %r{\A/(#{x})/([^/.?]+)(?:\b|\Z|/)},
+          "/:controller"                 => %r{\A/(#{x})(?:\b|\Z|/)},
+          "/:controller(/:action(/:id))" => %r{\A/(#{x})(?:/([^/.?]+)(?:/([^/.?]+))?)?(?:\b|\Z|/)},
+          "/:controller/:action.xml"     => %r{\A/(#{x})/([^/.?]+)\.xml(?:\b|\Z|/)},
+          "/:controller.:format"         => %r{\A/(#{x})\.([^/.?]+)(?:\b|\Z|/)},
+          "/:controller(.:format)"       => %r{\A/(#{x})(?:\.([^/.?]+))?(?:\b|\Z|/)},
+          "/:controller/*foo"            => %r{\A/(#{x})/(.+)(?:\b|\Z|/)},
+          "/:controller/*foo/bar"        => %r{\A/(#{x})/(.+)/bar(?:\b|\Z|/)},
+          "/:foo|*bar"                   => %r{\A/(?:([^/.?]+)|(.+))(?:\b|\Z|/)},
         }.each do |path, expected|
           define_method(:"test_to_non_anchored_regexp_#{Regexp.escape(path)}") do
             path = Pattern.build(
@@ -279,6 +279,46 @@ module ActionDispatch
           assert_equal %w{ action format }, match.names
           assert_equal "list", match[1]
           assert_equal "rss", match[2]
+        end
+
+        def test_named_captures
+          path = Path::Pattern.from_string "/books(/:action(.:format))"
+
+          uri = "/books/list.rss"
+          match = path =~ uri
+          named_captures = { "action" => "list", "format" => "rss" }
+          assert_equal named_captures, match.named_captures
+        end
+
+        def test_requirements_for_missing_keys_check
+          name_regex = /test/
+
+          path = Pattern.build(
+            "/page/:name",
+            { name: name_regex },
+            SEPARATORS,
+            true
+          )
+
+          transformed_regex = path.requirements_for_missing_keys_check[:name]
+          assert_not_nil transformed_regex
+          assert_equal(transformed_regex, /\A#{name_regex}\Z/)
+        end
+
+        def test_requirements_for_missing_keys_check_memoization
+          name_regex = /test/
+
+          path = Pattern.build(
+            "/page/:name",
+            { name: name_regex },
+            SEPARATORS,
+            true
+          )
+
+          first_call = path.requirements_for_missing_keys_check[:name]
+          second_call = path.requirements_for_missing_keys_check[:name]
+
+          assert_equal(first_call.object_id, second_call.object_id)
         end
       end
     end

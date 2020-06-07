@@ -48,14 +48,20 @@ class PostgresqlMoneyTest < ActiveRecord::PostgreSQLTestCase
     second_money = PostgresqlMoney.find(2)
     assert_equal 567.89, first_money.wealth
     assert_equal(-567.89, second_money.wealth)
+    assert_equal 567.89, @connection.query_value("SELECT wealth FROM postgresql_moneys WHERE id = 1")
+    assert_equal(-567.89, @connection.query_value("SELECT wealth FROM postgresql_moneys WHERE id = 2"))
   end
 
   def test_money_type_cast
     type = PostgresqlMoney.type_for_attribute("wealth")
     assert_equal(12345678.12, type.cast(+"$12,345,678.12"))
     assert_equal(12345678.12, type.cast(+"$12.345.678,12"))
+    assert_equal(12345678.12, type.cast(+"12,345,678.12"))
+    assert_equal(12345678.12, type.cast(+"12.345.678,12"))
     assert_equal(-1.15, type.cast(+"-$1.15"))
     assert_equal(-2.25, type.cast(+"($2.25)"))
+    assert_equal(-1.15, type.cast(+"-1.15"))
+    assert_equal(-2.25, type.cast(+"(2.25)"))
   end
 
   def test_schema_dumping

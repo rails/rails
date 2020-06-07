@@ -37,7 +37,7 @@ module AbstractController
 
     # Override <tt>AbstractController::Base#process_action</tt> to run the
     # <tt>process_action</tt> callbacks around the normal behavior.
-    def process_action(*args)
+    def process_action(*)
       run_callbacks(:process_action) do
         super
       end
@@ -69,7 +69,7 @@ module AbstractController
       end
 
       def _normalize_callback_option(options, from, to) # :nodoc:
-        if from = options[from]
+        if from = options.delete(from)
           _from = Array(from).map(&:to_s).to_set
           from = proc { |c| _from.include? c.action_name }
           options[to] = Array(options[to]).unshift(from)

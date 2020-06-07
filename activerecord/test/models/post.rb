@@ -11,6 +11,10 @@ class Post < ActiveRecord::Base
     def author
       "lifo"
     end
+
+    def greeting
+      super + " :)"
+    end
   end
 
   module NamedExtension2
@@ -18,6 +22,8 @@ class Post < ActiveRecord::Base
       "hullo"
     end
   end
+
+  alias_attribute :text, :body
 
   scope :containing_the_letter_a, -> { where("body LIKE '%a%'") }
   scope :titled_with_an_apostrophe, -> { where("title LIKE '%''%'") }
@@ -39,6 +45,7 @@ class Post < ActiveRecord::Base
   has_one :first_comment, -> { order("id ASC") }, class_name: "Comment"
   has_one :last_comment, -> { order("id desc") }, class_name: "Comment"
 
+  scope :no_comments, -> { left_joins(:comments).where(comments: { id: nil }) }
   scope :with_special_comments, -> { joins(:comments).where(comments: { type: "SpecialComment" }) }
   scope :with_very_special_comments, -> { joins(:comments).where(comments: { type: "VerySpecialComment" }) }
   scope :with_post, ->(post_id) { joins(:comments).where(comments: { post_id: post_id }) }
@@ -203,6 +210,10 @@ end
 
 class SubAbstractStiPost < AbstractStiPost; end
 
+class NullPost < Post
+  default_scope { none }
+end
+
 class FirstPost < ActiveRecord::Base
   self.inheritance_column = :disabled
   self.table_name = "posts"
@@ -315,8 +326,8 @@ class FakeKlass
       "posts"
     end
 
-    def attribute_alias?(name)
-      false
+    def attribute_aliases
+      {}
     end
 
     def sanitize_sql(sql)

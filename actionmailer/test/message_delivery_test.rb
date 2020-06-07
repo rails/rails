@@ -76,7 +76,7 @@ class MessageDeliveryTest < ActiveSupport::TestCase
   end
 
   test "should enqueue a delivery with a delay" do
-    travel_to Time.new(2004, 11, 24, 01, 04, 44) do
+    travel_to Time.new(2004, 11, 24, 1, 4, 44) do
       assert_performed_with(job: ActionMailer::MailDeliveryJob, at: Time.current + 10.minutes, args: ["DelayedMailer", "test_message", "deliver_now", args: [1, 2, 3]]) do
         @mail.deliver_later wait: 10.minutes
       end
@@ -163,5 +163,12 @@ class MessageDeliveryTest < ActiveSupport::TestCase
     assert_nothing_raised { message.deliver_later }
     assert_equal DelayedMailer, DelayedMailer.last_rescue_from_instance
     assert_equal "Error while trying to deserialize arguments: boom, missing find", DelayedMailer.last_error.message
+  end
+
+  test "allows for keyword arguments" do
+    assert_performed_with(job: ActionMailer::MailDeliveryJob, args: ["DelayedMailer", "test_kwargs", "deliver_now", args: [argument: 1]]) do
+      message = DelayedMailer.test_kwargs(argument: 1)
+      message.deliver_later
+    end
   end
 end

@@ -48,12 +48,11 @@ module ActionView #:nodoc:
       find_all(*args).first || raise(MissingTemplate.new(self, *args))
     end
 
-    def find_file(path, prefixes = [], *args)
-      _find_all(path, prefixes, args, true).first || raise(MissingTemplate.new(self, path, prefixes, *args))
-    end
+    alias :find_file :find
+    deprecate :find_file
 
     def find_all(path, prefixes = [], *args)
-      _find_all path, prefixes, args, false
+      _find_all path, prefixes, args
     end
 
     def exists?(path, prefixes, *args)
@@ -70,16 +69,11 @@ module ActionView #:nodoc:
     end
 
     private
-
-      def _find_all(path, prefixes, args, outside_app)
+      def _find_all(path, prefixes, args)
         prefixes = [prefixes] if String === prefixes
         prefixes.each do |prefix|
           paths.each do |resolver|
-            if outside_app
-              templates = resolver.find_all_anywhere(path, prefix, *args)
-            else
-              templates = resolver.find_all(path, prefix, *args)
-            end
+            templates = resolver.find_all(path, prefix, *args)
             return templates unless templates.empty?
           end
         end

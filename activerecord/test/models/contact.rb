@@ -10,14 +10,14 @@ module ContactFakeColumns
         table_name => "id"
       }
 
-      column :id,             :integer
-      column :name,           :string
-      column :age,            :integer
-      column :avatar,         :binary
-      column :created_at,     :datetime
-      column :awesome,        :boolean
-      column :preferences,    :string
-      column :alternative_id, :integer
+      column :id,             "integer"
+      column :name,           "string"
+      column :age,            "integer"
+      column :avatar,         "binary"
+      column :created_at,     "datetime"
+      column :awesome,        "boolean"
+      column :preferences,    "string"
+      column :alternative_id, "integer"
 
       serialize :preferences
 
@@ -37,7 +37,7 @@ end
 
 class ContactSti < ActiveRecord::Base
   extend ContactFakeColumns
-  column :type, :string
+  column :type, "string"
 
   def type; "ContactSti" end
 end

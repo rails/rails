@@ -143,7 +143,7 @@ module ActionView
       #
       # The HTML specification says when +multiple+ parameter passed to select and all options got deselected
       # web browsers do not send any value to server. Unfortunately this introduces a gotcha:
-      # if an +User+ model has many +roles+ and have +role_ids+ accessor, and in the form that edits roles of the user
+      # if a +User+ model has many +roles+ and have +role_ids+ accessor, and in the form that edits roles of the user
       # the user deselects all roles from +role_ids+ multiple select box, no +role_ids+ parameter is sent. So,
       # any mass-assignment idiom like
       #
@@ -566,9 +566,10 @@ module ActionView
       # an ActiveSupport::TimeZone.
       #
       # By default, +model+ is the ActiveSupport::TimeZone constant (which can
-      # be obtained in Active Record as a value object). The only requirement
-      # is that the +model+ parameter be an object that responds to +all+, and
-      # returns an array of objects that represent time zones.
+      # be obtained in Active Record as a value object). The +model+ parameter
+      # must respond to +all+ and return an array of objects that represent time
+      # zones; each object must respond to +name+. If a Regexp is given it will
+      # attempt to match the zones using <code>match?</code> method.
       #
       # NOTE: Only the option tags are returned, you have to wrap this call in
       # a regular HTML select tag.
@@ -580,7 +581,7 @@ module ActionView
 
         if priority_zones
           if priority_zones.is_a?(Regexp)
-            priority_zones = zones.select { |z| z =~ priority_zones }
+            priority_zones = zones.select { |z| z.match?(priority_zones) }
           end
 
           zone_options.safe_concat options_for_select(convert_zones[priority_zones], selected)

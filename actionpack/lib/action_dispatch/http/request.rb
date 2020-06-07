@@ -23,6 +23,7 @@ module ActionDispatch
     include ActionDispatch::Http::FilterParameters
     include ActionDispatch::Http::URL
     include ActionDispatch::ContentSecurityPolicy::Request
+    include ActionDispatch::FeaturePolicy::Request
     include Rack::Request::Env
 
     autoload :Session, "action_dispatch/request/session"
@@ -44,10 +45,13 @@ module ActionDispatch
         SERVER_ADDR
         ].freeze
 
+    # TODO: Remove SERVER_ADDR when we remove support to Rack 2.1.
+    # See https://github.com/rack/rack/commit/c173b188d81ee437b588c1e046a1c9f031dea550
     ENV_METHODS.each do |env|
       class_eval <<-METHOD, __FILE__, __LINE__ + 1
+        # frozen_string_literal: true
         def #{env.sub(/^HTTP_/n, '').downcase}  # def accept_charset
-          get_header "#{env}".freeze            #   get_header "HTTP_ACCEPT_CHARSET".freeze
+          get_header "#{env}"                   #   get_header "HTTP_ACCEPT_CHARSET"
         end                                     # end
       METHOD
     end
@@ -84,8 +88,16 @@ module ActionDispatch
     def controller_class_for(name)
       if name
         controller_param = name.underscore
-        const_name = "#{controller_param.camelize}Controller"
-        ActiveSupport::Dependencies.constantize(const_name)
+        const_name = controller_param.camelize << "Controller"
+        begin
+          ActiveSupport::Dependencies.constantize(const_name)
+        rescue NameError => error
+          if error.missing_name == const_name || const_name.start_with?("#{error.missing_name}::")
+            raise MissingController.new(error.message, error.name)
+          else
+            raise
+          end
+        end
       else
         PASS_NOT_FOUND
       end
@@ -264,7 +276,7 @@ module ActionDispatch
     # (case-insensitive), which may need to be manually added depending on the
     # choice of JavaScript libraries and frameworks.
     def xml_http_request?
-      get_header("HTTP_X_REQUESTED_WITH") =~ /XMLHttpRequest/i
+      /XMLHttpRequest/i.match?(get_header("HTTP_X_REQUESTED_WITH"))
     end
     alias :xhr? :xml_http_request?
 
@@ -280,6 +292,7 @@ module ActionDispatch
     end
 
     def remote_ip=(remote_ip)
+      @remote_ip = nil
       set_header "action_dispatch.remote_ip", remote_ip
     end
 
@@ -321,7 +334,7 @@ module ActionDispatch
     # variable is already set, wrap it in a StringIO.
     def body
       if raw_post = get_header("RAW_POST_DATA")
-        raw_post = raw_post.dup.force_encoding(Encoding::BINARY)
+        raw_post = (+raw_post).force_encoding(Encoding::BINARY)
         StringIO.new(raw_post)
       else
         body_stream
@@ -399,7 +412,7 @@ module ActionDispatch
 
     # True if the request came from localhost, 127.0.0.1, or ::1.
     def local?
-      LOCALHOST =~ remote_addr && LOCALHOST =~ remote_ip
+      LOCALHOST.match?(remote_addr) && LOCALHOST.match?(remote_ip)
     end
 
     def request_parameters=(params)
@@ -425,3 +438,5 @@ module ActionDispatch
       end
   end
 end
+
+ActiveSupport.run_load_hooks :action_dispatch_request, ActionDispatch::Request

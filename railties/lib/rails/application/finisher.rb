@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/string/inflections"
+require "active_support/core_ext/array/conversions"
+
 module Rails
   class Application
     module Finisher
@@ -21,10 +24,61 @@ module Rails
         end
       end
 
+      # This will become an error if/when we remove classic mode. The plan is
+      # autoloaders won't be configured up to this point in the finisher, so
+      # constants just won't be found, raising regular NameError exceptions.
+      initializer :warn_if_autoloaded, before: :let_zeitwerk_take_over do
+        next if config.cache_classes
+        next if ActiveSupport::Dependencies.autoloaded_constants.empty?
+
+        autoloaded    = ActiveSupport::Dependencies.autoloaded_constants
+        constants     = "constant".pluralize(autoloaded.size)
+        enum          = autoloaded.to_sentence
+        have          = autoloaded.size == 1 ? "has" : "have"
+        these         = autoloaded.size == 1 ? "This" : "These"
+        example       = autoloaded.first
+        example_klass = example.constantize.class
+
+        if config.autoloader == :zeitwerk
+          ActiveSupport::DescendantsTracker.clear
+          ActiveSupport::Dependencies.clear
+
+          unload_message = "#{these} autoloaded #{constants} #{have} been unloaded."
+        else
+          unload_message = "`config.autoloader` is set to `#{config.autoloader}`. #{these} autoloaded #{constants} would have been unloaded if `config.autoloader` had been set to `:zeitwerk`."
+        end
+
+        ActiveSupport::Deprecation.warn(<<~WARNING)
+          Initialization autoloaded the #{constants} #{enum}.
+
+          Being able to do this is deprecated. Autoloading during initialization is going
+          to be an error condition in future versions of Rails.
+
+          Reloading does not reboot the application, and therefore code executed during
+          initialization does not run again. So, if you reload #{example}, for example,
+          the expected changes won't be reflected in that stale #{example_klass} object.
+
+          #{unload_message}
+
+          In order to autoload safely at boot time, please wrap your code in a reloader
+          callback this way:
+
+              Rails.application.reloader.to_prepare do
+                # Autoload classes and modules needed at boot time here.
+              end
+
+          That block runs when the application boots, and every time there is a reload.
+          For historical reasons, it may run twice, so it has to be idempotent.
+
+          Check the "Autoloading and Reloading Constants" guide to learn more about how
+          Rails autoloads and reloads.
+        WARNING
+      end
+
       initializer :let_zeitwerk_take_over do
         if config.autoloader == :zeitwerk
           require "active_support/dependencies/zeitwerk_integration"
-          ActiveSupport::Dependencies::ZeitwerkIntegration.take_over
+          ActiveSupport::Dependencies::ZeitwerkIntegration.take_over(enable_reloading: !config.cache_classes)
         end
       end
 
@@ -173,7 +227,9 @@ module Rails
           app.reloader.check = lambda { true }
         end
 
-        if config.reload_classes_only_on_change
+        if config.cache_classes
+          # No reloader
+        elsif config.reload_classes_only_on_change
           reloader = config.file_watcher.new(*watchable_args, &callback)
           reloaders << reloader
 

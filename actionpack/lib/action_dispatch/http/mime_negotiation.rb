@@ -62,13 +62,7 @@ module ActionDispatch
 
       def formats
         fetch_header("action_dispatch.request.formats") do |k|
-          params_readable = begin
-                              parameters[:format]
-                            rescue *RESCUABLE_MIME_FORMAT_ERRORS
-                              false
-                            end
-
-          v = if params_readable
+          v = if params_readable?
             Array(Mime[parameters[:format]])
           elsif use_accept_header && valid_accept_header
             accepts
@@ -79,6 +73,11 @@ module ActionDispatch
           else
             [Mime[:html]]
           end
+
+          v = v.select do |format|
+            format.symbol || format.ref == "*/*"
+          end
+
           set_header k, v
         end
       end
@@ -148,13 +147,24 @@ module ActionDispatch
         order.include?(Mime::ALL) ? format : nil
       end
 
-      private
+      def should_apply_vary_header?
+        !params_readable? && use_accept_header && valid_accept_header
+      end
 
+      private
+        # We use normal content negotiation unless you include */* in your list,
+        # in which case we assume you're a browser and send HTML.
         BROWSER_LIKE_ACCEPTS = /,\s*\*\/\*|\*\/\*\s*,/
+
+        def params_readable? # :doc:
+          parameters[:format]
+        rescue *RESCUABLE_MIME_FORMAT_ERRORS
+          false
+        end
 
         def valid_accept_header # :doc:
           (xhr? && (accept.present? || content_mime_type)) ||
-            (accept.present? && accept !~ BROWSER_LIKE_ACCEPTS)
+            (accept.present? && !accept.match?(BROWSER_LIKE_ACCEPTS))
         end
 
         def use_accept_header # :doc:

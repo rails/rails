@@ -5578,7 +5578,7 @@ var iframe,
 	};
 
 /**
- * Retrieve the actual display of an element
+ * Retrieve the actual display of a element
  * @param {String} name nodeName of the element
  * @param {Object} doc Document object
  */
@@ -9639,7 +9639,7 @@ jQuery.fn.extend( {
 	// 2) For the hidden or detached element
 	// 3) For body or html element, i.e. in case of the html node - it will return itself
 	//
-	// but those exceptions were never presented as a real life use cases
+	// but those exceptions were never presented as a real life use-cases
 	// and might be considered as more preferable results.
 	//
 	// This logic, however, is not guaranteed and can change at any point in the future

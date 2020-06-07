@@ -411,7 +411,6 @@ class IrregularInflectionParamsWrapperTest < ActionController::TestCase
   end
 
   private
-
     def with_dup
       original = ActiveSupport::Inflector::Inflections.instance_variable_get(:@__instance__)[:en]
       ActiveSupport::Inflector::Inflections.instance_variable_set(:@__instance__, en: original.dup)

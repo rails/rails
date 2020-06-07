@@ -45,7 +45,6 @@ module ActiveRecord
       end
 
       private
-
         def perform_fetch(lookup_key, *args)
           matching_pair = @mapping.reverse_each.detect do |key, _|
             key === lookup_key

@@ -6,7 +6,7 @@ module Rails
   class Engine
     class Configuration < ::Rails::Railtie::Configuration
       attr_reader :root
-      attr_accessor :middleware
+      attr_accessor :middleware, :javascript_path
       attr_writer :eager_load_paths, :autoload_once_paths, :autoload_paths
 
       def initialize(root = nil)
@@ -14,6 +14,7 @@ module Rails
         @root = root
         @generators = app_generators.dup
         @middleware = Rails::Configuration::MiddlewareStackProxy.new
+        @javascript_path = "javascript"
       end
 
       # Holds generators configuration:
@@ -40,7 +41,7 @@ module Rails
 
           paths.add "app",                 eager_load: true,
                                            glob: "{*,*/concerns}",
-                                           exclude: %w(assets javascript)
+                                           exclude: ["assets", javascript_path]
           paths.add "app/assets",          glob: "*"
           paths.add "app/controllers",     eager_load: true
           paths.add "app/channels",        eager_load: true, glob: "**/*_channel.rb"
@@ -58,6 +59,7 @@ module Rails
           paths.add "config/initializers", glob: "**/*.rb"
           paths.add "config/locales",      glob: "*.{rb,yml}"
           paths.add "config/routes.rb"
+          paths.add "config/routes",       glob: "**/*.rb"
 
           paths.add "db"
           paths.add "db/migrate"

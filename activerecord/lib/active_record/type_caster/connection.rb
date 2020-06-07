@@ -8,21 +8,26 @@ module ActiveRecord
         @table_name = table_name
       end
 
-      def type_cast_for_database(attribute_name, value)
-        return value if value.is_a?(Arel::Nodes::BindParam)
-        column = column_for(attribute_name)
-        connection.type_cast_from_column(column, value)
+      def type_cast_for_database(attr_name, value)
+        type = type_for_attribute(attr_name)
+        type.serialize(value)
       end
+
+      def type_for_attribute(attr_name)
+        schema_cache = connection.schema_cache
+
+        if schema_cache.data_source_exists?(table_name)
+          column = schema_cache.columns_hash(table_name)[attr_name.to_s]
+          type = connection.lookup_cast_type_from_column(column) if column
+        end
+
+        type || Type.default_value
+      end
+
+      delegate :connection, to: :@klass, private: true
 
       private
         attr_reader :table_name
-        delegate :connection, to: :@klass
-
-        def column_for(attribute_name)
-          if connection.schema_cache.data_source_exists?(table_name)
-            connection.schema_cache.columns_hash(table_name)[attribute_name.to_s]
-          end
-        end
     end
   end
 end

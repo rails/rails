@@ -35,7 +35,7 @@ module ActiveRecord
           error_options = options.except(:case_sensitive, :scope, :conditions)
           error_options[:value] = value
 
-          record.errors.add(attribute, :taken, error_options)
+          record.errors.add(attribute, :taken, **error_options)
         end
       end
 
@@ -78,7 +78,7 @@ module ActiveRecord
           scope_value = if record.class._reflect_on_association(scope_item)
             record.association(scope_item).reader
           else
-            record._read_attribute(scope_item)
+            record.read_attribute(scope_item)
           end
           relation = relation.where(scope_item => scope_value)
         end

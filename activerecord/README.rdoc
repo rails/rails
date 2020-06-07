@@ -13,6 +13,8 @@ columns. Although these mappings can be defined explicitly, it's recommended
 to follow naming conventions, especially when getting started with the
 library.
 
+You can read more about Active Record in the {Active Record Basics}[https://edgeguides.rubyonrails.org/active_record_basics.html] guide.
+
 A short rundown of some of the major features:
 
 * Automated mapping between classes and tables, attributes and columns.
@@ -130,7 +132,7 @@ This would also define the following accessors: <tt>Product#name</tt> and
   SQLite3[link:classes/ActiveRecord/ConnectionAdapters/SQLite3Adapter.html].
 
 
-* Logging support for Log4r[https://github.com/colbygk/log4r] and Logger[http://www.ruby-doc.org/stdlib/libdoc/logger/rdoc].
+* Logging support for Log4r[https://github.com/colbygk/log4r] and Logger[https://ruby-doc.org/stdlib/libdoc/logger/rdoc/].
 
     ActiveRecord::Base.logger = ActiveSupport::Logger.new(STDOUT)
     ActiveRecord::Base.logger = Log4r::Logger.new('Application Log')
@@ -138,7 +140,7 @@ This would also define the following accessors: <tt>Product#name</tt> and
 
 * Database agnostic schema management with Migrations.
 
-    class AddSystemSettings < ActiveRecord::Migration[5.0]
+    class AddSystemSettings < ActiveRecord::Migration[6.0]
       def up
         create_table :system_settings do |t|
           t.string  :name
@@ -206,7 +208,7 @@ Active Record is released under the MIT license:
 
 API documentation is at:
 
-* http://api.rubyonrails.org
+* https://api.rubyonrails.org
 
 Bug reports for the Ruby on Rails project can be filed here:
 
@@ -214,4 +216,4 @@ Bug reports for the Ruby on Rails project can be filed here:
 
 Feature requests should be discussed on the rails-core mailing list here:
 
-* https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core
+* https://discuss.rubyonrails.org/c/rubyonrails-core

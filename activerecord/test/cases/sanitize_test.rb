@@ -148,6 +148,19 @@ class SanitizeTest < ActiveRecord::TestCase
     assert_equal "foo in (#{quoted_nil})", bind("foo in (?)", [])
   end
 
+  def test_bind_range
+    quoted_abc = %(#{ActiveRecord::Base.connection.quote('a')},#{ActiveRecord::Base.connection.quote('b')},#{ActiveRecord::Base.connection.quote('c')})
+    assert_equal "0", bind("?", 0..0)
+    assert_equal "1,2,3", bind("?", 1..3)
+    assert_equal quoted_abc, bind("?", "a"..."d")
+  end
+
+  def test_bind_empty_range
+    quoted_nil = ActiveRecord::Base.connection.quote(nil)
+    assert_equal quoted_nil, bind("?", 0...0)
+    assert_equal quoted_nil, bind("?", "a"..."a")
+  end
+
   def test_bind_empty_string
     quoted_empty = ActiveRecord::Base.connection.quote("")
     assert_equal quoted_empty, bind("?", "")

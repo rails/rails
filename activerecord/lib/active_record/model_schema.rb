@@ -115,8 +115,8 @@ module ActiveRecord
     #
     # Sets the column to sort records by when no explicit order clause is used
     # during an ordered finder call. Useful when the primary key is not an
-    # auto-incrementing integer, for example when it's a UUID. Note that using
-    # a non-unique column can result in non-deterministic results.
+    # auto-incrementing integer, for example when it's a UUID. Records are subsorted
+    # by the primary key if it exists to ensure deterministic results.
     included do
       mattr_accessor :primary_key_prefix_type, instance_writer: false
 
@@ -288,7 +288,8 @@ module ActiveRecord
       # Sets the columns names the model should ignore. Ignored columns won't have attribute
       # accessors defined, and won't be referenced in SQL queries.
       def ignored_columns=(columns)
-        @ignored_columns = columns.map(&:to_s)
+        reload_schema_from_cache
+        @ignored_columns = columns.map(&:to_s).freeze
       end
 
       def sequence_name
@@ -355,7 +356,7 @@ module ActiveRecord
 
       def columns
         load_schema
-        @columns ||= columns_hash.values
+        @columns ||= columns_hash.values.freeze
       end
 
       def attribute_types # :nodoc:
@@ -380,6 +381,8 @@ module ActiveRecord
       # a string or a symbol.
       def type_for_attribute(attr_name, &block)
         attr_name = attr_name.to_s
+        attr_name = attribute_aliases[attr_name] || attr_name
+
         if block
           attribute_types.fetch(attr_name, &block)
         else
@@ -391,7 +394,7 @@ module ActiveRecord
       # default values when instantiating the Active Record object for this table.
       def column_defaults
         load_schema
-        @column_defaults ||= _default_attributes.deep_dup.to_hash
+        @column_defaults ||= _default_attributes.deep_dup.to_hash.freeze
       end
 
       def _default_attributes # :nodoc:
@@ -401,7 +404,7 @@ module ActiveRecord
 
       # Returns an array of column names as strings.
       def column_names
-        @column_names ||= columns.map(&:name)
+        @column_names ||= columns.map(&:name).freeze
       end
 
       def symbol_column_to_string(name_symbol) # :nodoc:
@@ -415,9 +418,8 @@ module ActiveRecord
         @content_columns ||= columns.reject do |c|
           c.name == primary_key ||
           c.name == inheritance_column ||
-          c.name.end_with?("_id") ||
-          c.name.end_with?("_count")
-        end
+          c.name.end_with?("_id", "_count")
+        end.freeze
       end
 
       # Resets all the cached information about columns, which will cause them
@@ -427,7 +429,7 @@ module ActiveRecord
       # when just after creating a table you want to populate it with some default
       # values, eg:
       #
-      #  class CreateJobLevels < ActiveRecord::Migration[5.0]
+      #  class CreateJobLevels < ActiveRecord::Migration[6.0]
       #    def up
       #      create_table :job_levels do |t|
       #        t.integer :id
@@ -456,13 +458,11 @@ module ActiveRecord
       end
 
       protected
-
         def initialize_load_schema_monitor
           @load_schema_monitor = Monitor.new
         end
 
       private
-
         def inherited(child_class)
           super
           child_class.initialize_load_schema_monitor
@@ -480,11 +480,20 @@ module ActiveRecord
             load_schema!
 
             @schema_loaded = true
+          rescue
+            reload_schema_from_cache # If the schema loading failed half way through, we must reset the state.
+            raise
           end
         end
 
         def load_schema!
-          @columns_hash = connection.schema_cache.columns_hash(table_name).except(*ignored_columns)
+          unless table_name
+            raise ActiveRecord::TableNotSpecified, "#{self} has no table configured. Set one with #{self}.table_name="
+          end
+
+          columns_hash = connection.schema_cache.columns_hash(table_name)
+          columns_hash = columns_hash.except(*ignored_columns) unless ignored_columns.empty?
+          @columns_hash = columns_hash.freeze
           @columns_hash.each do |name, column|
             define_attribute(
               name,

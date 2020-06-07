@@ -3,7 +3,6 @@
 require "active_support/core_ext/module/attr_internal"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/ordered_options"
-require "active_support/deprecation"
 require "action_view/log_subscriber"
 require "action_view/helpers"
 require "action_view/context"
@@ -28,7 +27,7 @@ module ActionView #:nodoc:
   #     Name: <%= person.name %><br/>
   #   <% end %>
   #
-  # The loop is setup in regular embedding tags <tt><% %></tt>, and the name is written using the output embedding tag <tt><%= %></tt>. Note that this
+  # The loop is set up in regular embedding tags <tt><% %></tt>, and the name is written using the output embedding tag <tt><%= %></tt>. Note that this
   # is not just a usage suggestion. Regular output functions like print or puts won't work with ERB templates. So this would be wrong:
   #
   #   <%# WRONG %>
@@ -163,6 +162,9 @@ module ActionView #:nodoc:
     # Specify whether submit_tag should automatically disable on click
     cattr_accessor :automatically_disable_submit_tag, default: true
 
+    # Annotate rendered view with file names
+    cattr_accessor :annotate_rendered_view_with_filenames, default: false
+
     class_attribute :_routes
     class_attribute :logger
 
@@ -242,7 +244,7 @@ module ActionView #:nodoc:
       @_config = ActiveSupport::InheritableOptions.new
 
       unless formats == NULL
-        ActiveSupport::Deprecation.warn <<~eowarn
+        ActiveSupport::Deprecation.warn <<~eowarn.squish
         Passing formats to ActionView::Base.new is deprecated
         eowarn
       end
@@ -251,7 +253,7 @@ module ActionView #:nodoc:
       when ActionView::LookupContext
         @lookup_context = lookup_context
       else
-        ActiveSupport::Deprecation.warn <<~eowarn
+        ActiveSupport::Deprecation.warn <<~eowarn.squish
         ActionView::Base instances should be constructed with a lookup context,
         assignments, and a controller.
         eowarn
@@ -267,21 +269,21 @@ module ActionView #:nodoc:
       _prepare_context
     end
 
-    def run(method, template, locals, buffer, &block)
-      _old_output_buffer, _old_virtual_path, _old_template = @output_buffer, @virtual_path, @current_template
-      @current_template = template
+    def _run(method, template, locals, buffer, add_to_stack: true, &block)
+      _old_output_buffer, _old_template = @output_buffer, @current_template
+      @current_template = template if add_to_stack
       @output_buffer = buffer
       send(method, locals, buffer, &block)
     ensure
-      @output_buffer, @virtual_path, @current_template = _old_output_buffer, _old_virtual_path, _old_template
+      @output_buffer, @current_template = _old_output_buffer, _old_template
     end
 
     def compiled_method_container
       if self.class == ActionView::Base
-        ActiveSupport::Deprecation.warn <<~eowarn
+        ActiveSupport::Deprecation.warn <<~eowarn.squish
           ActionView::Base instances must implement `compiled_method_container`
           or use the class method `with_empty_template_cache` for constructing
-          an ActionView::Base instances that has an empty cache.
+          an ActionView::Base instance that has an empty cache.
         eowarn
       end
 

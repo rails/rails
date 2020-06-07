@@ -12,7 +12,6 @@ module ActiveSupport
       end
 
       private
-
         def convert_to_phone_number(number)
           if opts[:area_code]
             convert_with_area_code(number)

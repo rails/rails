@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 $:.unshift File.expand_path("lib", __dir__)
-$:.unshift File.expand_path("fixtures/helpers", __dir__)
-$:.unshift File.expand_path("fixtures/alternate_helpers", __dir__)
 
 require "active_support/core_ext/kernel/reporting"
 
@@ -13,11 +11,7 @@ silence_warnings do
   Encoding.default_external = Encoding::UTF_8
 end
 
-if ENV["TRAVIS"]
-  PROCESS_COUNT = 0
-else
-  PROCESS_COUNT = (ENV["N"] || 4).to_i
-end
+PROCESS_COUNT = (ENV["MT_CPU"] || 4).to_i
 
 require "active_support/testing/autorun"
 require "abstract_controller"
@@ -29,8 +23,6 @@ require "action_dispatch"
 require "active_support/dependencies"
 require "active_model"
 
-require "pp" # require 'pp' early to prevent hidden_methods from not picking up the pretty-print methods until too late
-
 module Rails
   class << self
     def env
@@ -40,6 +32,19 @@ module Rails
     def root; end
   end
 end
+
+module ActionPackTestSuiteUtils
+  def self.require_helpers(helpers_dirs)
+    Array(helpers_dirs).each do |helpers_dir|
+      Dir.glob("#{helpers_dir}/**/*_helper.rb") do |helper_file|
+        require helper_file
+      end
+    end
+  end
+end
+
+ActionPackTestSuiteUtils.require_helpers("#{__dir__}/fixtures/helpers")
+ActionPackTestSuiteUtils.require_helpers("#{__dir__}/fixtures/alternate_helpers")
 
 ActiveSupport::Dependencies.hook!
 
@@ -96,6 +101,7 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
     RoutedRackApp.new(routes || ActionDispatch::Routing::RouteSet.new) do |middleware|
       middleware.use ActionDispatch::ShowExceptions, ActionDispatch::PublicExceptions.new("#{FIXTURE_LOAD_PATH}/public")
       middleware.use ActionDispatch::DebugExceptions
+      middleware.use ActionDispatch::ActionableExceptions
       middleware.use ActionDispatch::Callbacks
       middleware.use ActionDispatch::Cookies
       middleware.use ActionDispatch::Flash
@@ -170,15 +176,15 @@ end
 class Rack::TestCase < ActionDispatch::IntegrationTest
   def self.testing(klass = nil)
     if klass
-      @testing = "/#{klass.name.underscore}".sub(/_controller$/, "")
+      @testing = "/#{klass.name.underscore}".delete_suffix("_controller")
     else
       @testing
     end
   end
 
-  def get(thing, *args)
+  def get(thing, *args, **options)
     if thing.is_a?(Symbol)
-      super("#{self.class.testing}/#{thing}", *args)
+      super("#{self.class.testing}/#{thing}", *args, **options)
     else
       super
     end
@@ -334,7 +340,6 @@ module RoutingTestHelpers
     end
 
     private
-
       def make_request(env)
         Request.new super, url_helpers, @block, strict
       end
@@ -382,3 +387,5 @@ end
 class DrivenBySeleniumWithHeadlessFirefox < ActionDispatch::SystemTestCase
   driven_by :selenium, using: :headless_firefox
 end
+
+require_relative "../../tools/test_common"

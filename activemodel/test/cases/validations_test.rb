@@ -53,7 +53,7 @@ class ValidationsTest < ActiveModel::TestCase
     r = Reply.new
     r.valid?
 
-    errors = r.errors.collect { |attr, messages| [attr.to_s, messages] }
+    errors = assert_deprecated { r.errors.collect { |attr, messages| [attr.to_s, messages] } }
 
     assert_includes errors, ["title", "is Empty"]
     assert_includes errors, ["content", "is Empty"]
@@ -74,7 +74,7 @@ class ValidationsTest < ActiveModel::TestCase
 
   def test_errors_on_nested_attributes_expands_name
     t = Topic.new
-    t.errors["replies.name"] << "can't be blank"
+    assert_deprecated { t.errors["replies.name"] << "can't be blank" }
     assert_equal ["Replies name can't be blank"], t.errors.full_messages
   end
 
@@ -216,7 +216,7 @@ class ValidationsTest < ActiveModel::TestCase
     t = Topic.new
     assert_predicate t, :invalid?
 
-    xml = t.errors.to_xml
+    xml = assert_deprecated { t.errors.to_xml }
     assert_match %r{<errors>}, xml
     assert_match %r{<error>Title can't be blank</error>}, xml
     assert_match %r{<error>Content can't be blank</error>}, xml
@@ -241,14 +241,14 @@ class ValidationsTest < ActiveModel::TestCase
     t = Topic.new title: ""
     assert_predicate t, :invalid?
 
-    assert_equal :title, key = t.errors.keys[0]
+    assert_equal :title, key = assert_deprecated { t.errors.keys[0] }
     assert_equal "can't be blank", t.errors[key][0]
     assert_equal "is too short (minimum is 2 characters)", t.errors[key][1]
-    assert_equal :author_name, key = t.errors.keys[1]
+    assert_equal :author_name, key = assert_deprecated { t.errors.keys[1] }
     assert_equal "can't be blank", t.errors[key][0]
-    assert_equal :author_email_address, key = t.errors.keys[2]
+    assert_equal :author_email_address, key = assert_deprecated { t.errors.keys[2] }
     assert_equal "will never be valid", t.errors[key][0]
-    assert_equal :content, key = t.errors.keys[3]
+    assert_equal :content, key = assert_deprecated { t.errors.keys[3] }
     assert_equal "is too short (minimum is 2 characters)", t.errors[key][0]
   end
 

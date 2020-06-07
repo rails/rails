@@ -9,6 +9,7 @@ module ActionDispatch
       HOST_REGEXP     = /(^[^:]+:\/\/)?(\[[^\]]+\]|[^:]+)(?::(\d+$))?/
       PROTOCOL_REGEXP = /^([^:]+)(:)?(\/\/)?$/
 
+      mattr_accessor :secure_protocol, default: false
       mattr_accessor :tld_length, default: 1
 
       class << self
@@ -78,7 +79,6 @@ module ActionDispatch
         end
 
         private
-
           def add_params(path, params)
             params = { params: params } unless params.is_a?(Hash)
             params.reject! { |_, v| v.to_param.nil? }
@@ -134,13 +134,13 @@ module ActionDispatch
           end
 
           def named_host?(host)
-            IP_HOST_REGEXP !~ host
+            !IP_HOST_REGEXP.match?(host)
           end
 
           def normalize_protocol(protocol)
             case protocol
             when nil
-              "http://"
+              secure_protocol ? "https://" : "http://"
             when false, "//"
               "//"
             when PROTOCOL_REGEXP

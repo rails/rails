@@ -28,6 +28,8 @@ end
 class ActiveSupport::TestCase
   private
     def create_file_blob(filename:, content_type:, metadata: nil)
-      ActiveStorage::Blob.create_after_upload! io: file_fixture(filename).open, filename: filename, content_type: content_type, metadata: metadata
+      ActiveStorage::Blob.create_and_upload! io: file_fixture(filename).open, filename: filename, content_type: content_type, metadata: metadata
     end
 end
+
+require_relative "../../tools/test_common"

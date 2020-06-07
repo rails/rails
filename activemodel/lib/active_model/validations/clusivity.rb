@@ -15,7 +15,6 @@ module ActiveModel
       end
 
     private
-
       def include?(record, value)
         members = if delimiter.respond_to?(:call)
           delimiter.call(record)

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/object/try"
+require "active_support/core_ext/date_time/conversions"
 
 module DateAndTime
   module Calculations
@@ -20,25 +21,27 @@ module DateAndTime
       advance(days: -1)
     end
 
-    # Returns a new date/time the specified number of days ago.
-    def prev_day(days = 1)
-      advance(days: -days)
-    end
-
     # Returns a new date/time representing tomorrow.
     def tomorrow
       advance(days: 1)
-    end
-
-    # Returns a new date/time the specified number of days in the future.
-    def next_day(days = 1)
-      advance(days: days)
     end
 
     # Returns true if the date/time is today.
     def today?
       to_date == ::Date.current
     end
+
+    # Returns true if the date/time is tomorrow.
+    def tomorrow?
+      to_date == ::Date.current.tomorrow
+    end
+    alias :next_day? :tomorrow?
+
+    # Returns true if the date/time is yesterday.
+    def yesterday?
+      to_date == ::Date.current.yesterday
+    end
+    alias :prev_day? :yesterday?
 
     # Returns true if the date/time is in the past.
     def past?
@@ -198,19 +201,9 @@ module DateAndTime
       end
     end
 
-    # Returns a new date/time the specified number of months in the future.
-    def next_month(months = 1)
-      advance(months: months)
-    end
-
     # Short-hand for months_since(3)
     def next_quarter
       months_since(3)
-    end
-
-    # Returns a new date/time the specified number of years in the future.
-    def next_year(years = 1)
-      advance(years: years)
     end
 
     # Returns a new date/time representing the given day in the previous week.
@@ -233,11 +226,6 @@ module DateAndTime
     end
     alias_method :last_weekday, :prev_weekday
 
-    # Returns a new date/time the specified number of months ago.
-    def prev_month(months = 1)
-      advance(months: -months)
-    end
-
     # Short-hand for months_ago(1).
     def last_month
       months_ago(1)
@@ -248,11 +236,6 @@ module DateAndTime
       months_ago(3)
     end
     alias_method :last_quarter, :prev_quarter
-
-    # Returns a new date/time the specified number of years ago.
-    def prev_year(years = 1)
-      advance(years: -years)
-    end
 
     # Short-hand for years_ago(1).
     def last_year

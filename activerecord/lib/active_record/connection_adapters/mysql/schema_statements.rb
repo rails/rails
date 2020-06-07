@@ -51,26 +51,26 @@ module ActiveRecord
           end
 
           indexes.map do |index|
-            options = index.last
+            options = index.pop
 
             if expressions = options.delete(:expressions)
               orders = options.delete(:orders)
               lengths = options.delete(:lengths)
 
-              columns = index[-2].map { |name|
+              columns = index[-1].map { |name|
                 [ name.to_sym, expressions[name] || +quote_column_name(name) ]
               }.to_h
 
-              index[-2] = add_options_for_index_columns(
+              index[-1] = add_options_for_index_columns(
                 columns, order: orders, length: lengths
               ).values.join(", ")
             end
 
-            IndexDefinition.new(*index)
+            IndexDefinition.new(*index, **options)
           end
         end
 
-        def remove_column(table_name, column_name, type = nil, options = {})
+        def remove_column(table_name, column_name, type = nil, **options)
           if foreign_key_exists?(table_name, column: column_name)
             remove_foreign_key(table_name, column: column_name)
           end
@@ -121,14 +121,18 @@ module ActiveRecord
           sql
         end
 
+        def table_alias_length
+          256 # https://dev.mysql.com/doc/refman/en/identifiers.html
+        end
+
         private
           CHARSETS_OF_4BYTES_MAXLEN = ["utf8mb4", "utf16", "utf16le", "utf32"]
 
           def row_format_dynamic_by_default?
             if mariadb?
-              version >= "10.2.2"
+              database_version >= "10.2.2"
             else
-              version >= "5.7.9"
+              database_version >= "5.7.9"
             end
           end
 
@@ -150,8 +154,8 @@ module ActiveRecord
             MySQL::SchemaCreation.new(self)
           end
 
-          def create_table_definition(*args)
-            MySQL::TableDefinition.new(self, *args)
+          def create_table_definition(name, **options)
+            MySQL::TableDefinition.new(self, name, **options)
           end
 
           def new_column_from_field(table_name, field)
@@ -170,9 +174,8 @@ module ActiveRecord
               default,
               type_metadata,
               field[:Null] == "YES",
-              table_name,
               default_function,
-              field[:Collation],
+              collation: field[:Collation],
               comment: field[:Comment].presence
             )
           end
@@ -193,7 +196,7 @@ module ActiveRecord
           end
 
           def add_options_for_index_columns(quoted_columns, **options)
-            quoted_columns = add_index_length(quoted_columns, options)
+            quoted_columns = add_index_length(quoted_columns, **options)
             super
           end
 
@@ -240,7 +243,7 @@ module ActiveRecord
               when nil, 0x100..0xffff;    nil
               when 0x10000..0xffffff;     "medium"
               when 0x1000000..0xffffffff; "long"
-              else raise ActiveRecordError, "No #{type} type has byte size #{limit}"
+              else raise ArgumentError, "No #{type} type has byte size #{limit}"
               end
             end
           end
@@ -252,7 +255,7 @@ module ActiveRecord
             when 3; "mediumint"
             when nil, 4; "int"
             when 5..8; "bigint"
-            else raise ActiveRecordError, "No integer type has byte size #{limit}. Use a decimal with scale 0 instead."
+            else raise ArgumentError, "No integer type has byte size #{limit}. Use a decimal with scale 0 instead."
             end
           end
       end

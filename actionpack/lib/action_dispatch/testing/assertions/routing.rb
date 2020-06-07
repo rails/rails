@@ -89,7 +89,7 @@ module ActionDispatch
             expected_path = uri.path.to_s.empty? ? "/" : uri.path
           end
         else
-          expected_path = "/#{expected_path}" unless expected_path.first == "/"
+          expected_path = "/#{expected_path}" unless expected_path.start_with?("/")
         end
         # Load routes.rb if it hasn't been loaded.
 
@@ -210,7 +210,7 @@ module ActionDispatch
               request.path = uri.path.to_s.empty? ? "/" : uri.path
             end
           else
-            path = "/#{path}" unless path.first == "/"
+            path = "/#{path}" unless path.start_with?("/")
             request.path = path
           end
 

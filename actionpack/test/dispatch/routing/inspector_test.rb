@@ -317,9 +317,6 @@ module ActionDispatch
       end
 
       def test_routes_when_expanded
-        previous_console_winsize = IO.console.winsize
-        IO.console.winsize = [0, 23]
-
         engine = Class.new(Rails::Engine) do
           def self.inspect
             "Blog::Engine"
@@ -329,7 +326,7 @@ module ActionDispatch
           get "/cart", to: "cart#show"
         end
 
-        output = draw(formatter: ActionDispatch::Routing::ConsoleFormatter::Expanded.new) do
+        output = draw(formatter: ActionDispatch::Routing::ConsoleFormatter::Expanded.new(width: 23)) do
           get "/custom/assets", to: "custom_assets#show"
           get "/custom/furnitures", to: "custom_furnitures#show"
           mount engine => "/blog", :as => "blog"
@@ -357,8 +354,6 @@ module ActionDispatch
                       "Verb              | GET",
                       "URI               | /cart(.:format)",
                       "Controller#Action | cart#show"], output
-      ensure
-        IO.console.winsize = previous_console_winsize
       end
 
       def test_no_routes_matched_filter_when_expanded

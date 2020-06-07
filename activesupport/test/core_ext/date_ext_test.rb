@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../abstract_unit"
 require "active_support/time"
-require "core_ext/date_and_time_behavior"
-require "time_zone_test_helpers"
+require_relative "../core_ext/date_and_time_behavior"
+require_relative "../time_zone_test_helpers"
 
 class DateExtCalculationsTest < ActiveSupport::TestCase
   def date_time_init(year, month, day, *args)
@@ -28,6 +28,7 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal "February 21, 2005",   date.to_s(:long)
     assert_equal "February 21st, 2005", date.to_s(:long_ordinal)
     assert_equal "2005-02-21",          date.to_s(:db)
+    assert_equal "2005-02-21",          date.to_s(:inspect)
     assert_equal "21 Feb 2005",         date.to_s(:rfc822)
     assert_equal "2005-02-21",          date.to_s(:iso8601)
   end
@@ -39,6 +40,7 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal "February 01, 2005",   date.to_s(:long)
     assert_equal "February 1st, 2005",  date.to_s(:long_ordinal)
     assert_equal "2005-02-01",          date.to_s(:db)
+    assert_equal "2005-02-01",          date.to_s(:inspect)
     assert_equal "01 Feb 2005",         date.to_s(:rfc822)
     assert_equal "2005-02-01",          date.to_s(:iso8601)
   end
@@ -112,28 +114,12 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Date.new(2005, 4, 30), Date.new(2005, 4, 20).end_of_month
   end
 
-  def test_prev_year_in_leap_years
-    assert_equal Date.new(1999, 2, 28), Date.new(2000, 2, 29).prev_year
-  end
-
-  def test_prev_year_in_calendar_reform
-    assert_equal Date.new(1582, 10, 4), Date.new(1583, 10, 14).prev_year
-  end
-
   def test_last_year_in_leap_years
     assert_equal Date.new(1999, 2, 28), Date.new(2000, 2, 29).last_year
   end
 
   def test_last_year_in_calendar_reform
     assert_equal Date.new(1582, 10, 4), Date.new(1583, 10, 14).last_year
-  end
-
-  def test_next_year_in_leap_years
-    assert_equal Date.new(2001, 2, 28), Date.new(2000, 2, 29).next_year
-  end
-
-  def test_next_year_in_calendar_reform
-    assert_equal Date.new(1582, 10, 4), Date.new(1581, 10, 10).next_year
   end
 
   def test_advance

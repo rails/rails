@@ -5,6 +5,8 @@ They allow for Action Pack helpers to interact with non-Active Record models,
 for example. Active Model also helps with building custom ORMs for use outside of
 the Rails framework.
 
+You can read more about Active Model in the {Active Model Basics}[https://edgeguides.rubyonrails.org/active_model_basics.html] guide.
+
 Prior to Rails 3.0, if a plugin or gem developer wanted to have an object
 interact with Action Pack helpers, it was required to either copy chunks of
 code from Rails, or monkey patch entire helpers to make them handle objects
@@ -198,7 +200,7 @@ behavior out of the box:
       attr_accessor :first_name, :last_name
 
       validates_each :first_name, :last_name do |record, attr, value|
-        record.errors.add attr, 'starts with z.' if value.to_s[0] == ?z
+        record.errors.add attr, "starts with z." if value.start_with?("z")
       end
     end
 
@@ -261,4 +263,4 @@ Bug reports for the Ruby on Rails project can be filed here:
 
 Feature requests should be discussed on the rails-core mailing list here:
 
-* https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core
+* https://discuss.rubyonrails.org/c/rubyonrails-core

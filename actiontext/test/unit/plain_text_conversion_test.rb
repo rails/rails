@@ -66,10 +66,32 @@ class ActionText::PlainTextConversionTest < ActiveSupport::TestCase
     )
   end
 
+  test "<figcaption> tags are converted to their plain-text representation" do
+    assert_converted_to(
+      "Hello world! [A condor in the mountain]",
+      "Hello world! <figcaption>A condor in the mountain</figcaption>"
+    )
+  end
+
   test "<action-text-attachment> tags are converted to their plain-text representation" do
     assert_converted_to(
       "Hello world! [Cat]",
       'Hello world! <action-text-attachment url="http://example.com/cat.jpg" content-type="image" caption="Cat"></action-text-attachment>'
+    )
+  end
+
+  test "deeply nested tags are converted" do
+    assert_converted_to(
+      "Hello world!\nHow are you?",
+      ActionText::Fragment.wrap("<div>Hello world!</div><div></div>").tap do |fragment|
+        node = fragment.source.children.last
+        1_000.times do
+          child = node.clone
+          child.parent = node
+          node = child
+        end
+        node.inner_html = "How are you?"
+      end
     )
   end
 

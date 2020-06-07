@@ -9,7 +9,6 @@ require "action_controller"
 require "action_view"
 
 require "rails_guides/markdown"
-require "rails_guides/indexer"
 require "rails_guides/helpers"
 require "rails_guides/levenshtein"
 
@@ -43,7 +42,6 @@ module RailsGuides
     end
 
     private
-
       def register_kindle_mime_types
         Mime::Type.register_alias("application/xml", :opf, %w(opf))
         Mime::Type.register_alias("application/xml", :ncx, %w(ncx))
@@ -131,7 +129,7 @@ module RailsGuides
         if guide.end_with?(".md")
           guide.sub(/md\z/, "html")
         else
-          guide.sub(/\.erb\z/, "")
+          guide.delete_suffix(".erb")
         end
       end
 
@@ -150,7 +148,7 @@ module RailsGuides
         puts "Generating #{guide} as #{output_file}"
         layout = @kindle ? "kindle/layout" : "layout"
 
-        view = ActionView::Base.with_view_paths(
+        view = ActionView::Base.with_empty_template_cache.with_view_paths(
           [@source_dir],
           edge:     @edge,
           version:  @version,
@@ -164,7 +162,7 @@ module RailsGuides
 
           # Generate the special pages like the home.
           # Passing a template handler in the template name is deprecated. So pass the file name without the extension.
-          result = view.render(layout: layout, formats: [$1], file: $`)
+          result = view.render(layout: layout, formats: [$1.to_sym], template: $`)
         else
           body = File.read("#{@source_dir}/#{guide}")
           result = RailsGuides::Markdown.new(

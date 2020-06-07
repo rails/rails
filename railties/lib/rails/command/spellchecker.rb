@@ -13,7 +13,6 @@ module Rails
         end
 
         private
-
           # This code is based directly on the Text gem implementation.
           # Copyright (c) 2006-2013 Paul Battley, Michael Neumann, Tim Fletcher.
           #

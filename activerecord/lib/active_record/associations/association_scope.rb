@@ -52,17 +52,16 @@ module ActiveRecord
         attr_reader :value_transformation
 
         def join(table, constraint)
-          table.create_join(table, table.create_on(constraint))
+          table.create_join(table, table.create_on(constraint), Arel::Nodes::LeadingJoin)
         end
 
         def last_chain_scope(scope, reflection, owner)
-          join_keys = reflection.join_keys
-          key = join_keys.key
-          foreign_key = join_keys.foreign_key
+          primary_key = reflection.join_primary_key
+          foreign_key = reflection.join_foreign_key
 
           table = reflection.aliased_table
           value = transform_value(owner[foreign_key])
-          scope = apply_scope(scope, table, key, value)
+          scope = apply_scope(scope, table, primary_key, value)
 
           if reflection.type
             polymorphic_type = transform_value(owner.class.polymorphic_name)
@@ -77,13 +76,12 @@ module ActiveRecord
         end
 
         def next_chain_scope(scope, reflection, next_reflection)
-          join_keys = reflection.join_keys
-          key = join_keys.key
-          foreign_key = join_keys.foreign_key
+          primary_key = reflection.join_primary_key
+          foreign_key = reflection.join_foreign_key
 
           table = reflection.aliased_table
           foreign_table = next_reflection.aliased_table
-          constraint = table[key].eq(foreign_table[foreign_key])
+          constraint = table[primary_key].eq(foreign_table[foreign_key])
 
           if reflection.type
             value = transform_value(next_reflection.klass.polymorphic_name)
@@ -134,10 +132,16 @@ module ActiveRecord
 
               if scope_chain_item == chain_head.scope
                 scope.merge! item.except(:where, :includes, :unscope, :order)
+              elsif !item.references_values.empty?
+                join_dependency = item.construct_join_dependency(
+                  item.eager_load_values | item.includes_values, Arel::Nodes::OuterJoin
+                )
+                scope.joins!(*item.joins_values, join_dependency)
+                scope.left_outer_joins!(*item.left_outer_joins_values)
               end
 
               reflection.all_includes do
-                scope.includes! item.includes_values
+                scope.includes_values |= item.includes_values
               end
 
               scope.unscope!(*item.unscope_values)

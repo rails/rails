@@ -308,7 +308,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
     run_generator [ "admin/role" ], behavior: :revoke
 
     # Model
-    assert_file "app/models/test_app/admin.rb"	# ( should not be remove )
+    assert_file "app/models/test_app/admin.rb"  # ( should not be remove )
     assert_no_file "app/models/test_app/admin/role.rb"
     assert_no_file "test/models/test_app/admin/role_test.rb"
     assert_no_file "test/fixtures/test_app/admin/roles.yml"
@@ -375,7 +375,7 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
     run_generator [ "admin/user/special/role" ], behavior: :revoke
 
     # Model
-    assert_file "app/models/test_app/admin/user/special.rb"	# ( should not be remove )
+    assert_file "app/models/test_app/admin/user/special.rb"  # ( should not be remove )
     assert_no_file "app/models/test_app/admin/user/special/role.rb"
     assert_no_file "test/models/test_app/admin/user/special/role_test.rb"
     assert_no_file "test/fixtures/test_app/admin/user/special/roles.yml"

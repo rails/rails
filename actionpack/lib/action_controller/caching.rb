@@ -22,7 +22,6 @@ module ActionController
   #   config.action_controller.cache_store = :mem_cache_store, Memcached::Rails.new('localhost:11211')
   #   config.action_controller.cache_store = MyOwnStore.new('parameter')
   module Caching
-    extend ActiveSupport::Autoload
     extend ActiveSupport::Concern
 
     included do
@@ -30,7 +29,6 @@ module ActionController
     end
 
     private
-
       def instrument_payload(key)
         {
           controller: controller_name,

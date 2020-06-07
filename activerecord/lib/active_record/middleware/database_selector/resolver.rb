@@ -43,20 +43,21 @@ module ActiveRecord
           write_to_primary(&blk)
         end
 
-        private
+        def update_context(response)
+          context.save(response)
+        end
 
+        private
           def read_from_primary(&blk)
-            ActiveRecord::Base.connection.while_preventing_writes do
-              ActiveRecord::Base.connected_to(role: ActiveRecord::Base.writing_role) do
-                instrumenter.instrument("database_selector.active_record.read_from_primary") do
-                  yield
-                end
+            ActiveRecord::Base.connected_to(role: ActiveRecord::Base.writing_role, prevent_writes: true) do
+              instrumenter.instrument("database_selector.active_record.read_from_primary") do
+                yield
               end
             end
           end
 
           def read_from_replica(&blk)
-            ActiveRecord::Base.connected_to(role: ActiveRecord::Base.reading_role) do
+            ActiveRecord::Base.connected_to(role: ActiveRecord::Base.reading_role, prevent_writes: true) do
               instrumenter.instrument("database_selector.active_record.read_from_replica") do
                 yield
               end
@@ -64,7 +65,7 @@ module ActiveRecord
           end
 
           def write_to_primary(&blk)
-            ActiveRecord::Base.connected_to(role: ActiveRecord::Base.writing_role) do
+            ActiveRecord::Base.connected_to(role: ActiveRecord::Base.writing_role, prevent_writes: false) do
               instrumenter.instrument("database_selector.active_record.wrote_to_primary") do
                 yield
               ensure

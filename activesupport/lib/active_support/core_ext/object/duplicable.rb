@@ -28,96 +28,6 @@ class Object
   end
 end
 
-class NilClass
-  begin
-    nil.dup
-  rescue TypeError
-
-    # +nil+ is not duplicable:
-    #
-    #   nil.duplicable? # => false
-    #   nil.dup         # => TypeError: can't dup NilClass
-    def duplicable?
-      false
-    end
-  end
-end
-
-class FalseClass
-  begin
-    false.dup
-  rescue TypeError
-
-    # +false+ is not duplicable:
-    #
-    #   false.duplicable? # => false
-    #   false.dup         # => TypeError: can't dup FalseClass
-    def duplicable?
-      false
-    end
-  end
-end
-
-class TrueClass
-  begin
-    true.dup
-  rescue TypeError
-
-    # +true+ is not duplicable:
-    #
-    #   true.duplicable? # => false
-    #   true.dup         # => TypeError: can't dup TrueClass
-    def duplicable?
-      false
-    end
-  end
-end
-
-class Symbol
-  begin
-    :symbol.dup
-
-    # Some symbols couldn't be duped in Ruby 2.4.0 only, due to a bug.
-    # This feature check catches any regression.
-    "symbol_from_string".to_sym.dup
-  rescue TypeError
-
-    # Symbols are not duplicable:
-    #
-    #   :my_symbol.duplicable? # => false
-    #   :my_symbol.dup         # => TypeError: can't dup Symbol
-    def duplicable?
-      false
-    end
-  end
-end
-
-class Numeric
-  begin
-    1.dup
-  rescue TypeError
-
-    # Numbers are not duplicable:
-    #
-    #  3.duplicable? # => false
-    #  3.dup         # => TypeError: can't dup Integer
-    def duplicable?
-      false
-    end
-  end
-end
-
-require "bigdecimal"
-class BigDecimal
-  # BigDecimals are duplicable:
-  #
-  #   BigDecimal("1.2").duplicable? # => true
-  #   BigDecimal("1.2").dup         # => #<BigDecimal:...,'0.12E1',18(18)>
-  def duplicable?
-    true
-  end
-end
-
 class Method
   # Methods are not duplicable:
   #
@@ -128,32 +38,12 @@ class Method
   end
 end
 
-class Complex
-  begin
-    Complex(1).dup
-  rescue TypeError
-
-    # Complexes are not duplicable:
-    #
-    #   Complex(1).duplicable? # => false
-    #   Complex(1).dup         # => TypeError: can't copy Complex
-    def duplicable?
-      false
-    end
-  end
-end
-
-class Rational
-  begin
-    Rational(1).dup
-  rescue TypeError
-
-    # Rationals are not duplicable:
-    #
-    #   Rational(1).duplicable? # => false
-    #   Rational(1).dup         # => TypeError: can't copy Rational
-    def duplicable?
-      false
-    end
+class UnboundMethod
+  # Unbound methods are not duplicable:
+  #
+  #  method(:puts).unbind.duplicable? # => false
+  #  method(:puts).unbind.dup         # => TypeError: allocator undefined for UnboundMethod
+  def duplicable?
+    false
   end
 end

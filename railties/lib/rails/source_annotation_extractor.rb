@@ -2,11 +2,6 @@
 
 require "active_support/deprecation"
 
-# Remove this deprecated class in the next minor version
-#:nodoc:
-SourceAnnotationExtractor = ActiveSupport::Deprecation::DeprecatedConstantProxy.
-  new("SourceAnnotationExtractor", "Rails::SourceAnnotationExtractor")
-
 module Rails
   # Implements the logic behind <tt>Rails::Command::NotesCommand</tt>. See <tt>rails notes --help</tt> for usage information.
   #
@@ -27,6 +22,16 @@ module Rails
       #   Rails::SourceAnnotationExtractor::Annotation.register_directories("spec", "another")
       def self.register_directories(*dirs)
         directories.push(*dirs)
+      end
+
+      def self.tags
+        @@tags ||= %w(OPTIMIZE FIXME TODO)
+      end
+
+      # Registers additional tags
+      #   Rails::SourceAnnotationExtractor::Annotation.register_tags("TESTME", "DEPRECATEME")
+      def self.register_tags(*additional_tags)
+        tags.push(*additional_tags)
       end
 
       def self.extensions
@@ -66,6 +71,8 @@ module Rails
     # Prints all annotations with tag +tag+ under the root directories +app+,
     # +config+, +db+, +lib+, and +test+ (recursively).
     #
+    # If +tag+ is <tt>nil</tt>, annotations with either default or registered tags are printed.
+    #
     # Specific directories can be explicitly set using the <tt>:dirs</tt> key in +options+.
     #
     #   Rails::SourceAnnotationExtractor.enumerate 'TODO|FIXME', dirs: %w(app lib), tag: true
@@ -75,7 +82,8 @@ module Rails
     # See <tt>#find_in</tt> for a list of file extensions that will be taken into account.
     #
     # This class method is the single entry point for the `rails notes` command.
-    def self.enumerate(tag, options = {})
+    def self.enumerate(tag = nil, options = {})
+      tag ||= Annotation.tags.join("|")
       extractor = new(tag)
       dirs = options.delete(:dirs) || Annotation.directories
       extractor.display(extractor.find(dirs), options)
@@ -101,7 +109,7 @@ module Rails
       results = {}
 
       Dir.glob("#{dir}/*") do |item|
-        next if File.basename(item)[0] == ?.
+        next if File.basename(item).start_with?(".")
 
         if File.directory?(item)
           results.update(find_in(item))
@@ -147,3 +155,8 @@ module Rails
     end
   end
 end
+
+# Remove this deprecated class in the next minor version
+#:nodoc:
+SourceAnnotationExtractor = ActiveSupport::Deprecation::DeprecatedConstantProxy.
+  new("SourceAnnotationExtractor", "Rails::SourceAnnotationExtractor")

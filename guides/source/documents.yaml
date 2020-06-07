@@ -131,6 +131,7 @@
       description: This guide documents the asset pipeline.
     -
       name: Working with JavaScript in Rails
+      work_in_progress: true
       url: working_with_javascript_in_rails.html
       description: This guide covers the built-in Ajax/JavaScript functionality of Rails.
     -
@@ -139,9 +140,13 @@
       url: initialization.html
       description: This guide explains the internals of the Rails initialization process.
     -
-      name: Autoloading and Reloading Constants
+      name: Autoloading and Reloading Constants (Zeitwerk Mode)
       url: autoloading_and_reloading_constants.html
-      description: This guide documents how autoloading and reloading constants work.
+      description: This guide documents how autoloading and reloading constants work (Zeitwerk mode).
+    -
+      name: Autoloading and Reloading Constants (Classic Mode)
+      url: autoloading_and_reloading_constants_classic_mode.html
+      description: This guide documents how autoloading and reloading constants work (Classic mode).
     -
       name: "Caching with Rails: An Overview"
       url: caching_with_rails.html
@@ -155,6 +160,16 @@
       name: Using Rails for API-only Applications
       url: api_app.html
       description: This guide explains how to effectively use Rails to develop a JSON API application.
+    -
+      name: Active Record and PostgreSQL
+      work_in_progress: true
+      url: active_record_postgresql.html
+      description: This guide covers PostgreSQL specific usage of Active Record.
+    -
+      name: Multiple Databases with Active Record
+      work_in_progress: true
+      url: active_record_multiple_databases.html
+      description: This guide covers using multiple databases in your application.
 
 -
   name: Extending Rails
@@ -188,7 +203,7 @@
     -
       name: Contributing to Ruby on Rails
       url: contributing_to_ruby_on_rails.html
-      description: Rails is not 'somebody else's framework.' This guide covers a variety of ways that you can get involved in the ongoing development of Rails.
+      description: Rails is not "someone else's framework". This guide covers a variety of ways that you can get involved in the ongoing development of Rails.
     -
       name: API Documentation Guidelines
       url: api_documentation_guidelines.html
@@ -212,8 +227,12 @@
       url: upgrading_ruby_on_rails.html
       description: This guide helps in upgrading applications to latest Ruby on Rails versions.
     -
-      name: 6.0 Release Notes
+      name: Version 6.1 - May 2020
+      url: 6_1_release_notes.html
+      description: Release notes for Rails 6.0.
       work_in_progress: true
+    -
+      name: Version 6.0 - August 2019
       url: 6_0_release_notes.html
       description: Release notes for Rails 6.0.
     -

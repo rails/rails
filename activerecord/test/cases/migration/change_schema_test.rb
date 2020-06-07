@@ -144,10 +144,10 @@ module ActiveRecord
           assert_equal "integer", four.sql_type
           assert_equal "bigint", eight.sql_type
         elsif current_adapter?(:Mysql2Adapter)
-          assert_match "int(11)", default.sql_type
-          assert_match "tinyint", one.sql_type
-          assert_match "int", four.sql_type
-          assert_match "bigint", eight.sql_type
+          assert_match %r/\Aint/, default.sql_type
+          assert_match %r/\Atinyint/, one.sql_type
+          assert_match %r/\Aint/, four.sql_type
+          assert_match %r/\Abigint/, eight.sql_type
         elsif current_adapter?(:OracleAdapter)
           assert_equal "NUMBER(38)", default.sql_type
           assert_equal "NUMBER(1)", one.sql_type

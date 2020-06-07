@@ -60,11 +60,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_belongs_to_does_not_use_order_by
-    ActiveRecord::SQLCounter.clear_log
-    Client.find(3).firm
-  ensure
-    sql_log = ActiveRecord::SQLCounter.log
-    assert sql_log.all? { |sql| /order by/i !~ sql }, "ORDER BY was used in the query: #{sql_log}"
+    sql_log = capture_sql { Client.find(3).firm }
+    assert sql_log.all? { |sql| !/order by/i.match?(sql) }, "ORDER BY was used in the query: #{sql_log}"
   end
 
   def test_belongs_to_with_primary_key
@@ -85,6 +82,33 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
       assert_no_match(/"firm_with_primary_keys_companies"\."id"/, sql)
       assert_match(/"firm_with_primary_keys_companies"\."name"/, sql)
     end
+  end
+
+  def test_optional_relation_can_be_set_per_model
+    model1 = Class.new(ActiveRecord::Base) do
+      self.table_name = "accounts"
+      self.belongs_to_required_by_default = false
+
+      belongs_to :company
+
+      def self.name
+        "FirstModel"
+      end
+    end.new
+
+    model2 = Class.new(ActiveRecord::Base) do
+      self.table_name = "accounts"
+      self.belongs_to_required_by_default = true
+
+      belongs_to :company
+
+      def self.name
+        "SecondModel"
+      end
+    end.new
+
+    assert_predicate model1, :valid?
+    assert_not_predicate model2, :valid?
   end
 
   def test_optional_relation
@@ -218,7 +242,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_nil defined?(Region), "This test requires that there is no top-level Region class"
 
     ActiveRecord::Base.connection.instance_eval do
-      create_table(:admin_regions) { |t| t.string :name }
+      create_table(:admin_regions, force: true) { |t| t.string :name }
       add_column :admin_users, :region_id, :integer
     end
     Admin.const_set "RegionalUser", Class.new(Admin::User) { belongs_to(:region) }
@@ -441,7 +465,14 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_with_polymorphic_and_condition
     sponsor = Sponsor.create
     member = Member.create name: "Bert"
+
     sponsor.sponsorable = member
+    sponsor.save!
+
+    assert_equal member, sponsor.sponsorable
+    assert_nil sponsor.sponsorable_with_conditions
+
+    sponsor = Sponsor.preload(:sponsorable, :sponsorable_with_conditions).last
 
     assert_equal member, sponsor.sponsorable
     assert_nil sponsor.sponsorable_with_conditions

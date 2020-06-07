@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "active_support/core_ext/integer/time"
 
 class DateHelperTest < ActionView::TestCase
   tests ActionView::Helpers::DateHelper
@@ -18,6 +19,8 @@ class DateHelperTest < ActionView::TestCase
         "123"
       end
     end
+
+    ComposedDate = Struct.new("ComposedDate", :year, :month, :day)
   end
 
   def assert_distance_of_time_in_words(from, to = nil)
@@ -465,6 +468,26 @@ class DateHelperTest < ActionView::TestCase
 
     assert_dom_equal expected, select_year(Time.mktime(2003, 8, 16), start_year: 2003, end_year: 2005)
     assert_dom_equal expected, select_year(2003, start_year: 2003, end_year: 2005)
+  end
+
+  def test_select_year_with_empty_hash_value_and_no_start_year
+    travel_to Time.new(2019, 1, 1) do
+      expected = +%(<select id="date_year" name="date[year]">\n)
+      expected << %(<option value="2014">2014</option>\n<option value="2015">2015</option>\n<option value="2016">2016</option>\n<option value="2017">2017</option>\n<option value="2018">2018</option>\n)
+      expected << "</select>\n"
+
+      assert_dom_equal expected, select_year({ year: nil, month: 4, day: nil }, { end_year: 2018 })
+    end
+  end
+
+  def test_select_year_with_empty_object_value_and_no_start_year
+    travel_to Time.new(2019, 1, 1) do
+      expected = +%(<select id="date_year" name="date[year]">\n)
+      expected << %(<option value="2014">2014</option>\n<option value="2015">2015</option>\n<option value="2016">2016</option>\n<option value="2017">2017</option>\n<option value="2018">2018</option>\n)
+      expected << "</select>\n"
+
+      assert_dom_equal expected, select_year(ComposedDate.new(nil, 4, nil), end_year: 2018)
+    end
   end
 
   def test_select_year_with_disabled

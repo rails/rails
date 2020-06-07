@@ -12,6 +12,8 @@ class SecureTokenTest < ActiveRecord::TestCase
     @user.save
     assert_not_nil @user.token
     assert_not_nil @user.auth_token
+    assert_equal 24, @user.token.size
+    assert_equal 36, @user.auth_token.size
   end
 
   def test_regenerating_the_secure_token
@@ -23,6 +25,9 @@ class SecureTokenTest < ActiveRecord::TestCase
 
     assert_not_equal @user.token, old_token
     assert_not_equal @user.auth_token, old_auth_token
+
+    assert_equal 24, @user.token.size
+    assert_equal 36, @user.auth_token.size
   end
 
   def test_token_value_not_overwritten_when_present
@@ -30,5 +35,13 @@ class SecureTokenTest < ActiveRecord::TestCase
     @user.save
 
     assert_equal "custom-secure-token", @user.token
+  end
+
+  def test_token_length_cannot_be_less_than_24_characters
+    assert_raises(ActiveRecord::SecureToken::MinimumLengthError) do
+      @user.class_eval do
+        has_secure_token :not_valid_token, length: 12
+      end
+    end
   end
 end

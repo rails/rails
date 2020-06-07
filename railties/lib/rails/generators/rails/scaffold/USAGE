@@ -32,10 +32,10 @@ Description:
     in config/routes.rb.
 
     If you want to remove all the generated files, run
-    'rails destroy scaffold ModelName'.
+    'bin/rails destroy scaffold ModelName'.
 
 Examples:
-    `rails generate scaffold post`
-    `rails generate scaffold post title:string body:text published:boolean`
-    `rails generate scaffold purchase amount:decimal tracking_id:integer:uniq`
-    `rails generate scaffold user email:uniq password:digest`
+    `bin/rails generate scaffold post`
+    `bin/rails generate scaffold post title:string body:text published:boolean`
+    `bin/rails generate scaffold purchase amount:decimal tracking_id:integer:uniq`
+    `bin/rails generate scaffold user email:uniq password:digest`

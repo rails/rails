@@ -26,16 +26,15 @@ module ActionController
       end
     end
 
-    def build(action, app = Proc.new)
+    def build(action, app = nil, &block)
       action = action.to_s
 
-      middlewares.reverse.inject(app) do |a, middleware|
+      middlewares.reverse.inject(app || block) do |a, middleware|
         middleware.valid?(action) ? middleware.build(a) : a
       end
     end
 
     private
-
       INCLUDE = ->(list, action) { list.include? action }
       EXCLUDE = ->(list, action) { !list.include? action }
       NULL    = ->(list, action) { true }
@@ -127,7 +126,7 @@ module ActionController
     # ==== Returns
     # * <tt>string</tt>
     def self.controller_name
-      @controller_name ||= name.demodulize.sub(/Controller$/, "").underscore
+      @controller_name ||= name.demodulize.delete_suffix("Controller").underscore
     end
 
     def self.make_response!(request)
@@ -148,7 +147,7 @@ module ActionController
     attr_internal :response, :request
     delegate :session, to: "@_request"
     delegate :headers, :status=, :location=, :content_type=,
-             :status, :location, :content_type, to: "@_response"
+             :status, :location, :content_type, :media_type, to: "@_response"
 
     def initialize
       @_request = nil
@@ -217,10 +216,13 @@ module ActionController
       super
     end
 
-    # Pushes the given Rack middleware and its arguments to the bottom of the
-    # middleware stack.
-    def self.use(*args, &block)
-      middleware_stack.use(*args, &block)
+    class << self
+      # Pushes the given Rack middleware and its arguments to the bottom of the
+      # middleware stack.
+      def use(*args, &block)
+        middleware_stack.use(*args, &block)
+      end
+      ruby2_keywords(:use) if respond_to?(:ruby2_keywords, true)
     end
 
     # Alias for +middleware_stack+.

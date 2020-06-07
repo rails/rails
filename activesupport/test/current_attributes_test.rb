@@ -1,15 +1,19 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
+require "active_support/current_attributes/test_helper"
 
 class CurrentAttributesTest < ActiveSupport::TestCase
+  # Automatically included in Rails apps via railtie but that dodn't run here.
+  include ActiveSupport::CurrentAttributes::TestHelper
+
   Person = Struct.new(:id, :name, :time_zone)
 
   class Current < ActiveSupport::CurrentAttributes
     attribute :world, :account, :person, :request
     delegate :time_zone, to: :person
 
-    before_reset { Session.previous = person.try(:id) }
+    before_reset { Session.previous = person&.id }
 
     resets do
       Time.zone = "UTC"
@@ -18,13 +22,13 @@ class CurrentAttributesTest < ActiveSupport::TestCase
 
     def account=(account)
       super
-      self.person = "#{account}'s person"
+      self.person = Person.new(1, "#{account}'s person")
     end
 
     def person=(person)
       super
-      Time.zone = person.try(:time_zone)
-      Session.current = person.try(:id)
+      Time.zone = person&.time_zone
+      Session.current = person&.id
     end
 
     def request
@@ -40,15 +44,22 @@ class CurrentAttributesTest < ActiveSupport::TestCase
     attribute :current, :previous
   end
 
-  setup do
+  # Eagerly set-up `instance`s by reference.
+  [ Current.instance, Session.instance ]
+
+  # Use library specific minitest hook to catch Time.zone before reset is called via TestHelper
+  def before_setup
     @original_time_zone = Time.zone
-    Current.reset
-    Session.reset
+    super
   end
 
-  teardown do
+  # Use library specific minitest hook to set Time.zone after reset is called via TestHelper
+  def after_teardown
+    super
     Time.zone = @original_time_zone
   end
+
+  setup { assert_nil Session.previous, "Expected Session to not have leaked state" }
 
   test "read and write attribute" do
     Current.world = "world/1"
@@ -63,7 +74,7 @@ class CurrentAttributesTest < ActiveSupport::TestCase
   test "set attribute via overwritten method" do
     Current.account = "account/1"
     assert_equal "account/1", Current.account
-    assert_equal "account/1's person", Current.person
+    assert_equal "account/1's person", Current.person.name
   end
 
   test "set auxiliary class via overwritten method" do
@@ -78,6 +89,7 @@ class CurrentAttributesTest < ActiveSupport::TestCase
 
     Current.reset
     assert_equal "UTC", Time.zone.name
+    assert_equal 42, Session.previous
     assert_nil Session.current
   end
 

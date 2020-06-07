@@ -3,7 +3,6 @@
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/hash/keys"
 require "active_support/core_ext/object/inclusion"
-require "active_support/core_ext/object/try"
 require "action_view/helpers/asset_url_helper"
 require "action_view/helpers/tag_helper"
 
@@ -30,7 +29,7 @@ module ActionView
       # to <tt>assets/javascripts</tt>, full paths are assumed to be relative to the document
       # root. Relative paths are idiomatic, use absolute paths only when needed.
       #
-      # When passing paths, the ".js" extension is optional.  If you do not want ".js"
+      # When passing paths, the ".js" extension is optional. If you do not want ".js"
       # appended to the path <tt>extname: false</tt> can be set on the options.
       #
       # You can modify the HTML attributes of the script tag by passing a hash as the
@@ -268,13 +267,13 @@ module ActionView
       def preload_link_tag(source, options = {})
         href = asset_path(source, skip_pipeline: options.delete(:skip_pipeline))
         extname = File.extname(source).downcase.delete(".")
-        mime_type = options.delete(:type) || Template::Types[extname].try(:to_s)
+        mime_type = options.delete(:type) || Template::Types[extname]&.to_s
         as_type = options.delete(:as) || resolve_link_as(extname, mime_type)
         crossorigin = options.delete(:crossorigin)
         crossorigin = "anonymous" if crossorigin == true || (crossorigin.blank? && as_type == "font")
         nopush = options.delete(:nopush) || false
 
-        link_tag = tag.link({
+        link_tag = tag.link(**{
           rel: "preload",
           href: href,
           as: as_type,

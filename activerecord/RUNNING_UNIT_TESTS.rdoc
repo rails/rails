@@ -1,7 +1,7 @@
 == Setup
 
 If you don't have an environment for running tests, read
-http://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html#setting-up-a-development-environment
+https://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html#setting-up-a-development-environment
 
 == Running the Tests
 

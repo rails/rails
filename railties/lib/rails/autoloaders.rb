@@ -36,6 +36,10 @@ module Rails
         each { |loader| loader.logger = logger }
       end
 
+      def log!
+        each(&:log!)
+      end
+
       def zeitwerk_enabled?
         Rails.configuration.autoloader == :zeitwerk
       end

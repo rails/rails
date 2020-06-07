@@ -18,15 +18,16 @@ module ActiveStorage
     end
 
     # Override this method in a concrete subclass. Have it yield an attachable preview image (i.e.
-    # anything accepted by ActiveStorage::Attached::One#attach).
-    def preview
+    # anything accepted by ActiveStorage::Attached::One#attach). Pass the additional options to
+    # the underlying blob that is created.
+    def preview(**options)
       raise NotImplementedError
     end
 
     private
       # Downloads the blob to a tempfile on disk. Yields the tempfile.
       def download_blob_to_tempfile(&block) #:doc:
-        blob.open tempdir: tempdir, &block
+        blob.open tmpdir: tmpdir, &block
       end
 
       # Executes a system command, capturing its binary output in a tempfile. Yields the tempfile.
@@ -42,7 +43,7 @@ module ActiveStorage
       #     end
       #   end
       #
-      # The output tempfile is opened in the directory returned by #tempdir.
+      # The output tempfile is opened in the directory returned by #tmpdir.
       def draw(*argv) #:doc:
         open_tempfile do |file|
           instrument :preview, key: blob.key do
@@ -54,7 +55,7 @@ module ActiveStorage
       end
 
       def open_tempfile
-        tempfile = Tempfile.open("ActiveStorage-", tempdir)
+        tempfile = Tempfile.open("ActiveStorage-", tmpdir)
 
         begin
           yield tempfile
@@ -77,7 +78,7 @@ module ActiveStorage
         ActiveStorage.logger
       end
 
-      def tempdir #:doc:
+      def tmpdir #:doc:
         Dir.tmpdir
       end
   end

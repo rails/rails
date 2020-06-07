@@ -65,12 +65,12 @@ NOTE: Your tests are run under `RAILS_ENV=test`.
 
 ### Rails meets Minitest
 
-If you remember, we used the `rails generate model` command in the
+If you remember, we used the `bin/rails generate model` command in the
 [Getting Started with Rails](getting_started.html) guide. We created our first
 model, and among other things it created test stubs in the `test` directory:
 
 ```bash
-$ rails generate model article title:string body:text
+$ bin/rails generate model article title:string body:text
 ...
 create  app/models/article.rb
 create  test/models/article_test.rb
@@ -81,7 +81,7 @@ create  test/fixtures/articles.yml
 The default test stub in `test/models/article_test.rb` looks like this:
 
 ```ruby
-require 'test_helper'
+require "test_helper"
 
 class ArticleTest < ActiveSupport::TestCase
   # test "the truth" do
@@ -93,7 +93,7 @@ end
 A line by line examination of this file will help get you oriented to Rails testing code and terminology.
 
 ```ruby
-require 'test_helper'
+require "test_helper"
 ```
 
 By requiring this file, `test_helper.rb` the default configuration to run our tests is loaded. We will include this with all the tests we write, so any methods added to this file are available to all our tests.
@@ -156,7 +156,7 @@ end
 Let us run this newly added test (where `6` is the number of line where the test is defined).
 
 ```bash
-$ rails test test/models/article_test.rb:6
+$ bin/rails test test/models/article_test.rb:6
 Run options: --seed 44656
 
 # Running:
@@ -206,7 +206,7 @@ end
 Now the test should pass. Let us verify by running the test again:
 
 ```bash
-$ rails test test/models/article_test.rb:6
+$ bin/rails test test/models/article_test.rb:6
 Run options: --seed 31252
 
 # Running:
@@ -224,7 +224,7 @@ we ensured that our test passes. This approach to software development is
 referred to as
 [_Test-Driven Development_ (TDD)](http://c2.com/cgi/wiki?TestDrivenDevelopment).
 
-#### What an error looks like
+#### What an Error Looks Like
 
 To see how an error gets reported, here's a test containing an error:
 
@@ -239,7 +239,7 @@ end
 Now you can see even more output in the console from running the tests:
 
 ```bash
-$ rails test test/models/article_test.rb
+$ bin/rails test test/models/article_test.rb
 Run options: --seed 1808
 
 # Running:
@@ -276,7 +276,7 @@ code. However there are situations when you want to see the full
 backtrace. Set the `-b` (or `--backtrace`) argument to enable this behavior:
 
 ```bash
-$ rails test -b test/models/article_test.rb
+$ bin/rails test -b test/models/article_test.rb
 ```
 
 If we want this test to pass we can modify it to use `assert_raises` like so:
@@ -358,7 +358,7 @@ Rails adds some custom assertions of its own to the `minitest` framework:
 | [`assert_recognizes(expected_options, path, extras={}, message=nil)`](https://api.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html#method-i-assert_recognizes) | Asserts that the routing of the given path was handled correctly and that the parsed options (given in the expected_options hash) match path. Basically, it asserts that Rails recognizes the route given by expected_options.|
 | [`assert_generates(expected_path, options, defaults={}, extras = {}, message=nil)`](https://api.rubyonrails.org/classes/ActionDispatch/Assertions/RoutingAssertions.html#method-i-assert_generates) | Asserts that the provided options can be used to generate the provided path. This is the inverse of assert_recognizes. The extras parameter is used to tell the request the names and values of additional request parameters that would be in a query string. The message parameter allows you to specify a custom error message for assertion failures.|
 | [`assert_response(type, message = nil)`](https://api.rubyonrails.org/classes/ActionDispatch/Assertions/ResponseAssertions.html#method-i-assert_response) | Asserts that the response comes with a specific status code. You can specify `:success` to indicate 200-299, `:redirect` to indicate 300-399, `:missing` to indicate 404, or `:error` to match the 500-599 range. You can also pass an explicit status number or its symbolic equivalent. For more information, see [full list of status codes](http://rubydoc.info/github/rack/rack/master/Rack/Utils#HTTP_STATUS_CODES-constant) and how their [mapping](https://rubydoc.info/github/rack/rack/master/Rack/Utils#SYMBOL_TO_STATUS_CODE-constant) works.|
-| [`assert_redirected_to(options = {}, message=nil)`](https://api.rubyonrails.org/classes/ActionDispatch/Assertions/ResponseAssertions.html#method-i-assert_redirected_to) | Asserts that the redirection options passed in match those of the redirect called in the latest action. This match can be partial, such that `assert_redirected_to(controller: "weblog")` will also match the redirection of `redirect_to(controller: "weblog", action: "show")` and so on. You can also pass named routes such as `assert_redirected_to root_path` and Active Record objects such as `assert_redirected_to @article`.|
+| [`assert_redirected_to(options = {}, message=nil)`](https://api.rubyonrails.org/classes/ActionDispatch/Assertions/ResponseAssertions.html#method-i-assert_redirected_to) | Asserts that the response is a redirect to a URL matching the given options. You can also pass named routes such as `assert_redirected_to root_path` and Active Record objects such as `assert_redirected_to @article`.|
 
 You'll see the usage of some of these assertions in the next chapter.
 
@@ -381,12 +381,12 @@ documentation](http://docs.seattlerb.org/minitest).
 
 ### The Rails Test Runner
 
-We can run all of our tests at once by using the `rails test` command.
+We can run all of our tests at once by using the `bin/rails test` command.
 
-Or we can run a single test file by passing the `rails test` command the filename containing the test cases.
+Or we can run a single test file by passing the `bin/rails test` command the filename containing the test cases.
 
 ```bash
-$ rails test test/models/article_test.rb
+$ bin/rails test test/models/article_test.rb
 Run options: --seed 1559
 
 # Running:
@@ -404,7 +404,7 @@ You can also run a particular test method from the test case by providing the
 `-n` or `--name` flag and the test's method name.
 
 ```bash
-$ rails test test/models/article_test.rb -n test_the_truth
+$ bin/rails test test/models/article_test.rb -n test_the_truth
 Run options: -n test_the_truth --seed 43583
 
 # Running:
@@ -419,29 +419,29 @@ Finished tests in 0.009064s, 110.3266 tests/s, 110.3266 assertions/s.
 You can also run a test at a specific line by providing the line number.
 
 ```bash
-$ rails test test/models/article_test.rb:6 # run specific test and line
+$ bin/rails test test/models/article_test.rb:6 # run specific test and line
 ```
 
 You can also run an entire directory of tests by providing the path to the directory.
 
 ```bash
-$ rails test test/controllers # run all tests from specific directory
+$ bin/rails test test/controllers # run all tests from specific directory
 ```
 
 The test runner also provides a lot of other features like failing fast, deferring test output
 at the end of test run and so on. Check the documentation of the test runner as follows:
 
 ```bash
-$ rails test -h
+$ bin/rails test -h
 Usage: rails test [options] [files or directories]
 
 You can run a single test by appending a line number to a filename:
 
-    rails test test/models/user_test.rb:27
+    bin/rails test test/models/user_test.rb:27
 
 You can run multiple files and directories at the same time:
 
-    rails test test/controllers test/integration/login_test.rb
+    bin/rails test test/controllers test/integration/login_test.rb
 
 By default test failures and errors are reported inline during a run.
 
@@ -470,7 +470,7 @@ Parallel testing allows you to parallelize your test suite. While forking proces
 default method, threading is supported as well. Running tests in parallel reduces the time it
 takes your entire test suite to run.
 
-### Parallel testing with processes
+### Parallel Testing with Processes
 
 The default parallelization method is to fork processes using Ruby's DRb system. The processes
 are forked based on the number of workers provided. The default number is the actual core count
@@ -489,7 +489,7 @@ parallelize your local test suite differently from your CI, so an environment va
 to be able to easily change the number of workers a test run should use:
 
 ```bash
-PARALLEL_WORKERS=15 rails test
+PARALLEL_WORKERS=15 bin/rails test
 ```
 
 When parallelizing tests, Active Record automatically handles creating a database and loading the schema into the database for each
@@ -522,7 +522,7 @@ end
 
 These methods are not needed or available when using parallel testing with threads.
 
-### Parallel testing with threads
+### Parallel Testing with Threads
 
 If you prefer using threads or are using JRuby, a threaded parallelization option is provided. The threaded
 parallelizer is backed by Minitest's `Parallel::Executor`.
@@ -535,15 +535,41 @@ class ActiveSupport::TestCase
 end
 ```
 
-Rails applications generated from JRuby will automatically include the `with: :threads` option.
+Rails applications generated from JRuby or TruffleRuby will automatically include the `with: :threads` option.
 
 The number of workers passed to `parallelize` determines the number of threads the tests will use. You may
 want to parallelize your local test suite differently from your CI, so an environment variable is provided
 to be able to easily change the number of workers a test run should use:
 
 ```bash
-PARALLEL_WORKERS=15 rails test
+PARALLEL_WORKERS=15 bin/rails test
 ```
+
+### Testing Parallel Transactions
+
+Rails automatically wraps any test case in a database transaction that is rolled
+back after the test completes.  This makes test cases independent of each other
+and changes to the database are only visible within a single test.
+
+When you want to test code that runs parallel transactions in threads,
+transactions can block each other because they are already nested under the test
+transaction.
+
+You can disable transactions in a test case class by setting
+`self.use_transactional_tests = false`:
+
+```ruby
+class WorkerTest < ActiveSupport::TestCase
+  self.use_transactional_tests = false
+
+  test "parallel transactions" do
+    # start some threads that create transactions
+  end
+end
+```
+
+NOTE: With disabled transactional tests, you have to clean up any data tests
+create as changes are not automatically rolled back after the test completes.
 
 The Test Database
 -----------------
@@ -562,11 +588,11 @@ structure. The test helper checks whether your test database has any pending
 migrations. It will try to load your `db/schema.rb` or `db/structure.sql`
 into the test database. If migrations are still pending, an error will be
 raised. Usually this indicates that your schema is not fully migrated. Running
-the migrations against the development database (`rails db:migrate`) will
+the migrations against the development database (`bin/rails db:migrate`) will
 bring the schema up to date.
 
 NOTE: If there were modifications to existing migrations, the test database needs to
-be rebuilt. This can be done by executing `rails db:test:prepare`.
+be rebuilt. This can be done by executing `bin/rails db:test:prepare`.
 
 ### The Low-Down on Fixtures
 
@@ -574,13 +600,13 @@ For good tests, you'll need to give some thought to setting up test data.
 In Rails, you can handle this by defining and customizing fixtures.
 You can find comprehensive documentation in the [Fixtures API documentation](https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html).
 
-#### What Are Fixtures?
+#### What are Fixtures?
 
 _Fixtures_ is a fancy word for sample data. Fixtures allow you to populate your testing database with predefined data before your tests run. Fixtures are database independent and written in YAML. There is one file per model.
 
 NOTE: Fixtures are not designed to create every object that your tests need, and are best managed when only used for default data that can be applied to the common case.
 
-You'll find fixtures under your `test/fixtures` directory. When you run `rails generate model` to create a new model, Rails automatically creates fixture stubs in this directory.
+You'll find fixtures under your `test/fixtures` directory. When you run `bin/rails generate model` to create a new model, Rails automatically creates fixture stubs in this directory.
 
 #### YAML
 
@@ -679,7 +705,7 @@ Rails model tests are stored under the `test/models` directory. Rails provides
 a generator to create a model test skeleton for you.
 
 ```bash
-$ rails generate test_unit:model article title:string body:text
+$ bin/rails generate test_unit:model article title:string body:text
 create  test/models/article_test.rb
 create  test/fixtures/articles.yml
 ```
@@ -696,7 +722,7 @@ For creating Rails system tests, you use the `test/system` directory in your
 application. Rails provides a generator to create a system test skeleton for you.
 
 ```bash
-$ rails generate system_test users
+$ bin/rails generate system_test users
       invoke test_unit
       create test/system/users_test.rb
 ```
@@ -781,13 +807,13 @@ This can be helpful for viewing the browser at the point a test failed, or
 to view screenshots later for debugging.
 
 Two methods are provided: `take_screenshot` and `take_failed_screenshot`.
-`take_failed_screenshot` is automatically included in `after_teardown` inside
+`take_failed_screenshot` is automatically included in `before_teardown` inside
 Rails.
 
 The `take_screenshot` helper method can be included anywhere in your tests to
 take a screenshot of the browser.
 
-### Implementing a system test
+### Implementing a System Test
 
 Now we're going to add a system test to our blog application. We'll demonstrate
 writing a system test by visiting the index page and creating a new blog article.
@@ -797,7 +823,7 @@ created for you. If you didn't use the scaffold generator, start by creating a
 system test skeleton.
 
 ```bash
-$ rails generate system_test articles
+$ bin/rails generate system_test articles
 ```
 
 It should have created a test file placeholder for us. With the output of the
@@ -826,13 +852,14 @@ The test should see that there is an `h1` on the articles index page and pass.
 Run the system tests.
 
 ```bash
-rails test:system
+bin/rails test:system
 ```
 
-NOTE: By default, running `rails test` won't run your system tests.
-Make sure to run `rails test:system` to actually run them.
+NOTE: By default, running `bin/rails test` won't run your system tests.
+Make sure to run `bin/rails test:system` to actually run them.
+You can also run `bin/rails test:all` to run all tests, including system tests.
 
-#### Creating articles system test
+#### Creating Articles System Test
 
 Now let's test the flow for creating a new article in our blog.
 
@@ -909,7 +936,7 @@ Integration tests are used to test how various parts of your application interac
 For creating Rails integration tests, we use the `test/integration` directory for our application. Rails provides a generator to create an integration test skeleton for us.
 
 ```bash
-$ rails generate integration_test user_flows
+$ bin/rails generate integration_test user_flows
       exists  test/integration/
       create  test/integration/user_flows_test.rb
 ```
@@ -917,7 +944,7 @@ $ rails generate integration_test user_flows
 Here's what a freshly generated integration test looks like:
 
 ```ruby
-require 'test_helper'
+require "test_helper"
 
 class UserFlowsTest < ActionDispatch::IntegrationTest
   # test "the truth" do
@@ -945,7 +972,7 @@ Let's add an integration test to our blog application. We'll start with a basic 
 We'll start by generating our integration test skeleton:
 
 ```bash
-$ rails generate integration_test blog_flow
+$ bin/rails generate integration_test blog_flow
 ```
 
 It should have created a test file placeholder for us. With the output of the
@@ -959,7 +986,7 @@ previous command we should see:
 Now let's open that file and write our first assertion:
 
 ```ruby
-require 'test_helper'
+require "test_helper"
 
 class BlogFlowTest < ActionDispatch::IntegrationTest
   test "can see the welcome page" do
@@ -1033,7 +1060,7 @@ You should test for things such as:
 The easiest way to see functional tests in action is to generate a controller using the scaffold generator:
 
 ```bash
-$ rails generate scaffold_controller article title:string body:text
+$ bin/rails generate scaffold_controller article title:string body:text
 ...
 create  app/controllers/articles_controller.rb
 ...
@@ -1049,7 +1076,7 @@ If you already have a controller and just want to generate the test scaffold cod
 each of the seven default actions, you can use the following command:
 
 ```bash
-$ rails generate test_unit:scaffold article
+$ bin/rails generate test_unit:scaffold article
 ...
 invoke  test_unit
 create    test/controllers/articles_controller_test.rb
@@ -1080,7 +1107,7 @@ The `get` method kicks off the web request and populates the results into the `@
 * `headers`: for setting the headers that will be passed with the request.
 * `env`: for customizing the request environment as needed.
 * `xhr`: whether the request is Ajax request or not. Can be set to true for marking the request as Ajax.
-* `as`: for encoding the request with different content type. Supports `:json` by default.
+* `as`: for encoding the request with different content type.
 
 All of these keyword arguments are optional.
 
@@ -1096,14 +1123,21 @@ Another example: Calling the `:update` action for the last `Article`, passing in
 patch article_url(Article.last), params: { article: { title: "updated" } }, xhr: true
 ```
 
+One more example: Calling the `:create` action to create a new article, passing in
+text for the `title` in `params`, as JSON request:
+
+```ruby
+post articles_path, params: { article: { title: "Ahoy!" } }, as: :json
+```
+
 NOTE: If you try running `test_should_create_article` test from `articles_controller_test.rb` it will fail on account of the newly added model level validation and rightly so.
 
 Let us modify `test_should_create_article` test in `articles_controller_test.rb` so that all our test pass:
 
 ```ruby
 test "should create article" do
-  assert_difference('Article.count') do
-    post articles_url, params: { article: { body: 'Rails is awesome!', title: 'Hello Rails' } }
+  assert_difference("Article.count") do
+    post articles_url, params: { article: { body: "Rails is awesome!", title: "Hello Rails" } }
   end
 
   assert_redirected_to article_path(Article.last)
@@ -1112,10 +1146,10 @@ end
 
 Now you can try running all the tests and they should pass.
 
-NOTE: If you followed the steps in the Basic Authentication section, you'll need to add authorization to every request header to get all the tests passing:
+NOTE: If you followed the steps in the [Basic Authentication](getting_started.html#basic-authentication) section, you'll need to add authorization to every request header to get all the tests passing:
 
 ```ruby
-post articles_url, params: { article: { body: 'Rails is awesome!', title: 'Hello Rails' } }, headers: { Authorization: ActionController::HttpAuthentication::Basic.encode_credentials('dhh', 'secret') }
+post articles_url, params: { article: { body: "Rails is awesome!", title: "Hello Rails" } }, headers: { Authorization: ActionController::HttpAuthentication::Basic.encode_credentials("dhh", "secret") }
 ```
 
 ### Available Request Types for Functional Tests
@@ -1143,8 +1177,8 @@ test "ajax request" do
   article = articles(:one)
   get article_url(article), xhr: true
 
-  assert_equal 'hello world', @response.body
-  assert_equal "text/javascript", @response.content_type
+  assert_equal "hello world", @response.body
+  assert_equal "text/javascript", @response.media_type
 end
 ```
 
@@ -1211,19 +1245,19 @@ Let's start by adding this assertion to our `test_should_create_article` test:
 
 ```ruby
 test "should create article" do
-  assert_difference('Article.count') do
-    post article_url, params: { article: { title: 'Some title' } }
+  assert_difference("Article.count") do
+    post articles_url, params: { article: { title: "Some title" } }
   end
 
   assert_redirected_to article_path(Article.last)
-  assert_equal 'Article was successfully created.', flash[:notice]
+  assert_equal "Article was successfully created.", flash[:notice]
 end
 ```
 
 If we run our test now, we should see a failure:
 
 ```bash
-$ rails test test/controllers/articles_controller_test.rb -n test_should_create_article
+$ bin/rails test test/controllers/articles_controller_test.rb -n test_should_create_article
 Run options: -n test_should_create_article --seed 32266
 
 # Running:
@@ -1250,10 +1284,10 @@ def create
   @article = Article.new(article_params)
 
   if @article.save
-    flash[:notice] = 'Article was successfully created.'
+    flash[:notice] = "Article was successfully created."
     redirect_to @article
   else
-    render 'new'
+    render "new"
   end
 end
 ```
@@ -1261,7 +1295,7 @@ end
 Now if we run our tests, we should see it pass:
 
 ```bash
-$ rails test test/controllers/articles_controller_test.rb -n test_should_create_article
+$ bin/rails test test/controllers/articles_controller_test.rb -n test_should_create_article
 Run options: -n test_should_create_article --seed 18981
 
 # Running:
@@ -1294,7 +1328,7 @@ How about deleting an existing Article?
 ```ruby
 test "should destroy article" do
   article = articles(:one)
-  assert_difference('Article.count', -1) do
+  assert_difference("Article.count", -1) do
     delete article_url(article)
   end
 
@@ -1322,7 +1356,7 @@ Notice we're starting to see some duplication in these three tests, they both ac
 Our test should now look something as what follows. Disregard the other tests for now, we're leaving them out for brevity.
 
 ```ruby
-require 'test_helper'
+require "test_helper"
 
 class ArticlesControllerTest < ActionDispatch::IntegrationTest
   # called before every single test
@@ -1343,7 +1377,7 @@ class ArticlesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should destroy article" do
-    assert_difference('Article.count', -1) do
+    assert_difference("Article.count", -1) do
       delete article_url(@article)
     end
 
@@ -1383,7 +1417,7 @@ end
 ```
 
 ```ruby
-require 'test_helper'
+require "test_helper"
 
 class ProfileControllerTest < ActionDispatch::IntegrationTest
 
@@ -1399,12 +1433,13 @@ end
 
 #### Using Separate Files
 
-If you find your helpers are cluttering `test_helper.rb`, you can extract them into separate files. One good place to store them is `lib/test`.
+If you find your helpers are cluttering `test_helper.rb`, you can extract them into separate files.
+One good place to store them is `test/lib` or `test/test_helpers`.
 
 ```ruby
-# lib/test/multiple_assertions.rb
+# test/test_helpers/multiple_assertions.rb
 module MultipleAssertions
-  def assert_multiple_of_fourty_two(number)
+  def assert_multiple_of_forty_two(number)
     assert (number % 42 == 0), 'expected #{number} to be a multiple of 42'
   end
 end
@@ -1413,14 +1448,14 @@ end
 These helpers can then be explicitly required as needed and included as needed
 
 ```ruby
-require 'test_helper'
-require 'test/multiple_assertions'
+require "test_helper"
+require "test_helpers/multiple_assertions"
 
 class NumberTest < ActiveSupport::TestCase
   include MultipleAssertions
 
-  test '420 is a multiple of fourty two' do
-    assert_multiple_of_fourty_two 420
+  test "420 is a multiple of forty two" do
+    assert_multiple_of_forty_two 420
   end
 end
 ```
@@ -1429,7 +1464,7 @@ or they can continue to be included directly into the relevant parent classes
 
 ```ruby
 # test/test_helper.rb
-require 'test/sign_in_helper'
+require "test_helpers/sign_in_helper"
 
 class ActionDispatch::IntegrationTest
   include SignInHelper
@@ -1442,7 +1477,7 @@ You may find it convenient to eagerly require helpers in `test_helper.rb` so you
 
 ```ruby
 # test/test_helper.rb
-Dir[Rails.root.join('lib', 'test', '**', '*.rb')].each { |file| require file }
+Dir[Rails.root.join("test", "test_helpers", "**", "*.rb")].each { |file| require file }
 ```
 
 This has the downside of increasing the boot-up time, as opposed to manually requiring only the necessary files in your individual tests.
@@ -1470,7 +1505,7 @@ There are two forms of `assert_select`:
 For example, you could verify the contents on the title element in your response with:
 
 ```ruby
-assert_select 'title', "Welcome to Rails Testing Guide"
+assert_select "title", "Welcome to Rails Testing Guide"
 ```
 
 You can also use nested `assert_select` blocks for deeper investigation.
@@ -1479,8 +1514,8 @@ In the following example, the inner `assert_select` for `li.menu_item` runs
 within the collection of elements selected by the outer block:
 
 ```ruby
-assert_select 'ul.navigation' do
-  assert_select 'li.menu_item'
+assert_select "ul.navigation" do
+  assert_select "li.menu_item"
 end
 ```
 
@@ -1516,7 +1551,7 @@ Here's an example of using `assert_select_email`:
 
 ```ruby
 assert_select_email do
-  assert_select 'small', 'Please click the "Unsubscribe" link if you want to opt-out.'
+  assert_select "small", "Please click the 'Unsubscribe' link if you want to opt-out."
 end
 ```
 
@@ -1589,13 +1624,13 @@ If you generated your mailer, the generator does not create stub fixtures for th
 Here's a unit test to test a mailer named `UserMailer` whose action `invite` is used to send an invitation to a friend. It is an adapted version of the base test created by the generator for an `invite` action.
 
 ```ruby
-require 'test_helper'
+require "test_helper"
 
 class UserMailerTest < ActionMailer::TestCase
   test "invite" do
     # Create the email and store it for further assertions
-    email = UserMailer.create_invite('me@example.com',
-                                     'friend@example.com', Time.now)
+    email = UserMailer.create_invite("me@example.com",
+                                     "friend@example.com", Time.now)
 
     # Send the email, then test that it got queued
     assert_emails 1 do
@@ -1603,10 +1638,10 @@ class UserMailerTest < ActionMailer::TestCase
     end
 
     # Test the body of the sent email contains what we expect it to
-    assert_equal ['me@example.com'], email.from
-    assert_equal ['friend@example.com'], email.to
-    assert_equal 'You have been invited by me@example.com', email.subject
-    assert_equal read_fixture('invite').join, email.body.to_s
+    assert_equal ["me@example.com"], email.from
+    assert_equal ["friend@example.com"], email.to
+    assert_equal "You have been invited by me@example.com", email.subject
+    assert_equal read_fixture("invite").join, email.body.to_s
   end
 end
 ```
@@ -1648,13 +1683,13 @@ Unit testing allows us to test the attributes of the email while functional and 
 
 ```ruby
 # Integration Test
-require 'test_helper'
+require "test_helper"
 
 class UsersControllerTest < ActionDispatch::IntegrationTest
   test "invite friend" do
     # Asserts the difference in the ActionMailer::Base.deliveries
     assert_emails 1 do
-      post invite_friend_url, params: { email: 'friend@example.com' }
+      post invite_friend_url, params: { email: "friend@example.com" }
     end
   end
 end
@@ -1662,16 +1697,16 @@ end
 
 ```ruby
 # System Test
-require 'test_helper'
+require "test_helper"
 
 class UsersTest < ActionDispatch::SystemTestCase
   driven_by :selenium, using: :headless_chrome
 
   test "inviting a friend" do
     visit invite_users_url
-    fill_in 'Email', with: 'friend@example.com'
+    fill_in "Email", with: "friend@example.com"
     assert_emails 1 do
-      click_on 'Invite'
+      click_on "Invite"
     end
   end
 end
@@ -1692,10 +1727,10 @@ By default, when you generate a job, an associated test will be generated as wel
 under the `test/jobs` directory. Here's an example test with a billing job:
 
 ```ruby
-require 'test_helper'
+require "test_helper"
 
 class BillingJobTest < ActiveJob::TestCase
-  test 'that account is charged' do
+  test "that account is charged" do
     BillingJob.perform_now(account, product)
     assert account.reload.charged_for?(product)
   end
@@ -1710,7 +1745,7 @@ your jobs are performed inline. It will also ensure that all previously performe
 and enqueued jobs are cleared before any test run so you can safely assume that
 no jobs have already been executed in the scope of each test.
 
-### Custom Assertions And Testing Jobs Inside Other Components
+### Custom Assertions and Testing Jobs inside Other Components
 
 Active Job ships with a bunch of custom assertions that can be used to lessen the verbosity of tests. For a full list of available assertions, see the API documentation for [`ActiveJob::TestHelper`](https://api.rubyonrails.org/classes/ActiveJob/TestHelper.html).
 
@@ -1720,14 +1755,33 @@ the custom assertions provided by Active Job are pretty useful. For instance,
 within a model:
 
 ```ruby
-require 'test_helper'
+require "test_helper"
 
 class ProductTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
 
-  test 'billing job scheduling' do
+  test "billing job scheduling" do
     assert_enqueued_with(job: BillingJob) do
       product.charge(account)
+    end
+  end
+end
+```
+
+### Asserting Time Arguments in Jobs
+
+When serializing job arguments, `Time`, `DateTime`, and `ActiveSupport::TimeWithZone` lose microsecond precision. This means comparing deserialized time with actual time doesn't always work. To compensate for the loss of precision, `assert_enqueued_with` and `assert_performed_with` will remove microseconds from time objects in argument assertions.
+
+```ruby
+require "test_helper"
+
+class ProductTest < ActiveSupport::TestCase
+  include ActiveJob::TestHelper
+
+  test "that product is reserved at a given time" do
+    now = Time.now
+    assert_performed_with(job: ReservationJob, args: [product, now]) do
+      product.reserve(now)
     end
   end
 end
@@ -1828,7 +1882,7 @@ the custom assertions provided by Action Cable are pretty useful. For instance,
 within a model:
 
 ```ruby
-require 'test_helper'
+require "test_helper"
 
 class ProductTest < ActionCable::TestCase
   test "broadcast status after charge" do
@@ -1839,7 +1893,7 @@ class ProductTest < ActionCable::TestCase
 end
 ```
 
-If you want to test the broadcasting made with `Channel.broadcast_to`, you shoud use
+If you want to test the broadcasting made with `Channel.broadcast_to`, you should use
 `Channel.broadcasting_for` to generate an underlying stream name:
 
 ```ruby
@@ -1851,7 +1905,7 @@ class ChatRelayJob < ApplicationJob
 end
 
 # test/jobs/chat_relay_job_test.rb
-require 'test_helper'
+require "test_helper"
 
 class ChatRelayJobTest < ActiveJob::TestCase
   include ActionCable::TestHelper
@@ -1877,7 +1931,7 @@ Here is an example using the [`travel_to`](https://api.rubyonrails.org/classes/A
 
 ```ruby
 # Lets say that a user is eligible for gifting a month after they register.
-user = User.create(name: 'Gaurish', activation_date: Date.new(2004, 10, 24))
+user = User.create(name: "Gaurish", activation_date: Date.new(2004, 10, 24))
 assert_not user.applicable_for_gifting?
 travel_to Date.new(2004, 11, 24) do
   assert_equal Date.new(2004, 10, 24), user.activation_date # inside the `travel_to` block `Date.current` is mocked

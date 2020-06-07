@@ -23,20 +23,20 @@ module ApplicationTests
 
       File.open("#{app_path}/config/boot.rb", "w") do |f|
         f.puts "ENV['BUNDLE_GEMFILE'] = '#{Bundler.default_gemfile}'"
-        f.puts "require 'bundler/setup'"
+        f.puts 'require "bundler/setup"'
       end
 
       primary, replica = PTY.open
       pid = nil
 
       Bundler.with_original_env do
-        pid = Process.spawn("bin/rails server -P tmp/dummy.pid", chdir: app_path, in: replica, out: replica, err: replica)
+        pid = Process.spawn("bin/rails server -b localhost -P tmp/dummy.pid", chdir: app_path, in: replica, out: replica, err: replica)
         assert_output("Listening", primary)
 
         rails("restart")
 
         assert_output("Restarting", primary)
-        assert_output("Inherited", primary)
+        assert_output("Listening", primary)
       ensure
         kill(pid) if pid
       end

@@ -40,7 +40,7 @@ module ActionCable
           end
 
           def broadcast(message)
-            server.logger.debug "[ActionCable] Broadcasting to #{broadcasting}: #{message.inspect}"
+            server.logger.debug { "[ActionCable] Broadcasting to #{broadcasting}: #{message.inspect}" }
 
             payload = { broadcasting: broadcasting, message: message, coder: coder }
             ActiveSupport::Notifications.instrument("broadcast.action_cable", payload) do

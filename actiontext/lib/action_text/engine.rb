@@ -25,6 +25,14 @@ module ActionText
         def previewable_attachable?
           representable?
         end
+
+        def attachable_plain_text_representation(caption = nil)
+          "[#{caption || filename}]"
+        end
+
+        def to_trix_content_attachment_partial_path
+          nil
+        end
       end
     end
 
@@ -44,6 +52,13 @@ module ActionText
 
       ActiveSupport.on_load(:action_controller_base) do
         before_action { ActionText::Content.renderer = ApplicationController.renderer.new(request.env) }
+      end
+    end
+
+    initializer "action_text.system_test_helper" do
+      ActiveSupport.on_load(:action_dispatch_system_test_case) do
+        require "action_text/system_test_helper"
+        include ActionText::SystemTestHelper
       end
     end
   end

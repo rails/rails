@@ -13,6 +13,8 @@ module ActiveModel
 
       INTEGER_REGEX = /\A[+-]?\d+\z/
 
+      HEXADECIMAL_REGEX = /\A[+-]?0[xX]/
+
       def check_validity!
         keys = CHECKS.keys - [:odd, :even]
         options.slice(*keys).each do |option, value|
@@ -22,7 +24,7 @@ module ActiveModel
         end
       end
 
-      def validate_each(record, attr_name, value)
+      def validate_each(record, attr_name, value, precision: Float::DIG, scale: nil)
         came_from_user = :"#{attr_name}_came_from_user?"
 
         if record.respond_to?(came_from_user)
@@ -43,23 +45,23 @@ module ActiveModel
           raw_value = value
         end
 
-        unless is_number?(raw_value)
-          record.errors.add(attr_name, :not_a_number, filtered_options(raw_value))
+        unless is_number?(raw_value, precision, scale)
+          record.errors.add(attr_name, :not_a_number, **filtered_options(raw_value))
           return
         end
 
         if allow_only_integer?(record) && !is_integer?(raw_value)
-          record.errors.add(attr_name, :not_an_integer, filtered_options(raw_value))
+          record.errors.add(attr_name, :not_an_integer, **filtered_options(raw_value))
           return
         end
 
-        value = parse_as_number(raw_value)
+        value = parse_as_number(raw_value, precision, scale)
 
         options.slice(*CHECKS.keys).each do |option, option_value|
           case option
           when :odd, :even
             unless value.to_i.send(CHECKS[option])
-              record.errors.add(attr_name, option, filtered_options(value))
+              record.errors.add(attr_name, option, **filtered_options(value))
             end
           else
             case option_value
@@ -69,33 +71,36 @@ module ActiveModel
               option_value = record.send(option_value)
             end
 
-            option_value = parse_as_number(option_value)
+            option_value = parse_as_number(option_value, precision, scale)
 
             unless value.send(CHECKS[option], option_value)
-              record.errors.add(attr_name, option, filtered_options(value).merge!(count: option_value))
+              record.errors.add(attr_name, option, **filtered_options(value).merge!(count: option_value))
             end
           end
         end
       end
 
     private
-
-      def is_number?(raw_value)
-        !parse_as_number(raw_value).nil?
-      rescue ArgumentError, TypeError
-        false
-      end
-
-      def parse_as_number(raw_value)
+      def parse_as_number(raw_value, precision, scale)
         if raw_value.is_a?(Float)
-          raw_value.to_d
+          parse_float(raw_value, precision, scale)
         elsif raw_value.is_a?(Numeric)
           raw_value
         elsif is_integer?(raw_value)
           raw_value.to_i
         elsif !is_hexadecimal_literal?(raw_value)
-          Kernel.Float(raw_value).to_d
+          parse_float(Kernel.Float(raw_value), precision, scale)
         end
+      end
+
+      def parse_float(raw_value, precision, scale)
+        (scale ? raw_value.truncate(scale) : raw_value).to_d(precision)
+      end
+
+      def is_number?(raw_value, precision, scale)
+        !parse_as_number(raw_value, precision, scale).nil?
+      rescue ArgumentError, TypeError
+        false
       end
 
       def is_integer?(raw_value)
@@ -103,7 +108,7 @@ module ActiveModel
       end
 
       def is_hexadecimal_literal?(raw_value)
-        /\A0[xX]/.match?(raw_value.to_s)
+        HEXADECIMAL_REGEX.match?(raw_value.to_s)
       end
 
       def filtered_options(value)
@@ -133,7 +138,8 @@ module ActiveModel
       # Validates whether the value of the specified attribute is numeric by
       # trying to convert it to a float with Kernel.Float (if <tt>only_integer</tt>
       # is +false+) or applying it to the regular expression <tt>/\A[\+\-]?\d+\z/</tt>
-      # (if <tt>only_integer</tt> is set to +true+).
+      # (if <tt>only_integer</tt> is set to +true+). Precision of Kernel.Float values
+      # are guaranteed up to 15 digits.
       #
       #   class Person < ActiveRecord::Base
       #     validates_numericality_of :value, on: :create

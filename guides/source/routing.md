@@ -210,7 +210,7 @@ end
 
 This will create a number of routes for each of the `articles` and `comments` controller. For `Admin::ArticlesController`, Rails will create:
 
-| HTTP Verb | Path                     | Controller#Action      | Named Helper              |
+| HTTP Verb | Path                     | Controller#Action      | Named Route Helper           |
 | --------- | ------------------------ | ---------------------- | ---------------------------- |
 | GET       | /admin/articles          | admin/articles#index   | admin_articles_path          |
 | GET       | /admin/articles/new      | admin/articles#new     | new_admin_article_path       |
@@ -250,7 +250,7 @@ resources :articles, path: '/admin/articles'
 
 In each of these cases, the named routes remain the same as if you did not use `scope`. In the last case, the following paths map to `ArticlesController`:
 
-| HTTP Verb | Path                     | Controller#Action    | Named Helper           |
+| HTTP Verb | Path                     | Controller#Action    | Named Route Helper     |
 | --------- | ------------------------ | -------------------- | ---------------------- |
 | GET       | /admin/articles          | articles#index       | articles_path          |
 | GET       | /admin/articles/new      | articles#new         | new_article_path       |
@@ -373,7 +373,7 @@ end
 
 The comments resource here will have the following routes generated for it:
 
-| HTTP Verb | Path                                         | Controller#Action | Named Helper             |
+| HTTP Verb | Path                                         | Controller#Action | Named Route Helper       |
 | --------- | -------------------------------------------- | ----------------- | ------------------------ |
 | GET       | /articles/:article_id/comments(.:format)     | comments#index    | article_comments_path    |
 | POST      | /articles/:article_id/comments(.:format)     | comments#create   | article_comments_path    |
@@ -383,7 +383,7 @@ The comments resource here will have the following routes generated for it:
 | PATCH/PUT | /sekret/comments/:id(.:format)               | comments#update   | comment_path             |
 | DELETE    | /sekret/comments/:id(.:format)               | comments#destroy  | comment_path             |
 
-The `:shallow_prefix` option adds the specified parameter to the named helpers:
+The `:shallow_prefix` option adds the specified parameter to the named route helpers:
 
 ```ruby
 scope shallow_prefix: "sekret" do
@@ -395,7 +395,7 @@ end
 
 The comments resource here will have the following routes generated for it:
 
-| HTTP Verb | Path                                         | Controller#Action | Named Helper                |
+| HTTP Verb | Path                                         | Controller#Action | Named Route Helper          |
 | --------- | -------------------------------------------- | ----------------- | --------------------------- |
 | GET       | /articles/:article_id/comments(.:format)     | comments#index    | article_comments_path       |
 | POST      | /articles/:article_id/comments(.:format)     | comments#create   | article_comments_path       |
@@ -405,7 +405,7 @@ The comments resource here will have the following routes generated for it:
 | PATCH/PUT | /comments/:id(.:format)                      | comments#update   | sekret_comment_path         |
 | DELETE    | /comments/:id(.:format)                      | comments#destroy  | sekret_comment_path         |
 
-### Routing concerns
+### Routing Concerns
 
 Routing concerns allow you to declare common routes that can be reused inside other resources and routes. To define a concern:
 
@@ -448,7 +448,7 @@ namespace :articles do
 end
 ```
 
-### Creating Paths and URLs From Objects
+### Creating Paths and URLs from Objects
 
 In addition to using the routing helpers, Rails can also create paths and URLs from an array of parameters. For example, suppose you have this set of routes:
 
@@ -508,7 +508,7 @@ end
 
 This will recognize `/photos/1/preview` with GET, and route to the `preview` action of `PhotosController`, with the resource id value passed in `params[:id]`. It will also create the `preview_photo_url` and `preview_photo_path` helpers.
 
-Within the block of member routes, each route name specifies the HTTP verb
+Within the block of member routes, each route name specifies the HTTP verb that
 will be recognized. You can use `get`, `patch`, `put`, `post`, or `delete` here
 . If you don't have multiple `member` routes, you can also pass `:on` to a
 route, eliminating the block:
@@ -638,7 +638,7 @@ You can specify a name for any route using the `:as` option:
 get 'exit', to: 'sessions#destroy', as: :logout
 ```
 
-This will create `logout_path` and `logout_url` as named helpers in your application. Calling `logout_path` will return `/exit`
+This will create `logout_path` and `logout_url` as named route helpers in your application. Calling `logout_path` will return `/exit`
 
 You can also use this to override routing methods defined by resources, like this:
 
@@ -868,7 +868,7 @@ end
 root to: "home#index"
 ```
 
-### Unicode character routes
+### Unicode Character Routes
 
 You can specify unicode character routes directly. For example:
 
@@ -876,7 +876,7 @@ You can specify unicode character routes directly. For example:
 get 'こんにちは', to: 'welcome#index'
 ```
 
-### Direct routes
+### Direct Routes
 
 You can create custom URL helpers directly. For example:
 
@@ -912,7 +912,7 @@ resolve("Basket") { [:basket] }
 ```
 
 ``` erb
-<%= form_for @basket do |form| %>
+<%= form_with model: @basket do |form| %>
   <!-- basket form -->
 <% end %>
 ```
@@ -934,7 +934,7 @@ resources :photos, controller: 'images'
 
 will recognize incoming paths beginning with `/photos` but route to the `Images` controller:
 
-| HTTP Verb | Path             | Controller#Action | Named Helper         |
+| HTTP Verb | Path             | Controller#Action | Named Route Helper   |
 | --------- | ---------------- | ----------------- | -------------------- |
 | GET       | /photos          | images#index      | photos_path          |
 | GET       | /photos/new      | images#new        | new_photo_path       |
@@ -955,7 +955,7 @@ resources :user_permissions, controller: 'admin/user_permissions'
 This will route to the `Admin::UserPermissions` controller.
 
 NOTE: Only the directory notation is supported. Specifying the
-controller with Ruby constant notation (eg. `controller: 'Admin::UserPermissions'`)
+controller with Ruby constant notation (e.g. `controller: 'Admin::UserPermissions'`)
 can lead to routing problems and results in
 a warning.
 
@@ -982,7 +982,7 @@ NOTE: Of course, you can use the more advanced constraints available in non-reso
 
 TIP: By default the `:id` parameter doesn't accept dots - this is because the dot is used as a separator for formatted routes. If you need to use a dot within an `:id` add a constraint which overrides this - for example `id: /[^\/]+/` allows anything except a slash.
 
-### Overriding the Named Helpers
+### Overriding the Named Route Helpers
 
 The `:as` option lets you override the normal naming for the named route helpers. For example:
 
@@ -992,7 +992,7 @@ resources :photos, as: 'images'
 
 will recognize incoming paths beginning with `/photos` and route the requests to `PhotosController`, but use the value of the `:as` option to name the helpers.
 
-| HTTP Verb | Path             | Controller#Action | Named Helper         |
+| HTTP Verb | Path             | Controller#Action | Named Route Helper   |
 | --------- | ---------------- | ----------------- | -------------------- |
 | GET       | /photos          | photos#index      | images_path          |
 | GET       | /photos/new      | photos#new        | new_image_path       |
@@ -1097,7 +1097,7 @@ end
 
 Rails now creates routes to the `CategoriesController`.
 
-| HTTP Verb | Path                       | Controller#Action  | Named Helper            |
+| HTTP Verb | Path                       | Controller#Action  | Named Route Helper      |
 | --------- | -------------------------- | ------------------ | ----------------------- |
 | GET       | /kategorien                | categories#index   | categories_path         |
 | GET       | /kategorien/neu            | categories#new     | new_category_path       |
@@ -1165,6 +1165,43 @@ video = Video.find_by(identifier: "Roman-Holiday")
 edit_video_path(video) # => "/videos/Roman-Holiday/edit"
 ```
 
+Breaking up *very* large route file into multiple small ones:
+-------------------------------------------------------
+
+If you work in a large application with thousands of routes,
+a single `config/routes.rb` file can become cumbersome and hard to read.
+
+Rails offers a way to break a gigantic single `routes.rb` file into multiple small ones using the `draw` macro.
+
+```ruby
+# config/routes.rb
+
+Rails.application.routes.draw do
+  get 'foo', to: 'foo#bar'
+
+  draw(:admin) # Will load another route file located in `config/routes/admin.rb`
+end
+
+# config/routes/admin.rb
+
+namespace :admin do
+  resources :comments
+end
+```
+
+Calling `draw(:admin)` inside the `Rails.application.routes.draw` block itself will try to load a route
+file that has the same name as the argument given (`admin.rb` in this case).
+The file need to be located inside the `config/routes` directory or any sub-directory (i.e. `config/routes/admin.rb` , `config/routes/external/admin.rb`).
+
+You can use the normal routing DSL inside the `admin.rb` routing file, **however** you shouldn't surround it with the `Rails.application.routes.draw` block like you did in the main `config/routes.rb` file.
+
+### When to use and not use this feature
+
+Drawing routes from external files can be very useful to organise a large set of routes into multiple organised ones. You could have a `admin.rb` route that contains all the routes for the admin area, another `api.rb` file to route API related resources etc...
+
+However, you shouldn't abuse this feature as having too many route files make discoverability and understandability more difficult. Depending on the application, it might be easier for developers to have a single routing file even if you have few hundreds routes. You shouldn't try to create a new routing file for each category (admin, api ...) at all cost; the Rails routing DSL already offers a way to break routes in a organised manner with `namespaces` and `scopes`.
+
+
 Inspecting and Testing Routes
 -----------------------------
 
@@ -1172,7 +1209,7 @@ Rails offers facilities for inspecting and testing your routes.
 
 ### Listing Existing Routes
 
-To get a complete list of the available routes in your application, visit `http://localhost:3000/rails/info/routes` in your browser while your server is running in the **development** environment. You can also execute the `rails routes` command in your terminal to produce the same output.
+To get a complete list of the available routes in your application, visit `http://localhost:3000/rails/info/routes` in your browser while your server is running in the **development** environment. You can also execute the `bin/rails routes` command in your terminal to produce the same output.
 
 Both methods will list all of your routes, in the same order that they appear in `config/routes.rb`. For each route, you'll see:
 
@@ -1181,7 +1218,7 @@ Both methods will list all of your routes, in the same order that they appear in
 * The URL pattern to match
 * The routing parameters for the route
 
-For example, here's a small section of the `rails routes` output for a RESTful route:
+For example, here's a small section of the `bin/rails routes` output for a RESTful route:
 
 ```
     users GET    /users(.:format)          users#index
@@ -1190,24 +1227,51 @@ For example, here's a small section of the `rails routes` output for a RESTful r
 edit_user GET    /users/:id/edit(.:format) users#edit
 ```
 
+You can also use the `--expanded` option to turn on the expanded table formatting mode.
+
+```
+$ bin/rails routes --expanded
+
+--[ Route 1 ]----------------------------------------------------
+Prefix            | users
+Verb              | GET
+URI               | /users(.:format)
+Controller#Action | users#index
+--[ Route 2 ]----------------------------------------------------
+Prefix            |
+Verb              | POST
+URI               | /users(.:format)
+Controller#Action | users#create
+--[ Route 3 ]----------------------------------------------------
+Prefix            | new_user
+Verb              | GET
+URI               | /users/new(.:format)
+Controller#Action | users#new
+--[ Route 4 ]----------------------------------------------------
+Prefix            | edit_user
+Verb              | GET
+URI               | /users/:id/edit(.:format)
+Controller#Action | users#edit
+```
+
 You can search through your routes with the grep option: -g. This outputs any routes that partially match the URL helper method name, the HTTP verb, or the URL path.
 
 ```
-$ rails routes -g new_comment
-$ rails routes -g POST
-$ rails routes -g admin
+$ bin/rails routes -g new_comment
+$ bin/rails routes -g POST
+$ bin/rails routes -g admin
 ```
 
 If you only want to see the routes that map to a specific controller, there's the -c option.
 
 ```
-$ rails routes -c users
-$ rails routes -c admin/users
-$ rails routes -c Comments
-$ rails routes -c Articles::CommentsController
+$ bin/rails routes -c users
+$ bin/rails routes -c admin/users
+$ bin/rails routes -c Comments
+$ bin/rails routes -c Articles::CommentsController
 ```
 
-TIP: You'll find that the output from `rails routes` is much more readable if you widen your terminal window until the output lines don't wrap. You can also use --expanded option to turn on the expanded table formatting mode.
+TIP: You'll find that the output from `bin/rails routes` is much more readable if you widen your terminal window until the output lines don't wrap.
 
 ### Testing Routes
 

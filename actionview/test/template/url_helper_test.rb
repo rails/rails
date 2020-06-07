@@ -2,6 +2,24 @@
 
 require "abstract_unit"
 
+class Workshop
+  extend ActiveModel::Naming
+  include ActiveModel::Conversion
+  attr_accessor :id
+
+  def initialize(id)
+    @id = id
+  end
+
+  def persisted?
+    id.present?
+  end
+
+  def to_s
+    id.to_s
+  end
+end
+
 class UrlHelperTest < ActiveSupport::TestCase
   # In a few cases, the helper proxies to 'controller'
   # or request.
@@ -562,13 +580,13 @@ class UrlHelperTest < ActiveSupport::TestCase
   def test_current_page_with_escaped_params
     @request = request_for_url("/category/administra%c3%a7%c3%a3o")
 
-    assert current_page?(controller: "foo", action: "category", category: "administração")
+    assert current_page?({ controller: "foo", action: "category", category: "administração" })
   end
 
   def test_current_page_with_escaped_params_with_different_encoding
     @request = request_for_url("/")
     @request.stub(:path, (+"/category/administra%c3%a7%c3%a3o").force_encoding(Encoding::ASCII_8BIT)) do
-      assert current_page?(controller: "foo", action: "category", category: "administração")
+      assert current_page?({ controller: "foo", action: "category", category: "administração" })
       assert current_page?("http://www.example.com/category/administra%c3%a7%c3%a3o")
     end
   end
@@ -576,7 +594,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   def test_current_page_with_double_escaped_params
     @request = request_for_url("/category/administra%c3%a7%c3%a3o?callback_url=http%3a%2f%2fexample.com%2ffoo")
 
-    assert current_page?(controller: "foo", action: "category", category: "administração", callback_url: "http://example.com/foo")
+    assert current_page?({ controller: "foo", action: "category", category: "administração", callback_url: "http://example.com/foo" })
   end
 
   def test_current_page_with_trailing_slash
@@ -657,7 +675,7 @@ class UrlHelperTest < ActiveSupport::TestCase
     )
   end
 
-  def test_mail_with_options
+  def test_mail_to_with_options
     assert_dom_equal(
       %{<a href="mailto:me@example.com?cc=ccaddress%40example.com&amp;bcc=bccaddress%40example.com&amp;body=This%20is%20the%20body%20of%20the%20message.&amp;subject=This%20is%20an%20example%20email&amp;reply-to=foo%40bar.com">My email</a>},
       mail_to("me@example.com", "My email", cc: "ccaddress@example.com", bcc: "bccaddress@example.com", subject: "This is an example email", body: "This is the body of the message.", reply_to: "foo@bar.com")
@@ -708,11 +726,137 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_equal({ class: "special" }, options)
   end
 
+  def test_sms_to
+    assert_dom_equal %{<a href="sms:15155555785;">15155555785</a>}, sms_to("15155555785")
+    assert_dom_equal %{<a href="sms:15155555785;">Jim Jones</a>}, sms_to("15155555785", "Jim Jones")
+    assert_dom_equal(
+      %{<a class="admin" href="sms:15155555785;">Jim Jones</a>},
+      sms_to("15155555785", "Jim Jones", "class" => "admin")
+    )
+    assert_equal sms_to("15155555785", "Jim Jones", "class" => "admin"),
+                 sms_to("15155555785", "Jim Jones", class: "admin")
+  end
+
+  def test_sms_to_with_options
+    assert_dom_equal(
+      %{<a class="simple-class" href="sms:15155555785;?&body=Hello%20from%20Jim">Text me</a>},
+      sms_to("15155555785", "Text me", class: "simple-class", body: "Hello from Jim")
+    )
+
+    assert_dom_equal(
+      %{<a href="sms:15155555785;?&body=This%20is%20the%20body%20of%20the%20message.">Text me</a>},
+      sms_to("15155555785", "Text me", body: "This is the body of the message.")
+    )
+  end
+
+  def test_sms_to_with_img
+    assert_dom_equal %{<a href="sms:15155555785;"><img src="/feedback.png" /></a>},
+      sms_to("15155555785", raw('<img src="/feedback.png" />'))
+  end
+
+  def test_sms_to_with_html_safe_string
+    assert_dom_equal(
+      %{<a href="sms:1%2B5155555785;">1+5155555785</a>},
+      sms_to(raw("1+5155555785"))
+    )
+  end
+
+  def test_sms_to_with_nil
+    assert_dom_equal(
+      %{<a href="sms:;"></a>},
+      sms_to(nil)
+    )
+  end
+
+  def test_sms_to_returns_html_safe_string
+    assert_predicate sms_to("15155555785"), :html_safe?
+  end
+
+  def test_sms_to_with_block
+    assert_dom_equal %{<a href="sms:15155555785;"><span>Text me</span></a>},
+      sms_to("15155555785") { content_tag(:span, "Text me") }
+  end
+
+  def test_sms_to_with_block_and_options
+    assert_dom_equal %{<a class="special" href="sms:15155555785;?&body=Hello%20from%20Jim"><span>Text me</span></a>},
+      sms_to("15155555785", body: "Hello from Jim", class: "special") { content_tag(:span, "Text me") }
+  end
+
+  def test_sms_to_does_not_modify_html_options_hash
+    options = { class: "special" }
+    sms_to "15155555785", "ME!", options
+    assert_equal({ class: "special" }, options)
+  end
+
+  def test_phone_to
+    assert_dom_equal %{<a href="tel:1234567890">1234567890</a>},
+      phone_to("1234567890")
+    assert_dom_equal %{<a href="tel:1234567890">Bob</a>},
+      phone_to("1234567890", "Bob")
+    assert_dom_equal(
+      %{<a class="phoner" href="tel:1234567890">Bob</a>},
+      phone_to("1234567890", "Bob", "class" => "phoner")
+    )
+    assert_equal phone_to("1234567890", "Bob", "class" => "admin"),
+                 phone_to("1234567890", "Bob", class: "admin")
+  end
+
+  def test_phone_to_with_options
+    assert_dom_equal(
+      %{<a class="example-class" href="tel:+011234567890">Phone</a>},
+      phone_to("1234567890", "Phone", class: "example-class", country_code: "01")
+    )
+
+    assert_dom_equal(
+      %{<a href="tel:+011234567890">Phone</a>},
+      phone_to("1234567890", "Phone", country_code: "01")
+    )
+  end
+
+  def test_phone_to_with_img
+    assert_dom_equal %{<a href="tel:1234567890"><img src="/feedback.png" /></a>},
+      phone_to("1234567890", raw('<img src="/feedback.png" />'))
+  end
+
+  def test_phone_to_with_html_safe_string
+    assert_dom_equal(
+      %{<a href="tel:1%2B234567890">1+234567890</a>},
+      phone_to(raw("1+234567890"))
+    )
+  end
+
+  def test_phone_to_with_nil
+    assert_dom_equal(
+      %{<a href="tel:"></a>},
+      phone_to(nil)
+    )
+  end
+
+  def test_phone_to_returns_html_safe_string
+    assert_predicate phone_to("1234567890"), :html_safe?
+  end
+
+  def test_phone_to_with_block
+    assert_dom_equal %{<a href="tel:1234567890"><span>Phone</span></a>},
+      phone_to("1234567890") { content_tag(:span, "Phone") }
+  end
+
+  def test_phone_to_with_block_and_options
+    assert_dom_equal %{<a class="special" href="tel:+011234567890"><span>Phone</span></a>},
+      phone_to("1234567890", country_code: "01", class: "special") { content_tag(:span, "Phone") }
+  end
+
+  def test_phone_to_does_not_modify_html_options_hash
+    options = { class: "special" }
+    phone_to "1234567890", "ME!", options
+    assert_equal({ class: "special" }, options)
+  end
+
   def protect_against_forgery?
     request_forgery
   end
 
-  def form_authenticity_token(*args)
+  def form_authenticity_token(**)
     "secret"
   end
 

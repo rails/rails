@@ -120,6 +120,12 @@ class PostgresqlUUIDTest < ActiveRecord::PostgreSQLTestCase
     assert_empty UUIDType.where(guid: "foobar")
   end
 
+  def test_uuid_change_case_does_not_mark_dirty
+    model = UUIDType.create!(guid: "abcd-0123-4567-89ef-dead-beef-0101-1010")
+    model.guid = model.guid.swapcase
+    assert_not_predicate model, :changed?
+  end
+
   class DuckUUID
     def initialize(uuid)
       @uuid = uuid
@@ -293,14 +299,16 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::PostgreSQLTestCase
         create_table("pg_uuids_4", id: :uuid)
       end
     end.new
-    ActiveRecord::Migrator.new(:up, [migration]).migrate
+    ActiveRecord::Migrator.new(:up, [migration], ActiveRecord::Base.connection.schema_migration).migrate
 
     schema = dump_table_schema "pg_uuids_4"
     assert_match(/\bcreate_table "pg_uuids_4", id: :uuid, default: -> { "uuid_generate_v4\(\)" }/, schema)
   ensure
     drop_table "pg_uuids_4"
     ActiveRecord::Migration.verbose = @verbose_was
+    ActiveRecord::Base.connection.schema_migration.delete_all
   end
+  uses_transaction :test_schema_dumper_for_uuid_primary_key_default_in_legacy_migration
 end
 
 class PostgresqlUUIDTestNilDefault < ActiveRecord::PostgreSQLTestCase
@@ -341,14 +349,16 @@ class PostgresqlUUIDTestNilDefault < ActiveRecord::PostgreSQLTestCase
         create_table("pg_uuids_4", id: :uuid, default: nil)
       end
     end.new
-    ActiveRecord::Migrator.new(:up, [migration]).migrate
+    ActiveRecord::Migrator.new(:up, [migration], ActiveRecord::Base.connection.schema_migration).migrate
 
     schema = dump_table_schema "pg_uuids_4"
     assert_match(/\bcreate_table "pg_uuids_4", id: :uuid, default: nil/, schema)
   ensure
     drop_table "pg_uuids_4"
     ActiveRecord::Migration.verbose = @verbose_was
+    ActiveRecord::Base.connection.schema_migration.delete_all
   end
+  uses_transaction :test_schema_dumper_for_uuid_primary_key_with_default_nil_in_legacy_migration
 end
 
 class PostgresqlUUIDTestInverseOf < ActiveRecord::PostgreSQLTestCase

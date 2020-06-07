@@ -16,6 +16,7 @@ require "models/friendship"
 require "models/subscriber"
 require "models/subscription"
 require "models/book"
+require "active_support/core_ext/enumerable"
 
 class CounterCacheTest < ActiveRecord::TestCase
   fixtures :topics, :categories, :categorizations, :cars, :dogs, :dog_lovers, :people, :friendships, :subscribers, :subscriptions, :books
@@ -263,7 +264,7 @@ class CounterCacheTest < ActiveRecord::TestCase
   test "reset multiple counters with touch: true" do
     assert_touching @topic, :updated_at do
       Topic.update_counters(@topic.id, replies_count: 1, unique_replies_count: 1)
-      Topic.reset_counters(@topic.id, :replies, :unique_replies, touch: true)
+      Topic.reset_counters(@topic.id, :replies, :unique_replies, touch: { time: Time.now.utc })
     end
   end
 
@@ -355,8 +356,8 @@ class CounterCacheTest < ActiveRecord::TestCase
 
   private
     def assert_touching(record, *attributes)
-      record.update_columns attributes.map { |attr| [ attr, 5.minutes.ago ] }.to_h
-      touch_times = attributes.map { |attr| [ attr, record.public_send(attr) ] }.to_h
+      record.update_columns attributes.index_with(5.minutes.ago)
+      touch_times = attributes.index_with { |attr| record.public_send(attr) }
 
       yield
 

@@ -36,50 +36,11 @@ class SetDriverToSeleniumHeadlessFirefoxTest < DrivenBySeleniumWithHeadlessFiref
 end
 
 class SetHostTest < DrivenByRackTest
-  test "sets default host" do
-    assert_equal "http://127.0.0.1", Capybara.app_host
-  end
-
   test "overrides host" do
-    host! "http://example.com"
+    assert_deprecated do
+      host! "http://example.com"
+    end
 
     assert_equal "http://example.com", Capybara.app_host
-  end
-end
-
-class UndefMethodsTest < DrivenBySeleniumWithChrome
-  test "get" do
-    exception = assert_raise NoMethodError do
-      get "http://example.com"
-    end
-    assert_equal "System tests cannot make direct requests via #get; use #visit and #click_on instead. See http://www.rubydoc.info/github/teamcapybara/capybara/master#The_DSL for more information.", exception.message
-  end
-
-  test "post" do
-    exception = assert_raise NoMethodError do
-      post "http://example.com"
-    end
-    assert_equal "System tests cannot make direct requests via #post; use #visit and #click_on instead. See http://www.rubydoc.info/github/teamcapybara/capybara/master#The_DSL for more information.", exception.message
-  end
-
-  test "put" do
-    exception = assert_raise NoMethodError do
-      put "http://example.com"
-    end
-    assert_equal "System tests cannot make direct requests via #put; use #visit and #click_on instead. See http://www.rubydoc.info/github/teamcapybara/capybara/master#The_DSL for more information.", exception.message
-  end
-
-  test "patch" do
-    exception = assert_raise NoMethodError do
-      patch "http://example.com"
-    end
-    assert_equal "System tests cannot make direct requests via #patch; use #visit and #click_on instead. See http://www.rubydoc.info/github/teamcapybara/capybara/master#The_DSL for more information.", exception.message
-  end
-
-  test "delete" do
-    exception = assert_raise NoMethodError do
-      delete "http://example.com"
-    end
-    assert_equal "System tests cannot make direct requests via #delete; use #visit and #click_on instead. See http://www.rubydoc.info/github/teamcapybara/capybara/master#The_DSL for more information.", exception.message
   end
 end

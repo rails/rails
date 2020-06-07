@@ -21,7 +21,7 @@ module ActiveJob
         # Sidekiq::Client does not support symbols as keys
         job.provider_job_id = Sidekiq::Client.push \
           "class"   => JobWrapper,
-          "wrapped" => job.class.to_s,
+          "wrapped" => job.class,
           "queue"   => job.queue_name,
           "args"    => [ job.serialize ]
       end
@@ -29,7 +29,7 @@ module ActiveJob
       def enqueue_at(job, timestamp) #:nodoc:
         job.provider_job_id = Sidekiq::Client.push \
           "class"   => JobWrapper,
-          "wrapped" => job.class.to_s,
+          "wrapped" => job.class,
           "queue"   => job.queue_name,
           "args"    => [ job.serialize ],
           "at"      => timestamp

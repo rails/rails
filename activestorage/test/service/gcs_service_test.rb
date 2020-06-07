@@ -9,6 +9,10 @@ if SERVICE_CONFIGURATIONS[:gcs]
 
     include ActiveStorage::Service::SharedServiceTests
 
+    test "name" do
+      assert_equal :gcs, @service.name
+    end
+
     test "direct upload" do
       key      = SecureRandom.base58(24)
       data     = "Something else entirely!"
@@ -25,6 +29,30 @@ if SERVICE_CONFIGURATIONS[:gcs]
       end
 
       assert_equal data, @service.download(key)
+    ensure
+      @service.delete key
+    end
+
+    test "direct upload with content disposition" do
+      key      = SecureRandom.base58(24)
+      data     = "Something else entirely!"
+      checksum = Digest::MD5.base64digest(data)
+      url      = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
+
+      uri = URI.parse url
+      request = Net::HTTP::Put.new uri.request_uri
+      request.body = data
+      @service.headers_for_direct_upload(key, checksum: checksum, filename: ActiveStorage::Filename.new("test.txt"), disposition: :attachment).each do |k, v|
+        request.add_field k, v
+      end
+      request.add_field "Content-Type", ""
+      Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
+        http.request request
+      end
+
+      url = @service.url(key, expires_in: 2.minutes, disposition: :inline, content_type: "text/html", filename: ActiveStorage::Filename.new("test.html"))
+      response = Net::HTTP.get_response(URI(url))
+      assert_equal("attachment; filename=\"test.txt\"; filename*=UTF-8''test.txt", response["Content-Disposition"])
     ensure
       @service.delete key
     end

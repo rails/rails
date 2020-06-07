@@ -6,7 +6,7 @@ module ActiveRecord
     class BelongsToPolymorphicAssociation < BelongsToAssociation #:nodoc:
       def klass
         type = owner[reflection.foreign_type]
-        type.presence && type.constantize
+        type.presence && owner.class.polymorphic_class_for(type)
       end
 
       def target_changed?

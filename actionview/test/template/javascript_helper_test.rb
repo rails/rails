@@ -36,6 +36,14 @@ class JavaScriptHelperTest < ActionView::TestCase
     assert_equal %(dont <\\/close> tags), j(%(dont </close> tags))
   end
 
+  def test_escape_backtick
+    assert_equal "\\`", escape_javascript("`")
+  end
+
+  def test_escape_dollar_sign
+    assert_equal "\\$", escape_javascript("$")
+  end
+
   def test_escape_javascript_with_safebuffer
     given = %('quoted' "double-quoted" new-line:\n </closed>)
     expect = %(\\'quoted\\' \\"double-quoted\\" new-line:\\n <\\/closed>)
@@ -54,7 +62,7 @@ class JavaScriptHelperTest < ActionView::TestCase
     assert_equal "foo", output_buffer, "javascript_tag without a block should not concat to output_buffer"
   end
 
-  # Setting the :extname option will control what extension (if any) is appended to the url for assets
+  # Setting the :extname option will control what extension (if any) is appended to the URL for assets
   def test_javascript_include_tag
     assert_dom_equal "<script src='/foo.js'></script>",  javascript_include_tag("/foo")
     assert_dom_equal "<script src='/foo'></script>",     javascript_include_tag("/foo", extname: false)

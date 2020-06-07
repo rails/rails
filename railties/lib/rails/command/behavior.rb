@@ -44,7 +44,7 @@ module Rails
                   require path
                   return
                 rescue LoadError => e
-                  raise unless e.message =~ /#{Regexp.escape(path)}$/
+                  raise unless /#{Regexp.escape(path)}$/.match?(e.message)
                 rescue Exception => e
                   warn "[WARNING] Could not load #{command_type} #{path.inspect}. Error: #{e.message}.\n#{e.backtrace.join("\n")}"
                 end

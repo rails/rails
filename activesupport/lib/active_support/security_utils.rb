@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "digest/sha2"
-
 module ActiveSupport
   module SecurityUtils
     # Constant time string comparison, for fixed length strings.
@@ -19,12 +17,14 @@ module ActiveSupport
     end
     module_function :fixed_length_secure_compare
 
-    # Constant time string comparison, for variable length strings.
+    # Secure string comparison for strings of variable length.
     #
-    # The values are first processed by SHA256, so that we don't leak length info
-    # via timing attacks.
+    # While a timing attack would not be able to discern the content of
+    # a secret compared via secure_compare, it is possible to determine
+    # the secret length. This should be considered when using secure_compare
+    # to compare weak, short secrets to user input.
     def secure_compare(a, b)
-      fixed_length_secure_compare(::Digest::SHA256.hexdigest(a), ::Digest::SHA256.hexdigest(b)) && a == b
+      a.length == b.length && fixed_length_secure_compare(a, b)
     end
     module_function :secure_compare
   end

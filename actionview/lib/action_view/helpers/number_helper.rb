@@ -57,7 +57,7 @@ module ActionView
       #
       #   number_to_phone(75561234567, pattern: /(\d{1,4})(\d{4})(\d{4})$/, area_code: true)
       #   # => "(755) 6123-4567"
-      #   number_to_phone(13312345678, pattern: /(\d{3})(\d{4})(\d{4})$/))
+      #   number_to_phone(13312345678, pattern: /(\d{3})(\d{4})(\d{4})$/)
       #   # => "133-1234-5678"
       def number_to_phone(number, options = {})
         return unless number
@@ -114,6 +114,8 @@ module ActionView
       #
       #   number_to_currency("123a456", raise: true)           # => InvalidNumberError
       #
+      #   number_to_currency(-0.456789, precision: 0)
+      #   # => "$0"
       #   number_to_currency(-1234567890.50, negative_format: "(%u%n)")
       #   # => ($1,234,567,890.50)
       #   number_to_currency(1234567890.50, unit: "R$", separator: ",", delimiter: "")
@@ -251,7 +253,7 @@ module ActionView
       end
 
       # Formats the bytes in +number+ into a more understandable
-      # representation (e.g., giving it 1500 yields 1.5 KB). This
+      # representation (e.g., giving it 1500 yields 1.46 KB). This
       # method is useful for reporting file sizes to users. You can
       # customize the format in the +options+ hash.
       #
@@ -297,7 +299,7 @@ module ActionView
       end
 
       # Pretty prints (formats and approximates) a number in a way it
-      # is more readable by humans (eg.: 1200000000 becomes "1.2
+      # is more readable by humans (e.g.: 1200000000 becomes "1.2
       # Billion"). This is useful for numbers that can get very large
       # (and too hard to read).
       #
@@ -305,7 +307,7 @@ module ActionView
       # size.
       #
       # You can also define your own unit-quantifier names if you want
-      # to use other decimal units (eg.: 1500 becomes "1.5
+      # to use other decimal units (e.g.: 1500 becomes "1.5
       # kilometers", 0.150 becomes "150 milliliters", etc). You may
       # define a wide range of unit quantifiers, even fractional ones
       # (centi, deci, mili, etc).
@@ -403,7 +405,6 @@ module ActionView
       end
 
       private
-
         def delegate_number_helper_method(method, number, options)
           return unless number
           options = escape_unsafe_options(options.symbolize_keys)
@@ -424,9 +425,9 @@ module ActionView
         end
 
         def escape_units(units)
-          Hash[units.map do |k, v|
-            [k, ERB::Util.html_escape(v)]
-          end]
+          units.transform_values do |v|
+            ERB::Util.html_escape(v)
+          end
         end
 
         def wrap_with_output_safety_handling(number, raise_on_invalid, &block)

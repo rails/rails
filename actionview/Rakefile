@@ -23,7 +23,7 @@ namespace :test do
 
   Rake::TestTask.new(:template) do |t|
     t.libs << "test"
-    t.test_files = Dir.glob("test/template/**/*_test.rb")
+    t.test_files = FileList["test/template/**/*_test.rb"]
     t.warning = true
     t.verbose = true
     t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
@@ -81,7 +81,7 @@ namespace :test do
     # Active Record Integration Tests
     Rake::TestTask.new(:active_record) do |t|
       t.libs << "test"
-      t.test_files = Dir.glob("test/activerecord/*_test.rb")
+      t.test_files = FileList["test/activerecord/*_test.rb"]
       t.warning = true
       t.verbose = true
       t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
@@ -90,7 +90,7 @@ namespace :test do
     # Action Pack Integration Tests
     Rake::TestTask.new(:action_pack) do |t|
       t.libs << "test"
-      t.test_files = Dir.glob("test/actionpack/**/*_test.rb")
+      t.test_files = FileList["test/actionpack/**/*_test.rb"]
       t.warning = true
       t.verbose = true
       t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)

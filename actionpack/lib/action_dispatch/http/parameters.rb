@@ -85,7 +85,6 @@ module ActionDispatch
       end
 
       private
-
         def set_binary_encoding(params, controller, action)
           return params unless controller && controller.valid_encoding?
 
@@ -99,7 +98,7 @@ module ActionDispatch
 
         def binary_params_for?(controller, action)
           controller_class_for(controller).binary_params_for?(action)
-        rescue NameError
+        rescue MissingController
           false
         end
 

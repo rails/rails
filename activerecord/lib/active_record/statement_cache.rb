@@ -50,13 +50,20 @@ module ActiveRecord
 
       def sql_for(binds, connection)
         val = @values.dup
-        casted_binds = binds.map(&:value_for_database)
-        @indexes.each { |i| val[i] = connection.quote(casted_binds.shift) }
+        @indexes.each do |i|
+          value = binds.shift
+          if ActiveModel::Attribute === value
+            value = value.value_for_database
+          end
+          val[i] = connection.quote(value)
+        end
         val.join
       end
     end
 
     class PartialQueryCollector
+      attr_accessor :preparable
+
       def initialize
         @parts = []
         @binds = []
@@ -70,6 +77,15 @@ module ActiveRecord
       def add_bind(obj)
         @binds << obj
         @parts << Substitute.new
+        self
+      end
+
+      def add_binds(binds)
+        @binds.concat binds
+        binds.size.times do |i|
+          @parts << ", " unless i == 0
+          @parts << Substitute.new
+        end
         self
       end
 
@@ -100,7 +116,7 @@ module ActiveRecord
         @bound_attributes = bound_attributes
 
         bound_attributes.each_with_index do |attr, i|
-          if Substitute === attr.value
+          if ActiveModel::Attribute === attr && Substitute === attr.value
             @indexes << i
           end
         end
@@ -113,8 +129,8 @@ module ActiveRecord
       end
     end
 
-    def self.create(connection, block = Proc.new)
-      relation = block.call Params.new
+    def self.create(connection, callable = nil, &block)
+      relation = (callable || block).call Params.new
       query_builder, binds = connection.cacheable_query(self, relation.arel)
       bind_map = BindMap.new(binds)
       new(query_builder, bind_map, relation.klass)

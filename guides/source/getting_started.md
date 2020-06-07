@@ -28,7 +28,7 @@ curve diving straight into Rails. There are several curated lists of online reso
 for learning Ruby:
 
 * [Official Ruby Programming Language website](https://www.ruby-lang.org/en/documentation/)
-* [List of Free Programming Books](https://github.com/vhf/free-programming-books/blob/master/free-programming-books.md#ruby)
+* [List of Free Programming Books](https://github.com/EbookFoundation/free-programming-books/blob/master/free-programming-books.md#ruby)
 
 Be aware that some resources, while still excellent, cover versions of Ruby as old as
 1.6, and commonly 1.8, and will not include some syntax that you will see in day-to-day
@@ -55,7 +55,7 @@ The Rails philosophy includes two major guiding principles:
 
 * **Don't Repeat Yourself:** DRY is a principle of software development which
   states that "Every piece of knowledge must have a single, unambiguous, authoritative
-  representation within a system." By not writing the same information over and over
+  representation within a system". By not writing the same information over and over
   again, our code is more maintainable, more extensible, and less buggy.
 * **Convention Over Configuration:** Rails has opinions about the best way to do many
   things in a web application, and defaults to this set of conventions, rather than
@@ -78,7 +78,14 @@ your prompt will look something like `c:\source_code>`
 ### Installing Rails
 
 Before you install Rails, you should check to make sure that your system has the
-proper prerequisites installed. These include Ruby and SQLite3.
+proper prerequisites installed. These include:
+
+* Ruby
+* SQLite3
+* Node.js
+* Yarn
+
+#### Installing Ruby
 
 Open up a command line prompt. On macOS open Terminal.app, on Windows choose
 "Run" from your Start menu and type 'cmd.exe'. Any commands prefaced with a
@@ -91,27 +98,53 @@ ruby 2.5.0
 ```
 
 Rails requires Ruby version 2.5.0 or later. If the version number returned is
-less than that number, you'll need to install a fresh copy of Ruby.
+less than that number (such as 2.3.7, or 1.8.7), you'll need to install a fresh copy of Ruby.
 
-TIP: To quickly install Ruby and Ruby on Rails on your system in Windows, you can use
-[Rails Installer](http://railsinstaller.org). For more installation methods for most
-Operating Systems take a look at [ruby-lang.org](https://www.ruby-lang.org/en/documentation/installation/).
+To install Rails on Windows, you'll first need to install [Ruby Installer](https://rubyinstaller.org/).
 
-If you are working on Windows, you should also install the
-[Ruby Installer Development Kit](https://rubyinstaller.org/downloads/).
+For more installation methods for most Operating Systems take a look at
+[ruby-lang.org](https://www.ruby-lang.org/en/documentation/installation/).
+
+#### Installing SQLite3
 
 You will also need an installation of the SQLite3 database.
 Many popular UNIX-like OSes ship with an acceptable version of SQLite3.
-On Windows, if you installed Rails through Rails Installer, you
-already have SQLite installed. Others can find installation instructions
-at the [SQLite3 website](https://www.sqlite.org).
-Verify that it is correctly installed and in your PATH:
+Others can find installation instructions at the [SQLite3 website](https://www.sqlite.org).
+
+Verify that it is correctly installed and in your load `PATH`:
 
 ```bash
 $ sqlite3 --version
 ```
 
 The program should report its version.
+
+#### Installing Node.js and Yarn
+
+Finally, you'll need Node.js and Yarn installed to manage your application's JavaScript.
+
+Find the installation instructions at the [Node.js website](https://nodejs.org/en/download/) and
+verify it's installed correctly with the following command:
+
+```bash
+$ node --version
+```
+
+The version of your Node.js runtime should be printed out. Make sure it's greater
+than 8.16.0.
+
+To install Yarn, follow the installation
+instructions at the [Yarn website](https://classic.yarnpkg.com/en/docs/install).
+
+Running this command should print out Yarn version:
+
+```bash
+$ yarn -v
+```
+
+If it says something like "1.22.0", Yarn has been installed correctly.
+
+#### Installing Rails
 
 To install Rails, use the `gem install` command provided by RubyGems:
 
@@ -126,7 +159,7 @@ run the following:
 $ rails --version
 ```
 
-If it says something like "Rails 5.2.1", you are ready to continue.
+If it says something like "Rails 6.0.0", you are ready to continue.
 
 ### Creating the Blog Application
 
@@ -168,7 +201,7 @@ of the files and folders that Rails created by default:
 | File/Folder | Purpose |
 | ----------- | ------- |
 |app/|Contains the controllers, models, views, helpers, mailers, channels, jobs, and assets for your application. You'll focus on this folder for the remainder of this guide.|
-|bin/|Contains the rails script that starts your app and can contain other scripts you use to setup, update, deploy, or run your application.|
+|bin/|Contains the rails script that starts your app and can contain other scripts you use to set up, update, deploy, or run your application.|
 |config/|Configure your application's routes, database, and more. This is covered in more detail in [Configuring Rails Applications](configuring.html).|
 |config.ru|Rack configuration for Rack based servers used to start the application. For more information about Rack, see the [Rack website](https://rack.github.io/).|
 |db/|Contains your current database schema, as well as the database migrations.|
@@ -199,18 +232,16 @@ start a web server on your development machine. You can do this by running the
 following in the `blog` directory:
 
 ```bash
-$ rails server
+$ bin/rails server
 ```
 
 TIP: If you are using Windows, you have to pass the scripts under the `bin`
 folder directly to the Ruby interpreter e.g. `ruby bin\rails server`.
 
-TIP: Compiling CoffeeScript and JavaScript asset compression requires you
+TIP: JavaScript asset compression requires you
 have a JavaScript runtime available on your system, in the absence
-of a runtime you will see an `execjs` error during asset compilation.
+of a runtime you will see an `execjs` error during asset compression.
 Usually macOS and Windows come with a JavaScript runtime installed.
-Rails adds the `mini_racer` gem to the generated `Gemfile` in a
-commented line for new apps and you can uncomment if you need it.
 `therubyrhino` is the recommended runtime for JRuby users and is added by
 default to the `Gemfile` in apps generated under JRuby. You can investigate
 all the supported runtimes at [ExecJS](https://github.com/rails/execjs#readme).
@@ -219,7 +250,7 @@ This will fire up Puma, a web server distributed with Rails by default. To see
 your application in action, open a browser window and navigate to
 <http://localhost:3000>. You should see the Rails default information page:
 
-![Welcome aboard screenshot](images/getting_started/rails_welcome.png)
+![Yay! You're on Rails! screenshot](images/getting_started/rails_welcome.png)
 
 TIP: To stop the web server, hit Ctrl+C in the terminal window where it's
 running. To verify the server has stopped you should see your command prompt
@@ -228,14 +259,13 @@ dollar sign `$`. In development mode, Rails does not generally require you to
 restart the server; changes you make in files will be automatically picked up by
 the server.
 
-The "Welcome aboard" page is the _smoke test_ for a new Rails application: it
-makes sure that you have your software configured correctly enough to serve a
-page.
+The "Yay! You're on Rails!" page is the _smoke test_ for a new Rails
+application: it makes sure that you have your software configured correctly
+enough to serve a page.
 
 ### Say "Hello", Rails
 
-To get Rails saying "Hello", you need to create at minimum a _controller_ and a
-_view_.
+To get Rails saying "Hello", you need to create at minimum a _route_, a _controller_ and a _view_.
 
 A controller's purpose is to receive specific requests for the application.
 _Routing_ decides which controller receives which requests. Often, there is more
@@ -244,43 +274,87 @@ different _actions_. Each action's purpose is to collect information to provide
 it to a view.
 
 A view's purpose is to display this information in a human readable format. An
-important distinction to make is that it is the _controller_, not the view,
-where information is collected. The view should just display that information.
+important distinction to make is that the _controller_, not the view,
+is where information is collected. The view should just display that information.
 By default, view templates are written in a language called eRuby (Embedded
 Ruby) which is processed by the request cycle in Rails before being sent to the
 user.
 
+When we make a request to our Rails application, we do so by making a request
+to a particular _route_. To start off, let's create a route in
+`config/routes.rb`:
+
+```ruby
+Rails.application.routes.draw do
+  get "/articles", to: "articles#index"
+
+  # For details on the DSL available within this file, see https://guides.rubyonrails.org/routing.html
+end
+```
+
+This is your application's _routing file_ which holds entries in a special [DSL
+(domain-specific
+language)](https://en.wikipedia.org/wiki/Domain-specific_language) that tells
+Rails how to connect incoming requests to controllers and actions.
+
+The line that we have just added says that we are going to match a `GET
+/articles` request to `articles#index`. This string passed as the `to` option
+represents the _controller_ and _action_ that will be responsible for handling
+this request.
+
+Controllers are classes that group together common methods for handling a
+particular _resource_. The methods inside controllers are given the name
+"actions", as they _act upon_ requests as they come in.
+
 To create a new controller, you will need to run the "controller" generator and
-tell it you want a controller called "Welcome" with an action called "index",
+tell it you want a controller called "articles" with an action called "index",
 just like this:
 
 ```bash
-$ rails generate controller Welcome index
+$ bin/rails generate controller articles index
 ```
 
 Rails will create several files and a route for you.
 
 ```bash
-create  app/controllers/welcome_controller.rb
- route  get 'welcome/index'
+create  app/controllers/articles_controller.rb
+  route  get 'articles/index'
 invoke  erb
-create    app/views/welcome
-create    app/views/welcome/index.html.erb
+create    app/views/articles
+create    app/views/articles/index.html.erb
 invoke  test_unit
-create    test/controllers/welcome_controller_test.rb
+create    test/controllers/articles_controller_test.rb
 invoke  helper
-create    app/helpers/welcome_helper.rb
+create    app/helpers/articles_helper.rb
 invoke    test_unit
 invoke  assets
 invoke    scss
-create      app/assets/stylesheets/welcome.scss
+create      app/assets/stylesheets/articles.scss
 ```
 
-Most important of these are of course the controller, located at
-`app/controllers/welcome_controller.rb` and the view, located at
-`app/views/welcome/index.html.erb`.
+Most important of these is the controller, located at
+`app/controllers/articles_controller.rb`.
 
-Open the `app/views/welcome/index.html.erb` file in your text editor. Delete all
+Let's look at that controller now:
+
+```ruby
+class ArticlesController < ApplicationController
+  def index
+  end
+end
+```
+
+This controller defines a single action, or "method" in common Ruby terms,
+called `index`. This action is where we would define any logic that we would
+want to happen when a request comes in to this action. Right at this moment, we
+don't want this action to do anything, and so we'll keep it blank for now.
+
+When an action is left blank like this, Rails will default to rendering a view
+that matches the name of the controller and the name of the action. Views in a
+Rails application live in `app/views`, and so the default view for this action
+is going to be `app/views/articles/index.html.erb`.
+
+Open the `app/views/articles/index.html.erb` file in your text editor. Delete all
 of the existing code in the file, and replace it with the following single line
 of code:
 
@@ -288,12 +362,15 @@ of code:
 <h1>Hello, Rails!</h1>
 ```
 
+If we go back to our browser and make a request to
+<http://localhost:3000/articles>, we'll see our text appear on the page.
+
 ### Setting the Application Home Page
 
 Now that we have made the controller and view, we need to tell Rails when we
 want "Hello, Rails!" to show up. In our case, we want it to show up when we
 navigate to the root URL of our site, <http://localhost:3000>. At the moment,
-"Welcome aboard" is occupying that spot.
+"Yay! You're on Rails!" is occupying that spot.
 
 Next, you have to tell Rails where your actual home page is located.
 
@@ -326,9 +403,9 @@ end
 application to the welcome controller's index action and `get 'welcome/index'`
 tells Rails to map requests to <http://localhost:3000/welcome/index> to the
 welcome controller's index action. This was created earlier when you ran the
-controller generator (`rails generate controller Welcome index`).
+controller generator (`bin/rails generate controller Welcome index`).
 
-Launch the web server again if you stopped it to generate the controller (`rails
+Launch the web server again if you stopped it to generate the controller (`bin/rails
 server`) and navigate to <http://localhost:3000> in your browser. You'll see the
 "Hello, Rails!" message you put into `app/views/welcome/index.html.erb`,
 indicating that this new route is indeed going to `WelcomeController`'s `index`
@@ -362,13 +439,13 @@ Rails.application.routes.draw do
 end
 ```
 
-If you run `rails routes`, you'll see that it has defined routes for all the
+If you run `bin/rails routes`, you'll see that it has defined routes for all the
 standard RESTful actions.  The meaning of the prefix column (and other columns)
 will be seen later, but for now notice that Rails has inferred the
 singular form `article` and makes meaningful use of the distinction.
 
 ```bash
-$ rails routes
+$ bin/rails routes
        Prefix Verb   URI Pattern                  Controller#Action
 welcome_index GET    /welcome/index(.:format)     welcome#index
      articles GET    /articles(.:format)          articles#index
@@ -391,7 +468,7 @@ create and read. The form for doing this will look like this:
 It will look a little basic for now, but that's ok. We'll look at improving the
 styling for it afterwards.
 
-### Laying down the groundwork
+### Laying down the Groundwork
 
 Firstly, you need a place within the application to create a new article. A
 great place for that would be at `/articles/new`. With the route already
@@ -402,12 +479,12 @@ error:
 ![Another routing error, uninitialized constant ArticlesController](images/getting_started/routing_error_no_controller.png)
 
 This error occurs because the route needs to have a controller defined in order
-to serve the request. The solution to this particular problem is simple: create
+to serve the request. The solution to this particular problem is to create
 a controller called `ArticlesController`. You can do this by running this
 command:
 
 ```bash
-$ rails generate controller Articles
+$ bin/rails generate controller Articles
 ```
 
 If you open up the newly generated `app/controllers/articles_controller.rb`
@@ -418,7 +495,7 @@ class ArticlesController < ApplicationController
 end
 ```
 
-A controller is simply a class that is defined to inherit from
+A controller is a class that is defined to inherit from
 `ApplicationController`.
 It's inside this class that you'll define methods that will become the actions
 for this controller. These actions will perform CRUD operations on the articles
@@ -426,7 +503,7 @@ within our system.
 
 NOTE: There are `public`, `private` and `protected` methods in Ruby,
 but only `public` methods can be actions for controllers.
-For more details check out [Programming Ruby](http://www.ruby-doc.org/docs/ProgrammingRuby/).
+For more details check out [Programming Ruby](https://ruby-doc.org/docs/ProgrammingRuby/).
 
 If you refresh <http://localhost:3000/articles/new> now, you'll get a new error:
 
@@ -527,7 +604,6 @@ method called `form_with`. To use this method, add this code into
 ```
 
 If you refresh the page now, you'll see the exact same form from our example above.
-Building forms in Rails is really just that easy!
 
 When you call `form_with`, you pass it an identifying scope for this
 form. In this case, it's the symbol `:article`. This tells the `form_with`
@@ -556,10 +632,10 @@ this:
 
 In this example, the `articles_path` helper is passed to the `:url` option.
 To see what Rails will do with this, we look back at the output of
-`rails routes`:
+`bin/rails routes`:
 
 ```bash
-$ rails routes
+$ bin/rails routes
       Prefix Verb   URI Pattern                  Controller#Action
 welcome_index GET    /welcome/index(.:format)     welcome#index
      articles GET    /articles(.:format)          articles#index
@@ -593,7 +669,7 @@ NOTE: By default `form_with` submits forms using Ajax thereby skipping full page
 redirects. To make this guide easier to get into we've disabled that with
 `local: true` for now.
 
-### Creating articles
+### Creating Articles
 
 To make the "Unknown action" go away, you can define a `create` action within
 the `ArticlesController` class in `app/controllers/articles_controller.rb`,
@@ -611,7 +687,7 @@ end
 
 If you re-submit the form now, you may not see any change on the page. Don't worry!
 This is because Rails by default returns `204 No Content` response for an action if
-we don't specify what the response should be. We just added the `create` action
+we don't specify what the response should be. We added the `create` action
 but didn't specify anything about how the response should be. In this case, the
 `create` action should save our new article to the database.
 
@@ -626,7 +702,7 @@ def create
 end
 ```
 
-The `render` method here is taking a very simple hash with a key of `:plain` and
+The `render` method here is taking a hash with a key of `:plain` and
 value of `params[:article].inspect`. The `params` method is the object which
 represents the parameters (or fields) coming in from the form. The `params`
 method returns an `ActionController::Parameters` object, which
@@ -645,7 +721,7 @@ This action is now displaying the parameters for the article that are coming in
 from the form. However, this isn't really all that helpful. Yes, you can see the
 parameters but nothing in particular is being done with them.
 
-### Creating the Article model
+### Creating the Article Model
 
 Models in Rails use a singular name, and their corresponding database tables
 use a plural name. Rails provides a generator for creating models, which most
@@ -653,7 +729,7 @@ Rails developers tend to use when creating new models. To create the new model,
 run this command in your terminal:
 
 ```bash
-$ rails generate model Article title:string text:text
+$ bin/rails generate model Article title:string text:text
 ```
 
 With that command we told Rails that we want an `Article` model, together
@@ -672,9 +748,9 @@ models, as that will be done automatically by Active Record.
 
 ### Running a Migration
 
-As we've just seen, `rails generate model` created a _database migration_ file
+As we've just seen, `bin/rails generate model` created a _database migration_ file
 inside the `db/migrate` directory. Migrations are Ruby classes that are
-designed to make it simple to create and modify database tables. Rails uses
+designed to create and modify database tables. Rails uses
 rake commands to run migrations, and it's possible to undo a migration after
 it's been applied to your database. Migration filenames include a timestamp to
 ensure that they're processed in the order that they were created.
@@ -708,7 +784,7 @@ TIP: For more information about migrations, refer to [Active Record Migrations]
 At this point, you can use a rails command to run the migration:
 
 ```bash
-$ rails db:migrate
+$ bin/rails db:migrate
 ```
 
 Rails will execute this migration command and tell you it created the Articles
@@ -725,9 +801,9 @@ NOTE. Because you're working in the development environment by default, this
 command will apply to the database defined in the `development` section of your
 `config/database.yml` file. If you would like to execute migrations in another
 environment, for instance in production, you must explicitly pass it when
-invoking the command: `rails db:migrate RAILS_ENV=production`.
+invoking the command: `bin/rails db:migrate RAILS_ENV=production`.
 
-### Saving data in the controller
+### Saving Data in the Controller
 
 Back in `ArticlesController`, we need to change the `create` action
 to use the new `Article` model to save the data in the database.
@@ -813,7 +889,7 @@ If you submit the form again now, Rails will complain about not finding the
 `show` action. That's not very useful though, so let's add the `show` action
 before proceeding.
 
-As we have seen in the output of `rails routes`, the route for `show` action is
+As we have seen in the output of `bin/rails routes`, the route for `show` action is
 as follows:
 
 ```
@@ -872,10 +948,10 @@ Visit <http://localhost:3000/articles/new> and give it a try!
 
 ![Show action for articles](images/getting_started/show_action_for_articles.png)
 
-### Listing all articles
+### Listing all Articles
 
 We still need a way to list all our articles, so let's do that.
-The route for this as per output of `rails routes` is:
+The route for this as per output of `bin/rails routes` is:
 
 ```
 articles GET    /articles(.:format)          articles#index
@@ -906,7 +982,7 @@ And then finally, add the view for this action, located at
 `app/views/articles/index.html.erb`:
 
 ```html+erb
-<h1>Listing articles</h1>
+<h1>Listing Articles</h1>
 
 <table>
   <tr>
@@ -928,7 +1004,7 @@ And then finally, add the view for this action, located at
 Now if you go to <http://localhost:3000/articles> you will see a list of all the
 articles that you have created.
 
-### Adding links
+### Adding Links
 
 You can now create, show, and list articles. Now let's add some links to
 navigate through pages.
@@ -1121,7 +1197,7 @@ with class `field_with_errors`. You can define a CSS rule to make them
 standout.
 
 Now you'll get a nice error message when saving an article without a title when
-you attempt to do just that on the new article form
+you attempt to do that on the new article form
 <http://localhost:3000/articles/new>:
 
 ![Form With Errors](images/getting_started/form_with_errors.png)
@@ -1131,8 +1207,9 @@ you attempt to do just that on the new article form
 We've covered the "CR" part of CRUD. Now let's focus on the "U" part, updating
 articles.
 
-The first step we'll take is adding an `edit` action to the `ArticlesController`,
-generally between the `new` and `create` actions, as shown:
+The first step we'll take is adding an `edit` action to the
+`ArticlesController`, generally between the `new` and `create`
+actions, as shown:
 
 ```ruby
 def new
@@ -1154,14 +1231,18 @@ def create
 end
 ```
 
+NOTE:  We're using `edit` to render a view. For the actual
+saving of the changes to the Article, we'll add an `update` action later.
+
+
 The view will contain a form similar to the one we used when creating
 new articles. Create a file called `app/views/articles/edit.html.erb` and make
 it look as follows:
 
 ```html+erb
-<h1>Edit article</h1>
+<h1>Edit Article</h1>
 
-<%= form_with(model: @article, local: true) do |form| %>
+<%= form_with model: @article, local: true do |form| %>
 
   <% if @article.errors.any? %>
     <div id="error_explanation">
@@ -1216,6 +1297,10 @@ Next, we need to create the `update` action in
 Add it between the `create` action and the `private` method:
 
 ```ruby
+def edit
+  @article = Article.find(params[:id])
+end
+
 def create
   @article = Article.new(article_params)
 
@@ -1340,7 +1425,7 @@ content:
 ```
 
 Everything except for the `form_with` declaration remained the same.
-The reason we can use this shorter, simpler `form_with` declaration
+The reason we can use this shorter `form_with` declaration
 to stand in for either of the other forms is that `@article` is a *resource*
 corresponding to a full set of RESTful routes, and Rails is able to infer
 which URI and method to use.
@@ -1351,7 +1436,7 @@ Now, let's update the `app/views/articles/new.html.erb` view to use this new
 partial, rewriting it completely:
 
 ```html+erb
-<h1>New article</h1>
+<h1>New Article</h1>
 
 <%= render 'form' %>
 
@@ -1361,7 +1446,7 @@ partial, rewriting it completely:
 Then do the same for the `app/views/articles/edit.html.erb` view:
 
 ```html+erb
-<h1>Edit article</h1>
+<h1>Edit Article</h1>
 
 <%= render 'form' %>
 
@@ -1372,7 +1457,7 @@ Then do the same for the `app/views/articles/edit.html.erb` view:
 
 We're now ready to cover the "D" part of CRUD, deleting articles from the
 database. Following the REST convention, the route for
-deleting articles as per output of `rails routes` is:
+deleting articles as per output of `bin/rails routes` is:
 
 ```ruby
 DELETE /articles/:id(.:format)      articles#destroy
@@ -1522,7 +1607,7 @@ the `Article` model. This time we'll create a `Comment` model to hold a
 reference to an article. Run this command in your terminal:
 
 ```bash
-$ rails generate model Comment commenter:string body:text article:references
+$ bin/rails generate model Comment commenter:string body:text article:references
 ```
 
 This command will generate four files:
@@ -1560,7 +1645,7 @@ class CreateComments < ActiveRecord::Migration[6.0]
     create_table :comments do |t|
       t.string :commenter
       t.text :body
-      t.references :article, foreign_key: true
+      t.references :article, null: false, foreign_key: true
 
       t.timestamps
     end
@@ -1573,7 +1658,7 @@ for it, and a foreign key constraint that points to the `id` column of the `arti
 table. Go ahead and run the migration:
 
 ```bash
-$ rails db:migrate
+$ bin/rails db:migrate
 ```
 
 Rails is smart enough to only execute the migrations that have not already been
@@ -1649,7 +1734,7 @@ With the model in hand, you can turn your attention to creating a matching
 controller. Again, we'll use the same generator we used before:
 
 ```bash
-$ rails generate controller Comments
+$ bin/rails generate controller Comments
 ```
 
 This creates four files and one empty directory:
@@ -1683,7 +1768,7 @@ So first, we'll wire up the Article show template
 </p>
 
 <h2>Add a comment:</h2>
-<%= form_with(model: [ @article, @article.comments.build ], local: true) do |form| %>
+<%= form_with model: [ @article, @article.comments.build ], local: true do |form| %>
   <p>
     <%= form.label :commenter %><br>
     <%= form.text_field :commenter %>
@@ -1764,7 +1849,7 @@ add that to the `app/views/articles/show.html.erb`.
 <% end %>
 
 <h2>Add a comment:</h2>
-<%= form_with(model: [ @article, @article.comments.build ], local: true) do |form| %>
+<%= form_with model: [ @article, @article.comments.build ], local: true do |form| %>
   <p>
     <%= form.label :commenter %><br>
     <%= form.text_field :commenter %>
@@ -1830,7 +1915,7 @@ following:
 <%= render @article.comments %>
 
 <h2>Add a comment:</h2>
-<%= form_with(model: [ @article, @article.comments.build ], local: true) do |form| %>
+<%= form_with model: [ @article, @article.comments.build ], local: true do |form| %>
   <p>
     <%= form.label :commenter %><br>
     <%= form.text_field :commenter %>
@@ -1860,7 +1945,7 @@ Let us also move that new comment section out to its own partial. Again, you
 create a file `app/views/comments/_form.html.erb` containing:
 
 ```html+erb
-<%= form_with(model: [ @article, @article.comments.build ], local: true) do |form| %>
+<%= form_with model: [ @article, @article.comments.build ], local: true do |form| %>
   <p>
     <%= form.label :commenter %><br>
     <%= form.text_field :commenter %>
@@ -1989,7 +2074,7 @@ Security
 If you were to publish your blog online, anyone would be able to add, edit and
 delete articles or delete comments.
 
-Rails provides a very simple HTTP authentication system that will work nicely in
+Rails provides an HTTP authentication system that will work nicely in
 this situation.
 
 In the `ArticlesController` we need to have a way to block access to the
@@ -2060,8 +2145,7 @@ getting up and running with Rails, feel free to consult these support
 resources:
 
 * The [Ruby on Rails Guides](index.html)
-* The [Ruby on Rails Tutorial](https://www.railstutorial.org/book)
-* The [Ruby on Rails mailing list](https://groups.google.com/group/rubyonrails-talk)
+* The [Ruby on Rails mailing list](https://discuss.rubyonrails.org/c/rubyonrails-talk)
 * The [#rubyonrails](irc://irc.freenode.net/#rubyonrails) channel on irc.freenode.net
 
 

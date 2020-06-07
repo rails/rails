@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 require "active_support/core_ext/hash"
 require "bigdecimal"
 require "active_support/core_ext/string/access"
@@ -249,6 +249,14 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert [updated_with_strings, updated_with_symbols, updated_with_mixed].all? { |h| h.keys.size == 2 }
   end
 
+  def test_update_with_multiple_arguments
+    hash = HashWithIndifferentAccess.new
+    hash.update({ "a" => 1 }, { "b" => 2 })
+
+    assert_equal 1, hash["a"]
+    assert_equal 2, hash["b"]
+  end
+
   def test_update_with_to_hash_conversion
     hash = HashWithIndifferentAccess.new
     hash.update HashByConversion.new(a: 1)
@@ -272,6 +280,14 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
 
     assert_equal 1, hash[:a]
     assert_equal 2, hash["b"]
+  end
+
+  def test_merging_with_multiple_arguments
+    hash = HashWithIndifferentAccess.new
+    merged = hash.merge({ "a" => 1 }, { "b" => 2 })
+
+    assert_equal 1, merged["a"]
+    assert_equal 2, merged["b"]
   end
 
   def test_merge_with_to_hash_conversion
@@ -835,5 +851,33 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     hash_wia = hash.with_indifferent_access
     assert_equal 3, hash_wia[:foo]
     assert_equal 3, hash_wia[:bar]
+  end
+
+  def test_should_copy_the_default_when_converting_non_hash_to_hash_with_indifferent_access
+    non_hash = Object.new
+
+    def non_hash.to_hash
+      h = { foo: :bar }
+      h.default = :baz
+      h
+    end
+
+    hash_wia = HashWithIndifferentAccess.new(non_hash)
+    assert_equal :bar, hash_wia[:foo]
+    assert_equal :baz, hash_wia[:missing]
+  end
+
+  def test_should_copy_the_default_proc_when_converting_non_hash_to_hash_with_indifferent_access
+    non_hash = Object.new
+
+    def non_hash.to_hash
+      h = { foo: :bar }
+      h.default_proc = ->(hash, key) { hash[key] = :baz }
+      h
+    end
+
+    hash_wia = HashWithIndifferentAccess.new(non_hash)
+    assert_equal :bar, hash_wia[:foo]
+    assert_equal :baz, hash_wia[:missing]
   end
 end

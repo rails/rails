@@ -52,6 +52,9 @@ module Rails
         class_option :skip_active_record,  type: :boolean, aliases: "-O", default: false,
                                            desc: "Skip Active Record files"
 
+        class_option :skip_active_job,     type: :boolean, default: false,
+                                           desc: "Skip Active Job"
+
         class_option :skip_active_storage, type: :boolean, default: false,
                                            desc: "Skip Active Storage files"
 
@@ -76,6 +79,9 @@ module Rails
         class_option :skip_turbolinks,     type: :boolean, default: false,
                                            desc: "Skip turbolinks gem"
 
+        class_option :skip_jbuilder,       type: :boolean, default: false,
+                                           desc: "Skip jbuilder gem"
+
         class_option :skip_test,           type: :boolean, aliases: "-T", default: false,
                                            desc: "Skip test files"
 
@@ -86,10 +92,13 @@ module Rails
                                            desc: "Skip bootsnap gem"
 
         class_option :dev,                 type: :boolean, default: false,
-                                           desc: "Setup the #{name} with Gemfile pointing to your Rails checkout"
+                                           desc: "Set up the #{name} with Gemfile pointing to your Rails checkout"
 
         class_option :edge,                type: :boolean, default: false,
-                                           desc: "Setup the #{name} with Gemfile pointing to Rails repository"
+                                           desc: "Set up the #{name} with Gemfile pointing to Rails repository"
+
+        class_option :master,              type: :boolean, default: false,
+                                           desc: "Set up the #{name} with Gemfile pointing to Rails repository master branch"
 
         class_option :rc,                  type: :string, default: nil,
                                            desc: "Path to file containing extra configuration options for rails command"
@@ -108,7 +117,6 @@ module Rails
       end
 
     private
-
       def gemfile_entry(name, *args) # :doc:
         options = args.extract_options!
         version = args.first
@@ -192,7 +200,7 @@ module Rails
       def web_server_gemfile_entry # :doc:
         return [] if options[:skip_puma]
         comment = "Use Puma as the app server"
-        GemfileEntry.new("puma", "~> 3.11", comment)
+        GemfileEntry.new("puma", "~> 4.1", comment)
       end
 
       def include_all_railties? # :doc:
@@ -202,7 +210,8 @@ module Rails
             :skip_action_mailer,
             :skip_test,
             :skip_sprockets,
-            :skip_action_cable
+            :skip_action_cable,
+            :skip_active_job
           ),
           skip_active_storage?,
           skip_action_mailbox?,
@@ -241,6 +250,10 @@ module Rails
 
       def skip_action_text? # :doc:
         options[:skip_action_text] || skip_active_storage?
+      end
+
+      def skip_dev_gems? # :doc:
+        options[:skip_dev_gems]
       end
 
       class GemfileEntry < Struct.new(:name, :version, :comment, :options, :commented_out)
@@ -284,6 +297,10 @@ module Rails
           [
             GemfileEntry.github("rails", "rails/rails")
           ]
+        elsif options.master?
+          [
+            GemfileEntry.github("rails", "rails/rails", "master")
+          ]
         else
           [GemfileEntry.version("rails",
                             rails_version_specifier,
@@ -307,22 +324,23 @@ module Rails
       def assets_gemfile_entry
         return [] if options[:skip_sprockets]
 
-        GemfileEntry.version("sass-rails", "~> 5.0", "Use SCSS for stylesheets")
+        GemfileEntry.version("sass-rails", ">= 6", "Use SCSS for stylesheets")
       end
 
       def webpacker_gemfile_entry
         return [] if options[:skip_javascript]
 
-        if options.dev? || options.edge?
+        if options.dev? || options.edge? || options.master?
           GemfileEntry.github "webpacker", "rails/webpacker", nil, "Use development version of Webpacker"
         else
-          GemfileEntry.version "webpacker", "~> 4.0", "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
+          GemfileEntry.version "webpacker", "~> 5.0", "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
         end
       end
 
       def jbuilder_gemfile_entry
+        return [] if options[:skip_jbuilder]
         comment = "Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder"
-        GemfileEntry.new "jbuilder", "~> 2.5", comment, {}, options[:api]
+        GemfileEntry.new "jbuilder", "~> 2.7", comment, {}, options[:api]
       end
 
       def javascript_gemfile_entry
@@ -401,7 +419,7 @@ module Rails
       end
 
       def os_supports_listen_out_of_the_box?
-        RbConfig::CONFIG["host_os"] =~ /darwin|linux/
+        /darwin|linux/.match?(RbConfig::CONFIG["host_os"])
       end
 
       def run_bundle
@@ -411,7 +429,9 @@ module Rails
       def run_webpack
         if webpack_install?
           rails_command "webpacker:install"
-          rails_command "webpacker:install:#{options[:webpack]}" if options[:webpack] && options[:webpack] != "webpack"
+          if options[:webpack] && options[:webpack] != "webpack"
+            rails_command "webpacker:install:#{options[:webpack]}"
+          end
         end
       end
 
@@ -421,9 +441,9 @@ module Rails
         end
       end
 
-      def generate_spring_binstubs
+      def generate_spring_binstub
         if bundle_install? && spring_install?
-          bundle_command("exec spring binstub --all")
+          bundle_command("exec spring binstub")
         end
       end
 

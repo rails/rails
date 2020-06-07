@@ -68,7 +68,7 @@ module Rails
 
     # The RubyGems version, if it's installed.
     property "RubyGems version" do
-      Gem::RubyGemsVersion
+      Gem::VERSION
     end
 
     property "Rack version" do
@@ -95,7 +95,7 @@ module Rails
 
     # The name of the database adapter for the current environment.
     property "Database adapter" do
-      ActiveRecord::Base.configurations[Rails.env]["adapter"]
+      ActiveRecord::Base.connection.pool.db_config.adapter
     end
 
     property "Database schema version" do

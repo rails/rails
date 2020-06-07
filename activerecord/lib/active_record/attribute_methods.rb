@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "mutex_m"
+require "active_support/core_ext/enumerable"
 
 module ActiveRecord
   # = Active Record Attribute Methods
@@ -28,6 +29,17 @@ module ActiveRecord
       include Mutex_m
     end
 
+    class << self
+      def dangerous_attribute_methods # :nodoc:
+        @dangerous_attribute_methods ||= (
+          Base.instance_methods +
+          Base.private_instance_methods -
+          Base.superclass.instance_methods -
+          Base.superclass.private_instance_methods
+        ).map { |m| -m.to_s }.to_set.freeze
+      end
+    end
+
     module ClassMethods
       def inherited(child_class) #:nodoc:
         child_class.initialize_generated_modules
@@ -35,7 +47,8 @@ module ActiveRecord
       end
 
       def initialize_generated_modules # :nodoc:
-        @generated_attribute_methods = GeneratedAttributeMethods.new
+        @generated_attribute_methods = const_set(:GeneratedAttributeMethods, GeneratedAttributeMethods.new)
+        private_constant :GeneratedAttributeMethods
         @attribute_methods_generated = false
         include @generated_attribute_methods
 
@@ -96,7 +109,7 @@ module ActiveRecord
       # A method name is 'dangerous' if it is already (re)defined by Active Record, but
       # not by any ancestors. (So 'puts' is not dangerous but 'save' is.)
       def dangerous_attribute_method?(name) # :nodoc:
-        method_defined_within?(name, Base)
+        ::ActiveRecord::AttributeMethods.dangerous_attribute_methods.include?(name.to_s)
       end
 
       def method_defined_within?(name, klass, superklass = klass.superclass) # :nodoc:
@@ -114,13 +127,11 @@ module ActiveRecord
       # A class method is 'dangerous' if it is already (re)defined by Active Record, but
       # not by any ancestors. (So 'puts' is not dangerous but 'new' is.)
       def dangerous_class_method?(method_name)
-        RESTRICTED_CLASS_METHODS.include?(method_name.to_s) || class_method_defined_within?(method_name, Base)
-      end
+        return true if RESTRICTED_CLASS_METHODS.include?(method_name.to_s)
 
-      def class_method_defined_within?(name, klass, superklass = klass.superclass) # :nodoc:
-        if klass.respond_to?(name, true)
-          if superklass.respond_to?(name, true)
-            klass.method(name).owner != superklass.method(name).owner
+        if Base.respond_to?(method_name, true)
+          if Object.respond_to?(method_name, true)
+            Base.method(method_name).owner != Object.method(method_name).owner
           else
             true
           end
@@ -158,67 +169,24 @@ module ActiveRecord
         end
       end
 
-      # Regexp for column names (with or without a table name prefix). Matches
-      # the following:
-      #   "#{table_name}.#{column_name}"
-      #   "#{column_name}"
-      COLUMN_NAME = /\A(?:\w+\.)?\w+\z/i
-
-      # Regexp for column names with order (with or without a table name
-      # prefix, with or without various order modifiers). Matches the following:
-      #   "#{table_name}.#{column_name}"
-      #   "#{table_name}.#{column_name} #{direction}"
-      #   "#{table_name}.#{column_name} #{direction} NULLS FIRST"
-      #   "#{table_name}.#{column_name} NULLS LAST"
-      #   "#{column_name}"
-      #   "#{column_name} #{direction}"
-      #   "#{column_name} #{direction} NULLS FIRST"
-      #   "#{column_name} NULLS LAST"
-      COLUMN_NAME_WITH_ORDER = /
-        \A
-        (?:\w+\.)?
-        \w+
-        (?:\s+asc|\s+desc)?
-        (?:\s+nulls\s+(?:first|last))?
-        \z
-      /ix
-
-      def disallow_raw_sql!(args, permit: COLUMN_NAME) # :nodoc:
-        unexpected = args.reject do |arg|
-          Arel.arel_node?(arg) ||
-            arg.to_s.split(/\s*,\s*/).all? { |part| permit.match?(part) }
-        end
-
-        return if unexpected.none?
-
-        if allow_unsafe_raw_sql == :deprecated
-          ActiveSupport::Deprecation.warn(
-            "Dangerous query method (method whose arguments are used as raw " \
-            "SQL) called with non-attribute argument(s): " \
-            "#{unexpected.map(&:inspect).join(", ")}. Non-attribute " \
-            "arguments will be disallowed in Rails 6.0. This method should " \
-            "not be called with user-provided values, such as request " \
-            "parameters or model attributes. Known-safe values can be passed " \
-            "by wrapping them in Arel.sql()."
-          )
-        else
-          raise(ActiveRecord::UnknownAttributeReference,
-            "Query method called with non-attribute argument(s): " +
-            unexpected.map(&:inspect).join(", ")
-          )
-        end
-      end
-
       # Returns true if the given attribute exists, otherwise false.
       #
       #   class Person < ActiveRecord::Base
+      #     alias_attribute :new_name, :name
       #   end
       #
-      #   Person.has_attribute?('name')   # => true
-      #   Person.has_attribute?(:age)     # => true
-      #   Person.has_attribute?(:nothing) # => false
+      #   Person.has_attribute?('name')     # => true
+      #   Person.has_attribute?('new_name') # => true
+      #   Person.has_attribute?(:age)       # => true
+      #   Person.has_attribute?(:nothing)   # => false
       def has_attribute?(attr_name)
-        attribute_types.key?(attr_name.to_s)
+        attr_name = attr_name.to_s
+        attr_name = attribute_aliases[attr_name] || attr_name
+        attribute_types.key?(attr_name)
+      end
+
+      def _has_attribute?(attr_name) # :nodoc:
+        attribute_types.key?(attr_name)
       end
 
       # Returns the column object for the named attribute.
@@ -267,7 +235,7 @@ module ActiveRecord
       # have been allocated but not yet initialized.
       if defined?(@attributes)
         if name = self.class.symbol_column_to_string(name.to_sym)
-          return has_attribute?(name)
+          return _has_attribute?(name)
         end
       end
 
@@ -277,14 +245,22 @@ module ActiveRecord
     # Returns +true+ if the given attribute is in the attributes hash, otherwise +false+.
     #
     #   class Person < ActiveRecord::Base
+    #     alias_attribute :new_name, :name
     #   end
     #
     #   person = Person.new
-    #   person.has_attribute?(:name)    # => true
-    #   person.has_attribute?('age')    # => true
-    #   person.has_attribute?(:nothing) # => false
+    #   person.has_attribute?(:name)     # => true
+    #   person.has_attribute?(:new_name) # => true
+    #   person.has_attribute?('age')     # => true
+    #   person.has_attribute?(:nothing)  # => false
     def has_attribute?(attr_name)
-      @attributes.key?(attr_name.to_s)
+      attr_name = attr_name.to_s
+      attr_name = self.class.attribute_aliases[attr_name] || attr_name
+      @attributes.key?(attr_name)
+    end
+
+    def _has_attribute?(attr_name) # :nodoc:
+      @attributes.key?(attr_name)
     end
 
     # Returns an array of names for the attributes available on this object.
@@ -328,6 +304,7 @@ module ActiveRecord
     #   person.attribute_for_inspect(:tag_ids)
     #   # => "[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]"
     def attribute_for_inspect(attr_name)
+      attr_name = attr_name.to_s
       value = _read_attribute(attr_name)
       format_for_inspect(value)
     end
@@ -347,8 +324,9 @@ module ActiveRecord
     #   task.is_done = true
     #   task.attribute_present?(:title)   # => true
     #   task.attribute_present?(:is_done) # => true
-    def attribute_present?(attribute)
-      value = _read_attribute(attribute)
+    def attribute_present?(attr_name)
+      attr_name = attr_name.to_s
+      value = _read_attribute(attr_name)
       !value.nil? && !(value.respond_to?(:empty?) && value.empty?)
     end
 
@@ -427,8 +405,8 @@ module ActiveRecord
       end
 
       def attributes_with_values(attribute_names)
-        attribute_names.each_with_object({}) do |name, attrs|
-          attrs[name] = _read_attribute(name)
+        attribute_names.index_with do |name|
+          _read_attribute(name)
         end
       end
 
@@ -436,7 +414,7 @@ module ActiveRecord
       def attributes_for_update(attribute_names)
         attribute_names &= self.class.column_names
         attribute_names.delete_if do |name|
-          readonly_attribute?(name)
+          self.class.readonly_attribute?(name)
         end
       end
 
@@ -453,18 +431,14 @@ module ActiveRecord
         if value.is_a?(String) && value.length > 50
           "#{value[0, 50]}...".inspect
         elsif value.is_a?(Date) || value.is_a?(Time)
-          %("#{value.to_s(:db)}")
+          %("#{value.to_s(:inspect)}")
         else
           value.inspect
         end
       end
 
-      def readonly_attribute?(name)
-        self.class.readonly_attributes.include?(name)
-      end
-
       def pk_attribute?(name)
-        name == self.class.primary_key
+        name == @primary_key
       end
   end
 end

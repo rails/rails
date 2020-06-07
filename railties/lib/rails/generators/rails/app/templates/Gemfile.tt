@@ -3,7 +3,7 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
 ruby <%= "'#{RUBY_VERSION}'" -%>
 
-<% unless gemfile_entries.first.comment -%>
+<% unless gemfile_entries.first&.comment -%>
 
 <% end -%>
 <% gemfile_entries.each do |gem| -%>
@@ -14,7 +14,7 @@ ruby <%= "'#{RUBY_VERSION}'" -%>
 <%= gem.commented_out ? '# ' : '' %>gem '<%= gem.name %>'<%= %(, '#{gem.version}') if gem.version -%>
 <% if gem.options.any? -%>
 , <%= gem.options.map { |k,v|
-  "#{k}: #{v.inspect}" }.join(', ') %>
+  "#{k}: #{v.inspect.gsub('"', '\'')}" }.join(', ') %>
 <% end -%>
 <% end -%>
 
@@ -28,7 +28,7 @@ ruby <%= "'#{RUBY_VERSION}'" -%>
 
 <% if depend_on_bootsnap? -%>
 # Reduces boot times through caching; required in config/boot.rb
-gem 'bootsnap', '>= 1.4.1', require: false
+gem 'bootsnap', '>= 1.4.4', require: false
 
 <%- end -%>
 <%- if options.api? -%>
@@ -44,35 +44,35 @@ end
 
 <% end -%>
 group :development do
-<%- unless options.api? -%>
+<%- unless options.api? || options.skip_dev_gems? -%>
   # Access an interactive console on exception pages or by calling 'console' anywhere in the code.
-  <%- if options.dev? || options.edge? -%>
+  <%- if options.dev? || options.edge? || options.master? -%>
   gem 'web-console', github: 'rails/web-console'
   <%- else -%>
   gem 'web-console', '>= 3.3.0'
   <%- end -%>
+  # Display performance information such as SQL time and flame graphs for each request in your browser.
+  # Can be configured to work on production as well see: https://github.com/MiniProfiler/rack-mini-profiler/blob/master/README.md
+  gem 'rack-mini-profiler', '~> 2.0'
 <%- end -%>
 <% if depend_on_listen? -%>
-  gem 'listen', '>= 3.0.5', '< 3.2'
+  gem 'listen', '~> 3.2'
 <% end -%>
 <% if spring_install? -%>
   # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
   gem 'spring'
-<% if depend_on_listen? -%>
-  gem 'spring-watcher-listen', '~> 2.0.0'
-<% end -%>
 <% end -%>
 end
 
 <%- if depends_on_system_test? -%>
 group :test do
   # Adds support for Capybara system testing and selenium driver
-  gem 'capybara', '>= 2.15'
+  gem 'capybara', '>= 3.26'
   gem 'selenium-webdriver'
-  # Easy installation and use of chromedriver to run system tests with Chrome
-  gem 'chromedriver-helper'
+  # Easy installation and use of web drivers to run system tests with browsers
+  gem 'webdrivers'
 end
-<%- end -%>
 
+<%- end -%>
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]

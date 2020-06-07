@@ -55,7 +55,7 @@ class PostgresqlDataTypeTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_update_oid
-    new_value = 567890
+    new_value = 2147483648
     @first_oid.obj_id = new_value
     assert @first_oid.save
     assert @first_oid.reload
@@ -64,7 +64,7 @@ class PostgresqlDataTypeTest < ActiveRecord::PostgreSQLTestCase
 
   def test_text_columns_are_limitless_the_upper_limit_is_one_GB
     assert_equal "text", @connection.type_to_sql(:text, limit: 100_000)
-    assert_raise ActiveRecord::ActiveRecordError do
+    assert_raise ArgumentError do
       @connection.type_to_sql(:text, limit: 4294967295)
     end
   end

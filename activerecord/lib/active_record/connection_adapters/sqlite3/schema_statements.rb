@@ -9,7 +9,7 @@ module ActiveRecord
           exec_query("PRAGMA index_list(#{quote_table_name(table_name)})", "SCHEMA").map do |row|
             # Indexes SQLite creates implicitly for internal use start with "sqlite_".
             # See https://www.sqlite.org/fileformat2.html#intschema
-            next if row["name"].starts_with?("sqlite_")
+            next if row["name"].start_with?("sqlite_")
 
             index_sql = query_value(<<~SQL, "SCHEMA")
               SELECT sql
@@ -55,13 +55,13 @@ module ActiveRecord
         def add_foreign_key(from_table, to_table, **options)
           alter_table(from_table) do |definition|
             to_table = strip_table_name_prefix_and_suffix(to_table)
-            definition.foreign_key(to_table, options)
+            definition.foreign_key(to_table, **options)
           end
         end
 
         def remove_foreign_key(from_table, to_table = nil, **options)
           to_table ||= options[:to_table]
-          options = options.except(:name, :to_table)
+          options = options.except(:name, :to_table, :validate)
           foreign_keys = foreign_keys(from_table)
 
           fkey = foreign_keys.detect do |fk|
@@ -78,6 +78,35 @@ module ActiveRecord
           alter_table(from_table, foreign_keys)
         end
 
+        def check_constraints(table_name)
+          table_sql = query_value(<<-SQL, "SCHEMA")
+            SELECT sql
+            FROM sqlite_master
+            WHERE name = #{quote_table_name(table_name)} AND type = 'table'
+            UNION ALL
+            SELECT sql
+            FROM sqlite_temp_master
+            WHERE name = #{quote_table_name(table_name)} AND type = 'table'
+          SQL
+
+          table_sql.scan(/CONSTRAINT\s+(?<name>\w+)\s+CHECK\s+\((?<expression>(:?[^()]|\(\g<expression>\))+)\)/i).map do |name, expression|
+            CheckConstraintDefinition.new(table_name, expression, name: name)
+          end
+        end
+
+        def add_check_constraint(table_name, expression, **options)
+          alter_table(table_name) do |definition|
+            definition.check_constraint(expression, **options)
+          end
+        end
+
+        def remove_check_constraint(table_name, expression = nil, **options)
+          check_constraints = check_constraints(table_name)
+          chk_name_to_delete = check_constraint_for!(table_name, expression: expression, **options).name
+          check_constraints.delete_if { |chk| chk.name == chk_name_to_delete }
+          alter_table(table_name, foreign_keys(table_name), check_constraints)
+        end
+
         def create_schema_dumper(options)
           SQLite3::SchemaDumper.create(self, options)
         end
@@ -87,8 +116,12 @@ module ActiveRecord
             SQLite3::SchemaCreation.new(self)
           end
 
-          def create_table_definition(*args)
-            SQLite3::TableDefinition.new(self, *args)
+          def create_table_definition(name, **options)
+            SQLite3::TableDefinition.new(self, name, **options)
+          end
+
+          def validate_index_length!(table_name, new_name, internal = false)
+            super unless internal
           end
 
           def new_column_from_field(table_name, field)
@@ -105,7 +138,7 @@ module ActiveRecord
               end
 
             type_metadata = fetch_type_metadata(field["type"])
-            Column.new(field["name"], default, type_metadata, field["notnull"].to_i == 0, table_name, nil, field["collation"])
+            Column.new(field["name"], default, type_metadata, field["notnull"].to_i == 0, collation: field["collation"])
           end
 
           def data_source_sql(name = nil, type: nil)

@@ -57,6 +57,12 @@ module Rails
       template "gitignore", ".gitignore"
     end
 
+    def version_control
+      if !options[:skip_git] && !options[:pretend]
+        run "git init", capture: options[:quiet], abort_on_failure: false
+      end
+    end
+
     def lib
       template "lib/%namespaced_name%.rb"
       template "lib/tasks/%namespaced_name%_tasks.rake"
@@ -121,6 +127,7 @@ task default: :test
 
     def test_dummy_clean
       inside dummy_path do
+        remove_file ".ruby-version"
         remove_file "db/seeds.rb"
         remove_file "Gemfile"
         remove_file "lib/tasks"
@@ -141,17 +148,6 @@ task default: :test
                   "app/assets/stylesheets/#{namespaced_name}/application.css"
       elsif full?
         empty_directory_with_keep_file "app/assets/stylesheets/#{namespaced_name}"
-      end
-    end
-
-    def javascripts
-      return if options.skip_javascript?
-
-      if mountable?
-        template "rails/javascripts.js",
-                 "app/assets/javascripts/#{namespaced_name}/application.js"
-      elsif full?
-        empty_directory_with_keep_file "app/assets/javascripts/#{namespaced_name}"
       end
     end
 
@@ -214,6 +210,7 @@ task default: :test
         build(:license)
         build(:gitignore) unless options[:skip_git]
         build(:gemfile)   unless options[:skip_gemfile]
+        build(:version_control)
       end
 
       def create_app_files
@@ -234,10 +231,6 @@ task default: :test
 
       def create_public_stylesheets_files
         build(:stylesheets) unless api?
-      end
-
-      def create_javascript_files
-        build(:javascripts) unless api?
       end
 
       def create_bin_files
@@ -284,7 +277,6 @@ task default: :test
       end
 
     private
-
       def create_dummy_app(path = nil)
         dummy_path(path) if path
 
@@ -409,7 +401,7 @@ task default: :test
 
       def rakefile_test_tasks
         <<-RUBY
-require 'rake/testtask'
+require "rake/testtask"
 
 Rake::TestTask.new(:test) do |t|
   t.libs << 'test'

@@ -8,7 +8,7 @@ gemfile(true) do
   git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
   # Activate the gem you are reporting the issue against.
-  gem "activesupport", "5.2.0"
+  gem "activesupport", "6.0.3"
 end
 
 require "active_support"

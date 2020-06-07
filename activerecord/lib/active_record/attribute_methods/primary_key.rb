@@ -16,44 +16,39 @@ module ActiveRecord
 
       # Returns the primary key column's value.
       def id
-        sync_with_transaction_state
-        primary_key = self.class.primary_key
-        _read_attribute(primary_key) if primary_key
+        _read_attribute(@primary_key)
       end
 
       # Sets the primary key column's value.
       def id=(value)
-        sync_with_transaction_state
-        primary_key = self.class.primary_key
-        _write_attribute(primary_key, value) if primary_key
+        _write_attribute(@primary_key, value)
       end
 
       # Queries the primary key column's value.
       def id?
-        sync_with_transaction_state
-        query_attribute(self.class.primary_key)
+        query_attribute(@primary_key)
       end
 
       # Returns the primary key column's value before type cast.
       def id_before_type_cast
-        sync_with_transaction_state
-        read_attribute_before_type_cast(self.class.primary_key)
+        read_attribute_before_type_cast(@primary_key)
       end
 
       # Returns the primary key column's previous value.
       def id_was
-        sync_with_transaction_state
-        attribute_was(self.class.primary_key)
+        attribute_was(@primary_key)
       end
 
       # Returns the primary key column's value from the database.
       def id_in_database
-        sync_with_transaction_state
-        attribute_in_database(self.class.primary_key)
+        attribute_in_database(@primary_key)
+      end
+
+      def id_for_database # :nodoc:
+        @attributes[@primary_key].value_for_database
       end
 
       private
-
         def attribute_method?(attr_name)
           attr_name == "id" || super
         end
@@ -122,13 +117,12 @@ module ActiveRecord
           #
           #   Project.primary_key # => "foo_id"
           def primary_key=(value)
-            @primary_key        = value && value.to_s
+            @primary_key        = value && -value.to_s
             @quoted_primary_key = nil
             @attributes_builder = nil
           end
 
           private
-
             def suppress_composite_primary_key(pk)
               return pk unless pk.is_a?(Array)
 

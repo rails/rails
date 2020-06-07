@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/object/try"
+require "active_support/core_ext/integer/time"
+
 module ActionController
   module ConditionalGet
     extend ActiveSupport::Concern
@@ -17,12 +20,12 @@ module ActionController
       # of cached pages.
       #
       #   class InvoicesController < ApplicationController
-      #     etag { current_user.try :id }
+      #     etag { current_user&.id }
       #
       #     def show
       #       # Etag will differ even for the same invoice when it's viewed by a different current_user
       #       @invoice = Invoice.find(params[:id])
-      #       fresh_when(@invoice)
+      #       fresh_when etag: @invoice
       #     end
       #   end
       def etag(&etagger)
@@ -233,6 +236,11 @@ module ActionController
     #
     #   expires_in 3.hours, public: true, stale_while_revalidate: 60.seconds
     #   expires_in 3.hours, public: true, stale_while_revalidate: 60.seconds, stale_if_error: 5.minutes
+    #
+    # HTTP Cache-Control Extensions other values: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
+    # Any additional key-value pairs are concatenated onto the `Cache-Control` header in the response:
+    #
+    #   expires_in 3.hours, public: true, "s-maxage": 3.hours, "no-transform": true
     #
     # The method will also ensure an HTTP Date header for client compatibility.
     def expires_in(seconds, options = {})

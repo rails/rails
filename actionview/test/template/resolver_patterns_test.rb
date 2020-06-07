@@ -6,7 +6,10 @@ class ResolverPatternsTest < ActiveSupport::TestCase
   def setup
     path = File.expand_path("../fixtures", __dir__)
     pattern = ":prefix/{:formats/,}:action{.:formats,}{+:variants,}{.:handlers,}"
-    @resolver = ActionView::FileSystemResolver.new(path, pattern)
+
+    assert_deprecated do
+      @resolver = ActionView::FileSystemResolver.new(path, pattern)
+    end
   end
 
   def test_should_return_empty_list_for_unknown_path

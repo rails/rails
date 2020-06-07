@@ -18,6 +18,7 @@ module Rails
           include: %w(
             README.rdoc
             lib/active_record/**/*.rb
+            lib/arel.rb
           )
         },
 

@@ -12,7 +12,6 @@ module ActiveJob
       end
 
       private
-
         def klass
           ActiveSupport::TimeWithZone
         end

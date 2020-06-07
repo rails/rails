@@ -60,6 +60,15 @@ module ActiveRecord
         self.class.locking_enabled?
       end
 
+      def increment!(*, **) #:nodoc:
+        super.tap do
+          if locking_enabled?
+            self[self.class.locking_column] += 1
+            clear_attribute_change(self.class.locking_column)
+          end
+        end
+      end
+
       private
         def _create_record(attribute_names = self.attribute_names)
           if locking_enabled?
@@ -71,9 +80,8 @@ module ActiveRecord
         end
 
         def _touch_row(attribute_names, time)
+          @_touch_attr_names << self.class.locking_column if locking_enabled?
           super
-        ensure
-          clear_attribute_change(self.class.locking_column) if locking_enabled?
         end
 
         def _update_row(attribute_names, attempted_action = "update")
@@ -82,14 +90,15 @@ module ActiveRecord
           begin
             locking_column = self.class.locking_column
             previous_lock_value = read_attribute_before_type_cast(locking_column)
+            attribute_names = attribute_names.dup if attribute_names.frozen?
             attribute_names << locking_column
 
             self[locking_column] += 1
 
             affected_rows = self.class._update_record(
               attributes_with_values(attribute_names),
-              self.class.primary_key => id_in_database,
-              locking_column => previous_lock_value
+              @primary_key => id_in_database,
+              locking_column => @attributes[locking_column].original_value_for_database
             )
 
             if affected_rows != 1
@@ -111,7 +120,7 @@ module ActiveRecord
           locking_column = self.class.locking_column
 
           affected_rows = self.class._delete_record(
-            self.class.primary_key => id_in_database,
+            @primary_key => id_in_database,
             locking_column => read_attribute_before_type_cast(locking_column)
           )
 
@@ -157,7 +166,6 @@ module ActiveRecord
           end
 
           private
-
             # We need to apply this decorator here, rather than on module inclusion. The closure
             # created by the matcher would otherwise evaluate for `ActiveRecord::Base`, not the
             # sub class being decorated. As such, changes to `lock_optimistically`, or

@@ -36,7 +36,7 @@ class CsrfHelperTest < ActiveSupport::TestCase
     request_forgery
   end
 
-  def form_authenticity_token(*args)
+  def form_authenticity_token(**)
     "secret"
   end
 

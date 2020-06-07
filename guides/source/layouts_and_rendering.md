@@ -149,25 +149,6 @@ Rails knows that this view belongs to a different controller because of the embe
 render template: "products/show"
 ```
 
-#### Rendering an Arbitrary File
-
-The `render` method can also use a view that's entirely outside of your application:
-
-```ruby
-render file: "/u/apps/warehouse_app/current/app/views/products/show"
-```
-
-The `:file` option takes an absolute file-system path. Of course, you need to have rights
-to the view that you're using to render the content.
-
-NOTE: Using the `:file` option in combination with users input can lead to security problems
-since an attacker could use this action to access security sensitive files in your file system.
-
-NOTE: By default, the file is rendered using the current layout.
-
-TIP: If you're running Rails on Microsoft Windows, you should use the `:file` option to
-render a file, because Windows filenames do not have the same format as Unix filenames.
-
 #### Wrapping it up
 
 The above three ways of rendering (rendering another template within the controller, rendering a template within another controller, and rendering an arbitrary file on the file system) are actually variants of the same action.
@@ -178,17 +159,9 @@ In fact, in the BooksController class, inside of the update action where we want
 render :edit
 render action: :edit
 render "edit"
-render "edit.html.erb"
 render action: "edit"
-render action: "edit.html.erb"
 render "books/edit"
-render "books/edit.html.erb"
 render template: "books/edit"
-render template: "books/edit.html.erb"
-render "/path/to/rails/app/views/books/edit"
-render "/path/to/rails/app/views/books/edit.html.erb"
-render file: "/path/to/rails/app/views/books/edit"
-render file: "/path/to/rails/app/views/books/edit.html.erb"
 ```
 
 Which one you use is really a matter of style and convention, but the rule of thumb is to use the simplest one that makes sense for the code you are writing.
@@ -287,22 +260,50 @@ time.
 NOTE: Unless overridden, your response returned from this render option will be
 `text/plain`, as that is the default content type of Action Dispatch response.
 
+#### Rendering raw file
+
+Rails can render a raw file from an absolute path. This is useful for
+conditionally rendering static files like error pages.
+
+```ruby
+render file: "#{Rails.root}/public/404.html", layout: false
+```
+
+This renders the raw file (it doesn't support ERB or other handlers). By
+default it is rendered within the current layout.
+
+WARNING: Using the `:file` option in combination with users input can lead to security problems
+since an attacker could use this action to access security sensitive files in your file system.
+
+TIP: `send_file` is often a faster and better option if a layout isn't required.
+
+#### Rendering objects
+
+Rails can render objects responding to `:render_in`.
+
+```ruby
+render MyComponent.new
+```
+
+This calls `render_in` on the provided object with the current view context.
+
 #### Options for `render`
 
-Calls to the `render` method generally accept five options:
+Calls to the `render` method generally accept six options:
 
 * `:content_type`
 * `:layout`
 * `:location`
 * `:status`
 * `:formats`
+* `:variants`
 
 ##### The `:content_type` Option
 
 By default, Rails will serve the results of a rendering operation with the MIME content-type of `text/html` (or `application/json` if you use the `:json` option, or `application/xml` for the `:xml` option.). There are times when you might like to change this, and you can do so by setting the `:content_type` option:
 
 ```ruby
-render file: filename, content_type: "application/rss"
+render template: "feed", content_type: "application/rss"
 ```
 
 ##### The `:layout` Option
@@ -416,6 +417,44 @@ render formats: [:json, :xml]
 ```
 
 If a template with the specified format does not exist an `ActionView::MissingTemplate` error is raised.
+
+##### The `:variants` Option
+
+This tells Rails to look for template variations of the same format.
+You can specify a list of variants by passing the `:variants` option with a symbol or an array.
+
+An example of use would be this.
+
+```ruby
+# called in HomeController#index
+render variants: [:mobile, :desktop]
+```
+
+With this set of variants Rails will look for the following set of templates and use the first that exists.
+
+- `app/views/home/index.html+mobile.erb`
+- `app/views/home/index.html+desktop.erb`
+- `app/views/home/index.html.erb`
+
+If a template with the specified format does not exist an `ActionView::MissingTemplate` error is raised.
+
+Instead of setting the variant on the render call you may also set it on the request object in your controller action.
+
+```ruby
+def index
+  request.variant = determine_variant
+end
+
+private
+
+def determine_variant
+  variant = nil
+  # some code to determine the variant(s) to use
+  variant = :mobile if session[:use_mobile]
+
+  variant
+end
+```
 
 #### Finding Layouts
 
@@ -650,7 +689,7 @@ Just like the `:status` option for `render`, `:status` for `redirect_to` accepts
 
 #### The Difference Between `render` and `redirect_to`
 
-Sometimes inexperienced developers think of `redirect_to` as a sort of `goto` command, moving execution from one place to another in your Rails code. This is _not_ correct. Your code stops running and waits for a new request for the browser. It just happens that you've told the browser what request it should make next, by sending back an HTTP 302 status code.
+Sometimes inexperienced developers think of `redirect_to` as a sort of `goto` command, moving execution from one place to another in your Rails code. This is _not_ correct. Your code stops running and waits for a new request from the browser. It just happens that you've told the browser what request it should make next, by sending back an HTTP 302 status code.
 
 Consider these actions to see the difference:
 
@@ -1068,9 +1107,9 @@ definitions for several similar resources:
 * `users/index.html.erb`
 
     ```html+erb
-    <%= render "shared/search_filters", search: @q do |f| %>
+    <%= render "shared/search_filters", search: @q do |form| %>
       <p>
-        Name contains: <%= f.text_field :name_contains %>
+        Name contains: <%= form.text_field :name_contains %>
       </p>
     <% end %>
     ```
@@ -1078,9 +1117,9 @@ definitions for several similar resources:
 * `roles/index.html.erb`
 
     ```html+erb
-    <%= render "shared/search_filters", search: @q do |f| %>
+    <%= render "shared/search_filters", search: @q do |form| %>
       <p>
-        Title contains: <%= f.text_field :title_contains %>
+        Title contains: <%= form.text_field :title_contains %>
       </p>
     <% end %>
     ```
@@ -1088,13 +1127,13 @@ definitions for several similar resources:
 * `shared/_search_filters.html.erb`
 
     ```html+erb
-    <%= form_for(search) do |f| %>
+    <%= form_with model: search do |form| %>
       <h1>Search form:</h1>
       <fieldset>
-        <%= yield f %>
+        <%= yield form %>
       </fieldset>
       <p>
-        <%= f.submit "Search" %>
+        <%= form.submit "Search" %>
       </p>
     <% end %>
     ```
@@ -1134,13 +1173,13 @@ You can also pass local variables into partials, making them even more powerful 
 * `_form.html.erb`
 
     ```html+erb
-    <%= form_for(zone) do |f| %>
+    <%= form_with model: zone do |form| %>
       <p>
         <b>Zone name</b><br>
-        <%= f.text_field :name %>
+        <%= form.text_field :name %>
       </p>
       <p>
-        <%= f.submit %>
+        <%= form.submit %>
       </p>
     <% end %>
     ```

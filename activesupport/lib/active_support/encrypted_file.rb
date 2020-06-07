@@ -30,7 +30,8 @@ module ActiveSupport
     attr_reader :content_path, :key_path, :env_key, :raise_if_missing_key
 
     def initialize(content_path:, key_path:, env_key:, raise_if_missing_key:)
-      @content_path, @key_path = Pathname.new(content_path), Pathname.new(key_path)
+      @content_path = Pathname.new(content_path).yield_self { |path| path.symlink? ? path.realpath : path }
+      @key_path = Pathname.new(key_path)
       @env_key, @raise_if_missing_key = env_key, raise_if_missing_key
     end
 
@@ -94,7 +95,7 @@ module ActiveSupport
       end
 
       def handle_missing_key
-        raise MissingKeyError, key_path: key_path, env_key: env_key if raise_if_missing_key
+        raise MissingKeyError.new(key_path: key_path, env_key: env_key) if raise_if_missing_key
       end
   end
 end

@@ -3,38 +3,42 @@
 module ActiveRecord
   # :stopdoc:
   module ConnectionAdapters
-    class PostgreSQLTypeMetadata < DelegateClass(SqlTypeMetadata)
-      undef to_yaml if method_defined?(:to_yaml)
+    module PostgreSQL
+      class TypeMetadata < DelegateClass(SqlTypeMetadata)
+        undef to_yaml if method_defined?(:to_yaml)
 
-      attr_reader :oid, :fmod, :array
+        include Deduplicable
 
-      def initialize(type_metadata, oid: nil, fmod: nil)
-        super(type_metadata)
-        @type_metadata = type_metadata
-        @oid = oid
-        @fmod = fmod
-        @array = /\[\]$/.match?(type_metadata.sql_type)
-      end
+        attr_reader :oid, :fmod
 
-      def sql_type
-        super.gsub(/\[\]$/, "")
-      end
-
-      def ==(other)
-        other.is_a?(PostgreSQLTypeMetadata) &&
-          attributes_for_hash == other.attributes_for_hash
-      end
-      alias eql? ==
-
-      def hash
-        attributes_for_hash.hash
-      end
-
-      protected
-
-        def attributes_for_hash
-          [self.class, @type_metadata, oid, fmod]
+        def initialize(type_metadata, oid: nil, fmod: nil)
+          super(type_metadata)
+          @oid = oid
+          @fmod = fmod
         end
+
+        def ==(other)
+          other.is_a?(TypeMetadata) &&
+            __getobj__ == other.__getobj__ &&
+            oid == other.oid &&
+            fmod == other.fmod
+        end
+        alias eql? ==
+
+        def hash
+          TypeMetadata.hash ^
+            __getobj__.hash ^
+            oid.hash ^
+            fmod.hash
+        end
+
+        private
+          def deduplicated
+            __setobj__(__getobj__.deduplicate)
+            super
+          end
+      end
     end
+    PostgreSQLTypeMetadata = PostgreSQL::TypeMetadata
   end
 end

@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../abstract_unit"
 require "active_support/time"
-require "core_ext/date_and_time_behavior"
-require "time_zone_test_helpers"
+require_relative "../core_ext/date_and_time_behavior"
+require_relative "../time_zone_test_helpers"
 
 class TimeExtCalculationsTest < ActiveSupport::TestCase
   def date_time_init(year, month, day, hour, minute, second, usec = 0)
@@ -110,17 +110,19 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_sec_fraction
-    time = Time.utc(2016, 4, 23, 0, 0, Rational(1, 10000000000))
-    assert_equal Rational(1, 10000000000), time.sec_fraction
+    time = Time.utc(2016, 4, 23, 0, 0, Rational(1, 1_000_000_000))
+    assert_equal Rational(1, 1_000_000_000), time.sec_fraction
 
-    time = Time.utc(2016, 4, 23, 0, 0, 0.0000000001)
-    assert_equal 0.0000000001.to_r, time.sec_fraction
+    time = Time.utc(2016, 4, 23, 0, 0, 0.000_000_001)
+    assert_kind_of Rational, time.sec_fraction
+    assert_equal 0.000_000_001, time.sec_fraction.to_f
 
-    time = Time.utc(2016, 4, 23, 0, 0, 0, Rational(1, 10000))
-    assert_equal Rational(1, 10000000000), time.sec_fraction
+    time = Time.utc(2016, 4, 23, 0, 0, 0, Rational(1, 1_000))
+    assert_equal Rational(1, 1_000_000_000), time.sec_fraction
 
-    time = Time.utc(2016, 4, 23, 0, 0, 0, 0.0001)
-    assert_equal 0.0001.to_r / 1000000, time.sec_fraction
+    time = Time.utc(2016, 4, 23, 0, 0, 0, 0.001)
+    assert_kind_of Rational, time.sec_fraction
+    assert_equal 0.001.to_r / 1000000, time.sec_fraction.to_f
   end
 
   def test_beginning_of_day
@@ -514,6 +516,8 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Time.local(1582, 10, 15, 15, 15, 10), Time.local(1582, 10, 14, 15, 15, 10).advance(days: 1)
     assert_equal Time.local(1582, 10, 5, 15, 15, 10), Time.local(1582, 10, 4, 15, 15, 10).advance(days: 1)
     assert_equal Time.local(1582, 10, 4, 15, 15, 10), Time.local(1582, 10, 5, 15, 15, 10).advance(days: -1)
+    assert_equal Time.local(999, 10, 4, 15, 15, 10), Time.local(1000, 10, 4, 15, 15, 10).advance(years: -1)
+    assert_equal Time.local(1000, 10, 4, 15, 15, 10), Time.local(999, 10, 4, 15, 15, 10).advance(years: 1)
   end
 
   def test_last_week
@@ -558,6 +562,7 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal "February 21st, 2005 17:44",       time.to_s(:long_ordinal)
     with_env_tz "UTC" do
       assert_equal "Mon, 21 Feb 2005 17:44:30 +0000", time.to_s(:rfc822)
+      assert_equal "2005-02-21 17:44:30.123456789 +0000", time.to_s(:inspect)
     end
     with_env_tz "US/Central" do
       assert_equal "Thu, 05 Feb 2009 14:30:05 -0600", Time.local(2009, 2, 5, 14, 30, 5).to_s(:rfc822)
@@ -565,6 +570,8 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
       assert_equal "2009-02-05T14:30:05-06:00", Time.local(2009, 2, 5, 14, 30, 5).to_s(:iso8601)
       assert_equal "2008-06-09T04:05:01-05:00", Time.local(2008, 6, 9, 4, 5, 1).to_s(:iso8601)
       assert_equal "2009-02-05T14:30:05Z", Time.utc(2009, 2, 5, 14, 30, 5).to_s(:iso8601)
+      assert_equal "2009-02-05 14:30:05.000000000 -0600", Time.local(2009, 2, 5, 14, 30, 5).to_s(:inspect)
+      assert_equal "2008-06-09 04:05:01.000000000 -0500", Time.local(2008, 6, 9, 4, 5, 1).to_s(:inspect)
     end
   end
 
@@ -679,6 +686,78 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
       assert_equal true,  Time.utc(2000, 1, 1, 0).today?
       assert_equal true,  Time.utc(2000, 1, 1, 23, 59, 59).today?
       assert_equal false, Time.utc(2000, 1, 2, 0).today?
+    end
+  end
+
+  def test_yesterday_with_time_local
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal true,  Time.local(1999, 12, 31, 23, 59, 59).yesterday?
+      assert_equal false, Time.local(2000, 1, 1, 0).yesterday?
+      assert_equal true,  Time.local(1999, 12, 31).yesterday?
+      assert_equal false, Time.local(2000, 1, 2, 0).yesterday?
+    end
+  end
+
+  def test_yesterday_with_time_utc
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal true,  Time.utc(1999, 12, 31, 23, 59, 59).yesterday?
+      assert_equal false, Time.utc(2000, 1, 1, 0).yesterday?
+      assert_equal true,  Time.utc(1999, 12, 31).yesterday?
+      assert_equal false, Time.utc(2000, 1, 2, 0).yesterday?
+    end
+  end
+
+  def test_prev_day_with_time_local
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal true,  Time.local(1999, 12, 31, 23, 59, 59).prev_day?
+      assert_equal false, Time.local(2000, 1, 1, 0).prev_day?
+      assert_equal true,  Time.local(1999, 12, 31).prev_day?
+      assert_equal false, Time.local(2000, 1, 2, 0).prev_day?
+    end
+  end
+
+  def test_prev_day_with_time_utc
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal true,  Time.utc(1999, 12, 31, 23, 59, 59).prev_day?
+      assert_equal false, Time.utc(2000, 1, 1, 0).prev_day?
+      assert_equal true,  Time.utc(1999, 12, 31).prev_day?
+      assert_equal false, Time.utc(2000, 1, 2, 0).prev_day?
+    end
+  end
+
+  def test_tomorrow_with_time_local
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal false, Time.local(1999, 12, 31, 23, 59, 59).tomorrow?
+      assert_equal true,  Time.local(2000, 1, 2, 0).tomorrow?
+      assert_equal true,  Time.local(2000, 1, 2, 23, 59, 59).tomorrow?
+      assert_equal false, Time.local(2000, 1, 1, 0).tomorrow?
+    end
+  end
+
+  def test_tomorrow_with_time_utc
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal false, Time.utc(1999, 12, 31, 23, 59, 59).tomorrow?
+      assert_equal true,  Time.utc(2000, 1, 2, 0).tomorrow?
+      assert_equal true,  Time.utc(2000, 1, 2, 23, 59, 59).tomorrow?
+      assert_equal false, Time.utc(2000, 1, 1, 0).tomorrow?
+    end
+  end
+
+  def test_next_day_with_time_local
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal false, Time.local(1999, 12, 31, 23, 59, 59).next_day?
+      assert_equal true,  Time.local(2000, 1, 2, 0).next_day?
+      assert_equal true,  Time.local(2000, 1, 2, 23, 59, 59).next_day?
+      assert_equal false, Time.local(2000, 1, 1, 0).next_day?
+    end
+  end
+
+  def test_next_day_with_time_utc
+    Date.stub(:current, Date.new(2000, 1, 1)) do
+      assert_equal false, Time.utc(1999, 12, 31, 23, 59, 59).next_day?
+      assert_equal true,  Time.utc(2000, 1, 2, 0).next_day?
+      assert_equal true,  Time.utc(2000, 1, 2, 23, 59, 59).next_day?
+      assert_equal false, Time.utc(2000, 1, 1, 0).next_day?
     end
   end
 
@@ -946,6 +1025,66 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     end
 
     assert_equal "invalid date", exception.message
+  end
+
+  def test_prev_day
+    assert_equal date_time_init(2005, 2, 24, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).prev_day(-2)
+    assert_equal date_time_init(2005, 2, 23, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).prev_day(-1)
+    assert_equal date_time_init(2005, 2, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).prev_day(0)
+    assert_equal date_time_init(2005, 2, 21, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).prev_day(1)
+    assert_equal date_time_init(2005, 2, 20, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).prev_day(2)
+    assert_equal date_time_init(2005, 2, 21, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).prev_day
+    assert_equal date_time_init(2005, 2, 28, 10, 10, 10), date_time_init(2005, 3, 2, 10, 10, 10).prev_day.prev_day
+  end
+
+  def test_next_day
+    assert_equal date_time_init(2005, 2, 20, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).next_day(-2)
+    assert_equal date_time_init(2005, 2, 21, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).next_day(-1)
+    assert_equal date_time_init(2005, 2, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).next_day(0)
+    assert_equal date_time_init(2005, 2, 23, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).next_day(1)
+    assert_equal date_time_init(2005, 2, 24, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).next_day(2)
+    assert_equal date_time_init(2005, 2, 23, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).next_day
+    assert_equal date_time_init(2005, 3, 2, 10, 10, 10),  date_time_init(2005, 2, 28, 10, 10, 10).next_day.next_day
+  end
+
+  def test_prev_month
+    assert_equal date_time_init(2005, 4, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).prev_month(-2)
+    assert_equal date_time_init(2005, 3, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).prev_month(-1)
+    assert_equal date_time_init(2005, 2, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).prev_month(0)
+    assert_equal date_time_init(2005, 1, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).prev_month(1)
+    assert_equal date_time_init(2004, 12, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).prev_month(2)
+    assert_equal date_time_init(2005, 1, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).prev_month
+    assert_equal date_time_init(2004, 12, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).prev_month.prev_month
+  end
+
+  def test_next_month
+    assert_equal date_time_init(2004, 12, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).next_month(-2)
+    assert_equal date_time_init(2005, 1, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).next_month(-1)
+    assert_equal date_time_init(2005, 2, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).next_month(0)
+    assert_equal date_time_init(2005, 3, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).next_month(1)
+    assert_equal date_time_init(2005, 4, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).next_month(2)
+    assert_equal date_time_init(2005, 3, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).next_month
+    assert_equal date_time_init(2005, 4, 22, 10, 10, 10), date_time_init(2005, 2, 22, 10, 10, 10).next_month.next_month
+  end
+
+  def test_prev_year
+    assert_equal date_time_init(2007, 6, 5, 10, 10, 10),  date_time_init(2005, 6, 5, 10, 10, 10).prev_year(-2)
+    assert_equal date_time_init(2006, 6, 5, 10, 10, 10),  date_time_init(2005, 6, 5, 10, 10, 10).prev_year(-1)
+    assert_equal date_time_init(2005, 6, 5, 10, 10, 10),  date_time_init(2005, 6, 5, 10, 10, 10).prev_year(0)
+    assert_equal date_time_init(2004, 6, 5, 10, 10, 10),  date_time_init(2005, 6, 5, 10, 10, 10).prev_year(1)
+    assert_equal date_time_init(2003, 6, 5, 10, 10, 10),  date_time_init(2005, 6, 5, 10, 10, 10).prev_year(2)
+    assert_equal date_time_init(2004, 6, 5, 10, 10, 10),  date_time_init(2005, 6, 5, 10, 10, 10).prev_year
+    assert_equal date_time_init(2003, 6, 5, 10, 10, 10),  date_time_init(2005, 6, 5, 10, 10, 10).prev_year.prev_year
+  end
+
+  def test_next_year
+    assert_equal date_time_init(2003, 6, 5, 10, 10, 10), date_time_init(2005, 6, 5, 10, 10, 10).next_year(-2)
+    assert_equal date_time_init(2004, 6, 5, 10, 10, 10), date_time_init(2005, 6, 5, 10, 10, 10).next_year(-1)
+    assert_equal date_time_init(2005, 6, 5, 10, 10, 10), date_time_init(2005, 6, 5, 10, 10, 10).next_year(0)
+    assert_equal date_time_init(2006, 6, 5, 10, 10, 10), date_time_init(2005, 6, 5, 10, 10, 10).next_year(1)
+    assert_equal date_time_init(2007, 6, 5, 10, 10, 10), date_time_init(2005, 6, 5, 10, 10, 10).next_year(2)
+    assert_equal date_time_init(2006, 6, 5, 10, 10, 10), date_time_init(2005, 6, 5, 10, 10, 10).next_year
+    assert_equal date_time_init(2007, 6, 5, 10, 10, 10), date_time_init(2005, 6, 5, 10, 10, 10).next_year.next_year
   end
 end
 

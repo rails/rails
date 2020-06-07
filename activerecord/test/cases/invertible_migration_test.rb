@@ -22,6 +22,15 @@ module ActiveRecord
       end
     end
 
+    class InvertibleChangeTableMigration < SilentMigration
+      def change
+        change_table("horses") do |t|
+          t.column :name, :string
+          t.remove :remind_at, type: :datetime
+        end
+      end
+    end
+
     class InvertibleTransactionMigration < InvertibleMigration
       def change
         transaction do
@@ -77,6 +86,7 @@ module ActiveRecord
           t.column :name, :string
           t.column :color, :string
           t.index [:name, :color]
+          t.index [:color]
         end
       end
     end
@@ -85,6 +95,7 @@ module ActiveRecord
       def change
         change_table("horses") do |t|
           t.remove_index [:name, :color]
+          t.remove_index [:color], if_exists: true
         end
       end
     end
@@ -100,6 +111,32 @@ module ActiveRecord
     class ChangeColumnDefault2 < SilentMigration
       def change
         change_column_default :horses, :name, from: "Sekitoba", to: "Diomed"
+      end
+    end
+
+    class ChangeColumnComment1 < SilentMigration
+      def change
+        create_table("horses") do |t|
+          t.column :name, :string, comment: "Sekitoba"
+        end
+      end
+    end
+
+    class ChangeColumnComment2 < SilentMigration
+      def change
+        change_column_comment :horses, :name, from: "Sekitoba", to: "Diomed"
+      end
+    end
+
+    class ChangeTableComment1 < SilentMigration
+      def change
+        create_table("horses", comment: "Sekitoba")
+      end
+    end
+
+    class ChangeTableComment2 < SilentMigration
+      def change
+        change_table_comment :horses, from: "Sekitoba", to: "Diomed"
       end
     end
 
@@ -238,6 +275,15 @@ module ActiveRecord
       assert_not migration.connection.table_exists?("horses")
     end
 
+    def test_migrate_revert_change_table
+      InvertibleMigration.new.migrate :up
+      migration = InvertibleChangeTableMigration.new
+      migration.migrate :up
+      assert_not migration.connection.column_exists?(:horses, :remind_at)
+      migration.migrate :down
+      assert migration.connection.column_exists?(:horses, :remind_at)
+    end
+
     def test_migrate_revert_by_part
       InvertibleMigration.new.migrate :up
       received = []
@@ -290,6 +336,7 @@ module ActiveRecord
     def test_migrate_revert_change_column_default
       migration1 = ChangeColumnDefault1.new
       migration1.migrate(:up)
+      Horse.reset_column_information
       assert_equal "Sekitoba", Horse.new.name
 
       migration2 = ChangeColumnDefault2.new
@@ -302,11 +349,45 @@ module ActiveRecord
       assert_equal "Sekitoba", Horse.new.name
     end
 
+    if ActiveRecord::Base.connection.supports_comments?
+      def test_migrate_revert_change_column_comment
+        migration1 = ChangeColumnComment1.new
+        migration1.migrate(:up)
+        Horse.reset_column_information
+        assert_equal "Sekitoba", Horse.columns_hash["name"].comment
+
+        migration2 = ChangeColumnComment2.new
+        migration2.migrate(:up)
+        Horse.reset_column_information
+        assert_equal "Diomed", Horse.columns_hash["name"].comment
+
+        migration2.migrate(:down)
+        Horse.reset_column_information
+        assert_equal "Sekitoba", Horse.columns_hash["name"].comment
+      end
+
+      def test_migrate_revert_change_table_comment
+        connection = ActiveRecord::Base.connection
+        migration1 = ChangeTableComment1.new
+        migration1.migrate(:up)
+        assert_equal "Sekitoba", connection.table_comment("horses")
+
+        migration2 = ChangeTableComment2.new
+        migration2.migrate(:up)
+        assert_equal "Diomed", connection.table_comment("horses")
+
+        migration2.migrate(:down)
+        assert_equal "Sekitoba", connection.table_comment("horses")
+      end
+    end
+
     if current_adapter?(:PostgreSQLAdapter)
       def test_migrate_enable_and_disable_extension
         migration1 = InvertibleMigration.new
         migration2 = DisableExtension1.new
         migration3 = DisableExtension2.new
+
+        assert_equal true, Horse.connection.extension_available?("hstore")
 
         migration1.migrate(:up)
         migration2.migrate(:up)

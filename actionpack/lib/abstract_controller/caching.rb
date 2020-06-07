@@ -15,7 +15,7 @@ module AbstractController
       end
 
       def cache_store=(store)
-        config.cache_store = ActiveSupport::Cache.lookup_store(store)
+        config.cache_store = ActiveSupport::Cache.lookup_store(*store)
       end
 
       private

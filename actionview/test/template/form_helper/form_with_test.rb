@@ -62,7 +62,7 @@ class FormWithActsLikeFormTagTest < FormWithTest
   end
 
   def whole_form(action = "http://www.example.com", options = {})
-    out = form_text(action, options) + hidden_fields(options)
+    out = form_text(action, **options) + hidden_fields(options)
 
     if block_given?
       out << yield << "</form>"
@@ -168,7 +168,7 @@ class FormWithActsLikeFormTagTest < FormWithTest
 end
 
 class FormWithActsLikeFormForTest < FormWithTest
-  def form_with(*)
+  def form_with(*, **)
     @output_buffer = super
   end
 
@@ -2060,6 +2060,7 @@ class FormWithActsLikeFormForTest < FormWithTest
         end
       RUBY_EVAL
     end
+    ruby2_keywords(:fields) if respond_to?(:ruby2_keywords, true)
   end
 
   def test_form_with_with_labelled_builder

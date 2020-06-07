@@ -301,6 +301,13 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_select_tag_with_include_blank_doesnt_change_options
+    options = { include_blank: true, prompt: "string" }
+    expected_options = options.dup
+    select_tag "places", raw("<option>Home</option><option>Work</option><option>Pub</option>"), options
+    expected_options.each { |k, v| assert_equal v, options[k] }
+  end
+
   def test_select_tag_with_include_blank_false
     actual = select_tag "places", raw("<option>Home</option><option>Work</option><option>Pub</option>"), include_blank: false
     expected = %(<select id="places" name="places"><option>Home</option><option>Work</option><option>Pub</option></select>)
@@ -796,7 +803,6 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   private
-
     def root_elem(rendered_content)
       Nokogiri::HTML::DocumentFragment.parse(rendered_content).children.first # extract from nodeset
     end

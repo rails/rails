@@ -471,9 +471,65 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_scaffold_generator_attachments
+    run_generator ["message", "video:attachment", "photos:attachments", "images:attachments"]
+
+    assert_file "app/models/message.rb", /has_one_attached :video/
+    assert_file "app/models/message.rb", /has_many_attached :photos/
+
+    assert_file "app/controllers/messages_controller.rb" do |content|
+      assert_instance_method :message_params, content do |m|
+        assert_match(/permit\(:video, photos: \[\], images: \[\]\)/, m)
+      end
+    end
+
+    assert_file "app/views/messages/_form.html.erb" do |content|
+      assert_match(/^\W{4}<%= form\.file_field :video %>/, content)
+      assert_match(/^\W{4}<%= form\.file_field :photos, multiple: true %>/, content)
+    end
+
+    assert_file "app/views/messages/show.html.erb" do |content|
+      assert_match(/^\W{2}<%= link_to @message\.video\.filename, @message\.video if @message\.video\.attached\? %>/, content)
+      assert_match(/^\W{4}<div><%= link_to photo\.filename, photo %>/, content)
+    end
+
+    assert_file "test/system/messages_test.rb" do |content|
+      assert_no_match(/fill_in "Video"/, content)
+      assert_no_match(/fill_in "Photos"/, content)
+    end
+  end
+
+  def test_scaffold_generator_rich_text
+    run_generator ["message", "content:rich_text"]
+
+    assert_file "app/models/message.rb", /rich_text :content/
+
+    assert_file "app/controllers/messages_controller.rb" do |content|
+      assert_instance_method :message_params, content do |m|
+        assert_match(/permit\(:content\)/, m)
+      end
+    end
+
+    assert_file "app/views/messages/_form.html.erb" do |content|
+      assert_match(/^\W{4}<%= form\.rich_text_area :content %>/, content)
+    end
+
+    assert_file "test/system/messages_test.rb" do |content|
+      assert_no_match(/fill_in "Content"/, content)
+    end
+  end
+
   def test_scaffold_generator_database
     with_secondary_database_configuration do
       run_generator ["posts", "--database=secondary"]
+
+      assert_migration "db/secondary_migrate/create_posts.rb"
+    end
+  end
+
+  def test_scaffold_generator_database_with_aliases
+    with_secondary_database_configuration do
+      run_generator ["posts", "--db=secondary"]
 
       assert_migration "db/secondary_migrate/create_posts.rb"
     end

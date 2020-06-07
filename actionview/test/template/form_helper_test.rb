@@ -1897,7 +1897,6 @@ class FormHelperTest < ActionView::TestCase
   def test_form_tags_do_not_call_private_properties_on_form_object
     obj = Class.new do
       private
-
         def private_property
           raise "This method should not be called."
         end

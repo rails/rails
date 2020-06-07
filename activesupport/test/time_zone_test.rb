@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 require "active_support/time"
-require "time_zone_test_helpers"
+require_relative "time_zone_test_helpers"
 require "yaml"
 
 class TimeZoneTest < ActiveSupport::TestCase
@@ -10,8 +10,15 @@ class TimeZoneTest < ActiveSupport::TestCase
 
   def test_utc_to_local
     zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
-    assert_equal Time.utc(1999, 12, 31, 19), zone.utc_to_local(Time.utc(2000, 1)) # standard offset -0500
-    assert_equal Time.utc(2000, 6, 30, 20), zone.utc_to_local(Time.utc(2000, 7)) # dst offset -0400
+
+    with_utc_to_local_returns_utc_offset_times false do
+      assert_equal Time.utc(1999, 12, 31, 19), zone.utc_to_local(Time.utc(2000, 1)) # standard offset -0500
+      assert_equal Time.utc(2000, 6, 30, 20), zone.utc_to_local(Time.utc(2000, 7)) # dst offset -0400
+    end
+    with_utc_to_local_returns_utc_offset_times true do
+      assert_equal Time.new(1999, 12, 31, 19, 0, 0, -18000), zone.utc_to_local(Time.utc(2000, 1)) # standard offset -0500
+      assert_equal Time.new(2000, 6, 30, 20, 0, 0, -14400), zone.utc_to_local(Time.utc(2000, 7)) # dst offset -0400
+    end
   end
 
   def test_local_to_utc
@@ -22,7 +29,7 @@ class TimeZoneTest < ActiveSupport::TestCase
 
   def test_period_for_local
     zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
-    assert_instance_of TZInfo::TimezonePeriod, zone.period_for_local(Time.utc(2000))
+    assert_kind_of TZInfo::TimezonePeriod, zone.period_for_local(Time.utc(2000))
   end
 
   ActiveSupport::TimeZone::MAPPING.each_key do |name|
@@ -54,7 +61,7 @@ class TimeZoneTest < ActiveSupport::TestCase
 
     define_method("test_utc_offset_for_#{name}") do
       period = zone.tzinfo.current_period
-      assert_equal period.utc_offset, zone.utc_offset
+      assert_equal period.base_utc_offset, zone.utc_offset
     end
   end
 
@@ -96,8 +103,15 @@ class TimeZoneTest < ActiveSupport::TestCase
     zone = ActiveSupport::TimeZone["America/Montevideo"]
     assert_equal ActiveSupport::TimeZone, zone.class
     assert_equal zone.object_id, ActiveSupport::TimeZone["America/Montevideo"].object_id
-    assert_equal Time.utc(2010, 1, 31, 22), zone.utc_to_local(Time.utc(2010, 2)) # daylight saving offset -0200
-    assert_equal Time.utc(2010, 3, 31, 21), zone.utc_to_local(Time.utc(2010, 4)) # standard offset -0300
+
+    with_utc_to_local_returns_utc_offset_times false do
+      assert_equal Time.utc(2010, 1, 31, 22), zone.utc_to_local(Time.utc(2010, 2)) # daylight saving offset -0200
+      assert_equal Time.utc(2010, 3, 31, 21), zone.utc_to_local(Time.utc(2010, 4)) # standard offset -0300
+    end
+    with_utc_to_local_returns_utc_offset_times true do
+      assert_equal Time.new(2010, 1, 31, 22, 0, 0, -7200), zone.utc_to_local(Time.utc(2010, 2)) # daylight saving offset -0200
+      assert_equal Time.new(2010, 3, 31, 21, 0, 0, -10800), zone.utc_to_local(Time.utc(2010, 4)) # standard offset -0300
+    end
   end
 
   def test_today
@@ -715,6 +729,13 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert zone =~ /Eastern/
     assert zone =~ /New_York/
     assert zone !~ /Nonexistent_Place/
+  end
+
+  def test_zone_match?
+    zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+    assert zone.match?(/Eastern/)
+    assert zone.match?(/New_York/)
+    assert_not zone.match?(/Nonexistent_Place/)
   end
 
   def test_to_s

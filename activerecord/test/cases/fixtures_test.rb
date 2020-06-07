@@ -46,6 +46,14 @@ class FixturesTest < ActiveRecord::TestCase
                  movies projects subscribers topics tasks )
   MATCH_ATTRIBUTE_NAME = /[a-zA-Z][-\w]*/
 
+  def setup
+    Arel::Table.engine = nil # should not rely on the global Arel::Table.engine
+  end
+
+  def teardown
+    Arel::Table.engine = ActiveRecord::Base
+  end
+
   def test_clean_fixtures
     FIXTURES.each do |name|
       fixtures = nil
@@ -67,7 +75,7 @@ class FixturesTest < ActiveRecord::TestCase
     end
 
     def call(_, _, _, _, values)
-      @events << values[:sql] if values[:sql] =~ /INSERT/
+      @events << values[:sql] if /INSERT/.match?(values[:sql])
     end
   end
 
@@ -147,27 +155,25 @@ class FixturesTest < ActiveRecord::TestCase
           ]
         }
 
-        ActiveRecord::Base.connection.stub(:supports_set_server_option?, false) do
-          assert_nothing_raised do
-            conn = ActiveRecord::Base.connection
-            conn.execute("SELECT 1; SELECT 2;")
-            conn.raw_connection.abandon_results!
-          end
+        assert_nothing_raised do
+          conn = ActiveRecord::Base.connection
+          conn.execute("SELECT 1; SELECT 2;")
+          conn.raw_connection.abandon_results!
+        end
 
-          assert_difference "TrafficLight.count" do
-            ActiveRecord::Base.transaction do
-              conn = ActiveRecord::Base.connection
-              assert_equal 1, conn.open_transactions
-              conn.insert_fixtures_set(fixtures)
-              assert_equal 1, conn.open_transactions
-            end
-          end
-
-          assert_nothing_raised do
+        assert_difference "TrafficLight.count" do
+          ActiveRecord::Base.transaction do
             conn = ActiveRecord::Base.connection
-            conn.execute("SELECT 1; SELECT 2;")
-            conn.raw_connection.abandon_results!
+            assert_equal 1, conn.open_transactions
+            conn.insert_fixtures_set(fixtures)
+            assert_equal 1, conn.open_transactions
           end
+        end
+
+        assert_nothing_raised do
+          conn = ActiveRecord::Base.connection
+          conn.execute("SELECT 1; SELECT 2;")
+          conn.raw_connection.abandon_results!
         end
       end
     end
@@ -184,23 +190,21 @@ class FixturesTest < ActiveRecord::TestCase
           ]
         }
 
-        ActiveRecord::Base.connection.stub(:supports_set_server_option?, false) do
-          assert_raises(ActiveRecord::StatementInvalid) do
-            conn = ActiveRecord::Base.connection
-            conn.execute("SELECT 1; SELECT 2;")
-            conn.raw_connection.abandon_results!
-          end
+        assert_raises(ActiveRecord::StatementInvalid) do
+          conn = ActiveRecord::Base.connection
+          conn.execute("SELECT 1; SELECT 2;")
+          conn.raw_connection.abandon_results!
+        end
 
-          assert_difference "TrafficLight.count" do
-            conn = ActiveRecord::Base.connection
-            conn.insert_fixtures_set(fixtures)
-          end
+        assert_difference "TrafficLight.count" do
+          conn = ActiveRecord::Base.connection
+          conn.insert_fixtures_set(fixtures)
+        end
 
-          assert_raises(ActiveRecord::StatementInvalid) do
-            conn = ActiveRecord::Base.connection
-            conn.execute("SELECT 1; SELECT 2;")
-            conn.raw_connection.abandon_results!
-          end
+        assert_raises(ActiveRecord::StatementInvalid) do
+          conn = ActiveRecord::Base.connection
+          conn.execute("SELECT 1; SELECT 2;")
+          conn.raw_connection.abandon_results!
         end
       end
     end
@@ -209,7 +213,7 @@ class FixturesTest < ActiveRecord::TestCase
       conn = ActiveRecord::Base.connection
       mysql_margin = 2
       packet_size = 1024
-      bytes_needed_to_have_a_1024_bytes_fixture = 858
+      bytes_needed_to_have_a_1024_bytes_fixture = 906
       fixtures = {
         "traffic_lights" => [
           { "location" => "US", "state" => ["NY"], "long_state" => ["a" * bytes_needed_to_have_a_1024_bytes_fixture] },
@@ -496,11 +500,7 @@ class FixturesTest < ActiveRecord::TestCase
       ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT + "/naked/yml", "parrots")
     end
 
-    if current_adapter?(:SQLite3Adapter)
-      assert_equal(%(table "parrots" has no column named "arrr".), e.message)
-    else
-      assert_equal(%(table "parrots" has no columns named "arrr", "foobar".), e.message)
-    end
+    assert_equal(%(table "parrots" has no columns named "arrr", "foobar".), e.message)
   end
 
   def test_yaml_file_with_symbol_columns
@@ -529,7 +529,7 @@ class FixturesTest < ActiveRecord::TestCase
   end
 
   def test_binary_in_fixtures
-    data = File.open(ASSETS_ROOT + "/flowers.jpg", "rb") { |f| f.read }
+    data = File.binread(ASSETS_ROOT + "/flowers.jpg")
     data.force_encoding("ASCII-8BIT")
     data.freeze
     assert_equal data, @flowers.data
@@ -809,7 +809,7 @@ class FixtureWithSetModelClassTest < ActiveRecord::TestCase
   fixtures :other_posts, :other_comments
 
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
-  # and thus takes into account the +set_model_class+.
+  # and thus takes into account the `model_class` set in the fixture.
   self.use_transactional_tests = false
 
   def test_uses_fixture_class_defined_in_yaml
@@ -829,7 +829,7 @@ class SetFixtureClassPrevailsTest < ActiveRecord::TestCase
   fixtures :bad_posts
 
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
-  # and thus takes into account the +set_model_class+.
+  # and thus takes into account our `set_fixture_class`.
   self.use_transactional_tests = false
 
   def test_uses_set_fixture_class
@@ -841,7 +841,7 @@ class CheckSetTableNameFixturesTest < ActiveRecord::TestCase
   set_fixture_class funny_jokes: Joke
   fixtures :funny_jokes
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
-  # and thus takes into account our set_fixture_class
+  # and thus takes into account our `set_fixture_class`.
   self.use_transactional_tests = false
 
   def test_table_method
@@ -853,7 +853,7 @@ class FixtureNameIsNotTableNameFixturesTest < ActiveRecord::TestCase
   set_fixture_class items: Book
   fixtures :items
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
-  # and thus takes into account our set_fixture_class
+  # and thus takes into account our `set_fixture_class`.
   self.use_transactional_tests = false
 
   def test_named_accessor
@@ -865,7 +865,7 @@ class FixtureNameIsNotTableNameMultipleFixturesTest < ActiveRecord::TestCase
   set_fixture_class items: Book, funny_jokes: Joke
   fixtures :items, :funny_jokes
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
-  # and thus takes into account our set_fixture_class
+  # and thus takes into account our `set_fixture_class`.
   self.use_transactional_tests = false
 
   def test_named_accessor_of_differently_named_fixture
@@ -952,14 +952,12 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
   end
 
   private
-
     def fire_connection_notification(connection)
       assert_called_with(ActiveRecord::Base.connection_handler, :retrieve_connection, ["book"], returns: connection) do
         message_bus = ActiveSupport::Notifications.instrumenter
         payload = {
           spec_name: "book",
           config: nil,
-          connection_id: connection.object_id
         }
 
         message_bus.instrument("!connection.active_record", payload) { }
@@ -984,7 +982,7 @@ class CheckEscapedYamlFixturesTest < ActiveRecord::TestCase
   set_fixture_class funny_jokes: Joke
   fixtures :funny_jokes
   # Set to false to blow away fixtures cache and ensure our fixtures are loaded
-  # and thus takes into account our set_fixture_class
+  # and thus takes into account our `set_fixture_class`.
   self.use_transactional_tests = false
 
   def test_proper_escaped_fixture
@@ -1284,6 +1282,37 @@ class CustomNameForFixtureOrModelTest < ActiveRecord::TestCase
   end
 end
 
+class IgnoreFixturesTest < ActiveRecord::TestCase
+  fixtures :other_books, :parrots
+
+  # Set to false to blow away fixtures cache and ensure our fixtures are loaded
+  # without interfering with other tests that use the same `model_class`.
+  self.use_transactional_tests = false
+
+  test "ignores books fixtures" do
+    assert_raise(StandardError) { other_books(:published) }
+    assert_raise(StandardError) { other_books(:published_paperback) }
+    assert_raise(StandardError) { other_books(:published_ebook) }
+
+    assert_equal 2, Book.count
+    assert_equal "Agile Web Development with Rails", other_books(:awdr).name
+    assert_equal "published", other_books(:awdr).status
+    assert_equal "paperback", other_books(:awdr).format
+    assert_equal "english", other_books(:awdr).language
+
+    assert_equal "Ruby for Rails", other_books(:rfr).name
+    assert_equal "ebook", other_books(:rfr).format
+    assert_equal "published", other_books(:rfr).status
+  end
+
+  test "ignores parrots fixtures" do
+    assert_raise(StandardError) { parrots(:DEFAULT) }
+    assert_raise(StandardError) { parrots(:DEAD_PARROT) }
+
+    assert_equal "DeadParrot", parrots(:polly).parrot_sti_class
+  end
+end
+
 class FixturesWithDefaultScopeTest < ActiveRecord::TestCase
   fixtures :bulbs
 
@@ -1349,36 +1378,72 @@ class NilFixturePathTest < ActiveRecord::TestCase
   end
 end
 
-class MultipleDatabaseFixturesTest < ActiveRecord::TestCase
-  test "enlist_fixture_connections ensures multiple databases share a connection pool" do
-    with_temporary_connection_pool do
-      ActiveRecord::Base.connects_to database: { writing: :arunit, reading: :arunit2 }
+class FileFixtureConflictTest < ActiveRecord::TestCase
+  def self.file_fixture_path
+    FIXTURES_ROOT + "/all/admin"
+  end
 
-      rw_conn = ActiveRecord::Base.connection
-      ro_conn = ActiveRecord::Base.connection_handlers[:reading].connection_pool_list.first.connection
+  test "ignores file fixtures" do
+    self.class.fixture_path = FIXTURES_ROOT + "/all"
+    self.class.fixtures :all
 
-      assert_not_equal rw_conn, ro_conn
+    assert_equal %w(developers namespaced/accounts people tasks), fixture_table_names.sort
+  end
+end
 
-      enlist_fixture_connections
+if current_adapter?(:SQLite3Adapter) && !in_memory_db?
+  class MultipleFixtureConnectionsTest < ActiveRecord::TestCase
+    include ActiveRecord::TestFixtures
 
-      rw_conn = ActiveRecord::Base.connection
+    fixtures :dogs
+
+    def setup
+      @old_handler = ActiveRecord::Base.connection_handler
+      @old_handlers = ActiveRecord::Base.connection_handlers
+      @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
+      db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(ENV["RAILS_ENV"], "readonly", readonly_config)
+
+      handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
+      handler.establish_connection(db_config)
+      ActiveRecord::Base.connection_handlers = {}
+      ActiveRecord::Base.connection_handler = handler
+      ActiveRecord::Base.connects_to(database: { writing: :default, reading: :readonly })
+    end
+
+    def teardown
+      ActiveRecord::Base.configurations = @prev_configs
+      ActiveRecord::Base.connection_handler = @old_handler
+      ActiveRecord::Base.connection_handlers = @old_handlers
+    end
+
+    def test_uses_writing_connection_for_fixtures
+      ActiveRecord::Base.connected_to(role: :reading) do
+        Dog.first
+
+        assert_nothing_raised do
+          ActiveRecord::Base.connected_to(role: :writing) { Dog.create! alias: "Doggo" }
+        end
+      end
+    end
+
+    def test_writing_and_reading_connections_are_the_same
+      rw_conn = ActiveRecord::Base.connection_handlers[:writing].connection_pool_list.first.connection
       ro_conn = ActiveRecord::Base.connection_handlers[:reading].connection_pool_list.first.connection
 
       assert_equal rw_conn, ro_conn
     end
-  ensure
-    ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.connection_handler }
+
+    private
+      def config
+        { "default" => default_config, "readonly" => readonly_config }
+      end
+
+      def default_config
+        { "adapter" => "sqlite3", "database" => "test/fixtures/fixture_database.sqlite3" }
+      end
+
+      def readonly_config
+        default_config.merge("replica" => true)
+      end
   end
-
-  private
-
-    def with_temporary_connection_pool
-      old_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(ActiveRecord::Base.connection_specification_name)
-      new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new ActiveRecord::Base.connection_pool.spec
-      ActiveRecord::Base.connection_handler.send(:owner_to_pool)["primary"] = new_pool
-
-      yield
-    ensure
-      ActiveRecord::Base.connection_handler.send(:owner_to_pool)["primary"] = old_pool
-    end
 end

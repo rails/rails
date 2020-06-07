@@ -68,10 +68,17 @@ def run_without_aborting(tasks)
   errors = []
 
   tasks.each do |task|
+    puts "\n\n---   rake #{task}\n"
+
     Rake::Task[task].invoke
   rescue Exception
+    puts "\n^^^ +++"
+
     errors << task
   end
 
-  abort "Errors running #{errors.join(', ')}" if errors.any?
+  if errors.any?
+    puts "\n\n+++   Summary\n"
+    abort "Errors running #{errors.join(', ')}"
+  end
 end

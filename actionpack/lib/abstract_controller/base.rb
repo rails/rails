@@ -9,6 +9,35 @@ require "active_support/core_ext/module/attr_internal"
 module AbstractController
   # Raised when a non-existing controller action is triggered.
   class ActionNotFound < StandardError
+    attr_reader :controller, :action
+    def initialize(message = nil, controller = nil, action = nil)
+      @controller = controller
+      @action = action
+      super(message)
+    end
+
+    class Correction
+      def initialize(error)
+        @error = error
+      end
+
+      def corrections
+        if @error.action
+          maybe_these = @error.controller.class.action_methods
+
+          maybe_these.sort_by { |n|
+            DidYouMean::Jaro.distance(@error.action.to_s, n)
+          }.reverse.first(4)
+        else
+          []
+        end
+      end
+    end
+
+    # We may not have DYM, and DYM might not let us register error handlers
+    if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
+      DidYouMean.correct_error(self, Correction)
+    end
   end
 
   # AbstractController::Base is a low-level API. Nobody should be
@@ -104,7 +133,7 @@ module AbstractController
       # ==== Returns
       # * <tt>String</tt>
       def controller_path
-        @controller_path ||= name.sub(/Controller$/, "").underscore unless anonymous?
+        @controller_path ||= name.delete_suffix("Controller").underscore unless anonymous?
       end
 
       # Refresh the cached action_methods when a new action_method is added.
@@ -128,7 +157,7 @@ module AbstractController
       @_action_name = action.to_s
 
       unless action_name = _find_action_name(@_action_name)
-        raise ActionNotFound, "The action '#{action}' could not be found for #{self.class.name}"
+        raise ActionNotFound.new("The action '#{action}' could not be found for #{self.class.name}", self, action)
       end
 
       @_response_body = nil
@@ -176,7 +205,6 @@ module AbstractController
     end
 
     private
-
       # Returns true if the name can be considered an action because
       # it has a method defined in the controller.
       #

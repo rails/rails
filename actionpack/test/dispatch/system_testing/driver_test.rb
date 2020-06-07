@@ -56,61 +56,75 @@ class DriverTest < ActiveSupport::TestCase
   end
 
   test "define extra capabilities using chrome" do
-    driver_option = nil
     driver = ActionDispatch::SystemTesting::Driver.new(:selenium, screen_size: [1400, 1400], using: :chrome) do |option|
       option.add_argument("start-maximized")
       option.add_emulation(device_name: "iphone 6")
       option.add_preference(:detach, true)
-
-      driver_option = option
     end
     driver.use
+    browser_options = driver.__send__(:browser_options)
 
-    expected = { args: ["start-maximized"], mobileEmulation: { deviceName: "iphone 6" }, prefs: { detach: true } }
-    assert_equal expected, driver_option.as_json
+    expected = {
+      "goog:chromeOptions" => {
+        "args" => ["start-maximized"],
+        "mobileEmulation" => { "deviceName" => "iphone 6" },
+        "prefs" => { "detach" => true }
+      }
+    }
+    assert_equal expected, browser_options[:options].as_json
   end
 
   test "define extra capabilities using headless_chrome" do
-    driver_option = nil
     driver = ActionDispatch::SystemTesting::Driver.new(:selenium, screen_size: [1400, 1400], using: :headless_chrome) do |option|
       option.add_argument("start-maximized")
       option.add_emulation(device_name: "iphone 6")
       option.add_preference(:detach, true)
-
-      driver_option = option
     end
     driver.use
+    browser_options = driver.__send__(:browser_options)
 
-    expected = { args: ["start-maximized"], mobileEmulation: { deviceName: "iphone 6" }, prefs: { detach: true } }
-    assert_equal expected, driver_option.as_json
+    expected = {
+      "goog:chromeOptions" => {
+        "args" => ["--headless", "start-maximized"],
+        "mobileEmulation" => { "deviceName" => "iphone 6" },
+        "prefs" => { "detach" => true }
+      }
+    }
+    assert_equal expected, browser_options[:options].as_json
   end
 
   test "define extra capabilities using firefox" do
-    driver_option = nil
     driver = ActionDispatch::SystemTesting::Driver.new(:selenium, screen_size: [1400, 1400], using: :firefox) do |option|
       option.add_preference("browser.startup.homepage", "http://www.seleniumhq.com/")
       option.add_argument("--host=127.0.0.1")
-
-      driver_option = option
     end
     driver.use
+    browser_options = driver.__send__(:browser_options)
 
-    expected = { "moz:firefoxOptions" => { args: ["--host=127.0.0.1"], prefs: { "browser.startup.homepage" => "http://www.seleniumhq.com/" } } }
-    assert_equal expected, driver_option.as_json
+    expected = {
+      "moz:firefoxOptions" => {
+        "args" => ["--host=127.0.0.1"],
+        "prefs" => { "browser.startup.homepage" => "http://www.seleniumhq.com/" }
+      }
+    }
+    assert_equal expected, browser_options[:options].as_json
   end
 
   test "define extra capabilities using headless_firefox" do
-    driver_option = nil
     driver = ActionDispatch::SystemTesting::Driver.new(:selenium, screen_size: [1400, 1400], using: :headless_firefox) do |option|
       option.add_preference("browser.startup.homepage", "http://www.seleniumhq.com/")
       option.add_argument("--host=127.0.0.1")
-
-      driver_option = option
     end
     driver.use
+    browser_options = driver.__send__(:browser_options)
 
-    expected = { "moz:firefoxOptions" => { args: ["--host=127.0.0.1"], prefs: { "browser.startup.homepage" => "http://www.seleniumhq.com/" } } }
-    assert_equal expected, driver_option.as_json
+    expected = {
+      "moz:firefoxOptions" => {
+        "args" => ["-headless", "--host=127.0.0.1"],
+        "prefs" => { "browser.startup.homepage" => "http://www.seleniumhq.com/" }
+      }
+    }
+    assert_equal expected, browser_options[:options].as_json
   end
 
   test "does not define extra capabilities" do
@@ -118,6 +132,29 @@ class DriverTest < ActiveSupport::TestCase
 
     assert_nothing_raised do
       driver.use
+    end
+  end
+
+  test "preloads browser's driver_path" do
+    called = false
+
+    original_driver_path = ::Selenium::WebDriver::Chrome::Service.driver_path
+    ::Selenium::WebDriver::Chrome::Service.driver_path = -> { called = true }
+
+    ActionDispatch::SystemTesting::Driver.new(:selenium, screen_size: [1400, 1400], using: :chrome)
+
+    assert called
+  ensure
+    ::Selenium::WebDriver::Chrome::Service.driver_path = original_driver_path
+  end
+
+  test "does not preload if used driver is not :selenium" do
+    assert_not_called_on_instance_of(ActionDispatch::SystemTesting::Browser, :preload) do
+      ActionDispatch::SystemTesting::Driver.new(:rack_test, using: :chrome)
+    end
+
+    assert_not_called_on_instance_of(ActionDispatch::SystemTesting::Browser, :preload) do
+      ActionDispatch::SystemTesting::Driver.new(:poltergeist)
     end
   end
 end

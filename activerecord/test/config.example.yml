@@ -35,20 +35,6 @@ connections:
       database: <%= FIXTURES_ROOT %>/fixture_database_2.sqlite3
       timeout:  5000
 
-  db2:
-    arunit:
-      adapter:  ibm_db
-      host:     localhost
-      username: arunit
-      password: arunit
-      database: arunit
-    arunit2:
-      adapter:  ibm_db
-      host:     localhost
-      username: arunit
-      password: arunit
-      database: arunit2
-
   mysql2:
     arunit:
       username: rails

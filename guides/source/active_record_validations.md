@@ -42,9 +42,8 @@ database. For example, it may be important to your application to ensure that
 every user provides a valid email address and mailing address. Model-level
 validations are the best way to ensure that only valid data is saved into your
 database. They are database agnostic, cannot be bypassed by end users, and are
-convenient to test and maintain. Rails makes them easy to use, provides
-built-in helpers for common needs, and allows you to create your own validation
-methods as well.
+convenient to test and maintain. Rails provides built-in helpers for common
+needs, and allows you to create your own validation methods as well.
 
 There are several other ways to validate data before it is saved into your
 database, including native database constraints, client-side validations and
@@ -64,7 +63,7 @@ controller-level validations. Here's a summary of the pros and cons:
 * Controller-level validations can be tempting to use, but often become
   unwieldy and difficult to test and maintain. Whenever possible, it's a good
   idea to keep your controllers skinny, as it will make your application a
-  pleasure to work with in the long run.
+  pleasure to work within the long run.
 
 Choose these in certain, specific cases. It's the opinion of the Rails team
 that model-level validations are the most appropriate in most circumstances.
@@ -77,17 +76,17 @@ example using the `new` method, that object does not belong to the database
 yet. Once you call `save` upon that object it will be saved into the
 appropriate database table. Active Record uses the `new_record?` instance
 method to determine whether an object is already in the database or not.
-Consider the following simple Active Record class:
+Consider the following Active Record class:
 
 ```ruby
 class Person < ApplicationRecord
 end
 ```
 
-We can see how it works by looking at some `rails console` output:
+We can see how it works by looking at some `bin/rails console` output:
 
 ```ruby
-$ rails console
+$ bin/rails console
 >> p = Person.new(name: "John Doe")
 => #<Person id: nil, name: "John Doe", created_at: nil, updated_at: nil>
 >> p.new_record?
@@ -123,7 +122,7 @@ database only if the object is valid:
 
 The bang versions (e.g. `save!`) raise an exception if the record is invalid.
 The non-bang versions don't: `save` and `update` return `false`, and
-`create` just returns the object.
+`create` returns the object.
 
 ### Skipping Validations
 
@@ -166,7 +165,7 @@ Person.create(name: nil).valid? # => false
 ```
 
 After Active Record has performed validations, any errors found can be accessed
-through the `errors.messages` instance method, which returns a collection of errors.
+through the `errors` instance method, which returns a collection of errors.
 By definition, an object is valid if this collection is empty after running
 validations.
 
@@ -181,18 +180,18 @@ end
 
 >> p = Person.new
 # => #<Person id: nil, name: nil>
->> p.errors.messages
-# => {}
+>> p.errors.size
+# => 0
 
 >> p.valid?
 # => false
->> p.errors.messages
-# => {name:["can't be blank"]}
+>> p.errors.objects.first.full_message
+# => "Name can't be blank"
 
 >> p = Person.create
 # => #<Person id: nil, name: nil>
->> p.errors.messages
-# => {name:["can't be blank"]}
+>> p.errors.objects.first.full_message
+# => "Name can't be blank"
 
 >> p.save
 # => false
@@ -204,13 +203,13 @@ end
 # => ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
 ```
 
-`invalid?` is simply the inverse of `valid?`. It triggers your validations,
+`invalid?` is the inverse of `valid?`. It triggers your validations,
 returning true if any errors were found in the object, and false otherwise.
 
 ### `errors[]`
 
 To verify whether or not a particular attribute of an object is valid, you can
-use `errors[:attribute]`. It returns an array of all the errors for
+use `errors[:attribute]`. It returns an array of all the error messages for
 `:attribute`. If there are no errors on the specified attribute, an empty array
 is returned.
 
@@ -232,32 +231,13 @@ end
 We'll cover validation errors in greater depth in the [Working with Validation
 Errors](#working-with-validation-errors) section.
 
-### `errors.details`
-
-To check which validations failed on an invalid attribute, you can use
-`errors.details[:attribute]`. It returns an array of hashes with an `:error`
-key to get the symbol of the validator:
-
-```ruby
-class Person < ApplicationRecord
-  validates :name, presence: true
-end
-
->> person = Person.new
->> person.valid?
->> person.errors.details[:name] # => [{error: :blank}]
-```
-
-Using `details` with custom validators is covered in the [Working with
-Validation Errors](#working-with-validation-errors) section.
-
 Validation Helpers
 ------------------
 
 Active Record offers many pre-defined validation helpers that you can use
 directly inside your class definitions. These helpers provide common validation
-rules. Every time a validation fails, an error message is added to the object's
-`errors` collection, and this message is associated with the attribute being
+rules. Every time a validation fails, an error is added to the object's
+`errors` collection, and this is associated with the attribute being
 validated.
 
 Each helper accepts an arbitrary number of attribute names, so with a single
@@ -286,7 +266,7 @@ end
 
 This check is performed only if `terms_of_service` is not `nil`.
 The default error message for this helper is _"must be accepted"_.
-You can also pass custom message via the `message` option.
+You can also pass in a custom message via the `message` option.
 
 ```ruby
 class Person < ApplicationRecord
@@ -307,7 +287,7 @@ end
 
 This validation is very specific to web applications and this
 'acceptance' does not need to be recorded anywhere in your database. If you
-don't have a field for it, the helper will just create a virtual attribute. If
+don't have a field for it, the helper will create a virtual attribute. If
 the field does exist in your database, the `accept` option must be set to
 or include `true` or else the validation will not run.
 
@@ -478,17 +458,17 @@ personalized message or call `presence` prior to `length`.
 
 This helper validates that your attributes have only numeric values. By
 default, it will match an optional sign followed by an integral or floating
-point number. To specify that only integral numbers are allowed set
-`:only_integer` to true.
+point number.
 
-If you set `:only_integer` to `true`, then it will use the
+To specify that only integral numbers are allowed,
+set `:only_integer` to true. Then it will use the
 
 ```ruby
 /\A[+-]?\d+\z/
 ```
 
 regular expression to validate the attribute's value. Otherwise, it will try to
-convert the value to a number using `Float`.
+convert the value to a number using `Float`. `Float`s are casted to `BigDecimal` using the column's precision value or 15.
 
 ```ruby
 class Player < ApplicationRecord
@@ -496,6 +476,8 @@ class Player < ApplicationRecord
   validates :games_played, numericality: { only_integer: true }
 end
 ```
+
+The default error message for `:only_integer` is _"must be an integer"_.
 
 Besides `:only_integer`, this helper also accepts the following options to add
 constraints to acceptable values:
@@ -522,7 +504,7 @@ constraints to acceptable values:
 
 NOTE: By default, `numericality` doesn't allow `nil` values. You can use `allow_nil: true` option to permit it.
 
-The default error message is _"is not a number"_.
+The default error message when no options are specified is _"is not a number"_.
 
 ### `presence`
 
@@ -639,7 +621,7 @@ class Holiday < ApplicationRecord
     message: "should happen once per year" }
 end
 ```
-Should you wish to create a database constraint to prevent possible violations of a uniqueness validation using the `:scope` option, you must create a unique index on both columns in your database. See [the MySQL manual](https://dev.mysql.com/doc/refman/5.7/en/multiple-column-indexes.html) for more details about multiple column indexes or [the PostgreSQL manual](https://www.postgresql.org/docs/current/static/ddl-constraints.html) for examples of unique constraints that refer to a group of columns.
+Should you wish to create a database constraint to prevent possible violations of a uniqueness validation using the `:scope` option, you must create a unique index on both columns in your database. See [the MySQL manual](https://dev.mysql.com/doc/refman/en/multiple-column-indexes.html) for more details about multiple column indexes or [the PostgreSQL manual](https://www.postgresql.org/docs/current/static/ddl-constraints.html) for examples of unique constraints that refer to a group of columns.
 
 There is also a `:case_sensitive` option that you can use to define whether the
 uniqueness constraint will be case sensitive or not. This option defaults to
@@ -664,7 +646,7 @@ This helper passes the record to a separate class for validation.
 class GoodnessValidator < ActiveModel::Validator
   def validate(record)
     if record.first_name == "Evil"
-      record.errors[:base] << "This person is evil"
+      record.errors.add :base, "This person is evil"
     end
   end
 end
@@ -692,7 +674,7 @@ validator class as `options`:
 class GoodnessValidator < ActiveModel::Validator
   def validate(record)
     if options[:fields].any?{|field| record.send(field) == "Evil" }
-      record.errors[:base] << "This person is evil"
+      record.errors.add :base, "This person is evil"
     end
   end
 end
@@ -723,7 +705,7 @@ class GoodnessValidator
 
   def validate
     if some_complex_condition_involving_ivars_and_private_methods?
-      @person.errors[:base] << "This person is evil"
+      @person.errors.add :base, "This person is evil"
     end
   end
 
@@ -748,7 +730,7 @@ end
 
 The block receives the record, the attribute's name, and the attribute's value.
 You can do anything you like to check for valid data within the block. If your
-validation fails, you should add an error message to the model, therefore
+validation fails, you should add an error to the model, therefore
 making it invalid.
 
 Common Validation Options
@@ -1003,8 +985,8 @@ and performs the validation on it. The custom validator is called using the
 ```ruby
 class MyValidator < ActiveModel::Validator
   def validate(record)
-    unless record.name.starts_with? 'X'
-      record.errors[:name] << 'Need a name starting with X please!'
+    unless record.name.start_with? 'X'
+      record.errors.add :name, "Need a name starting with X please!"
     end
   end
 end
@@ -1026,7 +1008,7 @@ instance.
 class EmailValidator < ActiveModel::EachValidator
   def validate_each(record, attribute, value)
     unless value =~ /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\z/i
-      record.errors[attribute] << (options[:message] || "is not an email")
+      record.errors.add attribute, (options[:message] || "is not an email")
     end
   end
 end
@@ -1042,7 +1024,7 @@ own custom validators.
 ### Custom Methods
 
 You can also create methods that verify the state of your models and add
-messages to the `errors` collection when they are invalid. You must then
+errors to the `errors` collection when they are invalid. You must then
 register these methods by using the `validate`
 ([API](https://api.rubyonrails.org/classes/ActiveModel/Validations/ClassMethods.html#method-i-validate))
 class method, passing in the symbols for the validation methods' names.
@@ -1091,13 +1073,16 @@ end
 Working with Validation Errors
 ------------------------------
 
-In addition to the `valid?` and `invalid?` methods covered earlier, Rails provides a number of methods for working with the `errors` collection and inquiring about the validity of objects.
+The `valid?` and `invalid?` methods only provide a summary status on validity. However you can dig deeper into each individual error by using various methods from the `errors` collection.
 
 The following is a list of the most commonly used methods. Please refer to the `ActiveModel::Errors` documentation for a list of all the available methods.
 
 ### `errors`
 
-Returns an instance of the class `ActiveModel::Errors` containing all errors. Each key is the attribute name and the value is an array of strings with all errors.
+The gateway through which you can drill down into various details of each error.
+
+This returns an instance of the class `ActiveModel::Errors` containing all errors,
+each error is represented by an `ActiveModel::Error` object.
 
 ```ruby
 class Person < ApplicationRecord
@@ -1106,12 +1091,12 @@ end
 
 person = Person.new
 person.valid? # => false
-person.errors.messages
- # => {:name=>["can't be blank", "is too short (minimum is 3 characters)"]}
+person.errors.full_messages
+ # => ["Name can't be blank", "Name is too short (minimum is 3 characters)"]
 
 person = Person.new(name: "John Doe")
 person.valid? # => true
-person.errors.messages # => {}
+person.errors.full_messages # => []
 ```
 
 ### `errors[]`
@@ -1137,80 +1122,11 @@ person.errors[:name]
  # => ["can't be blank", "is too short (minimum is 3 characters)"]
 ```
 
-### `errors.add`
+### `errors.where` and error object
 
-The `add` method lets you add an error message related to a particular attribute. It takes as arguments the attribute and the error message.
+Sometimes we may need more information about each error beside its message. Each error is encapsulated as an `ActiveModel::Error` object, and `where` method is the most common way of access.
 
-The `errors.full_messages` method (or its equivalent, `errors.to_a`) returns the error messages in a user-friendly format, with the capitalized attribute name prepended to each message, as shown in the examples below.
-
-```ruby
-class Person < ApplicationRecord
-  def a_method_used_for_validation_purposes
-    errors.add(:name, "cannot contain the characters !@#%*()_-+=")
-  end
-end
-
-person = Person.create(name: "!@#")
-
-person.errors[:name]
- # => ["cannot contain the characters !@#%*()_-+="]
-
-person.errors.full_messages
- # => ["Name cannot contain the characters !@#%*()_-+="]
-```
-
-### `errors.details`
-
-You can specify a validator type to the returned error details hash using the
-`errors.add` method.
-
-```ruby
-class Person < ApplicationRecord
-  def a_method_used_for_validation_purposes
-    errors.add(:name, :invalid_characters)
-  end
-end
-
-person = Person.create(name: "!@#")
-
-person.errors.details[:name]
-# => [{error: :invalid_characters}]
-```
-
-To improve the error details to contain the unallowed characters set for instance,
-you can pass additional keys to `errors.add`.
-
-```ruby
-class Person < ApplicationRecord
-  def a_method_used_for_validation_purposes
-    errors.add(:name, :invalid_characters, not_allowed: "!@#%*()_-+=")
-  end
-end
-
-person = Person.create(name: "!@#")
-
-person.errors.details[:name]
-# => [{error: :invalid_characters, not_allowed: "!@#%*()_-+="}]
-```
-
-All built in Rails validators populate the details hash with the corresponding
-validator type.
-
-### `errors[:base]`
-
-You can add error messages that are related to the object's state as a whole, instead of being related to a specific attribute. You can use this method when you want to say that the object is invalid, no matter the values of its attributes. Since `errors[:base]` is an array, you can simply add a string to it and it will be used as an error message.
-
-```ruby
-class Person < ApplicationRecord
-  def a_method_used_for_validation_purposes
-    errors[:base] << "This person is invalid because ..."
-  end
-end
-```
-
-### `errors.clear`
-
-The `clear` method is used when you intentionally want to clear all the messages in the `errors` collection. Of course, calling `errors.clear` upon an invalid object won't actually make it valid: the `errors` collection will now be empty, but the next time you call `valid?` or any method that tries to save this object to the database, the validations will run again. If any of the validations fail, the `errors` collection will be filled again.
+`where` returns an array of error objects, filtered by various degree of conditions.
 
 ```ruby
 class Person < ApplicationRecord
@@ -1219,21 +1135,82 @@ end
 
 person = Person.new
 person.valid? # => false
-person.errors[:name]
- # => ["can't be blank", "is too short (minimum is 3 characters)"]
+
+>> person.errors.where(:name) # errors linked to :name attribute
+>> person.errors.where(:name, :too_short) # further filtered to only :too_short type error
+```
+
+You can read various information from these error objects:
+
+```ruby
+>> error = person.errors.where(:name).last
+>> error.attribute # => :name
+>> error.type # => :too_short
+>> error.options[:count] # => 3
+```
+
+You can also generate the error message:
+
+>> error.message # => "is too short (minimum is 3 characters)"
+>> error.full_message # => "Name is too short (minimum is 3 characters)"
+
+The `full_message` method generates a more user-friendly message, with the capitalized attribute name prepended.
+
+### `errors.add`
+
+The `add` method creates the error object by taking the `attribute`, the error `type` and additional options hash. This is useful for writing your own validator.
+
+```ruby
+class Person < ApplicationRecord
+  validate do |person|
+    errors.add :name, :too_plain, message: "is not cool enough"
+  end
+end
+
+person = Person.create
+person.errors.where(:name).first.type # => :too_plain
+person.errors.where(:name).first.full_message # => "Name is not cool enough"
+```
+
+### `errors[:base]`
+
+You can add errors that are related to the object's state as a whole, instead of being related to a specific attribute. You can add errors to `:base` when you want to say that the object is invalid, no matter the values of its attributes.
+
+```ruby
+class Person < ApplicationRecord
+  validate do |person|
+    errors.add :base, :invalid, message: "This person is invalid because ..."
+  end
+end
+
+person = Person.create
+person.errors.where(:base).first.full_message # => "This person is invalid because ..."
+```
+
+### `errors.clear`
+
+The `clear` method is used when you intentionally want to clear the `errors` collection. Of course, calling `errors.clear` upon an invalid object won't actually make it valid: the `errors` collection will now be empty, but the next time you call `valid?` or any method that tries to save this object to the database, the validations will run again. If any of the validations fail, the `errors` collection will be filled again.
+
+```ruby
+class Person < ApplicationRecord
+  validates :name, presence: true, length: { minimum: 3 }
+end
+
+person = Person.new
+person.valid? # => false
+person.errors.empty? # => false
 
 person.errors.clear
 person.errors.empty? # => true
 
 person.save # => false
 
-person.errors[:name]
-# => ["can't be blank", "is too short (minimum is 3 characters)"]
+person.errors.empty? # => false
 ```
 
 ### `errors.size`
 
-The `size` method returns the total number of error messages for the object.
+The `size` method returns the total number of errors for the object.
 
 ```ruby
 class Person < ApplicationRecord
@@ -1259,7 +1236,7 @@ validations fail.
 Because every application handles this kind of thing differently, Rails does
 not include any view helpers to help you generate these messages directly.
 However, due to the rich number of methods Rails gives you to interact with
-validations in general, it's fairly easy to build your own. In addition, when
+validations in general, you can build your own. In addition, when
 generating a scaffold, Rails will put some ERB into the `_form.html.erb` that
 it generates that displays the full list of errors on that model.
 
@@ -1272,8 +1249,8 @@ Assuming we have a model that's been saved in an instance variable named
     <h2><%= pluralize(@article.errors.count, "error") %> prohibited this article from being saved:</h2>
 
     <ul>
-    <% @article.errors.full_messages.each do |msg| %>
-      <li><%= msg %></li>
+    <% @article.errors.each do |error| %>
+      <li><%= error.full_message %></li>
     <% end %>
     </ul>
   </div>
@@ -1284,7 +1261,7 @@ Furthermore, if you use the Rails form helpers to generate your forms, when
 a validation error occurs on a field, it will generate an extra `<div>` around
 the entry.
 
-```
+```html
 <div class="field_with_errors">
  <input id="article_title" name="article[title]" size="30" type="text" value="">
 </div>
@@ -1293,7 +1270,7 @@ the entry.
 You can then style this div however you'd like. The default scaffold that
 Rails generates, for example, adds this CSS rule:
 
-```
+```css
 .field_with_errors {
   padding: 2px;
   background-color: red;

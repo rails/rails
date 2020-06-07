@@ -31,13 +31,13 @@ module ActiveStorage
       if record.persisted? && !record.changed?
         record.update(name => blobs + attachables.flatten)
       else
-        record.public_send("#{name}=", blobs + attachables.flatten)
+        record.public_send("#{name}=", (change&.attachables || blobs) + attachables.flatten)
       end
     end
 
-    # Returns true if any attachments has been made.
+    # Returns true if any attachments have been made.
     #
-    #   class Gallery < ActiveRecord::Base
+    #   class Gallery < ApplicationRecord
     #     has_many_attached :photos
     #   end
     #

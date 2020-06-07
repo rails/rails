@@ -8,7 +8,7 @@ namespace :app do
   task template: :environment do
     template = ENV["LOCATION"]
     raise "No LOCATION value given. Please set LOCATION either as path to a file or a URL" if template.blank?
-    template = File.expand_path(template) if template !~ %r{\A[A-Za-z][A-Za-z0-9+\-\.]*://}
+    template = File.expand_path(template) unless %r{\A[A-Za-z][A-Za-z0-9+\-\.]*://}.match?(template)
     require "rails/generators"
     require "rails/generators/rails/app/app_generator"
     generator = Rails::Generators::AppGenerator.new [Rails.root], {}, { destination_root: Rails.root }
@@ -57,6 +57,12 @@ namespace :app do
 
     task :upgrade_guide_info do
       Rails::AppUpdater.invoke_from_app_generator :display_upgrade_guide_info
+    end
+  end
+
+  namespace :binstub do
+    task :yarn do
+      Rails::AppUpdater.invoke_from_app_generator :update_bin_yarn
     end
   end
 end

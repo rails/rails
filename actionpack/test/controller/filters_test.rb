@@ -310,7 +310,6 @@ class FilterTest < ActionController::TestCase
     after_action  :conditional_in_parent_after, only: [:show, :another_action]
 
     private
-
       def conditional_in_parent_before
         @ran_filter ||= []
         @ran_filter << "conditional_in_parent_before"
@@ -508,7 +507,6 @@ class FilterTest < ActionController::TestCase
     end
 
     private
-
       def filter_one
         @filters ||= []
         @filters << "filter_one"
@@ -532,7 +530,6 @@ class FilterTest < ActionController::TestCase
     before_action :find_except, except: :edit
 
     private
-
       def find_only
         @only = "Only"
       end
@@ -547,6 +544,31 @@ class FilterTest < ActionController::TestCase
     assert_nothing_raised do
       test_process(controller, "index")
     end
+  end
+
+  def test_around_action_can_use_yield_inline_with_passed_action
+    controller = Class.new(ActionController::Base) do
+      around_action do |c, a|
+        c.values << "before"
+        a.call
+        c.values << "after"
+      end
+
+      def index
+        values << "action"
+        render inline: "index"
+      end
+
+      def values
+        @values ||= []
+      end
+    end.new
+
+    assert_nothing_raised do
+      test_process(controller, "index")
+    end
+
+    assert_equal ["before", "action", "after"], controller.values
   end
 
   def test_after_actions_are_not_run_if_around_action_does_not_yield

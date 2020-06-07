@@ -49,8 +49,8 @@ class AttributeAssignmentTest < ActiveModel::TestCase
       @parameters
     end
 
-    def stringify_keys
-      dup
+    def each_pair(&block)
+      @parameters.each_pair(&block)
     end
 
     def dup

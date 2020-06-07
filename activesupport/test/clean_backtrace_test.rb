@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 
 class BacktraceCleanerFilterTest < ActiveSupport::TestCase
   def setup
@@ -39,6 +39,17 @@ class BacktraceCleanerSilencerTest < ActiveSupport::TestCase
   test "backtrace cleaner should allow removing silencer" do
     @bc.remove_silencers!
     assert_equal ["/mongrel/stuff.rb"], @bc.clean(["/mongrel/stuff.rb"])
+  end
+end
+
+class BacktraceCleanerShouldNeverReturnEmpty < ActiveSupport::TestCase
+  test "backtrace should return a backtrace no matter what" do
+    @bc = ActiveSupport::BacktraceCleaner.new
+    @bc.add_silencer { |line| true }
+
+    bt = %w[ first second third ]
+
+    assert_equal bt, @bc.clean(bt.dup)
   end
 end
 
@@ -103,14 +114,14 @@ class BacktraceCleanerDefaultFilterAndSilencerTest < ActiveSupport::TestCase
   end
 
   test "should silence gems from the backtrace" do
-    backtrace = [ "#{Gem.path[0]}/gems/nosuchgem-1.2.3/lib/foo.rb" ]
+    backtrace = [ "#{Gem.path[0]}/gems/nosuchgem-1.2.3/lib/foo.rb", "other/file.rb" ]
     result = @bc.clean(backtrace)
-    assert_empty result
+    assert_equal %w[other/file.rb], result
   end
 
   test "should silence stdlib" do
-    backtrace = ["#{RbConfig::CONFIG["rubylibdir"]}/lib/foo.rb"]
+    backtrace = ["#{RbConfig::CONFIG["rubylibdir"]}/lib/foo.rb", "other/file.rb"]
     result = @bc.clean(backtrace)
-    assert_empty result
+    assert_equal %w[other/file.rb], result
   end
 end

@@ -24,6 +24,10 @@ module ActiveSupport
   # After configured, whenever a "sql.active_record" notification is published,
   # it will properly dispatch the event (ActiveSupport::Notifications::Event) to
   # the +sql+ method.
+  #
+  # We can detach a subscriber as well:
+  #
+  #   ActiveRecord::StatsSubscriber.detach_from(:active_record)
   class Subscriber
     class << self
       # Attach the subscriber to a namespace.
@@ -38,6 +42,25 @@ module ActiveSupport
         subscriber.public_methods(false).each do |event|
           add_event_subscriber(event)
         end
+      end
+
+      # Detach the subscriber from a namespace.
+      def detach_from(namespace, notifier = ActiveSupport::Notifications)
+        @namespace  = namespace
+        @subscriber = find_attached_subscriber
+        @notifier   = notifier
+
+        return unless subscriber
+
+        subscribers.delete(subscriber)
+
+        # Remove event subscribers of all existing methods on the class.
+        subscriber.public_methods(false).each do |event|
+          remove_event_subscriber(event)
+        end
+
+        # Reset notifier so that event subscribers will not add for new methods added to the class.
+        @notifier = nil
       end
 
       # Adds event subscribers for all new methods added to the class.
@@ -58,15 +81,41 @@ module ActiveSupport
         attr_reader :subscriber, :notifier, :namespace
 
         def add_event_subscriber(event) # :doc:
-          return if %w{ start finish }.include?(event.to_s)
+          return if invalid_event?(event)
 
-          pattern = "#{event}.#{namespace}"
+          pattern = prepare_pattern(event)
 
-          # Don't add multiple subscribers (eg. if methods are redefined).
-          return if subscriber.patterns.include?(pattern)
+          # Don't add multiple subscribers (e.g. if methods are redefined).
+          return if pattern_subscribed?(pattern)
 
-          subscriber.patterns << pattern
-          notifier.subscribe(pattern, subscriber)
+          subscriber.patterns[pattern] = notifier.subscribe(pattern, subscriber)
+        end
+
+        def remove_event_subscriber(event) # :doc:
+          return if invalid_event?(event)
+
+          pattern = prepare_pattern(event)
+
+          return unless pattern_subscribed?(pattern)
+
+          notifier.unsubscribe(subscriber.patterns[pattern])
+          subscriber.patterns.delete(pattern)
+        end
+
+        def find_attached_subscriber
+          subscribers.find { |attached_subscriber| attached_subscriber.instance_of?(self) }
+        end
+
+        def invalid_event?(event)
+          %i{ start finish }.include?(event.to_sym)
+        end
+
+        def prepare_pattern(event)
+          "#{event}.#{namespace}"
+        end
+
+        def pattern_subscribed?(pattern)
+          subscriber.patterns.key?(pattern)
         end
     end
 
@@ -74,7 +123,7 @@ module ActiveSupport
 
     def initialize
       @queue_key = [self.class.name, object_id].join "-"
-      @patterns  = []
+      @patterns  = {}
       super
     end
 

@@ -10,13 +10,14 @@ module ActiveRecord
       :first_or_create, :first_or_create!, :first_or_initialize,
       :find_or_create_by, :find_or_create_by!, :find_or_initialize_by,
       :create_or_find_by, :create_or_find_by!,
-      :destroy_all, :delete_all, :update_all, :destroy_by, :delete_by,
+      :destroy_all, :delete_all, :update_all, :touch_all, :destroy_by, :delete_by,
       :find_each, :find_in_batches, :in_batches,
       :select, :reselect, :order, :reorder, :group, :limit, :offset, :joins, :left_joins, :left_outer_joins,
-      :where, :rewhere, :preload, :eager_load, :includes, :from, :lock, :readonly, :extending, :or,
+      :where, :rewhere, :preload, :extract_associated, :eager_load, :includes, :from, :lock, :readonly,
+      :and, :or, :annotate, :optimizer_hints, :extending,
       :having, :create_with, :distinct, :references, :none, :unscope, :merge, :except, :only,
       :count, :average, :minimum, :maximum, :sum, :calculate,
-      :pluck, :pick, :ids
+      :pluck, :pick, :ids, :strict_loading
     ].freeze # :nodoc:
     delegate(*QUERYING_METHODS, to: :all)
 
@@ -36,7 +37,7 @@ module ActiveRecord
     #
     #   # A simple SQL query spanning multiple tables
     #   Post.find_by_sql "SELECT p.title, c.author FROM posts p, comments c WHERE p.id = c.post_id"
-    #   # => [#<Post:0x36bff9c @attributes={"title"=>"Ruby Meetup", "first_name"=>"Quentin"}>, ...]
+    #   # => [#<Post:0x36bff9c @attributes={"title"=>"Ruby Meetup", "author"=>"Quentin"}>, ...]
     #
     # You can use the same string replacement techniques as you can with <tt>ActiveRecord::QueryMethods#where</tt>:
     #
@@ -44,8 +45,12 @@ module ActiveRecord
     #   Post.find_by_sql ["SELECT body FROM comments WHERE author = :user_id OR approved_by = :user_id", { :user_id => user_id }]
     def find_by_sql(sql, binds = [], preparable: nil, &block)
       result_set = connection.select_all(sanitize_sql(sql), "#{name} Load", binds, preparable: preparable)
-      column_types = result_set.column_types.dup
-      attribute_types.each_key { |k| column_types.delete k }
+      column_types = result_set.column_types
+
+      unless column_types.empty?
+        column_types = column_types.reject { |k, _| attribute_types.key?(k) }
+      end
+
       message_bus = ActiveSupport::Notifications.instrumenter
 
       payload = {

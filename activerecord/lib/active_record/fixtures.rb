@@ -10,7 +10,6 @@ require "active_record/fixture_set/file"
 require "active_record/fixture_set/render_context"
 require "active_record/fixture_set/table_rows"
 require "active_record/test_fixtures"
-require "active_record/errors"
 
 module ActiveRecord
   class FixtureClassNotFound < ActiveRecord::ActiveRecordError #:nodoc:
@@ -41,7 +40,7 @@ module ActiveRecord
   # separated by a blank line for your viewing pleasure.
   #
   # Note: Fixtures are unordered. If you want ordered fixtures, use the omap YAML type.
-  # See http://yaml.org/type/omap.html
+  # See https://yaml.org/type/omap.html
   # for the specification. You will need ordered fixtures when you have foreign key constraints
   # on keys in the same table. This is commonly needed for tree structures. Example:
   #
@@ -60,7 +59,7 @@ module ActiveRecord
   # Since fixtures are a testing construct, we use them in our unit and functional tests. There
   # are two ways to use the fixtures, but first let's take a look at a sample unit test:
   #
-  #   require 'test_helper'
+  #   require "test_helper"
   #
   #   class WebSiteTest < ActiveSupport::TestCase
   #     test "web_site_count" do
@@ -182,7 +181,7 @@ module ActiveRecord
   #     end
   #   end
   #
-  # If you preload your test database with all fixture data (probably by running `rails db:fixtures:load`)
+  # If you preload your test database with all fixture data (probably by running `bin/rails db:fixtures:load`)
   # and use transactional tests, then you may omit all fixtures declarations in your test cases since
   # all the data's already there and every case rolls back its changes.
   #
@@ -420,12 +419,35 @@ module ActiveRecord
   #
   # Any fixture labeled "DEFAULTS" is safely ignored.
   #
+  # Besides using "DEFAULTS", you can also specify what fixtures will
+  # be ignored by setting "ignore" in "_fixture" section.
+  #
+  #   # users.yml
+  #   _fixture:
+  #     ignore:
+  #       - base
+  #     # or use "ignore: base" when there is only one fixture needs to be ignored.
+  #
+  #   base: &base
+  #     admin: false
+  #     introduction: "This is a default description"
+  #
+  #   admin:
+  #     <<: *base
+  #     admin: true
+  #
+  #   visitor:
+  #     <<: *base
+  #
+  # In the above example, 'base' will be ignored when creating fixtures.
+  # This can be used for common attributes inheriting.
+  #
   # == Configure the fixture model class
   #
   # It's possible to set the fixture's model class directly in the YAML file.
   # This is helpful when fixtures are loaded outside tests and
   # +set_fixture_class+ is not available (e.g.
-  # when running <tt>rails db:fixtures:load</tt>).
+  # when running <tt>bin/rails db:fixtures:load</tt>).
   #
   #   _fixture:
   #     model_class: User
@@ -464,7 +486,6 @@ module ActiveRecord
       end
 
       private
-
         def insert_class(class_names, name, klass)
           # We only want to deal with AR objects.
           if klass && klass < ActiveRecord::Base
@@ -531,15 +552,15 @@ module ActiveRecord
         end
       end
 
-      def create_fixtures(fixtures_directory, fixture_set_names, class_names = {}, config = ActiveRecord::Base)
+      def create_fixtures(fixtures_directory, fixture_set_names, class_names = {}, config = ActiveRecord::Base, &block)
         fixture_set_names = Array(fixture_set_names).map(&:to_s)
         class_names = ClassCache.new class_names, config
 
         # FIXME: Apparently JK uses this.
-        connection = block_given? ? yield : ActiveRecord::Base.connection
+        connection = block_given? ? block : lambda { ActiveRecord::Base.connection }
 
         fixture_files_to_read = fixture_set_names.reject do |fs_name|
-          fixture_is_cached?(connection, fs_name)
+          fixture_is_cached?(connection.call, fs_name)
         end
 
         if fixture_files_to_read.any?
@@ -549,9 +570,9 @@ module ActiveRecord
             class_names,
             connection,
           )
-          cache_fixtures(connection, fixtures_map)
+          cache_fixtures(connection.call, fixtures_map)
         end
-        cached_fixtures(connection, fixture_set_names)
+        cached_fixtures(connection.call, fixture_set_names)
       end
 
       # Returns a consistent, platform-independent identifier for +label+.
@@ -570,7 +591,6 @@ module ActiveRecord
       end
 
       private
-
         def read_and_insert(fixtures_directory, fixture_files, class_names, connection) # :nodoc:
           fixtures_map = {}
           fixture_sets = fixture_files.map do |fixture_set_name|
@@ -591,7 +611,11 @@ module ActiveRecord
 
         def insert(fixture_sets, connection) # :nodoc:
           fixture_sets_by_connection = fixture_sets.group_by do |fixture_set|
-            fixture_set.model_class&.connection || connection
+            if fixture_set.model_class
+              fixture_set.model_class.connection
+            else
+              connection.call
+            end
           end
 
           fixture_sets_by_connection.each do |conn, set|
@@ -602,6 +626,7 @@ module ActiveRecord
                 table_rows_for_connection[table].unshift(*rows)
               end
             end
+
             conn.insert_fixtures_set(table_rows_for_connection, table_rows_for_connection.keys)
 
             # Cap primary key sequences to max(pk).
@@ -616,7 +641,7 @@ module ActiveRecord
         end
     end
 
-    attr_reader :table_name, :name, :fixtures, :model_class, :config
+    attr_reader :table_name, :name, :fixtures, :model_class, :ignored_fixtures, :config
 
     def initialize(_, name, class_name, path, config = ActiveRecord::Base)
       @name     = name
@@ -649,8 +674,8 @@ module ActiveRecord
     # Returns a hash of rows to be inserted. The key is the table, the value is
     # a list of rows to insert to that table.
     def table_rows
-      # allow a standard key to be used for doing defaults in YAML
-      fixtures.delete("DEFAULTS")
+      # allow specifying fixtures to be ignored by setting `ignore` in `_fixture` section
+      fixtures.except!(*ignored_fixtures)
 
       TableRows.new(
         table_name,
@@ -661,13 +686,27 @@ module ActiveRecord
     end
 
     private
-
       def model_class=(class_name)
         if class_name.is_a?(Class) # TODO: Should be an AR::Base type class, or any?
           @model_class = class_name
         else
           @model_class = class_name.safe_constantize if class_name
         end
+      end
+
+      def ignored_fixtures=(base)
+        @ignored_fixtures =
+            case base
+            when Array
+              base
+            when String
+              [base]
+            else
+              []
+            end
+
+        @ignored_fixtures << "DEFAULTS" unless @ignored_fixtures.include?("DEFAULTS")
+        @ignored_fixtures.compact
       end
 
       # Loads the fixtures from the YAML file at +path+.
@@ -681,6 +720,7 @@ module ActiveRecord
         yaml_files.each_with_object({}) do |file, fixtures|
           FixtureSet::File.open(file) do |fh|
             self.model_class ||= fh.model_class if fh.model_class
+            self.ignored_fixtures ||= fh.ignored_fixtures
             fh.each do |fixture_name, row|
               fixtures[fixture_name] = ActiveRecord::Fixture.new(row, model_class)
             end

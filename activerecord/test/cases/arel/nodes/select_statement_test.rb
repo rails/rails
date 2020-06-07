@@ -8,8 +8,8 @@ describe Arel::Nodes::SelectStatement do
       statement = Arel::Nodes::SelectStatement.new %w[a b c]
 
       dolly = statement.clone
-      dolly.cores.must_equal      statement.cores
-      dolly.cores.wont_be_same_as statement.cores
+      _(dolly.cores).must_equal      statement.cores
+      _(dolly.cores).wont_be_same_as statement.cores
     end
   end
 

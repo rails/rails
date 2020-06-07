@@ -18,7 +18,12 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
+What is the Active Record Query Interface?
+------------------------------------------
+
 If you're used to using raw SQL to find database records, then you will generally find that there are better ways to carry out the same operations in Rails. Active Record insulates you from the need to use SQL in most cases.
+
+Active Record will perform queries on the database for you and is compatible with most database systems, including MySQL, MariaDB, PostgreSQL, and SQLite. Regardless of which database system you're using, the Active Record method format will always be the same.
 
 Code examples throughout this guide will refer to one or more of the following models:
 
@@ -50,8 +55,6 @@ class Role < ApplicationRecord
 end
 ```
 
-Active Record will perform queries on the database for you and is compatible with most database systems, including MySQL, MariaDB, PostgreSQL, and SQLite. Regardless of which database system you're using, the Active Record method format will always be the same.
-
 Retrieving Objects from the Database
 ------------------------------------
 
@@ -59,11 +62,13 @@ To retrieve objects from the database, Active Record provides several finder met
 
 The methods are:
 
+* `annotate`
 * `find`
 * `create_with`
 * `distinct`
 * `eager_load`
 * `extending`
+* `extract_associated`
 * `from`
 * `group`
 * `having`
@@ -74,11 +79,13 @@ The methods are:
 * `lock`
 * `none`
 * `offset`
+* `optimizer_hints`
 * `order`
 * `preload`
 * `readonly`
 * `references`
 * `reorder`
+* `reselect`
 * `reverse_order`
 * `select`
 * `where`
@@ -424,7 +431,41 @@ internally to iterate.
 
 ##### Options for `find_in_batches`
 
-The `find_in_batches` method accepts the same options as `find_each`.
+The `find_in_batches` method accepts the same options as `find_each`:
+
+**`:batch_size`**
+
+Just like for `find_each`, `batch_size` establishes how many records will be retrieved in each group. For example, retrieving batches of 2500 records can be specified as:
+
+```ruby
+Invoice.find_in_batches(batch_size: 2500) do |invoices|
+  export.add_invoices(invoices)
+end
+```
+
+**`:start`**
+
+The `start` option allows specifying the beginning ID from where records will be selected. As mentioned before, by default records are fetched in ascending order of the primary key. For example, to retrieve invoices starting on ID: 5000 in batches of 2500 records, the following code can be used:
+
+```ruby
+Invoice.find_in_batches(batch_size: 2500, start: 5000) do |invoices|
+  export.add_invoices(invoices)
+end
+```
+
+**`:finish`**
+
+The `finish` option allows specifying the ending ID of the records to be retrieved. The code below shows the case of retrieving invoices in batches, up to the invoice with ID: 7000:
+
+```ruby
+Invoice.find_in_batches(finish: 7000) do |invoices|
+  export.add_invoices(invoices)
+end
+```
+
+**`:error_on_ignore`**
+
+The `error_on_ignore` option overrides the application config to specify if an error should be raised when a specific order is present in the relation.
 
 Conditions
 ----------
@@ -1215,7 +1256,7 @@ clients.each do |client|
 end
 ```
 
-This code looks fine at the first sight. But the problem lies within the total number of queries executed. The above code executes 1 (to find 10 clients) + 10 (one per each client to load the address) = **11** queries in total.
+This code looks fine at first sight. But the problem lies within the total number of queries executed. The above code executes 1 (to find 10 clients) + 10 (one per each client to load the address) = **11** queries in total.
 
 **Solution to N + 1 queries problem**
 
@@ -1354,7 +1395,7 @@ class Article < ApplicationRecord
 end
 ```
 
-Using a class method is the preferred way to accept arguments for scopes. These methods will still be accessible on the association objects:
+These methods will still be accessible on the association objects:
 
 ```ruby
 category.articles.created_before(time)
@@ -1449,7 +1490,7 @@ User.active.inactive
 # SELECT "users".* FROM "users" WHERE "users"."state" = 'active' AND "users"."state" = 'inactive'
 ```
 
-We can mix and match `scope` and `where` conditions and the final sql
+We can mix and match `scope` and `where` conditions and the final SQL
 will have all conditions joined with `AND`.
 
 ```ruby
@@ -1731,10 +1772,13 @@ Client.find_by_sql("SELECT * FROM clients
 
 ### `select_all`
 
-`find_by_sql` has a close relative called `connection#select_all`. `select_all` will retrieve objects from the database using custom SQL just like `find_by_sql` but will not instantiate them. This method will return an instance of `ActiveRecord::Result` class and calling `to_hash` on this object would return you an array of hashes where each hash indicates a record.
+`find_by_sql` has a close relative called `connection#select_all`. `select_all` will retrieve
+objects from the database using custom SQL just like `find_by_sql` but will not instantiate them.
+This method will return an instance of `ActiveRecord::Result` class and calling `to_a` on this
+object would return you an array of hashes where each hash indicates a record.
 
 ```ruby
-Client.connection.select_all("SELECT first_name, created_at FROM clients WHERE id = '1'").to_hash
+Client.connection.select_all("SELECT first_name, created_at FROM clients WHERE id = '1'").to_a
 # => [
 #   {"first_name"=>"Rafael", "created_at"=>"2012-11-10 23:23:45.281189"},
 #   {"first_name"=>"Eileen", "created_at"=>"2013-12-09 11:22:35.221282"}
@@ -1743,7 +1787,7 @@ Client.connection.select_all("SELECT first_name, created_at FROM clients WHERE i
 
 ### `pluck`
 
-`pluck` can be used to query single or multiple columns from the underlying table of a model. It accepts a list of column names as argument and returns an array of values of the specified columns with the corresponding data type.
+`pluck` can be used to query single or multiple columns from the underlying table of a model. It accepts a list of column names as an argument and returns an array of values of the specified columns with the corresponding data type.
 
 ```ruby
 Client.where(active: true).pluck(:id)
@@ -1798,7 +1842,7 @@ Client.pluck(:name)
 
 You are not limited to querying fields from a single table, you can query multiple tables as well.
 
-```
+```ruby
 Client.joins(:comments, :categories).pluck("clients.email, comments.title, categories.name")
 ```
 
@@ -1812,6 +1856,21 @@ Client.pluck(:name).limit(1)
 
 Client.limit(1).pluck(:name)
 # => ["David"]
+```
+
+NOTE: You should also know that using `pluck` will trigger eager loading if the relation object contains include values, even if the eager loading is not necessary for the query. For example:
+
+```ruby
+# store association for reusing it
+assoc = Company.includes(:account)
+assoc.pluck(:id)
+# SELECT "companies"."id" FROM "companies" LEFT OUTER JOIN "accounts" ON "accounts"."id" = "companies"."account_id"
+```
+
+One way to avoid this is to `unscope` the includes:
+
+```ruby
+assoc.unscope(:includes).pluck(:id)
 ```
 
 ### `ids`
@@ -1979,7 +2038,7 @@ User.where(id: 1).joins(:articles).explain
 
 may yield
 
-```
+```sql
 EXPLAIN for: SELECT `users`.* FROM `users` INNER JOIN `articles` ON `articles`.`user_id` = `users`.`id` WHERE `users`.`id` = 1
 +----+-------------+----------+-------+---------------+
 | id | select_type | table    | type  | possible_keys |
@@ -2003,7 +2062,7 @@ Active Record performs a pretty printing that emulates that of the
 corresponding database shell. So, the same query running with the
 PostgreSQL adapter would yield instead
 
-```
+```sql
 EXPLAIN for: SELECT "users".* FROM "users" INNER JOIN "articles" ON "articles"."user_id" = "users"."id" WHERE "users"."id" = 1
                                   QUERY PLAN
 ------------------------------------------------------------------------------
@@ -2026,7 +2085,7 @@ User.where(id: 1).includes(:articles).explain
 
 yields
 
-```
+```sql
 EXPLAIN for: SELECT `users`.* FROM `users`  WHERE `users`.`id` = 1
 +----+-------------+-------+-------+---------------+
 | id | select_type | table | type  | possible_keys |
@@ -2066,7 +2125,7 @@ following pointers may be helpful:
 
 * SQLite3: [EXPLAIN QUERY PLAN](https://www.sqlite.org/eqp.html)
 
-* MySQL: [EXPLAIN Output Format](https://dev.mysql.com/doc/refman/5.7/en/explain-output.html)
+* MySQL: [EXPLAIN Output Format](https://dev.mysql.com/doc/refman/en/explain-output.html)
 
 * MariaDB: [EXPLAIN](https://mariadb.com/kb/en/mariadb/explain/)
 

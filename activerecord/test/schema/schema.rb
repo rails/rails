@@ -19,6 +19,7 @@ ActiveRecord::Schema.define do
     t.references :firm, index: false
     t.string  :firm_name
     t.integer :credit_limit
+    t.integer "a" * max_identifier_length
   end
 
   create_table :admin_accounts, force: true do |t|
@@ -106,7 +107,7 @@ ActiveRecord::Schema.define do
     t.string :format
     t.column :name, :string
     t.column :status, :integer, **default_zero
-    t.column :read_status, :integer, **default_zero
+    t.column :last_read, :integer, **default_zero
     t.column :nullable_status, :integer
     t.column :language, :integer, **default_zero
     t.column :author_visibility, :integer, **default_zero
@@ -114,10 +115,17 @@ ActiveRecord::Schema.define do
     t.column :font_size, :integer, **default_zero
     t.column :difficulty, :integer, **default_zero
     t.column :cover, :string, default: "hard"
-    t.string :isbn
+    t.string :isbn, **case_sensitive_options
+    t.string :external_id
     t.datetime :published_on
+    t.boolean :boolean_status
     t.index [:author_id, :name], unique: true
     t.index :isbn, where: "published_on IS NOT NULL", unique: true
+    t.index "(lower(external_id))", unique: true if supports_expression_index?
+
+    t.datetime :created_at
+    t.datetime :updated_at
+    t.date :updated_on
   end
 
   create_table :booleans, force: true do |t|
@@ -260,6 +268,7 @@ ActiveRecord::Schema.define do
     t.references :developer, index: false
     t.references :company, index: false
     t.string :metadata
+    t.integer :count
   end
 
   create_table :customers, force: true do |t|
@@ -287,16 +296,16 @@ ActiveRecord::Schema.define do
     t.integer  :salary, default: 70000
     t.references :firm, index: false
     t.integer :mentor_id
-    if subsecond_precision_supported?
-      t.datetime :created_at, precision: 6
-      t.datetime :updated_at, precision: 6
-      t.datetime :created_on, precision: 6
-      t.datetime :updated_on, precision: 6
+    if supports_datetime_with_precision?
+      t.datetime :legacy_created_at, precision: 6
+      t.datetime :legacy_updated_at, precision: 6
+      t.datetime :legacy_created_on, precision: 6
+      t.datetime :legacy_updated_on, precision: 6
     else
-      t.datetime :created_at
-      t.datetime :updated_at
-      t.datetime :created_on
-      t.datetime :updated_on
+      t.datetime :legacy_created_at
+      t.datetime :legacy_updated_at
+      t.datetime :legacy_created_on
+      t.datetime :legacy_updated_on
     end
   end
 
@@ -338,6 +347,11 @@ ActiveRecord::Schema.define do
   create_table :entrants, force: true do |t|
     t.string  :name, null: false
     t.integer :course_id, null: false
+  end
+
+  create_table :entries, force: true do |t|
+    t.string  :entryable_type, null: false
+    t.integer :entryable_id, null: false
   end
 
   create_table :essays, force: true do |t|
@@ -413,7 +427,7 @@ ActiveRecord::Schema.define do
 
   create_table :invoices, force: true do |t|
     t.integer :balance
-    if subsecond_precision_supported?
+    if supports_datetime_with_precision?
       t.datetime :updated_at, precision: 6
     else
       t.datetime :updated_at
@@ -523,6 +537,8 @@ ActiveRecord::Schema.define do
     t.integer :club_id, :member_id
     t.boolean :favourite, default: false
     t.integer :type
+    t.datetime :created_at
+    t.datetime :updated_at
   end
 
   create_table :member_types, force: true do |t|
@@ -531,6 +547,10 @@ ActiveRecord::Schema.define do
 
   create_table :mentors, force: true do |t|
     t.string :name
+  end
+
+  create_table :messages, force: true do |t|
+    t.string :subject
   end
 
   create_table :minivans, force: true, id: false do |t|
@@ -559,6 +579,10 @@ ActiveRecord::Schema.define do
     t.string   :type
   end
 
+  create_table :mice, force: true do |t|
+    t.string   :name
+  end
+
   create_table :movies, force: true, id: false do |t|
     t.primary_key :movieid
     t.string      :name
@@ -571,15 +595,16 @@ ActiveRecord::Schema.define do
   create_table :numeric_data, force: true do |t|
     t.decimal :bank_balance, precision: 10, scale: 2
     t.decimal :big_bank_balance, precision: 15, scale: 2
+    t.decimal :unscaled_bank_balance, precision: 10
     t.decimal :world_population, precision: 20, scale: 0
     t.decimal :my_house_population, precision: 2, scale: 0
+    t.decimal :decimal_number
     t.decimal :decimal_number_with_default, precision: 3, scale: 2, default: 2.78
     t.float   :temperature
+    t.decimal :decimal_number_big_precision, precision: 20
     # Oracle/SQLServer supports precision up to 38
     if current_adapter?(:OracleAdapter, :SQLServerAdapter)
       t.decimal :atoms_in_universe, precision: 38, scale: 0
-    elsif current_adapter?(:FbAdapter)
-      t.decimal :atoms_in_universe, precision: 18, scale: 0
     else
       t.decimal :atoms_in_universe, precision: 55, scale: 0
     end
@@ -597,7 +622,7 @@ ActiveRecord::Schema.define do
 
   create_table :owners, primary_key: :owner_id, force: true do |t|
     t.string :name
-    if subsecond_precision_supported?
+    if supports_datetime_with_precision?
       t.column :updated_at, :datetime, precision: 6
     else
       t.column :updated_at, :datetime
@@ -621,7 +646,7 @@ ActiveRecord::Schema.define do
       t.string :parrot_sti_class
       t.integer :killer_id
       t.integer :updated_count, :integer, default: 0
-      if subsecond_precision_supported?
+      if supports_datetime_with_precision?
         t.datetime :created_at, precision: 0
         t.datetime :created_on, precision: 0
         t.datetime :updated_at, precision: 0
@@ -638,7 +663,7 @@ ActiveRecord::Schema.define do
       t.string :catchphrase
       t.integer :parrot_id
       t.integer :non_validated_parrot_id
-      if subsecond_precision_supported?
+      if supports_datetime_with_precision?
         t.datetime :created_on, precision: 6
         t.datetime :updated_on, precision: 6
       else
@@ -738,13 +763,18 @@ ActiveRecord::Schema.define do
     t.string :estimate_of_type
     t.integer :estimate_of_id
     t.integer :price
+    t.string :currency
   end
 
   create_table :products, force: true do |t|
     t.references :collection
     t.references :type
-    t.string     :name
+    t.string :name
+    t.decimal :price
+    t.decimal :discounted_price
   end
+
+  add_check_constraint :products, "price > discounted_price", name: "products_price_check"
 
   create_table :product_types, force: true do |t|
     t.string :name
@@ -791,6 +821,24 @@ ActiveRecord::Schema.define do
     t.integer :lock_version, default: 0
   end
 
+  disable_referential_integrity do
+    create_table :seminars, force: :cascade do |t|
+      t.string :name
+    end
+
+    create_table :sessions, force: :cascade do |t|
+      t.date :start_date
+      t.date :end_date
+      t.string :name
+    end
+
+    create_table :sections, force: :cascade do |t|
+      t.string :short_name
+      t.belongs_to :session, foreign_key: true
+      t.belongs_to :seminar, foreign_key: true
+    end
+  end
+
   create_table :shape_expressions, force: true do |t|
     t.string  :paint_type
     t.integer :paint_id
@@ -814,11 +862,15 @@ ActiveRecord::Schema.define do
   create_table :ship_parts, force: true do |t|
     t.string :name
     t.integer :ship_id
-    if subsecond_precision_supported?
+    if supports_datetime_with_precision?
       t.datetime :updated_at, precision: 6
     else
       t.datetime :updated_at
     end
+  end
+
+  create_table :squeaks, force: true do |t|
+    t.integer :mouse_id
   end
 
   create_table :prisoners, force: true do |t|
@@ -890,7 +942,7 @@ ActiveRecord::Schema.define do
     t.string   :title, limit: 250, **case_sensitive_options
     t.string   :author_name, **case_sensitive_options
     t.string   :author_email_address
-    if subsecond_precision_supported?
+    if supports_datetime_with_precision?
       t.datetime :written_on, precision: 6
     else
       t.datetime :written_on
@@ -1040,6 +1092,7 @@ ActiveRecord::Schema.define do
   create_table :cake_designers, force: true do |t|
   end
   create_table :drink_designers, force: true do |t|
+    t.string :name
   end
   create_table :chefs, force: true do |t|
     t.integer :employable_id
@@ -1047,6 +1100,7 @@ ActiveRecord::Schema.define do
     t.integer :department_id
     t.string :employable_list_type
     t.integer :employable_list_id
+    t.timestamps
   end
   create_table :recipes, force: true do |t|
     t.integer :chef_id
@@ -1084,6 +1138,7 @@ ActiveRecord::Schema.define do
 
   create_table :non_primary_keys, force: true, id: false do |t|
     t.integer :id
+    t.datetime :created_at
   end
 end
 

@@ -4,7 +4,7 @@ module Rails
   module Generators
     module Database # :nodoc:
       JDBC_DATABASES = %w( jdbcmysql jdbcsqlite3 jdbcpostgresql jdbc )
-      DATABASES = %w( mysql postgresql sqlite3 oracle frontbase ibm_db sqlserver ) + JDBC_DATABASES
+      DATABASES = %w( mysql postgresql sqlite3 oracle sqlserver ) + JDBC_DATABASES
 
       def initialize(*)
         super
@@ -13,11 +13,10 @@ module Rails
 
       def gem_for_database(database = options[:database])
         case database
-        when "mysql"          then ["mysql2", [">= 0.4.4"]]
-        when "postgresql"     then ["pg", [">= 0.18", "< 2.0"]]
-        when "sqlite3"        then ["sqlite3", ["~> 1.3", ">= 1.3.6"]]
+        when "mysql"          then ["mysql2", ["~> 0.5"]]
+        when "postgresql"     then ["pg", ["~> 1.1"]]
+        when "sqlite3"        then ["sqlite3", ["~> 1.4"]]
         when "oracle"         then ["activerecord-oracle_enhanced-adapter", nil]
-        when "frontbase"      then ["ruby-frontbase", nil]
         when "sqlserver"      then ["activerecord-sqlserver-adapter", nil]
         when "jdbcmysql"      then ["activerecord-jdbcmysql-adapter", nil]
         when "jdbcsqlite3"    then ["activerecord-jdbcsqlite3-adapter", nil]

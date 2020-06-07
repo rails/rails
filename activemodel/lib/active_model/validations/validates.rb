@@ -12,6 +12,7 @@ module ActiveModel
       #
       # Examples of using the default rails validators:
       #
+      #   validates :username, absence: true
       #   validates :terms, acceptance: true
       #   validates :password, confirmation: true
       #   validates :username, exclusion: { in: %w(admin superuser) }
@@ -27,7 +28,7 @@ module ActiveModel
       #   class EmailValidator < ActiveModel::EachValidator
       #     def validate_each(record, attribute, value)
       #       record.errors.add attribute, (options[:message] || "is not an email") unless
-      #         value =~ /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\z/i
+      #         /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\z/i.match?(value)
       #     end
       #   end
       #
@@ -47,7 +48,7 @@ module ActiveModel
       #
       #     class TitleValidator < ActiveModel::EachValidator
       #       def validate_each(record, attribute, value)
-      #         record.errors.add attribute, "must start with 'the'" unless value =~ /\Athe/i
+      #         record.errors.add attribute, "must start with 'the'" unless /\Athe/i.match?(value)
       #       end
       #     end
       #
@@ -63,7 +64,7 @@ module ActiveModel
       # and strings in shortcut form.
       #
       #   validates :email, format: /@/
-      #   validates :role, inclusion: %(admin contributor)
+      #   validates :role, inclusion: %w(admin contributor)
       #   validates :password, length: 6..20
       #
       # When using shortcut form, ranges and arrays are passed to your
@@ -112,7 +113,6 @@ module ActiveModel
         defaults[:attributes] = attributes
 
         validations.each do |key, options|
-          next unless options
           key = "#{key.to_s.camelize}Validator"
 
           begin
@@ -120,6 +120,8 @@ module ActiveModel
           rescue NameError
             raise ArgumentError, "Unknown validator: '#{key}'"
           end
+
+          next unless options
 
           validates_with(validator, defaults.merge(_parse_validates_options(options)))
         end
@@ -150,7 +152,6 @@ module ActiveModel
       end
 
     private
-
       # When creating custom validators, it might be useful to be able to specify
       # additional default keys. This can be done by overwriting this method.
       def _validates_default_keys

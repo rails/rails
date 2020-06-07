@@ -10,8 +10,8 @@ module Arel
           attr = Table.new(:users)[:id]
           expr  = attr.eq(10)
           node  = expr.not
-          node.must_be_kind_of Not
-          node.expr.must_equal expr
+          _(node).must_be_kind_of Not
+          _(node.expr).must_equal expr
         end
       end
 

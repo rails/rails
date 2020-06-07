@@ -9,15 +9,16 @@ class Company < AbstractCompany
 
   validates_presence_of :name
 
+  has_one :account, foreign_key: "firm_id"
   has_one :dummy_account, foreign_key: "firm_id", class_name: "Account"
   has_many :contracts
   has_many :developers, through: :contracts
 
+  alias_attribute :new_name, :name
   attribute :metadata, :json
 
   scope :of_first_firm, lambda {
-    joins(account: :firm).
-    where("firms.id" => 1)
+    joins(account: :firm).where("companies.id": 1)
   }
 
   def arbitrary_method
@@ -25,7 +26,6 @@ class Company < AbstractCompany
   end
 
   private
-
     def private_method
       "I am Jack's innermost fears and aspirations"
     end
@@ -109,7 +109,7 @@ class Firm < Company
 end
 
 class DependentFirm < Company
-  has_one :account, foreign_key: "firm_id", dependent: :nullify
+  has_one :account, -> { order(:id) }, foreign_key: "firm_id", dependent: :nullify
   has_many :companies, foreign_key: "client_of", dependent: :nullify
   has_one :company, foreign_key: "client_of", dependent: :nullify
 end

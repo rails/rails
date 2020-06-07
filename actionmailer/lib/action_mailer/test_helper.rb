@@ -152,11 +152,11 @@ module ActionMailer
     end
 
     private
-
       def delivery_job_filter(job)
         job_class = job.is_a?(Hash) ? job.fetch(:job) : job.class
 
-        Base.descendants.map(&:delivery_job).include?(job_class)
+        Base.descendants.map(&:delivery_job).include?(job_class) ||
+          ActionMailer::Parameterized::DeliveryJob == job_class
       end
   end
 end

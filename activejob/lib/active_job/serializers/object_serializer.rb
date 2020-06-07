@@ -39,12 +39,11 @@ module ActiveJob
       end
 
       # Deserializes an argument from a JSON primitive type.
-      def deserialize(_argument)
+      def deserialize(json)
         raise NotImplementedError
       end
 
       private
-
         # The class of the object that will be serialized.
         def klass # :doc:
           raise NotImplementedError

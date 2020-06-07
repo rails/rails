@@ -1,8 +1,6 @@
 (function() {
   "use strict";
 
-  this.syntaxhighlighterConfig = { autoLinks: false };
-
   this.wrap = function(elem, wrapper) {
     elem.parentNode.insertBefore(wrapper, elem);
     wrapper.appendChild(elem);
@@ -29,7 +27,7 @@
   if (window.location.protocol === "file:") Turbolinks.supported = false;
 
   document.addEventListener("turbolinks:load", function() {
-    window.SyntaxHighlighter.highlight({ "auto-links": false });
+    Prism.highlightAll();
 
     var guidesMenu = document.getElementById("guidesMenu");
     var guides     = document.getElementById("guides");

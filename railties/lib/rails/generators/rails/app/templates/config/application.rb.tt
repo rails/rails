@@ -1,12 +1,12 @@
-require_relative 'boot'
+require_relative "boot"
 
 <% if include_all_railties? -%>
-require 'rails/all'
+require "rails/all"
 <% else -%>
 require "rails"
 # Pick the frameworks you want:
 require "active_model/railtie"
-require "active_job/railtie"
+<%= comment_if :skip_active_job %>require "active_job/railtie"
 <%= comment_if :skip_active_record %>require "active_record/railtie"
 <%= comment_if :skip_active_storage %>require "active_storage/engine"
 require "action_controller/railtie"
@@ -25,8 +25,12 @@ Bundler.require(*Rails.groups)
 
 module <%= app_const_base %>
   class Application < Rails::Application
+<%- if !options.dummy_app? -%>
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults <%= build(:config_target_version) %>
+<%- else -%>
+    config.load_defaults Rails::VERSION::STRING.to_f
+<%- end -%>
 
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration can go into files in config/initializers

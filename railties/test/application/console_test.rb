@@ -123,24 +123,30 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     assert_output "> ", @primary
   end
 
-  def spawn_console(options)
-    Process.spawn(
+  def spawn_console(options, wait_for_prompt: true)
+    pid = Process.spawn(
       "#{app_path}/bin/rails console #{options}",
       in: @replica, out: @replica, err: @replica
     )
 
-    assert_output "> ", @primary, 30
+    if wait_for_prompt
+      assert_output "> ", @primary, 30
+    end
+
+    pid
   end
 
   def test_sandbox
-    spawn_console("--sandbox")
+    options = "--sandbox"
+    options += " -- --singleline --nocolorize" if RUBY_VERSION >= "2.7"
+    spawn_console(options)
 
     write_prompt "Post.count", "=> 0"
     write_prompt "Post.create"
     write_prompt "Post.count", "=> 1"
     @primary.puts "quit"
 
-    spawn_console("--sandbox")
+    spawn_console(options)
 
     write_prompt "Post.count", "=> 0"
     write_prompt "Post.transaction { Post.create; raise }"
@@ -148,8 +154,21 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     @primary.puts "quit"
   end
 
+  def test_sandbox_when_sandbox_is_disabled
+    add_to_config <<-RUBY
+      config.disable_sandbox = true
+    RUBY
+
+    output = `#{app_path}/bin/rails console --sandbox`
+
+    assert_includes output, "sandbox mode is disabled"
+    assert_equal 1, $?.exitstatus
+  end
+
   def test_environment_option_and_irb_option
-    spawn_console("-e test -- --verbose")
+    options = "-e test -- --verbose"
+    options += " --singleline --nocolorize" if RUBY_VERSION >= "2.7"
+    spawn_console(options)
 
     write_prompt "a = 1", "a = 1"
     write_prompt "puts Rails.env", "puts Rails.env\r\ntest"

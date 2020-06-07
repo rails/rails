@@ -38,7 +38,7 @@ module ApplicationTests
           end
         private
           def render_conditionally(headers)
-            if stale?(headers.merge(public: !params[:private]))
+            if stale?(**headers.merge(public: !params[:private]))
               render plain: SecureRandom.hex(16)
             end
           end

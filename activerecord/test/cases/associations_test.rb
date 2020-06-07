@@ -21,6 +21,11 @@ require "models/molecule"
 require "models/electron"
 require "models/man"
 require "models/interest"
+require "models/pirate"
+require "models/parrot"
+require "models/bird"
+require "models/treasure"
+require "models/price_estimate"
 
 class AssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :developers_projects,
@@ -259,13 +264,22 @@ class AssociationProxyTest < ActiveRecord::TestCase
     assert_no_queries { david.first_posts.pluck(:title) }
   end
 
+  def test_pick_uses_loaded_target
+    david = authors(:david)
+    assert_equal david.first_posts.pick(:title), david.first_posts.load.pick(:title)
+    assert_predicate david.first_posts, :loaded?
+    assert_no_queries { david.first_posts.pick(:title) }
+  end
+
   def test_reset_unloads_target
     david = authors(:david)
     david.posts.reload
 
     assert_predicate david.posts, :loaded?
+    assert_predicate david.posts, :loaded
     david.posts.reset
     assert_not_predicate david.posts, :loaded?
+    assert_not_predicate david.posts, :loaded
   end
 end
 
@@ -366,5 +380,99 @@ class GeneratedMethodsTest < ActiveRecord::TestCase
 
   def test_included_module_overwrites_association_methods
     assert_equal :none, MyArticle.new.comments
+  end
+end
+
+class WithAnnotationsTest < ActiveRecord::TestCase
+  fixtures :pirates, :parrots
+
+  def test_belongs_to_with_annotation_includes_a_query_comment
+    pirate = SpacePirate.where.not(parrot_id: nil).first
+    assert pirate, "should have a Pirate record"
+
+    log = capture_sql do
+      pirate.parrot
+    end
+    assert_not_predicate log, :empty?
+    assert_predicate log.select { |query| query.match?(%r{/\*}) }, :empty?
+
+    assert_sql(%r{/\* that tells jokes \*/}) do
+      pirate.parrot_with_annotation
+    end
+  end
+
+  def test_has_and_belongs_to_many_with_annotation_includes_a_query_comment
+    pirate = SpacePirate.first
+    assert pirate, "should have a Pirate record"
+
+    log = capture_sql do
+      pirate.parrots.first
+    end
+    assert_not_predicate log, :empty?
+    assert_predicate log.select { |query| query.match?(%r{/\*}) }, :empty?
+
+    assert_sql(%r{/\* that are very colorful \*/}) do
+      pirate.parrots_with_annotation.first
+    end
+  end
+
+  def test_has_one_with_annotation_includes_a_query_comment
+    pirate = SpacePirate.first
+    assert pirate, "should have a Pirate record"
+
+    log = capture_sql do
+      pirate.ship
+    end
+    assert_not_predicate log, :empty?
+    assert_predicate log.select { |query| query.match?(%r{/\*}) }, :empty?
+
+    assert_sql(%r{/\* that is a rocket \*/}) do
+      pirate.ship_with_annotation
+    end
+  end
+
+  def test_has_many_with_annotation_includes_a_query_comment
+    pirate = SpacePirate.first
+    assert pirate, "should have a Pirate record"
+
+    log = capture_sql do
+      pirate.birds.first
+    end
+    assert_not_predicate log, :empty?
+    assert_predicate log.select { |query| query.match?(%r{/\*}) }, :empty?
+
+    assert_sql(%r{/\* that are also parrots \*/}) do
+      pirate.birds_with_annotation.first
+    end
+  end
+
+  def test_has_many_through_with_annotation_includes_a_query_comment
+    pirate = SpacePirate.first
+    assert pirate, "should have a Pirate record"
+
+    log = capture_sql do
+      pirate.treasure_estimates.first
+    end
+    assert_not_predicate log, :empty?
+    assert_predicate log.select { |query| query.match?(%r{/\*}) }, :empty?
+
+    assert_sql(%r{/\* yarrr \*/}) do
+      pirate.treasure_estimates_with_annotation.first
+    end
+  end
+
+  def test_has_many_through_with_annotation_includes_a_query_comment_when_eager_loading
+    pirate = SpacePirate.first
+    assert pirate, "should have a Pirate record"
+
+    log = capture_sql do
+      pirate.treasure_estimates.first
+    end
+    assert_not_predicate log, :empty?
+    assert_predicate log.select { |query| query.match?(%r{/\*}) }, :empty?
+
+    assert_sql(%r{/\* yarrr \*/}) do
+      SpacePirate.includes(:treasure_estimates_with_annotation, :treasures).first
+    end
   end
 end

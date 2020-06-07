@@ -26,7 +26,6 @@ class SerializersTest < ActiveSupport::TestCase
     end
 
     private
-
       def klass
         DummyValueObject
       end

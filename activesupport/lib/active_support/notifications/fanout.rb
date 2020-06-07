@@ -3,6 +3,7 @@
 require "mutex_m"
 require "concurrent/map"
 require "set"
+require "active_support/core_ext/object/try"
 
 module ActiveSupport
   module Notifications
@@ -20,8 +21,8 @@ module ActiveSupport
         super
       end
 
-      def subscribe(pattern = nil, block = Proc.new)
-        subscriber = Subscribers.new pattern, block
+      def subscribe(pattern = nil, callable = nil, monotonic: false, &block)
+        subscriber = Subscribers.new(pattern, callable || block, monotonic)
         synchronize do
           if String === pattern
             @string_subscribers[pattern] << subscriber
@@ -84,8 +85,8 @@ module ActiveSupport
       end
 
       module Subscribers # :nodoc:
-        def self.new(pattern, listener)
-          subscriber_class = Timed
+        def self.new(pattern, listener, monotonic)
+          subscriber_class = monotonic ? MonotonicTimed : Timed
 
           if listener.respond_to?(:start) && listener.respond_to?(:finish)
             subscriber_class = Evented
@@ -101,10 +102,6 @@ module ActiveSupport
           end
 
           wrap_all pattern, subscriber_class.new(pattern, listener)
-        end
-
-        def self.event_object_subscriber(pattern, block)
-          wrap_all pattern, EventObject.new(pattern, block)
         end
 
         def self.wrap_all(pattern, subscriber)
@@ -190,6 +187,23 @@ module ActiveSupport
           end
         end
 
+        class MonotonicTimed < Evented # :nodoc:
+          def publish(name, *args)
+            @delegate.call name, *args
+          end
+
+          def start(name, id, payload)
+            timestack = Thread.current[:_timestack_monotonic] ||= []
+            timestack.push Concurrent.monotonic_time
+          end
+
+          def finish(name, id, payload)
+            timestack = Thread.current[:_timestack_monotonic]
+            started = timestack.pop
+            @delegate.call(name, started, Concurrent.monotonic_time, id, payload)
+          end
+        end
+
         class EventObject < Evented
           def start(name, id, payload)
             stack = Thread.current[:_event_stack] ||= []
@@ -201,6 +215,7 @@ module ActiveSupport
           def finish(name, id, payload)
             stack = Thread.current[:_event_stack]
             event = stack.pop
+            event.payload = payload
             event.finish!
             @delegate.call event
           end

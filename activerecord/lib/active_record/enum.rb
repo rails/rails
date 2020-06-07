@@ -41,6 +41,12 @@ module ActiveRecord
   #   Conversation.where(status: [:active, :archived])
   #   Conversation.where.not(status: :active)
   #
+  # Defining scopes can be disabled by setting +:_scopes+ to +false+.
+  #
+  #   class Conversation < ActiveRecord::Base
+  #     enum status: [ :active, :archived ], _scopes: false
+  #   end
+  #
   # You can set the default value from the database declaration, like:
   #
   #   create_table :conversations do |t|
@@ -117,12 +123,12 @@ module ActiveRecord
       end
 
       def cast(value)
-        return if value.blank?
-
         if mapping.has_key?(value)
           value.to_s
         elsif mapping.has_value?(value)
           mapping.key(value)
+        elsif value.blank?
+          nil
         else
           assert_valid_value(value)
         end
@@ -133,12 +139,16 @@ module ActiveRecord
         mapping.key(subtype.deserialize(value))
       end
 
+      def serializable?(value)
+        (value.blank? || mapping.has_key?(value) || mapping.has_value?(value)) && super
+      end
+
       def serialize(value)
         mapping.fetch(value, value)
       end
 
       def assert_valid_value(value)
-        unless value.blank? || mapping.has_key?(value) || mapping.has_value?(value)
+        unless serializable?(value)
           raise ArgumentError, "'#{value}' is not a valid #{name}"
         end
       end
@@ -200,6 +210,8 @@ module ActiveRecord
             # scope :active, -> { where(status: 0) }
             # scope :not_active, -> { where.not(status: 0) }
             if enum_scopes != false
+              klass.send(:detect_negative_condition!, value_method_name)
+
               klass.send(:detect_enum_conflict!, name, value_method_name, true)
               klass.scope value_method_name, -> { where(attr => value) }
 
@@ -260,6 +272,13 @@ module ActiveRecord
           method: method_name,
           source: source
         }
+      end
+
+      def detect_negative_condition!(method_name)
+        if method_name.start_with?("not_") && logger
+          logger.warn "An enum element in #{self.name} uses the prefix 'not_'." \
+            " This will cause a conflict with auto generated negative scopes."
+        end
       end
   end
 end

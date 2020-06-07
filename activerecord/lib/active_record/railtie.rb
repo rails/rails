@@ -2,6 +2,7 @@
 
 require "active_record"
 require "rails"
+require "active_support/core_ext/object/try"
 require "active_model/railtie"
 
 # For now, action_controller must always be present with
@@ -27,6 +28,7 @@ module ActiveRecord
 
     config.active_record.use_schema_cache_dump = true
     config.active_record.maintain_test_schema = true
+    config.active_record.has_many_inversing = false
 
     config.active_record.sqlite3 = ActiveSupport::OrderedOptions.new
     config.active_record.sqlite3.represent_boolean_as_integer = nil
@@ -57,6 +59,7 @@ module ActiveRecord
       require "active_record/base"
       unless ActiveSupport::Logger.logger_outputs_to?(Rails.logger, STDERR, STDOUT)
         console = ActiveSupport::Logger.new(STDERR)
+        console.level = Rails.logger.level
         Rails.logger.extend ActiveSupport::Logger.broadcast console
       end
       ActiveRecord::Base.verbose_query_logs = false
@@ -81,10 +84,11 @@ module ActiveRecord
       ActiveSupport.on_load(:active_record) { LogSubscriber.backtrace_cleaner = ::Rails.backtrace_cleaner }
     end
 
-    initializer "active_record.migration_error" do
+    initializer "active_record.migration_error" do |app|
       if config.active_record.delete(:migration_error) == :page_load
         config.app_middleware.insert_after ::ActionDispatch::Callbacks,
-          ActiveRecord::Migration::CheckPending
+          ActiveRecord::Migration::CheckPending,
+          file_watcher: app.config.file_watcher
       end
     end
 
@@ -114,7 +118,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
 
     config.active_record.cache_versioning = false
 
-end_error
+              end_error
             end
           end
         end
@@ -125,21 +129,25 @@ end_error
       if config.active_record.delete(:use_schema_cache_dump)
         config.after_initialize do |app|
           ActiveSupport.on_load(:active_record) do
-            filename = File.join(app.config.paths["db"].first, "schema_cache.yml")
+            db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).first
 
-            if File.file?(filename)
-              current_version = ActiveRecord::Migrator.current_version
+            filename = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(
+              db_config.name,
+              schema_cache_path: db_config&.schema_cache_path
+            )
 
-              next if current_version.nil?
+            cache = ActiveRecord::ConnectionAdapters::SchemaCache.load_from(filename)
+            next if cache.nil?
 
-              cache = YAML.load(File.read(filename))
-              if cache.version == current_version
-                connection.schema_cache = cache
-                connection_pool.schema_cache = cache.dup
-              else
-                warn "Ignoring db/schema_cache.yml because it has expired. The current schema version is #{current_version}, but the one in the cache is #{cache.version}."
-              end
+            current_version = ActiveRecord::Migrator.current_version
+            next if current_version.nil?
+
+            if cache.version != current_version
+              warn "Ignoring #{filename} because it has expired. The current schema version is #{current_version}, but the one in the cache is #{cache.version}."
+              next
             end
+
+            connection_pool.set_schema_cache(cache.dup)
           end
         end
       end
@@ -211,13 +219,6 @@ end_error
       end
     end
 
-    initializer "active_record.collection_cache_association_loading" do
-      require "active_record/railties/collection_cache_association_loading"
-      ActiveSupport.on_load(:action_view) do
-        ActionView::PartialRenderer.prepend(ActiveRecord::Railties::CollectionCacheAssociationLoading)
-      end
-    end
-
     initializer "active_record.set_reloader_hooks" do
       ActiveSupport.on_load(:active_record) do
         ActiveSupport::Reloader.before_class_unload do
@@ -258,6 +259,12 @@ end_error
     initializer "active_record.set_filter_attributes" do
       ActiveSupport.on_load(:active_record) do
         self.filter_attributes += Rails.application.config.filter_parameters
+      end
+    end
+
+    initializer "active_record.set_signed_id_verifier_secret" do
+      ActiveSupport.on_load(:active_record) do
+        self.signed_id_verifier_secret ||= -> { Rails.application.key_generator.generate_key("active_record/signed_id") }
       end
     end
   end

@@ -169,7 +169,11 @@ class Hash
       self
     end
 
-    Hash[subset.map { |k, v| [k.to_s, options ? v.as_json(options.dup) : v.as_json] }]
+    result = {}
+    subset.each do |k, v|
+      result[k.to_s] = options ? v.as_json(options.dup) : v.as_json
+    end
+    result
   end
 end
 

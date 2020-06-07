@@ -93,7 +93,7 @@ module ActionController
       end
 
       def model
-        super || synchronize { super || self.model = _default_wrap_model }
+        super || self.model = _default_wrap_model
       end
 
       def include
@@ -115,7 +115,7 @@ module ActionController
 
               if m.respond_to?(:nested_attributes_options) && m.nested_attributes_options.keys.any?
                 self.include += m.nested_attributes_options.keys.map do |key|
-                  key.to_s.concat("_attributes")
+                  (+key.to_s).concat("_attributes")
                 end
               end
 
@@ -151,7 +151,7 @@ module ActionController
         # try to find Foo::Bar::User, Foo::User and finally User.
         def _default_wrap_model
           return nil if klass.anonymous?
-          model_name = klass.name.sub(/Controller$/, "").classify
+          model_name = klass.name.delete_suffix("Controller").classify
 
           begin
             if model_klass = model_name.safe_constantize
@@ -189,7 +189,7 @@ module ActionController
       #
       #   wrap_parameters Person
       #     # wraps parameters by determining the wrapper key from Person class
-      #     (+person+, in this case) and the list of attribute names
+      #     # (+person+, in this case) and the list of attribute names
       #
       #   wrap_parameters include: [:username, :title]
       #     # wraps only +:username+ and +:title+ attributes from parameters.
@@ -240,13 +240,12 @@ module ActionController
 
     # Performs parameters wrapping upon the request. Called automatically
     # by the metal call stack.
-    def process_action(*args)
+    def process_action(*)
       _perform_parameter_wrapping if _wrapper_enabled?
       super
     end
 
     private
-
       # Returns the wrapper key which will be used to store wrapped parameters.
       def _wrapper_key
         _wrapper_options.name

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/enumerable"
+
 module ActiveRecord
   module Associations
     # Implements the details of eager loading of Active Record associations.
@@ -58,7 +60,7 @@ module ActiveRecord
       # == Parameters
       # +records+ is an array of ActiveRecord::Base. This array needs not be flat,
       # i.e. +records+ itself may also contain arrays of records. In any case,
-      # +preload_associations+ will preload the all associations records by
+      # +preload_associations+ will preload all associations records by
       # flattening +records+.
       #
       # +associations+ specifies one or more associations that you want to
@@ -95,7 +97,6 @@ module ActiveRecord
       end
 
       private
-
         # Loads all the given data into +records+ for the +association+.
         def preloaders_on(association, records, scope, polymorphic_parent = false)
           case association
@@ -112,7 +113,7 @@ module ActiveRecord
           association.flat_map { |parent, child|
             grouped_records(parent, records, polymorphic_parent).flat_map do |reflection, reflection_records|
               loaders = preloaders_for_reflection(reflection, reflection_records, scope)
-              recs = loaders.flat_map(&:preloaded_records)
+              recs = loaders.flat_map(&:preloaded_records).uniq
               child_polymorphic_parent = reflection && reflection.options[:polymorphic]
               loaders.concat Array.wrap(child).flat_map { |assoc|
                 preloaders_on assoc, recs, scope, child_polymorphic_parent
@@ -143,16 +144,13 @@ module ActiveRecord
 
         def preloaders_for_reflection(reflection, records, scope)
           records.group_by { |record| record.association(reflection.name).klass }.map do |rhs_klass, rs|
-            loader = preloader_for(reflection, rs).new(rhs_klass, rs, reflection, scope)
-            loader.run self
-            loader
+            preloader_for(reflection, rs).new(rhs_klass, rs, reflection, scope).run
           end
         end
 
         def grouped_records(association, records, polymorphic_parent)
           h = {}
           records.each do |record|
-            next unless record
             reflection = record.class._reflect_on_association(association)
             next if polymorphic_parent && !reflection || !record.association(association).klass
             (h[reflection] ||= []) << record
@@ -166,10 +164,18 @@ module ActiveRecord
             @reflection = reflection
           end
 
-          def run(preloader); end
+          def run
+            self
+          end
 
           def preloaded_records
-            owners.flat_map { |owner| owner.association(reflection.name).target }
+            @preloaded_records ||= records_by_owner.flat_map(&:last)
+          end
+
+          def records_by_owner
+            @records_by_owner ||= owners.index_with do |owner|
+              Array(owner.association(reflection.name).target)
+            end
           end
 
           private
@@ -180,7 +186,7 @@ module ActiveRecord
         # and attach it to a relation. The class returned implements a `run` method
         # that accepts a preloader.
         def preloader_for(reflection, owners)
-          if owners.first.association(reflection.name).loaded?
+          if owners.all? { |o| o.association(reflection.name).loaded? }
             return AlreadyLoaded
           end
           reflection.check_preloadable!

@@ -40,6 +40,15 @@ module ActionView
           true
         end
 
+        # Line number to pass to #module_eval
+        #
+        # If we're annotating the template, we need to offset the starting
+        # line number passed to #module_eval so that errors in the template
+        # will be raised on the correct line.
+        def start_line(template)
+          annotate?(template) ? -1 : 0
+        end
+
         def call(template, source)
           # First, convert to BINARY, so in case the encoding is
           # wrong, we can still find an encoding tag
@@ -55,14 +64,23 @@ module ActionView
           # Always make sure we return a String in the default_internal
           erb.encode!
 
-          self.class.erb_implementation.new(
-            erb,
+          options = {
             escape: (self.class.escape_ignore_list.include? template.type),
             trim: (self.class.erb_trim_mode == "-")
-          ).src
+          }
+
+          if annotate?(template)
+            options[:preamble] = "@output_buffer.safe_append='<!-- BEGIN #{template.short_identifier} -->\n';"
+            options[:postamble] = "@output_buffer.safe_append='<!-- END #{template.short_identifier} -->\n';@output_buffer.to_s"
+          end
+
+          self.class.erb_implementation.new(erb, options).src
         end
 
       private
+        def annotate?(template)
+          ActionView::Base.annotate_rendered_view_with_filenames && template.format == :html
+        end
 
         def valid_encoding(string, encoding)
           # If a magic encoding comment was found, tag the

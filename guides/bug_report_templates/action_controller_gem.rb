@@ -8,7 +8,7 @@ gemfile(true) do
   git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
   # Activate the gem you are reporting the issue against.
-  gem "rails", "5.2.0"
+  gem "rails", "6.0.3"
 end
 
 require "rack/test"
@@ -16,6 +16,7 @@ require "action_controller/railtie"
 
 class TestApp < Rails::Application
   config.root = __dir__
+  config.hosts << "example.org"
   config.session_store :cookie_store, key: "cookie_store_key"
   secrets.secret_key_base = "secret_key_base"
 

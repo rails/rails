@@ -5,6 +5,7 @@ extensions that were found useful for the Rails framework. These additions
 reside in this package so they can be loaded as needed in Ruby projects
 outside of Rails.
 
+You can read more about the extensions in the {Active Support Core Extensions}[https://edgeguides.rubyonrails.org/active_support_core_extensions.html] guide.
 
 == Download and installation
 
@@ -28,7 +29,7 @@ Active Support is released under the MIT license:
 
 API documentation is at:
 
-* http://api.rubyonrails.org
+* https://api.rubyonrails.org
 
 Bug reports for the Ruby on Rails project can be filed here:
 
@@ -36,4 +37,4 @@ Bug reports for the Ruby on Rails project can be filed here:
 
 Feature requests should be discussed on the rails-core mailing list here:
 
-* https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core
+* https://discuss.rubyonrails.org/c/rubyonrails-core

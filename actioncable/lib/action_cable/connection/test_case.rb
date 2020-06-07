@@ -85,7 +85,7 @@ module ActionCable
     #     end
     #   end
     #
-    # +connect+ accepts additional information the HTTP request with the
+    # +connect+ accepts additional information about the HTTP request with the
     # +params+, +headers+, +session+ and Rack +env+ options.
     #
     #   def test_connect_with_headers_and_query_string
@@ -101,7 +101,7 @@ module ActionCable
     #     assert_equal "1", connection.user.id
     #   end
     #
-    # You can also setup the correct cookies before the connection request:
+    # You can also set up the correct cookies before the connection request:
     #
     #   def test_connect_with_cookies
     #     # Plain cookies:
@@ -176,7 +176,7 @@ module ActionCable
         #
         # Accepts request path as the first argument and the following request options:
         #
-        # - params – url parameters (Hash)
+        # - params – URL parameters (Hash)
         # - headers – request headers (Hash)
         # - session – session data (Hash)
         # - env – additional Rack env configuration (Hash)
@@ -185,7 +185,7 @@ module ActionCable
 
           connection = self.class.connection_class.allocate
           connection.singleton_class.include(TestConnection)
-          connection.send(:initialize, build_test_request(path, request_params))
+          connection.send(:initialize, build_test_request(path, **request_params))
           connection.connect if connection.respond_to?(:connect)
 
           # Only set instance variable if connected successfully

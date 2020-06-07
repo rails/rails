@@ -1,126 +1,116 @@
-## Rails 6.0.0.beta2 (February 25, 2019) ##
+*   While using `perform_enqueued_jobs` test helper enqueued jobs must be stored for the later check with
+    `assert_enqueued_with`.
 
-*   No changes.
+    *Dmitry Polushkin*
 
+*   `ActiveJob::TestCase#perform_enqueued_jobs` without a block removes performed jobs from the queue.
 
-## Rails 6.0.0.beta1 (January 18, 2019) ##
+    That way the helper can be called multiple times and not perform a job invocation multiple times.
 
-*   Return false instead of the job instance when `enqueue` is aborted.
-
-    This will be the behavior in Rails 6.1 but it can be controlled now with
-    `config.active_job.return_false_on_aborted_enqueue`.
-
-    *Kir Shatrov*
-
-*   Keep executions for each specific declaration
-
-    Each `retry_on` declaration has now its own specific executions counter. Before it was
-    shared between all executions of a job.
-
-    *Alberto Almagro*
-
-*   Allow all assertion helpers that have a `only` and `except` keyword to accept
-    Procs.
-
-    *Edouard Chin*
-
-*   Restore HashWithIndifferentAccess support to ActiveJob::Arguments.deserialize.
-
-    *Gannon McGibbon*
-
-*   Include deserialized arguments in job instances returned from
-    `assert_enqueued_with` and `assert_performed_with`
-
-    *Alan Wu*
-
-*   Allow `assert_enqueued_with`/`assert_performed_with` methods to accept
-    a proc for the `args` argument. This is useful to check if only a subset of arguments
-    matches your expectations.
-
-    *Edouard Chin*
-
-*   `ActionDispatch::IntegrationTest` includes `ActiveJob::TestHelper` module by default.
-
-    *Ricardo Díaz*
-
-*   Added `enqueue_retry.active_job`, `retry_stopped.active_job`, and `discard.active_job` hooks.
-
-    *steves*
-
-*   Allow `assert_performed_with` to be called without a block.
-
-    *bogdanvlviv*
-
-*   Execution of `assert_performed_jobs`, and `assert_no_performed_jobs`
-    without a block should respect passed `:except`, `:only`, and `:queue` options.
-
-    *bogdanvlviv*
-
-*   Allow `:queue` option to job assertions and helpers.
-
-    *bogdanvlviv*
-
-*   Allow `perform_enqueued_jobs` to be called without a block.
-
-    Performs all of the jobs that have been enqueued up to this point in the test.
-
-    *Kevin Deisz*
-
-*   Move `enqueue`/`enqueue_at` notifications to an around callback.
-
-    Improves timing accuracy over the old after callback by including
-    time spent writing to the adapter's IO implementation.
-
-    *Zach Kemp*
-
-*   Allow call `assert_enqueued_with` with no block.
-
-    Example:
-    ```
-    def test_assert_enqueued_with
-      MyJob.perform_later(1,2,3)
-      assert_enqueued_with(job: MyJob, args: [1,2,3], queue: 'low')
-
-      MyJob.set(wait_until: Date.tomorrow.noon).perform_later
-      assert_enqueued_with(job: MyJob, at: Date.tomorrow.noon)
+    ```ruby
+    def test_jobs
+      HelloJob.perform_later("rafael")
+      perform_enqueued_jobs # only runs with "rafael"
+      HelloJob.perform_later("david")
+      perform_enqueued_jobs # only runs with "david"
     end
     ```
 
-    *bogdanvlviv*
+    *Étienne Barrié*
 
-*   Allow passing multiple exceptions to `retry_on`, and `discard_on`.
+*   `ActiveJob::TestCase#perform_enqueued_jobs` will no longer perform retries:
 
-    *George Claghorn*
+    When calling `perform_enqueued_jobs` without a block, the adapter will
+    now perform jobs that are **already** in the queue. Jobs that will end up in
+    the queue afterwards won't be performed.
 
-*   Pass the error instance as the second parameter of block executed by `discard_on`.
+    This change only affects `perform_enqueued_jobs` when no block is given.
 
-    Fixes #32853.
+    *Edouard Chin*
 
-    *Yuji Yaginuma*
+*   Add queue name support to Que adapter.
 
-*   Remove support for Qu gem.
+    *Brad Nauta*, *Wojciech Wnętrzak*
 
-    Reasons are that the Qu gem wasn't compatible since Rails 5.1,
-    gem development was stopped in 2014 and maintainers have
-    confirmed its demise. See issue #32273
+*   Don't run `after_enqueue` and `after_perform` callbacks if the callback chain is halted.
 
-    *Alberto Almagro*
+        class MyJob < ApplicationJob
+          before_enqueue { throw(:abort) }
+          after_enqueue { # won't enter here anymore }
+        end
 
-*   Add support for timezones to Active Job.
+    `after_enqueue` and `after_perform` callbacks will no longer run if the callback chain is halted.
+    This behaviour is a breaking change and won't take effect until Rails 6.2.
+    To enable this behaviour in your app right now, you can add in your app's configuration file
+    `config.active_job.skip_after_callbacks_if_terminated = true`.
 
-    Record what was the current timezone in effect when the job was
-    enqueued and then restore when the job is executed in same way
-    that the current locale is recorded and restored.
+    *Edouard Chin*
 
-    *Andrew White*
+*   Fix enqueuing and performing incorrect logging message.
 
-*   Rails 6 requires Ruby 2.5.0 or newer.
+    Jobs will no longer always log "Enqueued MyJob" or "Performed MyJob" when they actually didn't get enqueued/performed.
 
-    *Jeremy Daer*, *Kasper Timm Hansen*
+    ```ruby
+      class MyJob < ApplicationJob
+        before_enqueue { throw(:abort) }
+      end
 
-*   Add support to define custom argument serializers.
+      MyJob.perform_later # Will no longer log "Enqueued MyJob" since job wasn't even enqueued through adapter.
+    ```
 
-    *Evgenii Pecherkin*, *Rafael Mendonça França*
+    A new message will be logged in case a job couldn't be enqueued, either because the callback chain was halted or
+    because an exception happened during enqueing. (i.e. Redis is down when you try to enqueue your job)
+
+    *Edouard Chin*
+
+*   Add an option to disable logging of the job arguments when enqueuing and executing the job.
+
+        class SensitiveJob < ApplicationJob
+          self.log_arguments = false
+
+          def perform(my_sensitive_argument)
+          end
+        end
+
+    When dealing with sensitive arguments as password and tokens it is now possible to configure the job
+    to not put the sensitive argument in the logs.
+
+    *Rafael Mendonça França*
+
+*   Changes in `queue_name_prefix` of a job no longer affects all other jobs.
+
+    Fixes #37084.
+
+    *Lucas Mansur*
+
+*   Allow `Class` and `Module` instances to be serialized.
+
+    *Kevin Deisz*
+
+*   Log potential matches in `assert_enqueued_with` and `assert_performed_with`.
+
+    *Gareth du Plooy*
+
+*   Add `at` argument to the `perform_enqueued_jobs` test helper.
+
+    *John Crepezzi*, *Eileen Uchitelle*
+
+*   `assert_enqueued_with` and `assert_performed_with` can now test jobs with relative delay.
+
+    *Vlado Cingel*
+
+*   Add jitter to `ActiveJob::Exceptions.retry_on`.
+
+    `ActiveJob::Exceptions.retry_on` now uses a random amount of jitter in order to
+    prevent the [thundering herd effect](https://en.wikipedia.org/wiki/Thundering_herd_problem). Defaults to
+    15% (represented as 0.15) but overridable via the `:jitter` option when using `retry_on`.
+    Jitter is applied when an `Integer`, `ActiveSupport::Duration` or `:exponentially_longer`, is passed to the `wait` argument in `retry_on`.
+
+    ```ruby
+    retry_on(MyError, wait: :exponentially_longer, jitter: 0.30)
+    ```
+
+    *Anthony Ross*
 
 
-Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/activejob/CHANGELOG.md) for previous changes.
+Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/activejob/CHANGELOG.md) for previous changes.

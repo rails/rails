@@ -9,7 +9,7 @@ class Mysql2StoredProcedureTest < ActiveRecord::Mysql2TestCase
 
   def setup
     @connection = ActiveRecord::Base.connection
-    unless ActiveRecord::Base.connection.version >= "5.6.0"
+    unless ActiveRecord::Base.connection.database_version >= "5.6.0"
       skip("no stored procedure support")
     end
   end
@@ -17,7 +17,7 @@ class Mysql2StoredProcedureTest < ActiveRecord::Mysql2TestCase
   # Test that MySQL allows multiple results for stored procedures
   #
   # In MySQL 5.6, CLIENT_MULTI_RESULTS is enabled by default.
-  # https://dev.mysql.com/doc/refman/5.6/en/call.html
+  # https://dev.mysql.com/doc/refman/en/call.html
   def test_multi_results
     rows = @connection.select_rows("CALL ten();")
     assert_equal 10, rows[0][0].to_i, "ten() did not return 10 as expected: #{rows.inspect}"

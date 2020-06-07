@@ -8,6 +8,7 @@ require "models/contract"
 require "models/edge"
 require "models/organization"
 require "models/possession"
+require "models/author"
 require "models/topic"
 require "models/reply"
 require "models/numeric_data"
@@ -22,7 +23,7 @@ require "models/rating"
 require "support/stubs/strong_parameters"
 
 class CalculationsTest < ActiveRecord::TestCase
-  fixtures :companies, :accounts, :topics, :speedometers, :minivans, :books, :posts, :comments
+  fixtures :companies, :accounts, :authors, :author_addresses, :topics, :speedometers, :minivans, :books, :posts, :comments
 
   def test_should_sum_field
     assert_equal 318, Account.sum(:credit_limit)
@@ -114,10 +115,54 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_group_by_summed_field
-    c = Account.group(:firm_id).sum(:credit_limit)
-    assert_equal 50,   c[1]
-    assert_equal 105,  c[6]
-    assert_equal 60,   c[2]
+    expected = { nil => 50, 1 => 50, 2 => 60, 6 => 105, 9 => 53 }
+    assert_equal expected, Account.group(:firm_id).sum(:credit_limit)
+  end
+
+  def test_group_by_multiple_same_field
+    accounts = Account.group(:firm_id)
+
+    expected = {
+      nil => 50,
+      1 => 50,
+      2 => 60,
+      6 => 105,
+      9 => 53
+    }
+    assert_equal expected, accounts.sum(:credit_limit)
+    assert_equal expected, accounts.merge!(accounts).uniq!(:group).sum(:credit_limit)
+
+    expected = {
+      [nil, nil] => 50,
+      [1, 1] => 50,
+      [2, 2] => 60,
+      [6, 6] => 55,
+      [9, 9] => 53
+    }
+    message = <<-MSG.squish
+      `maximum` with group by duplicated fields does no longer affect to result in Rails 6.2.
+      To migrate to Rails 6.2's behavior, use `uniq!(:group)` to deduplicate group fields
+      (`accounts.uniq!(:group).maximum(:credit_limit)`).
+    MSG
+    assert_deprecated(message) do
+      assert_equal expected, accounts.merge!(accounts).maximum(:credit_limit)
+    end
+
+    expected = {
+      [nil, nil, nil, nil] => 50,
+      [1, 1, 1, 1] => 50,
+      [2, 2, 2, 2] => 60,
+      [6, 6, 6, 6] => 50,
+      [9, 9, 9, 9] => 53
+    }
+    message = <<-MSG.squish
+      `minimum` with group by duplicated fields does no longer affect to result in Rails 6.2.
+      To migrate to Rails 6.2's behavior, use `uniq!(:group)` to deduplicate group fields
+      (`accounts.uniq!(:group).minimum(:credit_limit)`).
+    MSG
+    assert_deprecated(message) do
+      assert_equal expected, accounts.merge!(accounts).minimum(:credit_limit)
+    end
   end
 
   def test_should_generate_valid_sql_with_joins_and_group
@@ -136,6 +181,13 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal developer.audit_logs.count, c.size
     developer.audit_logs.each do |log|
       assert_equal 1, c[log.id]
+    end
+  end
+
+  def test_should_not_use_alias_for_grouped_field
+    assert_sql(/GROUP BY #{Regexp.escape(Account.connection.quote_table_name("accounts.firm_id"))}/i) do
+      c = Account.group(:firm_id).order("accounts_firm_id").sum(:credit_limit)
+      assert_equal [1, 2, 6, 9], c.keys.compact
     end
   end
 
@@ -162,14 +214,14 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_limit_should_apply_before_count
-    accounts = Account.limit(4)
+    accounts = Account.order(:id).limit(4)
 
     assert_equal 3, accounts.count(:firm_id)
     assert_equal 3, accounts.select(:firm_id).count
   end
 
   def test_limit_should_apply_before_count_arel_attribute
-    accounts = Account.limit(4)
+    accounts = Account.order(:id).limit(4)
 
     firm_id_attribute = Account.arel_table[:firm_id]
     assert_equal 3, accounts.count(firm_id_attribute)
@@ -185,7 +237,7 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_limit_is_kept
     return if current_adapter?(:OracleAdapter)
 
-    queries = assert_sql { Account.limit(1).count }
+    queries = capture_sql { Account.limit(1).count }
     assert_equal 1, queries.length
     assert_match(/LIMIT/, queries.first)
   end
@@ -193,7 +245,7 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_offset_is_kept
     return if current_adapter?(:OracleAdapter)
 
-    queries = assert_sql { Account.offset(1).count }
+    queries = capture_sql { Account.offset(1).count }
     assert_equal 1, queries.length
     assert_match(/OFFSET/, queries.first)
   end
@@ -201,14 +253,14 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_limit_with_offset_is_kept
     return if current_adapter?(:OracleAdapter)
 
-    queries = assert_sql { Account.limit(1).offset(1).count }
+    queries = capture_sql { Account.limit(1).offset(1).count }
     assert_equal 1, queries.length
     assert_match(/LIMIT/, queries.first)
     assert_match(/OFFSET/, queries.first)
   end
 
   def test_no_limit_no_offset
-    queries = assert_sql { Account.count }
+    queries = capture_sql { Account.count }
     assert_equal 1, queries.length
     assert_no_match(/LIMIT/, queries.first)
     assert_no_match(/OFFSET/, queries.first)
@@ -224,21 +276,24 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_apply_distinct_in_count
-    queries = assert_sql do
+    queries = capture_sql do
       Account.distinct.count
       Account.group(:firm_id).distinct.count
     end
 
     queries.each do |query|
-      # `table_alias_length` in `column_alias_for` would execute
-      # "SHOW max_identifier_length" statement in PostgreSQL adapter.
-      next if query == "SHOW max_identifier_length"
       assert_match %r{\ASELECT(?! DISTINCT) COUNT\(DISTINCT\b}, query
     end
   end
 
   def test_count_with_eager_loading_and_custom_order
     posts = Post.includes(:comments).order("comments.id")
+    assert_queries(1) { assert_equal 11, posts.count }
+    assert_queries(1) { assert_equal 11, posts.count(:all) }
+  end
+
+  def test_count_with_eager_loading_and_custom_select_and_order
+    posts = Post.includes(:comments).order("comments.id").select(:type)
     assert_queries(1) { assert_equal 11, posts.count }
     assert_queries(1) { assert_equal 11, posts.count(:all) }
   end
@@ -357,6 +412,17 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 60,  c[2]
   end
 
+  def test_should_calculate_grouped_with_longer_field
+    field = "a" * Account.connection.max_identifier_length
+
+    Account.update_all("#{field} = credit_limit")
+
+    c = Account.group(:firm_id).sum(field)
+    assert_equal 50,  c[1]
+    assert_equal 105, c[6]
+    assert_equal 60,  c[2]
+  end
+
   def test_should_calculate_with_invalid_field
     assert_equal 6, Account.calculate(:count, "*")
     assert_equal 6, Account.calculate(:count, :all)
@@ -447,7 +513,7 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_should_not_perform_joined_include_by_default
     assert_equal Account.count, Account.includes(:firm).count
-    queries = assert_sql { Account.includes(:firm).count }
+    queries = capture_sql { Account.includes(:firm).count }
     assert_no_match(/join/i, queries.last)
   end
 
@@ -575,11 +641,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_sum_expression
-    if current_adapter?(:SQLite3Adapter, :Mysql2Adapter, :PostgreSQLAdapter, :OracleAdapter)
-      assert_equal 636, Account.sum("2 * credit_limit")
-    else
-      assert_equal 636, Account.sum("2 * credit_limit").to_i
-    end
+    assert_equal 636, Account.sum("2 * credit_limit")
   end
 
   def test_sum_expression_returns_zero_when_no_records_to_sum
@@ -661,6 +723,12 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [1, 2, 3, 4, 5], Topic.order(:id).pluck(:id)
   end
 
+  def test_pluck_with_empty_in
+    assert_queries(0) do
+      assert_equal [], Topic.where(id: []).pluck(:id)
+    end
+  end
+
   def test_pluck_without_column_names
     if current_adapter?(:OracleAdapter)
       assert_equal [[1, "Firm", 1, nil, "37signals", nil, 1, nil, nil]], Company.order(:id).limit(1).pluck
@@ -676,6 +744,45 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [ topic.last_read ], relation.pluck(:last_read)
     assert_equal [ topic.written_on ], relation.pluck(:written_on)
   end
+
+  def test_pluck_type_cast_with_conflict_column_names
+    expected = [
+      [Date.new(2004, 4, 15), "unread"],
+      [Date.new(2004, 4, 15), "reading"],
+      [Date.new(2004, 4, 15), "read"],
+    ]
+    actual = AuthorAddress.joins(author: [:topics, :books]).order(:"books.last_read")
+      .where("books.last_read": [:unread, :reading, :read])
+      .pluck(:"topics.last_read", :"books.last_read")
+
+    assert_equal expected, actual
+  end
+
+  def test_pluck_type_cast_with_joins_without_table_name_qualified_column
+    assert_pluck_type_cast_without_table_name_qualified_column(AuthorAddress.joins(author: :books))
+  end
+
+  def test_pluck_type_cast_with_left_joins_without_table_name_qualified_column
+    assert_pluck_type_cast_without_table_name_qualified_column(AuthorAddress.left_joins(author: :books))
+  end
+
+  def test_pluck_type_cast_with_eager_load_without_table_name_qualified_column
+    assert_pluck_type_cast_without_table_name_qualified_column(AuthorAddress.eager_load(author: :books))
+  end
+
+  def assert_pluck_type_cast_without_table_name_qualified_column(author_addresses)
+    expected = [
+      [nil, "unread"],
+      ["ebook", "reading"],
+      ["paperback", "read"],
+    ]
+    actual = author_addresses.order(:last_read)
+      .where("books.last_read": [:unread, :reading, :read])
+      .pluck(:format, :last_read)
+
+    assert_equal expected, actual
+  end
+  private :assert_pluck_type_cast_without_table_name_qualified_column
 
   def test_pluck_with_type_cast_does_not_corrupt_the_query_cache
     topic = topics(:first)
@@ -732,11 +839,7 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [50, 53, 55, 60], Account.pluck(Arel.sql("DISTINCT credit_limit")).sort
     assert_equal [50, 53, 55, 60], Account.pluck(Arel.sql("DISTINCT accounts.credit_limit")).sort
     assert_equal [50, 53, 55, 60], Account.pluck(Arel.sql("DISTINCT(credit_limit)")).sort
-
-    # MySQL returns "SUM(DISTINCT(credit_limit))" as the column name unless
-    # an alias is provided.  Without the alias, the column cannot be found
-    # and properly typecast.
-    assert_equal [50 + 53 + 55 + 60], Account.pluck(Arel.sql("SUM(DISTINCT(credit_limit)) as credit_limit"))
+    assert_equal [50 + 53 + 55 + 60], Account.pluck(Arel.sql("SUM(DISTINCT(credit_limit))"))
   end
 
   def test_plucks_with_ids
@@ -754,24 +857,37 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_pluck_with_join
-    assert_equal [[2, 2], [4, 4]], Reply.includes(:topic).pluck(:id, :"topics.id")
+    assert_equal [[2, 2], [4, 4]], Reply.includes(:topic).order(:id).pluck(:id, :"topics.id")
   end
 
+  def test_group_by_with_order_by_virtual_count_attribute
+    expected = { "SpecialPost" => 1, "StiPost" => 2 }
+    actual = Post.group(:type).order(:count).limit(2).maximum(:comments_count)
+    assert_equal expected, actual
+  end if current_adapter?(:PostgreSQLAdapter)
+
   def test_group_by_with_limit
-    expected = { "Post" => 8, "SpecialPost" => 1 }
-    actual = Post.includes(:comments).group(:type).order(:type).limit(2).count("comments.id")
+    expected = { "StiPost" => 2, "SpecialPost" => 1 }
+    actual = Post.includes(:comments).group(:type).order(type: :desc).limit(2).count("comments.id")
     assert_equal expected, actual
   end
 
   def test_group_by_with_offset
-    expected = { "SpecialPost" => 1, "StiPost" => 2 }
-    actual = Post.includes(:comments).group(:type).order(:type).offset(1).count("comments.id")
+    expected = { "SpecialPost" => 1, "Post" => 8 }
+    actual = Post.includes(:comments).group(:type).order(type: :desc).offset(1).count("comments.id")
     assert_equal expected, actual
   end
 
   def test_group_by_with_limit_and_offset
     expected = { "SpecialPost" => 1 }
-    actual = Post.includes(:comments).group(:type).order(:type).offset(1).limit(1).count("comments.id")
+    actual = Post.includes(:comments).group(:type).order(type: :desc).offset(1).limit(1).count("comments.id")
+    assert_equal expected, actual
+  end
+
+  def test_group_by_with_quoted_count_and_order_by_alias
+    quoted_posts_id = Post.connection.quote_table_name("posts.id")
+    expected = { "SpecialPost" => 1, "StiPost" => 1, "Post" => 9 }
+    actual = Post.group(:type).order("count_posts_id").count(quoted_posts_id)
     assert_equal expected, actual
   end
 
@@ -797,7 +913,7 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_pluck_with_multiple_columns_and_selection_clause
     assert_equal [[1, 50], [2, 50], [3, 50], [4, 60], [5, 55], [6, 53]],
-      Account.pluck("id, credit_limit")
+      Account.order(:id).pluck("id, credit_limit")
   end
 
   def test_pluck_with_multiple_columns_and_includes
@@ -823,9 +939,31 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_pluck_columns_with_same_name
     expected = [["The First Topic", "The Second Topic of the day"], ["The Third Topic of the day", "The Fourth Topic of the day"]]
-    actual = Topic.joins(:replies)
+    actual = Topic.joins(:replies).order(:id)
       .pluck("topics.title", "replies_topics.title")
     assert_equal expected, actual
+  end
+
+  def test_pluck_functions_with_alias
+    assert_equal [
+      [1, "The First Topic"], [2, "The Second Topic of the day"],
+      [3, "The Third Topic of the day"], [4, "The Fourth Topic of the day"],
+      [5, "The Fifth Topic of the day"]
+    ], Topic.order(:id).pluck(
+      Arel.sql("COALESCE(id, 0) id"),
+      Arel.sql("COALESCE(title, 'untitled') title")
+    )
+  end
+
+  def test_pluck_functions_without_alias
+    assert_equal [
+      [1, "The First Topic"], [2, "The Second Topic of the day"],
+      [3, "The Third Topic of the day"], [4, "The Fourth Topic of the day"],
+      [5, "The Fifth Topic of the day"]
+    ], Topic.order(:id).pluck(
+      Arel.sql("COALESCE(id, 0)"),
+      Arel.sql("COALESCE(title, 'untitled')")
+    )
   end
 
   def test_calculation_with_polymorphic_relation
@@ -843,47 +981,72 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_pluck_loaded_relation
-    Company.attribute_names # Load schema information so we don't query below
     companies = Company.order(:id).limit(3).load
 
-    assert_no_queries do
+    assert_queries(0) do
       assert_equal ["37signals", "Summit", "Microsoft"], companies.pluck(:name)
     end
   end
 
   def test_pluck_loaded_relation_multiple_columns
-    Company.attribute_names # Load schema information so we don't query below
     companies = Company.order(:id).limit(3).load
 
-    assert_no_queries do
+    assert_queries(0) do
       assert_equal [[1, "37signals"], [2, "Summit"], [3, "Microsoft"]], companies.pluck(:id, :name)
     end
   end
 
   def test_pluck_loaded_relation_sql_fragment
-    Company.attribute_names # Load schema information so we don't query below
     companies = Company.order(:name).limit(3).load
 
-    assert_queries 1 do
+    assert_queries(1) do
       assert_equal ["37signals", "Apex", "Ex Nihilo"], companies.pluck(Arel.sql("DISTINCT name"))
     end
   end
 
   def test_pick_one
     assert_equal "The First Topic", Topic.order(:id).pick(:heading)
-    assert_nil Topic.none.pick(:heading)
-    assert_nil Topic.where(id: 9999999999999999999).pick(:heading)
+    assert_no_queries do
+      assert_nil Topic.none.pick(:heading)
+      assert_nil Topic.where(id: 9999999999999999999).pick(:heading)
+    end
   end
 
   def test_pick_two
     assert_equal ["David", "david@loudthinking.com"], Topic.order(:id).pick(:author_name, :author_email_address)
-    assert_nil Topic.none.pick(:author_name, :author_email_address)
-    assert_nil Topic.where(id: 9999999999999999999).pick(:author_name, :author_email_address)
+    assert_no_queries do
+      assert_nil Topic.none.pick(:author_name, :author_email_address)
+      assert_nil Topic.where(id: 9999999999999999999).pick(:author_name, :author_email_address)
+    end
   end
 
   def test_pick_delegate_to_all
     cool_first = minivans(:cool_first)
     assert_equal cool_first.color, Minivan.pick(:color)
+  end
+
+  def test_pick_loaded_relation
+    companies = Company.order(:id).limit(3).load
+
+    assert_no_queries do
+      assert_equal "37signals", companies.pick(:name)
+    end
+  end
+
+  def test_pick_loaded_relation_multiple_columns
+    companies = Company.order(:id).limit(3).load
+
+    assert_no_queries do
+      assert_equal [1, "37signals"], companies.pick(:id, :name)
+    end
+  end
+
+  def test_pick_loaded_relation_sql_fragment
+    companies = Company.order(:name).limit(3).load
+
+    assert_queries 1 do
+      assert_equal "37signals", companies.pick(Arel.sql("DISTINCT name"))
+    end
   end
 
   def test_grouped_calculation_with_polymorphic_relation
@@ -928,8 +1091,203 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 50, result[2].credit_limit
   end
 
+  def test_count_takes_attribute_type_precedence_over_database_type
+    assert_called(
+      Account.connection, :select_all,
+      returns: ActiveRecord::Result.new(["count"], [["10"]])
+    ) do
+      result = Account.count
+      assert_equal 10, result
+      assert_instance_of Integer, result
+    end
+  end
+
+  def test_sum_takes_attribute_type_precedence_over_database_type
+    assert_called(
+      Account.connection, :select_all,
+      returns: ActiveRecord::Result.new(["sum"], [[10.to_d]])
+    ) do
+      result = Account.sum(:credit_limit)
+      assert_equal 10, result
+      assert_instance_of Integer, result
+    end
+  end
+
   def test_group_by_attribute_with_custom_type
     assert_equal({ "proposed" => 2, "published" => 2 }, Book.group(:status).count)
+  end
+
+  def test_aggregate_attribute_on_custom_type
+    assert_nil Book.sum(:status)
+    assert_equal "medium", Book.sum(:difficulty)
+    assert_equal "easy", Book.minimum(:difficulty)
+    assert_equal "medium", Book.maximum(:difficulty)
+    assert_equal({ "proposed" => "proposed", "published" => nil }, Book.group(:status).sum(:status))
+    assert_equal({ "proposed" => "easy", "published" => "medium" }, Book.group(:status).sum(:difficulty))
+    assert_equal({ "proposed" => "easy", "published" => "easy" }, Book.group(:status).minimum(:difficulty))
+    assert_equal({ "proposed" => "easy", "published" => "medium" }, Book.group(:status).maximum(:difficulty))
+  end
+
+  def test_minimum_and_maximum_on_non_numeric_type
+    assert_equal Date.new(2004, 4, 15), Topic.minimum(:last_read)
+    assert_equal Date.new(2004, 4, 15), Topic.maximum(:last_read)
+    assert_equal({ false => Date.new(2004, 4, 15), true => nil }, Topic.group(:approved).minimum(:last_read))
+    assert_equal({ false => Date.new(2004, 4, 15), true => nil }, Topic.group(:approved).maximum(:last_read))
+  end
+
+  def test_minimum_and_maximum_on_time_attributes
+    assert_minimum_and_maximum_on_time_attributes(Time)
+  end
+
+  def test_minimum_and_maximum_on_tz_aware_attributes
+    with_timezone_config aware_attributes: true, zone: "Pacific Time (US & Canada)" do
+      Topic.reset_column_information
+      assert_minimum_and_maximum_on_time_attributes(ActiveSupport::TimeWithZone)
+    end
+  ensure
+    Topic.reset_column_information
+  end
+
+  def assert_minimum_and_maximum_on_time_attributes(time_class)
+    actual = Topic.minimum(:written_on)
+    assert_equal Time.utc(2003, 7, 16, 14, 28, 11, 223300), actual
+    assert_instance_of time_class, actual
+
+    actual = Topic.maximum(:written_on)
+    assert_equal Time.utc(2013, 7, 13, 11, 11, 0, 9900), actual
+    assert_instance_of time_class, actual
+
+    expected = {
+      false => Time.utc(2003, 7, 16, 14, 28, 11, 223300),
+      true => Time.utc(2004, 7, 15, 14, 28, 0, 9900),
+    }
+    actual = Topic.group(:approved).minimum(:written_on)
+    assert_equal expected, actual
+    assert_instance_of time_class, actual[true]
+    assert_instance_of time_class, actual[true]
+
+    expected = {
+      false => Time.utc(2003, 7, 16, 14, 28, 11, 223300),
+      true => Time.utc(2013, 7, 13, 11, 11, 0, 9900),
+    }
+    actual = Topic.group(:approved).maximum(:written_on)
+    assert_equal expected, actual
+    assert_instance_of time_class, actual[true]
+    assert_instance_of time_class, actual[true]
+
+    assert_minimum_and_maximum_on_time_attributes_joins_with_column(time_class, :"topics.written_on")
+    assert_minimum_and_maximum_on_time_attributes_joins_with_column(time_class, :written_on)
+  end
+  private :assert_minimum_and_maximum_on_time_attributes
+
+  def assert_minimum_and_maximum_on_time_attributes_joins_with_column(time_class, column)
+    actual = Author.joins(:topics).maximum(column)
+    assert_equal Time.utc(2004, 7, 15, 14, 28, 0, 9900), actual
+    assert_instance_of time_class, actual
+
+    actual = Author.joins(:topics).minimum(column)
+    assert_equal Time.utc(2003, 7, 16, 14, 28, 11, 223300), actual
+    assert_instance_of time_class, actual
+
+    expected = {
+      1 => Time.utc(2003, 7, 16, 14, 28, 11, 223300),
+      2 => Time.utc(2004, 7, 15, 14, 28, 0, 9900),
+    }
+
+    actual = Author.joins(:topics).group(:id).maximum(column)
+    assert_equal expected, actual
+    assert_instance_of time_class, actual[1]
+    assert_instance_of time_class, actual[2]
+
+    actual = Author.joins(:topics).group(:id).minimum(column)
+    assert_equal expected, actual
+    assert_instance_of time_class, actual[1]
+    assert_instance_of time_class, actual[2]
+  end
+  private :assert_minimum_and_maximum_on_time_attributes_joins_with_column
+
+  def test_select_avg_with_group_by_as_virtual_attribute_with_sql
+    rails_core = companies(:rails_core)
+
+    sql = <<~SQL
+      SELECT firm_id, AVG(credit_limit) AS avg_credit_limit
+      FROM accounts
+      WHERE firm_id = ?
+      GROUP BY firm_id
+      LIMIT 1
+    SQL
+
+    account = Account.find_by_sql([sql, rails_core]).first
+
+    # id was not selected, so it should be nil
+    # (cannot select id because it wasn't used in the GROUP BY clause)
+    assert_nil account.id
+
+    # firm_id was explicitly selected, so it should be present
+    assert_equal(rails_core, account.firm)
+
+    # avg_credit_limit should be present as a virtual attribute
+    assert_equal(52.5, account.avg_credit_limit)
+  end
+
+  def test_select_avg_with_group_by_as_virtual_attribute_with_ar
+    rails_core = companies(:rails_core)
+
+    account = Account
+      .select(:firm_id, "AVG(credit_limit) AS avg_credit_limit")
+      .where(firm: rails_core)
+      .group(:firm_id)
+      .take!
+
+    # id was not selected, so it should be nil
+    # (cannot select id because it wasn't used in the GROUP BY clause)
+    assert_nil account.id
+
+    # firm_id was explicitly selected, so it should be present
+    assert_equal(rails_core, account.firm)
+
+    # avg_credit_limit should be present as a virtual attribute
+    assert_equal(52.5, account.avg_credit_limit)
+  end
+
+  def test_select_avg_with_joins_and_group_by_as_virtual_attribute_with_sql
+    rails_core = companies(:rails_core)
+
+    sql = <<~SQL
+      SELECT companies.*, AVG(accounts.credit_limit) AS avg_credit_limit
+      FROM companies
+      INNER JOIN accounts ON companies.id = accounts.firm_id
+      WHERE companies.id = ?
+      GROUP BY companies.id
+      LIMIT 1
+    SQL
+
+    firm = DependentFirm.find_by_sql([sql, rails_core]).first
+
+    # all the DependentFirm attributes should be present
+    assert_equal rails_core, firm
+    assert_equal rails_core.name, firm.name
+
+    # avg_credit_limit should be present as a virtual attribute
+    assert_equal(52.5, firm.avg_credit_limit)
+  end
+
+  def test_select_avg_with_joins_and_group_by_as_virtual_attribute_with_ar
+    rails_core = companies(:rails_core)
+
+    firm = DependentFirm
+      .select("companies.*", "AVG(accounts.credit_limit) AS avg_credit_limit")
+      .where(id: rails_core)
+      .joins(:account)
+      .group(:id)
+      .take!
+
+    # all the DependentFirm attributes should be present
+    assert_equal rails_core, firm
+    assert_equal rails_core.name, firm.name
+
+    # avg_credit_limit should be present as a virtual attribute
+    assert_equal(52.5, firm.avg_credit_limit)
   end
 
   def test_count_with_block_and_column_name_raises_an_error

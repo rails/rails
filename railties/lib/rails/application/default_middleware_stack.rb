@@ -16,7 +16,7 @@ module Rails
           middleware.use ::ActionDispatch::HostAuthorization, config.hosts, config.action_dispatch.hosts_response_app
 
           if config.force_ssl
-            middleware.use ::ActionDispatch::SSL, config.ssl_options
+            middleware.use ::ActionDispatch::SSL, **config.ssl_options
           end
 
           middleware.use ::Rack::Sendfile, config.action_dispatch.x_sendfile_header
@@ -49,6 +49,7 @@ module Rails
           middleware.use ::Rails::Rack::Logger, config.log_tags
           middleware.use ::ActionDispatch::ShowExceptions, show_exceptions_app
           middleware.use ::ActionDispatch::DebugExceptions, app, config.debug_exception_response_format
+          middleware.use ::ActionDispatch::ActionableExceptions
 
           unless config.cache_classes
             middleware.use ::ActionDispatch::Reloader, app.reloader
@@ -67,6 +68,7 @@ module Rails
 
           unless config.api_only
             middleware.use ::ActionDispatch::ContentSecurityPolicy::Middleware
+            middleware.use ::ActionDispatch::FeaturePolicy::Middleware
           end
 
           middleware.use ::Rack::Head
@@ -78,7 +80,6 @@ module Rails
       end
 
       private
-
         def load_rack_cache
           rack_cache = config.action_dispatch.rack_cache
           return unless rack_cache

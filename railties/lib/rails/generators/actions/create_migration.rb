@@ -19,6 +19,11 @@ module Rails
           exists? && File.binread(existing_migration) == render
         end
 
+        def invoke!
+          invoked_file = super
+          File.exist?(@destination) ? invoked_file : relative_existing_migration
+        end
+
         def revoke!
           say_destination = exists? ? relative_existing_migration : relative_destination
           say_status :remove, :red, say_destination
@@ -40,7 +45,6 @@ module Rails
         alias :exists? :existing_migration
 
         private
-
           def on_conflict_behavior # :doc:
             options = base.options.merge(config)
             if identical?

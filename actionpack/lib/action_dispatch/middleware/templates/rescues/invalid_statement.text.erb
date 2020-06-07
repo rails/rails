@@ -5,7 +5,9 @@
 
 <%= @exception.message %>
 <% if defined?(ActiveStorage) && @exception.message.match?(%r{#{ActiveStorage::Blob.table_name}|#{ActiveStorage::Attachment.table_name}}) %>
-To resolve this issue run: rails active_storage:install
+To resolve this issue run: bin/rails active_storage:install
+<% if defined?(ActionMailbox) && @exception.message.match?(%r{#{ActionMailbox::InboundEmail.table_name}}) %>
+To resolve this issue run: bin/rails action_mailbox:install
 <% end %>
 
 <%= render template: "rescues/_source" %>

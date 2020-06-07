@@ -21,7 +21,7 @@ module ApplicationTests
 
     test "simple successful test" do
       app_file "test/unit/foo_test.rb", <<-RUBY
-        require 'test_helper'
+        require "test_helper"
 
         class FooTest < ActiveSupport::TestCase
           def test_truth
@@ -35,7 +35,7 @@ module ApplicationTests
 
     test "after_run" do
       app_file "test/unit/foo_test.rb", <<-RUBY
-        require 'test_helper'
+        require "test_helper"
 
         Minitest.after_run { puts "WORLD" }
         Minitest.after_run { puts "HELLO" }
@@ -53,7 +53,7 @@ module ApplicationTests
 
     test "simple failed test" do
       app_file "test/unit/foo_test.rb", <<-RUBY
-        require 'test_helper'
+        require "test_helper"
 
         class FooTest < ActiveSupport::TestCase
           def test_truth
@@ -76,7 +76,7 @@ module ApplicationTests
       HTML
 
       app_file "test/integration/posts_test.rb", <<-RUBY
-        require 'test_helper'
+        require "test_helper"
 
         class PostsTest < ActionDispatch::IntegrationTest
           def test_index
@@ -92,7 +92,7 @@ module ApplicationTests
 
     test "enable full backtraces on test failures" do
       app_file "test/unit/failing_test.rb", <<-RUBY
-        require 'test_helper'
+        require "test_helper"
 
         class FailingTest < ActiveSupport::TestCase
           def test_failure
@@ -111,7 +111,7 @@ module ApplicationTests
       version = output.match(/(\d+)_create_users\.rb/)[1]
 
       app_file "test/models/user_test.rb", <<-RUBY
-        require 'test_helper'
+        require "test_helper"
 
         class UserTest < ActiveSupport::TestCase
           test "user" do
@@ -148,7 +148,7 @@ module ApplicationTests
       version = output.match(/(\d+)_create_users\.rb/)[1]
 
       app_file "test/models/user_test.rb", <<-RUBY
-        require 'test_helper'
+        require "test_helper"
 
         class UserTest < ActiveSupport::TestCase
           test "user" do
@@ -187,7 +187,7 @@ module ApplicationTests
       version_1 = output_1.match(/(\d+)_create_users\.rb/)[1]
 
       app_file "test/models/user_test.rb", <<-RUBY
-        require 'test_helper'
+        require "test_helper"
         class UserTest < ActiveSupport::TestCase
           test "user" do
             User.create! name: "Jon"
@@ -212,7 +212,7 @@ module ApplicationTests
       version_2 = output_2.match(/(\d+)_add_email_to_users\.rb/)[1]
 
       app_file "test/models/user_test.rb", <<-RUBY
-        require 'test_helper'
+        require "test_helper"
 
         class UserTest < ActiveSupport::TestCase
           test "user" do
@@ -232,15 +232,12 @@ module ApplicationTests
       assert_successful_test_run("models/user_test.rb")
     end
 
-    # TODO: would be nice if we could detect the schema change automatically.
-    # For now, the user has to synchronize the schema manually.
-    # This test case serves as a reminder for this use case.
-    test "manually synchronize test schema after rollback" do
+    test "automatically synchronizes test schema after rollback" do
       output  = rails("generate", "model", "user", "name:string")
       version = output.match(/(\d+)_create_users\.rb/)[1]
 
       app_file "test/models/user_test.rb", <<-RUBY
-        require 'test_helper'
+        require "test_helper"
 
         class UserTest < ActiveSupport::TestCase
           test "user" do
@@ -268,10 +265,6 @@ module ApplicationTests
         end
       RUBY
 
-      assert_successful_test_run "models/user_test.rb"
-
-      rails "db:test:prepare"
-
       assert_unsuccessful_run "models/user_test.rb", <<-ASSERTION
 Expected: ["id", "name"]
   Actual: ["id", "name", "age"]
@@ -298,7 +291,7 @@ Expected: ["id", "name"]
         end
       RUBY
       app_file "test/models/user_test.rb", <<-RUBY
-        require 'test_helper'
+        require "test_helper"
         class UserTest < ActiveSupport::TestCase
           test "user" do
             User.create! name: "Jon"

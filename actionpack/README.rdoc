@@ -23,6 +23,7 @@ by default and Action View rendering is implicitly triggered by Action
 Controller. However, these modules are designed to function on their own and
 can be used outside of Rails.
 
+You can read more about Action Pack in the {Action Controller Overview}[https://guides.rubyonrails.org/action_controller_overview.html] guide.
 
 == Download and installation
 
@@ -54,4 +55,4 @@ Bug reports for the Ruby on Rails project can be filed here:
 
 Feature requests should be discussed on the rails-core mailing list here:
 
-* https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core
+* https://discuss.rubyonrails.org/c/rubyonrails-core

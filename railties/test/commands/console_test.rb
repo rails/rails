@@ -116,7 +116,6 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
   private :output
 
   private
-
     def start(argv = [])
       rails_console = Rails::Console.new(app, parse_arguments(argv))
       @output = capture(:stdout) { rails_console.start }
@@ -129,7 +128,7 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     def build_app(console)
       mocked_console = Class.new do
         attr_accessor :sandbox
-        attr_reader :console
+        attr_reader :console, :disable_sandbox
 
         def initialize(console)
           @console = console

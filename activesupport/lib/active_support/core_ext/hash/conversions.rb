@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 require "active_support/xml_mini"
-require "active_support/time"
 require "active_support/core_ext/object/blank"
 require "active_support/core_ext/object/to_param"
 require "active_support/core_ext/object/to_query"
+require "active_support/core_ext/object/try"
 require "active_support/core_ext/array/wrap"
 require "active_support/core_ext/hash/reverse_merge"
 require "active_support/core_ext/string/inflections"
@@ -73,7 +73,7 @@ class Hash
   # configure your own builder with the <tt>:builder</tt> option. The method also accepts
   # options like <tt>:dasherize</tt> and friends, they are forwarded to the builder.
   def to_xml(options = {})
-    require "active_support/builder" unless defined?(Builder)
+    require "active_support/builder" unless defined?(Builder::XmlMarkup)
 
     options = options.dup
     options[:indent]  ||= 2
@@ -208,7 +208,7 @@ module ActiveSupport
         elsif become_empty_string?(value)
           ""
         elsif become_hash?(value)
-          xml_value = Hash[value.map { |k, v| [k, deep_to_h(v)] }]
+          xml_value = value.transform_values { |v| deep_to_h(v) }
 
           # Turn { files: { file: #<StringIO> } } into { files: #<StringIO> } so it is compatible with
           # how multipart uploaded files from HTML appear

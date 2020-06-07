@@ -101,7 +101,6 @@ class RichPerson < ActiveRecord::Base
   before_validation :run_before_validation
 
   private
-
     def run_before_create
       self.first_name = first_name.to_s + "run_before_create"
     end

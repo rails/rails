@@ -8,6 +8,7 @@ require "active_support/message_verifier"
 require "active_support/encrypted_configuration"
 require "active_support/deprecation"
 require "active_support/hash_with_indifferent_access"
+require "active_support/configuration_file"
 require "rails/engine"
 require "rails/secrets"
 
@@ -45,7 +46,7 @@ module Rails
   # process. From the moment you require "config/application.rb" in your app,
   # the booting process goes like this:
   #
-  #   1)  require "config/boot.rb" to setup load paths
+  #   1)  require "config/boot.rb" to set up load paths
   #   2)  require railties and engines
   #   3)  Define Rails.application as "class MyApp::Application < Rails::Application"
   #   4)  Run config.before_configuration callbacks
@@ -205,12 +206,13 @@ module Rails
 
     # Convenience for loading config/foo.yml for the current Rails env.
     #
-    # Example:
+    # Examples:
     #
     #     # config/exception_notification.yml:
     #     production:
     #       url: http://127.0.0.1:8080
     #       namespace: my_app_production
+    #
     #     development:
     #       url: http://localhost:3001
     #       namespace: my_app_development
@@ -219,28 +221,40 @@ module Rails
     #     Rails.application.configure do
     #       config.middleware.use ExceptionNotifier, config_for(:exception_notification)
     #     end
+    #
+    #     # You can also store configurations in a shared section which will be
+    #     # merged with the environment configuration
+    #
+    #     # config/example.yml
+    #     shared:
+    #       foo:
+    #         bar:
+    #           baz: 1
+    #
+    #     development:
+    #       foo:
+    #         bar:
+    #           qux: 2
+    #
+    #     # development environment
+    #     Rails.application.config_for(:example)[:foo][:bar]
+    #     # => { baz: 1, qux: 2 }
     def config_for(name, env: Rails.env)
-      if name.is_a?(Pathname)
-        yaml = name
-      else
-        yaml = Pathname.new("#{paths["config"].existent.first}/#{name}.yml")
-      end
+      yaml = name.is_a?(Pathname) ? name : Pathname.new("#{paths["config"].existent.first}/#{name}.yml")
 
       if yaml.exist?
         require "erb"
-        config = YAML.load(ERB.new(yaml.read).result) || {}
-        config = (config["shared"] || {}).merge(config[env] || {})
+        all_configs    = ActiveSupport::ConfigurationFile.parse(yaml, symbolize_names: true)
+        config, shared = all_configs[env.to_sym], all_configs[:shared]
 
-        ActiveSupport::OrderedOptions.new.tap do |options|
-          options.update(NonSymbolAccessDeprecatedHash.new(config))
+        if config.is_a?(Hash)
+          ActiveSupport::OrderedOptions.new.update(shared&.deep_merge(config) || config)
+        else
+          config || shared
         end
       else
         raise "Could not load configuration. No such file - #{yaml}"
       end
-    rescue Psych::SyntaxError => e
-      raise "YAML syntax error occurred while parsing #{yaml}. " \
-        "Please note that YAML must be consistently indented using spaces. Tabs are not allowed. " \
-        "Error: #{e.message}"
     end
 
     # Stores some of the Rails initial environment parameters which
@@ -267,10 +281,13 @@ module Rails
           "action_dispatch.cookies_serializer" => config.action_dispatch.cookies_serializer,
           "action_dispatch.cookies_digest" => config.action_dispatch.cookies_digest,
           "action_dispatch.cookies_rotations" => config.action_dispatch.cookies_rotations,
+          "action_dispatch.cookies_same_site_protection" => config.action_dispatch.cookies_same_site_protection,
           "action_dispatch.use_cookies_with_metadata" => config.action_dispatch.use_cookies_with_metadata,
           "action_dispatch.content_security_policy" => config.content_security_policy,
           "action_dispatch.content_security_policy_report_only" => config.content_security_policy_report_only,
-          "action_dispatch.content_security_policy_nonce_generator" => config.content_security_policy_nonce_generator
+          "action_dispatch.content_security_policy_nonce_generator" => config.content_security_policy_nonce_generator,
+          "action_dispatch.content_security_policy_nonce_directives" => config.content_security_policy_nonce_directives,
+          "action_dispatch.feature_policy" => config.feature_policy,
         )
       end
     end
@@ -349,7 +366,7 @@ module Rails
       files, dirs = config.watchable_files.dup, config.watchable_dirs.dup
 
       ActiveSupport::Dependencies.autoload_paths.each do |path|
-        dirs[path.to_s] = [:rb]
+        File.file?(path) ? files << path.to_s : dirs[path.to_s] = [:rb]
       end
 
       [files, dirs]
@@ -409,14 +426,15 @@ module Rails
     # The secret_key_base is used as the input secret to the application's key generator, which in turn
     # is used to create all MessageVerifiers/MessageEncryptors, including the ones that sign and encrypt cookies.
     #
-    # In test and development, this is simply derived as a MD5 hash of the application's name.
+    # In development and test, this is randomly generated and stored in a
+    # temporary file in <tt>tmp/development_secret.txt</tt>.
     #
     # In all other environments, we look for it first in ENV["SECRET_KEY_BASE"],
     # then credentials.secret_key_base, and finally secrets.secret_key_base. For most applications,
     # the correct place to store it is in the encrypted credentials file.
     def secret_key_base
-      if Rails.env.test? || Rails.env.development?
-        secrets.secret_key_base || Digest::MD5.hexdigest(self.class.name)
+      if Rails.env.development? || Rails.env.test?
+        secrets.secret_key_base ||= generate_development_secret
       else
         validate_secret_key_base(
           ENV["SECRET_KEY_BASE"] || credentials.secret_key_base || secrets.secret_key_base
@@ -480,10 +498,6 @@ module Rails
     end
 
     console do
-      require "pp"
-    end
-
-    console do
       unless ::Kernel.private_method_defined?(:y)
         require "psych/y"
       end
@@ -499,8 +513,16 @@ module Rails
       ordered_railties.flatten - [self]
     end
 
-  protected
+    # Eager loads the application code.
+    def eager_load!
+      if Rails.autoloaders.zeitwerk_enabled?
+        Rails.autoloaders.each(&:eager_load)
+      else
+        super
+      end
+    end
 
+  protected
     alias :build_middleware_stack :app
 
     def run_tasks_blocks(app) #:nodoc:
@@ -508,7 +530,7 @@ module Rails
       super
       require "rails/tasks"
       task :environment do
-        ActiveSupport.on_load(:before_initialize) { config.eager_load = false }
+        ActiveSupport.on_load(:before_initialize) { config.eager_load = config.rake_eager_load }
 
         require_environment!
       end
@@ -575,11 +597,26 @@ module Rails
       elsif secret_key_base
         raise ArgumentError, "`secret_key_base` for #{Rails.env} environment must be a type of String`"
       else
-        raise ArgumentError, "Missing `secret_key_base` for '#{Rails.env}' environment, set this string with `rails credentials:edit`"
+        raise ArgumentError, "Missing `secret_key_base` for '#{Rails.env}' environment, set this string with `bin/rails credentials:edit`"
       end
     end
 
     private
+      def generate_development_secret
+        if secrets.secret_key_base.nil?
+          key_file = Rails.root.join("tmp/development_secret.txt")
+
+          if !File.exist?(key_file)
+            random_key = SecureRandom.hex(64)
+            FileUtils.mkdir_p(key_file.dirname)
+            File.binwrite(key_file, random_key)
+          end
+
+          secrets.secret_key_base = File.binread(key_file)
+        end
+
+        secrets.secret_key_base
+      end
 
       def build_request(env)
         req = super
@@ -590,53 +627,6 @@ module Rails
 
       def build_middleware
         config.app_middleware + super
-      end
-
-      class NonSymbolAccessDeprecatedHash < HashWithIndifferentAccess # :nodoc:
-        def initialize(value = nil)
-          if value.is_a?(Hash)
-            value.each_pair { |k, v| self[k] = v }
-          else
-            super
-          end
-        end
-
-        def []=(key, value)
-          regular_writer(key.to_sym, convert_value(value, for: :assignment))
-        end
-
-        private
-
-          def convert_key(key)
-            unless key.kind_of?(Symbol)
-              ActiveSupport::Deprecation.warn(<<~MESSAGE.squish)
-                Accessing hashes returned from config_for by non-symbol keys
-                is deprecated and will be removed in Rails 6.1.
-                Use symbols for access instead.
-              MESSAGE
-
-              key = key.to_sym
-            end
-
-            key
-          end
-
-          def convert_value(value, options = {}) # :doc:
-            if value.is_a? Hash
-              if options[:for] == :to_hash
-                value.to_hash
-              else
-                self.class.new(value)
-              end
-            elsif value.is_a?(Array)
-              if options[:for] != :assignment || value.frozen?
-                value = value.dup
-              end
-              value.map! { |e| convert_value(e, options) }
-            else
-              value
-            end
-          end
       end
   end
 end

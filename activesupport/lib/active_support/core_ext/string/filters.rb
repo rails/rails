@@ -75,7 +75,7 @@ class String
         length_with_room_for_omission
       end
 
-    "#{self[0, stop]}#{omission}"
+    +"#{self[0, stop]}#{omission}"
   end
 
   # Truncates +text+ to at most <tt>bytesize</tt> bytes in length without

@@ -176,7 +176,7 @@ The Rails framework components use these tools to manage their own concurrency
 needs too.
 
 `ActionDispatch::Executor` and `ActionDispatch::Reloader` are Rack middlewares
-that wraps the request with a supplied Executor or Reloader, respectively. They
+that wrap requests with a supplied Executor or Reloader, respectively. They
 are automatically included in the default application stack. The Reloader will
 ensure any arriving HTTP request is served with a freshly-loaded copy of the
 application if any code changes have occurred.

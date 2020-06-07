@@ -47,14 +47,14 @@ namespace :db do
   task drop: ["db:mysql:drop", "db:postgresql:drop"]
 end
 
-%w( mysql2 postgresql sqlite3 sqlite3_mem db2 oracle jdbcmysql jdbcpostgresql jdbcsqlite3 jdbcderby jdbch2 jdbchsqldb ).each do |adapter|
+%w( mysql2 postgresql sqlite3 sqlite3_mem oracle jdbcmysql jdbcpostgresql jdbcsqlite3 jdbcderby jdbch2 jdbchsqldb ).each do |adapter|
   namespace :test do
     Rake::TestTask.new(adapter => "#{adapter}:env") { |t|
-      adapter_short = adapter == "db2" ? adapter : adapter[/^[a-z0-9]+/]
+      adapter_short = adapter[/^[a-z0-9]+/]
       t.libs << "test"
-      t.test_files = (Dir.glob("test/cases/**/*_test.rb").reject {
+      t.test_files = (FileList["test/cases/**/*_test.rb"].reject {
         |x| x.include?("/adapters/")
-      } + Dir.glob("test/cases/adapters/#{adapter_short}/**/*_test.rb"))
+      } + FileList["test/cases/adapters/#{adapter_short}/**/*_test.rb"])
 
       t.warning = true
       t.verbose = true
@@ -63,7 +63,7 @@ end
 
     namespace :isolated do
       task adapter => "#{adapter}:env" do
-        adapter_short = adapter == "db2" ? adapter : adapter[/^[a-z0-9]+/]
+        adapter_short = adapter[/^[a-z0-9]+/]
         puts [adapter, adapter_short].inspect
 
         dash_i = [

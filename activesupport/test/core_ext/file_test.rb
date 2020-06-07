@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../abstract_unit"
 require "active_support/core_ext/file"
 
 class AtomicWriteTest < ActiveSupport::TestCase
@@ -85,7 +85,7 @@ class AtomicWriteTest < ActiveSupport::TestCase
 
   private
     def file_name
-      "atomic.file"
+      "atomic-#{Process.pid}.file"
     end
 
     def file_mode

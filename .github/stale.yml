@@ -10,6 +10,8 @@ exemptLabels:
   - attached PR
   - regression
   - release blocker
+# Issues on a milestone will never be considered stale
+exemptMilestones: true
 # Label to use when marking an issue as stale
 staleLabel: stale
 # Comment to post when marking an issue as stale. Set to `false` to disable
@@ -18,11 +20,16 @@ markComment: >
 
   The resources of the Rails team are limited, and so we are asking for your help.
 
-  If you can still reproduce this error on the `5-2-stable` branch or on `master`,
+  If you can still reproduce this error on the `6-0-stable` branch or on `master`,
   please reply with all of the information you have about it in order to keep the issue open.
 
   Thank you for all your contributions.
 # Comment to post when closing a stale issue. Set to `false` to disable
 closeComment: false
-# Limit to only `issues` or `pulls`
-only: issues
+
+pulls:
+  markComment: >
+    This pull request has been automatically marked as stale because it has not had
+    recent activity. It will be closed if no further activity occurs.
+
+    Thank you for your contributions.

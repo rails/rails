@@ -4,15 +4,16 @@ module ActionDispatch
   # :stopdoc:
   module Journey
     class Route
-      attr_reader :app, :path, :defaults, :name, :precedence
+      attr_reader :app, :path, :defaults, :name, :precedence, :constraints,
+                  :internal, :scope_options
 
-      attr_reader :constraints, :internal
       alias :conditions :constraints
 
       module VerbMatchers
         VERBS = %w{ DELETE GET HEAD OPTIONS LINK PATCH POST PUT TRACE UNLINK }
         VERBS.each do |v|
           class_eval <<-eoc, __FILE__, __LINE__ + 1
+            # frozen_string_literal: true
             class #{v}
               def self.verb; name.split("::").last; end
               def self.call(req); req.#{v.downcase}?; end
@@ -27,7 +28,7 @@ module ActionDispatch
             @verb = verb
           end
 
-          def call(request); @verb === request.request_method; end
+          def call(request); @verb == request.request_method; end
         end
 
         class All
@@ -49,15 +50,10 @@ module ActionDispatch
         end
       end
 
-      def self.build(name, app, path, constraints, required_defaults, defaults)
-        request_method_match = verb_matcher(constraints.delete(:request_method))
-        new name, app, path, constraints, required_defaults, defaults, request_method_match, 0
-      end
-
       ##
       # +path+ is a path constraint.
       # +constraints+ is a hash of constraints to be applied to this route.
-      def initialize(name, app, path, constraints, required_defaults, defaults, request_method_match, precedence, internal = false)
+      def initialize(name:, app: nil, path:, constraints: {}, required_defaults: [], defaults: {}, request_method_match: nil, precedence: 0, scope_options: {}, internal: false)
         @name        = name
         @app         = app
         @path        = path
@@ -72,6 +68,7 @@ module ActionDispatch
         @decorated_ast     = nil
         @precedence        = precedence
         @path_formatter    = @path.build_formatter
+        @scope_options     = scope_options
         @internal          = internal
       end
 
@@ -91,7 +88,7 @@ module ActionDispatch
         end
       end
 
-      # Needed for `rails routes`. Picks up succinctly defined requirements
+      # Needed for `bin/rails routes`. Picks up succinctly defined requirements
       # for a route, for example route
       #
       #   get 'photo/:id', :controller => 'photos', :action => 'show',
@@ -114,18 +111,11 @@ module ActionDispatch
       end
 
       def score(supplied_keys)
-        required_keys = path.required_names
-
-        required_keys.each do |k|
+        path.required_names.each do |k|
           return -1 unless supplied_keys.include?(k)
         end
 
-        score = 0
-        path.names.each do |k|
-          score += 1 if supplied_keys.include?(k)
-        end
-
-        score + (required_defaults.length * 2)
+        (required_defaults.length * 2) + path.names.count { |k| supplied_keys.include?(k) }
       end
 
       def parts
@@ -152,7 +142,7 @@ module ActionDispatch
       end
 
       def glob?
-        !path.spec.grep(Nodes::Star).empty?
+        path.spec.any?(Nodes::Star)
       end
 
       def dispatcher?

@@ -1,22 +1,11 @@
 # frozen_string_literal: true
 
-require "yaml"
 require "active_support/benchmarkable"
 require "active_support/dependencies"
 require "active_support/descendants_tracker"
 require "active_support/time"
-require "active_support/core_ext/module/attribute_accessors"
-require "active_support/core_ext/array/extract_options"
-require "active_support/core_ext/hash/deep_merge"
-require "active_support/core_ext/hash/slice"
-require "active_support/core_ext/string/behavior"
-require "active_support/core_ext/kernel/singleton_class"
-require "active_support/core_ext/module/introspection"
-require "active_support/core_ext/object/duplicable"
 require "active_support/core_ext/class/subclasses"
 require "active_record/attribute_decorators"
-require "active_record/define_callbacks"
-require "active_record/errors"
 require "active_record/log_subscriber"
 require "active_record/explain_subscriber"
 require "active_record/relation/delegation"
@@ -285,10 +274,10 @@ module ActiveRecord #:nodoc:
     extend Querying
     extend Translation
     extend DynamicMatchers
+    extend DelegatedType
     extend Explain
     extend Enum
     extend Delegation::DelegateCache
-    extend CollectionCacheKey
     extend Aggregations::ClassMethods
 
     include Core
@@ -307,7 +296,6 @@ module ActiveRecord #:nodoc:
     include AttributeDecorators
     include Locking::Optimistic
     include Locking::Pessimistic
-    include DefineCallbacks
     include AttributeMethods
     include Callbacks
     include Timestamp
@@ -322,6 +310,7 @@ module ActiveRecord #:nodoc:
     include Serialization
     include Store
     include SecureToken
+    include SignedId
     include Suppressor
   end
 

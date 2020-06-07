@@ -27,7 +27,7 @@ class MultipleDbTest < ActiveRecord::TestCase
   end
 
   def test_swapping_the_connection
-    old_spec_name, Course.connection_specification_name = Course.connection_specification_name, "primary"
+    old_spec_name, Course.connection_specification_name = Course.connection_specification_name, "ActiveRecord::Base"
     assert_equal(Entrant.connection, Course.connection)
   ensure
     Course.connection_specification_name = old_spec_name
@@ -57,12 +57,11 @@ class MultipleDbTest < ActiveRecord::TestCase
     assert_equal e3.course.id, c2.id
   end
 
-  def test_course_connection_should_survive_dependency_reload
+  def test_course_connection_should_survive_reloads
     assert Course.connection
 
-    ActiveSupport::Dependencies.clear
-    Object.send(:remove_const, :Course)
-    require_dependency "models/course"
+    assert Object.send(:remove_const, :Course)
+    assert load("models/course.rb")
 
     assert Course.connection
   end

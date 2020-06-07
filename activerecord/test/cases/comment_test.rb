@@ -14,6 +14,9 @@ if ActiveRecord::Base.connection.supports_comments?
     class BlankComment < ActiveRecord::Base
     end
 
+    class PkCommented < ActiveRecord::Base
+    end
+
     setup do
       @connection = ActiveRecord::Base.connection
 
@@ -35,13 +38,23 @@ if ActiveRecord::Base.connection.supports_comments?
         t.index :absent_comment
       end
 
+      @connection.create_table("pk_commenteds", comment: "Table comment", id: false, force: true) do |t|
+        t.primary_key :id, comment: "Primary key comment"
+      end
+
       Commented.reset_column_information
       BlankComment.reset_column_information
+      PkCommented.reset_column_information
     end
 
     teardown do
       @connection.drop_table "commenteds", if_exists: true
       @connection.drop_table "blank_comments", if_exists: true
+    end
+
+    def test_default_primary_key_comment
+      column = Commented.columns_hash["id"]
+      assert_nil column.comment
     end
 
     def test_column_created_in_block
@@ -99,6 +112,17 @@ if ActiveRecord::Base.connection.supports_comments?
 
       assert_equal :string, column.type
       assert_nil column.comment
+    end
+
+    def test_rename_column_preserves_comment
+      @connection.add_column    :commenteds, :rating, :string, comment: "I am running out of imagination"
+      @connection.rename_column :commenteds, :rating, :new_rating
+
+      Commented.reset_column_information
+      column = Commented.columns_hash["new_rating"]
+
+      assert_equal :string, column.type
+      assert_equal column.comment, "I am running out of imagination"
     end
 
     def test_schema_dump_with_comments
@@ -163,6 +187,17 @@ if ActiveRecord::Base.connection.supports_comments?
       @connection.change_column_comment :commenteds, :name, nil
       column = Commented.columns_hash["name"]
       assert_nil column.comment
+    end
+
+    def test_comment_on_primary_key
+      column = PkCommented.columns_hash["id"]
+      assert_equal "Primary key comment", column.comment
+      assert_equal "Table comment", @connection.table_comment("pk_commenteds")
+    end
+
+    def test_schema_dump_with_primary_key_comment
+      output = dump_table_schema "pk_commenteds"
+      assert_match %r[create_table "pk_commenteds", id: { comment: "Primary key comment" }.*, comment: "Table comment"], output
     end
   end
 end

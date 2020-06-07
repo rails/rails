@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../abstract_unit"
 require "active_support/inflector"
 require "active_support/time"
 require "active_support/json"
-require "time_zone_test_helpers"
+require_relative "../time_zone_test_helpers"
 require "yaml"
 
 class DurationTest < ActiveSupport::TestCase
@@ -62,6 +62,7 @@ class DurationTest < ActiveSupport::TestCase
 
   def test_inspect
     assert_equal "0 seconds",                       0.seconds.inspect
+    assert_equal "0 days",                          0.days.inspect
     assert_equal "1 month",                         1.month.inspect
     assert_equal "1 month and 1 day",               (1.month + 1.day).inspect
     assert_equal "6 months and -2 days",            (6.months - 2.days).inspect
@@ -74,6 +75,7 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal "2 weeks",                         1.fortnight.inspect
     assert_equal "0 seconds",                       (10 % 5.seconds).inspect
     assert_equal "10 minutes",                      (10.minutes + 0.seconds).inspect
+    assert_equal "3600 seconds",                    (1.day / 24).inspect
   end
 
   def test_inspect_locale
@@ -87,6 +89,11 @@ class DurationTest < ActiveSupport::TestCase
 
   def test_minus_with_duration_does_not_break_subtraction_of_date_from_date
     assert_nothing_raised { Date.today - Date.today }
+  end
+
+  def test_unary_plus
+    assert_equal (+ 1.second), 1.second
+    assert_instance_of ActiveSupport::Duration, + 1.second
   end
 
   def test_plus
@@ -154,20 +161,29 @@ class DurationTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::Duration, 13.months % 1.year
   end
 
+  def test_date_added_with_zero_days
+    assert_equal Date.civil(2017, 1, 1), Date.civil(2017, 1, 1) + 0.days
+    assert_instance_of Date, Date.civil(2017, 1, 1) + 0.days
+  end
+
   def test_date_added_with_multiplied_duration
     assert_equal Date.civil(2017, 1, 3), Date.civil(2017, 1, 1) + 1.day * 2
+    assert_instance_of Date, Date.civil(2017, 1, 1) + 1.day * 2
   end
 
   def test_date_added_with_multiplied_duration_larger_than_one_month
     assert_equal Date.civil(2017, 2, 15), Date.civil(2017, 1, 1) + 1.day * 45
+    assert_instance_of Date, Date.civil(2017, 1, 1) + 1.day * 45
   end
 
   def test_date_added_with_divided_duration
     assert_equal Date.civil(2017, 1, 3), Date.civil(2017, 1, 1) + 4.days / 2
+    assert_instance_of Date, Date.civil(2017, 1, 1) + 4.days / 2
   end
 
   def test_date_added_with_divided_duration_larger_than_one_month
     assert_equal Date.civil(2017, 2, 15), Date.civil(2017, 1, 1) + 90.days / 2
+    assert_instance_of Date, Date.civil(2017, 1, 1) + 90.days / 2
   end
 
   def test_plus_with_time
@@ -203,7 +219,9 @@ class DurationTest < ActiveSupport::TestCase
   def test_since_and_ago
     t = Time.local(2000)
     assert_equal t + 1, 1.second.since(t)
+    assert_equal t + 1, (1.minute / 60).since(t)
     assert_equal t - 1, 1.second.ago(t)
+    assert_equal t - 1, (1.minute / 60).ago(t)
   end
 
   def test_since_and_ago_without_argument
@@ -560,6 +578,9 @@ class DurationTest < ActiveSupport::TestCase
     expectations = [
       ["P1Y",           1.year                           ],
       ["P1W",           1.week                           ],
+      ["P4W",           4.week                           ],
+      ["P1Y7D",         1.year + 1.week                  ],
+      ["P1Y1M21D",      1.year + 1.month + 3.week        ],
       ["P1Y1M",         1.year + 1.month                 ],
       ["P1Y1M1D",       1.year + 1.month + 1.day         ],
       ["-P1Y1D",        -1.year - 1.day                  ],
@@ -659,6 +680,22 @@ class DurationTest < ActiveSupport::TestCase
     d1 = YAML.load(YAML.dump(10.minutes))
     assert_equal 600, d1.to_i
     assert_equal 660, (d1 + 60).to_i
+  end
+
+  def test_string_build_raises_error
+    error = assert_raises(TypeError) do
+      ActiveSupport::Duration.build("9")
+    end
+
+    assert_equal "can't build an ActiveSupport::Duration from a String", error.message
+  end
+
+  def test_non_numeric_build_raises_error
+    error = assert_raises(TypeError) do
+      ActiveSupport::Duration.build(nil)
+    end
+
+    assert_equal "can't build an ActiveSupport::Duration from a NilClass", error.message
   end
 
   private

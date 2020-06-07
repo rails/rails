@@ -170,7 +170,7 @@ class Module
   # The target method must be public, otherwise it will raise +NoMethodError+.
   def delegate(*methods, to: nil, prefix: nil, allow_nil: nil, private: nil)
     unless to
-      raise ArgumentError, "Delegation needs a target. Supply an options hash with a :to key as the last argument (e.g. delegate :hello, to: :greeter)."
+      raise ArgumentError, "Delegation needs a target. Supply a keyword argument 'to' (e.g. delegate :hello, to: :greeter)."
     end
 
     if prefix == true && /^[^a-z_]/.match?(to)
@@ -190,10 +190,22 @@ class Module
     to = to.to_s
     to = "self.#{to}" if DELEGATION_RESERVED_METHOD_NAMES.include?(to)
 
-    method_names = methods.map do |method|
+    method_def = []
+    method_names = []
+
+    methods.map do |method|
+      method_name = prefix ? "#{method_prefix}#{method}" : method
+      method_names << method_name.to_sym
+
       # Attribute writer methods only accept one argument. Makes sure []=
       # methods still accept two arguments.
-      definition = /[^\]]=$/.match?(method) ? "arg" : "*args, &block"
+      definition = if /[^\]]=$/.match?(method)
+        "arg"
+      elsif RUBY_VERSION >= "2.7"
+        "..."
+      else
+        "*args, &block"
+      end
 
       # The following generated method calls the target exactly once, storing
       # the returned value in a dummy variable.
@@ -203,34 +215,33 @@ class Module
       # whereas conceptually, from the user point of view, the delegator should
       # be doing one call.
       if allow_nil
-        method_def = [
-          "def #{method_prefix}#{method}(#{definition})",
-          "_ = #{to}",
-          "if !_.nil? || nil.respond_to?(:#{method})",
-          "  _.#{method}(#{definition})",
-          "end",
-        "end"
-        ].join ";"
-      else
-        exception = %(raise DelegationError, "#{self}##{method_prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
+        method = method.to_s
 
-        method_def = [
-          "def #{method_prefix}#{method}(#{definition})",
-          " _ = #{to}",
-          "  _.#{method}(#{definition})",
-          "rescue NoMethodError => e",
-          "  if _.nil? && e.name == :#{method}",
-          "    #{exception}",
-          "  else",
-          "    raise",
-          "  end",
+        method_def <<
+          "def #{method_name}(#{definition})" <<
+          "  _ = #{to}" <<
+          "  if !_.nil? || nil.respond_to?(:#{method})" <<
+          "    _.#{method}(#{definition})" <<
+          "  end" <<
           "end"
-        ].join ";"
+      else
+        method = method.to_s
+        method_name = method_name.to_s
+
+        method_def <<
+          "def #{method_name}(#{definition})" <<
+          "  _ = #{to}" <<
+          "  _.#{method}(#{definition})" <<
+          "rescue NoMethodError => e" <<
+          "  if _.nil? && e.name == :#{method}" <<
+          %(   raise DelegationError, "#{self}##{method_name} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}") <<
+          "  else" <<
+          "    raise" <<
+          "  end" <<
+          "end"
       end
-
-      module_eval(method_def, file, line)
     end
-
+    module_eval(method_def.join(";"), file, line)
     private(*method_names) if private
     method_names
   end
@@ -274,8 +285,14 @@ class Module
   # variables, methods, constants, etc.
   #
   # The delegated method must be public on the target, otherwise it will
-  # raise +NoMethodError+.
-  def delegate_missing_to(target)
+  # raise +DelegationError+. If you wish to instead return +nil+,
+  # use the <tt>:allow_nil</tt> option.
+  #
+  # The <tt>marshal_dump</tt> and <tt>_dump</tt> methods are exempt from
+  # delegation due to possible interference when calling
+  # <tt>Marshal.dump(object)</tt>, should the delegation target method
+  # of <tt>object</tt> add or remove instance variables.
+  def delegate_missing_to(target, allow_nil: nil)
     target = target.to_s
     target = "self.#{target}" if DELEGATION_RESERVED_METHOD_NAMES.include?(target)
 
@@ -284,6 +301,7 @@ class Module
         # It may look like an oversight, but we deliberately do not pass
         # +include_private+, because they do not get delegated.
 
+        return false if name == :marshal_dump || name == :_dump
         #{target}.respond_to?(name) || super
       end
 
@@ -295,13 +313,18 @@ class Module
             super
           rescue NoMethodError
             if #{target}.nil?
-              raise DelegationError, "\#{method} delegated to #{target}, but #{target} is nil"
+              if #{allow_nil == true}
+                nil
+              else
+                raise DelegationError, "\#{method} delegated to #{target}, but #{target} is nil"
+              end
             else
               raise
             end
           end
         end
       end
+      ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
     RUBY
   end
 end

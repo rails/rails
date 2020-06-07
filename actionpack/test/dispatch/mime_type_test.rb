@@ -174,4 +174,72 @@ class MimeTypeTest < ActiveSupport::TestCase
     assert_not (Mime[:js] !~ "application/javascript")
     assert Mime[:html] =~ "application/xhtml+xml"
   end
+
+  test "match?" do
+    assert Mime[:js].match?("text/javascript")
+    assert Mime[:js].match?("application/javascript")
+    assert_not Mime[:js].match?("text/html")
+  end
+
+  test "can be initialized with wildcards" do
+    assert_equal "*/*", Mime::Type.new("*/*").to_s
+    assert_equal "text/*", Mime::Type.new("text/*").to_s
+    assert_equal "video/*", Mime::Type.new("video/*").to_s
+  end
+
+  test "can be initialized with parameters" do
+    assert_equal "text/html; parameter", Mime::Type.new("text/html; parameter").to_s
+    assert_equal "text/html; parameter=abc", Mime::Type.new("text/html; parameter=abc").to_s
+    assert_equal 'text/html; parameter="abc"', Mime::Type.new('text/html; parameter="abc"').to_s
+    assert_equal 'text/html; parameter=abc; parameter2="xyz"', Mime::Type.new('text/html; parameter=abc; parameter2="xyz"').to_s
+  end
+
+  test "can be initialized with parameters without having space after ;" do
+    assert_equal "text/html;parameter", Mime::Type.new("text/html;parameter").to_s
+    assert_equal 'text/html;parameter=abc;parameter2="xyz"', Mime::Type.new('text/html;parameter=abc;parameter2="xyz"').to_s
+  end
+
+  test "invalid mime types raise error" do
+    assert_raises Mime::Type::InvalidMimeType do
+      Mime::Type.new("too/many/slash")
+    end
+
+    assert_raises Mime::Type::InvalidMimeType do
+      Mime::Type.new("missingslash")
+    end
+
+    assert_raises Mime::Type::InvalidMimeType do
+      Mime::Type.new("improper/semicolon;")
+    end
+
+    assert_raises Mime::Type::InvalidMimeType do
+      Mime::Type.new('improper/semicolon; parameter=abc; parameter2="xyz";')
+    end
+
+    assert_raises Mime::Type::InvalidMimeType do
+      Mime::Type.new("text/html, text/plain")
+    end
+
+    assert_raises Mime::Type::InvalidMimeType do
+      Mime::Type.new("*/html")
+    end
+
+    assert_raises Mime::Type::InvalidMimeType do
+      Mime::Type.new("")
+    end
+
+    assert_raises Mime::Type::InvalidMimeType do
+      Mime::Type.new(nil)
+    end
+  end
+
+  test "holds a reference to mime symbols" do
+    old_symbols = Mime::SET.symbols
+    Mime::Type.register_alias "application/xhtml+xml", :foobar
+    new_symbols = Mime::SET.symbols
+
+    assert_same(old_symbols, new_symbols)
+  ensure
+    Mime::Type.unregister(:foobar)
+  end
 end

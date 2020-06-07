@@ -64,7 +64,7 @@ class ActionCable::Channel::BaseTest < ActionCable::TestCase
     end
 
     def get_latest
-      transmit data: "latest"
+      transmit({ data: "latest" })
     end
 
     def receive

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "abstract_unit"
 require "active_support/number_helper"
 require "active_support/core_ext/hash/keys"
 
@@ -11,7 +11,7 @@ module ActiveSupport
     def setup
       I18n.backend.store_translations "ts",
         number: {
-        format: { precision: 3, delimiter: ",", separator: ".", significant: false, strip_insignificant_zeros: false },
+        format: { precision: 3, round_mode: :half_even, delimiter: ",", separator: ".", significant: false, strip_insignificant_zeros: false },
         currency: { format: { unit: "&$", format: "%u - %n", negative_format: "(%u - %n)", precision: 2 } },
         human: {
           format: {
@@ -82,6 +82,11 @@ module ActiveSupport
 
       # Precision inherited and significant was set
       assert_equal("1.00", number_to_rounded(1.0, locale: "ts"))
+    end
+
+    def test_number_with_i18n_round_mode
+      # round_mode set as :half_even instead of :default
+      assert_equal("12344", number_to_rounded(12344.5, locale: "ts", precision: 0))
     end
 
     def test_number_with_i18n_precision_and_empty_i18n_store

@@ -19,7 +19,7 @@ module ActiveSupport
   # By using <tt>ActiveSupport::Concern</tt> the above module could instead be
   # written as:
   #
-  #   require 'active_support/concern'
+  #   require "active_support/concern"
   #
   #   module M
   #     extend ActiveSupport::Concern
@@ -76,7 +76,7 @@ module ActiveSupport
   # is the +Bar+ module, not the +Host+ class. With <tt>ActiveSupport::Concern</tt>,
   # module dependencies are properly resolved:
   #
-  #   require 'active_support/concern'
+  #   require "active_support/concern"
   #
   #   module Foo
   #     extend ActiveSupport::Concern
@@ -99,6 +99,14 @@ module ActiveSupport
   #   class Host
   #     include Bar # It works, now Bar takes care of its dependencies
   #   end
+  #
+  # === Prepending concerns
+  #
+  # Just like `include`, concerns also support `prepend` with a corresponding
+  # `prepended do` callback. `module ClassMethods` or `class_methods do` are
+  # prepended as well.
+  #
+  # `prepend` is also used for any dependencies.
   module Concern
     class MultipleIncludedBlocks < StandardError #:nodoc:
       def initialize
@@ -106,11 +114,17 @@ module ActiveSupport
       end
     end
 
+    class MultiplePrependBlocks < StandardError #:nodoc:
+      def initialize
+        super "Cannot define multiple 'prepended' blocks for a Concern"
+      end
+    end
+
     def self.extended(base) #:nodoc:
       base.instance_variable_set(:@_dependencies, [])
     end
 
-    def append_features(base)
+    def append_features(base) #:nodoc:
       if base.instance_variable_defined?(:@_dependencies)
         base.instance_variable_get(:@_dependencies) << self
         false
@@ -123,6 +137,22 @@ module ActiveSupport
       end
     end
 
+    def prepend_features(base) #:nodoc:
+      if base.instance_variable_defined?(:@_dependencies)
+        base.instance_variable_get(:@_dependencies).unshift self
+        false
+      else
+        return false if base < self
+        @_dependencies.each { |dep| base.prepend(dep) }
+        super
+        base.singleton_class.prepend const_get(:ClassMethods) if const_defined?(:ClassMethods)
+        base.class_eval(&@_prepended_block) if instance_variable_defined?(:@_prepended_block)
+      end
+    end
+
+    # Evaluate given block in context of base class,
+    # so that you can write class macros here.
+    # When you define more than one +included+ block, it raises an exception.
     def included(base = nil, &block)
       if base.nil?
         if instance_variable_defined?(:@_included_block)
@@ -137,6 +167,43 @@ module ActiveSupport
       end
     end
 
+    # Evaluate given block in context of base class,
+    # so that you can write class macros here.
+    # When you define more than one +prepended+ block, it raises an exception.
+    def prepended(base = nil, &block)
+      if base.nil?
+        if instance_variable_defined?(:@_prepended_block)
+          if @_prepended_block.source_location != block.source_location
+            raise MultiplePrependBlocks
+          end
+        else
+          @_prepended_block = block
+        end
+      else
+        super
+      end
+    end
+
+    # Define class methods from given block.
+    # You can define private class methods as well.
+    #
+    #   module Example
+    #     extend ActiveSupport::Concern
+    #
+    #     class_methods do
+    #       def foo; puts 'foo'; end
+    #
+    #       private
+    #         def bar; puts 'bar'; end
+    #     end
+    #   end
+    #
+    #   class Buzz
+    #     include Example
+    #   end
+    #
+    #   Buzz.foo # => "foo"
+    #   Buzz.bar # => private method 'bar' called for Buzz:Class(NoMethodError)
     def class_methods(&class_methods_module_definition)
       mod = const_defined?(:ClassMethods, false) ?
         const_get(:ClassMethods) :

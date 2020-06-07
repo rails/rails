@@ -42,10 +42,10 @@ module ActionCable
     #     end
     #   end
     #
-    def assert_broadcasts(stream, number)
+    def assert_broadcasts(stream, number, &block)
       if block_given?
         original_count = broadcasts_size(stream)
-        yield
+        assert_nothing_raised(&block)
         new_count = broadcasts_size(stream)
         actual_count = new_count - original_count
       else
@@ -94,7 +94,7 @@ module ActionCable
     #     end
     #   end
     #
-    def assert_broadcast_on(stream, data)
+    def assert_broadcast_on(stream, data, &block)
       # Encode to JSON and back–we want to use this value to compare
       # with decoded JSON.
       # Comparing JSON strings doesn't work due to the order if the keys.
@@ -106,7 +106,7 @@ module ActionCable
         old_messages = new_messages
         clear_messages(stream)
 
-        yield
+        assert_nothing_raised(&block)
         new_messages = broadcasts(stream)
         clear_messages(stream)
 

@@ -23,7 +23,7 @@ module ActionDispatch
     #   change { file: { code: "xxxx"} }
     #
     #   env["action_dispatch.parameter_filter"] = -> (k, v) do
-    #     v.reverse! if k =~ /secret/i
+    #     v.reverse! if k.match?(/secret/i)
     #   end
     #   => reverses the value to all keys matching /secret/i
     module FilterParameters
@@ -56,7 +56,6 @@ module ActionDispatch
       end
 
     private
-
       def parameter_filter # :doc:
         parameter_filter_for fetch_header("action_dispatch.parameter_filter") {
           return NULL_PARAM_FILTER

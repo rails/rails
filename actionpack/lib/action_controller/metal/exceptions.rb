@@ -23,11 +23,44 @@ module ActionController
   end
 
   class UrlGenerationError < ActionControllerError #:nodoc:
+    attr_reader :routes, :route_name, :method_name
+
+    def initialize(message, routes = nil, route_name = nil, method_name = nil)
+      @routes      = routes
+      @route_name  = route_name
+      @method_name = method_name
+
+      super(message)
+    end
+
+    class Correction
+      def initialize(error)
+        @error = error
+      end
+
+      def corrections
+        if @error.method_name
+          maybe_these = @error.routes.named_routes.helper_names.grep(/#{@error.route_name}/)
+          maybe_these -= [@error.method_name.to_s] # remove exact match
+
+          maybe_these.sort_by { |n|
+            DidYouMean::Jaro.distance(@error.route_name, n)
+          }.reverse.first(4)
+        else
+          []
+        end
+      end
+    end
+
+    # We may not have DYM, and DYM might not let us register error handlers
+    if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
+      DidYouMean.correct_error(self, Correction)
+    end
   end
 
   class MethodNotAllowed < ActionControllerError #:nodoc:
     def initialize(*allowed_methods)
-      super("Only #{allowed_methods.to_sentence(locale: :en)} requests are allowed.")
+      super("Only #{allowed_methods.to_sentence} requests are allowed.")
     end
   end
 

@@ -5,6 +5,8 @@ require "thread"
 gem "redis", ">= 3", "< 5"
 require "redis"
 
+require "active_support/core_ext/hash/except"
+
 module ActionCable
   module SubscriptionAdapter
     class Redis < Base # :nodoc:
@@ -13,8 +15,7 @@ module ActionCable
       # Overwrite this factory method for Redis connections if you want to use a different Redis library than the redis gem.
       # This is needed, for example, when using Makara proxies for distributed Redis.
       cattr_accessor :redis_connector, default: ->(config) do
-        config[:id] ||= "ActionCable-PID-#{$$}"
-        ::Redis.new(config.slice(:url, :host, :port, :db, :password, :id))
+        ::Redis.new(config.except(:adapter, :channel_prefix))
       end
 
       def initialize(*)
@@ -55,7 +56,7 @@ module ActionCable
         end
 
         def redis_connection
-          self.class.redis_connector.call(@server.config.cable)
+          self.class.redis_connector.call(@server.config.cable.merge(id: identifier))
         end
 
         class Listener < SubscriberMap

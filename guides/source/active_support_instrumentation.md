@@ -10,9 +10,9 @@ In this guide, you will learn how to use the instrumentation API inside of Activ
 After reading this guide, you will know:
 
 * What instrumentation can provide.
+* How to add a subscriber to a hook.
 * The hooks inside the Rails framework for instrumentation.
-* Adding a subscriber to a hook.
-* Building a custom instrumentation implementation.
+* How to build a custom instrumentation implementation.
 
 --------------------------------------------------------------------------------
 
@@ -23,7 +23,83 @@ The instrumentation API provided by Active Support allows developers to provide 
 
 For example, there is a hook provided within Active Record that is called every time Active Record uses an SQL query on a database. This hook could be **subscribed** to, and used to track the number of queries during a certain action. There's another hook around the processing of an action of a controller. This could be used, for instance, to track how long a specific action has taken.
 
-You are even able to create your own events inside your application which you can later subscribe to.
+You are even able to [create your own events](#creating-custom-events) inside your application which you can later subscribe to.
+
+Subscribing to an event
+-----------------------
+
+Subscribing to an event is easy. Use `ActiveSupport::Notifications.subscribe` with a block to
+listen to any notification.
+
+The block receives the following arguments:
+
+* The name of the event
+* Time when it started
+* Time when it finished
+* A unique ID for the instrumenter that fired the event
+* The payload (described in future sections)
+
+```ruby
+ActiveSupport::Notifications.subscribe "process_action.action_controller" do |name, started, finished, unique_id, data|
+  # your own custom stuff
+  Rails.logger.info "#{name} Received! (started: #{started}, finished: #{finished})" # process_action.action_controller Received (started: 2019-05-05 13:43:57 -0800, finished: 2019-05-05 13:43:58 -0800)
+end
+```
+
+If you are concerned about the accuracy of `started` and `finished` to compute a precise elapsed time then use `ActiveSupport::Notifications.monotonic_subscribe`. The given block would receive the same arguments as above but the `started` and `finished` will have values with an accurate monotonic time instead of wall-clock time.
+
+```ruby
+ActiveSupport::Notifications.monotonic_subscribe "process_action.action_controller" do |name, started, finished, unique_id, data|
+  # your own custom stuff
+  Rails.logger.info "#{name} Received! (started: #{started}, finished: #{finished})" # process_action.action_controller Received (started: 1560978.425334, finished: 1560979.429234)
+end
+```
+
+Defining all those block arguments each time can be tedious. You can easily create an `ActiveSupport::Notifications::Event`
+from block arguments like this:
+
+```ruby
+ActiveSupport::Notifications.subscribe "process_action.action_controller" do |*args|
+  event = ActiveSupport::Notifications::Event.new *args
+
+  event.name      # => "process_action.action_controller"
+  event.duration  # => 10 (in milliseconds)
+  event.payload   # => {:extra=>information}
+
+  Rails.logger.info "#{event} Received!"
+end
+```
+
+You may also pass block with only one argument, it will yield an event object to the block:
+
+```ruby
+ActiveSupport::Notifications.subscribe "process_action.action_controller" do |event|
+  event.name      # => "process_action.action_controller"
+  event.duration  # => 10 (in milliseconds)
+  event.payload   # => {:extra=>information}
+
+  Rails.logger.info "#{event} Received!"
+end
+```
+
+Most times you only care about the data itself. Here is a shortcut to just get the data.
+
+```ruby
+ActiveSupport::Notifications.subscribe "process_action.action_controller" do |*args|
+  data = args.extract_options!
+  data # { extra: :information }
+end
+```
+
+You may also subscribe to events matching a regular expression. This enables you to subscribe to
+multiple events at once. Here's how to subscribe to everything from `ActionController`.
+
+```ruby
+ActiveSupport::Notifications.subscribe /action_controller/ do |*args|
+  # inspect all ActionController events
+end
+```
+
 
 Rails framework hooks
 ---------------------
@@ -140,7 +216,9 @@ Action Controller
 | `:format`       | html/js/json/xml etc                                      |
 | `:method`       | HTTP request verb                                         |
 | `:path`         | Request path                                              |
+| `:request`      | The `ActionDispatch::Request`                             |
 | `:status`       | HTTP status code                                          |
+| `:location`     | Location response header                                  |
 | `:view_runtime` | Amount spent in view in ms                                |
 | `:db_runtime`   | Amount spent executing database queries in ms             |
 
@@ -153,6 +231,7 @@ Action Controller
   format: :html,
   method: "GET",
   path: "/posts",
+  request: #<ActionDispatch::Request:0x00007ff1cb9bd7b8>,
   status: 200,
   view_runtime: 46.848,
   db_runtime: 0.157
@@ -173,15 +252,17 @@ INFO. Additional keys may be added by the caller.
 
 ### redirect_to.action_controller
 
-| Key         | Value              |
-| ----------- | ------------------ |
-| `:status`   | HTTP response code |
-| `:location` | URL to redirect to |
+| Key         | Value                         |
+| ----------- | ----------------------------- |
+| `:status`   | HTTP response code            |
+| `:location` | URL to redirect to            |
+| `:request`  | The `ActionDispatch::Request` |
 
 ```ruby
 {
   status: 302,
-  location: "http://localhost:3000/posts/new"
+  location: "http://localhost:3000/posts/new",
+  request: #<ActionDispatch::Request:0x00007ff1cb9bd7b8>
 }
 ```
 
@@ -202,6 +283,15 @@ INFO. Additional keys may be added by the caller.
 | Key     | Value            |
 | ------- | ---------------- |
 | `:keys` | Unpermitted keys |
+
+Action Dispatch
+---------------
+
+### process_middleware.action_dispatch
+
+| Key           | Value                  |
+| ------------- | ---------------------- |
+| `:middleware` | Name of the middleware |
 
 Action View
 -----------
@@ -259,7 +349,6 @@ Active Record
 | -------------------- | ---------------------------------------- |
 | `:sql`               | SQL statement                            |
 | `:name`              | Name of the operation                    |
-| `:connection_id`     | Object ID of the connection object       |
 | `:connection`        | Connection object                        |
 | `:binds`             | Bind parameters                          |
 | `:type_casted_binds` | Typecasted bind parameters               |
@@ -272,7 +361,6 @@ INFO. The adapters will add their own data as well.
 {
   sql: "SELECT \"posts\".* FROM \"posts\" ",
   name: "Post Load",
-  connection_id: 70307250813140,
   connection: #<ActiveRecord::ConnectionAdapters::SQLite3Adapter:0x00007f9f7a838850>,
   binds: [#<ActiveModel::Attribute::WithCastValue:0x00007fe19d15dc00>],
   type_casted_binds: [11],
@@ -424,7 +512,7 @@ INFO. Cache stores may add their own keys
 ```
 
 Active Job
---------
+----------
 
 ### enqueue_at.active_job
 
@@ -536,6 +624,14 @@ Active Storage
 | `:key`       | Secure token        |
 | `:service`   | Name of the service |
 
+### service_download_chunk.active_storage
+
+| Key          | Value                           |
+| ------------ | ------------------------------- |
+| `:key`       | Secure token                    |
+| `:service`   | Name of the service             |
+| `:range`     | Byte range attempted to be read |
+
 ### service_download.active_storage
 
 | Key          | Value               |
@@ -571,7 +667,24 @@ Active Storage
 | ------------ | ------------------- |
 | `:key`       | Secure token        |
 | `:service`   | Name of the service |
-| `:url`       | Generated url       |
+| `:url`       | Generated URL       |
+
+### service_update_metadata.active_storage
+
+| Key             | Value                          |
+| --------------- | ------------------------------ |
+| `:key`          | Secure token                   |
+| `:service`      | Name of the service            |
+| `:content_type` | HTTP Content-Type field        |
+| `:disposition`  | HTTP Content-Disposition field |
+
+INFO. The only ActiveStorage service that provides this hook so far is GCS.
+
+### preview.active_storage
+
+| Key          | Value               |
+| ------------ | ------------------- |
+| `:key`       | Secure token        |
 
 Railties
 --------
@@ -591,72 +704,6 @@ Rails
 | ------------ | ------------------------------- |
 | `:message`   | The deprecation warning         |
 | `:callstack` | Where the deprecation came from |
-
-Subscribing to an event
------------------------
-
-Subscribing to an event is easy. Use `ActiveSupport::Notifications.subscribe` with a block to
-listen to any notification.
-
-The block receives the following arguments:
-
-* The name of the event
-* Time when it started
-* Time when it finished
-* A unique ID for the instrumenter that fired the event
-* The payload (described in previous sections)
-
-```ruby
-ActiveSupport::Notifications.subscribe "process_action.action_controller" do |name, started, finished, unique_id, data|
-  # your own custom stuff
-  Rails.logger.info "#{name} Received!"
-end
-```
-
-Defining all those block arguments each time can be tedious. You can easily create an `ActiveSupport::Notifications::Event`
-from block arguments like this:
-
-```ruby
-ActiveSupport::Notifications.subscribe "process_action.action_controller" do |*args|
-  event = ActiveSupport::Notifications::Event.new *args
-
-  event.name      # => "process_action.action_controller"
-  event.duration  # => 10 (in milliseconds)
-  event.payload   # => {:extra=>information}
-
-  Rails.logger.info "#{event} Received!"
-end
-```
-
-You may also pass block with only one argument, it will yield an event object to the block:
-
-```ruby
-ActiveSupport::Notifications.subscribe "process_action.action_controller" do |event|
-  event.name      # => "process_action.action_controller"
-  event.duration  # => 10 (in milliseconds)
-  event.payload   # => {:extra=>information}
-
-  Rails.logger.info "#{event} Received!"
-end
-```
-
-Most times you only care about the data itself. Here is a shortcut to just get the data.
-
-```ruby
-ActiveSupport::Notifications.subscribe "process_action.action_controller" do |*args|
-  data = args.extract_options!
-  data # { extra: :information }
-end
-```
-
-You may also subscribe to events matching a regular expression. This enables you to subscribe to
-multiple events at once. Here's you could subscribe to everything from `ActionController`.
-
-```ruby
-ActiveSupport::Notifications.subscribe /action_controller/ do |*args|
-  # inspect all ActionController events
-end
-```
 
 Creating custom events
 ----------------------
@@ -678,6 +725,17 @@ end
 Now you can listen to this event with:
 
 ```ruby
+ActiveSupport::Notifications.subscribe "my.custom.event" do |name, started, finished, unique_id, data|
+  puts data.inspect # {:this=>:data}
+end
+```
+
+You also have the option to call instrument without passing a block. This lets you leverage the
+instrumentation infrastructure for other messaging uses.
+
+```ruby
+ActiveSupport::Notifications.instrument "my.custom.event", this: :data
+
 ActiveSupport::Notifications.subscribe "my.custom.event" do |name, started, finished, unique_id, data|
   puts data.inspect # {:this=>:data}
 end

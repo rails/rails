@@ -22,7 +22,7 @@ module ActiveRecord
 
       def load(yaml)
         return object_class.new if object_class != Object && yaml.nil?
-        return yaml unless yaml.is_a?(String) && /^---/.match?(yaml)
+        return yaml unless yaml.is_a?(String) && yaml.start_with?("---")
         obj = YAML.load(yaml)
 
         assert_valid_value(obj, action: "load")
@@ -39,7 +39,6 @@ module ActiveRecord
       end
 
       private
-
         def check_arity_of_constructor
           load(nil)
         rescue ArgumentError

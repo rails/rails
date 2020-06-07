@@ -107,6 +107,7 @@ module ActionDispatch
         @_routes = nil
         super
       end
+      ruby2_keywords(:initialize) if respond_to?(:ruby2_keywords, true)
 
       # Hook overridden in controller to add request information
       # with +default_url_options+. Application logic should not
@@ -215,13 +216,11 @@ module ActionDispatch
       end
 
       protected
-
         def optimize_routes_generation?
           _routes.optimize_routes_generation? && default_url_options.empty?
         end
 
       private
-
         def _with_routes(routes) # :doc:
           old_routes, @_routes = @_routes, routes
           yield

@@ -72,5 +72,30 @@ module ActiveRecord
     ensure
       ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
     end
+
+    def test_payload_connection_with_query_cache_disabled
+      connection = Book.connection
+      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |*args|
+        event = ActiveSupport::Notifications::Event.new(*args)
+        assert_equal connection, event.payload[:connection]
+      end
+      Book.first
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+    end
+
+    def test_payload_connection_with_query_cache_enabled
+      connection = Book.connection
+      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |*args|
+        event = ActiveSupport::Notifications::Event.new(*args)
+        assert_equal connection, event.payload[:connection]
+      end
+      Book.cache do
+        Book.first
+        Book.first
+      end
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+    end
   end
 end

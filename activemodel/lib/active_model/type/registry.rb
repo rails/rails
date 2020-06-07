@@ -9,15 +9,18 @@ module ActiveModel
       end
 
       def register(type_name, klass = nil, **options, &block)
-        block ||= proc { |_, *args| klass.new(*args) }
+        unless block_given?
+          block = proc { |_, *args| klass.new(*args) }
+          block.ruby2_keywords if block.respond_to?(:ruby2_keywords)
+        end
         registrations << registration_klass.new(type_name, block, **options)
       end
 
-      def lookup(symbol, *args)
-        registration = find_registration(symbol, *args)
+      def lookup(symbol, *args, **kwargs)
+        registration = find_registration(symbol, *args, **kwargs)
 
         if registration
-          registration.call(self, symbol, *args)
+          registration.call(self, symbol, *args, **kwargs)
         else
           raise ArgumentError, "Unknown type #{symbol.inspect}"
         end
@@ -30,8 +33,8 @@ module ActiveModel
           Registration
         end
 
-        def find_registration(symbol, *args)
-          registrations.find { |r| r.matches?(symbol, *args) }
+        def find_registration(symbol, *args, **kwargs)
+          registrations.find { |r| r.matches?(symbol, *args, **kwargs) }
         end
     end
 

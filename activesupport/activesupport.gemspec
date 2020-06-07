@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
 
   s.author   = "David Heinemeier Hansson"
   s.email    = "david@loudthinking.com"
-  s.homepage = "http://rubyonrails.org"
+  s.homepage = "https://rubyonrails.org"
 
   s.files        = Dir["CHANGELOG.md", "MIT-LICENSE", "README.rdoc", "lib/**/*"]
   s.require_path = "lib"
@@ -23,16 +23,19 @@ Gem::Specification.new do |s|
   s.rdoc_options.concat ["--encoding",  "UTF-8"]
 
   s.metadata = {
-    "source_code_uri" => "https://github.com/rails/rails/tree/v#{version}/activesupport",
-    "changelog_uri"   => "https://github.com/rails/rails/blob/v#{version}/activesupport/CHANGELOG.md"
+    "bug_tracker_uri"   => "https://github.com/rails/rails/issues",
+    "changelog_uri"     => "https://github.com/rails/rails/blob/v#{version}/activesupport/CHANGELOG.md",
+    "documentation_uri" => "https://api.rubyonrails.org/v#{version}/",
+    "mailing_list_uri"  => "https://discuss.rubyonrails.org/c/rubyonrails-talk",
+    "source_code_uri"   => "https://github.com/rails/rails/tree/v#{version}/activesupport",
   }
 
   # NOTE: Please read our dependency guidelines before updating versions:
   # https://edgeguides.rubyonrails.org/security.html#dependency-management-and-cves
 
-  s.add_dependency "i18n",            ">= 0.7", "< 2"
-  s.add_dependency "tzinfo",          "~> 1.1"
-  s.add_dependency "minitest",        "~> 5.1"
+  s.add_dependency "i18n",            ">= 1.6", "< 2"
+  s.add_dependency "tzinfo",          "~> 2.0"
   s.add_dependency "concurrent-ruby", "~> 1.0", ">= 1.0.2"
-  s.add_dependency "zeitwerk",        "~> 1.3", ">= 1.3.2"
+  s.add_dependency "zeitwerk",        "~> 2.3"
+  s.add_dependency "minitest",        ">= 5.1"
 end

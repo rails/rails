@@ -21,7 +21,7 @@ module PolymorphicFullStiClassNamesSharedTest
     ActiveRecord::Base.store_full_sti_class = store_full_sti_class
 
     post = Namespaced::Post.create(title: "Great stuff", body: "This is not", author_id: 1)
-    @tagging = Tagging.create(taggable: post)
+    @tagging = post.create_tagging!
   end
 
   def teardown

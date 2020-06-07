@@ -138,6 +138,14 @@ class IntegrationTestTest < ActiveSupport::TestCase
     assert_not session1.equal?(session2)
   end
 
+  def test_child_session_assertions_bubble_up_to_root
+    assertions_before = @test.assertions
+    @test.open_session.assert(true)
+    assertions_after = @test.assertions
+
+    assert_equal 1, assertions_after - assertions_before
+  end
+
   # RSpec mixes Matchers (which has a #method_missing) into
   # IntegrationTest's superclass.  Make sure IntegrationTest does not
   # try to delegate these methods to the session object.
@@ -162,9 +170,10 @@ end
 class IntegrationTestUsesCorrectClass < ActionDispatch::IntegrationTest
   def test_integration_methods_called
     reset!
+    headers = { "Origin" => "*" }
 
-    %w( get post head patch put delete ).each do |verb|
-      assert_nothing_raised { __send__(verb, "/") }
+    %w( get post head patch put delete options ).each do |verb|
+      assert_nothing_raised { __send__(verb, "/", headers: headers) }
     end
   end
 end
@@ -179,6 +188,15 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
         format.xml { render xml: "<root></root>", status: 200 }
         format.rss { render xml: "<root></root>", status: 200 }
         format.atom { render xml: "<root></root>", status: 200 }
+      end
+    end
+
+    def get_with_vary_set_x_requested_with
+      respond_to do |format|
+        format.json do
+          response.headers["Vary"] = "X-Requested-With"
+          render json: "JSON OK", status: 200
+        end
       end
     end
 
@@ -211,6 +229,10 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
 
     def redirect
       redirect_to action_url("get")
+    end
+
+    def redirect_307
+      redirect_to action_url("post"), status: 307
     end
 
     def remove_header
@@ -334,6 +356,15 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       get "/moved"
       assert_response :redirect
       assert_redirected_to "/method"
+    end
+  end
+
+  def test_307_redirect_uses_the_same_http_verb
+    with_test_route_set do
+      post "/redirect_307"
+      assert_equal 307, status
+      follow_redirect!
+      assert_equal "POST", request.method
     end
   end
 
@@ -522,12 +553,45 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     with_test_route_set do
       get "/get", headers: { "Accept" => "application/json" }, xhr: true
       assert_equal "application/json", request.accept
-      assert_equal "application/json", response.content_type
+      assert_equal "application/json", response.media_type
 
       get "/get", headers: { "HTTP_ACCEPT" => "application/json" }, xhr: true
       assert_equal "application/json", request.accept
-      assert_equal "application/json", response.content_type
+      assert_equal "application/json", response.media_type
     end
+  end
+
+  def test_setting_vary_header_when_request_is_xhr_with_accept_header
+    with_test_route_set do
+      get "/get", headers: { "Accept" => "application/json" }, xhr: true
+      assert_equal "Accept", response.headers["Vary"]
+    end
+  end
+
+  def test_not_setting_vary_header_when_format_is_provided
+    with_test_route_set do
+      get "/get", params: { format: "json" }
+      assert_nil response.headers["Vary"]
+    end
+  end
+
+  def test_not_setting_vary_header_when_it_has_already_been_set
+    with_test_route_set do
+      get "/get_with_vary_set_x_requested_with", headers: { "Accept" => "application/json" }, xhr: true
+      assert_equal "X-Requested-With", response.headers["Vary"]
+    end
+  end
+
+  def test_not_setting_vary_header_when_ignore_accept_header_is_set
+    original_ignore_accept_header = ActionDispatch::Request.ignore_accept_header
+    ActionDispatch::Request.ignore_accept_header = true
+
+    with_test_route_set do
+      get "/get", headers: { "Accept" => "application/json" }, xhr: true
+      assert_nil response.headers["Vary"]
+    end
+  ensure
+    ActionDispatch::Request.ignore_accept_header = original_ignore_accept_header
   end
 
   private
@@ -567,7 +631,7 @@ class MetalIntegrationTest < ActionDispatch::IntegrationTest
 
   class Poller
     def self.call(env)
-      if env["PATH_INFO"] =~ /^\/success/
+      if /^\/success/.match?(env["PATH_INFO"])
         [200, { "Content-Type" => "text/plain", "Content-Length" => "12" }, ["Hello World!"]]
       else
         [404, { "Content-Type" => "text/plain", "Content-Length" => "0" }, []]
@@ -641,6 +705,12 @@ class MetalIntegrationTest < ActionDispatch::IntegrationTest
 end
 
 class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
+  class MetalController < ActionController::Metal
+    def new
+      self.status = 200
+    end
+  end
+
   class TestController < ActionController::Base
     def index
       render plain: "index"
@@ -670,6 +740,8 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
 
   routes.draw do
     get "",    to: "application_integration_test/test#index", as: :empty_string
+
+    get "metal", to: "application_integration_test/metal#new", as: :new_metal
 
     get "foo", to: "application_integration_test/test#index", as: :foo
     get "bar", to: "application_integration_test/test#index", as: :bar
@@ -708,6 +780,11 @@ class ApplicationIntegrationTest < ActionDispatch::IntegrationTest
 
     get "/bar"
     assert_equal "/bar", bar_path
+  end
+
+  test "route helpers after metal controller access" do
+    get "/metal"
+    assert_equal "/foo?q=solution", foo_path(q: "solution")
   end
 
   test "missing route helper before controller access" do
@@ -808,17 +885,17 @@ class UrlOptionsIntegrationTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "session uses default url options from routes" do
+  test "session uses default URL options from routes" do
     assert_equal "http://foo.com/foo", foos_url
   end
 
-  test "current host overrides default url options from routes" do
+  test "current host overrides default URL options from routes" do
     get "/foo"
     assert_response :success
     assert_equal "http://www.example.com/foo", foos_url
   end
 
-  test "controller can override default url options from request" do
+  test "controller can override default URL options from request" do
     get "/bar"
     assert_response :success
     assert_equal "http://bar.com/foo", foos_url
@@ -986,7 +1063,7 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
   def test_encoding_as_json
     post_to_foos as: :json do
       assert_response :success
-      assert_equal "application/json", request.content_type
+      assert_equal "application/json", request.media_type
       assert_equal "application/json", request.accepts.first.to_s
       assert_equal :json, request.format.ref
       assert_equal({ "foo" => "fighters" }, request.request_parameters)
@@ -1025,7 +1102,7 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
     post_to_foos as: :wibble do
       assert_response :success
       assert_equal "/foos_wibble", request.path
-      assert_equal "text/wibble", request.content_type
+      assert_equal "text/wibble", request.media_type
       assert_equal "text/wibble", request.accepts.first.to_s
       assert_equal :wibble, request.format.ref
       assert_equal Hash.new, request.request_parameters # Unregistered MIME Type can't be parsed.
@@ -1128,7 +1205,7 @@ class IntegrationFileUploadTest < ActionDispatch::IntegrationTest
     self.class
   end
 
-  def self.fixture_path
+  def self.file_fixture_path
     File.expand_path("../fixtures/multipart", __dir__)
   end
 

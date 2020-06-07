@@ -157,24 +157,24 @@ module ActionController
       json = json.to_json(options) unless json.kind_of?(String)
 
       if options[:callback].present?
-        if content_type.nil? || content_type == Mime[:json]
+        if media_type.nil? || media_type == Mime[:json]
           self.content_type = Mime[:js]
         end
 
         "/**/#{options[:callback]}(#{json})"
       else
-        self.content_type ||= Mime[:json]
+        self.content_type = Mime[:json] if media_type.nil?
         json
       end
     end
 
     add :js do |js, options|
-      self.content_type ||= Mime[:js]
+      self.content_type = Mime[:js] if media_type.nil?
       js.respond_to?(:to_js) ? js.to_js(options) : js
     end
 
     add :xml do |xml, options|
-      self.content_type ||= Mime[:xml]
+      self.content_type = Mime[:xml] if media_type.nil?
       xml.respond_to?(:to_xml) ? xml.to_xml(options) : xml
     end
   end

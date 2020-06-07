@@ -6,11 +6,58 @@ module ActiveRecord
     # UrlConfig respectively. It will never return a DatabaseConfig object,
     # as this is the parent class for the types of database configuration objects.
     class DatabaseConfig # :nodoc:
-      attr_reader :env_name, :spec_name
+      attr_reader :env_name, :name
 
-      def initialize(env_name, spec_name)
+      attr_accessor :owner_name
+
+      def initialize(env_name, name)
         @env_name = env_name
-        @spec_name = spec_name
+        @name = name
+      end
+
+      def spec_name
+        @name
+      end
+      deprecate spec_name: "please use name instead"
+
+      def config
+        raise NotImplementedError
+      end
+
+      def adapter_method
+        "#{adapter}_connection"
+      end
+
+      def host
+        raise NotImplementedError
+      end
+
+      def database
+        raise NotImplementedError
+      end
+
+      def _database=(database)
+        raise NotImplementedError
+      end
+
+      def adapter
+        raise NotImplementedError
+      end
+
+      def pool
+        raise NotImplementedError
+      end
+
+      def checkout_timeout
+        raise NotImplementedError
+      end
+
+      def reaping_frequency
+        raise NotImplementedError
+      end
+
+      def idle_timeout
+        raise NotImplementedError
       end
 
       def replica?
@@ -21,16 +68,12 @@ module ActiveRecord
         raise NotImplementedError
       end
 
-      def url_config?
-        false
-      end
-
-      def to_legacy_hash
-        { env_name => config }
-      end
-
       def for_current_env?
         env_name == ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+      end
+
+      def schema_cache_path
+        raise NotImplementedError
       end
     end
   end

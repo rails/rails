@@ -5,7 +5,7 @@ require "rails/source_annotation_extractor"
 module Rails
   module Command
     class NotesCommand < Base # :nodoc:
-      class_option :annotations, aliases: "-a", desc: "Filter by specific annotations, e.g. Foobar TODO", type: :array, default: %w(OPTIMIZE FIXME TODO)
+      class_option :annotations, aliases: "-a", desc: "Filter by specific annotations, e.g. Foobar TODO", type: :array, default: Rails::SourceAnnotationExtractor::Annotation.tags
 
       def perform(*)
         require_application_and_environment!

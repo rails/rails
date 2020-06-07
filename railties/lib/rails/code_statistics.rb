@@ -8,6 +8,8 @@ class CodeStatistics #:nodoc:
                 "Helper tests",
                 "Model tests",
                 "Mailer tests",
+                "Mailbox tests",
+                "Channel tests",
                 "Job tests",
                 "Integration tests",
                 "System tests"]
@@ -38,13 +40,13 @@ class CodeStatistics #:nodoc:
       Hash[@pairs.map { |pair| [pair.first, calculate_directory_statistics(pair.last)] }]
     end
 
-    def calculate_directory_statistics(directory, pattern = /^(?!\.).*?\.(rb|js|coffee|rake)$/)
+    def calculate_directory_statistics(directory, pattern = /^(?!\.).*?\.(rb|js|ts|coffee|rake)$/)
       stats = CodeStatisticsCalculator.new
 
       Dir.foreach(directory) do |file_name|
         path = "#{directory}/#{file_name}"
 
-        if File.directory?(path) && (/^\./ !~ file_name)
+        if File.directory?(path) && !file_name.start_with?(".")
           stats.add(calculate_directory_statistics(path, pattern))
         elsif file_name&.match?(pattern)
           stats.add_by_file_path(path)

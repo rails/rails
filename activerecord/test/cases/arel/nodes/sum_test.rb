@@ -6,7 +6,7 @@ class Arel::Nodes::SumTest < Arel::Spec
   describe "as" do
     it "should alias the sum" do
       table = Arel::Table.new :users
-      table[:id].sum.as("foo").to_sql.must_be_like %{
+      _(table[:id].sum.as("foo").to_sql).must_be_like %{
         SUM("users"."id") AS foo
       }
     end
@@ -27,7 +27,7 @@ class Arel::Nodes::SumTest < Arel::Spec
   describe "order" do
     it "should order the sum" do
       table = Arel::Table.new :users
-      table[:id].sum.desc.to_sql.must_be_like %{
+      _(table[:id].sum.desc.to_sql).must_be_like %{
         SUM("users"."id") DESC
       }
     end

@@ -86,11 +86,22 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_increment_attribute
     assert_equal 50, accounts(:signals37).credit_limit
+
     accounts(:signals37).increment! :credit_limit
     assert_equal 51, accounts(:signals37, :reload).credit_limit
 
     accounts(:signals37).increment(:credit_limit).increment!(:credit_limit)
     assert_equal 53, accounts(:signals37, :reload).credit_limit
+  end
+
+  def test_increment_aliased_attribute
+    assert_equal 50, accounts(:signals37).available_credit
+
+    accounts(:signals37).increment!(:available_credit)
+    assert_equal 51, accounts(:signals37, :reload).available_credit
+
+    accounts(:signals37).increment(:available_credit).increment!(:available_credit)
+    assert_equal 53, accounts(:signals37, :reload).available_credit
   end
 
   def test_increment_nil_attribute
@@ -183,7 +194,7 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_not_predicate company, :valid?
     original_errors = company.errors
     client = company.becomes(Client)
-    assert_equal original_errors.keys, client.errors.keys
+    assert_equal assert_deprecated { original_errors.keys }, assert_deprecated { client.errors.keys }
   end
 
   def test_becomes_errors_base
@@ -197,7 +208,7 @@ class PersistenceTest < ActiveRecord::TestCase
     admin.errors.add :token, :invalid
     child = admin.becomes(child_class)
 
-    assert_equal [:token], child.errors.keys
+    assert_equal [:token], assert_deprecated { child.errors.keys }
     assert_nothing_raised do
       child.errors.add :foo, :invalid
     end

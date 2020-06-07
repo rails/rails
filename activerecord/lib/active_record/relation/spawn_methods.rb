@@ -28,21 +28,22 @@ module ActiveRecord
     #   # => Post.where(published: true).joins(:comments)
     #
     # This is mainly intended for sharing common conditions between multiple associations.
-    def merge(other)
+    def merge(other, *rest)
       if other.is_a?(Array)
         records & other
       elsif other
-        spawn.merge!(other)
+        spawn.merge!(other, *rest)
       else
         raise ArgumentError, "invalid argument: #{other.inspect}."
       end
     end
 
-    def merge!(other) # :nodoc:
+    def merge!(other, *rest) # :nodoc:
+      options = rest.extract_options!
       if other.is_a?(Hash)
-        Relation::HashMerger.new(self, other).merge
+        Relation::HashMerger.new(self, other, options[:rewhere]).merge
       elsif other.is_a?(Relation)
-        Relation::Merger.new(self, other).merge
+        Relation::Merger.new(self, other, options[:rewhere]).merge
       elsif other.respond_to?(:to_proc)
         instance_exec(&other)
       else
@@ -67,7 +68,6 @@ module ActiveRecord
     end
 
     private
-
       def relation_with(values)
         result = Relation.create(klass, values: values)
         result.extend(*extending_values) if extending_values.any?

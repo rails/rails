@@ -39,7 +39,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   test "attribute_for_inspect with a date" do
     t = topics(:first)
 
-    assert_equal %("#{t.written_on.to_s(:db)}"), t.attribute_for_inspect(:written_on)
+    assert_equal %("#{t.written_on.to_s(:inspect)}"), t.attribute_for_inspect(:written_on)
   end
 
   test "attribute_for_inspect with an array" do
@@ -263,9 +263,6 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   test "case-sensitive attributes hash" do
-    # DB2 is not case-sensitive.
-    return true if current_adapter?(:DB2Adapter)
-
     assert_equal @loaded_fixtures["computers"]["workstation"].to_hash, Computer.first.attributes
   end
 
@@ -279,14 +276,16 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   test "hashes are not mangled" do
-    new_topic = { title: "New Topic" }
-    new_topic_values = { title: "AnotherTopic" }
+    new_topic = { title: "New Topic", content: { key: "First value" } }
+    new_topic_values = { title: "AnotherTopic", content: { key: "Second value" } }
 
     topic = Topic.new(new_topic)
     assert_equal new_topic[:title], topic.title
+    assert_equal new_topic[:content], topic.content
 
     topic.attributes = new_topic_values
     assert_equal new_topic_values[:title], topic.title
+    assert_equal new_topic_values[:content], topic.content
   end
 
   test "create through factory" do
@@ -458,6 +457,69 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
+  test "user-defined text attribute predicate" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = Topic.table_name
+
+      attribute :user_defined_text, :text
+    end
+
+    topic = klass.new(user_defined_text: "text")
+    assert_predicate topic, :user_defined_text?
+
+    ActiveModel::Type::Boolean::FALSE_VALUES.each do |value|
+      topic = klass.new(user_defined_text: value)
+      assert_predicate topic, :user_defined_text?
+    end
+  end
+
+  test "user-defined date attribute predicate" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = Topic.table_name
+
+      attribute :user_defined_date, :date
+    end
+
+    topic = klass.new(user_defined_date: Date.current)
+    assert_predicate topic, :user_defined_date?
+  end
+
+  test "user-defined datetime attribute predicate" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = Topic.table_name
+
+      attribute :user_defined_datetime, :datetime
+    end
+
+    topic = klass.new(user_defined_datetime: Time.current)
+    assert_predicate topic, :user_defined_datetime?
+  end
+
+  test "user-defined time attribute predicate" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = Topic.table_name
+
+      attribute :user_defined_time, :time
+    end
+
+    topic = klass.new(user_defined_time: Time.current)
+    assert_predicate topic, :user_defined_time?
+  end
+
+  test "user-defined json attribute predicate" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = Topic.table_name
+
+      attribute :user_defined_json, :json
+    end
+
+    topic = klass.new(user_defined_json: { key: "value" })
+    assert_predicate topic, :user_defined_json?
+
+    topic = klass.new(user_defined_json: {})
+    assert_not_predicate topic, :user_defined_json?
+  end
+
   test "custom field attribute predicate" do
     object = Company.find_by_sql(<<~SQL).first
       SELECT c1.*, c2.type as string_value, c2.rating as int_value
@@ -546,7 +608,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   test "typecast attribute from select to false" do
     Topic.create(title: "Budget")
     # Oracle does not support boolean expressions in SELECT.
-    if current_adapter?(:OracleAdapter, :FbAdapter)
+    if current_adapter?(:OracleAdapter)
       topic = Topic.all.merge!(select: "topics.*, 0 as is_test").first
     else
       topic = Topic.all.merge!(select: "topics.*, 1=2 as is_test").first
@@ -557,7 +619,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   test "typecast attribute from select to true" do
     Topic.create(title: "Budget")
     # Oracle does not support boolean expressions in SELECT.
-    if current_adapter?(:OracleAdapter, :FbAdapter)
+    if current_adapter?(:OracleAdapter)
       topic = Topic.all.merge!(select: "topics.*, 1 as is_test").first
     else
       topic = Topic.all.merge!(select: "topics.*, 2=2 as is_test").first
@@ -1018,13 +1080,12 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal ["title"], model.accessed_fields
   end
 
-  test "generated attribute methods ancestors have correct class" do
+  test "generated attribute methods ancestors have correct module" do
     mod = Topic.send(:generated_attribute_methods)
-    assert_match %r(GeneratedAttributeMethods), mod.inspect
+    assert_equal "Topic::GeneratedAttributeMethods", mod.inspect
   end
 
   private
-
     def new_topic_like_ar_class(&block)
       klass = Class.new(ActiveRecord::Base) do
         self.table_name = "topics"

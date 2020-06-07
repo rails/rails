@@ -38,7 +38,6 @@ module TestUnit # :nodoc:
       end
 
       private
-
         def attributes_string
           attributes_hash.map { |k, v| "#{k}: #{v}" }.join(", ")
         end
@@ -49,15 +48,20 @@ module TestUnit # :nodoc:
           attributes_names.map do |name|
             if %w(password password_confirmation).include?(name) && attributes.any?(&:password_digest?)
               ["#{name}", "'secret'"]
-            else
+            elsif !virtual?(name)
               ["#{name}", "@#{singular_table_name}.#{name}"]
             end
-          end.sort.to_h
+          end.compact.sort.to_h
         end
 
         def boolean?(name)
           attribute = attributes.find { |attr| attr.name == name }
           attribute&.type == :boolean
+        end
+
+        def virtual?(name)
+          attribute = attributes.find { |attr| attr.name == name }
+          attribute&.virtual?
         end
     end
   end

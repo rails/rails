@@ -21,7 +21,7 @@ if ActiveRecord::Base.connection.supports_foreign_tables?
       @connection = ActiveRecord::Base.connection
       enable_extension!("postgres_fdw", @connection)
 
-      foreign_db_config = ARTest.connection_config["arunit2"]
+      foreign_db_config = ARTest.test_configuration_hashes["arunit2"]
       @connection.execute <<~SQL
         CREATE SERVER foreign_server
           FOREIGN DATA WRAPPER postgres_fdw

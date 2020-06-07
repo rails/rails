@@ -226,13 +226,14 @@ module ActionController
       FormBuilder,
       RequestForgeryProtection,
       ContentSecurityPolicy,
-      ForceSSL,
+      FeaturePolicy,
       Streaming,
       DataStreaming,
       HttpAuthentication::Basic::ControllerMethods,
       HttpAuthentication::Digest::ControllerMethods,
       HttpAuthentication::Token::ControllerMethods,
       DefaultHeaders,
+      Logging,
 
       # Before callbacks should also be executed as early as possible, so
       # also include them at the bottom.
@@ -261,9 +262,10 @@ module ActionController
       @_view_renderer @_lookup_context @_routes @_view_runtime @_db_runtime @_helper_proxy
     )
 
-    def _protected_ivars # :nodoc:
+    def _protected_ivars
       PROTECTED_IVARS
     end
+    private :_protected_ivars
 
     ActiveSupport.run_load_hooks(:action_controller_base, self)
     ActiveSupport.run_load_hooks(:action_controller, self)

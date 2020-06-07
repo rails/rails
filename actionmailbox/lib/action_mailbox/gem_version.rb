@@ -8,9 +8,9 @@ module ActionMailbox
 
   module VERSION
     MAJOR = 6
-    MINOR = 0
+    MINOR = 1
     TINY  = 0
-    PRE   = "beta2"
+    PRE   = "alpha"
 
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join(".")
   end

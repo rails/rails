@@ -52,6 +52,13 @@ module ActiveRecord
       assert_equal({}, relation.where_values_hash)
     end
 
+    def test_where_values_hash_with_in_clause
+      relation = Relation.new(Post)
+      relation.where!(title: ["foo", "bar", "hello"])
+
+      assert_equal({ "title" => ["foo", "bar", "hello"] }, relation.where_values_hash)
+    end
+
     def test_has_values
       relation = Relation.new(Post)
       relation.where!(id: 10)
@@ -101,6 +108,9 @@ module ActiveRecord
 
       relation.merge!(relation)
       assert_predicate relation, :empty_scope?
+
+      assert_not_predicate NullPost.all, :empty_scope?
+      assert_not_predicate FirstPost.all, :empty_scope?
     end
 
     def test_bad_constants_raise_errors
@@ -289,6 +299,7 @@ module ActiveRecord
       klass.create!(description: "foo")
 
       assert_equal ["foo"], klass.select(:description).from(klass.all).map(&:desc)
+      assert_equal ["foo"], klass.reselect(:description).from(klass.all).map(&:desc)
     end
 
     def test_relation_merging_with_merged_joins_as_strings
@@ -305,6 +316,65 @@ module ActiveRecord
       ratings  = Rating.joins(:comment).merge(comments)
 
       assert_equal 3, ratings.count
+    end
+
+    def test_relation_with_annotation_includes_comment_in_to_sql
+      post_with_annotation = Post.where(id: 1).annotate("foo")
+      assert_match %r{= 1 /\* foo \*/}, post_with_annotation.to_sql
+    end
+
+    def test_relation_with_annotation_includes_comment_in_sql
+      post_with_annotation = Post.where(id: 1).annotate("foo")
+      assert_sql(%r{/\* foo \*/}) do
+        assert post_with_annotation.first, "record should be found"
+      end
+    end
+
+    def test_relation_with_annotation_chains_sql_comments
+      post_with_annotation = Post.where(id: 1).annotate("foo").annotate("bar")
+      assert_sql(%r{/\* foo \*/ /\* bar \*/}) do
+        assert post_with_annotation.first, "record should be found"
+      end
+    end
+
+    def test_relation_with_annotation_filters_sql_comment_delimiters
+      post_with_annotation = Post.where(id: 1).annotate("**//foo//**")
+      assert_match %r{= 1 /\* foo \*/}, post_with_annotation.to_sql
+    end
+
+    def test_relation_with_annotation_includes_comment_in_count_query
+      post_with_annotation = Post.annotate("foo")
+      all_count = Post.all.to_a.count
+      assert_sql(%r{/\* foo \*/}) do
+        assert_equal all_count, post_with_annotation.count
+      end
+    end
+
+    def test_relation_without_annotation_does_not_include_an_empty_comment
+      log = capture_sql do
+        Post.where(id: 1).first
+      end
+
+      assert_not_predicate log, :empty?
+      assert_predicate log.select { |query| query.match?(%r{/\*}) }, :empty?
+    end
+
+    def test_relation_with_optimizer_hints_filters_sql_comment_delimiters
+      post_with_hint = Post.where(id: 1).optimizer_hints("**//BADHINT//**")
+      assert_match %r{BADHINT}, post_with_hint.to_sql
+      assert_no_match %r{\*/BADHINT}, post_with_hint.to_sql
+      assert_no_match %r{\*//BADHINT}, post_with_hint.to_sql
+      assert_no_match %r{BADHINT/\*}, post_with_hint.to_sql
+      assert_no_match %r{BADHINT//\*}, post_with_hint.to_sql
+      post_with_hint = Post.where(id: 1).optimizer_hints("/*+ BADHINT */")
+      assert_match %r{/\*\+ BADHINT \*/}, post_with_hint.to_sql
+    end
+
+    def test_does_not_duplicate_optimizer_hints_on_merge
+      escaped_table = Post.connection.quote_table_name("posts")
+      expected = "SELECT /*+ OMGHINT */ #{escaped_table}.* FROM #{escaped_table}"
+      query = Post.optimizer_hints("OMGHINT").merge(Post.optimizer_hints("OMGHINT")).to_sql
+      assert_equal expected, query
     end
 
     class EnsureRoundTripTypeCasting < ActiveRecord::Type::Value
@@ -348,8 +418,19 @@ module ActiveRecord
       end
     end
 
-    private
+    test "no queries on empty IN" do
+      assert_queries(0) do
+        Post.where(id: []).load
+      end
+    end
 
+    test "can unscope empty IN" do
+      assert_queries(1) do
+        Post.where(id: []).unscope(where: :id).load
+      end
+    end
+
+    private
       def skip_if_sqlite3_version_includes_quoting_bug
         if sqlite3_version_includes_quoting_bug?
           skip <<-ERROR.squish

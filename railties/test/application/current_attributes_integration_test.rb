@@ -18,7 +18,7 @@ class CurrentAttributesIntegrationTest < ActiveSupport::TestCase
 
         def customer=(customer)
           super
-          Time.zone = customer.try(:time_zone)
+          Time.zone = customer&.time_zone
         end
       end
     RUBY
@@ -53,7 +53,7 @@ class CurrentAttributesIntegrationTest < ActiveSupport::TestCase
     RUBY
 
     app_file "app/views/customers/index.html.erb", <<-RUBY
-      <%= Current.customer.try(:name) || 'noone' %>,<%= Time.zone.name %>
+      <%= Current.customer&.name || 'noone' %>,<%= Time.zone.name %>
     RUBY
 
     require "#{app_path}/config/environment"

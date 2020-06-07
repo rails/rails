@@ -27,6 +27,7 @@ require "models/bird"
 require "models/car"
 require "models/bulb"
 require "concurrent/atomic/count_down_latch"
+require "active_support/core_ext/enumerable"
 
 class FirstAbstractClass < ActiveRecord::Base
   self.abstract_class = true
@@ -67,6 +68,32 @@ end
 class BasicsTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, "warehouse-things", :authors, :author_addresses, :categorizations, :categories, :posts
 
+  def test_generated_association_methods_module_name
+    mod = Post.send(:generated_association_methods)
+    assert_equal "Post::GeneratedAssociationMethods", mod.inspect
+  end
+
+  def test_generated_relation_methods_module_name
+    mod = Post.send(:generated_relation_methods)
+    assert_equal "Post::GeneratedRelationMethods", mod.inspect
+  end
+
+  def test_incomplete_schema_loading
+    topic = Topic.first
+    payload = { foo: 42 }
+    topic.update!(content: payload)
+
+    Topic.reset_column_information
+
+    Topic.connection.stub(:lookup_cast_type_from_column, ->(_) { raise "Some Error" }) do
+      assert_raises RuntimeError do
+        Topic.columns_hash
+      end
+    end
+
+    assert_equal payload, Topic.first.content
+  end
+
   def test_column_names_are_escaped
     conn      = ActiveRecord::Base.connection
     classname = conn.class.name[/[^:]*$/]
@@ -75,7 +102,6 @@ class BasicsTest < ActiveRecord::TestCase
       "Mysql2Adapter"     => "`",
       "PostgreSQLAdapter" => '"',
       "OracleAdapter"     => '"',
-      "FbAdapter"         => '"'
     }.fetch(classname) {
       raise "need a bad char for #{classname}"
     }
@@ -195,7 +221,7 @@ class BasicsTest < ActiveRecord::TestCase
     )
 
     # For adapters which support microsecond resolution.
-    if subsecond_precision_supported?
+    if supports_datetime_with_precision?
       assert_equal 11, Topic.find(1).written_on.sec
       assert_equal 223300, Topic.find(1).written_on.usec
       assert_equal 9900, Topic.find(2).written_on.usec
@@ -512,6 +538,10 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal Topic.find("1-meowmeow"), Topic.find(1)
   end
 
+  def test_out_of_range_slugs
+    assert_equal [Topic.find(1)], Topic.where(id: ["1-meowmeow", "9223372036854775808-hello"])
+  end
+
   def test_find_by_slug_with_array
     assert_equal Topic.find([1, 2]), Topic.find(["1-meowmeow", "2-hello"])
     assert_equal "The Second Topic of the day", Topic.find(["2-hello", "1-meowmeow"]).first.title
@@ -706,9 +736,9 @@ class BasicsTest < ActiveRecord::TestCase
   def test_attributes
     category = Category.new(name: "Ruby")
 
-    expected_attributes = category.attribute_names.map do |attribute_name|
-      [attribute_name, category.public_send(attribute_name)]
-    end.to_h
+    expected_attributes = category.attribute_names.index_with do |attribute_name|
+      category.public_send(attribute_name)
+    end
 
     assert_instance_of Hash, category.attributes
     assert_equal expected_attributes, category.attributes
@@ -717,6 +747,12 @@ class BasicsTest < ActiveRecord::TestCase
   def test_new_record_returns_boolean
     assert_equal false, Topic.new.persisted?
     assert_equal true, Topic.find(1).persisted?
+  end
+
+  def test_previously_new_record_returns_boolean
+    assert_equal false, Topic.new.previously_new_record?
+    assert_equal true, Topic.create.previously_new_record?
+    assert_equal false, Topic.find(1).previously_new_record?
   end
 
   def test_dup
@@ -1035,11 +1071,6 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_find_last
-    last = Developer.last
-    assert_equal last, Developer.all.merge!(order: "id desc").first
-  end
-
   def test_last
     assert_equal Developer.all.merge!(order: "id desc").first, Developer.last
   end
@@ -1075,8 +1106,8 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_find_keeps_multiple_group_values
-    combined = Developer.all.merge!(group: "developers.name, developers.salary, developers.id, developers.created_at, developers.updated_at, developers.created_on, developers.updated_on").to_a
-    assert_equal combined, Developer.all.merge!(group: ["developers.name", "developers.salary", "developers.id", "developers.created_at", "developers.updated_at", "developers.created_on", "developers.updated_on"]).to_a
+    combined = Developer.merge(group: "developers.name, developers.salary, developers.id, developers.legacy_created_at, developers.legacy_updated_at, developers.legacy_created_on, developers.legacy_updated_on").to_a
+    assert_equal combined, Developer.merge(group: ["developers.name", "developers.salary", "developers.id", "developers.created_at", "developers.updated_at", "developers.created_on", "developers.updated_on"]).to_a
   end
 
   def test_find_symbol_ordered_last
@@ -1136,17 +1167,20 @@ class BasicsTest < ActiveRecord::TestCase
   def test_clear_cache!
     # preheat cache
     c1 = Post.connection.schema_cache.columns("posts")
+    assert_not_equal 0, Post.connection.schema_cache.size
+
     ActiveRecord::Base.clear_cache!
+    assert_equal 0, Post.connection.schema_cache.size
+
     c2 = Post.connection.schema_cache.columns("posts")
-    c1.each_with_index do |v, i|
-      assert_not_same v, c2[i]
-    end
+    assert_not_equal 0, Post.connection.schema_cache.size
+
     assert_equal c1, c2
   end
 
   def test_current_scope_is_reset
     Object.const_set :UnloadablePost, Class.new(ActiveRecord::Base)
-    UnloadablePost.send(:current_scope=, UnloadablePost.all)
+    UnloadablePost.current_scope = UnloadablePost.all
 
     UnloadablePost.unloadable
     klass = UnloadablePost
@@ -1159,6 +1193,16 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_marshal_round_trip
     expected = posts(:welcome)
+    marshalled = Marshal.dump(expected)
+    actual = Marshal.load(marshalled)
+
+    assert_equal expected.attributes, actual.attributes
+  end
+
+  def test_marshal_inspected_round_trip
+    expected = posts(:welcome)
+    expected.inspect
+
     marshalled = Marshal.dump(expected)
     actual = Marshal.load(marshalled)
 
@@ -1210,6 +1254,8 @@ class BasicsTest < ActiveRecord::TestCase
       wr.close
       assert Marshal.load rd.read
       rd.close
+    ensure
+      self.class.send(:remove_const, "Post") if self.class.const_defined?("Post", false)
     end
   end
 
@@ -1231,14 +1277,38 @@ class BasicsTest < ActiveRecord::TestCase
     assert Company.has_attribute?("id")
     assert Company.has_attribute?("type")
     assert Company.has_attribute?("name")
+    assert Company.has_attribute?("new_name")
     assert Company.has_attribute?("metadata")
     assert_not Company.has_attribute?("lastname")
     assert_not Company.has_attribute?("age")
+
+    company = Company.new
+    assert company.has_attribute?("id")
+    assert company.has_attribute?("type")
+    assert company.has_attribute?("name")
+    assert company.has_attribute?("new_name")
+    assert company.has_attribute?("metadata")
+    assert_not company.has_attribute?("lastname")
+    assert_not company.has_attribute?("age")
   end
 
   def test_has_attribute_with_symbol
     assert Company.has_attribute?(:id)
+    assert Company.has_attribute?(:type)
+    assert Company.has_attribute?(:name)
+    assert Company.has_attribute?(:new_name)
+    assert Company.has_attribute?(:metadata)
+    assert_not Company.has_attribute?(:lastname)
     assert_not Company.has_attribute?(:age)
+
+    company = Company.new
+    assert company.has_attribute?(:id)
+    assert company.has_attribute?(:type)
+    assert company.has_attribute?(:name)
+    assert company.has_attribute?(:new_name)
+    assert company.has_attribute?(:metadata)
+    assert_not company.has_attribute?(:lastname)
+    assert_not company.has_attribute?(:age)
   end
 
   def test_attribute_names_on_table_not_exists
@@ -1405,6 +1475,14 @@ class BasicsTest < ActiveRecord::TestCase
     assert_not_includes SymbolIgnoredDeveloper.columns_hash.keys, "first_name"
   end
 
+  test ".columns_hash raises an error if the record has an empty table name" do
+    expected_message = "FirstAbstractClass has no table configured. Set one with FirstAbstractClass.table_name="
+    exception = assert_raises(ActiveRecord::TableNotSpecified) do
+      FirstAbstractClass.columns_hash
+    end
+    assert_equal expected_message, exception.message
+  end
+
   test "ignored columns have no attribute methods" do
     assert_not_respond_to Developer.new, :first_name
     assert_not_respond_to Developer.new, :first_name=
@@ -1453,6 +1531,10 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "Developer: name", loaded_developer.name
   end
 
+  test "when assigning new ignored columns it invalidates cache for column names" do
+    assert_not_includes ColumnNamesCachedDeveloper.column_names, "name"
+  end
+
   test "ignored columns not included in SELECT" do
     query = Developer.all.to_sql.downcase
 
@@ -1489,7 +1571,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   test "creating a record raises if preventing writes" do
     error = assert_raises ActiveRecord::ReadOnlyError do
-      ActiveRecord::Base.connection.while_preventing_writes do
+      ActiveRecord::Base.connection_handler.while_preventing_writes do
         Bird.create! name: "Bluejay"
       end
     end
@@ -1501,7 +1583,7 @@ class BasicsTest < ActiveRecord::TestCase
     bird = Bird.create! name: "Bluejay"
 
     error = assert_raises ActiveRecord::ReadOnlyError do
-      ActiveRecord::Base.connection.while_preventing_writes do
+      ActiveRecord::Base.connection_handler.while_preventing_writes do
         bird.update! name: "Robin"
       end
     end
@@ -1513,7 +1595,7 @@ class BasicsTest < ActiveRecord::TestCase
     bird = Bird.create! name: "Bluejay"
 
     error = assert_raises ActiveRecord::ReadOnlyError do
-      ActiveRecord::Base.connection.while_preventing_writes do
+      ActiveRecord::Base.connection_handler.while_preventing_writes do
         bird.destroy!
       end
     end
@@ -1524,7 +1606,7 @@ class BasicsTest < ActiveRecord::TestCase
   test "selecting a record does not raise if preventing writes" do
     bird = Bird.create! name: "Bluejay"
 
-    ActiveRecord::Base.connection.while_preventing_writes do
+    ActiveRecord::Base.connection_handler.while_preventing_writes do
       assert_equal bird, Bird.where(name: "Bluejay").first
     end
   end
@@ -1532,18 +1614,81 @@ class BasicsTest < ActiveRecord::TestCase
   test "an explain query does not raise if preventing writes" do
     Bird.create!(name: "Bluejay")
 
-    ActiveRecord::Base.connection.while_preventing_writes do
+    ActiveRecord::Base.connection_handler.while_preventing_writes do
       assert_queries(2) { Bird.where(name: "Bluejay").explain }
     end
   end
 
   test "an empty transaction does not raise if preventing writes" do
-    ActiveRecord::Base.connection.while_preventing_writes do
+    ActiveRecord::Base.connection_handler.while_preventing_writes do
       assert_queries(2, ignore_none: true) do
         Bird.transaction do
           ActiveRecord::Base.connection.materialize_transactions
         end
       end
+    end
+  end
+
+  test "cannot call connected_to on subclasses of ActiveRecord::Base" do
+    error = assert_raises(NotImplementedError) do
+      Bird.connected_to(role: :reading) { }
+    end
+
+    assert_equal "connected_to can only be called on ActiveRecord::Base", error.message
+  end
+
+  test "preventing writes applies to all connections on a handler" do
+    conn1_error = assert_raises ActiveRecord::ReadOnlyError do
+      ActiveRecord::Base.connection_handler.while_preventing_writes do
+        assert_equal ActiveRecord::Base.connection, Bird.connection
+        assert_not_equal ARUnit2Model.connection, Bird.connection
+        Bird.create!(name: "Bluejay")
+      end
+    end
+
+    assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, conn1_error.message
+
+    conn2_error = assert_raises ActiveRecord::ReadOnlyError do
+      ActiveRecord::Base.connection_handler.while_preventing_writes do
+        assert_not_equal ActiveRecord::Base.connection, Professor.connection
+        assert_equal ARUnit2Model.connection, Professor.connection
+        Professor.create!(name: "Professor Bluejay")
+      end
+    end
+
+    assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, conn2_error.message
+  end
+
+  unless in_memory_db?
+    test "preventing writes with multiple handlers" do
+      ActiveRecord::Base.connects_to(database: { writing: :arunit, reading: :arunit })
+
+      conn1_error = assert_raises ActiveRecord::ReadOnlyError do
+        ActiveRecord::Base.connected_to(role: :writing) do
+          assert_equal :writing, ActiveRecord::Base.current_role
+
+          ActiveRecord::Base.connection_handler.while_preventing_writes do
+            Bird.create!(name: "Bluejay")
+          end
+        end
+      end
+
+      assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, conn1_error.message
+
+      conn2_error = assert_raises ActiveRecord::ReadOnlyError do
+        ActiveRecord::Base.connected_to(role: :reading) do
+          assert_equal :reading, ActiveRecord::Base.current_role
+
+          ActiveRecord::Base.connection_handler.while_preventing_writes do
+            Bird.create!(name: "Bluejay")
+          end
+        end
+      end
+
+      assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, conn2_error.message
+    ensure
+      ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+      ActiveRecord::Base.establish_connection(:arunit)
     end
   end
 end

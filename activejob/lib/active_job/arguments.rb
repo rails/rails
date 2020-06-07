@@ -45,13 +45,14 @@ module ActiveJob
     end
 
     private
-
       # :nodoc:
       PERMITTED_TYPES = [ NilClass, String, Integer, Float, BigDecimal, TrueClass, FalseClass ]
       # :nodoc:
       GLOBALID_KEY = "_aj_globalid"
       # :nodoc:
       SYMBOL_KEYS_KEY = "_aj_symbol_keys"
+      # :nodoc:
+      RUBY2_KEYWORDS_KEY = "_aj_ruby2_keywords"
       # :nodoc:
       WITH_INDIFFERENT_ACCESS_KEY = "_aj_hash_with_indifferent_access"
       # :nodoc:
@@ -61,10 +62,39 @@ module ActiveJob
       RESERVED_KEYS = [
         GLOBALID_KEY, GLOBALID_KEY.to_sym,
         SYMBOL_KEYS_KEY, SYMBOL_KEYS_KEY.to_sym,
+        RUBY2_KEYWORDS_KEY, RUBY2_KEYWORDS_KEY.to_sym,
         OBJECT_SERIALIZER_KEY, OBJECT_SERIALIZER_KEY.to_sym,
         WITH_INDIFFERENT_ACCESS_KEY, WITH_INDIFFERENT_ACCESS_KEY.to_sym,
       ]
-      private_constant :PERMITTED_TYPES, :RESERVED_KEYS, :GLOBALID_KEY, :SYMBOL_KEYS_KEY, :WITH_INDIFFERENT_ACCESS_KEY
+      private_constant :PERMITTED_TYPES, :RESERVED_KEYS, :GLOBALID_KEY,
+        :SYMBOL_KEYS_KEY, :RUBY2_KEYWORDS_KEY, :WITH_INDIFFERENT_ACCESS_KEY
+
+      unless Hash.respond_to?(:ruby2_keywords_hash?) && Hash.respond_to?(:ruby2_keywords_hash)
+        using Module.new {
+          refine Hash do
+            class << Hash
+              if RUBY_VERSION >= "2.7"
+                def ruby2_keywords_hash?(hash)
+                  !new(*[hash]).default.equal?(hash)
+                end
+              else
+                def ruby2_keywords_hash?(hash)
+                  false
+                end
+              end
+
+              def ruby2_keywords_hash(hash)
+                _ruby2_keywords_hash(**hash)
+              end
+
+              private def _ruby2_keywords_hash(*args)
+                args.last
+              end
+              ruby2_keywords(:_ruby2_keywords_hash) if respond_to?(:ruby2_keywords, true)
+            end
+          end
+        }
+      end
 
       def serialize_argument(argument)
         case argument
@@ -77,9 +107,14 @@ module ActiveJob
         when ActiveSupport::HashWithIndifferentAccess
           serialize_indifferent_hash(argument)
         when Hash
-          symbol_keys = argument.each_key.grep(Symbol).map(&:to_s)
+          symbol_keys = argument.each_key.grep(Symbol).map!(&:to_s)
+          aj_hash_key = if Hash.ruby2_keywords_hash?(argument)
+            RUBY2_KEYWORDS_KEY
+          else
+            SYMBOL_KEYS_KEY
+          end
           result = serialize_hash(argument)
-          result[SYMBOL_KEYS_KEY] = symbol_keys
+          result[aj_hash_key] = symbol_keys
           result
         when -> (arg) { arg.respond_to?(:permitted?) }
           serialize_indifferent_hash(argument.to_h)
@@ -133,6 +168,9 @@ module ActiveJob
           result = result.with_indifferent_access
         elsif symbol_keys = result.delete(SYMBOL_KEYS_KEY)
           result = transform_symbol_keys(result, symbol_keys)
+        elsif symbol_keys = result.delete(RUBY2_KEYWORDS_KEY)
+          result = transform_symbol_keys(result, symbol_keys)
+          result = Hash.ruby2_keywords_hash(result)
         end
         result
       end

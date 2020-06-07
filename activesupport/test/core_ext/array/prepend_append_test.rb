@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../../abstract_unit"
+require "active_support/core_ext/array"
 
 class PrependAppendTest < ActiveSupport::TestCase
   def test_requiring_prepend_and_append_is_deprecated

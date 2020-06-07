@@ -109,7 +109,6 @@ unless current_adapter?(:PostgreSQLAdapter) # PostgreSQL does not use type strin
         end
 
         private
-
           def assert_lookup_type(type, lookup)
             cast_type = @connection.send(:type_map).lookup(lookup)
             assert_equal type, cast_type.type

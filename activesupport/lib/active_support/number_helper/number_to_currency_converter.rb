@@ -9,11 +9,15 @@ module ActiveSupport
 
       def convert
         number = self.number.to_s.strip
+        number_f = number.to_f
         format = options[:format]
 
-        if number.to_f.negative?
-          format = options[:negative_format]
-          number = absolute_value(number)
+        if number_f.negative?
+          number = number_f.abs
+
+          unless options[:precision] == 0 && number < 0.5
+            format = options[:negative_format]
+          end
         end
 
         rounded_number = NumberToRoundedConverter.convert(number, options)
@@ -21,11 +25,6 @@ module ActiveSupport
       end
 
       private
-
-        def absolute_value(number)
-          number.respond_to?(:abs) ? number.abs : number.sub(/\A-/, "")
-        end
-
         def options
           @options ||= begin
             defaults = default_format_options.merge(i18n_opts)

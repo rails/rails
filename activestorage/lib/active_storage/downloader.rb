@@ -2,24 +2,23 @@
 
 module ActiveStorage
   class Downloader #:nodoc:
-    def initialize(blob, tempdir: nil)
-      @blob    = blob
-      @tempdir = tempdir
+    attr_reader :service
+
+    def initialize(service)
+      @service = service
     end
 
-    def download_blob_to_tempfile
-      open_tempfile do |file|
-        download_blob_to file
-        verify_integrity_of file
+    def open(key, checksum:, name: "ActiveStorage-", tmpdir: nil)
+      open_tempfile(name, tmpdir) do |file|
+        download key, file
+        verify_integrity_of file, checksum: checksum
         yield file
       end
     end
 
     private
-      attr_reader :blob, :tempdir
-
-      def open_tempfile
-        file = Tempfile.open([ "ActiveStorage-#{blob.id}-", blob.filename.extension_with_delimiter ], tempdir)
+      def open_tempfile(name, tmpdir = nil)
+        file = Tempfile.open(name, tmpdir)
 
         begin
           yield file
@@ -28,15 +27,15 @@ module ActiveStorage
         end
       end
 
-      def download_blob_to(file)
+      def download(key, file)
         file.binmode
-        blob.download { |chunk| file.write(chunk) }
+        service.download(key) { |chunk| file.write(chunk) }
         file.flush
         file.rewind
       end
 
-      def verify_integrity_of(file)
-        unless Digest::MD5.file(file).base64digest == blob.checksum
+      def verify_integrity_of(file, checksum:)
+        unless Digest::MD5.file(file).base64digest == checksum
           raise ActiveStorage::IntegrityError
         end
       end

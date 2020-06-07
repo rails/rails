@@ -14,7 +14,6 @@ module ActiveSupport
       end
 
       private
-
         def parts
           left, right = number.to_s.split(".")
           left.gsub!(delimiter_pattern) do |digit_to_delimit|

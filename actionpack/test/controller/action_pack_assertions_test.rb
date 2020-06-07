@@ -282,7 +282,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     assert_no_match(
       /#{request.protocol}#{request.host}\/\/www.rubyonrails.org/,
       ex.message,
-      "protocol relative url was incorrectly normalized"
+      "protocol relative URL was incorrectly normalized"
     )
   end
 

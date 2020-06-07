@@ -207,10 +207,12 @@ module ActiveModel
       #   person.nickname_short? # => true
       def alias_attribute(new_name, old_name)
         self.attribute_aliases = attribute_aliases.merge(new_name.to_s => old_name.to_s)
-        attribute_method_matchers.each do |matcher|
-          matcher_new = matcher.method_name(new_name).to_s
-          matcher_old = matcher.method_name(old_name).to_s
-          define_proxy_call false, self, matcher_new, matcher_old
+        CodeGenerator.batch(self, __FILE__, __LINE__) do |owner|
+          attribute_method_matchers.each do |matcher|
+            matcher_new = matcher.method_name(new_name).to_s
+            matcher_old = matcher.method_name(old_name).to_s
+            define_proxy_call false, owner, matcher_new, matcher_old
+          end
         end
       end
 
@@ -249,7 +251,9 @@ module ActiveModel
       #     end
       #   end
       def define_attribute_methods(*attr_names)
-        attr_names.flatten.each { |attr_name| define_attribute_method(attr_name) }
+        CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |owner|
+          attr_names.flatten.each { |attr_name| define_attribute_method(attr_name, _owner: owner) }
+        end
       end
 
       # Declares an attribute that should be prefixed and suffixed by
@@ -281,21 +285,23 @@ module ActiveModel
       #   person.name = 'Bob'
       #   person.name        # => "Bob"
       #   person.name_short? # => true
-      def define_attribute_method(attr_name)
-        attribute_method_matchers.each do |matcher|
-          method_name = matcher.method_name(attr_name)
+      def define_attribute_method(attr_name, _owner: generated_attribute_methods)
+        CodeGenerator.batch(_owner, __FILE__, __LINE__) do |owner|
+          attribute_method_matchers.each do |matcher|
+            method_name = matcher.method_name(attr_name)
 
-          unless instance_method_already_implemented?(method_name)
-            generate_method = "define_method_#{matcher.method_missing_target}"
+            unless instance_method_already_implemented?(method_name)
+              generate_method = "define_method_#{matcher.target}"
 
-            if respond_to?(generate_method, true)
-              send(generate_method, attr_name.to_s)
-            else
-              define_proxy_call true, generated_attribute_methods, method_name, matcher.method_missing_target, attr_name.to_s
+              if respond_to?(generate_method, true)
+                send(generate_method, attr_name.to_s, owner: owner)
+              else
+                define_proxy_call true, owner, method_name, matcher.target, attr_name.to_s
+              end
             end
           end
+          attribute_method_matchers_cache.clear
         end
-        attribute_method_matchers_cache.clear
       end
 
       # Removes all the previously dynamically defined methods from the class.
@@ -323,12 +329,52 @@ module ActiveModel
       #   person.name_short? # => NoMethodError
       def undefine_attribute_methods
         generated_attribute_methods.module_eval do
-          instance_methods.each { |m| undef_method(m) }
+          undef_method(*instance_methods)
         end
         attribute_method_matchers_cache.clear
       end
 
       private
+        class CodeGenerator
+          class << self
+            def batch(owner, path, line)
+              if owner.is_a?(CodeGenerator)
+                yield owner
+              else
+                instance = new(owner, path, line)
+                result = yield instance
+                instance.execute
+                result
+              end
+            end
+          end
+
+          def initialize(owner, path, line)
+            @owner = owner
+            @path = path
+            @line = line
+            @sources = ["# frozen_string_literal: true\n"]
+            @renames = {}
+          end
+
+          def <<(source_line)
+            @sources << source_line
+          end
+
+          def rename_method(old_name, new_name)
+            @renames[old_name] = new_name
+          end
+
+          def execute
+            @owner.module_eval(@sources.join(";"), @path, @line - 1)
+            @renames.each do |old_name, new_name|
+              @owner.alias_method new_name, old_name
+              @owner.undef_method old_name
+            end
+          end
+        end
+        private_constant :CodeGenerator
+
         def generated_attribute_methods
           @generated_attribute_methods ||= Module.new.tap { |mod| include mod }
         end
@@ -352,17 +398,14 @@ module ActiveModel
 
         def attribute_method_matchers_matching(method_name)
           attribute_method_matchers_cache.compute_if_absent(method_name) do
-            # Must try to match prefixes/suffixes first, or else the matcher with no prefix/suffix
-            # will match every time.
-            matchers = attribute_method_matchers.partition(&:plain?).reverse.flatten(1)
-            matchers.map { |method| method.match(method_name) }.compact
+            attribute_method_matchers.map { |matcher| matcher.match(method_name) }.compact
           end
         end
 
         # Define a method `name` in `mod` that dispatches to `send`
         # using the given `extra` args. This falls back on `define_method`
         # and `send` if the given names cannot be compiled.
-        def define_proxy_call(include_private, mod, name, send, *extra)
+        def define_proxy_call(include_private, code_generator, name, target, *extra)
           defn = if NAME_COMPILABLE_REGEXP.match?(name)
             "def #{name}(*args)"
           else
@@ -371,43 +414,39 @@ module ActiveModel
 
           extra = (extra.map!(&:inspect) << "*args").join(", ")
 
-          target = if CALL_COMPILABLE_REGEXP.match?(send)
-            "#{"self." unless include_private}#{send}(#{extra})"
+          body = if CALL_COMPILABLE_REGEXP.match?(target)
+            "#{"self." unless include_private}#{target}(#{extra})"
           else
-            "send(:'#{send}', #{extra})"
+            "send(:'#{target}', #{extra})"
           end
 
-          mod.module_eval <<-RUBY, __FILE__, __LINE__ + 1
-            #{defn}
-              #{target}
-            end
-          RUBY
+          code_generator <<
+            defn <<
+            body <<
+            "end" <<
+            "ruby2_keywords(:'#{name}') if respond_to?(:ruby2_keywords, true)"
         end
 
         class AttributeMethodMatcher #:nodoc:
-          attr_reader :prefix, :suffix, :method_missing_target
+          attr_reader :prefix, :suffix, :target
 
-          AttributeMethodMatch = Struct.new(:target, :attr_name, :method_name)
+          AttributeMethodMatch = Struct.new(:target, :attr_name)
 
           def initialize(options = {})
             @prefix, @suffix = options.fetch(:prefix, ""), options.fetch(:suffix, "")
             @regex = /^(?:#{Regexp.escape(@prefix)})(.*)(?:#{Regexp.escape(@suffix)})$/
-            @method_missing_target = "#{@prefix}attribute#{@suffix}"
+            @target = "#{@prefix}attribute#{@suffix}"
             @method_name = "#{prefix}%s#{suffix}"
           end
 
           def match(method_name)
             if @regex =~ method_name
-              AttributeMethodMatch.new(method_missing_target, $1, method_name)
+              AttributeMethodMatch.new(target, $1)
             end
           end
 
           def method_name(attr_name)
             @method_name % attr_name
-          end
-
-          def plain?
-            prefix.empty? && suffix.empty?
           end
         end
     end
@@ -430,6 +469,7 @@ module ActiveModel
         match ? attribute_missing(match, *args, &block) : super
       end
     end
+    ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
 
     # +attribute_missing+ is like +method_missing+, but for attributes. When
     # +method_missing+ is called we check to see if there is a matching
@@ -496,10 +536,10 @@ module ActiveModel
         # to allocate an object on each call to the attribute method.
         # Making it frozen means that it doesn't get duped when used to
         # key the @attributes in read_attribute.
-        def self.define_attribute_accessor_method(mod, attr_name, writer: false)
+        def self.define_attribute_accessor_method(owner, attr_name, writer: false)
           method_name = "#{attr_name}#{'=' if writer}"
           if attr_name.ascii_only? && DEF_SAFE_NAME.match?(attr_name)
-            yield method_name, "'#{attr_name}'.freeze"
+            yield method_name, "'#{attr_name}'"
           else
             safe_name = attr_name.unpack1("h*")
             const_name = "ATTR_#{safe_name}"
@@ -507,8 +547,7 @@ module ActiveModel
             temp_method_name = "__temp__#{safe_name}#{'=' if writer}"
             attr_name_expr = "::ActiveModel::AttributeMethods::AttrNames::#{const_name}"
             yield temp_method_name, attr_name_expr
-            mod.alias_method method_name, temp_method_name
-            mod.undef_method temp_method_name
+            owner.rename_method(temp_method_name, method_name)
           end
         end
       end

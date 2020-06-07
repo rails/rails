@@ -26,8 +26,11 @@ Gem::Specification.new do |s|
   s.rdoc_options << "--exclude" << "."
 
   s.metadata = {
-    "source_code_uri" => "https://github.com/rails/rails/tree/v#{version}/railties",
-    "changelog_uri"   => "https://github.com/rails/rails/blob/v#{version}/railties/CHANGELOG.md"
+    "bug_tracker_uri"   => "https://github.com/rails/rails/issues",
+    "changelog_uri"     => "https://github.com/rails/rails/blob/v#{version}/railties/CHANGELOG.md",
+    "documentation_uri" => "https://api.rubyonrails.org/v#{version}/",
+    "mailing_list_uri"  => "https://discuss.rubyonrails.org/c/rubyonrails-talk",
+    "source_code_uri"   => "https://github.com/rails/rails/tree/v#{version}/railties",
   }
 
   # NOTE: Please read our dependency guidelines before updating versions:
@@ -37,7 +40,7 @@ Gem::Specification.new do |s|
   s.add_dependency "actionpack",    version
 
   s.add_dependency "rake", ">= 0.8.7"
-  s.add_dependency "thor", ">= 0.20.3", "< 2.0"
+  s.add_dependency "thor", "~> 1.0"
   s.add_dependency "method_source"
 
   s.add_development_dependency "actionview", version

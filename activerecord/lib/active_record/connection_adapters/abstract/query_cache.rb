@@ -7,7 +7,8 @@ module ActiveRecord
     module QueryCache
       class << self
         def included(base) #:nodoc:
-          dirties_query_cache base, :insert, :update, :delete, :rollback_to_savepoint, :rollback_db_transaction
+          dirties_query_cache base, :insert, :update, :delete, :truncate, :truncate_tables,
+            :rollback_to_savepoint, :rollback_db_transaction, :exec_insert_all
 
           base.set_callback :checkout, :after, :configure_query_cache!
           base.set_callback :checkin, :after, :disable_query_cache!
@@ -17,7 +18,7 @@ module ActiveRecord
           method_names.each do |method_name|
             base.class_eval <<-end_code, __FILE__, __LINE__ + 1
               def #{method_name}(*)
-                ActiveRecord::Base.clear_query_caches_for_current_thread if @query_cache_enabled
+                ActiveRecord::Base.clear_query_caches_for_current_thread
                 super
               end
             end_code
@@ -32,17 +33,17 @@ module ActiveRecord
         end
 
         def enable_query_cache!
-          @query_cache_enabled[connection_cache_key(Thread.current)] = true
+          @query_cache_enabled[connection_cache_key(current_thread)] = true
           connection.enable_query_cache! if active_connection?
         end
 
         def disable_query_cache!
-          @query_cache_enabled.delete connection_cache_key(Thread.current)
+          @query_cache_enabled.delete connection_cache_key(current_thread)
           connection.disable_query_cache! if active_connection?
         end
 
         def query_cache_enabled
-          @query_cache_enabled[connection_cache_key(Thread.current)]
+          @query_cache_enabled[connection_cache_key(current_thread)]
         end
       end
 
@@ -95,11 +96,7 @@ module ActiveRecord
       def select_all(arel, name = nil, binds = [], preparable: nil)
         if @query_cache_enabled && !locked?(arel)
           arel = arel_from_relation(arel)
-          sql, binds = to_sql_and_binds(arel, binds)
-
-          if preparable.nil?
-            preparable = prepared_statements ? visitor.preparable : false
-          end
+          sql, binds, preparable = to_sql_and_binds(arel, binds, preparable)
 
           cache_sql(sql, name, binds) { super(sql, name, binds, preparable: preparable) }
         else
@@ -108,7 +105,6 @@ module ActiveRecord
       end
 
       private
-
         def cache_sql(sql, name, binds)
           @lock.synchronize do
             result =
@@ -133,7 +129,7 @@ module ActiveRecord
             binds: binds,
             type_casted_binds: -> { type_casted_binds(binds) },
             name: name,
-            connection_id: object_id,
+            connection: self,
             cached: true
           }
         end

@@ -43,7 +43,7 @@ class ActionsTest < Rails::Generators::TestCase
   def test_add_source_adds_source_to_gemfile
     run_generator
     action :add_source, "http://gems.github.com"
-    assert_file "Gemfile", /source 'http:\/\/gems\.github\.com'/
+    assert_file "Gemfile", /source 'http:\/\/gems\.github\.com'\n/
   end
 
   def test_add_source_with_block_adds_source_to_gemfile_with_gem
@@ -51,7 +51,7 @@ class ActionsTest < Rails::Generators::TestCase
     action :add_source, "http://gems.github.com" do
       gem "rspec-rails"
     end
-    assert_file "Gemfile", /source 'http:\/\/gems\.github\.com' do\n  gem 'rspec-rails'\nend/
+    assert_file "Gemfile", /\n\nsource 'http:\/\/gems\.github\.com' do\n  gem 'rspec-rails'\nend\n\z/
   end
 
   def test_add_source_with_block_adds_source_to_gemfile_after_gem
@@ -60,13 +60,25 @@ class ActionsTest < Rails::Generators::TestCase
     action :add_source, "http://gems.github.com" do
       gem "rspec-rails"
     end
-    assert_file "Gemfile", /gem 'will-paginate'\nsource 'http:\/\/gems\.github\.com' do\n  gem 'rspec-rails'\nend/
+    assert_file "Gemfile", /\ngem 'will-paginate'\n\nsource 'http:\/\/gems\.github\.com' do\n  gem 'rspec-rails'\nend\n\z/
+  end
+
+  def test_add_source_should_create_newline_between_blocks
+    run_generator
+    action :add_source, "http://gems.github.com" do
+      gem "rspec-rails"
+    end
+
+    action :add_source, "http://gems2.github.com" do
+      gem "fakeweb"
+    end
+    assert_file "Gemfile", /\n\nsource 'http:\/\/gems\.github\.com' do\n  gem 'rspec-rails'\nend\n\nsource 'http:\/\/gems2\.github\.com' do\n  gem 'fakeweb'\nend\n\z/
   end
 
   def test_gem_should_put_gem_dependency_in_gemfile
     run_generator
     action :gem, "will-paginate"
-    assert_file "Gemfile", /gem 'will\-paginate'/
+    assert_file "Gemfile", /gem 'will\-paginate'\n\z/
   end
 
   def test_gem_with_version_should_include_version_in_gemfile
@@ -141,7 +153,7 @@ class ActionsTest < Rails::Generators::TestCase
       gem "fakeweb"
     end
 
-    assert_file "Gemfile", /\ngroup :development, :test do\n  gem 'rspec-rails'\nend\n\ngroup :test do\n  gem 'fakeweb'\nend/
+    assert_file "Gemfile", /\n\ngroup :development, :test do\n  gem 'rspec-rails'\nend\n\ngroup :test do\n  gem 'fakeweb'\nend\n\z/
   end
 
   def test_github_should_create_an_indented_block
@@ -153,7 +165,7 @@ class ActionsTest < Rails::Generators::TestCase
       gem "baz"
     end
 
-    assert_file "Gemfile", /\ngithub 'user\/repo' do\n  gem 'foo'\n  gem 'bar'\n  gem 'baz'\nend/
+    assert_file "Gemfile", /\n\ngithub 'user\/repo' do\n  gem 'foo'\n  gem 'bar'\n  gem 'baz'\nend\n\z/
   end
 
   def test_github_should_create_an_indented_block_with_options
@@ -165,7 +177,7 @@ class ActionsTest < Rails::Generators::TestCase
       gem "baz"
     end
 
-    assert_file "Gemfile", /\ngithub 'user\/repo', a: 'correct', other: true do\n  gem 'foo'\n  gem 'bar'\n  gem 'baz'\nend/
+    assert_file "Gemfile", /\n\ngithub 'user\/repo', a: 'correct', other: true do\n  gem 'foo'\n  gem 'bar'\n  gem 'baz'\nend\n\z/
   end
 
   def test_github_should_create_an_indented_block_within_a_group
@@ -177,9 +189,73 @@ class ActionsTest < Rails::Generators::TestCase
         gem "bar"
         gem "baz"
       end
+      github "user/repo2", a: "correct", other: true do
+        gem "foo"
+        gem "bar"
+        gem "baz"
+      end
     end
 
-    assert_file "Gemfile", /\ngroup :magic do\n  github 'user\/repo', a: 'correct', other: true do\n    gem 'foo'\n    gem 'bar'\n    gem 'baz'\n  end\nend\n/
+    assert_file "Gemfile", /\n\ngroup :magic do\n  github 'user\/repo', a: 'correct', other: true do\n    gem 'foo'\n    gem 'bar'\n    gem 'baz'\n  end\n  github 'user\/repo2', a: 'correct', other: true do\n    gem 'foo'\n    gem 'bar'\n    gem 'baz'\n  end\nend\n\z/
+  end
+
+  def test_github_should_create_newline_between_blocks
+    run_generator
+
+    action :github, "user/repo", a: "correct", other: true do
+      gem "foo"
+      gem "bar"
+      gem "baz"
+    end
+
+    action :github, "user/repo2", a: "correct", other: true do
+      gem "foo"
+      gem "bar"
+      gem "baz"
+    end
+
+    assert_file "Gemfile", /\n\ngithub 'user\/repo', a: 'correct', other: true do\n  gem 'foo'\n  gem 'bar'\n  gem 'baz'\nend\n\ngithub 'user\/repo2', a: 'correct', other: true do\n  gem 'foo'\n  gem 'bar'\n  gem 'baz'\nend\n\z/
+  end
+
+  def test_gem_with_gemfile_without_newline_at_the_end
+    run_generator
+    File.open("Gemfile", "a") { |f| f.write("gem 'rspec-rails'") }
+
+    action :gem, "will-paginate"
+    assert_file "Gemfile", /gem 'rspec-rails'\ngem 'will-paginate'\n\z/
+  end
+
+  def test_gem_group_with_gemfile_without_newline_at_the_end
+    run_generator
+    File.open("Gemfile", "a") { |f| f.write("gem 'rspec-rails'") }
+
+    action :gem_group, :test do
+      gem "fakeweb"
+    end
+
+    assert_file "Gemfile", /gem 'rspec-rails'\n\ngroup :test do\n  gem 'fakeweb'\nend\n\z/
+  end
+
+  def test_add_source_with_gemfile_without_newline_at_the_end
+    run_generator
+    File.open("Gemfile", "a") { |f| f.write("gem 'rspec-rails'") }
+
+    action :add_source, "http://gems.github.com" do
+      gem "fakeweb"
+    end
+
+    assert_file "Gemfile", /gem 'rspec-rails'\n\nsource 'http:\/\/gems\.github\.com' do\n  gem 'fakeweb'\nend\n\z/
+  end
+
+  def test_github_with_gemfile_without_newline_at_the_end
+    run_generator
+    File.open("Gemfile", "a") { |f| f.write("gem 'rspec-rails'") }
+
+    action :github, "user/repo" do
+      gem "fakeweb"
+    end
+
+    assert_file "Gemfile", /gem 'rspec-rails'\n\ngithub 'user\/repo' do\n  gem 'fakeweb'\nend\n\z/
   end
 
   def test_environment_should_include_data_in_environment_initializer_block
@@ -200,7 +276,7 @@ class ActionsTest < Rails::Generators::TestCase
     run_generator
 
     action :environment do
-      _ = "# This wont be added"# assignment to silence parse-time warning "unused literal ignored"
+      _ = "# This wont be added" # assignment to silence parse-time warning "unused literal ignored"
       "# This will be added"
     end
 
@@ -231,13 +307,13 @@ class ActionsTest < Rails::Generators::TestCase
   end
 
   def test_git_with_symbol_should_run_command_using_git_scm
-    assert_called_with(generator, :run, ["git init"]) do
+    assert_runs "git init", nil do
       action :git, :init
     end
   end
 
   def test_git_with_hash_should_run_each_command_using_git_scm
-    assert_called_with(generator, :run, [ ["git rm README"], ["git add ."] ]) do
+    assert_runs ["git rm README", "git add ."], nil do
       action :git, rm: "README", add: "."
     end
   end
@@ -302,173 +378,212 @@ class ActionsTest < Rails::Generators::TestCase
     assert_file "config/initializers/constants.rb", code.strip_heredoc
   end
 
-  def test_generate_should_run_script_generate_with_argument_and_options
+  test "generate" do
     run_generator
     action :generate, "model", "MyModel"
     assert_file "app/models/my_model.rb", /MyModel/
   end
 
-  def test_generate_aborts_when_subprocess_fails_if_requested
+  test "generate should raise on failure" do
     run_generator
-    content = capture(:stderr) do
+    message = capture(:stderr) do
       assert_raises SystemExit do
-        action :generate, "model", "MyModel:ADsad", abort_on_failure: true
-        action :generate, "model", "MyModel"
+        action :generate, "model", "1234567890"
       end
     end
-    assert_match(/wrong constant name MyModel:aDsad/, content)
-    assert_no_file "app/models/my_model.rb"
+    assert_match(/1234567890/, message)
   end
 
-  def test_generate_should_run_command_without_env
-    assert_called_with(generator, :run, ["rails generate model MyModel name:string", verbose: false]) do
-      action :generate, "model", "MyModel", "name:string"
+  test "generate with inline option" do
+    run_generator
+    assert_not_called(generator, :run) do
+      action :generate, "model", "MyModel", inline: true
     end
+    assert_file "app/models/my_model.rb", /MyModel/
   end
 
-  def test_rake_should_run_rake_command_with_default_env
-    assert_called_with(generator, :run, ["rake log:clear RAILS_ENV=development", verbose: false]) do
+  test "generate with inline option should raise on failure" do
+    run_generator
+    error = assert_raises do
+      action :generate, "model", "1234567890", inline: true
+    end
+    assert_match(/1234567890/, error.message)
+  end
+
+  test "rake should run rake with the default environment" do
+    assert_runs "rake log:clear", env: { "RAILS_ENV" => "development" } do
       with_rails_env nil do
         action :rake, "log:clear"
       end
     end
   end
 
-  def test_rake_with_env_option_should_run_rake_command_in_env
-    assert_called_with(generator, :run, ["rake log:clear RAILS_ENV=production", verbose: false]) do
+  test "rake with env option should run rake with the env environment" do
+    assert_runs "rake log:clear", env: { "RAILS_ENV" => "production" } do
       action :rake, "log:clear", env: "production"
     end
   end
 
-  test "rake with RAILS_ENV variable should run rake command in env" do
-    assert_called_with(generator, :run, ["rake log:clear RAILS_ENV=production", verbose: false]) do
+  test "rake with RAILS_ENV set should run rake with the RAILS_ENV environment" do
+    assert_runs "rake log:clear", env: { "RAILS_ENV" => "production" } do
       with_rails_env "production" do
         action :rake, "log:clear"
       end
     end
   end
 
-  test "env option should win over RAILS_ENV variable when running rake" do
-    assert_called_with(generator, :run, ["rake log:clear RAILS_ENV=production", verbose: false]) do
+  test "rake with env option and RAILS_ENV set should run rake with the env environment" do
+    assert_runs "rake log:clear", env: { "RAILS_ENV" => "production" } do
       with_rails_env "staging" do
         action :rake, "log:clear", env: "production"
       end
     end
   end
 
-  test "rake with sudo option should run rake command with sudo" do
-    assert_called_with(generator, :run, ["sudo rake log:clear RAILS_ENV=development", verbose: false]) do
-      with_rails_env nil do
-        action :rake, "log:clear", sudo: true
+  test "rake with sudo option should run rake with sudo" do
+    assert_runs "sudo rake log:clear" do
+      action :rake, "log:clear", sudo: true
+    end
+  end
+
+  test "rake with capture option should run rake with capture" do
+    assert_runs "rake log:clear", capture: true do
+      action :rake, "log:clear", capture: true
+    end
+  end
+
+  test "rake with abort_on_failure option should raise on failure" do
+    capture(:stderr) do
+      assert_raises SystemExit do
+        action :rake, "invalid", abort_on_failure: true
       end
     end
   end
 
-  test "rake command with capture option should run rake command with capture" do
-    assert_called_with(generator, :run, ["rake log:clear RAILS_ENV=development", verbose: false, capture: true]) do
-      with_rails_env nil do
-        action :rake, "log:clear", capture: true
-      end
-    end
-  end
-
-  test "rails command should run rails_command with default env" do
-    assert_called_with(generator, :run, ["rails log:clear RAILS_ENV=development", verbose: false]) do
+  test "rails_command should run rails with the default environment" do
+    assert_runs "rails log:clear", env: { "RAILS_ENV" => "development" } do
       with_rails_env nil do
         action :rails_command, "log:clear"
       end
     end
   end
 
-  test "rails command with env option should run rails_command with same env" do
-    assert_called_with(generator, :run, ["rails log:clear RAILS_ENV=production", verbose: false]) do
+  test "rails_command with env option should run rails with the env environment" do
+    assert_runs "rails log:clear", env: { "RAILS_ENV" => "production" } do
       action :rails_command, "log:clear", env: "production"
     end
   end
 
-  test "rails command with RAILS_ENV variable should run rails_command in env" do
-    assert_called_with(generator, :run, ["rails log:clear RAILS_ENV=production", verbose: false]) do
+  test "rails_command with RAILS_ENV set should run rails with the RAILS_ENV environment" do
+    assert_runs "rails log:clear", env: { "RAILS_ENV" => "production" } do
       with_rails_env "production" do
         action :rails_command, "log:clear"
       end
     end
   end
 
-  def test_env_option_should_win_over_rails_env_variable_when_running_rails
-    assert_called_with(generator, :run, ["rails log:clear RAILS_ENV=production", verbose: false]) do
+  test "rails_command with env option and RAILS_ENV set should run rails with the env environment" do
+    assert_runs "rails log:clear", env: { "RAILS_ENV" => "production" } do
       with_rails_env "staging" do
         action :rails_command, "log:clear", env: "production"
       end
     end
   end
 
-  test "rails command with sudo option should run rails_command with sudo" do
-    assert_called_with(generator, :run, ["sudo rails log:clear RAILS_ENV=development", verbose: false]) do
+  test "rails_command with sudo option should run rails with sudo" do
+    assert_runs "sudo rails log:clear" do
       with_rails_env nil do
         action :rails_command, "log:clear", sudo: true
       end
     end
   end
 
-  test "rails command with capture option should run rails_command with capture" do
-    assert_called_with(generator, :run, ["rails log:clear RAILS_ENV=development", verbose: false, capture: true]) do
+  test "rails_command with capture option should run rails with capture" do
+    assert_runs "rails log:clear", capture: true do
       with_rails_env nil do
         action :rails_command, "log:clear", capture: true
       end
     end
   end
 
-  def test_route_should_add_data_to_the_routes_block_in_config_routes
+  test "rails_command with abort_on_failure option should raise on failure" do
     run_generator
-    route_command = "route '/login', controller: 'sessions', action: 'new'"
-    action :route, route_command
-    assert_file "config/routes.rb", /#{Regexp.escape(route_command)}/
+    capture(:stderr) do
+      assert_raises SystemExit do
+        action :rails_command, "invalid", abort_on_failure: true
+      end
+    end
   end
 
-  def test_route_should_be_idempotent
+  test "rails_command with inline option" do
     run_generator
-    route_path = File.expand_path("config/routes.rb", destination_root)
+    assert_not_called(generator, :run) do
+      action :rails_command, "generate model MyModel", inline: true
+    end
+    assert_file "app/models/my_model.rb", /MyModel/
+  end
 
-    # runs first time, not asserting
-    action :route, "root 'welcome#index'"
-    content_1 = File.read(route_path)
+  test "rails_command with inline option should raise on failure" do
+    run_generator
+    error = assert_raises do
+      action :rails_command, "generate model 1234567890", inline: true
+    end
+    assert_match(/1234567890/, error.message)
+  end
+
+  test "route should add route" do
+    run_generator
+    route_commands = ["get 'foo'", "get 'bar'", "get 'baz'"]
+    route_commands.each do |route_command|
+      action :route, route_command
+    end
+    assert_routes route_commands
+  end
+
+  test "route should indent routing code" do
+    run_generator
+    route_commands = ["get 'foo'", "get 'bar'", "get 'baz'"]
+    action :route, route_commands.join("\n")
+    assert_routes route_commands
+  end
+
+  test "route should be idempotent" do
+    run_generator
+    route_command = "root 'welcome#index'"
+
+    # runs first time
+    action :route, route_command
+    assert_routes route_command
+
+    content = File.read(File.expand_path("config/routes.rb", destination_root))
 
     # runs second time
-    action :route, "root 'welcome#index'"
-    content_2 = File.read(route_path)
-
-    assert_equal content_1, content_2
+    action :route, route_command
+    assert_file "config/routes.rb", content
   end
 
-  def test_route_should_add_data_with_an_new_line
+  test "route with namespace option should nest route" do
     run_generator
-    action :route, "root 'welcome#index'"
-    route_path = File.expand_path("config/routes.rb", destination_root)
-    content = File.read(route_path)
+    action :route, "get 'foo'\nget 'bar'", namespace: :baz
+    assert_routes <<~ROUTING_CODE.chomp
+      namespace :baz do
+        get 'foo'
+        get 'bar'
+      end
+    ROUTING_CODE
+  end
 
-    # Remove all of the comments and blank lines from the routes file
-    content.gsub!(/^  \#.*\n/, "")
-    content.gsub!(/^\n/, "")
-
-    File.write(route_path, content)
-
-    routes = <<-F
-Rails.application.routes.draw do
-  root 'welcome#index'
-end
-F
-
-    assert_file "config/routes.rb", routes
-
-    action :route, "resources :product_lines"
-
-    routes = <<-F
-Rails.application.routes.draw do
-  resources :product_lines
-  root 'welcome#index'
-end
-F
-    assert_file "config/routes.rb", routes
+  test "route with namespace option array should deeply nest route" do
+    run_generator
+    action :route, "get 'foo'\nget 'bar'", namespace: %w[baz qux]
+    assert_routes <<~ROUTING_CODE.chomp
+      namespace :baz do
+        namespace :qux do
+          get 'foo'
+          get 'bar'
+        end
+      end
+    ROUTING_CODE
   end
 
   def test_readme
@@ -505,8 +620,38 @@ F
   end
 
   private
+    if RUBY_VERSION < "2.7"
+      def action(*args, &block)
+        capture(:stdout) { generator.send(*args, &block) }
+      end
+    else
+      def action(*args, **kwargs, &block)
+        capture(:stdout) { generator.send(*args, **kwargs, &block) }
+      end
+    end
 
-    def action(*args, &block)
-      capture(:stdout) { generator.send(*args, &block) }
+    def assert_runs(commands, config = {}, &block)
+      config_matcher = ->(actual_config) do
+        assert_equal config, actual_config.slice(*config.keys)
+      end if config
+      args = Array(commands).map { |command| [command, *config_matcher] }
+
+      assert_called_with(generator, :run, args) do
+        block.call
+      end
+    end
+
+    def assert_routes(*route_commands)
+      route_regexps = route_commands.flatten.map do |route_command|
+        %r{
+          ^#{Regexp.escape("Rails.application.routes.draw do")}\n
+            (?:[ ]{2}.+\n|\n)*
+            #{Regexp.escape(route_command.indent(2))}\n
+            (?:[ ]{2}.+\n|\n)*
+          end\n
+        }x
+      end
+
+      assert_file "config/routes.rb", *route_regexps
     end
 end

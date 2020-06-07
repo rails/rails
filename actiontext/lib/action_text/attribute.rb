@@ -13,6 +13,7 @@ module ActionText
       #   end
       #
       #   message = Message.create!(content: "<h1>Funny times!</h1>")
+      #   message.content? #=> true
       #   message.content.to_s # => "<h1>Funny times!</h1>"
       #   message.content.to_plain_text # => "Funny times!"
       #
@@ -26,7 +27,11 @@ module ActionText
       def has_rich_text(name)
         class_eval <<-CODE, __FILE__, __LINE__ + 1
           def #{name}
-            self.rich_text_#{name} ||= ActionText::RichText.new(name: "#{name}", record: self)
+            rich_text_#{name} || build_rich_text_#{name}
+          end
+
+          def #{name}?
+            rich_text_#{name}.present?
           end
 
           def #{name}=(body)
@@ -34,14 +39,11 @@ module ActionText
           end
         CODE
 
-        has_one :"rich_text_#{name}", -> { where(name: name) }, class_name: "ActionText::RichText", as: :record, inverse_of: :record, dependent: :destroy
+        has_one :"rich_text_#{name}", -> { where(name: name) },
+          class_name: "ActionText::RichText", as: :record, inverse_of: :record, autosave: true, dependent: :destroy
 
         scope :"with_rich_text_#{name}", -> { includes("rich_text_#{name}") }
         scope :"with_rich_text_#{name}_and_embeds", -> { includes("rich_text_#{name}": { embeds_attachments: :blob }) }
-
-        after_save do
-          public_send(name).save if public_send(name).changed?
-        end
       end
     end
   end

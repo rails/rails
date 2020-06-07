@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require_relative "../abstract_unit"
 require "active_support/core_ext/name_error"
 
 class NameErrorTest < ActiveSupport::TestCase
@@ -11,6 +11,9 @@ class NameErrorTest < ActiveSupport::TestCase
     assert_equal "NameErrorTest::SomeNameThatNobodyWillUse____Really", exc.missing_name
     assert exc.missing_name?(:SomeNameThatNobodyWillUse____Really)
     assert exc.missing_name?("NameErrorTest::SomeNameThatNobodyWillUse____Really")
+    if RUBY_VERSION >= "2.6"
+      assert_equal NameErrorTest, exc.receiver
+    end
   end
 
   def test_missing_method_should_ignore_missing_name
@@ -19,5 +22,6 @@ class NameErrorTest < ActiveSupport::TestCase
     end
     assert_not exc.missing_name?(:Foo)
     assert_nil exc.missing_name
+    assert_equal self, exc.receiver
   end
 end

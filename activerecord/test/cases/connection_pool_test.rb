@@ -12,7 +12,9 @@ module ActiveRecord
         super
 
         # Keep a duplicate pool so we do not bother others
-        @pool = ConnectionPool.new ActiveRecord::Base.connection_pool.spec
+        @db_config = ActiveRecord::Base.connection_pool.db_config
+        @pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new("primary", @db_config)
+        @pool = ConnectionPool.new(@pool_config)
 
         if in_memory_db?
           # Separate connections to an in-memory database create an entirely new database,
@@ -198,9 +200,12 @@ module ActiveRecord
 
       def test_idle_timeout_configuration
         @pool.disconnect!
-        spec = ActiveRecord::Base.connection_pool.spec
-        spec.config.merge!(idle_timeout: "0.02")
-        @pool = ConnectionPool.new(spec)
+
+        config = @db_config.configuration_hash.merge(idle_timeout: "0.02")
+        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(@db_config.env_name, @db_config.name, config)
+
+        pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new("primary", db_config)
+        @pool = ConnectionPool.new(pool_config)
         idle_conn = @pool.checkout
         @pool.checkin(idle_conn)
 
@@ -223,9 +228,11 @@ module ActiveRecord
 
       def test_disable_flush
         @pool.disconnect!
-        spec = ActiveRecord::Base.connection_pool.spec
-        spec.config.merge!(idle_timeout: -5)
-        @pool = ConnectionPool.new(spec)
+
+        config = @db_config.configuration_hash.merge(idle_timeout: -5)
+        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(@db_config.env_name, @db_config.name, config)
+        pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new("primary", db_config)
+        @pool = ConnectionPool.new(pool_config)
         idle_conn = @pool.checkout
         @pool.checkin(idle_conn)
 
@@ -315,7 +322,7 @@ module ActiveRecord
       end
 
       def test_checkout_behaviour
-        pool = ConnectionPool.new ActiveRecord::Base.connection_pool.spec
+        pool = ConnectionPool.new(@pool_config)
         main_connection = pool.connection
         assert_not_nil main_connection
         threads = []
@@ -448,7 +455,7 @@ module ActiveRecord
       end
 
       def test_automatic_reconnect_restores_after_disconnect
-        pool = ConnectionPool.new ActiveRecord::Base.connection_pool.spec
+        pool = ConnectionPool.new(@pool_config)
         assert pool.automatic_reconnect
         assert pool.connection
 
@@ -457,7 +464,7 @@ module ActiveRecord
       end
 
       def test_automatic_reconnect_can_be_disabled
-        pool = ConnectionPool.new ActiveRecord::Base.connection_pool.spec
+        pool = ConnectionPool.new(@pool_config)
         pool.disconnect!
         pool.automatic_reconnect = false
 
@@ -494,7 +501,7 @@ module ActiveRecord
         end
         ConnectionTestModel.establish_connection :arunit
 
-        assert_equal [:config, :connection_id, :spec_name], payloads[0].keys.sort
+        assert_equal [:config, :spec_name], payloads[0].keys.sort
         assert_equal "ActiveRecord::ConnectionAdapters::ConnectionPoolTest::ConnectionTestModel", payloads[0][:spec_name]
       ensure
         ActiveSupport::Notifications.unsubscribe(subscription) if subscription
@@ -507,7 +514,6 @@ module ActiveRecord
         pool.schema_cache = schema_cache
 
         pool.with_connection do |conn|
-          assert_not_same pool.schema_cache, conn.schema_cache
           assert_equal pool.schema_cache.size, conn.schema_cache.size
           assert_same pool.schema_cache.columns(:posts), conn.schema_cache.columns(:posts)
         end
@@ -695,11 +701,35 @@ module ActiveRecord
         end
       end
 
+      def test_public_connections_access_threadsafe
+        _conn1 = @pool.checkout
+        conn2 = @pool.checkout
+
+        connections = @pool.connections
+        found_conn = nil
+
+        # Without assuming too much about implementation
+        # details make sure that a concurrent change to
+        # the pool is thread-safe.
+        connections.each_index do |idx|
+          if connections[idx] == conn2
+            Thread.new do
+              @pool.remove(conn2)
+            end.join
+          end
+          found_conn = connections[idx]
+        end
+
+        assert_not_nil found_conn
+      end
+
       private
         def with_single_connection_pool
-          one_conn_spec = ActiveRecord::Base.connection_pool.spec.dup
-          one_conn_spec.config[:pool] = 1 # this is safe to do, because .dupped ConnectionSpecification also auto-dups its config
-          yield(pool = ConnectionPool.new(one_conn_spec))
+          config = @db_config.configuration_hash.merge(pool: 1)
+          db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("arunit", "primary", config)
+          pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new("primary", db_config)
+
+          yield(pool = ConnectionPool.new(pool_config))
         ensure
           pool.disconnect! if pool
         end

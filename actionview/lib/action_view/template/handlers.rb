@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/deprecation"
-
 module ActionView #:nodoc:
   # = Action View Template Handlers
   class Template #:nodoc:
@@ -45,12 +43,12 @@ module ActionView #:nodoc:
 
         unless params.find_all { |type, _| type == :req || type == :opt }.length >= 2
           ActiveSupport::Deprecation.warn <<~eowarn
-          Single arity template handlers are deprecated.  Template handlers must
+          Single arity template handlers are deprecated. Template handlers must
           now accept two parameters, the view object and the source for the view object.
           Change:
-            >> #{handler.class}#call(#{params.map(&:last).join(", ")})
+            >> #{handler}.call(#{params.map(&:last).join(", ")})
           To:
-            >> #{handler.class}#call(#{params.map(&:last).join(", ")}, source)
+            >> #{handler}.call(#{params.map(&:last).join(", ")}, source)
           eowarn
           handler = LegacyHandlerWrapper.new(handler)
         end

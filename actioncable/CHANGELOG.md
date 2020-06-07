@@ -1,149 +1,38 @@
-## Rails 6.0.0.beta2 (February 25, 2019) ##
+*   `ActionCable::Connection::Base` now allows intercepting unhandled exceptions
+    with `rescue_from` before they are logged, which is useful for error reporting
+    tools and other integrations.
 
-*   PostgreSQL subscription adapters now support `channel_prefix` option in cable.yml
+    *Justin Talbott*
 
-    Avoids channel name collisions when multiple apps use the same database for Action Cable.
+*   Add `ActionCable::Channel#stream_or_reject_for` to stream if record is present, otherwise reject the connection
 
-    *Vladimir Dementyev*
+    *Atul Bhosale*
 
-*   Allow passing custom configuration to `ActionCable::Server::Base`.
+*   Add `ActionCable::Channel#stop_stream_from` and `#stop_stream_for` to unsubscribe from a specific stream.
 
-    You can now create a standalone Action Cable server with a custom configuration
-    (e.g. to run it in isolation from the default one):
+    *Zhang Kang*
 
-    ```ruby
-    config = ActionCable::Server::Configuration.new
-    config.cable = { adapter: "redis", channel_prefix: "custom_" }
+*   Add PostgreSQL subscription connection identificator.
 
-    CUSTOM_CABLE = ActionCable::Server::Base.new(config: config)
+    Now you can distinguish Action Cable PostgreSQL subscription connections among others.
+    Also, you can set custom `id` in `cable.yml` configuration.
+
+    ```sql
+    SELECT application_name FROM pg_stat_activity;
+    /*
+        application_name
+    ------------------------
+    psql
+    ActionCable-PID-42
+    (2 rows)
+    */
     ```
 
-    Then you can mount it in the `routes.rb` file:
+    *Sergey Ponomarev*
 
-    ```ruby
-    Rails.application.routes.draw do
-      mount CUSTOM_CABLE => "/custom_cable"
-      # ...
-    end
-    ```
+*   Subscription confirmations and rejections are now logged at the `DEBUG` level instead of `INFO`.
 
-    *Vladimir Dementyev*
-
-*   Add `:action_cable_connection` and `:action_cable_channel` load hooks.
-
-    You can use them to extend `ActionCable::Connection::Base` and `ActionCable::Channel::Base`
-    functionality:
-
-    ```ruby
-    ActiveSupport.on_load(:action_cable_channel) do
-      # do something in the context of ActionCable::Channel::Base
-    end
-    ```
-
-    *Vladimir Dementyev*
-
-*   Add `Channel::Base#broadcast_to`.
-
-    You can now call `broadcast_to` within a channel action, which equals to
-    the `self.class.broadcast_to`.
-
-    *Vladimir Dementyev*
-
-*   Make `Channel::Base.broadcasting_for` a public API.
-
-    You can use `.broadcasting_for` to generate a unique stream identifier within
-    a channel for the specified target (e.g. Active Record model):
-
-    ```ruby
-    ChatChannel.broadcasting_for(model) # => "chat:<model.to_gid_param>"
-    ```
-
-    *Vladimir Dementyev*
+    *DHH*
 
 
-## Rails 6.0.0.beta1 (January 18, 2019) ##
-
-*   [Rename npm package](https://github.com/rails/rails/pull/34905) from
-    [`actioncable`](https://www.npmjs.com/package/actioncable) to
-    [`@rails/actioncable`](https://www.npmjs.com/package/@rails/actioncable).
-
-    *Javan Makhmali*
-
-*   Merge [`action-cable-testing`](https://github.com/palkan/action-cable-testing) to Rails.
-
-    *Vladimir Dementyev*
-
-*   The JavaScript WebSocket client will no longer try to reconnect
-    when you call `reject_unauthorized_connection` on the connection.
-
-    *Mick Staugaard*
-
-*   `ActionCable.Connection#getState` now references the configurable
-    `ActionCable.adapters.WebSocket` property rather than the `WebSocket` global
-    variable, matching the behavior of `ActionCable.Connection#open`.
-
-    *Richard Macklin*
-
-*   The ActionCable javascript package has been converted from CoffeeScript
-    to ES2015, and we now publish the source code in the npm distribution.
-
-    This allows ActionCable users to depend on the javascript source code
-    rather than the compiled code, which can produce smaller javascript bundles.
-
-    This change includes some breaking changes to optional parts of the
-    ActionCable javascript API:
-
-    - Configuration of the WebSocket adapter and logger adapter have been moved
-      from properties of `ActionCable` to properties of `ActionCable.adapters`.
-      If you are currently configuring these adapters you will need to make
-      these changes when upgrading:
-
-      ```diff
-      -    ActionCable.WebSocket = MyWebSocket
-      +    ActionCable.adapters.WebSocket = MyWebSocket
-      ```
-      ```diff
-      -    ActionCable.logger = myLogger
-      +    ActionCable.adapters.logger = myLogger
-      ```
-
-    - The `ActionCable.startDebugging()` and `ActionCable.stopDebugging()`
-      methods have been removed and replaced with the property
-      `ActionCable.logger.enabled`. If you are currently using these methods you
-      will need to make these changes when upgrading:
-
-      ```diff
-      -    ActionCable.startDebugging()
-      +    ActionCable.logger.enabled = true
-      ```
-      ```diff
-      -    ActionCable.stopDebugging()
-      +    ActionCable.logger.enabled = false
-      ```
-
-    *Richard Macklin*
-
-*   Add `id` option to redis adapter so now you can distinguish
-    ActionCable's redis connections among others. Also, you can set
-    custom id in options.
-
-    Before:
-    ```
-    $ redis-cli client list
-    id=669 addr=127.0.0.1:46442 fd=8 name= age=18 ...
-    ```
-
-    After:
-    ```
-    $ redis-cli client list
-    id=673 addr=127.0.0.1:46516 fd=8 name=ActionCable-PID-19413 age=2 ...
-    ```
-
-    *Ilia Kasianenko*
-
-*   Rails 6 requires Ruby 2.5.0 or newer.
-
-    *Jeremy Daer*, *Kasper Timm Hansen*
-
-
-Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/actioncable/CHANGELOG.md) for previous changes.
+Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/actioncable/CHANGELOG.md) for previous changes.

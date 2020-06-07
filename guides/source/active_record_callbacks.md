@@ -117,6 +117,8 @@ Here is a list with all the available Active Record callbacks, listed in the sam
 
 WARNING. `after_save` runs both on create and update, but always _after_ the more specific callbacks `after_create` and `after_update`, no matter the order in which the macro calls were executed.
 
+WARNING. Avoid updating or saving attributes in callbacks. For example, don't call `update(attribute: "value")` within a callback. This can alter the state of the model and may result in unexpected side effects during commit. Instead, you can safely assign values directly (for example, `self.attribute = "value"`) in `before_create` / `before_update` or earlier callbacks.
+
 NOTE: `before_destroy` callbacks should be placed before `dependent: :destroy`
 associations (or use the `prepend: true` option), to ensure they execute before
 the records are deleted by `dependent: :destroy`.
@@ -354,7 +356,7 @@ The callback only runs when all the `:if` conditions and none of the `:unless` c
 Callback Classes
 ----------------
 
-Sometimes the callback methods that you'll write will be useful enough to be reused by other models. Active Record makes it possible to create classes that encapsulate the callback methods, so it becomes very easy to reuse them.
+Sometimes the callback methods that you'll write will be useful enough to be reused by other models. Active Record makes it possible to create classes that encapsulate the callback methods, so they can be reused.
 
 Here's an example where we create a class with an `after_destroy` callback for a `PictureFile` model:
 
@@ -429,7 +431,7 @@ end
 NOTE: The `:on` option specifies when a callback will be fired. If you
 don't supply the `:on` option the callback will fire for every action.
 
-Since using `after_commit` callback only on create, update, or delete is
+Since using the `after_commit` callback only on create, update, or delete is
 common, there are aliases for those operations:
 
 * `after_create_commit`
@@ -473,10 +475,25 @@ end
 => User was saved to database
 ```
 
-To register callbacks for both create and update actions, use `after_commit` instead.
+There is also an alias for using the `after_commit` callback for both create and update together:
+
+* `after_save_commit`
 
 ```ruby
 class User < ApplicationRecord
-  after_commit :log_user_saved_to_db, on: [:create, :update]
+  after_save_commit :log_user_saved_to_db
+
+  private
+  def log_user_saved_to_db
+    puts 'User was saved to database'
+  end
 end
+
+# creating a User
+>> @user = User.create
+=> User was saved to database
+
+# updating @user
+>> @user.save
+=> User was saved to database
 ```

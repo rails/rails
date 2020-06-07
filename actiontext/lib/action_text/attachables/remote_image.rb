@@ -14,7 +14,7 @@ module ActionText
 
         private
           def content_type_is_image?(content_type)
-            content_type.to_s =~ /^image(\/.+|$)/
+            content_type.to_s.match?(/^image(\/.+|$)/)
           end
 
           def attributes_from_node(node)

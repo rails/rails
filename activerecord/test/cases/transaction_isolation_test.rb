@@ -2,7 +2,7 @@
 
 require "cases/helper"
 
-unless ActiveRecord::Base.connection.supports_transaction_isolation?
+unless ActiveRecord::Base.connection.supports_transaction_isolation? && !current_adapter?(:SQLite3Adapter)
   class TransactionIsolationUnsupportedTest < ActiveRecord::TestCase
     self.use_transactional_tests = false
 

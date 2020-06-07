@@ -136,7 +136,7 @@ module ActiveRecord
       def test_remove_column_with_multi_column_index
         # MariaDB starting with 10.2.8
         # Dropping a column that is part of a multi-column UNIQUE constraint is not permitted.
-        skip if current_adapter?(:Mysql2Adapter) && connection.mariadb? && connection.version >= "10.2.8"
+        skip if current_adapter?(:Mysql2Adapter) && connection.mariadb? && connection.database_version >= "10.2.8"
 
         add_column "test_models", :hat_size, :integer
         add_column "test_models", :hat_style, :string, limit: 100
@@ -254,7 +254,7 @@ module ActiveRecord
 
       def test_change_column_with_long_index_name
         table_name_prefix = "test_models_"
-        long_index_name = table_name_prefix + ("x" * (connection.allowed_index_name_length - table_name_prefix.length))
+        long_index_name = table_name_prefix + ("x" * (connection.index_name_length - table_name_prefix.length))
         add_column "test_models", "category", :string
         add_index :test_models, :category, name: long_index_name
 

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/inflections"
+require "active_support/core_ext/object/blank"
 
 module ActiveSupport
   # The Inflector transforms words from singular to plural, class names to table
@@ -132,7 +133,7 @@ module ActiveSupport
 
       result.sub!(/\A_+/, "")
       unless keep_id_suffix
-        result.sub!(/_id\z/, "")
+        result.delete_suffix!("_id")
       end
       result.tr!("_", " ")
 
@@ -172,7 +173,7 @@ module ActiveSupport
     #   titleize('raiders_of_the_lost_ark')                      # => "Raiders Of The Lost Ark"
     #   titleize('string_ending_with_id', keep_id_suffix: true)  # => "String Ending With Id"
     def titleize(word, keep_id_suffix: false)
-      humanize(underscore(word), keep_id_suffix: keep_id_suffix).gsub(/\b(?<!\w['’`])[a-z]/) do |match|
+      humanize(underscore(word), keep_id_suffix: keep_id_suffix).gsub(/\b(?<!\w['’`()])[a-z]/) do |match|
         match.capitalize
       end
     end
@@ -196,7 +197,7 @@ module ActiveSupport
     #
     # Singular names are not handled correctly:
     #
-    #   classify('calculus')     # => "Calculus"
+    #   classify('calculus')     # => "Calculu"
     def classify(table_name)
       # strip out any leading schema name
       camelize(singularize(table_name.to_s.sub(/.*\./, "")))
@@ -269,32 +270,36 @@ module ActiveSupport
     # NameError is raised when the name is not in CamelCase or the constant is
     # unknown.
     def constantize(camel_cased_word)
-      names = camel_cased_word.split("::")
+      if camel_cased_word.blank? || !camel_cased_word.include?("::")
+        Object.const_get(camel_cased_word)
+      else
+        names = camel_cased_word.split("::")
 
-      # Trigger a built-in NameError exception including the ill-formed constant in the message.
-      Object.const_get(camel_cased_word) if names.empty?
+        # Trigger a built-in NameError exception including the ill-formed constant in the message.
+        Object.const_get(camel_cased_word) if names.empty?
 
-      # Remove the first blank element in case of '::ClassName' notation.
-      names.shift if names.size > 1 && names.first.empty?
+        # Remove the first blank element in case of '::ClassName' notation.
+        names.shift if names.size > 1 && names.first.empty?
 
-      names.inject(Object) do |constant, name|
-        if constant == Object
-          constant.const_get(name)
-        else
-          candidate = constant.const_get(name)
-          next candidate if constant.const_defined?(name, false)
-          next candidate unless Object.const_defined?(name)
+        names.inject(Object) do |constant, name|
+          if constant == Object
+            constant.const_get(name)
+          else
+            candidate = constant.const_get(name)
+            next candidate if constant.const_defined?(name, false)
+            next candidate unless Object.const_defined?(name)
 
-          # Go down the ancestors to check if it is owned directly. The check
-          # stops when we reach Object or the end of ancestors tree.
-          constant = constant.ancestors.inject(constant) do |const, ancestor|
-            break const    if ancestor == Object
-            break ancestor if ancestor.const_defined?(name, false)
-            const
+            # Go down the ancestors to check if it is owned directly. The check
+            # stops when we reach Object or the end of ancestors tree.
+            constant = constant.ancestors.inject(constant) do |const, ancestor|
+              break const    if ancestor == Object
+              break ancestor if ancestor.const_defined?(name, false)
+              const
+            end
+
+            # owner is in Object, so raise
+            constant.const_get(name, false)
           end
-
-          # owner is in Object, so raise
-          constant.const_get(name, false)
         end
       end
     end
@@ -359,7 +364,6 @@ module ActiveSupport
     end
 
     private
-
       # Mounts a regular expression, returned as a string to ease interpolation,
       # that will match part by part the given constant.
       #
@@ -372,7 +376,7 @@ module ActiveSupport
 
         last = parts.pop
 
-        parts.reverse.inject(last) do |acc, part|
+        parts.reverse!.inject(last) do |acc, part|
           part.empty? ? acc : "#{part}(::#{acc})?"
         end
       end

@@ -3,11 +3,11 @@ class <%= migration_class_name %> < ActiveRecord::Migration[<%= ActiveRecord::Mi
   def change
 <% attributes.each do |attribute| -%>
   <%- if attribute.reference? -%>
-    add_reference :<%= table_name %>, :<%= attribute.name %><%= attribute.inject_options %>
+    add_reference :<%= table_name %>, :<%= attribute.name %><%= attribute.inject_options %><%= foreign_key_type %>
   <%- elsif attribute.token? -%>
     add_column :<%= table_name %>, :<%= attribute.name %>, :string<%= attribute.inject_options %>
     add_index :<%= table_name %>, :<%= attribute.index_name %><%= attribute.inject_index_options %>, unique: true
-  <%- else -%>
+  <%- elsif !attribute.virtual? -%>
     add_column :<%= table_name %>, :<%= attribute.name %>, :<%= attribute.type %><%= attribute.inject_options %>
     <%- if attribute.has_index? -%>
     add_index :<%= table_name %>, :<%= attribute.index_name %><%= attribute.inject_index_options %>
@@ -20,8 +20,8 @@ class <%= migration_class_name %> < ActiveRecord::Migration[<%= ActiveRecord::Mi
     create_join_table :<%= join_tables.first %>, :<%= join_tables.second %> do |t|
     <%- attributes.each do |attribute| -%>
       <%- if attribute.reference? -%>
-      t.references :<%= attribute.name %><%= attribute.inject_options %>
-      <%- else -%>
+      t.references :<%= attribute.name %><%= attribute.inject_options %><%= foreign_key_type %>
+      <%- elsif !attribute.virtual? -%>
       <%= '# ' unless attribute.has_index? -%>t.index <%= attribute.index_name %><%= attribute.inject_index_options %>
       <%- end -%>
     <%- end -%>
@@ -32,12 +32,14 @@ class <%= migration_class_name %> < ActiveRecord::Migration[<%= ActiveRecord::Mi
 <% attributes.each do |attribute| -%>
 <%- if migration_action -%>
   <%- if attribute.reference? -%>
-    remove_reference :<%= table_name %>, :<%= attribute.name %><%= attribute.inject_options %>
+    remove_reference :<%= table_name %>, :<%= attribute.name %><%= attribute.inject_options %><%= foreign_key_type %>
   <%- else -%>
     <%- if attribute.has_index? -%>
     remove_index :<%= table_name %>, :<%= attribute.index_name %><%= attribute.inject_index_options %>
     <%- end -%>
+    <%- if !attribute.virtual? -%>
     remove_column :<%= table_name %>, :<%= attribute.name %>, :<%= attribute.type %><%= attribute.inject_options %>
+    <%- end -%>
   <%- end -%>
 <%- end -%>
 <%- end -%>

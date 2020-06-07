@@ -368,7 +368,7 @@ class TextHelperTest < ActionView::TestCase
   def test_word_wrap_does_not_modify_the_options_hash
     options = { line_width: 15 }
     passed_options = options.dup
-    word_wrap("some text", passed_options)
+    word_wrap("some text", **passed_options)
     assert_equal options, passed_options
   end
 

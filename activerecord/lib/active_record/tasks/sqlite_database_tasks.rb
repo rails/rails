@@ -5,20 +5,25 @@ module ActiveRecord
     class SQLiteDatabaseTasks # :nodoc:
       delegate :connection, :establish_connection, to: ActiveRecord::Base
 
-      def initialize(configuration, root = ActiveRecord::Tasks::DatabaseTasks.root)
-        @configuration, @root = configuration, root
+      def self.using_database_configurations?
+        true
+      end
+
+      def initialize(db_config, root = ActiveRecord::Tasks::DatabaseTasks.root)
+        @db_config = db_config
+        @root = root
       end
 
       def create
-        raise DatabaseAlreadyExists if File.exist?(configuration["database"])
+        raise DatabaseAlreadyExists if File.exist?(db_config.database)
 
-        establish_connection configuration
+        establish_connection(db_config)
         connection
       end
 
       def drop
         require "pathname"
-        path = Pathname.new configuration["database"]
+        path = Pathname.new(db_config.database)
         file = path.absolute? ? path.to_s : File.join(root, path)
 
         FileUtils.rm(file)
@@ -33,16 +38,6 @@ module ActiveRecord
         create
       end
 
-      def truncate_tables(*table_names)
-        return if table_names.empty?
-
-        ActiveRecord::Base.connection.disable_referential_integrity do
-          table_names.each do |table_name|
-            ActiveRecord::Base.connection.truncate(table_name)
-          end
-        end
-      end
-
       def charset
         connection.encoding
       end
@@ -50,7 +45,7 @@ module ActiveRecord
       def structure_dump(filename, extra_flags)
         args = []
         args.concat(Array(extra_flags)) if extra_flags
-        args << configuration["database"]
+        args << db_config.database
 
         ignore_tables = ActiveRecord::SchemaDumper.ignore_tables
         if ignore_tables.any?
@@ -63,14 +58,12 @@ module ActiveRecord
       end
 
       def structure_load(filename, extra_flags)
-        dbfile = configuration["database"]
         flags = extra_flags.join(" ") if extra_flags
-        `sqlite3 #{flags} #{dbfile} < "#{filename}"`
+        `sqlite3 #{flags} #{db_config.database} < "#{filename}"`
       end
 
       private
-
-        attr_reader :configuration, :root
+        attr_reader :db_config, :root
 
         def run_cmd(cmd, args, out)
           fail run_cmd_error(cmd, args) unless Kernel.system(cmd, *args, out: out)

@@ -85,7 +85,7 @@ module ActionController
     # * <tt>:fallback_location</tt> - The default fallback location that will be used on missing +Referer+ header.
     # * <tt>:allow_other_host</tt> - Allow or disallow redirection to the host that is different to the current host, defaults to true.
     #
-    # All other options that can be passed to <tt>redirect_to</tt> are accepted as
+    # All other options that can be passed to #redirect_to are accepted as
     # options and the behavior is identical.
     def redirect_back(fallback_location:, allow_other_host: true, **args)
       referer = request.headers["Referer"]

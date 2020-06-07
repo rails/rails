@@ -6,19 +6,14 @@ module ActionView
   class Digestor
     @@digest_mutex = Mutex.new
 
-    module PerExecutionDigestCacheExpiry
-      def self.before(target)
-        ActionView::LookupContext::DetailsKey.clear
-      end
-    end
-
     class << self
       # Supported options:
       #
-      # * <tt>name</tt>   - Template name
-      # * <tt>finder</tt>  - An instance of <tt>ActionView::LookupContext</tt>
-      # * <tt>dependencies</tt>  - An array of dependent views
-      def digest(name:, format:, finder:, dependencies: nil)
+      # * <tt>name</tt>         - Template name
+      # * <tt>format</tt>       - Template format
+      # * <tt>finder</tt>       - An instance of <tt>ActionView::LookupContext</tt>
+      # * <tt>dependencies</tt> - An array of dependent views
+      def digest(name:, format: nil, finder:, dependencies: nil)
         if dependencies.nil? || dependencies.empty?
           cache_key = "#{name}.#{format}"
         else
@@ -46,8 +41,9 @@ module ActionView
       # Create a dependency tree for template named +name+.
       def tree(name, finder, partial = false, seen = {})
         logical_name = name.gsub(%r|/_|, "/")
+        interpolated = name.include?("#")
 
-        if template = find_template(finder, logical_name, [], partial, [])
+        if !interpolated && (template = find_template(finder, logical_name, [], partial, []))
           if node = seen[template.identifier] # handle cycles in the tree
             node
           else
@@ -60,7 +56,7 @@ module ActionView
             node
           end
         else
-          unless name.include?("#") # Dynamic template partial names can never be tracked
+          unless interpolated # Dynamic template partial names can never be tracked
             logger.error "  Couldn't find template for digesting: #{name}"
           end
 
