@@ -32,7 +32,7 @@ module Rails
 
         ensure_encryption_key_has_been_added if credentials.key.nil?
         ensure_credentials_have_been_added
-        ensure_rails_credentials_driver_is_set
+        ensure_diffing_driver_is_configured
 
         catch_editing_exceptions do
           change_credentials_in_system_editor

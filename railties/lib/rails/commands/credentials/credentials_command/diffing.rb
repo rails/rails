@@ -2,7 +2,7 @@
 
 module Rails::Command::CredentialsCommand::Diffing # :nodoc:
   def enroll_project_in_credentials_diffing
-    if enrolled?
+    if enrolled_in_credentials_diffing?
       true
     else
       gitattributes.write(<<~end_of_template, mode: "a")
@@ -15,23 +15,22 @@ module Rails::Command::CredentialsCommand::Diffing # :nodoc:
     end
   end
 
-  def ensure_rails_credentials_driver_is_set
-    set_driver if enrolled? && !driver_configured?
+  def ensure_diffing_driver_is_configured
+    configure_diffing_driver if enrolled_in_credentials_diffing? && !diffing_driver_configured?
   end
 
   private
-    def enrolled?
+    def enrolled_in_credentials_diffing?
       gitattributes.read.match?(/config\/credentials(\/\*)?\.yml\.enc diff=rails_credentials/)
     rescue Errno::ENOENT
       false
     end
 
-    def driver_configured?
+    def diffing_driver_configured?
       system "git config --get diff.rails_credentials.textconv", out: File::NULL
     end
 
-    def set_driver
-      puts "running"
+    def configure_diffing_driver
       system "git config diff.rails_credentials.textconv 'bin/rails credentials:diff'"
     end
 
