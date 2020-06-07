@@ -7,7 +7,6 @@ module ActiveRecord
       @handlers = []
 
       register_handler(BasicObject, BasicObjectHandler.new(self))
-      register_handler(Base, BaseHandler.new(self))
       register_handler(Range, RangeHandler.new(self))
       register_handler(Relation, RelationHandler.new)
       register_handler(Array, ArrayHandler.new(self))
@@ -48,6 +47,7 @@ module ActiveRecord
     end
 
     def build(attribute, value)
+      value = value.id if value.is_a?(Base)
       if table.type(attribute.name).force_equality?(value)
         bind = build_bind_attribute(attribute.name, value)
         attribute.eq(bind)
@@ -158,7 +158,6 @@ module ActiveRecord
 end
 
 require "active_record/relation/predicate_builder/array_handler"
-require "active_record/relation/predicate_builder/base_handler"
 require "active_record/relation/predicate_builder/basic_object_handler"
 require "active_record/relation/predicate_builder/range_handler"
 require "active_record/relation/predicate_builder/relation_handler"
