@@ -120,7 +120,7 @@ amazon:
   bucket: ""
 ```
 
-Optionally provide a Hash of upload options:
+Optionally provide client and upload options:
 
 ```yaml
 amazon:
@@ -129,9 +129,13 @@ amazon:
   secret_access_key: ""
   region: ""
   bucket: ""
+  http_open_timeout: 0
+  http_read_timeout: 0
+  retry_limit: 0
   upload: 
     server_side_encryption: "" # 'aws:kms' or 'AES256'
 ```
+TIP: Set sensible client HTTP timeouts and retry limits for your application. In certain failure scenarios, the default AWS client configuration may cause connections to be held for up to several minutes and lead to request queuing.
 
 Add the [`aws-sdk-s3`](https://github.com/aws/aws-sdk-ruby) gem to your `Gemfile`:
 
