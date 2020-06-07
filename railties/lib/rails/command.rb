@@ -86,8 +86,10 @@ module Rails
         end
       end
 
-      def print_commands # :nodoc:
-        commands.each { |command| puts("  #{command}") }
+      def printing_commands # :nodoc:
+        lookup!
+
+        (subclasses - hidden_commands).flat_map(&:printing_commands)
       end
 
       private
