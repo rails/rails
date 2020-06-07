@@ -9,7 +9,7 @@ module Rails
 
       class << self
         def printing_commands
-          formatted_rake_tasks.map(&:first)
+          formatted_rake_tasks
         end
 
         def perform(task, args, config)

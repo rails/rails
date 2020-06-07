@@ -88,22 +88,13 @@ module Rails
         end
       end
 
-      def print_commands # :nodoc:
-        commands.each { |command| puts("  #{command}") }
+      def printing_commands # :nodoc:
+        lookup!
+
+        (subclasses - hidden_commands).flat_map(&:printing_commands)
       end
 
       private
-        COMMANDS_IN_USAGE = %w(generate console server test test:system dbconsole new)
-        private_constant :COMMANDS_IN_USAGE
-
-        def commands
-          lookup!
-
-          visible_commands = (subclasses - hidden_commands).flat_map(&:printing_commands)
-
-          (visible_commands - COMMANDS_IN_USAGE).sort
-        end
-
         def command_type # :doc:
           @command_type ||= "command"
         end
