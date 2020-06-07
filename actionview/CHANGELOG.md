@@ -3,7 +3,7 @@
     virtual_path keyword arguments found in CacheHelper as they no longer possess
     any function following 1581cab.
 
-    Fixes #38984
+    Fixes #38984.
 
     *Aaron Lipman*
 
@@ -15,7 +15,8 @@
 
     *fatkodima*
 
-*   Instrument layout rendering in `TemplateRenderer#render_with_layout` as `render_layout.action_view`, and include (when necessary) the layout's virtual path in notification payloads for collection and partial renders.
+*   Instrument layout rendering in `TemplateRenderer#render_with_layout` as `render_layout.action_view`,
+    and include (when necessary) the layout's virtual path in notification payloads for collection and partial renders.
 
     *Zach Kemp*
 

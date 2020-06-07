@@ -7,7 +7,7 @@
     we check for public/some.js.br and serve that file, if present, with
     `Content-Encoding: br` and `Vary: Accept-Encoding` headers.
 
-    *Ryan Edward Hall, Jeremy Daer*
+    *Ryan Edward Hall*, *Jeremy Daer*
 
 *   Add raise_on_missing_translations support for controllers.
 

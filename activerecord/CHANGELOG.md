@@ -2,7 +2,7 @@
 
     ```ruby
     david_and_mary = Author.where(id: [david, mary])
-    mary_and_bob   = Author.where(id: [mary, bob]) # => [bob]
+    mary_and_bob   = Author.where(id: [mary, bob])
 
     david_and_mary.merge(mary_and_bob) # => [mary, bob]
 
