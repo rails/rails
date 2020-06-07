@@ -2528,7 +2528,7 @@ module ActionView
             association.each do |child|
               if explicit_child_index
                 options[:child_index] = explicit_child_index.call if explicit_child_index.respond_to?(:call)
-              else
+              elsif !options.key?(:index)
                 options[:child_index] = nested_child_index(name)
               end
               output << fields_for_nested_model("#{name}[#{options[:child_index]}]", child, options, block)

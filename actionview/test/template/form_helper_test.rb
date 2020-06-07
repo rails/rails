@@ -2783,6 +2783,29 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_nested_fields_for_with_existing_records_on_a_nested_attrobutes_collection_association_with_nil_index
+    @post.comments = Array.new(2) { |id| Comment.new(id + 1) }
+
+    form_for(@post) do |f|
+      concat f.text_field(:title)
+      @post.comments.each do |comment|
+        concat f.fields_for(:comments, comment, index: nil) { |cf|
+          cf.text_field(:name)
+        }
+      end
+    end
+
+    expected = whole_form("/posts/123", "edit_post_123", "edit_post", method: "patch") do
+      '<input name="post[title]" type="text" id="post_title" value="Hello World" />' \
+      '<input id="post_comments_attributes__name" name="post[comments_attributes][][name]" type="text" value="comment #1" />' \
+      '<input id="post_comments_attributes__id" name="post[comments_attributes][][id]" type="hidden" value="1" />' \
+      '<input id="post_comments_attributes__name" name="post[comments_attributes][][name]" type="text" value="comment #2" />' \
+      '<input id="post_comments_attributes__id" name="post[comments_attributes][][id]" type="hidden" value="2" />'
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_nested_fields_for_with_new_records_on_a_nested_attributes_collection_association
     @post.comments = [Comment.new, Comment.new]
 
