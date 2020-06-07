@@ -1,3 +1,17 @@
+*   Support `relation.and` for intersection as Set theory.
+
+    ```ruby
+    david_and_mary = Author.where(id: [david, mary])
+    mary_and_bob   = Author.where(id: [mary, bob]) # => [bob]
+
+    david_and_mary.merge(mary_and_bob) # => [mary, bob]
+
+    david_and_mary.and(mary_and_bob) # => [mary]
+    david_and_mary.or(mary_and_bob)  # => [david, mary, bob]
+    ```
+
+    *Ryuta Kamizono*
+
 *   Merging conditions on the same column no longer maintain both conditions,
     and will be consistently replaced by the latter condition in Rails 6.2.
     To migrate to Rails 6.2's behavior, use `relation.merge(other, rewhere: true)`.

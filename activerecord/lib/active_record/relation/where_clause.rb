@@ -19,6 +19,10 @@ module ActiveRecord
         WhereClause.new(predicates - other.predicates)
       end
 
+      def |(other)
+        WhereClause.new(predicates | other.predicates)
+      end
+
       def merge(other, rewhere = nil)
         predicates = if rewhere
           except_predicates(other.extract_attributes)
