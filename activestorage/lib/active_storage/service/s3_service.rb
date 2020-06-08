@@ -13,9 +13,12 @@ module ActiveStorage
     attr_reader :multipart_upload_threshold, :upload_options
 
     def initialize(bucket:, upload: {}, public: false, **options)
-      @client = Aws::S3::Resource.new(**options)
-      @bucket = @client.bucket(bucket)
-
+      begin
+        @client = Aws::S3::Resource.new(**options)
+        @bucket = @client.bucket(bucket)
+      rescue ResponseError => error
+        logger.error "Skipping AWS S3 because of #{error}"
+      end
       @multipart_upload_threshold = upload.fetch(:multipart_threshold, 100.megabytes)
       @public = public
 
@@ -60,12 +63,16 @@ module ActiveStorage
     def delete(key)
       instrument :delete, key: key do
         object_for(key).delete
+      rescue ResponseError => error
+        raise error
       end
     end
 
     def delete_prefixed(prefix)
       instrument :delete_prefixed, prefix: prefix do
         bucket.objects(prefix: prefix).batch_delete!
+      rescue ResponseError => error
+        raise error
       end
     end
 
@@ -86,6 +93,8 @@ module ActiveStorage
         payload[:url] = generated_url
 
         generated_url
+      rescue ResponseError => error
+        raise error
       end
     end
 
@@ -122,6 +131,8 @@ module ActiveStorage
         object_for(key).upload_stream(content_type: content_type, content_disposition: content_disposition, part_size: part_size, **upload_options) do |out|
           IO.copy_stream(io, out)
         end
+      rescue ResponseError => error
+        raise error
       end
 
 

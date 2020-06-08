@@ -196,5 +196,10 @@
 
     *George Claghorn*
 
+*   Rails application will continue to work skipping S3 service initialization error.
+
+    When making a request to S3, the service may encounter [errors](https://docs.aws.amazon.com/AmazonS3/latest/API/ErrorResponses.html). Then the AWS::S3 library will raise an exception specific to the error. All exception that are raised as a result of a request returning an error response inherit from the ResponseError exception. During S3 initialization error, we use error information just to log the error and continue on with Rails application. For upload, download, delete operation we redisplay the fatal error.
+
+    *Tahsin Hasan*
 
 Please check [6-0-stable](https://github.com/rails/rails/blob/6-0-stable/activestorage/CHANGELOG.md) for previous changes.
