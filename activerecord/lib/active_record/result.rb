@@ -47,7 +47,7 @@ module ActiveRecord
       @column_types = column_types
     end
 
-    EMPTY = new([], [])
+    EMPTY = new([].freeze, [].freeze, {}.freeze)
     private_constant :EMPTY
 
     # Returns true if this result set includes the column named +name+
