@@ -20,6 +20,7 @@ ruby <%= "'#{RUBY_VERSION}'" -%>
 <% end -%>
 <% end -%>
 
+
 # Optional gems needed by specific Rails features:
 
 # Use bcrypt to encrypt passwords securely. Works with https://guides.rubyonrails.org/active_model_basics.html#securepassword
@@ -35,9 +36,8 @@ ruby <%= "'#{RUBY_VERSION}'" -%>
 # gem 'rack-cors'
 
 <%- end -%>
-# The gems below are used in development, but if they cause problems it's OK to remove them
-
 <% if RUBY_ENGINE == 'ruby' -%>
+# The gems below are used in development, but if they cause problems it's OK to remove them
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug', platforms: [:mri, :mingw, :x64_mingw]
@@ -75,7 +75,6 @@ group :test do
   # Easy installation and use of web drivers to run system tests with browsers
   gem 'webdrivers'
 end
-
 <%- end -%>
 
 <% if depend_on_bootsnap? -%>
