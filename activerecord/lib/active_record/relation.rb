@@ -367,14 +367,12 @@ module ActiveRecord
           arel = query.arel
         end
 
-        result = connection.select_one(arel, nil)
+        size, timestamp = connection.select_rows(arel, nil).first
 
-        if result
+        if size
           column_type = klass.type_for_attribute(timestamp_column)
-          timestamp = column_type.deserialize(result["timestamp"])
-          size = result["size"]
+          timestamp = column_type.deserialize(timestamp)
         else
-          timestamp = nil
           size = 0
         end
       end

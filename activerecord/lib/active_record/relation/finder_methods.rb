@@ -316,7 +316,7 @@ module ActiveRecord
 
       relation = construct_relation_for_exists(conditions)
 
-      skip_query_cache_if_necessary { connection.select_one(relation.arel, "#{name} Exists?") } ? true : false
+      skip_query_cache_if_necessary { connection.select_rows(relation.arel, "#{name} Exists?").size == 1 }
     end
 
     # This method is called whenever no records are found with either a single
@@ -416,8 +416,8 @@ module ActiveRecord
 
         relation = relation.except(:select).select(values).distinct!
 
-        id_rows = skip_query_cache_if_necessary { @klass.connection.select_all(relation.arel, "SQL") }
-        id_rows.map { |row| row[primary_key] }
+        id_rows = skip_query_cache_if_necessary { @klass.connection.select_rows(relation.arel, "SQL") }
+        id_rows.map(&:last)
       end
 
       def using_limitable_reflections?(reflections)
