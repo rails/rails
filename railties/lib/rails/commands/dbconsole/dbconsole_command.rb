@@ -102,7 +102,7 @@ module Rails
       # first time around to show a consistent error message to people
       # relying on 2-level database configuration.
 
-      @db_config = configurations.configs_for(env_name: environment, spec_name: database)
+      @db_config = configurations.configs_for(env_name: environment, name: database)
 
       unless @db_config
         raise ActiveRecord::AdapterNotSpecified,

@@ -23,6 +23,12 @@ module ActiveRecord
     # should not be dumped to db/schema.rb.
     cattr_accessor :fk_ignore_pattern, default: /^fk_rails_[0-9a-f]{10}$/
 
+    ##
+    # :singleton-method:
+    # Specify a custom regular expression matching check constraints which name
+    # should not be dumped to db/schema.rb.
+    cattr_accessor :chk_ignore_pattern, default: /^chk_rails_[0-9a-f]{10}$/
+
     class << self
       def dump(connection = ActiveRecord::Base.connection, stream = STDOUT, config = ActiveRecord::Base)
         connection.create_schema_dumper(generate_options(config)).dump(stream)
@@ -125,7 +131,10 @@ HEADER
             tbl.print ", primary_key: #{pk.inspect}" unless pk == "id"
             pkcol = columns.detect { |c| c.name == pk }
             pkcolspec = column_spec_for_primary_key(pkcol)
-            if pkcolspec.present?
+            unless pkcolspec.empty?
+              if pkcolspec != pkcolspec.slice(:id, :default)
+                pkcolspec = { id: { type: pkcolspec.delete(:id), **pkcolspec }.compact }
+              end
               tbl.print ", #{format_colspec(pkcolspec)}"
             end
           when Array
@@ -156,6 +165,7 @@ HEADER
           end
 
           indexes_in_create(table, tbl)
+          check_constraints_in_create(table, tbl) if @connection.supports_check_constraints?
 
           tbl.puts "  end"
           tbl.puts
@@ -209,6 +219,24 @@ HEADER
         index_parts
       end
 
+      def check_constraints_in_create(table, stream)
+        if (check_constraints = @connection.check_constraints(table)).any?
+          add_check_constraint_statements = check_constraints.map do |check_constraint|
+            parts = [
+              "t.check_constraint #{check_constraint.expression.inspect}"
+            ]
+
+            if check_constraint.export_name_on_schema_dump?
+              parts << "name: #{check_constraint.name.inspect}"
+            end
+
+            "    #{parts.join(', ')}"
+          end
+
+          stream.puts add_check_constraint_statements.sort.join("\n")
+        end
+      end
+
       def foreign_keys(table, stream)
         if (foreign_keys = @connection.foreign_keys(table)).any?
           add_foreign_key_statements = foreign_keys.map do |foreign_key|
@@ -240,7 +268,9 @@ HEADER
       end
 
       def format_colspec(colspec)
-        colspec.map { |key, value| "#{key}: #{value}" }.join(", ")
+        colspec.map do |key, value|
+          "#{key}: #{ value.is_a?(Hash) ? "{ #{format_colspec(value)} }" : value }"
+        end.join(", ")
       end
 
       def format_options(options)

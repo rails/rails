@@ -70,7 +70,7 @@ module ActiveRecord
           end
         end
 
-        def remove_column(table_name, column_name, type = nil, options = {})
+        def remove_column(table_name, column_name, type = nil, **options)
           if foreign_key_exists?(table_name, column: column_name)
             remove_foreign_key(table_name, column: column_name)
           end
@@ -154,8 +154,8 @@ module ActiveRecord
             MySQL::SchemaCreation.new(self)
           end
 
-          def create_table_definition(*args, **options)
-            MySQL::TableDefinition.new(self, *args, **options)
+          def create_table_definition(name, **options)
+            MySQL::TableDefinition.new(self, name, **options)
           end
 
           def new_column_from_field(table_name, field)

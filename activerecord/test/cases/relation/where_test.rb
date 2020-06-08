@@ -20,16 +20,27 @@ module ActiveRecord
   class WhereTest < ActiveRecord::TestCase
     fixtures :posts, :comments, :edges, :authors, :author_addresses, :binaries, :essays, :cars, :treasures, :price_estimates, :topics
 
-    def test_in_clause_is_correctly_sliced
-      assert_called(Author.connection, :in_clause_length, returns: 1) do
-        david = authors(:david)
-        assert_equal [david], Author.where(name: "David", id: [1, 2])
-      end
-    end
-
     def test_type_casting_nested_joins
       comment = comments(:eager_other_comment1)
       assert_equal [comment], Comment.joins(post: :author).where(authors: { id: "2-foo" })
+    end
+
+    def test_where_with_through_association
+      assert_equal [authors(:david)], Author.joins(:comments).where(comments: comments(:greetings))
+    end
+
+    def test_type_cast_is_not_evaluated_at_relation_build_time
+      posts = nil
+
+      assert_not_called_on_instance_of(Type::Value, :cast) do
+        posts = Post.where(id: "1-foo")
+      end
+      assert_equal [posts(:welcome)], posts.to_a
+
+      assert_not_called_on_instance_of(Type::Value, :cast) do
+        posts = Post.where(id: ["1-foo", "bar"])
+      end
+      assert_equal [posts(:welcome)], posts.to_a
     end
 
     def test_where_copies_bind_params
@@ -167,7 +178,7 @@ module ActiveRecord
 
       message = <<~MSG.squish
         NOT conditions will no longer behave as NOR in Rails 6.1.
-        To continue using NOR conditions, NOT each conditions manually
+        To continue using NOR conditions, NOT each condition individually
         (`.where.not(:estimate_of_type => ...).where.not(:estimate_of_id => ...)`).
       MSG
       actual = assert_deprecated(message) do
@@ -188,7 +199,7 @@ module ActiveRecord
 
       message = <<~MSG.squish
         NOT conditions will no longer behave as NOR in Rails 6.1.
-        To continue using NOR conditions, NOT each conditions manually
+        To continue using NOR conditions, NOT each condition individually
         (`.where.not(:price_estimates => { :price => ... }).where.not(:price_estimates => { :currency => ... })`).
       MSG
       assert_deprecated(message) do
@@ -357,6 +368,12 @@ module ActiveRecord
     def test_where_with_integer_for_binary_column
       count = Binary.where(data: 0).count
       assert_equal 0, count
+    end
+
+    def test_where_with_emoji_for_binary_column
+      Binary.create!(data: "🥦")
+      assert Binary.where(data: ["🥦", "🍦"]).to_sql.include?("f09fa5a6")
+      assert Binary.where(data: ["🥦", "🍦"]).to_sql.include?("f09f8da6")
     end
 
     def test_where_on_association_with_custom_primary_key

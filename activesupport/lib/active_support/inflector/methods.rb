@@ -133,7 +133,7 @@ module ActiveSupport
 
       result.sub!(/\A_+/, "")
       unless keep_id_suffix
-        result.sub!(/_id\z/, "")
+        result.delete_suffix!("_id")
       end
       result.tr!("_", " ")
 
@@ -197,7 +197,7 @@ module ActiveSupport
     #
     # Singular names are not handled correctly:
     #
-    #   classify('calculus')     # => "Calculus"
+    #   classify('calculus')     # => "Calculu"
     def classify(table_name)
       # strip out any leading schema name
       camelize(singularize(table_name.to_s.sub(/.*\./, "")))

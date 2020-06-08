@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 class ActiveStorage::VariantWithRecord
-  WEB_IMAGE_CONTENT_TYPES = %w[ image/png image/jpeg image/jpg image/gif ]
-
   attr_reader :blob, :variation
 
   def initialize(blob, variation)
@@ -26,9 +24,7 @@ class ActiveStorage::VariantWithRecord
     record&.image
   end
 
-  def url(**options)
-    image&.url(**options)
-  end
+  delegate :key, :url, :download, to: :image, allow_nil: true
 
   alias_method :service_url, :url
   deprecate service_url: :url
@@ -38,7 +34,7 @@ class ActiveStorage::VariantWithRecord
       convert_format = variation.transformations[:convert]
 
       blob.open do |input|
-        if !convert_format && blob.content_type.in?(WEB_IMAGE_CONTENT_TYPES)
+        if !convert_format && blob.content_type.in?(ActiveStorage.web_image_content_types)
           variation.transform(input) do |output|
             yield io: output, filename: blob.filename, content_type: blob.content_type, service_name: blob.service.name
           end

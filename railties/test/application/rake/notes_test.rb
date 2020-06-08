@@ -108,7 +108,7 @@ module ApplicationTests
         app_file "test/some_test.rb", 1000.times.map { "" }.join("\n") << "# TODO: note in test directory"
 
         app_file "lib/tasks/notes_custom.rake", <<-EOS
-          require 'rails/source_annotation_extractor'
+          require "rails/source_annotation_extractor"
           task :notes_custom do
             tags = 'TODO|FIXME'
             opts = { dirs: %w(lib test), tag: true }

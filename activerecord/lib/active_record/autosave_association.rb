@@ -31,7 +31,7 @@ module ActiveRecord
   # Association with autosave option defines several callbacks on your
   # model (before_save, after_create, after_update). Please note that
   # callbacks are executed in the order they were defined in
-  # model. You should avoid modifying the association content, before
+  # model. You should avoid modifying the association content before
   # autosave callbacks are executed. Placing your callbacks after
   # associations is usually a good practice.
   #
@@ -365,9 +365,7 @@ module ActiveRecord
       # Is used as a before_save callback to check while saving a collection
       # association whether or not the parent was a new record before saving.
       def before_save_collection_association
-        unless defined?(@new_record_before_save)
-          @new_record_before_save = new_record?
-        end
+        @new_record_before_save ||= new_record?
       end
 
       def after_save_collection_association
@@ -472,7 +470,7 @@ module ActiveRecord
       def association_foreign_key_changed?(reflection, record, key)
         return false if reflection.through_reflection?
 
-        record.has_attribute?(reflection.foreign_key) && record[reflection.foreign_key] != key
+        record._has_attribute?(reflection.foreign_key) && record._read_attribute(reflection.foreign_key) != key
       end
 
       # Saves the associated record if it's new or <tt>:autosave</tt> is enabled.

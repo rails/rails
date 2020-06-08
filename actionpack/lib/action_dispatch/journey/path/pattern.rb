@@ -41,14 +41,14 @@ module ActionDispatch
         end
 
         def ast
-          @spec.find_all(&:symbol?).each do |node|
-            re = @requirements[node.to_sym]
-            node.regexp = re if re
-          end
-
-          @spec.find_all(&:star?).each do |node|
-            node = node.left
-            node.regexp = @requirements[node.to_sym] || /(.+)/
+          @spec.each do |node|
+            if node.symbol?
+              re = @requirements[node.to_sym]
+              node.regexp = re if re
+            elsif node.star?
+              node = node.left
+              node.regexp = @requirements[node.to_sym] || /(.+)/
+            end
           end
 
           @spec
@@ -178,8 +178,8 @@ module ActionDispatch
         end
 
         def requirements_for_missing_keys_check
-          @requirements_for_missing_keys_check ||= requirements.each_with_object({}) do |(key, regex), hash|
-            hash[key] = /\A#{regex}\Z/
+          @requirements_for_missing_keys_check ||= requirements.transform_values do |regex|
+            /\A#{regex}\Z/
           end
         end
 

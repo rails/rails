@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/enumerable"
+
 module ActiveRecord
   class InsertAll # :nodoc:
     attr_reader :model, :connection, :inserts, :keys
@@ -8,8 +10,14 @@ module ActiveRecord
     def initialize(model, inserts, on_duplicate:, returning: nil, unique_by: nil)
       raise ArgumentError, "Empty list of attributes passed" if inserts.blank?
 
-      @model, @connection, @inserts, @keys = model, model.connection, inserts, inserts.first.keys.map(&:to_s).to_set
+      @model, @connection, @inserts, @keys = model, model.connection, inserts, inserts.first.keys.map(&:to_s)
       @on_duplicate, @returning, @unique_by = on_duplicate, returning, unique_by
+
+      if model.scope_attributes?
+        @scope_attributes = model.scope_attributes
+        @keys |= @scope_attributes.keys
+      end
+      @keys = @keys.to_set
 
       @returning = (connection.supports_insert_returning? ? primary_keys : false) if @returning.nil?
       @returning = false if @returning == []
@@ -47,6 +55,8 @@ module ActiveRecord
     def map_key_with_value
       inserts.map do |attributes|
         attributes = attributes.stringify_keys
+        attributes.merge!(scope_attributes) if scope_attributes
+
         verify_attributes(attributes)
 
         keys.map do |key|
@@ -56,6 +66,8 @@ module ActiveRecord
     end
 
     private
+      attr_reader :scope_attributes
+
       def find_unique_index_for(unique_by)
         name_or_columns = unique_by || model.primary_key
         match = Array(name_or_columns).map(&:to_s)
@@ -133,7 +145,7 @@ module ActiveRecord
             connection.with_yaml_fallback(types[key].serialize(value))
           end
 
-          Arel::InsertManager.new.create_values_list(values_list).to_sql
+          connection.visitor.compile(Arel::Nodes::ValuesList.new(values_list))
         end
 
         def returning
@@ -154,8 +166,20 @@ module ActiveRecord
           quote_columns(insert_all.updatable_columns)
         end
 
+        def touch_model_timestamps_unless(&block)
+          model.send(:timestamp_attributes_for_update_in_model).map do |column_name|
+            if touch_timestamp_attribute?(column_name)
+              "#{column_name}=(CASE WHEN (#{updatable_columns.map(&block).join(" AND ")}) THEN #{model.quoted_table_name}.#{column_name} ELSE CURRENT_TIMESTAMP END),"
+            end
+          end.compact.join
+        end
+
         private
           attr_reader :connection, :insert_all
+
+          def touch_timestamp_attribute?(column_name)
+            update_duplicates? && !insert_all.updatable_columns.include?(column_name)
+          end
 
           def columns_list
             format_columns(insert_all.keys)
@@ -167,11 +191,11 @@ module ActiveRecord
             unknown_column = (keys - columns.keys).first
             raise UnknownAttributeError.new(model.new, unknown_column) if unknown_column
 
-            keys.map { |key| [ key, connection.lookup_cast_type_from_column(columns[key]) ] }.to_h
+            keys.index_with { |key| model.type_for_attribute(key) }
           end
 
           def format_columns(columns)
-            quote_columns(columns).join(",")
+            columns.respond_to?(:map) ? quote_columns(columns).join(",") : columns
           end
 
           def quote_columns(columns)

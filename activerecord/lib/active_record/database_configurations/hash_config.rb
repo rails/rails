@@ -12,12 +12,12 @@ module ActiveRecord
     # Becomes:
     #
     #   #<ActiveRecord::DatabaseConfigurations::HashConfig:0x00007fd1acbded10
-    #     @env_name="development", @spec_name="primary", @config={database: "db_name"}>
+    #     @env_name="development", @name="primary", @config={database: "db_name"}>
     #
     # ==== Options
     #
     # * <tt>:env_name</tt> - The Rails environment, i.e. "development".
-    # * <tt>:spec_name</tt> - The specification name. In a standard two-tier
+    # * <tt>:name</tt> - The db config name. In a standard two-tier
     #   database configuration this will default to "primary". In a multiple
     #   database three-tier database configuration this corresponds to the name
     #   used in the second tier, for example "primary_readonly".
@@ -25,18 +25,15 @@ module ActiveRecord
     #   database adapter, name, and other important information for database
     #   connections.
     class HashConfig < DatabaseConfig
-      def initialize(env_name, spec_name, config)
-        super(env_name, spec_name)
-        @config = config.symbolize_keys
+      attr_reader :configuration_hash
+      def initialize(env_name, name, configuration_hash)
+        super(env_name, name)
+        @configuration_hash = configuration_hash.symbolize_keys.freeze
       end
 
       def config
         ActiveSupport::Deprecation.warn("DatabaseConfig#config will be removed in 6.2.0 in favor of DatabaseConfigurations#configuration_hash which returns a hash with symbol keys")
         configuration_hash.stringify_keys
-      end
-
-      def configuration_hash
-        @config.freeze
       end
 
       # Determines whether a database configuration is for a replica / readonly
@@ -62,7 +59,7 @@ module ActiveRecord
       end
 
       def _database=(database) # :nodoc:
-        @config = configuration_hash.dup.merge(database: database).freeze
+        @configuration_hash = configuration_hash.merge(database: database).freeze
       end
 
       def pool
@@ -86,6 +83,13 @@ module ActiveRecord
 
       def adapter
         configuration_hash[:adapter]
+      end
+
+      # The path to the schema cache dump file for a database.
+      # If omitted, the filename will be read from ENV or a
+      # default will be derived.
+      def schema_cache_path
+        configuration_hash[:schema_cache_path]
       end
     end
   end

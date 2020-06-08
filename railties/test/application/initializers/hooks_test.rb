@@ -54,7 +54,7 @@ module ApplicationTests
     test "after_initialize runs after frameworks have been initialized" do
       $activerecord_configuration = nil
       add_to_config <<-RUBY
-        config.after_initialize { $activerecord_configuration = ActiveRecord::Base.configurations.configs_for(env_name: "development", spec_name: "primary") }
+        config.after_initialize { $activerecord_configuration = ActiveRecord::Base.configurations.configs_for(env_name: "development", name: "primary") }
       RUBY
 
       require "#{app_path}/config/environment"

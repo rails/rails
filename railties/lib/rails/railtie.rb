@@ -42,7 +42,7 @@ module Rails
   #   end
   #
   #   # lib/my_gem.rb
-  #   require 'my_gem/railtie' if defined?(Rails::Railtie)
+  #   require "my_gem/railtie" if defined?(Rails::Railtie)
   #
   # == Initializers
   #
@@ -91,7 +91,7 @@ module Rails
   #
   #   class MyRailtie < Rails::Railtie
   #     rake_tasks do
-  #       load 'path/to/my_railtie.tasks'
+  #       load "path/to/my_railtie.tasks"
   #     end
   #   end
   #
@@ -101,7 +101,7 @@ module Rails
   #
   #   class MyRailtie < Rails::Railtie
   #     generators do
-  #       require 'path/to/my_railtie_generator'
+  #       require "path/to/my_railtie_generator"
   #     end
   #   end
   #

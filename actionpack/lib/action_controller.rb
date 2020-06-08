@@ -32,7 +32,6 @@ module ActionController
     autoload :EtagWithFlash
     autoload :FeaturePolicy
     autoload :Flash
-    autoload :ForceSSL
     autoload :Head
     autoload :Helpers
     autoload :HttpAuthentication

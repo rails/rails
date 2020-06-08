@@ -45,10 +45,13 @@ module ActionDispatch
         SERVER_ADDR
         ].freeze
 
+    # TODO: Remove SERVER_ADDR when we remove support to Rack 2.1.
+    # See https://github.com/rack/rack/commit/c173b188d81ee437b588c1e046a1c9f031dea550
     ENV_METHODS.each do |env|
       class_eval <<-METHOD, __FILE__, __LINE__ + 1
+        # frozen_string_literal: true
         def #{env.sub(/^HTTP_/n, '').downcase}  # def accept_charset
-          get_header "#{env}".freeze            #   get_header "HTTP_ACCEPT_CHARSET".freeze
+          get_header "#{env}"                   #   get_header "HTTP_ACCEPT_CHARSET"
         end                                     # end
       METHOD
     end
@@ -331,7 +334,7 @@ module ActionDispatch
     # variable is already set, wrap it in a StringIO.
     def body
       if raw_post = get_header("RAW_POST_DATA")
-        raw_post = raw_post.dup.force_encoding(Encoding::BINARY)
+        raw_post = (+raw_post).force_encoding(Encoding::BINARY)
         StringIO.new(raw_post)
       else
         body_stream

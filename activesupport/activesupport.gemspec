@@ -26,7 +26,7 @@ Gem::Specification.new do |s|
     "bug_tracker_uri"   => "https://github.com/rails/rails/issues",
     "changelog_uri"     => "https://github.com/rails/rails/blob/v#{version}/activesupport/CHANGELOG.md",
     "documentation_uri" => "https://api.rubyonrails.org/v#{version}/",
-    "mailing_list_uri"  => "https://groups.google.com/forum/#!forum/rubyonrails-talk",
+    "mailing_list_uri"  => "https://discuss.rubyonrails.org/c/rubyonrails-talk",
     "source_code_uri"   => "https://github.com/rails/rails/tree/v#{version}/activesupport",
   }
 
@@ -34,8 +34,8 @@ Gem::Specification.new do |s|
   # https://edgeguides.rubyonrails.org/security.html#dependency-management-and-cves
 
   s.add_dependency "i18n",            ">= 1.6", "< 2"
-  s.add_dependency "tzinfo",          "~> 1.1"
-  s.add_dependency "minitest",        "~> 5.1"
+  s.add_dependency "tzinfo",          "~> 2.0"
   s.add_dependency "concurrent-ruby", "~> 1.0", ">= 1.0.2"
-  s.add_dependency "zeitwerk",        "~> 2.2", ">= 2.2.2"
+  s.add_dependency "zeitwerk",        "~> 2.3"
+  s.add_dependency "minitest",        ">= 5.1"
 end

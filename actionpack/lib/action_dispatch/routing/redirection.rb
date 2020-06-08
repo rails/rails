@@ -65,15 +65,15 @@ module ActionDispatch
         end
 
         def escape(params)
-          Hash[params.map { |k, v| [k, Rack::Utils.escape(v)] }]
+          params.transform_values { |v| Rack::Utils.escape(v) }
         end
 
         def escape_fragment(params)
-          Hash[params.map { |k, v| [k, Journey::Router::Utils.escape_fragment(v)] }]
+          params.transform_values { |v| Journey::Router::Utils.escape_fragment(v) }
         end
 
         def escape_path(params)
-          Hash[params.map { |k, v| [k, Journey::Router::Utils.escape_path(v)] }]
+          params.transform_values { |v| Journey::Router::Utils.escape_path(v) }
         end
     end
 

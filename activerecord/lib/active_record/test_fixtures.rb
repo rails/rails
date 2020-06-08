@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/enumerable"
+
 module ActiveRecord
   module TestFixtures
     extend ActiveSupport::Concern
@@ -42,7 +44,7 @@ module ActiveRecord
         if fixture_set_names.first == :all
           raise StandardError, "No fixture path found. Please set `#{self}.fixture_path`." if fixture_path.blank?
           fixture_set_names = Dir[::File.join(fixture_path, "{**,*}/*.{yml}")].uniq
-          fixture_set_names.reject! { |f| f.starts_with?(file_fixture_path.to_s) } if defined?(file_fixture_path) && file_fixture_path
+          fixture_set_names.reject! { |f| f.start_with?(file_fixture_path.to_s) } if defined?(file_fixture_path) && file_fixture_path
           fixture_set_names.map! { |f| f[fixture_path.to_s.size..-5].delete_prefix("/") }
         else
           fixture_set_names = fixture_set_names.flatten.map(&:to_s)
@@ -188,7 +190,7 @@ module ActiveRecord
       # need to share a connection pool so that the reading connection
       # can see data in the open transaction on the writing connection.
       def setup_shared_connection_pool
-        writing_handler = ActiveRecord::Base.connection_handler
+        writing_handler = ActiveRecord::Base.connection_handlers[ActiveRecord::Base.writing_role]
 
         ActiveRecord::Base.connection_handlers.values.each do |handler|
           if handler != writing_handler
@@ -206,8 +208,7 @@ module ActiveRecord
       end
 
       def load_fixtures(config)
-        fixtures = ActiveRecord::FixtureSet.create_fixtures(fixture_path, fixture_table_names, fixture_class_names, config)
-        Hash[fixtures.map { |f| [f.name, f] }]
+        ActiveRecord::FixtureSet.create_fixtures(fixture_path, fixture_table_names, fixture_class_names, config).index_by(&:name)
       end
 
       def instantiate_fixtures

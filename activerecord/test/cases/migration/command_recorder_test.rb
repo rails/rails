@@ -33,9 +33,13 @@ module ActiveRecord
       end
 
       def test_unknown_commands_delegate
-        recorder = Struct.new(:foo)
-        recorder = CommandRecorder.new(recorder.new("bar"))
-        assert_equal "bar", recorder.foo
+        recorder = Class.new do
+          def foo(kw:)
+            kw
+          end
+        end
+        recorder = CommandRecorder.new(recorder.new)
+        assert_equal "bar", recorder.foo(kw: "bar")
       end
 
       def test_inverse_of_raise_exception_on_unknown_commands
@@ -94,15 +98,16 @@ module ActiveRecord
             t.rename :kind, :cultivar
           end
         end
-        if RUBY_VERSION < "2.7"
+
+        if RUBY_VERSION >= "2.8"
           assert_equal [
             [:rename_column, [:fruits, :cultivar, :kind]],
-            [:remove_column, [:fruits, :name, :string, {}], nil],
+            [:remove_column, [:fruits, :name, :string], nil],
           ], @recorder.commands
         else
           assert_equal [
             [:rename_column, [:fruits, :cultivar, :kind]],
-            [:remove_column, [:fruits, :name, :string], nil],
+            [:remove_column, [:fruits, :name, :string, {}], nil],
           ], @recorder.commands
         end
 
@@ -246,22 +251,22 @@ module ActiveRecord
 
       def test_invert_add_index
         remove = @recorder.inverse_of :add_index, [:table, [:one, :two]]
-        assert_equal [:remove_index, [:table, { column: [:one, :two] }]], remove
+        assert_equal [:remove_index, [:table, [:one, :two]], nil], remove
       end
 
       def test_invert_add_index_with_name
         remove = @recorder.inverse_of :add_index, [:table, [:one, :two], name: "new_index"]
-        assert_equal [:remove_index, [:table, { name: "new_index" }]], remove
+        assert_equal [:remove_index, [:table, [:one, :two], name: "new_index"], nil], remove
       end
 
       def test_invert_add_index_with_algorithm_option
         remove = @recorder.inverse_of :add_index, [:table, :one, algorithm: :concurrently]
-        assert_equal [:remove_index, [:table, { column: :one, algorithm: :concurrently }]], remove
+        assert_equal [:remove_index, [:table, :one, algorithm: :concurrently], nil], remove
       end
 
       def test_invert_remove_index
         add = @recorder.inverse_of :remove_index, [:table, :one]
-        assert_equal [:add_index, [:table, :one, {}]], add
+        assert_equal [:add_index, [:table, :one]], add
       end
 
       def test_invert_remove_index_with_positional_column
@@ -281,7 +286,7 @@ module ActiveRecord
 
       def test_invert_remove_index_with_no_special_options
         add = @recorder.inverse_of :remove_index, [:table, { column: [:one, :two] }]
-        assert_equal [:add_index, [:table, [:one, :two], {}]], add
+        assert_equal [:add_index, [:table, [:one, :two]]], add
       end
 
       def test_invert_remove_index_with_no_column
@@ -342,7 +347,7 @@ module ActiveRecord
 
       def test_invert_add_foreign_key
         enable = @recorder.inverse_of :add_foreign_key, [:dogs, :people]
-        assert_equal [:remove_foreign_key, [:dogs, :people]], enable
+        assert_equal [:remove_foreign_key, [:dogs, :people], nil], enable
       end
 
       def test_invert_remove_foreign_key
@@ -352,7 +357,7 @@ module ActiveRecord
 
       def test_invert_add_foreign_key_with_column
         enable = @recorder.inverse_of :add_foreign_key, [:dogs, :people, column: "owner_id"]
-        assert_equal [:remove_foreign_key, [:dogs, column: "owner_id"]], enable
+        assert_equal [:remove_foreign_key, [:dogs, :people, column: "owner_id"], nil], enable
       end
 
       def test_invert_remove_foreign_key_with_column
@@ -362,7 +367,7 @@ module ActiveRecord
 
       def test_invert_add_foreign_key_with_column_and_name
         enable = @recorder.inverse_of :add_foreign_key, [:dogs, :people, column: "owner_id", name: "fk"]
-        assert_equal [:remove_foreign_key, [:dogs, name: "fk"]], enable
+        assert_equal [:remove_foreign_key, [:dogs, :people, column: "owner_id", name: "fk"], nil], enable
       end
 
       def test_invert_remove_foreign_key_with_column_and_name
@@ -414,6 +419,17 @@ module ActiveRecord
               @recorder.execute "some sql"
             end
           end
+        end
+      end
+
+      def test_invert_remove_check_constraint
+        enable = @recorder.inverse_of :remove_check_constraint, [:dogs, "speed > 0", name: "speed_check"]
+        assert_equal [:add_check_constraint, [:dogs, "speed > 0", name: "speed_check"], nil], enable
+      end
+
+      def test_invert_remove_check_constraint_without_expression
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.inverse_of :remove_check_constraint, [:dogs]
         end
       end
     end

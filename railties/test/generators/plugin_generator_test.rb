@@ -81,6 +81,11 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_no_file "bin/rails"
   end
 
+  def test_initializes_git_repo
+    run_generator
+    assert_directory ".git"
+  end
+
   def test_generating_in_full_mode_with_almost_of_all_skip_options
     run_generator [destination_root, "--full", "-M", "-O", "-C", "-S", "-T", "--skip-active-storage"]
     assert_file "bin/rails" do |content|
@@ -409,8 +414,8 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "bin/rails", /ENGINE_PATH = File\.expand_path\('\.\.\/lib\/bukkits\/engine', __dir__\)/
     assert_file "bin/rails", /ENGINE_ROOT = File\.expand_path\('\.\.', __dir__\)/
     assert_file "bin/rails", %r|APP_PATH = File\.expand_path\('\.\./test/dummy/config/application', __dir__\)|
-    assert_file "bin/rails", /require 'rails\/all'/
-    assert_file "bin/rails", /require 'rails\/engine\/commands'/
+    assert_file "bin/rails", /require "rails\/all"/
+    assert_file "bin/rails", /require "rails\/engine\/commands"/
   end
 
   def test_shebang
@@ -477,6 +482,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   def test_unnecessary_files_are_not_generated_in_dummy_application
     run_generator
     assert_no_file "test/dummy/.gitignore"
+    assert_no_file "test/dummy/.ruby-version"
     assert_no_file "test/dummy/db/seeds.rb"
     assert_no_file "test/dummy/Gemfile"
     assert_no_file "test/dummy/public/robots.txt"
@@ -606,6 +612,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
       assert_match name, contents
       assert_match email, contents
     end
+    assert_no_directory ".git"
   end
 
   def test_skipping_useless_folders_generation_for_api_engines

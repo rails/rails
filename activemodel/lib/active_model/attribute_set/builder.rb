@@ -40,9 +40,6 @@ module ActiveModel
     end
 
     def []=(key, value)
-      if frozen?
-        raise RuntimeError, "Can't modify frozen hash"
-      end
       delegate_hash[key] = value
     end
 
@@ -81,6 +78,9 @@ module ActiveModel
 
     def marshal_load(values)
       if values.is_a?(Hash)
+        ActiveSupport::Deprecation.warn(<<~MSG)
+          Marshalling load from legacy attributes format is deprecated and will be removed in Rails 6.2.
+        MSG
         empty_hash = {}.freeze
         initialize(empty_hash, empty_hash, empty_hash, empty_hash, values)
         @materialized = true

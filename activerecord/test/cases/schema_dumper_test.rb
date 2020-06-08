@@ -200,6 +200,17 @@ class SchemaDumperTest < ActiveRecord::TestCase
     end
   end
 
+  if ActiveRecord::Base.connection.supports_check_constraints?
+    def test_schema_dumps_check_constraints
+      constraint_definition = dump_table_schema("products").split(/\n/).grep(/t.check_constraint.*products_price_check/).first.strip
+      if current_adapter?(:Mysql2Adapter)
+        assert_equal 't.check_constraint "`price` > `discounted_price`", name: "products_price_check"', constraint_definition
+      else
+        assert_equal 't.check_constraint "price > discounted_price", name: "products_price_check"', constraint_definition
+      end
+    end
+  end
+
   def test_schema_dump_should_honor_nonstandard_primary_keys
     output = standard_dump
     match = output.match(%r{create_table "movies"(.*)do})
@@ -351,8 +362,6 @@ class SchemaDumperTest < ActiveRecord::TestCase
     # Oracle supports precision up to 38 and it identifies decimals with scale 0 as integers
     if current_adapter?(:OracleAdapter)
       assert_match %r{t\.integer\s+"atoms_in_universe",\s+precision: 38}, output
-    elsif current_adapter?(:FbAdapter)
-      assert_match %r{t\.integer\s+"atoms_in_universe",\s+precision: 18}, output
     else
       assert_match %r{t\.decimal\s+"atoms_in_universe",\s+precision: 55}, output
     end

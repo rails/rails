@@ -148,7 +148,7 @@ module ActiveSupport
 
         normalized_gem_paths = Gem.path.map { |path| File.join path, "" }
         dtw = dtw.reject do |path|
-          normalized_gem_paths.any? { |gem_path| path.to_s.start_with?(gem_path) }
+          normalized_gem_paths.any? { |gem_path| path.to_path.start_with?(gem_path) }
         end
 
         @ph.filter_out_descendants(dtw)
@@ -160,7 +160,7 @@ module ActiveSupport
         end
 
         def normalize_extension(ext)
-          ext.to_s.sub(/\A\./, "")
+          ext.to_s.delete_prefix(".")
         end
 
         # Given a collection of Pathname objects returns the longest subpath

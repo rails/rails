@@ -131,7 +131,7 @@ module Rails
       end
 
       def foreign_key?
-        /_id$/.match?(name)
+        name.end_with?("_id")
       end
 
       def reference?

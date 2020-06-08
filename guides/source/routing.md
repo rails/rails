@@ -1230,7 +1230,7 @@ edit_user GET    /users/:id/edit(.:format) users#edit
 You can also use the `--expanded` option to turn on the expanded table formatting mode.
 
 ```
-$ rails routes --expanded
+$ bin/rails routes --expanded
 
 --[ Route 1 ]----------------------------------------------------
 Prefix            | users

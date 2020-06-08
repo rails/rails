@@ -21,7 +21,7 @@ module Rails
       end
 
       def edit(file_path)
-        require_application_and_environment!
+        require_application!
         encrypted = Rails.application.encrypted(file_path, key_path: options[:key])
 
         ensure_editor_available(command: "bin/rails encrypted:edit") || (return)
@@ -38,7 +38,7 @@ module Rails
       end
 
       def show(file_path)
-        require_application_and_environment!
+        require_application!
         encrypted = Rails.application.encrypted(file_path, key_path: options[:key])
 
         say encrypted.read.presence || missing_encrypted_message(key: encrypted.key, key_path: options[:key], file_path: file_path)

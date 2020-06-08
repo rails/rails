@@ -113,7 +113,7 @@ if current_adapter?(:Mysql2Adapter)
       end
     end
 
-    if subsecond_precision_supported?
+    if supports_datetime_with_precision?
       test "schema dump datetime includes default expression" do
         output = dump_table_schema("datetime_defaults")
         assert_match %r/t\.datetime\s+"modified_datetime",\s+default: -> { "CURRENT_TIMESTAMP(?:\(\))?" }/i, output
@@ -154,7 +154,8 @@ if current_adapter?(:Mysql2Adapter)
 
     def using_strict(strict)
       connection = ActiveRecord::Base.remove_connection
-      ActiveRecord::Base.establish_connection connection.merge(strict: strict)
+      conn_hash = connection.configuration_hash
+      ActiveRecord::Base.establish_connection conn_hash.merge(strict: strict)
       yield
     ensure
       ActiveRecord::Base.remove_connection

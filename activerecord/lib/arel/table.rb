@@ -4,6 +4,7 @@ module Arel # :nodoc: all
   class Table
     include Arel::Crud
     include Arel::FactoryMethods
+    include Arel::AliasPredication
 
     @engine = nil
     class << self; attr_accessor :engine; end
@@ -96,8 +97,12 @@ module Arel # :nodoc: all
     end
     alias :== :eql?
 
-    def type_cast_for_database(attribute_name, value)
-      type_caster.type_cast_for_database(attribute_name, value)
+    def type_cast_for_database(attr_name, value)
+      type_caster.type_cast_for_database(attr_name, value)
+    end
+
+    def type_for_attribute(name)
+      type_caster.type_for_attribute(name)
     end
 
     def able_to_type_cast?

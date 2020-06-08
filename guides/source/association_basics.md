@@ -86,7 +86,7 @@ In the remainder of this guide, you'll learn how to declare and use the various 
 
 ### The `belongs_to` Association
 
-A `belongs_to` association sets up a one-to-one connection with another model, such that each instance of the declaring model "belongs to" one instance of the other model. For example, if your application includes authors and books, and each book can be assigned to exactly one author, you'd declare the book model this way:
+A `belongs_to` association sets up a connection with another model, such that each instance of the declaring model "belongs to" one instance of the other model. For example, if your application includes authors and books, and each book can be assigned to exactly one author, you'd declare the book model this way:
 
 ```ruby
 class Book < ApplicationRecord
@@ -101,7 +101,7 @@ NOTE: `belongs_to` associations _must_ use the singular term. If you used the pl
 The corresponding migration might look like this:
 
 ```ruby
-class CreateBooks < ActiveRecord::Migration[5.0]
+class CreateBooks < ActiveRecord::Migration[6.0]
   def change
     create_table :authors do |t|
       t.string :name
@@ -117,9 +117,23 @@ class CreateBooks < ActiveRecord::Migration[5.0]
 end
 ```
 
+When used alone, `belongs_to` produces a one-directional one-to-one connection. Therefore each book in the above example "knows" its author, but the authors don't know about their books.
+To setup a [bi-directional association](#bi-directional-associations) - use `belongs_to` in combination with a `has_one` or `has_many` on the other model. 
+
+`belongs_to` does not ensure reference consistency, so depending on the use case, you might also need to add a database-level foreign key constraint on the reference column, like this:
+
+```ruby
+create_table :books do |t|
+  t.belongs_to :author, foreign_key: true
+  # ...
+end
+```
+
 ### The `has_one` Association
 
-A `has_one` association also sets up a one-to-one connection with another model, but with somewhat different semantics (and consequences). This association indicates that each instance of a model contains or possesses one instance of another model. For example, if each supplier in your application has only one account, you'd declare the supplier model like this:
+A `has_one` association indicates that one other model has a reference to this model. That model can be fetched through this association.
+
+For example, if each supplier in your application has only one account, you'd declare the supplier model like this:
 
 ```ruby
 class Supplier < ApplicationRecord
@@ -127,12 +141,14 @@ class Supplier < ApplicationRecord
 end
 ```
 
+The main difference from `belongs_to` is that the link column `supplier_id` is located in the other table:
+
 ![has_one Association Diagram](images/association_basics/has_one.png)
 
 The corresponding migration might look like this:
 
 ```ruby
-class CreateSuppliers < ActiveRecord::Migration[5.0]
+class CreateSuppliers < ActiveRecord::Migration[6.0]
   def change
     create_table :suppliers do |t|
       t.string :name
@@ -159,9 +175,11 @@ create_table :accounts do |t|
 end
 ```
 
+This relation can be [bi-directional](#bi-directional-associations) when used in combination with `belongs_to` on the other model.
+
 ### The `has_many` Association
 
-A `has_many` association indicates a one-to-many connection with another model. You'll often find this association on the "other side" of a `belongs_to` association. This association indicates that each instance of the model has zero or more instances of another model. For example, in an application containing authors and books, the author model could be declared like this:
+A `has_many` association is similar to `has_one`, but indicates a one-to-many connection with another model. You'll often find this association on the "other side" of a `belongs_to` association. This association indicates that each instance of the model has zero or more instances of another model. For example, in an application containing authors and books, the author model could be declared like this:
 
 ```ruby
 class Author < ApplicationRecord
@@ -176,7 +194,7 @@ NOTE: The name of the other model is pluralized when declaring a `has_many` asso
 The corresponding migration might look like this:
 
 ```ruby
-class CreateAuthors < ActiveRecord::Migration[5.0]
+class CreateAuthors < ActiveRecord::Migration[6.0]
   def change
     create_table :authors do |t|
       t.string :name
@@ -189,6 +207,16 @@ class CreateAuthors < ActiveRecord::Migration[5.0]
       t.timestamps
     end
   end
+end
+```
+
+Depending on the use case, it's usually a good idea to create a non-unique index and optionally
+a foreign key constraint on the author column for the books table:
+
+```ruby
+create_table :books do |t|
+  t.belongs_to :author, index: true, foreign_key: true
+  # ...
 end
 ```
 
@@ -218,7 +246,7 @@ end
 The corresponding migration might look like this:
 
 ```ruby
-class CreateAppointments < ActiveRecord::Migration[5.0]
+class CreateAppointments < ActiveRecord::Migration[6.0]
   def change
     create_table :physicians do |t|
       t.string :name
@@ -304,7 +332,7 @@ end
 The corresponding migration might look like this:
 
 ```ruby
-class CreateAccountHistories < ActiveRecord::Migration[5.0]
+class CreateAccountHistories < ActiveRecord::Migration[6.0]
   def change
     create_table :suppliers do |t|
       t.string :name
@@ -345,7 +373,7 @@ end
 The corresponding migration might look like this:
 
 ```ruby
-class CreateAssembliesAndParts < ActiveRecord::Migration[5.0]
+class CreateAssembliesAndParts < ActiveRecord::Migration[6.0]
   def change
     create_table :assemblies do |t|
       t.string :name
@@ -384,7 +412,7 @@ end
 The corresponding migration might look like this:
 
 ```ruby
-class CreateSuppliers < ActiveRecord::Migration[5.2]
+class CreateSuppliers < ActiveRecord::Migration[6.0]
   def change
     create_table :suppliers do |t|
       t.string :name
@@ -466,7 +494,7 @@ Similarly, you can retrieve `@product.pictures`.
 If you have an instance of the `Picture` model, you can get to its parent via `@picture.imageable`. To make this work, you need to declare both a foreign key column and a type column in the model that declares the polymorphic interface:
 
 ```ruby
-class CreatePictures < ActiveRecord::Migration[5.2]
+class CreatePictures < ActiveRecord::Migration[6.0]
   def change
     create_table :pictures do |t|
       t.string  :name
@@ -483,7 +511,7 @@ end
 This migration can be simplified by using the `t.references` form:
 
 ```ruby
-class CreatePictures < ActiveRecord::Migration[5.0]
+class CreatePictures < ActiveRecord::Migration[6.0]
   def change
     create_table :pictures do |t|
       t.string :name
@@ -514,10 +542,10 @@ With this setup, you can retrieve `@employee.subordinates` and `@employee.manage
 In your migrations/schema, you will add a references column to the model itself.
 
 ```ruby
-class CreateEmployees < ActiveRecord::Migration[5.0]
+class CreateEmployees < ActiveRecord::Migration[6.0]
   def change
     create_table :employees do |t|
-      t.references :manager
+      t.references :manager, foreign_key: { to_table: :employees }
       t.timestamps
     end
   end
@@ -575,7 +603,7 @@ end
 This declaration needs to be backed up by a corresponding foreign key column in the books table. For a brand new table, the migration might look something like this:
 
 ```ruby
-class CreateBooks < ActiveRecord::Migration[5.0]
+class CreateBooks < ActiveRecord::Migration[6.0]
   def change
     create_table :books do |t|
       t.datetime   :published_at
@@ -589,7 +617,7 @@ end
 Whereas for an existing table, it might look like this:
 
 ```ruby
-class AddAuthorToBooks < ActiveRecord::Migration[5.0]
+class AddAuthorToBooks < ActiveRecord::Migration[6.0]
   def change
     add_reference :books, :author
   end
@@ -619,7 +647,7 @@ end
 These need to be backed up by a migration to create the `assemblies_parts` table. This table should be created without a primary key:
 
 ```ruby
-class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[5.2]
+class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[6.0]
   def change
     create_table :assemblies_parts, id: false do |t|
       t.bigint :assembly_id
@@ -637,7 +665,7 @@ We pass `id: false` to `create_table` because that table does not represent a mo
 You can also use the method `create_join_table`
 
 ```ruby
-class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[5.0]
+class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[6.0]
   def change
     create_join_table :assemblies, :parts do |t|
       t.index :assembly_id
@@ -783,7 +811,10 @@ The following sections give the details of each type of association, including t
 
 ### `belongs_to` Association Reference
 
-The `belongs_to` association creates a one-to-one match with another model. In database terms, this association says that this class contains the foreign key. If the other class contains the foreign key, then you should use `has_one` instead.
+In database terms, the `belongs_to` association says that this model's table contains a column which represents a reference to another table.
+This can be used to set up one-to-one or one-to-many relations, depending on the setup.
+If the table of the other class contains the reference in a one-to-one relation, then you should use `has_one` instead.
+
 
 #### Methods Added by `belongs_to`
 
@@ -2400,8 +2431,16 @@ class Author < ApplicationRecord
 end
 ```
 
-If a `before_add` callback throws an exception, the object does not get added to the collection. Similarly, if a `before_remove` callback throws an exception, the object does not get removed from the collection.
+If a `before_add` callback throws `:abort`, the object does not get added to
+the collection. Similarly, if a `before_remove` callback throws `:abort`, the
+object does not get removed from the collection:
 
+```ruby
+# book won't be added if the limit has been reached
+def check_credit_limit(book)
+  throw(:abort) if limit_reached?
+end
+```
 NOTE: These callbacks are called only when the associated objects are added or removed through the association collection:
 
 ```ruby

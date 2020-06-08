@@ -60,7 +60,16 @@ class RangeTest < ActiveSupport::TestCase
     assert((1..10).include?(1...11))
   end
 
-  if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.6.0")
+  def test_include_returns_false_for_backwards
+    assert_not((1..10).include?(5..3))
+  end
+
+  # Match quirky plain-Ruby behavior
+  def test_include_returns_false_for_empty_exclusive_end
+    assert_not((1..5).include?(3...3))
+  end
+
+  if RUBY_VERSION >= "2.6"
     def test_include_with_endless_range
       assert(eval("1..").include?(2))
     end
@@ -74,7 +83,7 @@ class RangeTest < ActiveSupport::TestCase
     end
   end
 
-  if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.7.0")
+  if RUBY_VERSION >= "2.7"
     def test_include_with_beginless_range
       assert(eval("..2").include?(1))
     end
@@ -100,7 +109,16 @@ class RangeTest < ActiveSupport::TestCase
     assert((1..10) === (1...11))
   end
 
-  if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.6.0")
+  def test_compare_returns_false_for_backwards
+    assert_not((1..10) === (5..3))
+  end
+
+  # Match quirky plain-Ruby behavior
+  def test_compare_returns_false_for_empty_exclusive_end
+    assert_not((1..5) === (3...3))
+  end
+
+  if RUBY_VERSION >= "2.6"
     def test_should_compare_range_with_endless_range
       assert(eval("1..") === (2..4))
     end
@@ -110,7 +128,7 @@ class RangeTest < ActiveSupport::TestCase
     end
   end
 
-  if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.7.0")
+  if RUBY_VERSION >= "2.7"
     def test_should_compare_range_with_beginless_range
       assert(eval("..2") === (-1..1))
     end
@@ -145,7 +163,16 @@ class RangeTest < ActiveSupport::TestCase
     assert((1..10).cover?(1...11))
   end
 
-  if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.6.0")
+  def test_cover_returns_false_for_backwards
+    assert_not((1..10).cover?(5..3))
+  end
+
+  # Match quirky plain-Ruby behavior
+  def test_cover_returns_false_for_empty_exclusive_end
+    assert_not((1..5).cover?(3...3))
+  end
+
+  if RUBY_VERSION >= "2.6"
     def test_should_cover_range_with_endless_range
       assert(eval("1..").cover?(2..4))
     end
@@ -155,7 +182,7 @@ class RangeTest < ActiveSupport::TestCase
     end
   end
 
-  if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.7.0")
+  if RUBY_VERSION >= "2.7"
     def test_should_cover_range_with_beginless_range
       assert(eval("..2").cover?(-1..1))
     end

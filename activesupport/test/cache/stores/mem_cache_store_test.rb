@@ -35,13 +35,17 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     MEMCACHE_UP = false
   end
 
+  def lookup_store(options = {})
+    ActiveSupport::Cache.lookup_store(*store, { namespace: @namespace }.merge(options))
+  end
+
   def setup
     skip "memcache server is not up" unless MEMCACHE_UP
 
-    @cache = ActiveSupport::Cache.lookup_store(*store, expires_in: 60)
-    @peek = ActiveSupport::Cache.lookup_store(*store)
+    @namespace = "test-#{SecureRandom.hex}"
+    @cache = lookup_store(expires_in: 60)
+    @peek = lookup_store
     @data = @cache.instance_variable_get(:@data)
-    @cache.clear
     @cache.silence!
     @cache.logger = ActiveSupport::Logger.new(File::NULL)
   end
@@ -56,23 +60,30 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   include ConnectionPoolBehavior
   include FailureSafetyBehavior
 
+  # Overrides test from LocalCacheBehavior in order to stub out the cache clear
+  # and replace it with a delete.
+  def test_clear_also_clears_local_cache
+    client = @cache.instance_variable_get(:@data)
+    key = "#{@namespace}:foo"
+    client.stub(:flush_all, -> { client.delete(key) }) do
+      super
+    end
+  end
+
   def test_raw_values
-    cache = ActiveSupport::Cache.lookup_store(*store, raw: true)
-    cache.clear
+    cache = lookup_store(raw: true)
     cache.write("foo", 2)
     assert_equal "2", cache.read("foo")
   end
 
   def test_raw_values_with_marshal
-    cache = ActiveSupport::Cache.lookup_store(*store, raw: true)
-    cache.clear
+    cache = lookup_store(raw: true)
     cache.write("foo", Marshal.dump([]))
-    assert_equal [], cache.read("foo")
+    assert_equal Marshal.dump([]), cache.read("foo")
   end
 
   def test_local_cache_raw_values
-    cache = ActiveSupport::Cache.lookup_store(*store, raw: true)
-    cache.clear
+    cache = lookup_store(raw: true)
     cache.with_local_cache do
       cache.write("foo", 2)
       assert_equal "2", cache.read("foo")
@@ -80,27 +91,24 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   end
 
   def test_increment_expires_in
-    cache = ActiveSupport::Cache.lookup_store(*store, raw: true)
-    cache.clear
+    cache = lookup_store(raw: true, namespace: nil)
     assert_called_with cache.instance_variable_get(:@data), :incr, [ "foo", 1, 60 ] do
       cache.increment("foo", 1, expires_in: 60)
     end
   end
 
   def test_decrement_expires_in
-    cache = ActiveSupport::Cache.lookup_store(*store, raw: true)
-    cache.clear
+    cache = lookup_store(raw: true, namespace: nil)
     assert_called_with cache.instance_variable_get(:@data), :decr, [ "foo", 1, 60 ] do
       cache.decrement("foo", 1, expires_in: 60)
     end
   end
 
   def test_local_cache_raw_values_with_marshal
-    cache = ActiveSupport::Cache.lookup_store(*store, raw: true)
-    cache.clear
+    cache = lookup_store(raw: true)
     cache.with_local_cache do
       cache.write("foo", Marshal.dump([]))
-      assert_equal [], cache.read("foo")
+      assert_equal Marshal.dump([]), cache.read("foo")
     end
   end
 

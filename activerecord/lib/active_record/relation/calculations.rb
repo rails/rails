@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/enumerable"
+
 module ActiveRecord
   module Calculations
     # Count the records.
@@ -134,7 +136,7 @@ module ActiveRecord
             relation.select_values = [ klass.primary_key || table[Arel.star] ]
           end
           # PostgreSQL: ORDER BY expressions must appear in SELECT list when using DISTINCT
-          relation.order_values = []
+          relation.order_values = [] if group_values.empty?
         end
 
         relation.calculate(operation, column_name)
@@ -172,14 +174,14 @@ module ActiveRecord
     #   # SELECT people.id FROM people WHERE people.age = 21 LIMIT 5
     #   # => [2, 3]
     #
-    #   Person.pluck('DATEDIFF(updated_at, created_at)')
+    #   Person.pluck(Arel.sql('DATEDIFF(updated_at, created_at)'))
     #   # SELECT DATEDIFF(updated_at, created_at) FROM people
     #   # => ['0', '27761', '173']
     #
     # See also #ids.
     #
     def pluck(*column_names)
-      if loaded? && (column_names.map(&:to_s) - @klass.attribute_names - @klass.attribute_aliases.keys).empty?
+      if loaded? && all_attributes?(column_names)
         return records.pluck(*column_names)
       end
 
@@ -188,10 +190,17 @@ module ActiveRecord
         relation.pluck(*column_names)
       else
         klass.disallow_raw_sql!(column_names)
+        columns = arel_columns(column_names)
         relation = spawn
-        relation.select_values = column_names
-        result = skip_query_cache_if_necessary { klass.connection.select_all(relation.arel, nil) }
-        result.cast_values(klass.attribute_types)
+        relation.select_values = columns
+        result = skip_query_cache_if_necessary do
+          if where_clause.contradiction?
+            ActiveRecord::Result.new([], [])
+          else
+            klass.connection.select_all(relation.arel, nil)
+          end
+        end
+        type_cast_pluck_values(result, columns)
       end
     end
 
@@ -210,6 +219,10 @@ module ActiveRecord
     #   # SELECT people.name, people.email_address FROM people WHERE id = 1 LIMIT 1
     #   # => [ 'David', 'david@loudthinking.com' ]
     def pick(*column_names)
+      if loaded? && all_attributes?(column_names)
+        return records.pick(*column_names)
+      end
+
       limit(1).pluck(*column_names).first
     end
 
@@ -222,6 +235,10 @@ module ActiveRecord
     end
 
     private
+      def all_attributes?(column_names)
+        (column_names.map(&:to_s) - @klass.attribute_names - @klass.attribute_aliases.keys).empty?
+      end
+
       def has_include?(column_name)
         eager_loading? || (includes_values.present? && column_name && column_name != :all)
       end
@@ -270,8 +287,6 @@ module ActiveRecord
       end
 
       def execute_simple_calculation(operation, column_name, distinct) #:nodoc:
-        column_alias = column_name
-
         if operation == "count" && (column_name == :all && distinct || has_limit_or_offset?)
           # Shortcut when limit is zero.
           return 0 if limit_value == 0
@@ -282,31 +297,35 @@ module ActiveRecord
           relation = unscope(:order).distinct!(false)
 
           column = aggregate_column(column_name)
-
           select_value = operation_over_aggregate_column(column, operation, distinct)
-          if operation == "sum" && distinct
-            select_value.distinct = true
-          end
+          select_value.distinct = true if operation == "sum" && distinct
 
-          column_alias = select_value.alias
-          column_alias ||= @klass.connection.column_name_for_operation(operation, select_value)
           relation.select_values = [select_value]
 
           query_builder = relation.arel
         end
 
-        result = skip_query_cache_if_necessary { @klass.connection.select_all(query_builder, nil) }
-        row    = result.first
-        value  = row && row.values.first
-        type   = result.column_types.fetch(column_alias) do
-          type_for(column_name)
-        end
+        result = skip_query_cache_if_necessary { @klass.connection.select_all(query_builder) }
 
-        type_cast_calculated_value(value, type, operation)
+        type_cast_calculated_value(result.cast_values.first, operation) do |value|
+          type = column.try(:type_caster) ||
+            lookup_cast_type_from_join_dependencies(column_name.to_s) || Type.default_value
+          type.deserialize(value)
+        end
       end
 
       def execute_grouped_calculation(operation, column_name, distinct) #:nodoc:
         group_fields = group_values
+        group_fields = group_fields.uniq if group_fields.size > 1
+
+        unless group_fields == group_values
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            `#{operation}` with group by duplicated fields does no longer affect to result in Rails 6.2.
+            To migrate to Rails 6.2's behavior, use `uniq!(:group)` to deduplicate group fields
+            (`#{klass.name&.tableize || klass.table_name}.uniq!(:group).#{operation}(#{column_name.inspect})`).
+          MSG
+          group_fields = group_values
+        end
 
         if group_fields.size == 1 && group_fields.first.respond_to?(:to_sym)
           association  = klass._reflect_on_association(group_fields.first)
@@ -321,14 +340,12 @@ module ActiveRecord
         }
         group_columns = group_aliases.zip(group_fields)
 
-        aggregate_alias = column_alias_for("#{operation} #{column_name.to_s.downcase}")
+        column = aggregate_column(column_name)
+        column_alias = column_alias_for("#{operation} #{column_name.to_s.downcase}")
+        select_value = operation_over_aggregate_column(column, operation, distinct)
+        select_value.as(column_alias)
 
-        select_values = [
-          operation_over_aggregate_column(
-            aggregate_column(column_name),
-            operation,
-            distinct).as(aggregate_alias)
-        ]
+        select_values = [select_value]
         select_values += self.select_values unless having_clause.empty?
 
         select_values.concat group_columns.map { |aliaz, field|
@@ -348,22 +365,33 @@ module ActiveRecord
         if association
           key_ids     = calculated_data.collect { |row| row[group_aliases.first] }
           key_records = association.klass.base_class.where(association.klass.base_class.primary_key => key_ids)
-          key_records = Hash[key_records.map { |r| [r.id, r] }]
+          key_records = key_records.index_by(&:id)
         end
 
-        Hash[calculated_data.map do |row|
-          key = group_columns.map { |aliaz, col_name|
-            type = type_for(col_name) do
-              calculated_data.column_types.fetch(aliaz, Type.default_value)
-            end
-            type_cast_calculated_value(row[aliaz], type)
-          }
+        key_types = group_columns.each_with_object({}) do |(aliaz, col_name), types|
+          types[aliaz] = type_for(col_name) do
+            calculated_data.column_types.fetch(aliaz, Type.default_value)
+          end
+        end
+
+        hash_rows = calculated_data.cast_values(key_types).map! do |row|
+          calculated_data.columns.each_with_object({}).with_index do |(col_name, hash), i|
+            hash[col_name] = row[i]
+          end
+        end
+
+        type = nil
+        hash_rows.each_with_object({}) do |row, result|
+          key = group_aliases.map { |aliaz| row[aliaz] }
           key = key.first if key.size == 1
           key = key_records[key] if associated
 
-          type = calculated_data.column_types.fetch(aggregate_alias) { type_for(column_name) }
-          [key, type_cast_calculated_value(row[aggregate_alias], type, operation)]
-        end]
+          result[key] = type_cast_calculated_value(row[column_alias], operation) do |value|
+            type ||= column.try(:type_caster) ||
+              lookup_cast_type_from_join_dependencies(column_name.to_s) || Type.default_value
+            type.deserialize(value)
+          end
+        end
       end
 
       # Converts the given field to the value that the database adapter returns as
@@ -388,12 +416,41 @@ module ActiveRecord
         @klass.type_for_attribute(field_name, &block)
       end
 
-      def type_cast_calculated_value(value, type, operation = nil)
+      def lookup_cast_type_from_join_dependencies(name, join_dependencies = build_join_dependencies)
+        each_join_dependencies(join_dependencies) do |join|
+          type = join.base_klass.attribute_types.fetch(name, nil)
+          return type if type
+        end
+        nil
+      end
+
+      def type_cast_pluck_values(result, columns)
+        cast_types = if result.columns.size != columns.size
+          klass.attribute_types
+        else
+          join_dependencies = nil
+          columns.map.with_index do |column, i|
+            column.try(:type_caster) ||
+              klass.attribute_types.fetch(name = result.columns[i]) do
+                join_dependencies ||= build_join_dependencies
+                lookup_cast_type_from_join_dependencies(name, join_dependencies) ||
+                  result.column_types[name] || Type.default_value
+              end
+          end
+        end
+        result.cast_values(cast_types)
+      end
+
+      def type_cast_calculated_value(value, operation)
         case operation
-        when "count"   then value.to_i
-        when "sum"     then type.deserialize(value || 0)
-        when "average" then value&.respond_to?(:to_d) ? value.to_d : value
-        else type.deserialize(value)
+        when "count"
+          value.to_i
+        when "sum"
+          yield value || 0
+        when "average"
+          value&.respond_to?(:to_d) ? value.to_d : value
+        else # "minimum", "maximum"
+          yield value
         end
       end
 

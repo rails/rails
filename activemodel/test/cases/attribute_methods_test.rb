@@ -26,14 +26,20 @@ class ModelWithAttributes2
 
   attr_accessor :attributes
 
-  attribute_method_suffix "_test"
+  attribute_method_suffix "_test", "_kw"
 
 private
   def attribute(name)
     attributes[name.to_s]
   end
 
-  alias attribute_test attribute
+  def attribute_test(name, attrs = {})
+    attrs[name] = attribute(name)
+  end
+
+  def attribute_kw(name, kw: 1)
+    attribute(name)
+  end
 
   def private_method
     "<3 <3"
@@ -212,9 +218,27 @@ class AttributeMethodsTest < ActiveModel::TestCase
   test "accessing a suffixed attribute" do
     m = ModelWithAttributes2.new
     m.attributes = { "foo" => "bar" }
+    attrs = {}
 
     assert_equal "bar", m.foo
-    assert_equal "bar", m.foo_test
+    assert_equal "bar", m.foo_kw(kw: 2)
+    assert_equal "bar", m.foo_test(attrs)
+    assert_equal "bar", attrs["foo"]
+  end
+
+  test "defined attribute doesn't expand positional hash argument" do
+    ModelWithAttributes2.define_attribute_methods(:foo)
+
+    m = ModelWithAttributes2.new
+    m.attributes = { "foo" => "bar" }
+    attrs = {}
+
+    assert_equal "bar", m.foo
+    assert_equal "bar", m.foo_kw(kw: 2)
+    assert_equal "bar", m.foo_test(attrs)
+    assert_equal "bar", attrs["foo"]
+  ensure
+    ModelWithAttributes2.undefine_attribute_methods
   end
 
   test "should not interfere with method_missing if the attr has a private/protected method" do

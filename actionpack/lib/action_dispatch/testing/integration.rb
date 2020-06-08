@@ -2,7 +2,6 @@
 
 require "stringio"
 require "uri"
-require "active_support/core_ext/kernel/singleton_class"
 require "rack/test"
 require "minitest"
 
@@ -83,13 +82,8 @@ module ActionDispatch
       include Minitest::Assertions
       include TestProcess, RequestHelpers, Assertions
 
-      %w( status status_message headers body redirect? ).each do |method|
-        delegate method, to: :response, allow_nil: true
-      end
-
-      %w( path ).each do |method|
-        delegate method, to: :request, allow_nil: true
-      end
+      delegate :status, :status_message, :headers, :body, :redirect?, to: :response, allow_nil: true
+      delegate :path, to: :request, allow_nil: true
 
       # The hostname used in the last request.
       def host
@@ -359,20 +353,22 @@ module ActionDispatch
       end
 
       %w(get post patch put head delete cookies assigns follow_redirect!).each do |method|
-        define_method(method) do |*args, **options|
-          # reset the html_document variable, except for cookies/assigns calls
-          unless method == "cookies" || method == "assigns"
-            @html_document = nil
-          end
-
-          result = if options.any?
-            integration_session.__send__(method, *args, **options)
-          else
-            integration_session.__send__(method, *args)
-          end
-          copy_session_variables!
-          result
+        # reset the html_document variable, except for cookies/assigns calls
+        unless method == "cookies" || method == "assigns"
+          reset_html_document = "@html_document = nil"
         end
+
+        definition = RUBY_VERSION >= "2.7" ? "..." : "*args"
+
+        module_eval <<~RUBY, __FILE__, __LINE__ + 1
+          def #{method}(#{definition})
+            #{reset_html_document}
+
+            result = integration_session.#{method}(#{definition})
+            copy_session_variables!
+            result
+          end
+        RUBY
       end
 
       # Open a new session instance. If a block is given, the new session is
@@ -516,7 +512,7 @@ module ActionDispatch
   #
   # A simple integration test that exercises multiple controllers:
   #
-  #   require 'test_helper'
+  #   require "test_helper"
   #
   #   class UserFlowsTest < ActionDispatch::IntegrationTest
   #     test "login and browse site" do
@@ -545,7 +541,7 @@ module ActionDispatch
   #
   # Here's an example of multiple sessions and custom DSL in an integration test
   #
-  #   require 'test_helper'
+  #   require "test_helper"
   #
   #   class UserFlowsTest < ActionDispatch::IntegrationTest
   #     test "login and browse site" do

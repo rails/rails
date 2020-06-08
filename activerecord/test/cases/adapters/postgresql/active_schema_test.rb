@@ -28,44 +28,47 @@ class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_add_index
-    expected = %(CREATE UNIQUE INDEX  "index_people_on_last_name" ON "people"  ("last_name") WHERE state = 'active')
+    expected = %(CREATE UNIQUE INDEX "index_people_on_last_name" ON "people" ("last_name") WHERE state = 'active')
     assert_equal expected, add_index(:people, :last_name, unique: true, where: "state = 'active'")
 
-    expected = %(CREATE UNIQUE INDEX  "index_people_on_lower_last_name" ON "people"  (lower(last_name)))
+    expected = %(CREATE UNIQUE INDEX "index_people_on_lower_last_name" ON "people" (lower(last_name)))
     assert_equal expected, add_index(:people, "lower(last_name)", unique: true)
 
-    expected = %(CREATE UNIQUE INDEX  "index_people_on_last_name_varchar_pattern_ops" ON "people"  (last_name varchar_pattern_ops))
+    expected = %(CREATE UNIQUE INDEX "index_people_on_last_name_varchar_pattern_ops" ON "people" (last_name varchar_pattern_ops))
     assert_equal expected, add_index(:people, "last_name varchar_pattern_ops", unique: true)
 
-    expected = %(CREATE  INDEX CONCURRENTLY "index_people_on_last_name" ON "people"  ("last_name"))
+    expected = %(CREATE INDEX CONCURRENTLY "index_people_on_last_name" ON "people" ("last_name"))
     assert_equal expected, add_index(:people, :last_name, algorithm: :concurrently)
 
-    expected = %(CREATE  INDEX  "index_people_on_last_name_and_first_name" ON "people"  ("last_name" DESC, "first_name" ASC))
+    expected = %(CREATE INDEX "index_people_on_last_name_and_first_name" ON "people" ("last_name" DESC, "first_name" ASC))
     assert_equal expected, add_index(:people, [:last_name, :first_name], order: { last_name: :desc, first_name: :asc })
     assert_equal expected, add_index(:people, ["last_name", :first_name], order: { last_name: :desc, "first_name" => :asc })
 
     %w(gin gist hash btree).each do |type|
-      expected = %(CREATE  INDEX  "index_people_on_last_name" ON "people" USING #{type} ("last_name"))
+      expected = %(CREATE INDEX "index_people_on_last_name" ON "people" USING #{type} ("last_name"))
       assert_equal expected, add_index(:people, :last_name, using: type)
 
-      expected = %(CREATE  INDEX CONCURRENTLY "index_people_on_last_name" ON "people" USING #{type} ("last_name"))
+      expected = %(CREATE INDEX CONCURRENTLY "index_people_on_last_name" ON "people" USING #{type} ("last_name"))
       assert_equal expected, add_index(:people, :last_name, using: type, algorithm: :concurrently)
 
-      expected = %(CREATE UNIQUE INDEX  "index_people_on_last_name" ON "people" USING #{type} ("last_name") WHERE state = 'active')
+      expected = %(CREATE UNIQUE INDEX "index_people_on_last_name" ON "people" USING #{type} ("last_name") WHERE state = 'active')
       assert_equal expected, add_index(:people, :last_name, using: type, unique: true, where: "state = 'active'")
 
-      expected = %(CREATE UNIQUE INDEX  "index_people_on_lower_last_name" ON "people" USING #{type} (lower(last_name)))
+      expected = %(CREATE UNIQUE INDEX "index_people_on_lower_last_name" ON "people" USING #{type} (lower(last_name)))
       assert_equal expected, add_index(:people, "lower(last_name)", using: type, unique: true)
     end
 
-    expected = %(CREATE  INDEX  "index_people_on_last_name" ON "people" USING gist ("last_name" bpchar_pattern_ops))
+    expected = %(CREATE INDEX "index_people_on_last_name" ON "people" USING gist ("last_name" bpchar_pattern_ops))
     assert_equal expected, add_index(:people, :last_name, using: :gist, opclass: { last_name: :bpchar_pattern_ops })
 
-    expected = %(CREATE  INDEX  "index_people_on_last_name_and_first_name" ON "people"  ("last_name" DESC NULLS LAST, "first_name" ASC))
+    expected = %(CREATE INDEX "index_people_on_last_name_and_first_name" ON "people" ("last_name" DESC NULLS LAST, "first_name" ASC))
     assert_equal expected, add_index(:people, [:last_name, :first_name], order: { last_name: "DESC NULLS LAST", first_name: :asc })
 
-    expected = %(CREATE  INDEX  "index_people_on_last_name" ON "people"  ("last_name" NULLS FIRST))
+    expected = %(CREATE INDEX "index_people_on_last_name" ON "people" ("last_name" NULLS FIRST))
     assert_equal expected, add_index(:people, :last_name, order: "NULLS FIRST")
+
+    expected = %(CREATE INDEX IF NOT EXISTS "index_people_on_last_name" ON "people" ("last_name"))
+    assert_equal expected, add_index(:people, :last_name, if_not_exists: true)
 
     assert_raise ArgumentError do
       add_index(:people, :last_name, algorithm: :copy)
@@ -103,4 +106,5 @@ class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
     def method_missing(method_symbol, *arguments)
       ActiveRecord::Base.connection.send(method_symbol, *arguments)
     end
+    ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
 end

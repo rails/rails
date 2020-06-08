@@ -1,3 +1,104 @@
+*   `ActionDispatch::Static` handles precompiled Brotli (.br) files.
+
+    Adds to existing support for precompiled gzip (.gz) files.
+    Brotli files are preferred due to much better compression.
+
+    When the browser requests /some.js with `Accept-Encoding: br`,
+    we check for public/some.js.br and serve that file, if present, with
+    `Content-Encoding: br` and `Vary: Accept-Encoding` headers.
+
+    *Ryan Edward Hall*, *Jeremy Daer*
+
+*   Add raise_on_missing_translations support for controllers.
+
+    This configuration determines whether an error should be raised for missing translations.
+    It can be enabled through `config.i18n.raise_on_missing_translations`. Note that described
+    configuration also affects raising error for missing translations in views.
+
+    *fatkodima*
+
+*   Added `compact` and `compact!` to `ActionController::Parameters`.
+
+    *Eugene Kenny*
+
+*   Calling `each_pair` or `each_value` on an `ActionController::Parameters`
+    without passing a block now returns an enumerator.
+
+    *Eugene Kenny*
+
+*   `fixture_file_upload` now uses path relative to `file_fixture_path`
+
+    Previously the path had to be relative to `fixture_path`.
+    You can change your existing code as follow:
+
+    ```ruby
+    # Before
+    fixture_file_upload('files/dog.png')
+
+    # After
+    fixture_file_upload('dog.png')
+    ```
+
+    *Edouard Chin*
+
+*   Remove deprecated `force_ssl` at the controller level.
+
+    *Rafael Mendonça França*
+
+*   The +helper+ class method for controllers loads helper modules specified as
+    strings/symbols with `String#constantize` instead of `require_dependency`.
+
+    Remember that support for strings/symbols is only a convenient API. You can
+    always pass a module object:
+
+    ```ruby
+    helper UtilsHelper
+    ```
+
+    which is recommended because it is simple and direct. When a string/symbol
+    is received, `helper` just manipulates and inflects the argument to obtain
+    that same module object.
+
+    *Xavier Noria*, *Jean Boussier*
+
+*   Correctly identify the entire localhost IPv4 range as trusted proxy.
+
+    *Nick Soracco*
+
+*   `url_for` will now use "https://" as the default protocol when
+    `Rails.application.config.force_ssl` is set to true.
+
+    *Jonathan Hefner*
+
+*   Accept and default to base64_urlsafe CSRF tokens.
+
+    Base64 strict-encoded CSRF tokens are not inherently websafe, which makes
+    them difficult to deal with. For example, the common practice of sending
+    the CSRF token to a browser in a client-readable cookie does not work properly
+    out of the box: the value has to be url-encoded and decoded to survive transport.
+
+    Now, we generate Base64 urlsafe-encoded CSRF tokens, which are inherently safe
+    to transport.  Validation accepts both urlsafe tokens, and strict-encoded tokens
+    for backwards compatibility.
+
+    *Scott Blum*
+
+*   Support rolling deploys for cookie serialization/encryption changes.
+
+    In a distributed configuration like rolling update, users may observe
+    both old and new instances during deployment. Users may be served by a
+    new instance and then by an old instance.
+
+    That means when the server changes `cookies_serializer` from `:marshal`
+    to `:hybrid` or the server changes `use_authenticated_cookie_encryption`
+    from `false` to `true`, users may lose their sessions if they access the
+    server during deployment.
+
+    We added fallbacks to downgrade the cookie format when necessary during
+    deployment, ensuring compatibility on both old and new instances.
+
+    *Masaki Hara*
+
 *   `ActionDispatch::Request.remote_ip` has ip address even when all sites are trusted.
 
     Before, if all `X-Forwarded-For` sites were trusted, the `remote_ip` would default to `127.0.0.1`.
@@ -12,7 +113,7 @@
 
     CVE-2019-16782.
 
-*   Include child session assertion count in ActionDispatch::IntegrationTest
+*   Include child session assertion count in ActionDispatch::IntegrationTest.
 
     `IntegrationTest#open_session` uses `dup` to create the new session, which
     meant it had its own copy of `@assertions`. This prevented the assertions
@@ -21,7 +122,7 @@
     Child sessions now have their `attr_accessor` overridden to delegate to the
     root session.
 
-    Fixes #32142
+    Fixes #32142.
 
     *Sam Bostock*
 
@@ -142,7 +243,7 @@
 
     *Tom Fakes*
 
-*   Add `Vary: Accept` header when using `Accept` header for response
+*   Add `Vary: Accept` header when using `Accept` header for response.
 
     For some requests like `/users/1`, Rails uses requests' `Accept`
     header to determine what to return. And if we don't add `Vary`

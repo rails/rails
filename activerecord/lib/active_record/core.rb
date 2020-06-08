@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/enumerable"
 require "active_support/core_ext/hash/indifferent_access"
 require "active_support/core_ext/string/filters"
 require "active_support/parameter_filter"
@@ -43,9 +44,9 @@ module ActiveRecord
       #
       #   #<ActiveRecord::DatabaseConfigurations:0x00007fd1acbdf800 @configurations=[
       #     #<ActiveRecord::DatabaseConfigurations::HashConfig:0x00007fd1acbded10 @env_name="development",
-      #       @spec_name="primary", @config={adapter: "sqlite3", database: "db/development.sqlite3"}>,
+      #       @name="primary", @config={adapter: "sqlite3", database: "db/development.sqlite3"}>,
       #     #<ActiveRecord::DatabaseConfigurations::HashConfig:0x00007fd1acbdea90 @env_name="production",
-      #       @spec_name="primary", @config={adapter: "sqlite3", database: "db/production.sqlite3"}>
+      #       @name="primary", @config={adapter: "sqlite3", database: "db/production.sqlite3"}>
       #   ]>
       def self.configurations=(config)
         @@configurations = ActiveRecord::DatabaseConfigurations.new(config)
@@ -122,6 +123,8 @@ module ActiveRecord
 
       class_attribute :belongs_to_required_by_default, instance_accessor: false
 
+      class_attribute :strict_loading_by_default, instance_accessor: false, default: false
+
       mattr_accessor :connection_handlers, instance_accessor: false, default: {}
 
       mattr_accessor :writing_role, instance_accessor: false, default: :writing
@@ -131,6 +134,8 @@ module ActiveRecord
       mattr_accessor :has_many_inversing, instance_accessor: false, default: false
 
       class_attribute :default_connection_handler, instance_writer: false
+
+      class_attribute :default_pool_key, instance_writer: false
 
       self.filter_attributes = []
 
@@ -142,7 +147,16 @@ module ActiveRecord
         Thread.current.thread_variable_set(:ar_connection_handler, handler)
       end
 
+      def self.current_pool_key
+        Thread.current.thread_variable_get(:ar_pool_key) || default_pool_key
+      end
+
+      def self.current_pool_key=(pool_key)
+        Thread.current.thread_variable_set(:ar_pool_key, pool_key)
+      end
+
       self.default_connection_handler = ConnectionAdapters::ConnectionHandler.new
+      self.default_pool_key = :default
     end
 
     module ClassMethods
@@ -182,28 +196,37 @@ module ActiveRecord
       end
 
       def find_by(*args) # :nodoc:
-        return super if scope_attributes? || reflect_on_all_aggregations.any? ||
+        return super if scope_attributes? ||
                         columns_hash.key?(inheritance_column) && !base_class?
 
         hash = args.first
+        return super unless Hash === hash
 
-        return super if !(Hash === hash) || hash.values.any? { |v|
-          StatementCache.unsupported_value?(v)
-        }
+        values = hash.values.map! { |value| value.is_a?(Base) ? value.id : value }
+        return super if values.any? { |v| StatementCache.unsupported_value?(v) }
 
-        # We can't cache Post.find_by(author: david) ...yet
-        return super unless hash.keys.all? { |k| columns_hash.has_key?(k.to_s) }
+        keys = hash.keys.map! do |key|
+          attribute_aliases[name = key.to_s] || begin
+            reflection = _reflect_on_association(name)
+            if reflection&.belongs_to? && !reflection.polymorphic?
+              reflection.join_foreign_key
+            elsif reflect_on_aggregation(name)
+              return super
+            else
+              name
+            end
+          end
+        end
 
-        keys = hash.keys
+        return super unless keys.all? { |k| columns_hash.key?(k) }
 
         statement = cached_find_by_statement(keys) { |params|
-          wheres = keys.each_with_object({}) { |param, o|
-            o[param] = params.bind
-          }
+          wheres = keys.index_with { params.bind }
           where(wheres).limit(1)
         }
+
         begin
-          statement.execute(hash.values, connection)&.first
+          statement.execute(values, connection)&.first
         rescue TypeError
           raise ActiveRecord::StatementInvalid
         end
@@ -287,12 +310,12 @@ module ActiveRecord
         false
       end
 
-      private
-        def cached_find_by_statement(key, &block)
-          cache = @find_by_statement_cache[connection.prepared_statements]
-          cache.compute_if_absent(key) { StatementCache.create(connection, &block) }
-        end
+      def cached_find_by_statement(key, &block) # :nodoc:
+        cache = @find_by_statement_cache[connection.prepared_statements]
+        cache.compute_if_absent(key) { StatementCache.create(connection, &block) }
+      end
 
+      private
         def relation
           relation = Relation.create(self)
 
@@ -402,9 +425,9 @@ module ActiveRecord
       _run_initialize_callbacks
 
       @new_record               = true
+      @previously_new_record    = false
       @destroyed                = false
       @_start_transaction_state = nil
-      @transaction_state        = nil
 
       super
     end
@@ -464,7 +487,6 @@ module ActiveRecord
 
     # Returns +true+ if the attributes hash has been frozen.
     def frozen?
-      sync_with_transaction_state if @transaction_state&.finalized?
       @attributes.frozen?
     end
 
@@ -491,6 +513,22 @@ module ActiveRecord
       @readonly
     end
 
+    # Returns +true+ if the record is in strict_loading mode.
+    def strict_loading?
+      @strict_loading
+    end
+
+    # Sets the record to strict_loading mode. This will raise an error
+    # if the record tries to lazily load an association.
+    #
+    #   user = User.first
+    #   user.strict_loading!
+    #   user.comments.to_a
+    #   => ActiveRecord::StrictLoadingViolationError
+    def strict_loading!
+      @strict_loading = true
+    end
+
     # Marks this record as read only.
     def readonly!
       @readonly = true
@@ -506,7 +544,7 @@ module ActiveRecord
       # allocated but not initialized.
       inspection = if defined?(@attributes) && @attributes
         self.class.attribute_names.collect do |name|
-          if has_attribute?(name)
+          if _has_attribute?(name)
             attr = _read_attribute(name)
             value = if attr.nil?
               attr.inspect
@@ -530,7 +568,7 @@ module ActiveRecord
       return super if custom_inspect_method_defined?
       pp.object_address_group(self) do
         if defined?(@attributes) && @attributes
-          attr_names = self.class.attribute_names.select { |name| has_attribute?(name) }
+          attr_names = self.class.attribute_names.select { |name| _has_attribute?(name) }
           pp.seplist(attr_names, proc { pp.text "," }) do |attr_name|
             pp.breakable " "
             pp.group(1) do
@@ -570,11 +608,12 @@ module ActiveRecord
       def init_internals
         @primary_key              = self.class.primary_key
         @readonly                 = false
+        @previously_new_record    = false
         @destroyed                = false
         @marked_for_destruction   = false
         @destroyed_by_association = nil
         @_start_transaction_state = nil
-        @transaction_state        = nil
+        @strict_loading           = self.class.strict_loading_by_default
 
         self.class.define_attribute_methods
       end

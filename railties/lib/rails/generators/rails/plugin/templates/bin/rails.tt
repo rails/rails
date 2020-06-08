@@ -9,10 +9,10 @@ APP_PATH = File.expand_path('../<%= dummy_path -%>/config/application', __dir__)
 
 # Set up gems listed in the Gemfile.
 ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../Gemfile', __dir__)
-require 'bundler/setup' if File.exist?(ENV['BUNDLE_GEMFILE'])
+require "bundler/setup" if File.exist?(ENV["BUNDLE_GEMFILE"])
 
 <% if include_all_railties? -%>
-require 'rails/all'
+require "rails/all"
 <% else -%>
 require "rails"
 # Pick the frameworks you want:
@@ -27,4 +27,4 @@ require "action_view/railtie"
 <%= comment_if :skip_sprockets %>require "sprockets/railtie"
 <%= comment_if :skip_test %>require "rails/test_unit/railtie"
 <% end -%>
-require 'rails/engine/commands'
+require "rails/engine/commands"

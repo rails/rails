@@ -194,7 +194,7 @@ module ActionCable
       end
 
       private
-        # Called once a consumer has become a subscriber of the channel. Usually the place to setup any streams
+        # Called once a consumer has become a subscriber of the channel. Usually the place to set up any streams
         # you want this channel to be sending to the subscriber.
         def subscribed # :doc:
           # Override in subclasses

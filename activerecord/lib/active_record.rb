@@ -36,12 +36,14 @@ require "active_record/errors"
 module ActiveRecord
   extend ActiveSupport::Autoload
 
+  autoload :AdvisoryLockBase
   autoload :Base
   autoload :Callbacks
   autoload :Core
   autoload :ConnectionHandling
   autoload :CounterCache
   autoload :DynamicMatchers
+  autoload :DelegatedType
   autoload :Enum
   autoload :InternalMetadata
   autoload :Explain
@@ -68,6 +70,7 @@ module ActiveRecord
   autoload :Serialization
   autoload :StatementCache
   autoload :Store
+  autoload :SignedId
   autoload :Suppressor
   autoload :Timestamp
   autoload :Transactions

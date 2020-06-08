@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "erb"
-require "active_support/core_ext/kernel/singleton_class"
 require "active_support/core_ext/module/redefine_method"
 require "active_support/multibyte/unicode"
 
@@ -222,7 +221,7 @@ module ActiveSupport #:nodoc:
     def %(args)
       case args
       when Hash
-        escaped_args = Hash[args.map { |k, arg| [k, html_escape_interpolated_argument(arg)] }]
+        escaped_args = args.transform_values { |arg| html_escape_interpolated_argument(arg) }
       else
         escaped_args = Array(args).map { |arg| html_escape_interpolated_argument(arg) }
       end

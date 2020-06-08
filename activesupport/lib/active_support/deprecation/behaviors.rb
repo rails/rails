@@ -51,7 +51,7 @@ module ActiveSupport
     # constant. Available behaviors are:
     #
     # [+raise+]   Raise <tt>ActiveSupport::DeprecationException</tt>.
-    # [+stderr+]  Log all deprecation warnings to +$stderr+.
+    # [+stderr+]  Log all deprecation warnings to <tt>$stderr</tt>.
     # [+log+]     Log all deprecation warnings to +Rails.logger+.
     # [+notify+]  Use +ActiveSupport::Notifications+ to notify +deprecation.rails+.
     # [+silence+] Do nothing.
@@ -78,7 +78,7 @@ module ActiveSupport
       # Available behaviors:
       #
       # [+raise+]   Raise <tt>ActiveSupport::DeprecationException</tt>.
-      # [+stderr+]  Log all deprecation warnings to +$stderr+.
+      # [+stderr+]  Log all deprecation warnings to <tt>$stderr</tt>.
       # [+log+]     Log all deprecation warnings to +Rails.logger+.
       # [+notify+]  Use +ActiveSupport::Notifications+ to notify +deprecation.rails+.
       # [+silence+] Do nothing.

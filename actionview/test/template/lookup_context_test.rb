@@ -190,33 +190,30 @@ class LookupContextTest < ActiveSupport::TestCase
     assert_equal 3, keys.uniq.size
   end
 
-  test "gives the key forward to the resolver, so it can be used as cache key" do
-    @lookup_context = build_lookup_context(ActionView::FixtureResolver.new("test/_foo.erb" => "Foo"), {})
+  test "uses details as part of cache key" do
+    fixtures = {
+      "test/_foo.erb" => "Foo",
+      "test/_foo.da.erb" => "Bar",
+    }
+    @lookup_context = build_lookup_context(ActionView::FixtureResolver.new(fixtures), {})
+
     template = @lookup_context.find("foo", %w(test), true)
+    original_template = template
     assert_equal "Foo", template.source
 
-    # Now we are going to change the template, but it won't change the returned template
-    # since we will hit the cache.
-    @lookup_context.view_paths.first.data["test/_foo.erb"] = "Bar"
+    # We should get the same template
     template = @lookup_context.find("foo", %w(test), true)
-    assert_equal "Foo", template.source
+    assert_same original_template, template
 
-    # This time we will change the locale. The updated template should be picked since
-    # lookup_context generated a new key after we changed the locale.
+    # Using a different locale we get a different view
     @lookup_context.locale = :da
     template = @lookup_context.find("foo", %w(test), true)
     assert_equal "Bar", template.source
 
-    # Now we will change back the locale and it will still pick the old template.
-    # This is expected because lookup_context will reuse the previous key for :en locale.
+    # Using en we get the original view
     @lookup_context.locale = :en
     template = @lookup_context.find("foo", %w(test), true)
-    assert_equal "Foo", template.source
-
-    # Finally, we can expire the cache. And the expected template will be used.
-    @lookup_context.view_paths.first.clear_cache
-    template = @lookup_context.find("foo", %w(test), true)
-    assert_equal "Bar", template.source
+    assert_same original_template, template
   end
 
   test "can disable the cache on demand" do

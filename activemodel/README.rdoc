@@ -200,7 +200,7 @@ behavior out of the box:
       attr_accessor :first_name, :last_name
 
       validates_each :first_name, :last_name do |record, attr, value|
-        record.errors.add attr, 'starts with z.' if value.to_s[0] == ?z
+        record.errors.add attr, "starts with z." if value.start_with?("z")
       end
     end
 
@@ -263,4 +263,4 @@ Bug reports for the Ruby on Rails project can be filed here:
 
 Feature requests should be discussed on the rails-core mailing list here:
 
-* https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core
+* https://discuss.rubyonrails.org/c/rubyonrails-core

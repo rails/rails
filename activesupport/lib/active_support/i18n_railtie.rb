@@ -48,6 +48,8 @@ module I18n
           app.config.i18n.load_path.unshift(*value.flat_map(&:existent))
         when :load_path
           I18n.load_path += value
+        when :raise_on_missing_translations
+          forward_raise_on_missing_translations_config(app)
         else
           I18n.send("#{setting}=", value)
         end
@@ -62,8 +64,6 @@ module I18n
       reloader = app.config.file_watcher.new(I18n.load_path.dup, directories) do
         I18n.load_path.keep_if { |p| File.exist?(p) }
         I18n.load_path |= reloadable_paths.flat_map(&:existent)
-
-        I18n.reload!
       end
 
       app.reloaders << reloader
@@ -73,6 +73,16 @@ module I18n
       reloader.execute
 
       @i18n_inited = true
+    end
+
+    def self.forward_raise_on_missing_translations_config(app)
+      ActiveSupport.on_load(:action_view) do
+        self.raise_on_missing_translations = app.config.i18n.raise_on_missing_translations
+      end
+
+      ActiveSupport.on_load(:action_controller) do
+        AbstractController::Translation.raise_on_missing_translations = app.config.i18n.raise_on_missing_translations
+      end
     end
 
     def self.include_fallbacks_module

@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/array"
-require "active_support/core_ext/kernel/singleton_class"
-
 module ActiveRecord
   # = Active Record \Named \Scopes
   module Scoping
@@ -30,8 +27,7 @@ module ActiveRecord
               ActiveSupport::Deprecation.warn(<<~MSG.squish)
                 Class level methods will no longer inherit scoping from `#{scope._deprecated_scope_source}`
                 in Rails 6.1. To continue using the scoped relation, pass it into the block directly.
-                To instead access the full set of models, as Rails 6.1 will, use `#{name}.unscoped`,
-                or `#{name}.default_scoped` if a model has default scopes.
+                To instead access the full set of models, as Rails 6.1 will, use `#{name}.default_scoped`.
               MSG
             end
 
@@ -53,7 +49,8 @@ module ActiveRecord
           end
         end
 
-        def default_scoped(scope = relation) # :nodoc:
+        # Returns a scope for the model with default scopes.
+        def default_scoped(scope = relation)
           build_default_scope(scope) || scope
         end
 
@@ -82,10 +79,6 @@ module ActiveRecord
         # The above calls to #scope define class methods <tt>Shirt.red</tt> and
         # <tt>Shirt.dry_clean_only</tt>. <tt>Shirt.red</tt>, in effect,
         # represents the query <tt>Shirt.where(color: 'red')</tt>.
-        #
-        # You should always pass a callable object to the scopes defined
-        # with #scope. This ensures that the scope is re-evaluated each
-        # time it is called.
         #
         # Note that this is simply 'syntactic sugar' for defining an actual
         # class method:
@@ -199,11 +192,16 @@ module ActiveRecord
               scope
             end
           end
+          singleton_class.send(:ruby2_keywords, name) if respond_to?(:ruby2_keywords, true)
 
           generate_relation_method(name)
         end
 
         private
+          def singleton_method_added(name)
+            generate_relation_method(name) if Kernel.respond_to?(name) && !ActiveRecord::Relation.method_defined?(name)
+          end
+
           def valid_scope_name?(name)
             if respond_to?(name, true) && logger
               logger.warn "Creating scope :#{name}. " \

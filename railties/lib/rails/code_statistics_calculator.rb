@@ -82,7 +82,7 @@ class CodeStatisticsCalculator #:nodoc:
       if file_path.end_with? "_test.rb"
         :minitest
       else
-        File.extname(file_path).sub(/\A\./, "").downcase.to_sym
+        File.extname(file_path).delete_prefix(".").downcase.to_sym
       end
     end
 end

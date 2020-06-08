@@ -6,7 +6,6 @@ require "active_support/descendants_tracker"
 require "active_support/time"
 require "active_support/core_ext/class/subclasses"
 require "active_record/attribute_decorators"
-require "active_record/define_callbacks"
 require "active_record/log_subscriber"
 require "active_record/explain_subscriber"
 require "active_record/relation/delegation"
@@ -275,6 +274,7 @@ module ActiveRecord #:nodoc:
     extend Querying
     extend Translation
     extend DynamicMatchers
+    extend DelegatedType
     extend Explain
     extend Enum
     extend Delegation::DelegateCache
@@ -296,7 +296,6 @@ module ActiveRecord #:nodoc:
     include AttributeDecorators
     include Locking::Optimistic
     include Locking::Pessimistic
-    include DefineCallbacks
     include AttributeMethods
     include Callbacks
     include Timestamp
@@ -311,6 +310,7 @@ module ActiveRecord #:nodoc:
     include Serialization
     include Store
     include SecureToken
+    include SignedId
     include Suppressor
   end
 

@@ -25,7 +25,7 @@ Rails offers four standard spots to place initialization code:
 Running Code Before Rails
 -------------------------
 
-In the rare event that your application needs to run some code before Rails itself is loaded, put it above the call to `require 'rails/all'` in `config/application.rb`.
+In the rare event that your application needs to run some code before Rails itself is loaded, put it above the call to `require "rails/all"` in `config/application.rb`.
 
 Configuring Rails Components
 ----------------------------
@@ -71,13 +71,13 @@ These configuration methods are to be called on a `Rails::Railtie` object, such 
 * `config.beginning_of_week` sets the default beginning of week for the
 application. Accepts a valid day of week as a symbol (e.g. `:monday`).
 
-* `config.cache_store` configures which cache store to use for Rails caching. Options include one of the symbols `:memory_store`, `:file_store`, `:mem_cache_store`, `:null_store`, `:redis_cache_store`, or an object that implements the cache API. Defaults to `:file_store`.
+* `config.cache_store` configures which cache store to use for Rails caching. Options include one of the symbols `:memory_store`, `:file_store`, `:mem_cache_store`, `:null_store`, `:redis_cache_store`, or an object that implements the cache API. Defaults to `:file_store`. See [Cache Stores](caching_with_rails.html#cache-stores) for per-store configuration options.
 
 * `config.colorize_logging` specifies whether or not to use ANSI color codes when logging information. Defaults to `true`.
 
 * `config.consider_all_requests_local` is a flag. If `true` then any error will cause detailed debugging information to be dumped in the HTTP response, and the `Rails::Info` controller will show the application runtime context in `/rails/info/properties`. `true` by default in development and test environments, and `false` in production mode. For finer-grained control, set this to `false` and implement `show_detailed_exceptions?` in controllers to specify which requests should provide debugging information on errors.
 
-* `config.console` allows you to set class that will be used as console you run `rails console`. It's best to run it in `console` block:
+* `config.console` allows you to set class that will be used as console you run `bin/rails console`. It's best to run it in `console` block:
 
     ```ruby
     console do
@@ -110,7 +110,7 @@ application. Accepts a valid day of week as a symbol (e.g. `:monday`).
 you don't want shown in the logs, such as passwords or credit card
 numbers. It also filters out sensitive values of database columns when call `#inspect` on an Active Record object. By default, Rails filters out passwords by adding `Rails.application.config.filter_parameters += [:password]` in `config/initializers/filter_parameter_logging.rb`. Parameters filter works by partial matching regular expression.
 
-* `config.force_ssl` forces all requests to be served over HTTPS by using the `ActionDispatch::SSL` middleware, and sets `config.action_mailer.default_url_options` to be `{ protocol: 'https' }`. This can be configured by setting `config.ssl_options` - see the [ActionDispatch::SSL documentation](https://api.rubyonrails.org/classes/ActionDispatch/SSL.html) for details.
+* `config.force_ssl` forces all requests to be served over HTTPS, and sets "https://" as the default protocol when generating URLs. Enforcement of HTTPS is handled by the `ActionDispatch::SSL` middleware, which can be configured via `config.ssl_options` - see its [documentation](https://api.rubyonrails.org/classes/ActionDispatch/SSL.html) for details.
 
 * `config.log_formatter` defines the formatter of the Rails logger. This option defaults to an instance of `ActiveSupport::Logger::SimpleFormatter` for all modes. If you are setting a value for `config.logger` you must manually pass the value of your formatter to your logger before it is wrapped in an `ActiveSupport::TaggedLogging` instance, Rails will not do it for you.
 
@@ -162,7 +162,7 @@ defaults to `:debug` for all environments. The available log levels are: `:debug
 * `config.autoloader` sets the autoloading mode. This option defaults to `:zeitwerk` if `6.0` is specified in `config.load_defaults`. Applications can still use the classic autoloader by setting this value to `:classic` after loading the framework defaults:
 
     ```ruby
-    config.load_defaults "6.0"
+    config.load_defaults 6.0
     config.autoloader = :classic
     ```
 
@@ -348,6 +348,9 @@ All these configuration options are delegated to the `I18n` library.
 
 * `config.i18n.load_path` sets the path Rails uses to look for locale files. Defaults to `config/locales/*.{yml,rb}`.
 
+* `config.i18n.raise_on_missing_translations` determines whether an error should be raised for missing translations
+in controllers and views. This defaults to `false`.
+
 * `config.i18n.fallbacks` sets fallback behavior for missing translations. Here are 3 usage examples for this option:
 
   * You can set the option to `true` for using default locale as fallback, like so:
@@ -429,6 +432,10 @@ All these configuration options are delegated to the `I18n` library.
   controls whether a record fails validation if `belongs_to` association is not
   present.
 
+* `config.active_record.strict_loading_by_default` is a boolean value
+  that either enables or disables strict_loading mode by default.
+  Defaults to `false`.
+
 * `config.active_record.warn_on_records_fetched_greater_than` allows setting a
   warning threshold for query result size. If the number of records returned
   by a query exceeds the threshold, a warning is logged. This can be used to
@@ -439,7 +446,7 @@ All these configuration options are delegated to the `I18n` library.
   Defaults to `false`.
 
 * `config.active_record.use_schema_cache_dump` enables users to get schema cache information
-  from `db/schema_cache.yml` (generated by `rails db:schema:cache:dump`), instead of
+  from `db/schema_cache.yml` (generated by `bin/rails db:schema:cache:dump`), instead of
   having to send a query to the database to get this information.
   Defaults to `true`.
 
@@ -448,6 +455,9 @@ All these configuration options are delegated to the `I18n` library.
   changes by moving the volatile information (max updated at and count) of
   the relation's cache key into the cache version to support recycling cache key.
   Defaults to `false`.
+
+* `config.active_record.has_many_inversing` enables setting the inverse record
+  when traversing `belongs_to` to `has_many` associations. Defaults to `false`.
 
 The MySQL adapter adds one additional configuration option:
 
@@ -610,6 +620,10 @@ Defaults to `'signed cookie'`.
   return value of `ActionDispatch::Response#content_type` to the Content-Type
   header without modification. Defaults to `false`.
 
+* `config.action_dispatch.cookies_same_site_protection` configures the default
+  value of the `SameSite` attribute when setting cookies. Defaults to `nil`,
+  which means the `SameSite` attribute is not added.
+
 * `ActionDispatch::Callbacks.before` takes a block of code to run before the request.
 
 * `ActionDispatch::Callbacks.after` takes a block of code to run after the request.
@@ -654,9 +668,6 @@ Defaults to `'signed cookie'`.
 
     The default setting is `true`, which uses the partial at `/admin/articles/_article.erb`. Setting the value to `false` would render `/articles/_article.erb`, which is the same behavior as rendering from a non-namespaced controller such as `ArticlesController`.
 
-* `config.action_view.raise_on_missing_translations` determines whether an
-  error should be raised for missing translations. This defaults to `false`.
-
 * `config.action_view.automatically_disable_submit_tag` determines whether
   `submit_tag` should automatically disable on click, this defaults to `true`.
 
@@ -668,6 +679,7 @@ Defaults to `'signed cookie'`.
 
 * `config.action_view.default_enforce_utf8` determines whether forms are generated with a hidden tag that forces older versions of Internet Explorer to submit forms encoded in UTF-8. This defaults to `false`.
 
+* `config.action_view.annotate_rendered_view_with_filenames` determines whether to annotate rendered view with template file names. This defaults to `false`.
 
 ### Configuring Action Mailbox
 
@@ -805,6 +817,10 @@ There are a few configuration options available in Active Support:
 
 * `ActiveSupport::Deprecation.silenced` sets whether or not to display deprecation warnings. The default is `false`.
 
+* `ActiveSupport.utc_to_local_returns_utc_offset_times` configures
+  `ActiveSupport::TimeZone.utc_to_local` to return a time with a UTC offset
+  instead of a UTC time incorporating that offset. Defaults to `false`.
+
 ### Configuring Active Job
 
 `config.active_job` provides the following configuration options:
@@ -864,7 +880,11 @@ There are a few configuration options available in Active Support:
 
 * `config.active_job.log_arguments` controls if the arguments of a job are logged. Defaults to `true`.
 
-* `config.active_job.retry_jitter` controls the amount of "jitter" (random variation) applied to the delay time calculated when retrying failed jobs. Defaults to `0.15`.
+* `config.active_job.retry_jitter` controls the amount of "jitter" (random variation) applied to the delay time calculated when retrying failed jobs. Defaults to `0.0`.
+
+* `config.active_job.skip_after_callbacks_if_terminated` controls whether
+  `after_enqueue` / `after_perform` callbacks run when a `before_enqueue` /
+  `before_perform` callback halts with `throw :abort`. Defaults to `false`.
 
 ### Configuring Action Cable
 
@@ -889,7 +909,7 @@ You can find more detailed configuration options in the
 
 * `config.active_storage.analyzers` accepts an array of classes indicating the analyzers available for Active Storage blobs. The default is `[ActiveStorage::Analyzer::ImageAnalyzer, ActiveStorage::Analyzer::VideoAnalyzer]`. The former can extract width and height of an image blob; the latter can extract width, height, duration, angle, and aspect ratio of a video blob.
 
-* `config.active_storage.previewers` accepts an array of classes indicating the image previewers available in Active Storage blobs. The default is `[ActiveStorage::Previewer::PDFPreviewer, ActiveStorage::Previewer::VideoPreviewer]`. The former can generate a thumbnail from the first page of a PDF blob; the latter from the relevant frame of a video blob.
+* `config.active_storage.previewers` accepts an array of classes indicating the image previewers available in Active Storage blobs. The default is `[ActiveStorage::Previewer::PopplerPDFPreviewer, ActiveStorage::Previewer::MuPDFPreviewer, ActiveStorage::Previewer::VideoPreviewer]`. `PopplerPDFPreviewer` and `MuPDFPreviewer` can generate a thumbnail from the first page of a PDF blob; `VideoPreviewer` from the relevant frame of a video blob.
 
 * `config.active_storage.paths` accepts a hash of options indicating the locations of previewer/analyzer commands. The default is `{}`, meaning the commands will be looked for in the default path. Can include any of these options:
     * `:ffprobe` - The location of the ffprobe executable.
@@ -900,7 +920,9 @@ You can find more detailed configuration options in the
    config.active_storage.paths[:ffprobe] = '/usr/local/bin/ffprobe'
    ```
 
-* `config.active_storage.variable_content_types` accepts an array of strings indicating the content types that Active Storage can transform through ImageMagick. The default is `%w(image/png image/gif image/jpg image/jpeg image/pjpeg image/tiff image/bmp image/vnd.adobe.photoshop image/vnd.microsoft.icon)`.
+* `config.active_storage.variable_content_types` accepts an array of strings indicating the content types that Active Storage can transform through ImageMagick. The default is `%w(image/png image/gif image/jpg image/jpeg image/pjpeg image/tiff image/bmp image/vnd.adobe.photoshop image/vnd.microsoft.icon image/webp)`.
+
+* `config.active_storage.web_image_content_types` accepts an array of strings regarded as web image content types in which variants can be processed without being converted to the fallback PNG format. If you want to use `WebP` variants in your application you can add `image/webp` to this array. The default is `%w(image/png image/jpeg image/jpg image/gif)`.
 
 * `config.active_storage.content_types_to_serve_as_binary` accepts an array of strings indicating the content types that Active Storage will always serve as an attachment, rather than inline. The default is `%w(text/html
 text/javascript image/svg+xml application/postscript application/x-shockwave-flash text/xml application/xml application/xhtml+xml application/mathml+xml text/cache-manifest)`.
@@ -952,6 +974,14 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
 * `config.active_storage.draw_routes` can be used to toggle Active Storage route generation. The default is `true`.
 
+* `config.active_storage.resolve_model_to_route` can be used to globally change how Active Storage files are delivered.
+
+  Allowed values are:
+  * `:rails_storage_redirect`: Redirect to signed, short-lived service URLs.
+  * `:rails_storage_proxy`: Proxy files by downloading them.
+
+  The default is `:rails_storage_redirect`.
+
 ### Results of `config.load_defaults`
 
 `config.load_defaults` sets new defaults up to and including the version passed. Such that passing, say, '6.0' also gets the new defaults from every version before it.
@@ -960,6 +990,10 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
 - `config.active_record.has_many_inversing`: `true`
 - `config.active_storage.track_variants`: `true`
+- `config.active_job.retry_jitter`: `0.15`
+- `config.active_job.skip_after_callbacks_if_terminated`: `true`
+- `config.action_dispatch.cookies_same_site_protection`: `:lax`
+- `ActiveSupport.utc_to_local_returns_utc_offset_times`: `true`
 
 #### For '6.0', new defaults from previous versions below and:
 
@@ -1258,13 +1292,28 @@ development:
 
 Change the username and password in the `development` section as appropriate.
 
+#### Configuring Metadata Storage
+
+By default Rails will store information about your Rails environment and schema
+in an internal table named `ar_internal_metadata`.
+
+To turn this off per connection, set `use_metadata_table` in your database
+configuration. This is useful when working with a shared database and/or
+database user that cannot create tables.
+
+```yaml
+development:
+  adapter: postgresql
+  use_metadata_table: false
+```
+
 ### Creating Rails Environments
 
 By default Rails ships with three environments: "development", "test", and "production". While these are sufficient for most use cases, there are circumstances when you want more environments.
 
 Imagine you have a server which mirrors the production environment but is only used for testing. Such a server is commonly called a "staging server". To define an environment called "staging" for this server, just create a file called `config/environments/staging.rb`. Please use the contents of any existing file in `config/environments` as a starting point and make the necessary changes from there.
 
-That environment is no different than the default ones, start a server with `rails server -e staging`, a console with `rails console -e staging`, `Rails.env.staging?` works, etc.
+That environment is no different than the default ones, start a server with `bin/rails server -e staging`, a console with `bin/rails console -e staging`, `Rails.env.staging?` works, etc.
 
 
 ### Deploy to a Subdirectory (relative URL root)
@@ -1575,13 +1624,14 @@ These configuration points are then available through the configuration object:
 
 You can also use `Rails::Application.config_for` to load whole configuration files:
 
-  ```ruby
+  ```yaml
   # config/payment.yml:
   production:
     environment: production
     merchant_id: production_merchant_id
     public_key:  production_public_key
     private_key: production_private_key
+
   development:
     environment: sandbox
     merchant_id: development_merchant_id
@@ -1598,6 +1648,28 @@ You can also use `Rails::Application.config_for` to load whole configuration fil
 
   ```ruby
   Rails.configuration.payment['merchant_id'] # => production_merchant_id or development_merchant_id
+  ```
+`Rails::Application.config_for` supports a `shared` configuration to group common
+configurations. The shared configuration will be merged into the environment
+configuration.
+
+  ```yaml
+  # config/example.yml
+  shared:
+    foo:
+      bar:
+        baz: 1
+
+  development:
+    foo:
+      bar:
+        qux: 2
+  ```
+
+
+  ```ruby
+  # development environment
+  Rails.application.config_for(:example)[:foo][:bar] #=> { baz: 1, qux: 2 }
   ```
 
 Search Engines Indexing

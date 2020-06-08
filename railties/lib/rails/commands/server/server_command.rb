@@ -5,6 +5,7 @@ require "action_dispatch"
 require "rails"
 require "active_support/deprecation"
 require "active_support/core_ext/string/filters"
+require "active_support/core_ext/symbol/starts_ends_with"
 require "rails/dev_caching"
 require "rails/command/environment_argument"
 
@@ -96,7 +97,7 @@ module Rails
 
       # Hard-coding a bunch of handlers here as we don't have a public way of
       # querying them from the Rack::Handler registry.
-      RACK_SERVERS = %w(cgi fastcgi webrick lsws scgi thin puma unicorn)
+      RACK_SERVERS = %w(cgi fastcgi webrick lsws scgi thin puma unicorn falcon)
 
       DEFAULT_PORT = 3000
       DEFAULT_PIDFILE = "tmp/pids/server.pid"
@@ -178,7 +179,7 @@ module Rails
             #   ["-p3001", "-C", "--binding", "127.0.0.1"] # => {"-p"=>true, "-C"=>true, "--binding"=>true}
             user_flag = {}
             @original_options.each do |command|
-              if command.to_s.start_with?("--")
+              if command.start_with?("--")
                 option = command.split("=")[0]
                 user_flag[option] = true
               elsif command =~ /\A(-.)/

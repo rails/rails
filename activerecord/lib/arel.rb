@@ -43,26 +43,12 @@ module Arel
   end
 
   def self.arel_node?(value) # :nodoc:
-    value.is_a?(Arel::Node) || value.is_a?(Arel::Attribute) || value.is_a?(Arel::Nodes::SqlLiteral)
+    value.is_a?(Arel::Nodes::Node) || value.is_a?(Arel::Attribute) || value.is_a?(Arel::Nodes::SqlLiteral)
   end
 
   def self.fetch_attribute(value, &block) # :nodoc:
-    case value
-    when Arel::Nodes::Between, Arel::Nodes::In, Arel::Nodes::NotIn, Arel::Nodes::Equality,
-         Arel::Nodes::NotEqual, Arel::Nodes::LessThan, Arel::Nodes::LessThanOrEqual,
-         Arel::Nodes::GreaterThan, Arel::Nodes::GreaterThanOrEqual
-      if value.left.is_a?(Arel::Attributes::Attribute)
-        yield value.left
-      else
-        yield value.right
-      end
-    when Arel::Nodes::Or
-      fetch_attribute(value.left, &block) && fetch_attribute(value.right, &block)
-    when Arel::Nodes::Grouping
-      fetch_attribute(value.expr, &block)
+    unless String === value
+      value.fetch_attribute(&block)
     end
   end
-
-  ## Convenience Alias
-  Node = Arel::Nodes::Node # :nodoc:
 end

@@ -41,7 +41,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :readers, :people, :comments, :authors, :categories, :taggings, :tags,
            :owners, :pets, :toys, :jobs, :references, :companies, :members, :author_addresses,
            :subscribers, :books, :subscriptions, :developers, :categorizations, :essays,
-           :categories_posts, :clubs, :memberships, :organizations
+           :categories_posts, :clubs, :memberships, :organizations, :author_favorites
 
   # Dummies to force column loads so query counts are clean.
   def setup
@@ -67,11 +67,13 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_preload_with_nested_association
-    posts = Post.preload(:author, :author_favorites_with_scope).to_a
+    posts = Post.where(id: [authors(:david).id, authors(:mary).id]).
+      preload(:author, :author_favorites_with_scope).order(:id).to_a
 
     assert_no_queries do
       posts.each(&:author)
       posts.each(&:author_favorites_with_scope)
+      assert_equal 1, posts[0].author_favorites_with_scope.length
     end
   end
 
@@ -193,7 +195,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     post2 = Post.includes(:categories).first
 
     assert_operator post.categories.length, :>, 0
-    assert_equal post2.categories, post.categories
+    assert_equal post2.categories.sort_by(&:id), post.categories.sort_by(&:id)
   end
 
   def test_include?
@@ -1051,6 +1053,20 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_nothing_raised do
       people(:michael).posts.first.update!(title: "Can write")
     end
+  end
+
+  def test_has_many_through_with_source_scope
+    expected = [readers(:michael_welcome).becomes(LazyReader)]
+    assert_equal expected, Author.first.lazy_readers_skimmers_or_not
+    assert_equal expected, Author.preload(:lazy_readers_skimmers_or_not).first.lazy_readers_skimmers_or_not
+    assert_equal expected, Author.eager_load(:lazy_readers_skimmers_or_not).first.lazy_readers_skimmers_or_not
+  end
+
+  def test_has_many_through_with_join_scope
+    expected = [readers(:bob_welcome).becomes(LazyReader)]
+    assert_equal expected, Author.last.lazy_readers_skimmers_or_not_2
+    assert_equal expected, Author.preload(:lazy_readers_skimmers_or_not_2).last.lazy_readers_skimmers_or_not_2
+    assert_equal expected, Author.eager_load(:lazy_readers_skimmers_or_not_2).last.lazy_readers_skimmers_or_not_2
   end
 
   def test_has_many_through_polymorphic_with_rewhere

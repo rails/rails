@@ -6,8 +6,8 @@ $:.unshift(activesupport_path) if File.directory?(activesupport_path) && !$:.inc
 require "thor/group"
 require "rails/command"
 
-require "active_support/core_ext/kernel/singleton_class"
 require "active_support/core_ext/array/extract_options"
+require "active_support/core_ext/enumerable"
 require "active_support/core_ext/hash/deep_merge"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/string/indent"
@@ -79,6 +79,7 @@ module Rails
         templates_path.concat config.templates
         templates_path.uniq!
         hide_namespaces(*config.hidden_namespaces)
+        after_generate_callbacks.replace config.after_generate_callbacks
       end
 
       def templates_path #:nodoc:
@@ -91,6 +92,10 @@ module Rails
 
       def options #:nodoc:
         @options ||= DEFAULT_OPTIONS.dup
+      end
+
+      def after_generate_callbacks # :nodoc:
+        @after_generate_callbacks ||= []
       end
 
       # Hold configured generators fallbacks. If a plugin developer wants a
@@ -123,9 +128,8 @@ module Rails
           template_engine: nil
         )
 
-        if ARGV.first == "mailer"
-          options[:rails][:template_engine] = :erb
-        end
+        options[:mailer] ||= {}
+        options[:mailer][:template_engine] ||= :erb
       end
 
       # Returns an array of generator namespaces that are hidden.
@@ -161,7 +165,8 @@ module Rails
             "#{css}:assets",
             "css:assets",
             "css:scaffold",
-            "action_text:install"
+            "action_text:install",
+            "action_mailbox:install"
           ]
         end
       end
@@ -251,7 +256,7 @@ module Rails
 
         lookup(lookups)
 
-        namespaces = Hash[subclasses.map { |klass| [klass.namespace, klass] }]
+        namespaces = subclasses.index_by(&:namespace)
         lookups.each do |namespace|
           klass = namespaces[namespace]
           return klass if klass
@@ -268,6 +273,7 @@ module Rails
         if klass = find_by_namespace(names.pop, names.any? && names.join(":"))
           args << "--help" if args.empty? && klass.arguments.any?(&:required?)
           klass.start(args, config)
+          run_after_generate_callback if config[:behavior] == :invoke
         else
           options     = sorted_groups.flat_map(&:last)
           suggestion  = Rails::Command::Spellchecker.suggest(namespace.to_s, from: options)
@@ -278,6 +284,11 @@ module Rails
             Run `bin/rails generate --help` for more options.
           MSG
         end
+      end
+
+      def add_generated_file(file) # :nodoc:
+        (@@generated_files ||= []) << file
+        file
       end
 
       private
@@ -312,6 +323,15 @@ module Rails
 
         def file_lookup_paths # :doc:
           @file_lookup_paths ||= [ "{#{lookup_paths.join(',')}}", "**", "*_generator.rb" ]
+        end
+
+        def run_after_generate_callback
+          if defined?(@@generated_files) && !@@generated_files.empty?
+            @after_generate_callbacks.each do |callback|
+              callback.call(@@generated_files)
+            end
+            @@generated_files = []
+          end
         end
     end
   end

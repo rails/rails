@@ -38,6 +38,14 @@ module ActiveStorage
       image/bmp
       image/vnd.adobe.photoshop
       image/vnd.microsoft.icon
+      image/webp
+    )
+
+    config.active_storage.web_image_content_types = %w(
+      image/png
+      image/jpeg
+      image/jpg
+      image/gif
     )
 
     config.active_storage.content_types_to_serve_as_binary = %w(
@@ -76,8 +84,10 @@ module ActiveStorage
         ActiveStorage.paths             = app.config.active_storage.paths || {}
         ActiveStorage.routes_prefix     = app.config.active_storage.routes_prefix || "/rails/active_storage"
         ActiveStorage.draw_routes       = app.config.active_storage.draw_routes != false
+        ActiveStorage.resolve_model_to_route = app.config.active_storage.resolve_model_to_route || :rails_storage_redirect
 
         ActiveStorage.variable_content_types = app.config.active_storage.variable_content_types || []
+        ActiveStorage.web_image_content_types = app.config.active_storage.web_image_content_types || []
         ActiveStorage.content_types_to_serve_as_binary = app.config.active_storage.content_types_to_serve_as_binary || []
         ActiveStorage.service_urls_expire_in = app.config.active_storage.service_urls_expire_in || 5.minutes
         ActiveStorage.content_types_allowed_inline = app.config.active_storage.content_types_allowed_inline || []
@@ -106,17 +116,10 @@ module ActiveStorage
       ActiveSupport.on_load(:active_storage_blob) do
         configs = Rails.configuration.active_storage.service_configurations ||=
           begin
-            config_file = Pathname.new(Rails.root.join("config/storage.yml"))
+            config_file = Rails.root.join("config/storage.yml")
             raise("Couldn't find Active Storage configuration in #{config_file}") unless config_file.exist?
 
-            require "yaml"
-            require "erb"
-
-            YAML.load(ERB.new(config_file.read).result) || {}
-          rescue Psych::SyntaxError => e
-            raise "YAML syntax error occurred while parsing #{config_file}. " \
-                  "Please note that YAML must be consistently indented using spaces. Tabs are not allowed. " \
-                  "Error: #{e.message}"
+            ActiveSupport::ConfigurationFile.parse(config_file)
           end
 
         ActiveStorage::Blob.services = ActiveStorage::Service::Registry.new(configs)

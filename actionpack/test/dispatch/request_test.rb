@@ -592,12 +592,6 @@ class RequestCookie < BaseRequestTest
     request = stub_request("HTTP_COOKIE" => "_session_id=c84ace84796670c052c6ceb2451fb0f2; is_admin=yes")
     assert_equal "c84ace84796670c052c6ceb2451fb0f2", request.cookies["_session_id"], request.cookies.inspect
     assert_equal "yes", request.cookies["is_admin"], request.cookies.inspect
-
-    # some Nokia phone browsers omit the space after the semicolon separator.
-    # some developers have grown accustomed to using comma in cookie values.
-    request = stub_request("HTTP_COOKIE" => "_session_id=c84ace847,96670c052c6ceb2451fb0f2;is_admin=yes")
-    assert_equal "c84ace847", request.cookies["_session_id"], request.cookies.inspect
-    assert_equal "yes", request.cookies["is_admin"], request.cookies.inspect
   end
 end
 

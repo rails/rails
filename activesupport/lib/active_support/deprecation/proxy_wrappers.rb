@@ -147,7 +147,7 @@ module ActiveSupport
 
       # Don't give a deprecation warning on methods that IRB may invoke
       # during tab-completion.
-      delegate :hash, :instance_methods, :name, to: :target
+      delegate :hash, :instance_methods, :name, :respond_to?, to: :target
 
       # Returns the class of the new constant.
       #

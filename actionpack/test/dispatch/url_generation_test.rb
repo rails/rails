@@ -55,6 +55,17 @@ module TestUrlGeneration
       assert_equal "http://www.example.com/foo", foo_url(protocol: "http")
     end
 
+    test "respects secure_protocol configuration when protocol not present" do
+      old_secure_protocol = ActionDispatch::Http::URL.secure_protocol
+
+      begin
+        ActionDispatch::Http::URL.secure_protocol = true
+        assert_equal "https://www.example.com/foo", foo_url(protocol: nil)
+      ensure
+        ActionDispatch::Http::URL.secure_protocol = old_secure_protocol
+      end
+    end
+
     test "extracting protocol from host when protocol not present" do
       assert_equal "httpz://www.example.com/foo", foo_url(host: "httpz://www.example.com", protocol: nil)
     end

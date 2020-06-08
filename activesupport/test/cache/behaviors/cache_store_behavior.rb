@@ -110,6 +110,12 @@ module CacheStoreBehavior
     end
   end
 
+  def test_read_multi_with_empty_keys_and_a_logger_and_no_namespace
+    @cache.options[:namespace] = nil
+    @cache.logger = ActiveSupport::Logger.new(nil)
+    assert_equal({}, @cache.read_multi)
+  end
+
   def test_fetch_multi
     @cache.write("foo", "bar")
     @cache.write("fud", "biz")
@@ -466,8 +472,8 @@ module CacheStoreBehavior
   def test_crazy_key_characters
     crazy_key = "#/:*(<+=> )&$%@?;'\"\'`~-"
     assert @cache.write(crazy_key, "1", raw: true)
-    assert_equal "1", @cache.read(crazy_key)
-    assert_equal "1", @cache.fetch(crazy_key)
+    assert_equal "1", @cache.read(crazy_key, raw: true)
+    assert_equal "1", @cache.fetch(crazy_key, raw: true)
     assert @cache.delete(crazy_key)
     assert_equal "2", @cache.fetch(crazy_key, raw: true) { "2" }
     assert_equal 3, @cache.increment(crazy_key)
@@ -491,7 +497,7 @@ module CacheStoreBehavior
       @events << ActiveSupport::Notifications::Event.new(*args)
     end
     assert @cache.write(key, "1", raw: true)
-    assert @cache.fetch(key) { }
+    assert @cache.fetch(key, raw: true) { }
     assert_equal 1, @events.length
     assert_equal "cache_read.active_support", @events[0].name
     assert_equal :fetch, @events[0].payload[:super_operation]

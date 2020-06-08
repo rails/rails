@@ -509,7 +509,7 @@ module ActiveRecord
               if target_record
                 existing_record = target_record
               else
-                association.add_to_target(existing_record, :skip_callbacks)
+                association.add_to_target(existing_record, skip_callbacks: true)
               end
 
               assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy])

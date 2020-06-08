@@ -80,11 +80,11 @@ module ActiveRecord
 
       private
         def timestamp_attributes_for_create
-          ["created_at", "created_on"]
+          ["created_at", "created_on"].map! { |name| attribute_aliases[name] || name }
         end
 
         def timestamp_attributes_for_update
-          ["updated_at", "updated_on"]
+          ["updated_at", "updated_on"].map! { |name| attribute_aliases[name] || name }
         end
 
         def reload_schema_from_cache
@@ -159,7 +159,7 @@ module ActiveRecord
     def clear_timestamp_attributes
       all_timestamp_attributes_in_model.each do |attribute_name|
         self[attribute_name] = nil
-        clear_attribute_changes([attribute_name])
+        clear_attribute_change(attribute_name)
       end
     end
   end

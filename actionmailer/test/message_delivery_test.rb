@@ -164,4 +164,11 @@ class MessageDeliveryTest < ActiveSupport::TestCase
     assert_equal DelayedMailer, DelayedMailer.last_rescue_from_instance
     assert_equal "Error while trying to deserialize arguments: boom, missing find", DelayedMailer.last_error.message
   end
+
+  test "allows for keyword arguments" do
+    assert_performed_with(job: ActionMailer::MailDeliveryJob, args: ["DelayedMailer", "test_kwargs", "deliver_now", args: [argument: 1]]) do
+      message = DelayedMailer.test_kwargs(argument: 1)
+      message.deliver_later
+    end
+  end
 end

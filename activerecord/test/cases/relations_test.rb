@@ -93,11 +93,15 @@ class RelationTest < ActiveRecord::TestCase
   def test_loaded_all
     topics = Topic.all
 
+    assert_not_predicate topics, :loaded?
+    assert_not_predicate topics, :loaded
+
     assert_queries(1) do
       2.times { assert_equal 5, topics.to_a.size }
     end
 
     assert_predicate topics, :loaded?
+    assert_predicate topics, :loaded
   end
 
   def test_scoped_first
@@ -1354,7 +1358,7 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
-  def test_first_or_create_with_valid_array
+  def test_first_or_create_bang_with_valid_array
     several_green_birds = Bird.where(color: "green").first_or_create!([{ name: "parrot" }, { name: "parakeet" }])
     assert_kind_of Array, several_green_birds
     several_green_birds.each { |bird| assert bird.persisted? }
@@ -1364,7 +1368,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal several_green_birds.first, same_parrot
   end
 
-  def test_first_or_create_with_invalid_array
+  def test_first_or_create_bang_with_invalid_array
     assert_raises(ActiveRecord::RecordInvalid) { Bird.where(color: "green").first_or_create!([ { name: "parrot" }, { pirate_id: 1 } ]) }
   end
 
@@ -2050,6 +2054,48 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 1, posts.unscope(where: :body).count
   end
 
+  def test_unscope_with_aliased_column
+    posts = Post.where(author: authors(:mary), text: "hullo").order(:id)
+    assert_equal [posts(:misc_by_mary)], posts
+
+    posts = posts.unscope(where: :"posts.text")
+    assert_equal posts(:eager_other, :misc_by_mary, :other_by_mary), posts
+  end
+
+  def test_unscope_with_table_name_qualified_column
+    comments = Comment.joins(:post).where("posts.id": posts(:thinking))
+    assert_equal [comments(:does_it_hurt)], comments
+
+    comments = comments.where(id: comments(:greetings))
+    assert_empty comments
+
+    comments = comments.unscope(where: :"posts.id")
+    assert_equal [comments(:greetings)], comments
+  end
+
+  def test_unscope_with_table_name_qualified_hash
+    comments = Comment.joins(:post).where("posts.id": posts(:thinking))
+    assert_equal [comments(:does_it_hurt)], comments
+
+    comments = comments.where(id: comments(:greetings))
+    assert_empty comments
+
+    comments = comments.unscope(where: { posts: :id })
+    assert_equal [comments(:greetings)], comments
+  end
+
+  def test_unscope_with_arel_sql
+    posts = Post.where(Arel.sql("'Welcome to the weblog'").eq(Post.arel_attribute(:title)))
+
+    assert_equal 1, posts.count
+    assert_equal Post.count, posts.unscope(where: :title).count
+
+    posts = Post.where(Arel.sql("posts.title").eq("Welcome to the weblog"))
+
+    assert_equal 1, posts.count
+    assert_equal 1, posts.unscope(where: :title).count
+  end
+
   def test_unscope_grouped_where
     posts = Post.where(
       title: ["Welcome to the weblog", "So I was thinking", nil]
@@ -2077,6 +2123,8 @@ class RelationTest < ActiveRecord::TestCase
     sub_accounts = SubAccount.all
     assert_equal [accounts(:signals37)], sub_accounts.open
     assert_equal [accounts(:signals37)], sub_accounts.available
+
+    assert_equal [topics(:second)], topics(:first).open_replies
   end
 
   def test_where_with_take_memoization
@@ -2089,7 +2137,7 @@ class RelationTest < ActiveRecord::TestCase
     third_post = posts.where(title: "3").take
 
     assert_equal "3", third_post.title
-    assert_not_equal first_post.object_id, third_post.object_id
+    assert_not_same first_post, third_post
   end
 
   def test_find_by_with_take_memoization
@@ -2102,7 +2150,7 @@ class RelationTest < ActiveRecord::TestCase
     third_post = posts.find_by(title: "3")
 
     assert_equal "3", third_post.title
-    assert_not_equal first_post.object_id, third_post.object_id
+    assert_not_same first_post, third_post
   end
 
   test "#skip_query_cache!" do
@@ -2158,6 +2206,13 @@ class RelationTest < ActiveRecord::TestCase
   test "#where with empty set" do
     authors = Author.where(name: Set.new)
     assert_empty authors
+  end
+
+  (ActiveRecord::Relation::MULTI_VALUE_METHODS - [:extending]).each do |method|
+    test "#{method} with blank value" do
+      authors = Author.public_send(method, [""])
+      assert_empty authors.public_send(:"#{method}_values")
+    end
   end
 
   private

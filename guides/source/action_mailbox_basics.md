@@ -76,19 +76,19 @@ bin/rails action_mailbox:ingress:exim URL=https://example.com/rails/action_mailb
 ### Mailgun
 
 Give Action Mailbox your
-[Mailgun API key](https://help.mailgun.com/hc/en-us/articles/203380100-Where-can-I-find-my-API-key-and-SMTP-credentials)
+Mailgun Signing key (which you can find under Settings -> Security & Users -> API security in Mailgun)
 so it can authenticate requests to the Mailgun ingress.
 
-Use `bin/rails credentials:edit` to add your API key to your application's
-encrypted credentials under `action_mailbox.mailgun_api_key`,
+Use `bin/rails credentials:edit` to add your Signing key to your application's
+encrypted credentials under `action_mailbox.mailgun_signing_key`,
 where Action Mailbox will automatically find it:
 
 ```yaml
 action_mailbox:
-  mailgun_api_key: ...
+  mailgun_signing_key: ...
 ```
 
-Alternatively, provide your API key in the `MAILGUN_INGRESS_API_KEY` environment
+Alternatively, provide your Signing key in the `MAILGUN_INGRESS_SIGNING_KEY` environment
 variable.
 
 Tell Action Mailbox to accept emails from Mailgun:

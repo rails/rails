@@ -32,7 +32,7 @@ class Deprecatee
   deprecate :f=
 
   deprecate :g
-  def g; end
+  def g(h) h end
 
   module B
     C = 1
@@ -85,7 +85,7 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
-  def test_deprecate_class_method
+  def test_deprecate_method_on_class
     assert_deprecated(/none is deprecated/) do
       assert_equal 1, @dtc.none
     end
@@ -96,6 +96,18 @@ class DeprecationTest < ActiveSupport::TestCase
 
     assert_deprecated(/multi is deprecated/) do
       assert_equal [1, 2, 3], @dtc.multi(1, 2, 3)
+    end
+  end
+
+  def test_deprecate_method_doesnt_expand_positional_argument_hash
+    hash = { k: 1 }
+
+    assert_deprecated(/one is deprecated/) do
+      assert_same hash, @dtc.one(hash)
+    end
+
+    assert_deprecated(/g is deprecated/) do
+      assert_same hash, @dtc.g(hash)
     end
   end
 
@@ -474,7 +486,7 @@ class DeprecationTest < ActiveSupport::TestCase
   end
 
   def test_deprecate_work_before_define_method
-    assert_deprecated { @dtc.g }
+    assert_deprecated(/g is deprecated/) { @dtc.g(1) }
   end
 
   def test_config_disallows_no_deprecations_by_default

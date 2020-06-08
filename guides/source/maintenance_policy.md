@@ -5,7 +5,7 @@ Maintenance Policy for Ruby on Rails
 
 Support of the Rails framework is divided into four groups: New features, bug
 fixes, security issues, and severe security issues. They are handled as
-follows, all versions in `X.Y.Z` format.
+follows, all versions, except for security releases, in `X.Y.Z`, format.
 
 --------------------------------------------------------------------------------
 
@@ -54,7 +54,7 @@ and new versions in case of a security issue.
 
 These releases are created by taking the last released version, applying the
 security patches, and releasing. Those patches are then applied to the end of
-the x-y-stable branch. For example, a theoretical 1.2.3 security release would
+the x-y-stable branch. For example, a theoretical 1.2.2.1 security release would
 be built from 1.2.2, and then added to the end of 1-2-stable. This means that
 security releases are easy to upgrade to if you're running the latest version
 of Rails.

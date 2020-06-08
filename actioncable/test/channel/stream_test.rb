@@ -110,6 +110,39 @@ module ActionCable::StreamTests
       end
     end
 
+    test "stream_or_reject_for" do
+      run_in_eventmachine do
+        connection = TestConnection.new
+
+        channel = ChatChannel.new connection, ""
+        channel.subscribe_to_channel
+        channel.stream_or_reject_for Room.new(1)
+        wait_for_async
+
+        pubsub_call = channel.pubsub.class.class_variable_get "@@subscribe_called"
+
+        assert_equal "action_cable:stream_tests:chat:Room#1-Campfire", pubsub_call[:channel]
+        assert_instance_of Proc, pubsub_call[:callback]
+        assert_instance_of Proc, pubsub_call[:success_callback]
+      end
+    end
+
+    test "reject subscription when nil is passed to stream_or_reject_for" do
+      run_in_eventmachine do
+        connection = TestConnection.new
+        channel = ChatChannel.new connection, "{id: 1}", id: 1
+        channel.subscribe_to_channel
+        channel.stream_or_reject_for nil
+        assert_nil connection.last_transmission
+
+        wait_for_async
+
+        rejection = { "identifier" => "{id: 1}", "type" => "reject_subscription" }
+        connection.transmit(rejection)
+        assert_equal rejection, connection.last_transmission
+      end
+    end
+
     test "stream_from subscription confirmation" do
       run_in_eventmachine do
         connection = TestConnection.new

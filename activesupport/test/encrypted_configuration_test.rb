@@ -5,9 +5,10 @@ require "active_support/encrypted_configuration"
 
 class EncryptedConfigurationTest < ActiveSupport::TestCase
   setup do
-    @credentials_config_path = File.join(Dir.tmpdir, "credentials.yml.enc")
+    @tmpdir = Dir.mktmpdir("config-")
+    @credentials_config_path = File.join(@tmpdir, "credentials.yml.enc")
 
-    @credentials_key_path = File.join(Dir.tmpdir, "master.key")
+    @credentials_key_path = File.join(@tmpdir, "master.key")
     File.write(@credentials_key_path, ActiveSupport::EncryptedConfiguration.generate_key)
 
     @credentials = ActiveSupport::EncryptedConfiguration.new(
@@ -17,8 +18,7 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
   end
 
   teardown do
-    FileUtils.rm_rf @credentials_config_path
-    FileUtils.rm_rf @credentials_key_path
+    FileUtils.rm_rf @tmpdir
   end
 
   test "reading configuration by env key" do

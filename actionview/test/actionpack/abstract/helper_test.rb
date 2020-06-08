@@ -79,10 +79,10 @@ module AbstractController
       end
 
       def test_declare_missing_helper
-        e = assert_raise AbstractController::Helpers::MissingHelperError do
+        e = assert_raise NameError do
           AbstractHelpers.helper :missing
         end
-        assert_equal "helpers/missing_helper.rb", e.path
+        assert_equal "uninitialized constant MissingHelper", e.message
       end
 
       def test_helpers_with_module_through_block
@@ -109,19 +109,9 @@ module AbstractController
     end
 
     class InvalidHelpersTest < ActiveSupport::TestCase
-      def test_controller_raise_error_about_real_require_problem
-        e = assert_raise(LoadError) { AbstractInvalidHelpers.helper(:invalid_require) }
-        assert_equal "No such file to load -- very_invalid_file_name.rb", e.message
-      end
-
       def test_controller_raise_error_about_missing_helper
-        e = assert_raise(AbstractController::Helpers::MissingHelperError) { AbstractInvalidHelpers.helper(:missing) }
-        assert_equal "Missing helper file helpers/missing_helper.rb", e.message
-      end
-
-      def test_missing_helper_error_has_the_right_path
-        e = assert_raise(AbstractController::Helpers::MissingHelperError) { AbstractInvalidHelpers.helper(:missing) }
-        assert_equal "helpers/missing_helper.rb", e.path
+        e = assert_raise(NameError) { AbstractInvalidHelpers.helper(:missing) }
+        assert_equal "uninitialized constant MissingHelper", e.message
       end
     end
   end

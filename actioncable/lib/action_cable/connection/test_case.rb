@@ -101,7 +101,7 @@ module ActionCable
     #     assert_equal "1", connection.user.id
     #   end
     #
-    # You can also setup the correct cookies before the connection request:
+    # You can also set up the correct cookies before the connection request:
     #
     #   def test_connect_with_cookies
     #     # Plain cookies:

@@ -139,16 +139,14 @@ module ActionDispatch
         exception = wrapper.exception
         trace = wrapper.exception_trace
 
-        ActiveSupport::Deprecation.silence do
-          message = []
-          message << "  "
-          message << "#{exception.class} (#{exception.message}):"
-          message.concat(exception.annotated_source_code) if exception.respond_to?(:annotated_source_code)
-          message << "  "
-          message.concat(trace)
+        message = []
+        message << "  "
+        message << "#{exception.class} (#{exception.message}):"
+        message.concat(exception.annotated_source_code) if exception.respond_to?(:annotated_source_code)
+        message << "  "
+        message.concat(trace)
 
-          log_array(logger, message)
-        end
+        log_array(logger, message)
       end
 
       def log_array(logger, array)

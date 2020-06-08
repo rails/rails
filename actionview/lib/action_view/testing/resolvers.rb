@@ -27,33 +27,16 @@ module ActionView #:nodoc:
     end
 
     private
-      def query(path, exts, _, locals, cache:)
-        regex = build_regex(path, exts)
-
-        @hash.select do |_path, _|
-          ("/" + _path).match?(regex)
-        end.map do |_path, source|
-          handler, format, variant = extract_handler_and_format_and_variant(_path)
-
-          Template.new(source, _path, handler,
-            virtual_path: path.virtual,
-            format: format,
-            variant: variant,
-            locals: locals
-          )
-        end.sort_by do |t|
-          match = ("/" + t.identifier).match(regex)
-          EXTENSIONS.keys.reverse.map do |ext|
-            if ext == :variants && exts[ext] == :any
-              match[ext].nil? ? 0 : 1
-            elsif match[ext].nil?
-              exts[ext].length
-            else
-              found = match[ext].to_sym
-              exts[ext].index(found)
-            end
-          end
+      def find_candidate_template_paths(path)
+        @hash.keys.select do |fixture|
+          fixture.start_with?(path.virtual)
+        end.map do |fixture|
+          "/#{fixture}"
         end
+      end
+
+      def source_for_template(template)
+        @hash[template[1..template.size]]
       end
   end
 

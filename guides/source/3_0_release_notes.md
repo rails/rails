@@ -73,7 +73,7 @@ $ ruby script/plugin install git://github.com/rails/rails_upgrade.git
 
 You can see an example of how that works at [Rails Upgrade is now an Official Plugin](http://omgbloglol.com/post/364624593/rails-upgrade-is-now-an-official-plugin)
 
-Aside from Rails Upgrade tool, if you need more help, there are people on IRC and [rubyonrails-talk](https://groups.google.com/group/rubyonrails-talk) that are probably doing the same thing, possibly hitting the same issues. Be sure to blog your own experiences when upgrading so others can benefit from your knowledge!
+Aside from Rails Upgrade tool, if you need more help, there are people on IRC and [rubyonrails-talk](https://discuss.rubyonrails.org/c/rubyonrails-talk) that are probably doing the same thing, possibly hitting the same issues. Be sure to blog your own experiences when upgrading so others can benefit from your knowledge!
 
 Creating a Rails 3.0 application
 --------------------------------

@@ -52,7 +52,7 @@ module ActionView
     # solution being slower. You should be sure to measure your actual
     # performance across targeted browsers both before and after this change.
     #
-    # To implement the corresponding hosts you can either setup four actual
+    # To implement the corresponding hosts you can either set up four actual
     # hosts or use wildcard DNS to CNAME the wildcard to a single asset host.
     # You can read more about setting up your DNS CNAME records from your ISP.
     #
@@ -80,7 +80,7 @@ module ActionView
     # absolute path of the asset, for example "/assets/rails.png".
     #
     #    ActionController::Base.asset_host = Proc.new { |source|
-    #      if source.ends_with?('.css')
+    #      if source.end_with?('.css')
     #        "http://stylesheets.example.com"
     #      else
     #        "http://assets.example.com"
@@ -206,7 +206,7 @@ module ActionView
 
         relative_url_root = defined?(config.relative_url_root) && config.relative_url_root
         if relative_url_root
-          source = File.join(relative_url_root, source) unless source.starts_with?("#{relative_url_root}/")
+          source = File.join(relative_url_root, source) unless source.start_with?("#{relative_url_root}/")
         end
 
         if host = compute_asset_host(source, options)

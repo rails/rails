@@ -114,18 +114,18 @@ If you wish to skip some files or components from being generated, you can appen
 | `--skip-system-test`    | Skip system test files                                      |
 | `--skip-bootsnap`       | Skip bootsnap gem                                           |
 
-### `rails server`
+### `bin/rails server`
 
-The `rails server` command launches a web server named Puma which comes bundled with Rails. You'll use this any time you want to access your application through a web browser.
+The `bin/rails server` command launches a web server named Puma which comes bundled with Rails. You'll use this any time you want to access your application through a web browser.
 
-With no further work, `rails server` will run our new shiny Rails app:
+With no further work, `bin/rails server` will run our new shiny Rails app:
 
 ```bash
 $ cd commandsapp
 $ bin/rails server
 => Booting Puma
 => Rails 6.0.0 application starting in development
-=> Run `rails server --help` for more startup options
+=> Run `bin/rails server --help` for more startup options
 Puma starting in single mode...
 * Version 3.12.1 (ruby 2.5.7-p206), codename: Llamas in Pajamas
 * Min threads: 5, max threads: 5
@@ -136,7 +136,7 @@ Use Ctrl-C to stop
 
 With just three commands we whipped up a Rails server listening on port 3000. Go to your browser and open [http://localhost:3000](http://localhost:3000), you will see a basic Rails app running.
 
-INFO: You can also use the alias "s" to start the server: `rails s`.
+INFO: You can also use the alias "s" to start the server: `bin/rails s`.
 
 The server can be run on a different port using the `-p` option. The default development environment can be changed using `-e`.
 
@@ -146,7 +146,7 @@ $ bin/rails server -e production -p 4000
 
 The `-b` option binds Rails to the specified IP, by default it is localhost. You can run a server as a daemon by passing a `-d` option.
 
-### `rails generate`
+### `bin/rails generate`
 
 The `bin/rails generate` command uses templates to create a whole lot of things. Running `bin/rails generate` by itself gives a list of available generators:
 
@@ -176,7 +176,7 @@ Using generators will save you a large amount of time by writing **boilerplate c
 
 Let's make our own controller with the controller generator. But what command should we use? Let's ask the generator:
 
-INFO: All Rails console utilities have help text. As with most *nix utilities, you can try adding `--help` or `-h` to the end, for example `rails server --help`.
+INFO: All Rails console utilities have help text. As with most *nix utilities, you can try adding `--help` or `-h` to the end, for example `bin/rails server --help`.
 
 ```bash
 $ bin/rails generate controller
@@ -240,7 +240,7 @@ Then the view, to display our message (in `app/views/greetings/hello.html.erb`):
 <p><%= @message %></p>
 ```
 
-Fire up your server using `rails server`.
+Fire up your server using `bin/rails server`.
 
 ```bash
 $ bin/rails server
@@ -267,7 +267,7 @@ ActiveRecord options:
 ...
 
 Description:
-    Stubs out a new model. Pass the model name, either CamelCased or
+    Generates a new model. Pass the model name, either CamelCased or
     under_scored, and an optional list of attribute pairs as arguments.
 
 ...
@@ -317,7 +317,7 @@ $ bin/rails generate scaffold HighScore game:string score:integer
 
 The generator checks that there exist the directories for models, controllers, helpers, layouts, functional and unit tests, stylesheets, creates the views, controller, model and database migration for HighScore (creating the `high_scores` table and fields), takes care of the route for the **resource**, and new tests for everything.
 
-The migration requires that we **migrate**, that is, run some Ruby code (living in that `20130717151933_create_high_scores.rb`) to modify the schema of our database. Which database? The SQLite3 database that Rails will create for you when we run the `rails db:migrate` command. We'll talk more about that command below.
+The migration requires that we **migrate**, that is, run some Ruby code (living in that `20130717151933_create_high_scores.rb`) to modify the schema of our database. Which database? The SQLite3 database that Rails will create for you when we run the `bin/rails db:migrate` command. We'll talk more about that command below.
 
 ```bash
 $ bin/rails db:migrate
@@ -343,11 +343,11 @@ $ bin/rails server
 
 Go to your browser and open [http://localhost:3000/high_scores](http://localhost:3000/high_scores), now we can create new high scores (55,160 on Space Invaders!)
 
-### `rails console`
+### `bin/rails console`
 
-The `console` command lets you interact with your Rails application from the command line. On the underside, `rails console` uses IRB, so if you've ever used it, you'll be right at home. This is useful for testing out quick ideas with code and changing data server-side without touching the website.
+The `console` command lets you interact with your Rails application from the command line. On the underside, `bin/rails console` uses IRB, so if you've ever used it, you'll be right at home. This is useful for testing out quick ideas with code and changing data server-side without touching the website.
 
-INFO: You can also use the alias "c" to invoke the console: `rails c`.
+INFO: You can also use the alias "c" to invoke the console: `bin/rails c`.
 
 You can specify the environment in which the `console` command should operate.
 
@@ -355,7 +355,7 @@ You can specify the environment in which the `console` command should operate.
 $ bin/rails console -e staging
 ```
 
-If you wish to test out some code without changing any data, you can do that by invoking `rails console --sandbox`.
+If you wish to test out some code without changing any data, you can do that by invoking `bin/rails console --sandbox`.
 
 ```bash
 $ bin/rails console --sandbox
@@ -366,7 +366,7 @@ irb(main):001:0>
 
 #### The app and helper objects
 
-Inside the `rails console` you have access to the `app` and `helper` instances.
+Inside the `bin/rails console` you have access to the `app` and `helper` instances.
 
 With the `app` method you can access named route helpers, as well as do requests.
 
@@ -389,13 +389,13 @@ With the `helper` method it is possible to access Rails and your application's h
 => "my custom helper"
 ```
 
-### `rails dbconsole`
+### `bin/rails dbconsole`
 
-`rails dbconsole` figures out which database you're using and drops you into whichever command line interface you would use with it (and figures out the command line parameters to give to it, too!). It supports MySQL (including MariaDB), PostgreSQL, and SQLite3.
+`bin/rails dbconsole` figures out which database you're using and drops you into whichever command line interface you would use with it (and figures out the command line parameters to give to it, too!). It supports MySQL (including MariaDB), PostgreSQL, and SQLite3.
 
 INFO: You can also use the alias "db" to invoke the dbconsole: `bin/rails db`.
 
-### `rails runner`
+### `bin/rails runner`
 
 `runner` runs Ruby code in the context of Rails non-interactively. For instance:
 
@@ -403,7 +403,7 @@ INFO: You can also use the alias "db" to invoke the dbconsole: `bin/rails db`.
 $ bin/rails runner "Model.long_running_method"
 ```
 
-INFO: You can also use the alias "r" to invoke the runner: `rails r`.
+INFO: You can also use the alias "r" to invoke the runner: `bin/rails r`.
 
 You can specify the environment in which the `runner` command should operate using the `-e` switch.
 
@@ -417,11 +417,11 @@ You can even execute ruby code written in a file with runner.
 $ bin/rails runner lib/code_to_be_run.rb
 ```
 
-### `rails destroy`
+### `bin/rails destroy`
 
 Think of `destroy` as the opposite of `generate`. It'll figure out what generate did, and undo it.
 
-INFO: You can also use the alias "d" to invoke the destroy command: `rails d`.
+INFO: You can also use the alias "d" to invoke the destroy command: `bin/rails d`.
 
 ```bash
 $ bin/rails generate model Oops
@@ -442,9 +442,9 @@ $ bin/rails destroy model Oops
       remove      test/fixtures/oops.yml
 ```
 
-### `rails about`
+### `bin/rails about`
 
-`rails about` gives information about version numbers for Ruby, RubyGems, Rails, the Rails subcomponents, your application's folder, the current Rails environment name, your app's database adapter, and schema version. It is useful when you need to ask for help, check if a security patch might affect you, or when you need some stats for an existing Rails installation.
+`bin/rails about` gives information about version numbers for Ruby, RubyGems, Rails, the Rails subcomponents, your application's folder, the current Rails environment name, your app's database adapter, and schema version. It is useful when you need to ask for help, check if a security patch might affect you, or when you need some stats for an existing Rails installation.
 
 ```bash
 $ bin/rails about
@@ -461,21 +461,21 @@ Database adapter          sqlite3
 Database schema version   20180205173523
 ```
 
-### `rails assets:`
+### `bin/rails assets:`
 
-You can precompile the assets in `app/assets` using `rails assets:precompile`, and remove older compiled assets using `rails assets:clean`. The `assets:clean` command allows for rolling deploys that may still be linking to an old asset while the new assets are being built.
+You can precompile the assets in `app/assets` using `bin/rails assets:precompile`, and remove older compiled assets using `bin/rails assets:clean`. The `assets:clean` command allows for rolling deploys that may still be linking to an old asset while the new assets are being built.
 
-If you want to clear `public/assets` completely, you can use `rails assets:clobber`.
+If you want to clear `public/assets` completely, you can use `bin/rails assets:clobber`.
 
-### `rails db:`
+### `bin/rails db:`
 
-The most common commands of the `db:` rails namespace are `migrate` and `create`, and it will pay off to try out all of the migration rails commands (`up`, `down`, `redo`, `reset`). `rails db:version` is useful when troubleshooting, telling you the current version of the database.
+The most common commands of the `db:` rails namespace are `migrate` and `create`, and it will pay off to try out all of the migration rails commands (`up`, `down`, `redo`, `reset`). `bin/rails db:version` is useful when troubleshooting, telling you the current version of the database.
 
 More information about migrations can be found in the [Migrations](active_record_migrations.html) guide.
 
-### `rails notes`
+### `bin/rails notes`
 
-`rails notes` searches through your code for comments beginning with a specific keyword. You can refer to `rails notes --help` for information about usage.
+`bin/rails notes` searches through your code for comments beginning with a specific keyword. You can refer to `bin/rails notes --help` for information about usage.
 
 By default, it will search in `app`, `config`, `db`, `lib`, and `test` directories for FIXME, OPTIMIZE, and TODO annotations in files with extension `.builder`, `.rb`, `.rake`, `.yml`, `.yaml`, `.ruby`, `.css`, `.js`, and `.erb`.
 
@@ -514,7 +514,7 @@ config.annotations.register_tags("DEPRECATEME", "TESTME")
 ```
 
 ```bash
-$ rails notes
+$ bin/rails notes
 app/controllers/admin/users_controller.rb:
   * [ 20] [TODO] do A/B testing on this
   * [ 42] [TESTME] this needs more functional tests
@@ -577,17 +577,17 @@ vendor/tools.rb:
   * [ 56] [TODO] Get rid of this dependency
 ```
 
-### `rails routes`
+### `bin/rails routes`
 
-`rails routes` will list all of your defined routes, which is useful for tracking down routing problems in your app, or giving you a good overview of the URLs in an app you're trying to get familiar with.
+`bin/rails routes` will list all of your defined routes, which is useful for tracking down routing problems in your app, or giving you a good overview of the URLs in an app you're trying to get familiar with.
 
-### `rails test`
+### `bin/rails test`
 
 INFO: A good description of unit testing in Rails is given in [A Guide to Testing Rails Applications](testing.html)
 
 Rails comes with a test framework called minitest. Rails owes its stability to the use of tests. The commands available in the `test:` namespace helps in running the different tests you will hopefully write.
 
-### `rails tmp:`
+### `bin/rails tmp:`
 
 The `Rails.root/tmp` directory is, like the *nix /tmp directory, the holding place for temporary files like process id files and cached actions.
 

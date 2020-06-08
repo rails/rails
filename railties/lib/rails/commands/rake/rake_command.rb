@@ -12,15 +12,17 @@ module Rails
           formatted_rake_tasks.map(&:first)
         end
 
-        def perform(task, *)
+        def perform(task, args, config)
           require_rake
 
-          ARGV.unshift(task) # Prepend the task, so Rake knows how to run it.
-
-          Rake.application.standard_exception_handling do
-            Rake.application.init("rails")
-            Rake.application.load_rakefile
-            Rake.application.top_level
+          Rake.with_application do |rake|
+            load "rails/tasks.rb"
+            rake.init("rails", [task, *args])
+            rake.load_rakefile
+            if Rails.respond_to?(:root)
+              rake.options.suppress_backtrace_pattern = /\A(?!#{Regexp.quote(Rails.root.to_s)})/
+            end
+            rake.standard_exception_handling { rake.top_level }
           end
         end
 

@@ -70,14 +70,14 @@ module Rails
     #   Rails.env.development? # => true
     #   Rails.env.production? # => false
     def env
-      @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"].presence || ENV["RACK_ENV"].presence || "development")
+      @_env ||= ActiveSupport::EnvironmentInquirer.new(ENV["RAILS_ENV"].presence || ENV["RACK_ENV"].presence || "development")
     end
 
     # Sets the Rails environment.
     #
     #   Rails.env = "staging" # => "staging"
     def env=(environment)
-      @_env = ActiveSupport::StringInquirer.new(environment)
+      @_env = ActiveSupport::EnvironmentInquirer.new(environment)
     end
 
     # Returns all Rails groups for loading based on:

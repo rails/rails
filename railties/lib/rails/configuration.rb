@@ -108,7 +108,7 @@ module Rails
 
     class Generators #:nodoc:
       attr_accessor :aliases, :options, :templates, :fallbacks, :colorize_logging, :api_only
-      attr_reader :hidden_namespaces
+      attr_reader :hidden_namespaces, :after_generate_callbacks
 
       def initialize
         @aliases = Hash.new { |h, k| h[k] = {} }
@@ -118,6 +118,7 @@ module Rails
         @colorize_logging = true
         @api_only = false
         @hidden_namespaces = []
+        @after_generate_callbacks = []
       end
 
       def initialize_copy(source)
@@ -129,6 +130,10 @@ module Rails
 
       def hide_namespace(namespace)
         @hidden_namespaces << namespace
+      end
+
+      def after_generate(&block)
+        @after_generate_callbacks << block
       end
 
       def method_missing(method, *args)

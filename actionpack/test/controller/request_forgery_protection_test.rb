@@ -175,7 +175,7 @@ end
 # common test methods
 module RequestForgeryProtectionTests
   def setup
-    @token = Base64.strict_encode64("railstestrailstestrailstestrails")
+    @token = Base64.urlsafe_encode64("railstestrailstestrailstestrails")
     @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
     ActionController::Base.request_forgery_protection_token = :custom_authenticity_token
   end
@@ -372,6 +372,13 @@ module RequestForgeryProtectionTests
 
   def test_should_allow_post_with_token
     session[:_csrf_token] = @token
+    @controller.stub :form_authenticity_token, @token do
+      assert_not_blocked { post :index, params: { custom_authenticity_token: @token } }
+    end
+  end
+
+  def test_should_allow_post_with_strict_encoded_token
+    session[:_csrf_token] = Base64.strict_encode64("railstestrailstestrailstestrails")
     @controller.stub :form_authenticity_token, @token do
       assert_not_blocked { post :index, params: { custom_authenticity_token: @token } }
     end
@@ -735,21 +742,21 @@ class FreeCookieControllerTest < ActionController::TestCase
   end
 
   def test_should_not_render_form_with_token_tag
-    SecureRandom.stub :base64, @token do
+    SecureRandom.stub :urlsafe_base64, @token do
       get :index
       assert_select "form>div>input[name=?][value=?]", "authenticity_token", @token, false
     end
   end
 
   def test_should_not_render_button_to_with_token_tag
-    SecureRandom.stub :base64, @token do
+    SecureRandom.stub :urlsafe_base64, @token do
       get :show_button
       assert_select "form>div>input[name=?][value=?]", "authenticity_token", @token, false
     end
   end
 
   def test_should_allow_all_methods_without_token
-    SecureRandom.stub :base64, @token do
+    SecureRandom.stub :urlsafe_base64, @token do
       [:post, :patch, :put, :delete].each do |method|
         assert_nothing_raised { send(method, :index) }
       end
@@ -757,7 +764,7 @@ class FreeCookieControllerTest < ActionController::TestCase
   end
 
   test "should not emit a csrf-token meta tag" do
-    SecureRandom.stub :base64, @token do
+    SecureRandom.stub :urlsafe_base64, @token do
       get :meta
       assert_predicate @response.body, :blank?
     end
@@ -769,7 +776,7 @@ class CustomAuthenticityParamControllerTest < ActionController::TestCase
     super
     @old_logger = ActionController::Base.logger
     @logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
-    @token = Base64.strict_encode64(SecureRandom.random_bytes(32))
+    @token = Base64.urlsafe_encode64(SecureRandom.random_bytes(32))
     @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
     ActionController::Base.request_forgery_protection_token = @token
   end
@@ -833,6 +840,18 @@ class PerFormTokensControllerTest < ActionController::TestCase
       post :post_one, params: { custom_authenticity_token: form_token }
     end
     assert_response :success
+  end
+
+  def test_accepts_token_with_path_with_query_params
+    get :index
+    form_token = assert_presence_and_fetch_form_csrf_token
+    assert_matches_session_token_on_server form_token
+
+    @request.env["PATH_INFO"] = "/per_form_tokens/post_one"
+    @request.env["QUERY_STRING"] = "key=value"
+    assert_nothing_raised do
+      post :post_one, params: { custom_authenticity_token: form_token }
+    end
   end
 
   def test_rejects_garbage_path
@@ -934,6 +953,39 @@ class PerFormTokensControllerTest < ActionController::TestCase
     assert_response :success
   end
 
+  def test_does_not_return_old_csrf_token
+    get :index
+
+    token = @controller.send(:form_authenticity_token)
+
+    unmasked_token = @controller.send(:unmask_token, Base64.urlsafe_decode64(token))
+
+    assert_not_equal @controller.send(:real_csrf_token, session), unmasked_token
+  end
+
+  def test_returns_hmacd_token
+    get :index
+
+    token = @controller.send(:form_authenticity_token)
+
+    unmasked_token = @controller.send(:unmask_token, Base64.urlsafe_decode64(token))
+
+    assert_equal @controller.send(:global_csrf_token, session), unmasked_token
+  end
+
+  def test_accepts_old_csrf_token
+    get :index
+
+    non_hmac_token = @controller.send(:mask_token, @controller.send(:real_csrf_token, session))
+
+    # This is required because PATH_INFO isn't reset between requests.
+    @request.env["PATH_INFO"] = "/per_form_tokens/post_one"
+    assert_nothing_raised do
+      post :post_one, params: { custom_authenticity_token: non_hmac_token }
+    end
+    assert_response :success
+  end
+
   def test_chomps_slashes
     get :index, params: { form_path: "/per_form_tokens/post_one?foo=bar" }
 
@@ -1010,7 +1062,7 @@ class PerFormTokensControllerTest < ActionController::TestCase
     end
 
     def assert_matches_session_token_on_server(form_token, method = "post")
-      actual = @controller.send(:unmask_token, Base64.strict_decode64(form_token))
+      actual = @controller.send(:unmask_token, Base64.urlsafe_decode64(form_token))
       expected = @controller.send(:per_form_csrf_token, session, "/per_form_tokens/post_one", method)
       assert_equal expected, actual
     end

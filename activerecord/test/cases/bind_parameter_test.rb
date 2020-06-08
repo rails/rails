@@ -80,11 +80,11 @@ if ActiveRecord::Base.connection.prepared_statements
         assert_equal 1, Topic.find_by!(id: 1).id
         assert_raises(RecordNotFound) { SillyReply.find_by!(id: 2) }
 
-        topic_sql = cached_statement(Topic, [:id])
+        topic_sql = cached_statement(Topic, ["id"])
         assert_includes statement_cache, to_sql_key(topic_sql)
 
-        e = assert_raise { cached_statement(SillyReply, [:id]) }
-        assert_equal "SillyReply has no cached statement by [:id]", e.message
+        e = assert_raise { cached_statement(SillyReply, ["id"]) }
+        assert_equal "SillyReply has no cached statement by [\"id\"]", e.message
 
         replies = SillyReply.where(id: 2).limit(1)
         assert_includes statement_cache, to_sql_key(replies.arel)
@@ -159,10 +159,62 @@ if ActiveRecord::Base.connection.prepared_statements
 
       def test_logs_legacy_binds_after_type_cast
         binds = [[@pk, "10"]]
-        assert_logs_binds(binds)
+        assert_deprecated do
+          assert_logs_binds(binds)
+        end
+      end
+
+      def test_bind_params_to_sql_with_prepared_statements
+        assert_bind_params_to_sql
+      end
+
+      def test_bind_params_to_sql_with_unprepared_statements
+        @connection.unprepared_statement do
+          assert_bind_params_to_sql
+        end
       end
 
       private
+        def assert_bind_params_to_sql
+          table = Author.quoted_table_name
+          pk = "#{table}.#{Author.quoted_primary_key}"
+
+          # prepared_statements: true
+          #
+          #   SELECT `authors`.* FROM `authors` WHERE (`authors`.`id` IN (?, ?, ?) OR `authors`.`id` IS NULL)
+          #
+          # prepared_statements: false
+          #
+          #   SELECT `authors`.* FROM `authors` WHERE (`authors`.`id` IN (1, 2, 3) OR `authors`.`id` IS NULL)
+          #
+          sql = "SELECT #{table}.* FROM #{table} WHERE (#{pk} IN (#{bind_params(1..3)}) OR #{pk} IS NULL)"
+
+          authors = Author.where(id: [1, 2, 3, nil])
+          assert_equal sql, @connection.to_sql(authors.arel)
+          assert_sql(sql) { assert_equal 3, authors.length }
+
+          # prepared_statements: true
+          #
+          #   SELECT `authors`.* FROM `authors` WHERE `authors`.`id` IN (?, ?, ?)
+          #
+          # prepared_statements: false
+          #
+          #   SELECT `authors`.* FROM `authors` WHERE `authors`.`id` IN (1, 2, 3)
+          #
+          sql = "SELECT #{table}.* FROM #{table} WHERE #{pk} IN (#{bind_params(1..3)})"
+
+          authors = Author.where(id: [1, 2, 3, 9223372036854775808])
+          assert_equal sql, @connection.to_sql(authors.arel)
+          assert_sql(sql) { assert_equal 3, authors.length }
+        end
+
+        def bind_params(ids)
+          collector = @connection.send(:collector)
+          bind_params = ids.map { |i| Arel::Nodes::BindParam.new(i) }
+          sql, _ = @connection.visitor.compile(bind_params, collector)
+          sql
+        end
+
         def to_sql_key(arel)
           sql = @connection.to_sql(arel)
           @connection.respond_to?(:sql_key, true) ? @connection.send(:sql_key, sql) : sql

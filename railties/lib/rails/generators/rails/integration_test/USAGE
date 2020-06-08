@@ -1,5 +1,5 @@
 Description:
-    Stubs out a new integration test. Pass the name of the test, either
+    Generates a new integration test. Pass the name of the test, either
     CamelCased or under_scored, as an argument.
 
     This generator invokes the current integration tool, which defaults to

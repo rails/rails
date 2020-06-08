@@ -4,11 +4,11 @@ require "cases/helper"
 require "models/author"
 require "models/categorization"
 require "models/post"
+require "models/citation"
 
 module ActiveRecord
   class OrTest < ActiveRecord::TestCase
-    fixtures :posts
-    fixtures :authors, :author_addresses
+    fixtures :posts, :authors, :author_addresses
 
     def test_or_with_relation
       expected = Post.where("id = 1 or id = 2").to_a
@@ -95,9 +95,9 @@ module ActiveRecord
     end
 
     def test_or_when_grouping
-      groups = Post.where("id < 10").group("body").select("body, COUNT(*) AS c")
-      expected = groups.having("COUNT(*) > 1 OR body like 'Such%'").to_a.map { |o| [o.body, o.c] }
-      assert_equal expected, groups.having("COUNT(*) > 1").or(groups.having("body like 'Such%'")).to_a.map { |o| [o.body, o.c] }
+      groups = Post.where("id < 10").group("body")
+      expected = groups.having("COUNT(*) > 1 OR body like 'Such%'").count
+      assert_equal expected, groups.having("COUNT(*) > 1").or(groups.having("body like 'Such%'")).count
     end
 
     def test_or_with_named_scope
@@ -139,6 +139,14 @@ module ActiveRecord
       end
     end
 
+    def test_or_with_annotate
+      quoted_posts = Regexp.escape(Post.quoted_table_name)
+      assert_match %r{#{quoted_posts} /\* foo \*/\z}, Post.annotate("foo").or(Post.all).to_sql
+      assert_match %r{#{quoted_posts} /\* foo \*/\z}, Post.annotate("foo").or(Post.annotate("foo")).to_sql
+      assert_match %r{#{quoted_posts} /\* foo \*/\z}, Post.annotate("foo").or(Post.annotate("bar")).to_sql
+      assert_match %r{#{quoted_posts} /\* foo \*/ /\* bar \*/\z}, Post.annotate("foo", "bar").or(Post.annotate("foo")).to_sql
+    end
+
     def test_structurally_incompatible_values
       assert_nothing_raised do
         Post.includes(:author).includes(:author).or(Post.includes(:author))
@@ -148,6 +156,22 @@ module ActiveRecord
         Post.joins(:author).joins(:author).or(Post.joins(:author))
         Post.left_outer_joins(:author).left_outer_joins(:author).or(Post.left_outer_joins(:author))
         Post.from("posts").or(Post.from("posts"))
+      end
+    end
+  end
+
+  # The maximum expression tree depth is 1000 by default for SQLite3.
+  # https://www.sqlite.org/limits.html#max_expr_depth
+  unless current_adapter?(:SQLite3Adapter)
+    class TooManyOrTest < ActiveRecord::TestCase
+      fixtures :citations
+
+      def test_too_many_or
+        citations = 6000.times.map do |i|
+          Citation.where(id: i, book2_id: i * i)
+        end
+
+        assert_equal 6000, citations.inject(&:or).count
       end
     end
   end

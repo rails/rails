@@ -149,6 +149,17 @@ class DirtyTest < ActiveModel::TestCase
     assert_predicate @model, :name_previously_changed?
   end
 
+  test "checking if an attribute was previously changed to a particular value" do
+    @model.name = "Ringo"
+    @model.save
+    assert @model.name_previously_changed?(from: nil, to: "Ringo")
+    assert_not @model.name_previously_changed?(from: "Pete", to: "Ringo")
+    assert @model.name_previously_changed?(to: "Ringo")
+    assert_not @model.name_previously_changed?(to: "Pete")
+    assert @model.name_previously_changed?(from: nil)
+    assert_not @model.name_previously_changed?(from: "Pete")
+  end
+
   test "previous value is preserved when changed after save" do
     assert_equal({}, @model.changed_attributes)
     @model.name = "Paul"

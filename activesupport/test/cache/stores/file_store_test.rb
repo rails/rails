@@ -6,7 +6,10 @@ require_relative "../behaviors"
 require "pathname"
 
 class FileStoreTest < ActiveSupport::TestCase
+  attr_reader :cache_dir
+
   def setup
+    @cache_dir = Dir.mktmpdir("file-store-")
     Dir.mkdir(cache_dir) unless File.exist?(cache_dir)
     @cache = ActiveSupport::Cache.lookup_store(:file_store, cache_dir, expires_in: 60)
     @peek = ActiveSupport::Cache.lookup_store(:file_store, cache_dir, expires_in: 60)
@@ -19,10 +22,6 @@ class FileStoreTest < ActiveSupport::TestCase
   def teardown
     FileUtils.rm_r(cache_dir)
   rescue Errno::ENOENT
-  end
-
-  def cache_dir
-    File.join(Dir.pwd, "tmp_cache")
   end
 
   include CacheStoreBehavior

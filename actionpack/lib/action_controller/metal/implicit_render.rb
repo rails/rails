@@ -22,7 +22,7 @@ module ActionController
   # Third, if we DON'T find a template AND the request is a page load in a web
   # browser (technically, a non-XHR GET request for an HTML response) where
   # you reasonably expect to have rendered a template, then we raise
-  # <tt>ActionView::UnknownFormat</tt> with an explanation.
+  # <tt>ActionController::MissingExactTemplate</tt> with an explanation.
   #
   # Finally, if we DON'T find a template AND the request isn't a browser page
   # load, then we implicitly respond with <tt>204 No Content</tt>.

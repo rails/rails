@@ -63,6 +63,14 @@ class ErrorsTest < ActiveModel::TestCase
     }
   end
 
+  def test_first
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:name, :blank)
+
+    error = errors.first
+    assert_kind_of ActiveModel::Error, error
+  end
+
   def test_dup
     errors = ActiveModel::Errors.new(Person.new)
     errors.add(:name)
@@ -165,6 +173,30 @@ class ErrorsTest < ActiveModel::TestCase
     assert_deprecated do
       assert_equal [], errors.keys
     end
+  end
+
+  test "attribute_names returns the error attributes" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:foo, "omg")
+    errors.add(:baz, "zomg")
+
+    assert_equal [:foo, :baz], errors.attribute_names
+  end
+
+  test "attribute_names only returns unique attribute names" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:foo, "omg")
+    errors.add(:foo, "zomg")
+
+    assert_equal [:foo], errors.attribute_names
+  end
+
+  test "attribute_names returns an empty array after try to get a message only" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.messages[:foo]
+    errors.messages[:baz]
+
+    assert_equal [], errors.attribute_names
   end
 
   test "detecting whether there are errors with empty?, blank?, include?" do

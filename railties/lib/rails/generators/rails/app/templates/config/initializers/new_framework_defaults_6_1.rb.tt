@@ -12,6 +12,9 @@
 # Track Active Storage variants in the database.
 # Rails.application.config.active_storage.track_variants = true
 
+# Apply random variation to the delay when retrying failed jobs.
+# Rails.application.config.active_job.retry_jitter = 0.15
+
 # Stop executing `after_enqueue`/`after_perform` callbacks if
 # `before_enqueue`/`before_perform` respectively halts with `throw :abort`.
 # Rails.application.config.active_job.skip_after_callbacks_if_terminated = true
@@ -21,3 +24,7 @@
 # This change is not backwards compatible with earlier Rails versions.
 # It's best enabled when your entire app is migrated and stable on 6.1.
 # Rails.application.config.action_dispatch.cookies_same_site_protection = :lax
+
+# Specify whether `ActiveSupport::TimeZone.utc_to_local` returns a time with an
+# UTC offset or a UTC time.
+# ActiveSupport.utc_to_local_returns_utc_offset_times = true

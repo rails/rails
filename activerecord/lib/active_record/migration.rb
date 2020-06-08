@@ -3,6 +3,7 @@
 require "benchmark"
 require "set"
 require "zlib"
+require "active_support/core_ext/array/access"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/actionable_error"
@@ -19,7 +20,7 @@ module ActiveRecord
   # For example the following migration is not reversible.
   # Rolling back this migration will raise an ActiveRecord::IrreversibleMigration error.
   #
-  #   class IrreversibleMigrationExample < ActiveRecord::Migration[5.0]
+  #   class IrreversibleMigrationExample < ActiveRecord::Migration[6.0]
   #     def change
   #       create_table :distributors do |t|
   #         t.string :zipcode
@@ -37,7 +38,7 @@ module ActiveRecord
   #
   # 1. Define <tt>#up</tt> and <tt>#down</tt> methods instead of <tt>#change</tt>:
   #
-  #  class ReversibleMigrationExample < ActiveRecord::Migration[5.0]
+  #  class ReversibleMigrationExample < ActiveRecord::Migration[6.0]
   #    def up
   #      create_table :distributors do |t|
   #        t.string :zipcode
@@ -62,7 +63,7 @@ module ActiveRecord
   #
   # 2. Use the #reversible method in <tt>#change</tt> method:
   #
-  #   class ReversibleMigrationExample < ActiveRecord::Migration[5.0]
+  #   class ReversibleMigrationExample < ActiveRecord::Migration[6.0]
   #     def change
   #       create_table :distributors do |t|
   #         t.string :zipcode
@@ -190,6 +191,14 @@ module ActiveRecord
     end
   end
 
+  class EnvironmentStorageError < ActiveRecordError # :nodoc:
+    def initialize
+      msg = +"You are attempting to store the environment in a database where metadata is disabled.\n"
+      msg << "Check your database configuration to see if this is intended."
+      super(msg)
+    end
+  end
+
   # = Active Record Migrations
   #
   # Migrations can manage the evolution of a schema used by several physical
@@ -202,7 +211,7 @@ module ActiveRecord
   #
   # Example of a simple migration:
   #
-  #   class AddSsl < ActiveRecord::Migration[5.0]
+  #   class AddSsl < ActiveRecord::Migration[6.0]
   #     def up
   #       add_column :accounts, :ssl_enabled, :boolean, default: true
   #     end
@@ -222,7 +231,7 @@ module ActiveRecord
   #
   # Example of a more complex migration that also needs to initialize data:
   #
-  #   class AddSystemSettings < ActiveRecord::Migration[5.0]
+  #   class AddSystemSettings < ActiveRecord::Migration[6.0]
   #     def up
   #       create_table :system_settings do |t|
   #         t.string  :name
@@ -350,7 +359,7 @@ module ActiveRecord
   #   bin/rails generate migration add_fieldname_to_tablename fieldname:string
   #
   # This will generate the file <tt>timestamp_add_fieldname_to_tablename.rb</tt>, which will look like this:
-  #   class AddFieldnameToTablename < ActiveRecord::Migration[5.0]
+  #   class AddFieldnameToTablename < ActiveRecord::Migration[6.0]
   #     def change
   #       add_column :tablenames, :fieldname, :string
   #     end
@@ -372,16 +381,11 @@ module ActiveRecord
   # If any of the migrations throw an <tt>ActiveRecord::IrreversibleMigration</tt> exception,
   # that step will fail and you'll have some manual work to do.
   #
-  # == Database support
-  #
-  # Migrations are currently supported in MySQL, PostgreSQL, SQLite,
-  # SQL Server, and Oracle (all supported databases except DB2).
-  #
   # == More examples
   #
   # Not all migrations change the schema. Some just fix the data:
   #
-  #   class RemoveEmptyTags < ActiveRecord::Migration[5.0]
+  #   class RemoveEmptyTags < ActiveRecord::Migration[6.0]
   #     def up
   #       Tag.all.each { |tag| tag.destroy if tag.pages.empty? }
   #     end
@@ -394,7 +398,7 @@ module ActiveRecord
   #
   # Others remove columns when they migrate up instead of down:
   #
-  #   class RemoveUnnecessaryItemAttributes < ActiveRecord::Migration[5.0]
+  #   class RemoveUnnecessaryItemAttributes < ActiveRecord::Migration[6.0]
   #     def up
   #       remove_column :items, :incomplete_items_count
   #       remove_column :items, :completed_items_count
@@ -408,7 +412,7 @@ module ActiveRecord
   #
   # And sometimes you need to do something in SQL not abstracted directly by migrations:
   #
-  #   class MakeJoinUnique < ActiveRecord::Migration[5.0]
+  #   class MakeJoinUnique < ActiveRecord::Migration[6.0]
   #     def up
   #       execute "ALTER TABLE `pages_linked_pages` ADD UNIQUE `page_id_linked_page_id` (`page_id`,`linked_page_id`)"
   #     end
@@ -425,7 +429,7 @@ module ActiveRecord
   # <tt>Base#reset_column_information</tt> in order to ensure that the model has the
   # latest column data from after the new column was added. Example:
   #
-  #   class AddPeopleSalary < ActiveRecord::Migration[5.0]
+  #   class AddPeopleSalary < ActiveRecord::Migration[6.0]
   #     def up
   #       add_column :people, :salary, :integer
   #       Person.reset_column_information
@@ -483,7 +487,7 @@ module ActiveRecord
   # To define a reversible migration, define the +change+ method in your
   # migration like this:
   #
-  #   class TenderloveMigration < ActiveRecord::Migration[5.0]
+  #   class TenderloveMigration < ActiveRecord::Migration[6.0]
   #     def change
   #       create_table(:horses) do |t|
   #         t.column :content, :text
@@ -513,7 +517,7 @@ module ActiveRecord
   # can't execute inside a transaction though, and for these situations
   # you can turn the automatic transactions off.
   #
-  #   class ChangeEnum < ActiveRecord::Migration[5.0]
+  #   class ChangeEnum < ActiveRecord::Migration[6.0]
   #     disable_ddl_transaction!
   #
   #     def up
@@ -635,6 +639,7 @@ module ActiveRecord
       def method_missing(name, *args, &block) #:nodoc:
         nearest_delegate.send(name, *args, &block)
       end
+      ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
 
       def migrate(direction)
         new.migrate direction
@@ -673,7 +678,7 @@ module ActiveRecord
     # and create the table 'apples' on the way up, and the reverse
     # on the way down.
     #
-    #   class FixTLMigration < ActiveRecord::Migration[5.0]
+    #   class FixTLMigration < ActiveRecord::Migration[6.0]
     #     def change
     #       revert do
     #         create_table(:horses) do |t|
@@ -690,9 +695,9 @@ module ActiveRecord
     # Or equivalently, if +TenderloveMigration+ is defined as in the
     # documentation for Migration:
     #
-    #   require_relative '20121212123456_tenderlove_migration'
+    #   require_relative "20121212123456_tenderlove_migration"
     #
-    #   class FixupTLMigration < ActiveRecord::Migration[5.0]
+    #   class FixupTLMigration < ActiveRecord::Migration[6.0]
     #     def change
     #       revert TenderloveMigration
     #
@@ -743,7 +748,7 @@ module ActiveRecord
     # when the three columns 'first_name', 'last_name' and 'full_name' exist,
     # even when migrating down:
     #
-    #    class SplitNameMigration < ActiveRecord::Migration[5.0]
+    #    class SplitNameMigration < ActiveRecord::Migration[6.0]
     #      def change
     #        add_column :users, :first_name, :string
     #        add_column :users, :last_name, :string
@@ -771,7 +776,7 @@ module ActiveRecord
     # In the following example, the new column +published+ will be given
     # the value +true+ for all existing records.
     #
-    #    class AddPublishedToPosts < ActiveRecord::Migration[5.2]
+    #    class AddPublishedToPosts < ActiveRecord::Migration[6.0]
     #      def change
     #        add_column :posts, :published, :boolean, default: false
     #        up_only do
@@ -903,14 +908,10 @@ module ActiveRecord
           end
         end
         return super unless connection.respond_to?(method)
-        options = arguments.extract_options!
-        if options.empty?
-          connection.send(method, *arguments, &block)
-        else
-          connection.send(method, *arguments, **options, &block)
-        end
+        connection.send(method, *arguments, &block)
       end
     end
+    ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
 
     def copy(destination, sources, options = {})
       copied = []
@@ -1146,6 +1147,7 @@ module ActiveRecord
     end
 
     def last_stored_environment
+      return nil unless ActiveRecord::InternalMetadata.enabled?
       return nil if current_version == 0
       raise NoEnvironmentInSchemaError unless ActiveRecord::InternalMetadata.table_exists?
 
@@ -1267,7 +1269,7 @@ module ActiveRecord
       def run_without_lock
         migration = migrations.detect { |m| m.version == @target_version }
         raise UnknownMigrationVersionError.new(@target_version) if migration.nil?
-        result = execute_migration_in_transaction(migration, @direction)
+        result = execute_migration_in_transaction(migration)
 
         record_environment
         result
@@ -1279,10 +1281,7 @@ module ActiveRecord
           raise UnknownMigrationVersionError.new(@target_version)
         end
 
-        result = runnable.each do |migration|
-          execute_migration_in_transaction(migration, @direction)
-        end
-
+        result = runnable.each(&method(:execute_migration_in_transaction))
         record_environment
         result
       end
@@ -1302,14 +1301,14 @@ module ActiveRecord
         @target_version && @target_version != 0 && !target
       end
 
-      def execute_migration_in_transaction(migration, direction)
+      def execute_migration_in_transaction(migration)
         return if down? && !migrated.include?(migration.version.to_i)
         return if up?   &&  migrated.include?(migration.version.to_i)
 
         Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
 
         ddl_transaction(migration) do
-          migration.migrate(direction)
+          migration.migrate(@direction)
           record_version_state_after_migrating(migration.version)
         end
       rescue => e
@@ -1376,7 +1375,8 @@ module ActiveRecord
 
       def with_advisory_lock
         lock_id = generate_migrator_advisory_lock_id
-        connection = Base.connection
+        AdvisoryLockBase.establish_connection(ActiveRecord::Base.connection_db_config) unless AdvisoryLockBase.connected?
+        connection = AdvisoryLockBase.connection
         got_lock = connection.get_advisory_lock(lock_id)
         raise ConcurrentMigrationError unless got_lock
         load_migrated # reload schema_migrations to be sure it wasn't changed by another process before we got the lock

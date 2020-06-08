@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 $:.unshift File.expand_path("lib", __dir__)
-$:.unshift File.expand_path("fixtures/helpers", __dir__)
-$:.unshift File.expand_path("fixtures/alternate_helpers", __dir__)
 
 ENV["TMPDIR"] = File.expand_path("tmp", __dir__)
 
@@ -22,6 +20,19 @@ require "action_view"
 require "action_view/testing/resolvers"
 require "active_support/dependencies"
 require "active_model"
+
+module ActionViewTestSuiteUtils
+  def self.require_helpers(helpers_dirs)
+    Array(helpers_dirs).each do |helpers_dir|
+      Dir.glob("#{helpers_dir}/**/*_helper.rb") do |helper_file|
+        require helper_file
+      end
+    end
+  end
+end
+
+ActionViewTestSuiteUtils.require_helpers("#{__dir__}/fixtures/helpers")
+ActionViewTestSuiteUtils.require_helpers("#{__dir__}/fixtures/alternate_helpers")
 
 ActiveSupport::Dependencies.hook!
 
@@ -48,8 +59,6 @@ module RenderERBUtils
   end
 
   def render_erb(string)
-    @virtual_path = nil
-
     template = ActionView::Template.new(
       string.strip,
       "test template",

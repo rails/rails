@@ -81,11 +81,9 @@ module ActiveRecord
       def join_constraints(joins_to_add, alias_tracker)
         @alias_tracker = alias_tracker
 
-        construct_tables!(join_root)
         joins = make_join_constraints(join_root, join_type)
 
         joins.concat joins_to_add.flat_map { |oj|
-          construct_tables!(oj.join_root)
           if join_root.match? oj.join_root
             walk(join_root, oj.join_root, oj.join_type)
           else
@@ -94,14 +92,14 @@ module ActiveRecord
         }
       end
 
-      def instantiate(result_set, &block)
+      def instantiate(result_set, strict_loading_value, &block)
         primary_key = aliases.column_alias(join_root, join_root.primary_key)
 
-        seen = Hash.new { |i, object_id|
-          i[object_id] = Hash.new { |j, child_class|
+        seen = Hash.new { |i, parent|
+          i[parent] = Hash.new { |j, child_class|
             j[child_class] = {}
           }
-        }
+        }.compare_by_identity
 
         model_cache = Hash.new { |h, klass| h[klass] = {} }
         parents = model_cache[join_root]
@@ -120,7 +118,7 @@ module ActiveRecord
           result_set.each { |row_hash|
             parent_key = primary_key ? row_hash[primary_key] : row_hash
             parent = parents[parent_key] ||= join_root.instantiate(row_hash, column_aliases, &block)
-            construct(parent, join_root, row_hash, seen, model_cache)
+            construct(parent, join_root, row_hash, seen, model_cache, strict_loading_value)
           }
         end
 
@@ -129,6 +127,10 @@ module ActiveRecord
 
       def apply_column_aliases(relation)
         relation._select!(-> { aliases.columns })
+      end
+
+      def each(&block)
+        join_root.each(&block)
       end
 
       protected
@@ -153,12 +155,6 @@ module ActiveRecord
           }
         end
 
-        def construct_tables!(join_root)
-          join_root.each_children do |parent, child|
-            child.tables = table_aliases_for(parent, child)
-          end
-        end
-
         def make_join_constraints(join_root, join_type)
           join_root.children.flat_map do |child|
             make_constraints(join_root, child, join_type)
@@ -168,18 +164,13 @@ module ActiveRecord
         def make_constraints(parent, child, join_type)
           foreign_table = parent.table
           foreign_klass = parent.base_klass
-          joins = child.join_constraints(foreign_table, foreign_klass, join_type, alias_tracker)
-          joins.concat child.children.flat_map { |c| make_constraints(child, c, join_type) }
-        end
-
-        def table_aliases_for(parent, node)
-          node.reflection.chain.map { |reflection|
+          child.join_constraints(foreign_table, foreign_klass, join_type, alias_tracker) do |reflection|
             alias_tracker.aliased_table_for(
               reflection.table_name,
-              table_alias_for(reflection, parent, reflection != node.reflection),
+              table_alias_for(reflection, parent, reflection != child.reflection),
               reflection.klass.type_caster
             )
-          }
+          end.concat child.children.flat_map { |c| make_constraints(child, c, join_type) }
         end
 
         def table_alias_for(reflection, parent, join)
@@ -215,7 +206,7 @@ module ActiveRecord
           end
         end
 
-        def construct(ar_parent, parent, row, seen, model_cache)
+        def construct(ar_parent, parent, row, seen, model_cache, strict_loading_value)
           return if ar_parent.nil?
 
           parent.children.each do |node|
@@ -224,7 +215,7 @@ module ActiveRecord
               other.loaded!
             elsif ar_parent.association_cached?(node.reflection.name)
               model = ar_parent.association(node.reflection.name).target
-              construct(model, node, row, seen, model_cache)
+              construct(model, node, row, seen, model_cache, strict_loading_value)
               next
             end
 
@@ -236,24 +227,25 @@ module ActiveRecord
               next
             end
 
-            model = seen[ar_parent.object_id][node][id]
+            model = seen[ar_parent][node][id]
 
             if model
-              construct(model, node, row, seen, model_cache)
+              construct(model, node, row, seen, model_cache, strict_loading_value)
             else
-              model = construct_model(ar_parent, node, row, model_cache, id)
+              model = construct_model(ar_parent, node, row, model_cache, id, strict_loading_value)
 
-              seen[ar_parent.object_id][node][id] = model
-              construct(model, node, row, seen, model_cache)
+              seen[ar_parent][node][id] = model
+              construct(model, node, row, seen, model_cache, strict_loading_value)
             end
           end
         end
 
-        def construct_model(record, node, row, model_cache, id)
+        def construct_model(record, node, row, model_cache, id, strict_loading_value)
           other = record.association(node.reflection.name)
 
           model = model_cache[node][id] ||=
             node.instantiate(row, aliases.column_aliases(node)) do |m|
+              m.strict_loading! if strict_loading_value
               other.set_inverse_instance(m)
             end
 
@@ -264,6 +256,7 @@ module ActiveRecord
           end
 
           model.readonly! if node.readonly?
+          model.strict_loading! if node.strict_loading?
           model
         end
     end

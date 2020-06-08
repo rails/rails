@@ -59,7 +59,7 @@ module ActiveRecord
   # Since fixtures are a testing construct, we use them in our unit and functional tests. There
   # are two ways to use the fixtures, but first let's take a look at a sample unit test:
   #
-  #   require 'test_helper'
+  #   require "test_helper"
   #
   #   class WebSiteTest < ActiveSupport::TestCase
   #     test "web_site_count" do
@@ -447,7 +447,7 @@ module ActiveRecord
   # It's possible to set the fixture's model class directly in the YAML file.
   # This is helpful when fixtures are loaded outside tests and
   # +set_fixture_class+ is not available (e.g.
-  # when running <tt>rails db:fixtures:load</tt>).
+  # when running <tt>bin/rails db:fixtures:load</tt>).
   #
   #   _fixture:
   #     model_class: User

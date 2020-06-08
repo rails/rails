@@ -27,7 +27,7 @@ class EnumTest < ActiveRecord::TestCase
 
   test "query state with strings" do
     assert_equal "published", @book.status
-    assert_equal "read", @book.read_status
+    assert_equal "read", @book.last_read
     assert_equal "english", @book.language
     assert_equal "visible", @book.author_visibility
     assert_equal "visible", @book.illustrator_visibility
@@ -68,7 +68,7 @@ class EnumTest < ActiveRecord::TestCase
     assert_not_equal @book, Book.where(status: [:written]).first
     assert_not_equal @book, Book.where.not(status: :published).first
     assert_equal @book, Book.where.not(status: :written).first
-    assert_equal books(:ddd), Book.where(read_status: :forgotten).first
+    assert_equal books(:ddd), Book.where(last_read: :forgotten).first
   end
 
   test "find via where with strings" do
@@ -78,7 +78,7 @@ class EnumTest < ActiveRecord::TestCase
     assert_not_equal @book, Book.where(status: ["written"]).first
     assert_not_equal @book, Book.where.not(status: "published").first
     assert_equal @book, Book.where.not(status: "written").first
-    assert_equal books(:ddd), Book.where(read_status: "forgotten").first
+    assert_equal books(:ddd), Book.where(last_read: "forgotten").first
   end
 
   test "build from scope" do
@@ -131,6 +131,16 @@ class EnumTest < ActiveRecord::TestCase
     @book.language = :spanish
     assert_equal old_status, @book.changed_attributes[:status]
     assert_equal old_language, @book.changed_attributes[:language]
+  end
+
+  test "enum value after write symbol" do
+    @book.status = :proposed
+    assert_equal "proposed", @book.status
+  end
+
+  test "enum value after write string" do
+    @book.status = "proposed"
+    assert_equal "proposed", @book.status
   end
 
   test "enum changes" do
@@ -232,8 +242,8 @@ class EnumTest < ActiveRecord::TestCase
   end
 
   test "assign nil value to enum which defines nil value to hash" do
-    @book.read_status = nil
-    assert_equal "forgotten", @book.read_status
+    @book.last_read = nil
+    assert_equal "forgotten", @book.last_read
   end
 
   test "assign empty string value" do

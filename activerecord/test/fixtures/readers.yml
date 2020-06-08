@@ -9,3 +9,9 @@ michael_authorless:
   post_id: 3
   person_id: 1
   first_post_id: 3
+
+bob_welcome:
+  id: 3
+  post_id: 8
+  person_id: 4
+  first_post_id: 10

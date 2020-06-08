@@ -1,8 +1,29 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/file/atomic"
+
 module ActiveRecord
   module ConnectionAdapters
     class SchemaCache
+      def self.load_from(filename)
+        return unless File.file?(filename)
+
+        read(filename) do |file|
+          filename.include?(".dump") ? Marshal.load(file) : YAML.load(file)
+        end
+      end
+
+      def self.read(filename, &block)
+        if File.extname(filename) == ".gz"
+          Zlib::GzipReader.open(filename) { |gz|
+            yield gz.read
+          }
+        else
+          yield File.read(filename)
+        end
+      end
+      private_class_method :read
+
       attr_reader :version
       attr_accessor :connection
 
@@ -26,11 +47,13 @@ module ActiveRecord
       end
 
       def encode_with(coder)
+        reset_version!
+
         coder["columns"]          = @columns
         coder["primary_keys"]     = @primary_keys
         coder["data_sources"]     = @data_sources
         coder["indexes"]          = @indexes
-        coder["version"]          = connection.migration_context.current_version
+        coder["version"]          = @version
         coder["database_version"] = database_version
       end
 
@@ -86,7 +109,7 @@ module ActiveRecord
       # value is the column object.
       def columns_hash(table_name)
         @columns_hash.fetch(table_name) do
-          @columns_hash[deep_deduplicate(table_name)] = columns(table_name).index_by(&:name)
+          @columns_hash[deep_deduplicate(table_name)] = columns(table_name).index_by(&:name).freeze
         end
       end
 
@@ -129,9 +152,21 @@ module ActiveRecord
         @indexes.delete name
       end
 
+      def dump_to(filename)
+        clear!
+        connection.data_sources.each { |table| add(table) }
+        open(filename) { |f|
+          if filename.include?(".dump")
+            f.write(Marshal.dump(self))
+          else
+            f.write(YAML.dump(self))
+          end
+        }
+      end
+
       def marshal_dump
-        # if we get current version during initialization, it happens stack over flow.
-        @version = connection.migration_context.current_version
+        reset_version!
+
         [@version, @columns, {}, @primary_keys, @data_sources, @indexes, database_version]
       end
 
@@ -143,6 +178,10 @@ module ActiveRecord
       end
 
       private
+        def reset_version!
+          @version = connection.migration_context.current_version
+        end
+
         def derive_columns_hash_and_deduplicate_values
           @columns      = deep_deduplicate(@columns)
           @columns_hash = @columns.transform_values { |columns| columns.index_by(&:name) }
@@ -166,6 +205,19 @@ module ActiveRecord
 
         def prepare_data_sources
           connection.data_sources.each { |source| @data_sources[source] = true }
+        end
+
+        def open(filename)
+          File.atomic_write(filename) do |file|
+            if File.extname(filename) == ".gz"
+              zipper = Zlib::GzipWriter.new file
+              yield zipper
+              zipper.flush
+              zipper.close
+            else
+              yield file
+            end
+          end
         end
     end
   end

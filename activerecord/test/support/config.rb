@@ -1,9 +1,8 @@
 # frozen_string_literal: true
 
-require "yaml"
-require "erb"
 require "fileutils"
 require "pathname"
+require "active_support/configuration_file"
 
 module ARTest
   class << self
@@ -21,8 +20,7 @@ module ARTest
           FileUtils.cp TEST_ROOT + "/config.example.yml", config_file
         end
 
-        erb = ERB.new(config_file.read)
-        expand_config(YAML.parse(erb.result(binding)).transform)
+        expand_config ActiveSupport::ConfigurationFile.parse(config_file)
       end
 
       def expand_config(config)

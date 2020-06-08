@@ -35,6 +35,41 @@ module ActionView
       alias :to_s :to_str
     end
 
+    class PathParser # :nodoc:
+      def build_path_regex
+        handlers = Template::Handlers.extensions.map { |x| Regexp.escape(x) }.join("|")
+        formats = Template::Types.symbols.map { |x| Regexp.escape(x) }.join("|")
+        locales = "[a-z]{2}(?:-[A-Z]{2})?"
+        variants = "[^.]*"
+
+        %r{
+          \A
+          (?:(?<prefix>.*)/)?
+          (?<partial>_)?
+          (?<action>.*?)
+          (?:\.(?<locale>#{locales}))??
+          (?:\.(?<format>#{formats}))??
+          (?:\+(?<variant>#{variants}))??
+          (?:\.(?<handler>#{handlers}))?
+          \z
+        }x
+      end
+
+      def parse(path)
+        @regex ||= build_path_regex
+        match = @regex.match(path)
+        {
+          prefix: match[:prefix] || "",
+          action: match[:action],
+          partial: !!match[:partial],
+          locale: match[:locale]&.to_sym,
+          handler: match[:handler]&.to_sym,
+          format: match[:format]&.to_sym,
+          variant: match[:variant]
+        }
+      end
+    end
+
     # Threadsafe template cache
     class Cache #:nodoc:
       class SmallCache < Concurrent::Map
@@ -172,11 +207,13 @@ module ActionView
         @pattern = DEFAULT_PATTERN
       end
       @unbound_templates = Concurrent::Map.new
+      @path_parser = PathParser.new
       super()
     end
 
     def clear_cache
       @unbound_templates.clear
+      @path_parser = PathParser.new
       super()
     end
 
@@ -204,9 +241,13 @@ module ActionView
         end
       end
 
+      def source_for_template(template)
+        Template::Sources::File.new(template)
+      end
+
       def build_unbound_template(template, virtual_path)
         handler, format, variant = extract_handler_and_format_and_variant(template)
-        source = Template::Sources::File.new(template)
+        source = source_for_template(template)
 
         UnboundTemplate.new(
           source,
@@ -223,6 +264,10 @@ module ActionView
       end
 
       def find_template_paths_from_details(path, details)
+        if path.name.include?(".")
+          ActiveSupport::Deprecation.warn("Rendering actions with '.' in the name is deprecated: #{path}")
+        end
+
         query = build_query(path, details)
         find_template_paths(query)
       end
@@ -270,18 +315,11 @@ module ActionView
       # from the path, or the handler, we should return the array of formats given
       # to the resolver.
       def extract_handler_and_format_and_variant(path)
-        pieces = File.basename(path).split(".")
-        pieces.shift
+        details = @path_parser.parse(path)
 
-        extension = pieces.pop
-
-        handler = Template.handler_for_extension(extension)
-        format, variant = pieces.last.split(EXTENSIONS[:variants], 2) if pieces.last
-        format = if format
-          Template::Types[format]&.ref
-        elsif handler.respond_to?(:default_format) # default_format can return nil
-          handler.default_format
-        end
+        handler = Template.handler_for_extension(details[:handler])
+        format = details[:format] || handler.try(:default_format)
+        variant = details[:variant]
 
         # Template::Types[format] and handler.default_format can return nil
         [handler, format, variant]
@@ -316,14 +354,27 @@ module ActionView
     end
 
     private
-      def find_template_paths_from_details(path, details)
+      def find_candidate_template_paths(path)
         # Instead of checking for every possible path, as our other globs would
         # do, scan the directory for files with the right prefix.
         query = "#{escape_entry(File.join(@path, path))}*"
 
+        Dir[query].reject do |filename|
+          File.directory?(filename)
+        end
+      end
+
+      def find_template_paths_from_details(path, details)
+        if path.name.include?(".")
+          # Fall back to the unoptimized resolver, which will warn
+          return super
+        end
+
+        candidates = find_candidate_template_paths(path)
+
         regex = build_regex(path, details)
 
-        Dir[query].uniq.reject do |filename|
+        candidates.uniq.reject do |filename|
           # This regex match does double duty of finding only files which match
           # details (instead of just matching the prefix) and also filtering for
           # case-insensitive file systems.

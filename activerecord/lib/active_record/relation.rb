@@ -7,7 +7,7 @@ module ActiveRecord
                             :order, :joins, :left_outer_joins, :references,
                             :extending, :unscope, :optimizer_hints, :annotate]
 
-    SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :reordering,
+    SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :reordering, :strict_loading,
                             :reverse_order, :distinct, :create_with, :skip_query_cache]
 
     CLAUSE_METHODS = [:where, :having, :from]
@@ -308,7 +308,7 @@ module ActiveRecord
     # last updated record.
     #
     #   Product.where("name like ?", "%Game%").cache_key(:last_reviewed_at)
-    def cache_key(timestamp_column = :updated_at)
+    def cache_key(timestamp_column = "updated_at")
       @cache_keys ||= {}
       @cache_keys[timestamp_column] ||= klass.collection_cache_key(self, timestamp_column)
     end
@@ -343,10 +343,12 @@ module ActiveRecord
     end
 
     def compute_cache_version(timestamp_column) # :nodoc:
+      timestamp_column = timestamp_column.to_s
+
       if loaded? || distinct_value
         size = records.size
         if size > 0
-          timestamp = max_by(&timestamp_column)._read_attribute(timestamp_column)
+          timestamp = records.map { |record| record.read_attribute(timestamp_column) }.max
         end
       else
         collection = eager_loading? ? apply_join_dependency : self
@@ -365,14 +367,12 @@ module ActiveRecord
           arel = query.arel
         end
 
-        result = connection.select_one(arel, nil)
+        size, timestamp = connection.select_rows(arel, nil).first
 
-        if result
+        if size
           column_type = klass.type_for_attribute(timestamp_column)
-          timestamp = column_type.deserialize(result["timestamp"])
-          size = result["size"]
+          timestamp = column_type.deserialize(timestamp)
         else
-          timestamp = nil
           size = 0
         end
       end
@@ -417,7 +417,7 @@ module ActiveRecord
     # Updates all records in the current relation with details given. This method constructs a single SQL UPDATE
     # statement and sends it straight to the database. It does not instantiate the involved models and it does not
     # trigger Active Record callbacks or validations. However, values passed to #update_all will still go through
-    # Active Record's normal type casting and serialization.
+    # Active Record's normal type casting and serialization. Returns the number of rows affected.
     #
     # Note: As Active Record callbacks are not triggered, this method will not automatically update +updated_at+/+updated_on+ columns.
     #
@@ -500,7 +500,7 @@ module ActiveRecord
 
       if touch
         names = touch if touch != true
-        names = Array(names)
+        names = Array.wrap(names)
         options = names.extract_options!
         touch_updates = klass.touch_attributes_with_time(*names, **options)
         updates.merge!(touch_updates) unless touch_updates.empty?
@@ -686,7 +686,9 @@ module ActiveRecord
     end
 
     def scope_for_create
-      where_values_hash.merge!(create_with_value.stringify_keys)
+      hash = where_values_hash
+      create_with_value.each { |k, v| hash[k.to_s] = v } unless create_with_value.empty?
+      hash
     end
 
     # Returns true if relation needs eager loading.
@@ -747,17 +749,27 @@ module ActiveRecord
     end
 
     def alias_tracker(joins = [], aliases = nil) # :nodoc:
-      joins += [aliases] if aliases
-      ActiveRecord::Associations::AliasTracker.create(connection, table.name, joins)
+      ActiveRecord::Associations::AliasTracker.create(connection, table.name, joins, aliases)
+    end
+
+    class StrictLoadingScope # :nodoc:
+      def self.empty_scope?
+        true
+      end
+
+      def self.strict_loading_value
+        true
+      end
     end
 
     def preload_associations(records) # :nodoc:
       preload = preload_values
       preload += includes_values unless eager_loading?
       preloader = nil
+      scope = strict_loading_value ? StrictLoadingScope : nil
       preload.each do |associations|
         preloader ||= build_preloader
-        preloader.preload records, associations
+        preloader.preload records, associations, scope
       end
     end
 
@@ -831,7 +843,7 @@ module ActiveRecord
                 else
                   relation = join_dependency.apply_column_aliases(relation)
                   rows = connection.select_all(relation.arel, "SQL")
-                  join_dependency.instantiate(rows, &block)
+                  join_dependency.instantiate(rows, strict_loading_value, &block)
                 end.freeze
               end
             else
@@ -841,6 +853,7 @@ module ActiveRecord
           preload_associations(records) unless skip_preloading_value
 
           records.each(&:readonly!) if readonly_value
+          records.each(&:strict_loading!) if strict_loading_value
 
           records
         end

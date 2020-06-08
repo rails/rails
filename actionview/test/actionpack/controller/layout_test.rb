@@ -18,9 +18,13 @@ end
 module TemplateHandlerHelper
   def with_template_handler(*extensions, handler)
     ActionView::Template.register_template_handler(*extensions, handler)
+    ActionController::Base.view_paths.paths.each(&:clear_cache)
+    ActionView::LookupContext::DetailsKey.clear
     yield
   ensure
     ActionView::Template.unregister_template_handler(*extensions)
+    ActionController::Base.view_paths.paths.each(&:clear_cache)
+    ActionView::LookupContext::DetailsKey.clear
   end
 end
 

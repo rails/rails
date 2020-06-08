@@ -30,7 +30,7 @@ class PluginTestRunnerTest < ActiveSupport::TestCase
   def test_mix_files_and_line_filters
     create_test_file "account"
     plugin_file "test/post_test.rb", <<-RUBY
-      require 'test_helper'
+      require "test_helper"
 
       class PostTest < ActiveSupport::TestCase
         def test_post
@@ -96,7 +96,7 @@ class PluginTestRunnerTest < ActiveSupport::TestCase
 
   def test_warnings_option
     plugin_file "test/models/warnings_test.rb", <<-RUBY
-      require 'test_helper'
+      require "test_helper"
       def test_warnings
         a = 1
       end

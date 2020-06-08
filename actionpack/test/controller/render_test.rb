@@ -365,7 +365,9 @@ class ExpiresInRenderTest < ActionController::TestCase
   def test_dynamic_render
     assert File.exist?(File.expand_path("../../test/abstract_unit.rb", __dir__))
     assert_raises ActionView::MissingTemplate do
-      get :dynamic_render, params: { id: '../\\../test/abstract_unit.rb' }
+      assert_deprecated do
+        get :dynamic_render, params: { id: '../\\../test/abstract_unit.rb' }
+      end
     end
   end
 
@@ -864,6 +866,38 @@ class HeadRenderTest < ActionController::TestCase
   def test_head_default_content_type
     post :head_default_content_type
     assert_equal "text/html", @response.header["Content-Type"]
+  end
+end
+
+class LiveTestController < ActionController::Base
+  include ActionController::Live
+
+  def test_action
+    head :ok
+  end
+end
+
+class LiveHeadRenderTest < ActionController::TestCase
+  tests LiveTestController
+
+  def setup
+    super
+
+    def @controller.new_controller_thread
+      Thread.new { yield }
+    end
+
+    def @controller.response_body=(body)
+      super
+      sleep 0.1
+    end
+  end
+
+  def test_live_head_ok
+    get :test_action, format: "json"
+
+    @response.stream.on_error { flunk "action should not raise any errors" }
+    sleep 0.2
   end
 end
 

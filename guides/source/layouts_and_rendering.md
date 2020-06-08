@@ -277,6 +277,16 @@ since an attacker could use this action to access security sensitive files in yo
 
 TIP: `send_file` is often a faster and better option if a layout isn't required.
 
+#### Rendering objects
+
+Rails can render objects responding to `:render_in`.
+
+```ruby
+render MyComponent.new
+```
+
+This calls `render_in` on the provided object with the current view context.
+
 #### Options for `render`
 
 Calls to the `render` method generally accept six options:

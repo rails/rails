@@ -1102,87 +1102,79 @@ main Rails application.
 
 ### Overriding Models and Controllers
 
-Engine model and controller classes can be extended by open classing them in the
-main Rails application (since model and controller classes are just Ruby classes
-that inherit Rails specific functionality). Open classing an Engine class
-redefines it for use in the main application.
+Engine models and controllers can be reopened by the parent application to extend or decorate them.
 
-For simple class modifications, use `Class#class_eval`. For complex class
-modifications, consider using `ActiveSupport::Concern`.
+Overrides may be organized in a dedicated directory `app/overrides` that is preloaded in a `to_prepare` callback.
 
-#### A note on Overriding and Loading Code
-
-Because these overrides are not referenced by your Rails application itself,
-Rails' autoloading system will not kick in and load your overrides. This means
-that you need to require them yourself.
-
-Here is some sample code to do this:
+In `zeitwerk` mode you'd do this:
 
 ```ruby
-# lib/blorgh/engine.rb
-module Blorgh
-  class Engine < ::Rails::Engine
-    isolate_namespace Blorgh
+# config/application.rb
+module MyApp
+  class Application < Rails::Application
+    ...
 
+    overrides = "#{Rails.root}/app/overrides"
+    Rails.autoloaders.main.ignore(overrides)
     config.to_prepare do
-      Dir.glob(Rails.root + "app/overrides/**/*_override*.rb").each do |c|
-        require_dependency(c)
+      Dir.glob("#{overrides}/**/*_override.rb").each do |override|
+        load override
       end
     end
   end
 end
 ```
 
-This doesn't apply to just overrides, but anything that you add in an engine
-that isn't referenced by your main application.
-
-#### Reopening existing classes using Class#class_eval
-
-**Adding** `Article#time_since_created`:
+and in `classic` mode this:
 
 ```ruby
-# MyApp/app/overrides/models/blorgh/article_override.rb
+# config/application.rb
+module MyApp
+  class Application < Rails::Application
+    ...
 
-Blorgh::Article.class_eval do
-  def time_since_created
-    Time.current - created_at
+    config.to_prepare do
+      Dir.glob("#{Rails.root}/app/overrides/**/*_override.rb").each do |override|
+        require_dependency override
+      end
+    end
   end
 end
 ```
+
+#### Reopening existing classes using `class_eval`
+
+For example, in order to override the engine model
 
 ```ruby
 # Blorgh/app/models/blorgh/article.rb
 module Blorgh
   class Article < ApplicationRecord
     has_many :comments
-  end
-end
-```
 
-
-**Overriding** `Article#summary`:
-
-```ruby
-# MyApp/app/overrides/models/blorgh/article_override.rb
-
-Blorgh::Article.class_eval do
-  def summary
-    "#{title} - #{truncate(text)}"
-  end
-end
-```
-
-```ruby
-# Blorgh/app/models/blorgh/article.rb
-module Blorgh
-  class Article < ApplicationRecord
-    has_many :comments
     def summary
       "#{title}"
     end
   end
 end
 ```
+
+you just create a file that _reopens_ that class:
+
+```ruby
+# MyApp/app/overrides/models/blorgh/article_override.rb
+Blorgh::Article.class_eval do
+  def time_since_created
+    Time.current - created_at
+  end
+
+  def summary
+    "#{title} - #{truncate(text)}"
+  end
+end
+```
+
+It is very important that the override _reopens_ the class or module. Using the `class` or `module` keywords would define them if they were not already in memory, which would be incorrect because the definition lives in the engine. Using `class_eval` as shown above ensures you are reopening.
 
 #### Reopening existing classes using ActiveSupport::Concern
 
@@ -1425,8 +1417,8 @@ required, you should require them before the engine's initialization. For
 example:
 
 ```ruby
-require 'other_engine/engine'
-require 'yet_another_engine/engine'
+require "other_engine/engine"
+require "yet_another_engine/engine"
 
 module MyEngine
   class Engine < ::Rails::Engine

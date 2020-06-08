@@ -66,6 +66,13 @@ class ActionText::PlainTextConversionTest < ActiveSupport::TestCase
     )
   end
 
+  test "<figcaption> tags are converted to their plain-text representation" do
+    assert_converted_to(
+      "Hello world! [A condor in the mountain]",
+      "Hello world! <figcaption>A condor in the mountain</figcaption>"
+    )
+  end
+
   test "<action-text-attachment> tags are converted to their plain-text representation" do
     assert_converted_to(
       "Hello world! [Cat]",

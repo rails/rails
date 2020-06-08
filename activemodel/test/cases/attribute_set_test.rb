@@ -224,12 +224,13 @@ module ActiveModel
       attributes.instance_variable_get(:@attributes).instance_eval do
         class << self
           def marshal_dump
-            materialize
+            materialize # legacy marshal format before Rails 5.1
           end
         end
       end
 
-      attributes = Marshal.load(Marshal.dump(attributes))
+      data = Marshal.dump(attributes)
+      attributes = assert_deprecated { Marshal.load(data) }
       assert_equal({ foo: "1" }, attributes.to_hash)
     end
 

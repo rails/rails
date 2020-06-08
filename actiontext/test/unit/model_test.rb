@@ -18,6 +18,7 @@ class ActionText::ModelTest < ActiveSupport::TestCase
     assert message.content.nil?
     assert message.content.blank?
     assert message.content.empty?
+    assert_not message.content?
     assert_not message.content.present?
   end
 
@@ -26,6 +27,7 @@ class ActionText::ModelTest < ActiveSupport::TestCase
     assert_not message.content.nil?
     assert message.content.blank?
     assert message.content.empty?
+    assert_not message.content?
     assert_not message.content.present?
   end
 

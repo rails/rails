@@ -370,6 +370,30 @@ There are some common options that can be used by all cache implementations. The
 
 * `:race_condition_ttl` - This option is used in conjunction with the `:expires_in` option. It will prevent race conditions when cache entries expire by preventing multiple processes from simultaneously regenerating the same entry (also known as the dog pile effect). This option sets the number of seconds that an expired entry can be reused while a new value is being regenerated. It's a good practice to set this value if you use the `:expires_in` option.
 
+#### Connection Pool Options
+
+By default the `MemCacheStore` and `RedisCacheStore` use a single connection
+per process. This means that if you're using Puma, or another threaded server,
+you can have multiple threads waiting for the connection to become available.
+To increase the number of available connections you can enable connection
+pooling.
+
+First, add the `connection_pool` gem to your Gemfile:
+
+```ruby
+gem 'connection_pool'
+```
+
+Next, pass the `:pool_size` and/or `:pool_timeout` options when configuring the cache store:
+
+```ruby
+config.cache_store = :mem_cache_store, "cache.example.com", { pool_size: 5, pool_timeout: 5 }
+```
+
+* `:pool_size` - This option sets the number of connections per process (defaults to 5).
+
+* `:pool_timeout` - This option sets the number of seconds to wait for a connection (defaults to 5). If no connection is available within the timeout, a `Timeout::Error` will be raised.
+
 #### Custom Cache Stores
 
 You can create your own custom cache store by simply extending

@@ -75,8 +75,9 @@ module ActionView
           methods.flatten.each do |method|
             _helpers.module_eval <<-end_eval, __FILE__, __LINE__ + 1
               def #{method}(*args, &block)                    # def current_user(*args, &block)
-                _test_case.send(%(#{method}), *args, &block)  #   _test_case.send(%(current_user), *args, &block)
+                _test_case.send(:'#{method}', *args, &block)  #   _test_case.send(:'current_user', *args, &block)
               end                                             # end
+              ruby2_keywords(:'#{method}') if respond_to?(:ruby2_keywords, true)
             end_eval
           end
         end
