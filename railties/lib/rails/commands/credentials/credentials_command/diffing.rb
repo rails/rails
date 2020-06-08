@@ -1,17 +1,30 @@
 # frozen_string_literal: true
 
 module Rails::Command::CredentialsCommand::Diffing # :nodoc:
+  GITATTRIBUTES_ENTRY = <<~END
+    config/credentials/*.yml.enc diff=rails_credentials
+    config/credentials.yml.enc diff=rails_credentials
+  END
+
   def enroll_project_in_credentials_diffing
     if enrolled_in_credentials_diffing?
-      true
+      say "Project is already enrolled in credentials file diffing."
     else
-      gitattributes.write(<<~end_of_template, mode: "a")
-        config/credentials/*.yml.enc diff=rails_credentials
-        config/credentials.yml.enc diff=rails_credentials
-      end_of_template
+      gitattributes.write(GITATTRIBUTES_ENTRY, mode: "a")
 
-      say "Project successfully enrolled!"
+      say "Enrolled project in credentials file diffing!"
       say "Rails ensures the rails_credentials diff driver is set when running `credentials:edit`. See `credentials:help` for more."
+    end
+  end
+
+  def disenroll_project_from_credentials_diffing
+    if enrolled_in_credentials_diffing?
+      gitattributes.write(gitattributes.read.gsub(GITATTRIBUTES_ENTRY, ""))
+      gitattributes.delete if gitattributes.empty?
+
+      say "Disenrolled project from credentials file diffing!"
+    else
+      say "Project is not enrolled in credentials file diffing."
     end
   end
 
@@ -21,9 +34,7 @@ module Rails::Command::CredentialsCommand::Diffing # :nodoc:
 
   private
     def enrolled_in_credentials_diffing?
-      gitattributes.read.match?(/config\/credentials(\/\*)?\.yml\.enc diff=rails_credentials/)
-    rescue Errno::ENOENT
-      false
+      gitattributes.file? && gitattributes.read.include?(GITATTRIBUTES_ENTRY)
     end
 
     def diffing_driver_configured?
