@@ -31,25 +31,21 @@ module ActiveRecord
         name = self.class.attribute_aliases[name] || name
 
         name = @primary_key if name == "id" && @primary_key
-        _write_attribute(name, value)
+        @attributes.write_from_user(name, value)
       end
 
       # This method exists to avoid the expensive primary_key check internally, without
       # breaking compatibility with the write_attribute API
       def _write_attribute(attr_name, value) # :nodoc:
-        @attributes.write_from_user(attr_name.to_s, value)
-        value
+        @attributes.write_from_user(attr_name, value)
       end
+
+      alias :attribute= :_write_attribute
+      private :attribute=
 
       private
         def write_attribute_without_type_cast(attr_name, value)
-          @attributes.write_cast_value(attr_name.to_s, value)
-          value
-        end
-
-        # Dispatch target for <tt>*=</tt> attribute methods.
-        def attribute=(attribute_name, value)
-          _write_attribute(attribute_name, value)
+          @attributes.write_cast_value(attr_name, value)
         end
     end
   end

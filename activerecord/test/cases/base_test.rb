@@ -1106,8 +1106,8 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_find_keeps_multiple_group_values
-    combined = Developer.all.merge!(group: "developers.name, developers.salary, developers.id, developers.created_at, developers.updated_at, developers.created_on, developers.updated_on").to_a
-    assert_equal combined, Developer.all.merge!(group: ["developers.name", "developers.salary", "developers.id", "developers.created_at", "developers.updated_at", "developers.created_on", "developers.updated_on"]).to_a
+    combined = Developer.merge(group: "developers.name, developers.salary, developers.id, developers.legacy_created_at, developers.legacy_updated_at, developers.legacy_created_on, developers.legacy_updated_on").to_a
+    assert_equal combined, Developer.merge(group: ["developers.name", "developers.salary", "developers.id", "developers.created_at", "developers.updated_at", "developers.created_on", "developers.updated_on"]).to_a
   end
 
   def test_find_symbol_ordered_last
@@ -1277,14 +1277,38 @@ class BasicsTest < ActiveRecord::TestCase
     assert Company.has_attribute?("id")
     assert Company.has_attribute?("type")
     assert Company.has_attribute?("name")
+    assert Company.has_attribute?("new_name")
     assert Company.has_attribute?("metadata")
     assert_not Company.has_attribute?("lastname")
     assert_not Company.has_attribute?("age")
+
+    company = Company.new
+    assert company.has_attribute?("id")
+    assert company.has_attribute?("type")
+    assert company.has_attribute?("name")
+    assert company.has_attribute?("new_name")
+    assert company.has_attribute?("metadata")
+    assert_not company.has_attribute?("lastname")
+    assert_not company.has_attribute?("age")
   end
 
   def test_has_attribute_with_symbol
     assert Company.has_attribute?(:id)
+    assert Company.has_attribute?(:type)
+    assert Company.has_attribute?(:name)
+    assert Company.has_attribute?(:new_name)
+    assert Company.has_attribute?(:metadata)
+    assert_not Company.has_attribute?(:lastname)
     assert_not Company.has_attribute?(:age)
+
+    company = Company.new
+    assert company.has_attribute?(:id)
+    assert company.has_attribute?(:type)
+    assert company.has_attribute?(:name)
+    assert company.has_attribute?(:new_name)
+    assert company.has_attribute?(:metadata)
+    assert_not company.has_attribute?(:lastname)
+    assert_not company.has_attribute?(:age)
   end
 
   def test_attribute_names_on_table_not_exists

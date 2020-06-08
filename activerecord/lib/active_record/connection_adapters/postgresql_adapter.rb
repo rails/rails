@@ -166,6 +166,10 @@ module ActiveRecord
         true
       end
 
+      def supports_check_constraints?
+        true
+      end
+
       def supports_validate_constraints?
         true
       end
@@ -531,7 +535,7 @@ module ActiveRecord
           m.register_type "uuid", OID::Uuid.new
           m.register_type "xml", OID::Xml.new
           m.register_type "tsvector", OID::SpecializedString.new(:tsvector)
-          m.register_type "macaddr", OID::SpecializedString.new(:macaddr)
+          m.register_type "macaddr", OID::Macaddr.new
           m.register_type "citext", OID::SpecializedString.new(:citext)
           m.register_type "ltree", OID::SpecializedString.new(:ltree)
           m.register_type "line", OID::SpecializedString.new(:line)
@@ -651,6 +655,7 @@ module ActiveRecord
 
         def exec_no_cache(sql, name, binds)
           materialize_transactions
+          mark_transaction_written_if_write(sql)
 
           # make sure we carry over any changes to ActiveRecord::Base.default_timezone that have been
           # made since we established the connection
@@ -666,6 +671,7 @@ module ActiveRecord
 
         def exec_cache(sql, name, binds)
           materialize_transactions
+          mark_transaction_written_if_write(sql)
           update_typemap_for_default_timezone
 
           stmt_key = prepare_statement(sql, binds)

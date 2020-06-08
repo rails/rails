@@ -17,8 +17,7 @@ class NullRelationTest < ActiveRecord::TestCase
   end
 
   def test_none_chainable
-    Developer.send(:load_schema)
-    assert_no_queries do
+    assert_queries(0) do
       assert_equal [], Developer.none.where(name: "David")
     end
   end

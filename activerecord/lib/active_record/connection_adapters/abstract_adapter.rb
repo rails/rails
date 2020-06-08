@@ -338,6 +338,11 @@ module ActiveRecord
       end
       deprecate :supports_foreign_keys_in_create?
 
+      # Does this adapter support creating check constraints?
+      def supports_check_constraints?
+        false
+      end
+
       # Does this adapter support views?
       def supports_views?
         false

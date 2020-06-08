@@ -725,10 +725,6 @@ of `create_table` and `reversible`, replacing `create_table`
 by `drop_table`, and finally replacing `up` by `down` and vice-versa.
 This is all taken care of by `revert`.
 
-NOTE: If you want to add check constraints like in the examples above,
-you will have to use `structure.sql` as dump method. See
-[Schema Dumping and You](#schema-dumping-and-you).
-
 Running Migrations
 ------------------
 
@@ -970,7 +966,7 @@ database and expressing its structure using `create_table`, `add_index`, and so
 on.
 
 `db/schema.rb` cannot express everything your database may support such as
-triggers, sequences, stored procedures, check constraints, etc. While migrations
+triggers, sequences, stored procedures, etc. While migrations
 may use `execute` to create database constructs that are not supported by the
 Ruby migration DSL, these constructs may not be able to be reconstituted by the
 schema dumper. If you are using features like these, you should set the schema

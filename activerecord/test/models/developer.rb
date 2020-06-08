@@ -3,6 +3,19 @@
 require "ostruct"
 
 class Developer < ActiveRecord::Base
+  module TimestampAliases
+    extend ActiveSupport::Concern
+
+    included do
+      alias_attribute :created_at, :legacy_created_at
+      alias_attribute :updated_at, :legacy_updated_at
+      alias_attribute :created_on, :legacy_created_on
+      alias_attribute :updated_on, :legacy_updated_on
+    end
+  end
+
+  include TimestampAliases
+
   module ProjectsAssociationExtension2
     def find_least_recent
       order("id ASC").first
@@ -193,6 +206,8 @@ class LazyBlockReferencingScopeDeveloperCalledDavid < ActiveRecord::Base
 end
 
 class DeveloperCalledJamis < ActiveRecord::Base
+  include Developer::TimestampAliases
+
   self.table_name = "developers"
 
   default_scope { where(name: "Jamis") }
@@ -280,6 +295,8 @@ class ThreadsafeDeveloper < ActiveRecord::Base
 end
 
 class CachedDeveloper < ActiveRecord::Base
+  include Developer::TimestampAliases
+
   self.table_name = "developers"
   self.cache_timestamp_format = :number
 end

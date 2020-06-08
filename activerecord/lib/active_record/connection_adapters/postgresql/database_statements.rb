@@ -12,6 +12,7 @@ module ActiveRecord
         # Queries the database and returns the results in an Array-like object
         def query(sql, name = nil) #:nodoc:
           materialize_transactions
+          mark_transaction_written_if_write(sql)
 
           log(sql, name) do
             ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
@@ -39,6 +40,7 @@ module ActiveRecord
           end
 
           materialize_transactions
+          mark_transaction_written_if_write(sql)
 
           log(sql, name) do
             ActiveSupport::Dependencies.interlock.permit_concurrent_loads do

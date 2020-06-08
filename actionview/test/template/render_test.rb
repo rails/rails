@@ -22,6 +22,7 @@ module RenderTestCases
 
     controller = TestController.new
     controller.perform_caching = true
+    controller.cache_store = :memory_store
     @view.controller = controller
 
     @controller_view = controller.view_context_class.with_empty_template_cache.new(
@@ -55,6 +56,11 @@ module RenderTestCases
                      { "format" => "XML", "children" => ["XML"] },
                      { "format" => "HTML", "children" => ["HTML"] },
     ] }, rendered_templates)
+  end
+
+  def test_explicit_js_format_adds_html_fallback
+    rendered_templates = @controller_view.render(template: "test/js_html_fallback", formats: :js)
+    assert_equal(%Q(document.write("<b>Hello from a HTML partial!<\\/b>")\n), rendered_templates)
   end
 
   def test_render_without_options
@@ -704,6 +710,13 @@ class CachedViewRenderTest < ActiveSupport::TestCase
     view_paths = ActionController::Base.view_paths
     assert_equal ActionView::OptimizedFileSystemResolver, view_paths.first.class
     setup_view(view_paths)
+  end
+
+  def test_cache_fragments_inside_render_layout_call_with_block
+    cat = @view.render(template: "test/cache_fragment_inside_render_layout_block_1")
+    dog = @view.render(template: "test/cache_fragment_inside_render_layout_block_2")
+
+    assert_not_equal cat, dog
   end
 end
 

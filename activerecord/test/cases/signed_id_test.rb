@@ -6,7 +6,7 @@ require "models/company"
 require "models/toy"
 require "models/matey"
 
-SIGNED_ID_VERIFIER_TEST_SECRET = "This is normally set by the railtie initializer when used with Rails!"
+SIGNED_ID_VERIFIER_TEST_SECRET = -> { "This is normally set by the railtie initializer when used with Rails!" }
 
 ActiveRecord::Base.signed_id_verifier_secret = SIGNED_ID_VERIFIER_TEST_SECRET
 
@@ -83,6 +83,17 @@ class SignedIdTest < ActiveRecord::TestCase
 
   test "fail to work without a signed_id_verifier_secret" do
     ActiveRecord::Base.signed_id_verifier_secret = nil
+    Account.instance_variable_set :@signed_id_verifier, nil
+
+    assert_raises(ArgumentError) do
+      @account.signed_id
+    end
+  ensure
+    ActiveRecord::Base.signed_id_verifier_secret = SIGNED_ID_VERIFIER_TEST_SECRET
+  end
+
+  test "fail to work without when signed_id_verifier_secret lambda is nil" do
+    ActiveRecord::Base.signed_id_verifier_secret = -> { nil }
     Account.instance_variable_set :@signed_id_verifier, nil
 
     assert_raises(ArgumentError) do

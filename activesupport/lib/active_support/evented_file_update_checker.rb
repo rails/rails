@@ -160,7 +160,7 @@ module ActiveSupport
         end
 
         def normalize_extension(ext)
-          ext.to_s.sub(/\A\./, "")
+          ext.to_s.delete_prefix(".")
         end
 
         # Given a collection of Pathname objects returns the longest subpath

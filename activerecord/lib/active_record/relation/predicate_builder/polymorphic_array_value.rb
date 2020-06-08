@@ -11,8 +11,8 @@ module ActiveRecord
       def queries
         type_to_ids_mapping.map do |type, ids|
           {
-            associated_table.association_foreign_type.to_s => type,
-            associated_table.association_foreign_key.to_s => ids
+            associated_table.association_foreign_type => type,
+            associated_table.association_foreign_key => ids
           }
         end
       end

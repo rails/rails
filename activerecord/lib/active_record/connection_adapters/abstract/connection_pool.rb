@@ -116,15 +116,11 @@ module ActiveRecord
           end
         end
 
-        if RUBY_ENGINE == "ruby"
-          # Returns the number of threads currently waiting on this queue.
-          attr_reader :num_waiting
-        else
-          # Returns the number of threads currently waiting on this queue.
-          def num_waiting
-            synchronize do
-              @num_waiting
-            end
+        # Returns the number of threads currently waiting on this
+        # queue.
+        def num_waiting
+          synchronize do
+            @num_waiting
           end
         end
 
@@ -152,7 +148,7 @@ module ActiveRecord
 
         # Remove the head of the queue.
         #
-        # If +timeout+ is not given, remove and return the head the
+        # If +timeout+ is not given, remove and return the head of the
         # queue if the number of available elements is strictly
         # greater than the number of threads currently waiting (that
         # is, don't jump ahead in line).  Otherwise, return +nil+.
@@ -195,7 +191,7 @@ module ActiveRecord
             @queue.pop
           end
 
-          # Remove and return the head the queue if the number of
+          # Remove and return the head of the queue if the number of
           # available elements is strictly greater than the number of
           # threads currently waiting.  Otherwise, return +nil+.
           def no_wait_poll
@@ -826,12 +822,8 @@ module ActiveRecord
         end
 
         def with_new_connections_blocked
-          if RUBY_ENGINE == "ruby"
+          synchronize do
             @threads_blocking_new_connections += 1
-          else
-            synchronize do
-              @threads_blocking_new_connections += 1
-            end
           end
 
           yield

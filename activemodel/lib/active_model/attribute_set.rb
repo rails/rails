@@ -48,10 +48,12 @@ module ActiveModel
     def write_from_user(name, value)
       raise FrozenError, "can't modify frozen attributes" if frozen?
       attributes[name] = self[name].with_value_from_user(value)
+      value
     end
 
     def write_cast_value(name, value)
       attributes[name] = self[name].with_cast_value(value)
+      value
     end
 
     def freeze

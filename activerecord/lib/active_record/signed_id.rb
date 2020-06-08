@@ -70,10 +70,13 @@ module ActiveRecord
       # Rails.application.key_generator. By default, it's SHA256 for the digest and JSON for the serialization.
       def signed_id_verifier
         @signed_id_verifier ||= begin
-          if signed_id_verifier_secret.nil?
+          secret = signed_id_verifier_secret
+          secret = secret.call if secret.respond_to?(:call)
+
+          if secret.nil?
             raise ArgumentError, "You must set ActiveRecord::Base.signed_id_verifier_secret to use signed ids"
           else
-            ActiveSupport::MessageVerifier.new signed_id_verifier_secret, digest: "SHA256", serializer: JSON
+            ActiveSupport::MessageVerifier.new secret, digest: "SHA256", serializer: JSON
           end
         end
       end

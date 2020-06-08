@@ -432,6 +432,10 @@ in controllers and views. This defaults to `false`.
   controls whether a record fails validation if `belongs_to` association is not
   present.
 
+* `config.active_record.strict_loading_by_default` is a boolean value
+  that either enables or disables strict_loading mode by default.
+  Defaults to `false`.
+
 * `config.active_record.warn_on_records_fetched_greater_than` allows setting a
   warning threshold for query result size. If the number of records returned
   by a query exceeds the threshold, a warning is logged. This can be used to
@@ -451,6 +455,9 @@ in controllers and views. This defaults to `false`.
   changes by moving the volatile information (max updated at and count) of
   the relation's cache key into the cache version to support recycling cache key.
   Defaults to `false`.
+
+* `config.active_record.has_many_inversing` enables setting the inverse record
+  when traversing `belongs_to` to `has_many` associations. Defaults to `false`.
 
 The MySQL adapter adds one additional configuration option:
 
@@ -612,6 +619,10 @@ Defaults to `'signed cookie'`.
 * `config.action_dispatch.return_only_media_type_on_content_type` change the
   return value of `ActionDispatch::Response#content_type` to the Content-Type
   header without modification. Defaults to `false`.
+
+* `config.action_dispatch.cookies_same_site_protection` configures the default
+  value of the `SameSite` attribute when setting cookies. Defaults to `nil`,
+  which means the `SameSite` attribute is not added.
 
 * `ActionDispatch::Callbacks.before` takes a block of code to run before the request.
 
@@ -806,6 +817,10 @@ There are a few configuration options available in Active Support:
 
 * `ActiveSupport::Deprecation.silenced` sets whether or not to display deprecation warnings. The default is `false`.
 
+* `ActiveSupport.utc_to_local_returns_utc_offset_times` configures
+  `ActiveSupport::TimeZone.utc_to_local` to return a time with a UTC offset
+  instead of a UTC time incorporating that offset. Defaults to `false`.
+
 ### Configuring Active Job
 
 `config.active_job` provides the following configuration options:
@@ -865,7 +880,11 @@ There are a few configuration options available in Active Support:
 
 * `config.active_job.log_arguments` controls if the arguments of a job are logged. Defaults to `true`.
 
-* `config.active_job.retry_jitter` controls the amount of "jitter" (random variation) applied to the delay time calculated when retrying failed jobs. Defaults to `0.15`.
+* `config.active_job.retry_jitter` controls the amount of "jitter" (random variation) applied to the delay time calculated when retrying failed jobs. Defaults to `0.0`.
+
+* `config.active_job.skip_after_callbacks_if_terminated` controls whether
+  `after_enqueue` / `after_perform` callbacks run when a `before_enqueue` /
+  `before_perform` callback halts with `throw :abort`. Defaults to `false`.
 
 ### Configuring Action Cable
 
@@ -971,6 +990,10 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
 - `config.active_record.has_many_inversing`: `true`
 - `config.active_storage.track_variants`: `true`
+- `config.active_job.retry_jitter`: `0.15`
+- `config.active_job.skip_after_callbacks_if_terminated`: `true`
+- `config.action_dispatch.cookies_same_site_protection`: `:lax`
+- `ActiveSupport.utc_to_local_returns_utc_offset_times`: `true`
 
 #### For '6.0', new defaults from previous versions below and:
 

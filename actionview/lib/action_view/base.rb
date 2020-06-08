@@ -269,13 +269,13 @@ module ActionView #:nodoc:
       _prepare_context
     end
 
-    def _run(method, template, locals, buffer, &block)
-      _old_output_buffer, _old_virtual_path, _old_template = @output_buffer, @virtual_path, @current_template
-      @current_template = template
+    def _run(method, template, locals, buffer, add_to_stack: true, &block)
+      _old_output_buffer, _old_template = @output_buffer, @current_template
+      @current_template = template if add_to_stack
       @output_buffer = buffer
       send(method, locals, buffer, &block)
     ensure
-      @output_buffer, @virtual_path, @current_template = _old_output_buffer, _old_virtual_path, _old_template
+      @output_buffer, @current_template = _old_output_buffer, _old_template
     end
 
     def compiled_method_container

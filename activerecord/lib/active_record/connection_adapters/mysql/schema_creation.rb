@@ -11,6 +11,10 @@ module ActiveRecord
             "DROP FOREIGN KEY #{name}"
           end
 
+          def visit_DropCheckConstraint(name)
+            "DROP #{mariadb? ? 'CONSTRAINT' : 'CHECK'} #{name}"
+          end
+
           def visit_AddColumnDefinition(o)
             add_column_position!(super, column_options(o.column))
           end

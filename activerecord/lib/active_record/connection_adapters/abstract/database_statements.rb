@@ -323,6 +323,13 @@ module ActiveRecord
                :commit_transaction, :rollback_transaction, :materialize_transactions,
                :disable_lazy_transactions!, :enable_lazy_transactions!, to: :transaction_manager
 
+      def mark_transaction_written_if_write(sql) # :nodoc:
+        transaction = current_transaction
+        if transaction.open?
+          transaction.written ||= write_query?(sql)
+        end
+      end
+
       def transaction_open?
         current_transaction.open?
       end

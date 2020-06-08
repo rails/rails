@@ -1319,7 +1319,7 @@ module ApplicationTests
       app "development"
 
       post "/posts.json", '{ "title": "foo", "name": "bar" }', "CONTENT_TYPE" => "application/json"
-      assert_equal '<ActionController::Parameters {"title"=>"foo"} permitted: false>', last_response.body
+      assert_equal '#<ActionController::Parameters {"title"=>"foo"} permitted: false>', last_response.body
     end
 
     test "config.action_controller.permit_all_parameters = true" do
@@ -2257,10 +2257,17 @@ module ApplicationTests
       end
     end
 
-    test "ActiveJob::Base.retry_jitter is 0.15 by default" do
+    test "ActiveJob::Base.retry_jitter is 0.15 by default for new apps" do
       app "development"
 
       assert_equal 0.15, ActiveJob::Base.retry_jitter
+    end
+
+    test "ActiveJob::Base.retry_jitter is 0.0 by default for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      app "development"
+
+      assert_equal 0.0, ActiveJob::Base.retry_jitter
     end
 
     test "ActiveJob::Base.retry_jitter can be set by config" do

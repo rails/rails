@@ -52,6 +52,9 @@ module Rails
         class_option :skip_active_record,  type: :boolean, aliases: "-O", default: false,
                                            desc: "Skip Active Record files"
 
+        class_option :skip_active_job,     type: :boolean, default: false,
+                                           desc: "Skip Active Job"
+
         class_option :skip_active_storage, type: :boolean, default: false,
                                            desc: "Skip Active Storage files"
 
@@ -75,6 +78,9 @@ module Rails
 
         class_option :skip_turbolinks,     type: :boolean, default: false,
                                            desc: "Skip turbolinks gem"
+
+        class_option :skip_jbuilder,       type: :boolean, default: false,
+                                           desc: "Skip jbuilder gem"
 
         class_option :skip_test,           type: :boolean, aliases: "-T", default: false,
                                            desc: "Skip test files"
@@ -202,7 +208,8 @@ module Rails
             :skip_active_record,
             :skip_action_mailer,
             :skip_test,
-            :skip_sprockets
+            :skip_sprockets,
+            :skip_active_job
           ),
           skip_action_cable?,
           skip_active_storage?,
@@ -246,6 +253,10 @@ module Rails
 
       def skip_action_text? # :doc:
         options[:skip_action_text] || skip_active_storage?
+      end
+
+      def skip_dev_gems? # :doc:
+        options[:skip_dev_gems]
       end
 
       class GemfileEntry < Struct.new(:name, :version, :comment, :options, :commented_out)
@@ -334,6 +345,7 @@ module Rails
       end
 
       def jbuilder_gemfile_entry
+        return [] if options[:skip_jbuilder]
         comment = "Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder"
         GemfileEntry.new "jbuilder", "~> 2.7", comment, {}, options[:api]
       end
@@ -415,9 +427,9 @@ module Rails
 
       def run_webpack
         if webpack_install?
-          rails_command "webpacker:install", inline: true
+          rails_command "webpacker:install"
           if options[:webpack] && options[:webpack] != "webpack"
-            rails_command "webpacker:install:#{options[:webpack]}", inline: true
+            rails_command "webpacker:install:#{options[:webpack]}"
           end
         end
       end

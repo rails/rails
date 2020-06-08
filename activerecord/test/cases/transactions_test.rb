@@ -177,6 +177,14 @@ class TransactionTest < ActiveRecord::TestCase
     assert Topic.find(1).approved?, "First should have been approved"
   end
 
+  def test_early_return_from_transaction
+    assert_not_deprecated do
+      @first.with_lock do
+        break
+      end
+    end
+  end
+
   def test_number_of_transactions_in_commit
     num = nil
 

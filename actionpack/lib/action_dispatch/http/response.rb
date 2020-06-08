@@ -215,15 +215,9 @@ module ActionDispatch # :nodoc:
       end
     end
 
-    if RUBY_ENGINE == "ruby"
-      def sending?;   @sending;   end
-      def committed?; @committed; end
-      def sent?;      @sent;      end
-    else
-      def sending?;   synchronize { @sending };   end
-      def committed?; synchronize { @committed }; end
-      def sent?;      synchronize { @sent };      end
-    end
+    def sending?;   synchronize { @sending };   end
+    def committed?; synchronize { @committed }; end
+    def sent?;      synchronize { @sent };      end
 
     # Sets the HTTP status code.
     def status=(status)
@@ -448,8 +442,8 @@ module ActionDispatch # :nodoc:
     end
 
     def set_content_type(content_type, charset)
-      type = +(content_type || "")
-      type << "; charset=#{charset.to_s.downcase}" if charset
+      type = content_type || ""
+      type = "#{type}; charset=#{charset.to_s.downcase}" if charset
       set_header CONTENT_TYPE, type
     end
 

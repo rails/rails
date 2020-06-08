@@ -72,7 +72,7 @@ PATH
     activesupport (6.1.0.alpha)
       concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (>= 1.6, < 2)
-      minitest (~> 5.1)
+      minitest (>= 5.1)
       tzinfo (~> 2.0)
       zeitwerk (~> 2.3)
     rails (6.1.0.alpha)
@@ -149,7 +149,7 @@ GEM
     bcrypt (3.1.13)
     bcrypt (3.1.13-java)
     beaneater (1.0.0)
-    benchmark-ips (2.7.2)
+    benchmark-ips (2.8.2)
     blade (0.7.1)
       activesupport (>= 3.0.0)
       blade-qunit_adapter (~> 2.0.1)
@@ -415,7 +415,7 @@ GEM
       rexml
       ruby-progressbar (~> 1.7)
       unicode-display_width (>= 1.4.0, < 2.0)
-    rubocop-performance (1.6.0)
+    rubocop-performance (1.6.1)
       rubocop (>= 0.71.0)
     rubocop-rails (2.5.2)
       activesupport
@@ -547,7 +547,7 @@ DEPENDENCIES
   azure-storage-blob
   backburner
   bcrypt (~> 3.1.11)
-  benchmark-ips (< 2.8)
+  benchmark-ips
   blade
   blade-sauce_labs_plugin
   bootsnap (>= 1.4.4)

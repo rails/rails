@@ -25,6 +25,10 @@ module ActiveRecord
       assert_equal [comment], Comment.joins(post: :author).where(authors: { id: "2-foo" })
     end
 
+    def test_where_with_through_association
+      assert_equal [authors(:david)], Author.joins(:comments).where(comments: comments(:greetings))
+    end
+
     def test_type_cast_is_not_evaluated_at_relation_build_time
       posts = nil
 

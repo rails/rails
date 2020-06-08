@@ -12,7 +12,11 @@ module ActiveRecord
       _raise_record_not_touched_error unless persisted?
 
       @_defer_touch_attrs ||= timestamp_attributes_for_update_in_model
-      @_defer_touch_attrs |= names unless names.empty?
+      @_defer_touch_attrs |= names.map! do |name|
+        name = name.to_s
+        self.class.attribute_aliases[name] || name
+      end unless names.empty?
+
       @_touch_time = current_time_from_proper_timezone
 
       surreptitiously_touch @_defer_touch_attrs
@@ -38,9 +42,11 @@ module ActiveRecord
     end
 
     private
-      def surreptitiously_touch(attrs)
-        attrs.each { |attr| write_attribute attr, @_touch_time }
-        clear_attribute_changes attrs
+      def surreptitiously_touch(attr_names)
+        attr_names.each do |attr_name|
+          _write_attribute(attr_name, @_touch_time)
+          clear_attribute_change(attr_name)
+        end
       end
 
       def touch_deferred_attributes

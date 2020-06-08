@@ -10,6 +10,9 @@ class Reply < Topic
 
   scope :ordered, -> { Reply.order(:id) }
 
+  alias_attribute :new_content, :content
+  alias_attribute :new_parent_id, :parent_id
+
   # Method on Kernel
   def self.open
     approved

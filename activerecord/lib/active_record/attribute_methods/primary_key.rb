@@ -44,6 +44,10 @@ module ActiveRecord
         attribute_in_database(@primary_key)
       end
 
+      def id_for_database # :nodoc:
+        @attributes[@primary_key].value_for_database
+      end
+
       private
         def attribute_method?(attr_name)
           attr_name == "id" || super

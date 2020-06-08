@@ -49,4 +49,12 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
       assert ActiveStorage::Blob.service.mirrors.second.exist?(blob.key)
     end
   end
+
+  test "getting a signed blob ID from an attachment" do
+    blob = create_blob
+    @user.avatar.attach(blob)
+
+    signed_id = @user.avatar.signed_id
+    assert_equal blob, ActiveStorage::Blob.find_signed(signed_id)
+  end
 end

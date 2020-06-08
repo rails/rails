@@ -116,10 +116,12 @@ ActiveRecord::Schema.define do
     t.column :difficulty, :integer, **default_zero
     t.column :cover, :string, default: "hard"
     t.string :isbn, **case_sensitive_options
+    t.string :external_id
     t.datetime :published_on
     t.boolean :boolean_status
     t.index [:author_id, :name], unique: true
     t.index :isbn, where: "published_on IS NOT NULL", unique: true
+    t.index "(lower(external_id))", unique: true if supports_expression_index?
 
     t.datetime :created_at
     t.datetime :updated_at
@@ -295,15 +297,15 @@ ActiveRecord::Schema.define do
     t.references :firm, index: false
     t.integer :mentor_id
     if supports_datetime_with_precision?
-      t.datetime :created_at, precision: 6
-      t.datetime :updated_at, precision: 6
-      t.datetime :created_on, precision: 6
-      t.datetime :updated_on, precision: 6
+      t.datetime :legacy_created_at, precision: 6
+      t.datetime :legacy_updated_at, precision: 6
+      t.datetime :legacy_created_on, precision: 6
+      t.datetime :legacy_updated_on, precision: 6
     else
-      t.datetime :created_at
-      t.datetime :updated_at
-      t.datetime :created_on
-      t.datetime :updated_on
+      t.datetime :legacy_created_at
+      t.datetime :legacy_updated_at
+      t.datetime :legacy_created_on
+      t.datetime :legacy_updated_on
     end
   end
 
@@ -767,8 +769,12 @@ ActiveRecord::Schema.define do
   create_table :products, force: true do |t|
     t.references :collection
     t.references :type
-    t.string     :name
+    t.string :name
+    t.decimal :price
+    t.decimal :discounted_price
   end
+
+  add_check_constraint :products, "price > discounted_price", name: "products_price_check"
 
   create_table :product_types, force: true do |t|
     t.string :name

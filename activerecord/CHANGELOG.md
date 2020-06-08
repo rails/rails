@@ -1,3 +1,98 @@
+*   Support `relation.and` for intersection as Set theory.
+
+    ```ruby
+    david_and_mary = Author.where(id: [david, mary])
+    mary_and_bob   = Author.where(id: [mary, bob])
+
+    david_and_mary.merge(mary_and_bob) # => [mary, bob]
+
+    david_and_mary.and(mary_and_bob) # => [mary]
+    david_and_mary.or(mary_and_bob)  # => [david, mary, bob]
+    ```
+
+    *Ryuta Kamizono*
+
+*   Merging conditions on the same column no longer maintain both conditions,
+    and will be consistently replaced by the latter condition in Rails 6.2.
+    To migrate to Rails 6.2's behavior, use `relation.merge(other, rewhere: true)`.
+
+    ```ruby
+    # Rails 6.1 (IN clause is replaced by merger side equality condition)
+    Author.where(id: [david.id, mary.id]).merge(Author.where(id: bob)) # => [bob]
+
+    # Rails 6.1 (both conflict conditions exists, deprecated)
+    Author.where(id: david.id..mary.id).merge(Author.where(id: bob)) # => []
+
+    # Rails 6.1 with rewhere to migrate to Rails 6.2's behavior
+    Author.where(id: david.id..mary.id).merge(Author.where(id: bob), rewhere: true) # => [bob]
+
+    # Rails 6.2 (same behavior with IN clause, mergee side condition is consistently replaced)
+    Author.where(id: [david.id, mary.id]).merge(Author.where(id: bob)) # => [bob]
+    Author.where(id: david.id..mary.id).merge(Author.where(id: bob)) # => [bob]
+    ```
+
+    *Ryuta Kamizono*
+
+*   Do not mark Postgresql MAC address and UUID attributes as changed when the assigned value only varies by case.
+
+    *Peter Fry*
+
+*   Resolve issue with insert_all unique_by option when used with expression index.
+
+    When the `:unique_by` option of `ActiveRecord::Persistence.insert_all` and
+    `ActiveRecord::Persistence.upsert_all` was used with the name of an expression index, an error
+    was raised. Adding a guard around the formatting behavior for the `:unique_by` corrects this.
+
+    Usage:
+
+    ```ruby
+    create_table :books, id: :integer, force: true do |t|
+      t.column :name, :string
+      t.index "lower(name)", unique: true
+    end
+
+    Book.insert_all [{ name: "MyTest" }], unique_by: :index_books_on_lower_name
+    ```
+
+    Fixes #39516.
+
+    *Austen Madden*
+
+*   Add basic support for CHECK constraints to database migrations.
+
+    Usage:
+
+    ```ruby
+    add_check_constraint :products, "price > 0", name: "price_check"
+    remove_check_constraint :products, name: "price_check"
+    ```
+
+    *fatkodima*
+
+*   Add `ActiveRecord::Base.strict_loading_by_default` and `ActiveRecord::Base.strict_loading_by_default=`
+    to enable/disable strict_loading mode by default for a model. The configuration's value is
+    inheritable by subclasses, but they can override that value and it will not impact parent class.
+
+    Usage:
+
+    ```ruby
+    class Developer < ApplicationRecord
+      self.strict_loading_by_default = true
+
+      has_many :projects
+    end
+
+    dev = Developer.first
+    dev.projects.first
+    # => ActiveRecord::StrictLoadingViolationError Exception: Developer is marked as strict_loading and Project cannot be lazily loaded.
+    ```
+
+    *bogdanvlviv*
+
+*   Deprecate passing an Active Record object to `quote`/`type_cast` directly.
+
+    *Ryuta Kamizono*
+
 *   Default engine `ENGINE=InnoDB` is no longer dumped to make schema more agnostic.
 
     Before:
@@ -253,7 +348,7 @@
 
     *Eugene Kenny*
 
-*   Deprecate using `return`, `break` or `throw` to exit a transaction block.
+*   Deprecate using `return`, `break` or `throw` to exit a transaction block after writes.
 
     *Dylan Thacker-Smith*
 

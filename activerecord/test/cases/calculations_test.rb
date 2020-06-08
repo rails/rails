@@ -23,7 +23,7 @@ require "models/rating"
 require "support/stubs/strong_parameters"
 
 class CalculationsTest < ActiveRecord::TestCase
-  fixtures :companies, :accounts, :authors, :topics, :speedometers, :minivans, :books, :posts, :comments
+  fixtures :companies, :accounts, :authors, :author_addresses, :topics, :speedometers, :minivans, :books, :posts, :comments
 
   def test_should_sum_field
     assert_equal 318, Account.sum(:credit_limit)
@@ -724,8 +724,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_pluck_with_empty_in
-    Topic.send(:load_schema)
-    assert_no_queries do
+    assert_queries(0) do
       assert_equal [], Topic.where(id: []).pluck(:id)
     end
   end
@@ -752,33 +751,35 @@ class CalculationsTest < ActiveRecord::TestCase
       [Date.new(2004, 4, 15), "reading"],
       [Date.new(2004, 4, 15), "read"],
     ]
-    actual =
-      Author.joins(:topics, :books).order(:"books.last_read")
-      .where.not("books.last_read": nil)
+    actual = AuthorAddress.joins(author: [:topics, :books]).order(:"books.last_read")
+      .where("books.last_read": [:unread, :reading, :read])
       .pluck(:"topics.last_read", :"books.last_read")
 
     assert_equal expected, actual
   end
 
   def test_pluck_type_cast_with_joins_without_table_name_qualified_column
-    assert_pluck_type_cast_without_table_name_qualified_column(Author.joins(:books))
+    assert_pluck_type_cast_without_table_name_qualified_column(AuthorAddress.joins(author: :books))
   end
 
   def test_pluck_type_cast_with_left_joins_without_table_name_qualified_column
-    assert_pluck_type_cast_without_table_name_qualified_column(Author.left_joins(:books))
+    assert_pluck_type_cast_without_table_name_qualified_column(AuthorAddress.left_joins(author: :books))
   end
 
   def test_pluck_type_cast_with_eager_load_without_table_name_qualified_column
-    assert_pluck_type_cast_without_table_name_qualified_column(Author.eager_load(:books))
+    assert_pluck_type_cast_without_table_name_qualified_column(AuthorAddress.eager_load(author: :books))
   end
 
-  def assert_pluck_type_cast_without_table_name_qualified_column(authors)
+  def assert_pluck_type_cast_without_table_name_qualified_column(author_addresses)
     expected = [
       [nil, "unread"],
       ["ebook", "reading"],
       ["paperback", "read"],
     ]
-    actual = authors.order(:last_read).where.not("books.last_read": nil).pluck(:format, :last_read)
+    actual = author_addresses.order(:last_read)
+      .where("books.last_read": [:unread, :reading, :read])
+      .pluck(:format, :last_read)
+
     assert_equal expected, actual
   end
   private :assert_pluck_type_cast_without_table_name_qualified_column

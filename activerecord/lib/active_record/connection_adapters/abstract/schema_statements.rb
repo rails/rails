@@ -97,7 +97,7 @@ module ActiveRecord
       #   # Check an index with a custom name exists
       #   index_exists?(:suppliers, :company_id, name: "idx_company_id")
       #
-      def index_exists?(table_name, column_name, options = {})
+      def index_exists?(table_name, column_name, **options)
         checks = []
 
         if column_name.present?
@@ -324,7 +324,7 @@ module ActiveRecord
 
         unless supports_indexes_in_create?
           td.indexes.each do |column_name, index_options|
-            add_index(table_name, column_name, index_options.merge!(if_not_exists: td.if_not_exists))
+            add_index(table_name, column_name, **index_options, if_not_exists: td.if_not_exists)
           end
         end
 
@@ -661,7 +661,7 @@ module ActiveRecord
       #   change_column(:suppliers, :name, :string, limit: 80)
       #   change_column(:accounts, :description, :text)
       #
-      def change_column(table_name, column_name, type, options = {})
+      def change_column(table_name, column_name, type, **options)
         raise NotImplementedError, "change_column is not implemented"
       end
 
@@ -833,7 +833,7 @@ module ActiveRecord
       # Concurrently adding an index is not supported in a transaction.
       #
       # For more information see the {"Transactional Migrations" section}[rdoc-ref:Migration].
-      def add_index(table_name, column_name, options = {})
+      def add_index(table_name, column_name, **options)
         index, algorithm, if_not_exists = add_index_options(table_name, column_name, **options)
 
         create_index = CreateIndexDefinition.new(index, algorithm, if_not_exists)
@@ -876,8 +876,8 @@ module ActiveRecord
       # Concurrently removing an index is not supported in a transaction.
       #
       # For more information see the {"Transactional Migrations" section}[rdoc-ref:Migration].
-      def remove_index(table_name, column_name = nil, options = {})
-        return if options[:if_exists] && !index_exists?(table_name, column_name, options)
+      def remove_index(table_name, column_name = nil, **options)
+        return if options[:if_exists] && !index_exists?(table_name, column_name, **options)
 
         index_name = index_name_for_remove(table_name, column_name, options)
 
@@ -1128,6 +1128,55 @@ module ActiveRecord
         options
       end
 
+      # Returns an array of check constraints for the given table.
+      # The check constraints are represented as CheckConstraintDefinition objects.
+      def check_constraints(table_name)
+        raise NotImplementedError
+      end
+
+      # Adds a new check constraint to the table. +expression+ is a String
+      # representation of verifiable boolean condition.
+      #
+      #   add_check_constraint :products, "price > 0", name: "price_check"
+      #
+      # generates:
+      #
+      #   ALTER TABLE "products" ADD CONSTRAINT price_check CHECK (price > 0)
+      #
+      def add_check_constraint(table_name, expression, **options)
+        return unless supports_check_constraints?
+
+        options = check_constraint_options(table_name, expression, options)
+        at = create_alter_table(table_name)
+        at.add_check_constraint(expression, options)
+
+        execute schema_creation.accept(at)
+      end
+
+      def check_constraint_options(table_name, expression, options) # :nodoc:
+        options = options.dup
+        options[:name] ||= check_constraint_name(table_name, expression: expression, **options)
+        options
+      end
+
+      # Removes the given check constraint from the table.
+      #
+      #   remove_check_constraint :products, name: "price_check"
+      #
+      # The +expression+ parameter will be ignored if present. It can be helpful
+      # to provide this in a migration's +change+ method so it can be reverted.
+      # In that case, +expression+ will be used by #add_check_constraint.
+      def remove_check_constraint(table_name, expression = nil, **options)
+        return unless supports_check_constraints?
+
+        chk_name_to_delete = check_constraint_for!(table_name, expression: expression, **options).name
+
+        at = create_alter_table(table_name)
+        at.drop_check_constraint(chk_name_to_delete)
+
+        execute schema_creation.accept(at)
+      end
+
       def dump_schema_information # :nodoc:
         versions = schema_migration.all_versions
         insert_versions_sql(versions) if versions.any?
@@ -1334,17 +1383,12 @@ module ActiveRecord
         end
 
         def index_name_for_remove(table_name, column_name, options)
-          if column_name.is_a?(Hash)
-            options = column_name.dup
-            column_name = options.delete(:column)
-          end
-
           return options[:name] if can_remove_index_by_name?(column_name, options)
 
           checks = []
 
           checks << lambda { |i| i.name == options[:name].to_s } if options.key?(:name)
-          column_names = index_column_names(column_name)
+          column_names = index_column_names(column_name || options[:column])
 
           if column_names.present?
             checks << lambda { |i| index_name(table_name, i.columns) == index_name(table_name, column_names) }
@@ -1460,6 +1504,27 @@ module ActiveRecord
           when "SET NULL"; :nullify
           when "RESTRICT"; :restrict
           end
+        end
+
+        def check_constraint_name(table_name, **options)
+          options.fetch(:name) do
+            expression = options.fetch(:expression)
+            identifier = "#{table_name}_#{expression}_chk"
+            hashed_identifier = Digest::SHA256.hexdigest(identifier).first(10)
+
+            "chk_rails_#{hashed_identifier}"
+          end
+        end
+
+        def check_constraint_for(table_name, **options)
+          return unless supports_check_constraints?
+          chk_name = check_constraint_name(table_name, **options)
+          check_constraints(table_name).detect { |chk| chk.name == chk_name }
+        end
+
+        def check_constraint_for!(table_name, expression: nil, **options)
+          check_constraint_for(table_name, expression: expression, **options) ||
+            raise(ArgumentError, "Table '#{table_name}' has no check constraint for #{expression || options}")
         end
 
         def validate_index_length!(table_name, new_name, internal = false)

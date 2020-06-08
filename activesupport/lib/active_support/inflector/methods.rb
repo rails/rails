@@ -133,7 +133,7 @@ module ActiveSupport
 
       result.sub!(/\A_+/, "")
       unless keep_id_suffix
-        result.sub!(/_id\z/, "")
+        result.delete_suffix!("_id")
       end
       result.tr!("_", " ")
 

@@ -21,7 +21,7 @@ module ActiveRecord
         alias :array? :array
 
         def sql_type
-          super.sub(/\[\]\z/, "")
+          super.delete_suffix("[]")
         end
 
         def init_with(coder)

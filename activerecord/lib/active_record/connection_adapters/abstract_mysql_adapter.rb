@@ -92,6 +92,14 @@ module ActiveRecord
         true
       end
 
+      def supports_check_constraints?
+        if mariadb?
+          database_version >= "10.2.1"
+        else
+          database_version >= "8.0.16"
+        end
+      end
+
       def supports_views?
         true
       end
@@ -191,6 +199,7 @@ module ActiveRecord
       # Executes the SQL statement in the context of this connection.
       def execute(sql, name = nil)
         materialize_transactions
+        mark_transaction_written_if_write(sql)
 
         log(sql, name) do
           ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
@@ -322,7 +331,7 @@ module ActiveRecord
       # Although this command ignores most +options+ and the block if one is given,
       # it can be helpful to provide these in a migration's +change+ method so it can be reverted.
       # In that case, +options+ and the block will be used by create_table.
-      def drop_table(table_name, options = {})
+      def drop_table(table_name, **options)
         schema_cache.clear_data_source_cache!(table_name.to_s)
         execute "DROP#{' TEMPORARY' if options[:temporary]} TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}#{' CASCADE' if options[:force] == :cascade}"
       end
@@ -355,8 +364,8 @@ module ActiveRecord
         change_column table_name, column_name, nil, comment: comment
       end
 
-      def change_column(table_name, column_name, type, options = {}) #:nodoc:
-        execute("ALTER TABLE #{quote_table_name(table_name)} #{change_column_for_alter(table_name, column_name, type, options)}")
+      def change_column(table_name, column_name, type, **options) #:nodoc:
+        execute("ALTER TABLE #{quote_table_name(table_name)} #{change_column_for_alter(table_name, column_name, type, **options)}")
       end
 
       def rename_column(table_name, column_name, new_column_name) #:nodoc:
@@ -364,10 +373,11 @@ module ActiveRecord
         rename_column_indexes(table_name, column_name, new_column_name)
       end
 
-      def add_index(table_name, column_name, options = {}) #:nodoc:
-        index, algorithm, _ = add_index_options(table_name, column_name, **options)
+      def add_index(table_name, column_name, **options) #:nodoc:
+        index, algorithm, if_not_exists = add_index_options(table_name, column_name, **options)
 
-        return if options[:if_not_exists] && index_exists?(table_name, column_name, name: index.name)
+        return if if_not_exists && index_exists?(table_name, column_name, name: index.name)
+
         create_index = CreateIndexDefinition.new(index, algorithm)
         execute schema_creation.accept(create_index)
       end
@@ -410,6 +420,30 @@ module ActiveRecord
           options[:on_delete] = extract_foreign_key_action(row["on_delete"])
 
           ForeignKeyDefinition.new(table_name, row["to_table"], options)
+        end
+      end
+
+      def check_constraints(table_name)
+        scope = quoted_scope(table_name)
+
+        chk_info = exec_query(<<~SQL, "SCHEMA")
+          SELECT cc.constraint_name AS 'name',
+                 cc.check_clause AS 'expression'
+          FROM information_schema.check_constraints cc
+          JOIN information_schema.table_constraints tc
+          USING (constraint_schema, constraint_name)
+          WHERE tc.table_schema = #{scope[:schema]}
+            AND tc.table_name = #{scope[:name]}
+            AND cc.constraint_schema = #{scope[:schema]}
+        SQL
+
+        chk_info.map do |row|
+          options = {
+            name: row["name"]
+          }
+          expression = row["expression"]
+          expression = expression[1..-2] unless mariadb? # remove parentheses added by mysql
+          CheckConstraintDefinition.new(table_name, expression, options)
         end
       end
 
@@ -642,7 +676,7 @@ module ActiveRecord
           end
         end
 
-        def change_column_for_alter(table_name, column_name, type, options = {})
+        def change_column_for_alter(table_name, column_name, type, **options)
           column = column_for(table_name, column_name)
           type ||= column.sql_type
 
@@ -680,14 +714,14 @@ module ActiveRecord
           schema_creation.accept(ChangeColumnDefinition.new(cd, column.name))
         end
 
-        def add_index_for_alter(table_name, column_name, options = {})
+        def add_index_for_alter(table_name, column_name, **options)
           index, algorithm, _ = add_index_options(table_name, column_name, **options)
           algorithm = ", #{algorithm}" if algorithm
 
           "ADD #{schema_creation.accept(index)}#{algorithm}"
         end
 
-        def remove_index_for_alter(table_name, column_name = nil, options = {})
+        def remove_index_for_alter(table_name, column_name = nil, **options)
           index_name = index_name_for_remove(table_name, column_name, options)
           "DROP INDEX #{quote_column_name(index_name)}"
         end

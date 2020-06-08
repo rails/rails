@@ -419,15 +419,13 @@ module ActiveRecord
     end
 
     test "no queries on empty IN" do
-      Post.send(:load_schema)
-      assert_no_queries do
+      assert_queries(0) do
         Post.where(id: []).load
       end
     end
 
     test "can unscope empty IN" do
-      Post.send(:load_schema)
-      assert_queries 1 do
+      assert_queries(1) do
         Post.where(id: []).unscope(where: :id).load
       end
     end
