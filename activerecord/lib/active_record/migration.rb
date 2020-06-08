@@ -530,6 +530,7 @@ module ActiveRecord
   class Migration
     autoload :CommandRecorder, "active_record/migration/command_recorder"
     autoload :Compatibility, "active_record/migration/compatibility"
+    autoload :JoinTable, "active_record/migration/join_table"
 
     # This must be defined before the inherited hook, below
     class Current < Migration #:nodoc:
