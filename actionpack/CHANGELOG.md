@@ -1,3 +1,8 @@
+*   Add `config.action_dispatch.request_id_header` to allow changing the name of
+    the unique X-Request-Id header
+
+    *Arlston Fernandes*
+
 *   `ActionDispatch::Static` handles precompiled Brotli (.br) files.
 
     Adds to existing support for precompiled gzip (.gz) files.
