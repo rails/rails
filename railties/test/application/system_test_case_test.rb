@@ -42,4 +42,36 @@ class SystemTestCaseTest < ActiveSupport::TestCase
   ensure
     ::Capybara.app_host = previous_app_host
   end
+
+  test "system tests respect default_url_options" do
+    # raise "#{Rails.application.class}"
+    app_file "config/routes.rb", <<-RUBY
+      Rails.application.routes.draw do
+        root 'foo#bar'
+      end
+    RUBY
+
+    app_file "config/environments/test.rb", <<-RUBY
+      Rails.application.configure do
+        Rails.application.routes.default_url_options[:protocol] = 'ftp'
+      end
+    RUBY
+
+    app_file "app/controllers/application_controller.rb", <<-RUBY
+      class ApplicationController < ActionController::Base
+        def default_url_options
+          { locale: 'de' }
+        end
+      end
+    RUBY
+
+    app("test")
+    system_test = ActionDispatch::SystemTestCase.new("my_test")
+    previous_app_host = ::Capybara.app_host
+    ::Capybara.app_host = "https://my_test_example.com"
+
+    assert_equal("ftp://my_test_example.com/?locale=de", system_test.root_url)
+  ensure
+    ::Capybara.app_host = previous_app_host
+  end
 end
