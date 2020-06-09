@@ -983,7 +983,7 @@ module ActionController
       # --- Filtering ----------------------------------------------------------
       #
 
-      # This is a white list of permitted scalar types that includes the ones
+      # This is a list of permitted scalar types that includes the ones
       # supported in XML and JSON requests.
       #
       # This list is in particular used to filter ordinary requests, String goes
