@@ -53,7 +53,7 @@ group :development do
   gem 'web-console', '>= 3.3.0'
   <%- end -%>
   # Display performance information such as SQL time and flame graphs for each request in your browser.
-  # Can be configured to work on production as well: https://github.com/MiniProfiler/rack-mini-profiler/blob/master/README.md
+  # Can be configured to work on production as well: https://github.com/MiniProfiler/rack-mini-profiler
   gem 'rack-mini-profiler', '~> 2.0'
 <%- end -%>
 <% if depend_on_listen? -%>
