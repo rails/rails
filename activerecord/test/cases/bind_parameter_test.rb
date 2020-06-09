@@ -67,8 +67,8 @@ if ActiveRecord::Base.connection.prepared_statements
         topic_sql = cached_statement(Topic, Topic.primary_key)
         assert_includes statement_cache, to_sql_key(topic_sql)
 
-        e = assert_raise { cached_statement(SillyReply, SillyReply.primary_key) }
-        assert_equal "SillyReply has no cached statement by \"id\"", e.message
+        reply_sql = cached_statement(SillyReply, SillyReply.primary_key)
+        assert_includes statement_cache, to_sql_key(reply_sql)
 
         replies = SillyReply.where(id: 2).limit(1)
         assert_includes statement_cache, to_sql_key(replies.arel)
@@ -83,8 +83,8 @@ if ActiveRecord::Base.connection.prepared_statements
         topic_sql = cached_statement(Topic, ["id"])
         assert_includes statement_cache, to_sql_key(topic_sql)
 
-        e = assert_raise { cached_statement(SillyReply, ["id"]) }
-        assert_equal "SillyReply has no cached statement by [\"id\"]", e.message
+        reply_sql = cached_statement(SillyReply, ["id"])
+        assert_includes statement_cache, to_sql_key(reply_sql)
 
         replies = SillyReply.where(id: 2).limit(1)
         assert_includes statement_cache, to_sql_key(replies.arel)

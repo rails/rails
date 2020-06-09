@@ -167,16 +167,20 @@ module ActiveRecord
       def inherited(child_class) # :nodoc:
         # initialize cache at class definition for thread safety
         child_class.initialize_find_by_cache
+        unless child_class.base_class?
+          klass = self
+          until klass.base_class?
+            klass.initialize_find_by_cache
+            klass = klass.superclass
+          end
+        end
         super
       end
 
       def find(*ids) # :nodoc:
         # We don't have cache keys for this stuff yet
         return super unless ids.length == 1
-        return super if block_given? ||
-                        primary_key.nil? ||
-                        scope_attributes? ||
-                        columns_hash.key?(inheritance_column) && !base_class?
+        return super if block_given? || primary_key.nil? || scope_attributes?
 
         id = ids.first
 
@@ -196,8 +200,7 @@ module ActiveRecord
       end
 
       def find_by(*args) # :nodoc:
-        return super if scope_attributes? ||
-                        columns_hash.key?(inheritance_column) && !base_class?
+        return super if scope_attributes?
 
         hash = args.first
         return super unless Hash === hash
