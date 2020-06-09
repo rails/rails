@@ -19,7 +19,7 @@ module Rails
       hide_command!
 
       def help
-        perform # Punt help output to the generator.
+        perform # Print help output to the generator.
       end
 
       def perform(*args)
