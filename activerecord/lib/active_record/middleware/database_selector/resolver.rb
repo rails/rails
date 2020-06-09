@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_record/middleware/database_selector/resolver/session"
+require "active_support/core_ext/numeric/time"
 
 module ActiveRecord
   module Middleware
