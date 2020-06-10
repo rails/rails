@@ -41,6 +41,8 @@ module AbstractController
 
       class_attribute :_view_cache_dependencies, default: []
       helper_method :view_cache_dependencies if respond_to?(:helper_method)
+
+      attr_internal :cached_content_for
     end
 
     module ClassMethods

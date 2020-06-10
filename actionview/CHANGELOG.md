@@ -1,3 +1,10 @@
+*   In addition to writing the main fragment content to the cache, change `cache` to also write to
+    the cache any content that is captured using `content_for` while inside the `cache` block. It
+    will get written in the cache as a hash under the same cache key as the fragment content, and
+    read back from the cache anytime that fragment is read from the cache.
+
+    *Steve Hull*, *Tyler Rick*
+
 *   Ensure cache fragment digests include all relevant template dependencies when
     fragments are contained in a block passed to the render helper. Remove the
     virtual_path keyword arguments found in CacheHelper as they no longer possess

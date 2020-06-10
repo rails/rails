@@ -163,8 +163,16 @@ module ActionView
       #
       # This will include both records as part of the cache key and updating either of them will
       # expire the cache.
+      #
+      # === Caching content from `content_for`
+      #
+      # Content that is captured using `content_for` while inside of a `cache` block will also get
+      # written to the cache alongside the fragment content, under the same cache key, and read back
+      # from the cache anytime that fragment is read from the cache.
+      #
       def cache(name = {}, options = {}, &block)
         if controller.try(:perform_caching)
+          @_content_for_to_cache = Hash.new { |h,k| h[k] = ActiveSupport::SafeBuffer.new }
           name_options = options.slice(:skip_digest)
           safe_concat(fragment_for(cache_fragment_name(name, **name_options), options, &block))
         else
@@ -172,6 +180,8 @@ module ActionView
         end
 
         nil
+      ensure
+        @_content_for_to_cache = nil
       end
 
       # Cache fragments of a view if +condition+ is true
@@ -246,7 +256,9 @@ module ActionView
       end
 
       def read_fragment_for(name, options)
-        controller.read_fragment(name, options)
+        controller.read_fragment(name, options).tap do |cont|
+          restore_cached_content_for
+        end
       end
 
       def write_fragment_for(name, options)
@@ -257,7 +269,19 @@ module ActionView
         if output_safe
           self.output_buffer = output_buffer.class.new(output_buffer)
         end
-        controller.write_fragment(name, fragment, options)
+        value_to_write = {_fragment: fragment}
+        value_to_write.merge!(@_content_for_to_cache) if instance_variable_defined?(:@_content_for_to_cache) && @_content_for_to_cache
+        controller.write_fragment(name, value_to_write, options)
+      end
+
+      def restore_cached_content_for
+        return unless controller.try(:perform_caching)
+
+        if controller.cached_content_for.is_a?(Hash)
+          controller.cached_content_for.each { |k, v|
+            content_for(k, v)
+          }
+        end
       end
     end
   end

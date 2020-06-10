@@ -78,12 +78,12 @@ module AbstractController
       # Writes +content+ to the location signified by
       # +key+ (see +expire_fragment+ for acceptable formats).
       def write_fragment(key, content, options = nil)
+        value_to_write, content = value_to_write_and_fragment(content)
         return content unless cache_configured?
 
         key = combined_fragment_cache_key(key)
         instrument_fragment_cache :write_fragment, key do
-          content = content.to_str
-          cache_store.write(key, content, options)
+          cache_store.write(key, value_to_write, options)
         end
         content
       end
@@ -95,7 +95,7 @@ module AbstractController
 
         key = combined_fragment_cache_key(key)
         instrument_fragment_cache :read_fragment, key do
-          result = cache_store.read(key, options)
+          result = extract_fragment_value(cache_store.read(key, options))
           result.respond_to?(:html_safe) ? result.html_safe : result
         end
       end
@@ -145,6 +145,32 @@ module AbstractController
       def instrument_fragment_cache(name, key) # :nodoc:
         ActiveSupport::Notifications.instrument("#{name}.#{instrument_name}", instrument_payload(key)) { yield }
       end
+
+      private
+
+        # In case the value to write to the cache is a Hash, extract the fragment value out of
+        # it, to be used as the return value for write_fragment.
+        def value_to_write_and_fragment(content)
+          if content.is_a?(Hash)
+            value_to_write = content.transform_values(&:to_str)
+            fragment = content[:_fragment]
+          else
+            value_to_write = content.to_str
+            fragment = content
+          end
+          [value_to_write, fragment]
+        end
+
+        # In case the result read from the cache store is a Hash, extract the fragment value out of
+        # it, and use the rest as cached_content_for.
+        def extract_fragment_value(result)
+          if result.is_a?(Hash)
+            self.cached_content_for = result.except(:_fragment)
+            result = result[:_fragment]
+          end
+          result
+        end
+
     end
   end
 end

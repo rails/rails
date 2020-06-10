@@ -212,7 +212,27 @@ Ciao
     assert_equal expected_body, @response.body
 
     assert_equal "This bit's fragment cached",
-      @store.read("views/functional_caching/fragment_cached:#{template_digest("functional_caching/fragment_cached", "html")}/fragment")
+      @store.read("views/functional_caching/fragment_cached:#{template_digest("functional_caching/fragment_cached", "html")}/fragment")[:_fragment]
+  end
+
+  def test_fragment_caching_with_content_for
+    get :fragment_cached_with_content_for
+    assert_response :success
+    expected_body = <<-CACHED
+This fragment is cached
+<title>My Title: Enhanced!</title>
+<footer>P.S. This footer is cached.</footer>
+    CACHED
+    assert_equal expected_body, @response.body
+    expected_hash = {_fragment: "This fragment is cached\n", title: ": Enhanced!", footer: "P.S. This footer is cached."}
+    assert_equal expected_hash,
+      @store.read("views/functional_caching/fragment_cached_with_content_for:#{template_digest("functional_caching/fragment_cached_with_content_for", "html")}/test.host/functional_caching/fragment_cached_with_content_for")
+
+    get :fragment_cached_with_content_for
+    assert_response :success
+    assert_equal expected_body, @response.body
+    assert_equal expected_hash,
+      @store.read("views/functional_caching/fragment_cached_with_content_for:#{template_digest("functional_caching/fragment_cached_with_content_for", "html")}/test.host/functional_caching/fragment_cached_with_content_for")
   end
 
   def test_fragment_caching_in_partials
@@ -220,8 +240,8 @@ Ciao
     assert_response :success
     assert_match(/Old fragment caching in a partial/, @response.body)
 
-    assert_match("Old fragment caching in a partial",
-      @store.read("views/functional_caching/_partial:#{template_digest("functional_caching/_partial", "html")}/test.host/functional_caching/html_fragment_cached_with_partial"))
+    assert_match "Old fragment caching in a partial",
+      @store.read("views/functional_caching/_partial:#{template_digest("functional_caching/_partial", "html")}/test.host/functional_caching/html_fragment_cached_with_partial")[:_fragment]
   end
 
   def test_skipping_fragment_cache_digesting
@@ -230,7 +250,7 @@ Ciao
     expected_body = "<body>\n<p>ERB</p>\n</body>\n"
 
     assert_equal expected_body, @response.body
-    assert_equal "<p>ERB</p>", @store.read("views/nodigest")
+    assert_equal "<p>ERB</p>", @store.read("views/nodigest")[:_fragment]
   end
 
   def test_fragment_caching_with_options
@@ -250,8 +270,8 @@ Ciao
     assert_response :success
     assert_match(/Some inline content/, @response.body)
     assert_match(/Some cached content/, @response.body)
-    assert_match("Some cached content",
-      @store.read("views/functional_caching/inline_fragment_cached:#{template_digest("functional_caching/inline_fragment_cached", "html")}/test.host/functional_caching/inline_fragment_cached"))
+    assert_match "Some cached content",
+      @store.read("views/functional_caching/inline_fragment_cached:#{template_digest("functional_caching/inline_fragment_cached", "html")}/test.host/functional_caching/inline_fragment_cached")[:_fragment]
   end
 
   def test_fragment_cache_instrumentation
@@ -279,7 +299,7 @@ Ciao
     assert_equal expected_body, @response.body
 
     assert_equal "<p>ERB</p>",
-      @store.read("views/functional_caching/formatted_fragment_cached:#{template_digest("functional_caching/formatted_fragment_cached", format)}/fragment")
+      @store.read("views/functional_caching/formatted_fragment_cached:#{template_digest("functional_caching/formatted_fragment_cached", format)}/fragment")[:_fragment]
   end
 
   def test_xml_formatted_fragment_caching
@@ -291,7 +311,7 @@ Ciao
     assert_equal expected_body, @response.body
 
     assert_equal "  <p>Builder</p>\n",
-      @store.read("views/functional_caching/formatted_fragment_cached:#{template_digest("functional_caching/formatted_fragment_cached", format)}/fragment")
+      @store.read("views/functional_caching/formatted_fragment_cached:#{template_digest("functional_caching/formatted_fragment_cached", format)}/fragment")[:_fragment]
   end
 
   def test_fragment_caching_with_variant
@@ -303,7 +323,7 @@ Ciao
     assert_equal expected_body, @response.body
 
     assert_equal "<p>PHONE</p>",
-      @store.read("views/functional_caching/formatted_fragment_cached_with_variant:#{template_digest("functional_caching/formatted_fragment_cached_with_variant", format)}/fragment")
+      @store.read("views/functional_caching/formatted_fragment_cached_with_variant:#{template_digest("functional_caching/formatted_fragment_cached_with_variant", format)}/fragment")[:_fragment]
   end
 
   def test_fragment_caching_with_html_partials_in_xml

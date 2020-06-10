@@ -1,3 +1,10 @@
+*   In addition to writing the main fragment content to the cache, change `cache` to also write to
+    the cache any content that is captured using `content_for` while inside the `cache` block. It
+    will get written in the cache as a hash under the same cache key as the fragment content, and
+    read back from the cache anytime that fragment is read from the cache.
+
+    *Steve Hull*, *Tyler Rick*
+
 *   When multiple domains are specified for a cookie, a domain will now be
     chosen only if it is equal to or is a superdomain of the request host.
 

@@ -151,7 +151,6 @@ module ActionView
       #
       #   <% content_for :script, javascript_include_tag(:defaults) %>
       #
-      # WARNING: <tt>content_for</tt> is ignored in caches. So you shouldn't use it for elements that will be fragment cached.
       def content_for(name, content = nil, options = {}, &block)
         if content || block_given?
           if block_given?
@@ -159,6 +158,7 @@ module ActionView
             content = capture(&block)
           end
           if content
+            save_content_for_to_cache(name, content)
             options[:flush] ? @view_flow.set(name, content) : @view_flow.append(name, content)
           end
           nil
@@ -211,6 +211,18 @@ module ActionView
       ensure
         self.output_buffer = old_buffer
       end
+
+      private
+        # In case we are currently inside of a cache block, save the content passed to content_for
+        # calls so that we can write it to the cache when we write the fragment content.
+        def save_content_for_to_cache(name, content)
+          return unless controller.try(:perform_caching)
+
+          if instance_variable_defined?(:@_content_for_to_cache)
+            @_content_for_to_cache[name] ||= Array.new
+            @_content_for_to_cache[name] << content
+          end
+        end
     end
   end
 end

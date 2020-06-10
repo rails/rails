@@ -124,7 +124,7 @@ class FunctionalFragmentCachingTest < BaseCachingTest
 
     assert_match expected_body, email.body.encoded
     assert_match expected_body,
-      @store.read("views/caching_mailer/fragment_cache:#{template_digest("caching_mailer/fragment_cache", "html")}/caching")
+      @store.read("views/caching_mailer/fragment_cache:#{template_digest("caching_mailer/fragment_cache", "html")}/caching")[:_fragment]
   end
 
   def test_fragment_caching_in_partials
@@ -132,8 +132,8 @@ class FunctionalFragmentCachingTest < BaseCachingTest
     expected_body = "Old fragment caching in a partial"
     assert_match(expected_body, email.body.encoded)
 
-    assert_match(expected_body,
-      @store.read("views/caching_mailer/_partial:#{template_digest("caching_mailer/_partial", "html")}/caching"))
+    assert_match expected_body,
+      @store.read("views/caching_mailer/_partial:#{template_digest("caching_mailer/_partial", "html")}/caching")[:_fragment]
   end
 
   def test_skip_fragment_cache_digesting
@@ -141,7 +141,7 @@ class FunctionalFragmentCachingTest < BaseCachingTest
     expected_body = "No Digest"
 
     assert_match expected_body, email.body.encoded
-    assert_match expected_body, @store.read("views/no_digest")
+    assert_match expected_body, @store.read("views/no_digest")[:_fragment]
   end
 
   def test_fragment_caching_options
@@ -164,9 +164,9 @@ class FunctionalFragmentCachingTest < BaseCachingTest
     assert_match expected_text_body, encoded_body
     assert_match expected_html_body, encoded_body
     assert_match expected_text_body,
-                 @store.read("views/text_caching")
+                 @store.read("views/text_caching")[:_fragment]
     assert_match expected_html_body,
-                 @store.read("views/html_caching")
+                 @store.read("views/html_caching")[:_fragment]
   end
 
   def test_fragment_cache_instrumentation
