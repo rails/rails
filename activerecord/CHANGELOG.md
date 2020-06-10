@@ -1,3 +1,7 @@
+*   Deprecate `map!` and `collect!` on `ActiveRecord::Result`.
+
+    *Ryuta Kamizono*
+
 *   Support `relation.and` for intersection as Set theory.
 
     ```ruby
