@@ -1173,30 +1173,30 @@ It is beyond the scope of this guide to inform you on how to secure your applica
 
 ### Custom Credentials
 
-Rails stores secrets in `config/credentials.yml.enc`, which is encrypted and hence cannot be edited directly. Rails uses `config/master.key` or alternatively looks for environment variable `ENV["RAILS_MASTER_KEY"]` to encrypt the credentials file. The credentials file can be stored in version control, as long as master key is kept safe.
+Rails stores secrets in `config/credentials.yml.enc`, which is encrypted and hence cannot be edited directly. Rails uses `config/master.key` or alternatively looks for the environment variable `ENV["RAILS_MASTER_KEY"]` to encrypt the credentials file. Because the credentials file is encrypted, it can be stored in version control, as long as the master key is kept safe.
 
-To add new secret to credentials, first run `bin/rails secret` to get a new secret. Then run `bin/rails credentials:edit` to edit credentials, and add the secret. Running `credentials:edit` creates new credentials file and master key, if they did not already exist.
+By default, the credentials file contains the application's
+`secret_key_base`. It can also be used to store other secrets such as access keys for external APIs.
 
-By default, this file contains the application's
-`secret_key_base`, but it could also be used to store other credentials such as access keys for external APIs.
+To edit the credentials file, run `bin/rails credentials:edit`. This command will create the credentials file if it does not exist. Additionally, this command will create `config/master.key` if no master key is defined.
 
-The secrets kept in credentials file are accessible via `Rails.application.credentials`.
+Secrets kept in the credentials file are accessible via `Rails.application.credentials`.
 For example, with the following decrypted `config/credentials.yml.enc`:
 
 ```yaml
-secret_key_base: 3b7cd727ee24e8444053437c36cc66c3
+secret_key_base: 3b7cd72...
 some_api_key: SOMEKEY
 ```
 
-`Rails.application.credentials.some_api_key` returns `SOMEKEY` in any environment.
+`Rails.application.credentials.some_api_key` returns `"SOMEKEY"`.
 
-If you want an exception to be raised when some key is blank, use the bang
+If you want an exception to be raised when some key is blank, you can use the bang
 version:
 
 ```ruby
-Rails.application.credentials.some_api_key! # => raises KeyError: :some_api_key is blank
+# When some_api_key is blank...
+Rails.application.credentials.some_api_key! # => KeyError: :some_api_key is blank
 ```
-
 
 TIP: Learn more about credentials with `bin/rails credentials:help`.
 
