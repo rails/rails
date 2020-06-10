@@ -386,7 +386,7 @@ GEM
       ffi (~> 1.0)
     rdoc (6.2.1)
     redcarpet (3.2.3)
-    redis (4.1.3)
+    redis (4.2.0)
     redis-namespace (1.7.0)
       redis (>= 3.0.4)
     regexp_parser (1.6.0)

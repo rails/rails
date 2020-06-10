@@ -290,7 +290,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       @cache.redis.set("fu", "baz")
       @cache.clear
       assert_not @cache.exist?("foo")
-      assert @cache.redis.exists("fu")
+      assert @cache.redis.exists?("fu")
     end
 
     test "clear all cache key with Redis::Distributed" do
