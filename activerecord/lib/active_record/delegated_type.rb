@@ -174,15 +174,16 @@ module ActiveRecord
 
     private
       def define_delegated_type_methods(role, types:)
-        role_type = "#{role}_type"
-        role_id   = "#{role}_id"
+        role_type  = "#{role}_type"
+        role_id    = "#{role}_id"
+        role_class = "#{role}_class"
 
-        define_method "#{role}_class" do
-          public_send("#{role}_type").constantize
+        define_method role_class do
+          public_send(role_type).constantize
         end
 
         define_method "#{role}_name" do
-          public_send("#{role}_class").model_name.singular.inquiry
+          public_send(role_class).model_name.singular.inquiry
         end
 
         types.each do |type|
