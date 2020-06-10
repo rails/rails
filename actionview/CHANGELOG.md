@@ -1,3 +1,10 @@
+*   SanitizeHelper.sanitized_allowed_attributes and SanitizeHelper.sanitized_allowed_tags
+    call safe_list_sanitizer's class method
+
+    Fixes #39586
+
+    *Taufiq Muhammadi*
+
 ## Rails 6.1.0.rc1 (November 02, 2020) ##
 
 *   Yield translated strings to calls of `ActionView::FormBuilder#button`
