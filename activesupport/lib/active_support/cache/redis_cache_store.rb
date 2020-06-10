@@ -394,7 +394,7 @@ module ActiveSupport
               modifiers[:nx] = unless_exist
               modifiers[:px] = (1000 * expires_in.to_f).ceil if expires_in
 
-              redis.with { |c| c.set key, serialized_entry, modifiers }
+              redis.with { |c| c.set key, serialized_entry, **modifiers }
             else
               redis.with { |c| c.set key, serialized_entry }
             end
