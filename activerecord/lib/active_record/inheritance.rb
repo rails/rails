@@ -53,7 +53,10 @@ module ActiveRecord
         end
 
         reflect_on_all_associations.each do |association|
-          raise ActiveRecord::AssociationNotFoundError.new(self, association.name) unless association.is_a?(Class)
+          reflection_s = association.class.to_s
+          if (reflection_s.include?("BelongsToReflection") || reflection_s.include?("HasOneReflection")) && !association.is_a?(Class)
+            raise ActiveRecord::AssociationNotFoundError.new(self, association.name)
+          end
         end
 
         if _has_attribute?(inheritance_column)
