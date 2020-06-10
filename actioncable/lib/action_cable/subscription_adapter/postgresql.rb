@@ -34,41 +34,31 @@ module ActionCable
       end
 
       def with_subscriptions_connection(&block) # :nodoc:
-        ar_conn = ActiveRecord::Base.connection_pool.checkout.tap do |conn|
-          # Action Cable is taking ownership over this database connection, and
-          # will perform the necessary cleanup tasks
-          ActiveRecord::Base.connection_pool.remove(conn)
-        end
-        pg_conn = ar_conn.raw_connection
-
-        verify!(pg_conn)
+        pg_conn = pg_connection
         pg_conn.exec("SET application_name = #{pg_conn.escape_identifier(identifier)}")
         yield pg_conn
       ensure
-        ar_conn.disconnect!
+        pg_conn.finish
       end
 
       def with_broadcast_connection(&block) # :nodoc:
-        ActiveRecord::Base.connection_pool.with_connection do |ar_conn|
-          pg_conn = ar_conn.raw_connection
-          verify!(pg_conn)
-          yield pg_conn
-        end
+        pg_conn = pg_connection
+        yield pg_conn
+      ensure
+        pg_conn.finish
       end
 
       private
+        def pg_connection
+          PG::Connection.new(@server.config.cable.except(:adapter, :channel_prefix, :id))
+        end
+
         def channel_identifier(channel)
           channel.size > 63 ? Digest::SHA1.hexdigest(channel) : channel
         end
 
         def listener
           @listener || @server.mutex.synchronize { @listener ||= Listener.new(self, @server.event_loop) }
-        end
-
-        def verify!(pg_conn)
-          unless pg_conn.is_a?(PG::Connection)
-            raise "The Active Record database must be PostgreSQL in order to use the PostgreSQL Action Cable storage adapter"
-          end
         end
 
         class Listener < SubscriberMap
