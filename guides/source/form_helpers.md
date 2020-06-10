@@ -138,9 +138,10 @@ make it easier for users to click the inputs.
 
 ### Other Helpers of Interest
 
-Other form controls worth mentioning are hidden fields, password fields, number fields, date and time fields, and many more:
+Other form controls worth mentioning are text areas, hidden fields, password fields, number fields, date and time fields, and many more:
 
 ```erb
+<%= form.text_area :message, size: "70x5" %>
 <%= form.hidden_field :parent_id, value: "foo" %>
 <%= form.password_field :password %>
 <%= form.number_field :price, in: 1.0..20.0, step: 0.5 %>
@@ -160,6 +161,7 @@ Other form controls worth mentioning are hidden fields, password fields, number 
 Output:
 
 ```html
+<textarea name="message" id="message" cols="70" rows="5"></textarea>
 <input type="hidden" name="parent_id" id="parent_id" value="foo" />
 <input type="password" name="password" id="password" />
 <input type="number" name="price" id="price" step="0.5" min="1.0" max="20.0" />
@@ -199,9 +201,7 @@ For example, if we have an `@article` model object like:
 
 ```ruby
 @article = Article.find(42)
-
-puts @article.title  # => My Title
-puts @article.body   # => My Body
+# => #<Article id: 42, title: "My Title", body: "My Body">
 ```
 
 The following form:
@@ -416,7 +416,7 @@ Notice that the appropriate option was automatically marked `selected="selected"
 
 ### Time Zone and Country Select
 
-To leverage time zone support in Rails, you have to ask your users what time zone they are in. Doing so would require generating select options from a list of pre-defined [`ActiveSupport::TimeZone`](https://api.rubyonrails.org/classes/ActiveSupport/TimeZone.html) objects using `collection_select`, but you can simply use the `time_zone_select` helper that already wraps this:
+To leverage time zone support in Rails, you have to ask your users what time zone they are in. Doing so would require generating select options from a list of pre-defined [`ActiveSupport::TimeZone`](https://api.rubyonrails.org/classes/ActiveSupport/TimeZone.html) objects, but you can simply use the `time_zone_select` helper that already wraps this:
 
 ```erb
 <%= time_zone_select(:person, :time_zone) %>
@@ -505,93 +505,79 @@ The first parameter specifies which value should be selected and can either be a
 
 will produce the same output and the value chosen by the user can be retrieved by `params[:date][:year]`.
 
-Creating Checkboxes for Relations
-------------------------------------------
+Choices from a Collection of Arbitrary Objects
+----------------------------------------------
 
-Generating checkboxes options that act appropriately with Active Record models
-and strong parameters can be a confusing undertaking. Luckily there is a helper
-function to significantly reduce the work required.
+Often, we want to generate a set of choices in a form from a collection of objects. For example, when we want the user to choose from cities in our database, and we have a `City` model like:
 
-Here is what the markup may look like:
-
-```html
-<input type="checkbox" value="1" checked="checked" name="person[city_ids][]" id="person_cities_1" />
-<label for="person_cities_1">Pittsburgh</label>
-<input type="checkbox" value="2" checked="checked" name="person[city_ids][]" id="person_cities_2"/>
-<label for="person_cities_2">Madison</label>
-<input type="checkbox" value="3" checked="checked" name="person[city_ids][]" id="person_cities_3"/>
-<label for="person_cities_3">Santa Rosa</label>
+```ruby
+City.order(:name).to_a
+# => [
+#      #<City id: 3, name: "Berlin">,
+#      #<City id: 1, name: "Lisbon">,
+#      #<City id: 2, name: "Madrid">
+#    ]
 ```
 
-You have a list of cities whose names are shown to the user and associated
-checkboxes that hold the id of each cities database entry.
+Rails provides helpers that generate choices from a collection without having to explicitly iterate over it. These helpers determine the value and text label of each choice by calling specified methods on each object in the collection.
 
-### The Collection Check Boxes tag
+### The `collection_select` Helper
 
-The `collection_check_boxes` exists to help create these checkboxes with the
-name for each input that maps to params that can be passed directly to model
-relationships.
-
-In this example we show the currently associated records in a collection:
+To generate a select box for our cities, we can use [`collection_select`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-collection_select):
 
 ```erb
-<%= form_with model: @person do |person_form| %>
-  <%= person_form.collection_check_boxes :city_ids, person.object.cities, :id, :name %>
-<% end %>
+<%= form.collection_select :city_id, City.order(:name), :id, :name %>
 ```
 
-This returns
+Output:
 
 ```html
-<input type="checkbox" value="1" checked="checked" name="person[city_ids][]" id="person_cities_1" checked="checked" />
-<label for="person_cities_1">Pittsburgh</label>
-<input type="checkbox" value="2" checked="checked" name="person[city_ids][]" id="person_cities_2" checked="checked" />
-<label for="person_cities_2">Madison</label>
-<input type="checkbox" value="3" checked="checked" name="person[city_ids][]" id="person_cities_3" checked="checked" />
-<label for="person_cities_3">Santa Rosa</label>
+<select name="city_id" id="city_id">
+  <option value="3">Berlin</option>
+  <option value="1">Lisbon</option>
+  <option value="2">Madrid</option>
+</select>
 ```
 
-You can also pass a block to format the html as you'd like:
+NOTE: With `collection_select` we specify the value method first (`:id` in the example above), and the text label method second (`:name` in the example above).  This is opposite of the order used when specifying choices for the `select` helper, where the text label comes first and the value second.
+
+### The `collection_radio_buttons` Helper
+
+To generate a set of radio buttons for our cities, we can use [`collection_radio_buttons`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-collection_radio_buttons):
 
 ```erb
-<%= form_with model: @person do |person_form| %>
-  <%= person_form.collection_check_boxes :city_ids, City.all, :id, :name do |city| %>
-    <div>
-      <%= city.check_box %><%= city.label %>
-    </div>
-  <% end %>
-<% end %>
+<%= form.collection_radio_buttons :city_id, City.order(:name), :id, :name %>
 ```
 
-This returns
+Output:
 
 ```html
-<div>
-  <input type="checkbox" value="1" checked="checked" name="person[city_ids][]" id="person_cities_1" checked="checked" />
-  <label for="person_cities_1">Pittsburgh</label>
-</div>
-<div>
-  <input type="checkbox" value="2" checked="checked" name="person[city_ids][]" id="person_cities_2" checked="checked" />
-  <label for="person_cities_2">Madison</label>
-</div>
-<div>
-  <input type="checkbox" value="3" checked="checked" name="person[city_ids][]" id="person_cities_3" checked="checked" />
-  <label for="person_cities_3">Santa Rosa</label>
-</div>
+<input type="radio" name="city_id" value="3" id="city_id_3">
+<label for="city_id_3">Berlin</label>
+<input type="radio" name="city_id" value="1" id="city_id_1">
+<label for="city_id_1">Lisbon</label>
+<input type="radio" name="city_id" value="2" id="city_id_2">
+<label for="city_id_2">Madrid</label>
 ```
 
-The method signature is
+### The `collection_check_boxes` Helper
+
+To generate a set of check boxes for our cities (which allows users to choose more than one), we can use [`collection_check_boxes`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-collection_check_boxes):
 
 ```erb
-collection_check_boxes(object, method, collection, value_method, text_method, options = {}, html_options = {}, &block)
+<%= form.collection_check_boxes :city_id, City.order(:name), :id, :name %>
 ```
-* `object` - the form object, this is unnecessary if using the
-  `form.collection_check_boxes` method call
-* `method` -  the association method for the model relation
-* `collection` - an array of objects to show in checkboxes
-* `value_method` -  the method to call when populating the value attribute in
-  the checkbox
-* `text` - the method to call when populating the text of the label
+
+Output:
+
+```html
+<input type="checkbox" name="city_id[]" value="3" id="city_id_3">
+<label for="city_id_3">Berlin</label>
+<input type="checkbox" name="city_id[]" value="1" id="city_id_1">
+<label for="city_id_1">Lisbon</label>
+<input type="checkbox" name="city_id[]" value="2" id="city_id_2">
+<label for="city_id_2">Madrid</label>
+```
 
 Uploading Files
 ---------------
