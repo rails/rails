@@ -518,7 +518,7 @@ module ActiveRecord
               collation_hash[$1] = $2 if COLLATE_REGEX =~ column_string
             end
 
-            basic_structure.map! do |column|
+            basic_structure.map do |column|
               column_name = column["name"]
 
               if collation_hash.has_key? column_name
