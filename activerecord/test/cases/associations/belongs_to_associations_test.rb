@@ -853,8 +853,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_missing_find_target_raise_name_error
-    p = Broken.create!
-    assert_raise(NameError) { p.foo }
+    assert_raise(ActiveRecord::AssociationNotFoundError) { Broken.create! }
   end
 
   def test_dont_find_target_when_foreign_key_is_null

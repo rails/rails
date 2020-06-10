@@ -52,6 +52,10 @@ module ActiveRecord
           raise NotImplementedError, "#{self} is an abstract class and cannot be instantiated."
         end
 
+        reflect_on_all_associations.each do |association|
+          raise ActiveRecord::AssociationNotFoundError.new(self, association.name) unless association.is_a?(Class)
+        end
+
         if _has_attribute?(inheritance_column)
           subclass = subclass_from_attributes(attributes)
 
