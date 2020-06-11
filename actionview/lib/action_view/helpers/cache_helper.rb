@@ -269,9 +269,8 @@ module ActionView
         if output_safe
           self.output_buffer = output_buffer.class.new(output_buffer)
         end
-        value_to_write = {_fragment: fragment}
-        value_to_write.merge!(@_content_for_to_cache) if instance_variable_defined?(:@_content_for_to_cache) && @_content_for_to_cache
-        controller.write_fragment(name, value_to_write, options)
+        content_for = @_content_for_to_cache if instance_variable_defined?(:@_content_for_to_cache) && @_content_for_to_cache
+        controller.write_fragment_and_content_for(name, fragment, content_for, options)
       end
 
       def restore_cached_content_for

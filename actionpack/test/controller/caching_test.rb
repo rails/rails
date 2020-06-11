@@ -99,7 +99,7 @@ class FragmentCachingTest < ActionController::TestCase
   def test_write_fragment_with_caching_enabled
     assert_nil @store.read("views/name")
     assert_equal "value", @controller.write_fragment("name", "value")
-    assert_equal "value", @store.read("views/name")
+    assert_equal "value", @store.read("views/name")[:_fragment]
   end
 
   def test_write_fragment_with_caching_disabled
@@ -146,8 +146,8 @@ class FragmentCachingTest < ActionController::TestCase
     assert_equal content, @controller.write_fragment("name", content)
 
     cached = @store.read("views/name")
-    assert_equal content, cached
-    assert_equal String, cached.class
+    assert_equal content, cached[:_fragment]
+    assert_equal String, cached[:_fragment].class
 
     html_safe = @controller.read_fragment("name")
     assert_equal content, html_safe
@@ -343,7 +343,7 @@ class CacheHelperOutputBufferTest < ActionController::TestCase
       false
     end
 
-    def write_fragment(name, fragment, options)
+    def write_fragment_and_content_for(name, fragment, content_for, options)
       fragment
     end
   end

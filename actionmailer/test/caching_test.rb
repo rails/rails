@@ -53,7 +53,7 @@ class FragmentCachingTest < BaseCachingTest
   def test_write_fragment_with_caching_enabled
     assert_nil @store.read("views/name")
     assert_equal "value", @mailer.write_fragment("name", "value")
-    assert_equal "value", @store.read("views/name")
+    assert_equal "value", @store.read("views/name")[:_fragment]
   end
 
   def test_write_fragment_with_caching_disabled
@@ -100,8 +100,8 @@ class FragmentCachingTest < BaseCachingTest
     assert_equal content, @mailer.write_fragment("name", content)
 
     cached = @store.read("views/name")
-    assert_equal content, cached
-    assert_equal String, cached.class
+    assert_equal content, cached[:_fragment]
+    assert_equal String, cached[:_fragment].class
 
     html_safe = @mailer.read_fragment("name")
     assert_equal content, html_safe
@@ -200,7 +200,7 @@ class CacheHelperOutputBufferTest < BaseCachingTest
       false
     end
 
-    def write_fragment(name, fragment, options)
+    def write_fragment_and_content_for(name, fragment, content_for, options)
       fragment
     end
   end

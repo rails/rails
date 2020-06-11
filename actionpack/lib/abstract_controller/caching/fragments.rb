@@ -75,17 +75,26 @@ module AbstractController
         cache_key
       end
 
-      # Writes +content+ to the location signified by
-      # +key+ (see +expire_fragment+ for acceptable formats).
-      def write_fragment(key, content, options = nil)
-        value_to_write, content = value_to_write_and_fragment(content)
-        return content unless cache_configured?
+      # Writes both +fragment+ content and +content_for+ data (optional) in a
+      # combined hash to the location signified by +key+.
+      def write_fragment_and_content_for(key, fragment, content_for = nil, options = nil)
+        return fragment unless cache_configured?
 
+        value_to_write = {_fragment: fragment.to_str}
+        value_to_write.merge!(content_for.transform_values(&:to_str)) if content_for
         key = combined_fragment_cache_key(key)
         instrument_fragment_cache :write_fragment, key do
           cache_store.write(key, value_to_write, options)
         end
-        content
+        fragment
+      end
+
+      # Writes +fragment+ to the location signified by
+      # +key+ (see +expire_fragment+ for acceptable formats).
+      def write_fragment(key, fragment, options = nil)
+        return fragment unless cache_configured?
+
+        write_fragment_and_content_for(key, fragment, nil, options)
       end
 
       # Reads a cached fragment from the location signified by +key+
@@ -147,19 +156,6 @@ module AbstractController
       end
 
       private
-
-        # In case the value to write to the cache is a Hash, extract the fragment value out of
-        # it, to be used as the return value for write_fragment.
-        def value_to_write_and_fragment(content)
-          if content.is_a?(Hash)
-            value_to_write = content.transform_values(&:to_str)
-            fragment = content[:_fragment]
-          else
-            value_to_write = content.to_str
-            fragment = content
-          end
-          [value_to_write, fragment]
-        end
 
         # In case the result read from the cache store is a Hash, extract the fragment value out of
         # it, and use the rest as cached_content_for.
