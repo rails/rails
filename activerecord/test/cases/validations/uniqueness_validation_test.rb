@@ -522,6 +522,23 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     }
   end
 
+  def test_validate_uniqueness_with_conditions_with_record_arg
+    Topic.validates_uniqueness_of :title, conditions: ->(record) {
+      where(written_on: record.written_on.beginning_of_day..record.written_on.end_of_day)
+    }
+
+    today_midday = Time.current.midday
+
+    todays_topic = Topic.new(title: "Highlights of the Day", written_on: today_midday)
+    assert todays_topic.save, "1st topic written today with this title should save"
+
+    todays_topic_duplicate = Topic.new(title: "Highlights of the Day", written_on: today_midday + 1.minute)
+    assert todays_topic_duplicate.invalid?, "2nd topic written today with this title should be invalid"
+
+    tomorrows_topic = Topic.new(title: "Highlights of the Day", written_on: today_midday + 1.day)
+    assert tomorrows_topic.valid?, "1st topic written tomorrow with this title should be valid"
+  end
+
   def test_validate_uniqueness_on_existing_relation
     event = Event.create
     assert_predicate TopicWithUniqEvent.create(event: event), :valid?
