@@ -167,7 +167,9 @@ module AbstractController
         # it, and use the rest as cached_content_for.
         def extract_fragment_value(result)
           if result.is_a?(Hash)
-            self.cached_content_for = result.except(:_fragment)
+            self.cached_content_for = result.except(:_fragment).transform_values { |v|
+              v.respond_to?(:html_safe) ? v.html_safe : v
+            }
             result = result[:_fragment]
           end
           result

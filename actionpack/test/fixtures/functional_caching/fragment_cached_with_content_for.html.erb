@@ -1,8 +1,8 @@
-<%- content_for :title, "My Title" -%>
-<%- cache do -%>
-  <%- content_for :title, ": Enhanced!" -%>
-  <%- content_for :footer, "P.S. This footer is cached." -%>
-This fragment is cached
-<%- end -%>
+<% content_for :title, "My Title" %>
+<% cache do %>
+  <% content_for :title, ": Enhanced!" %>
+  <% content_for :footer do %><p>P.S. This footer is cached.</p><% end %>
+  This fragment is cached
+<% end %>
 <title><%= content_for :title %></title>
 <footer><%= content_for :footer %></footer>

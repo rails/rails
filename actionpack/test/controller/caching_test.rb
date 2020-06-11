@@ -153,6 +153,26 @@ class FragmentCachingTest < ActionController::TestCase
     assert_equal content, html_safe
     assert_predicate html_safe, :html_safe?
   end
+
+  def test_html_safety_for_content_for
+    assert_nil @store.read("views/name")
+    content = "value".html_safe
+    footer = "<p>footer</p>".html_safe
+    assert_equal content, @controller.write_fragment_and_content_for("name", content, {footer: footer})
+
+    cached = @store.read("views/name")
+    assert_equal content, cached[:_fragment]
+    assert_equal footer, cached[:footer]
+    assert_equal String, cached[:_fragment].class
+    assert_equal String, cached[:footer].class
+
+    content_from_cache = @controller.read_fragment("name")
+    footer_from_cache = @controller.cached_content_for[:footer]
+    assert_equal content, content_from_cache
+    assert_equal footer, footer_from_cache
+    assert_predicate content_from_cache, :html_safe?
+    assert_predicate footer_from_cache, :html_safe?
+  end
 end
 
 class FunctionalCachingController < CachingController
@@ -219,12 +239,14 @@ Ciao
     get :fragment_cached_with_content_for
     assert_response :success
     expected_body = <<-CACHED
-This fragment is cached
+  
+  This fragment is cached
 <title>My Title: Enhanced!</title>
-<footer>P.S. This footer is cached.</footer>
+<footer><p>P.S. This footer is cached.</p></footer>
     CACHED
+
     assert_equal expected_body, @response.body
-    expected_hash = {_fragment: "This fragment is cached\n", title: ": Enhanced!", footer: "P.S. This footer is cached."}
+    expected_hash = {_fragment: "  \n  This fragment is cached\n", title: ": Enhanced!", footer: "<p>P.S. This footer is cached.</p>"}
     assert_equal expected_hash,
       @store.read("views/functional_caching/fragment_cached_with_content_for:#{template_digest("functional_caching/fragment_cached_with_content_for", "html")}/test.host/functional_caching/fragment_cached_with_content_for")
 
