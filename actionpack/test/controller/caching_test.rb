@@ -239,7 +239,7 @@ Ciao
     get :fragment_cached_with_content_for
     assert_response :success
     expected_body = <<-CACHED
-  
+#{'  '}
   This fragment is cached
 <title>My Title: Enhanced!</title>
 <footer><p>P.S. This footer is cached.</p></footer>
@@ -250,7 +250,7 @@ Ciao
       _fragment: "  \n  This fragment is cached\n",
       content_for: [
         [:title, ": Enhanced!", {}],
-        [:footer, "<p>P.S. This footer is cached.</p>", {flush: true}]
+        [:footer, "<p>P.S. This footer is cached.</p>", { flush: true }]
       ]
     }
     assert_equal expected_hash,

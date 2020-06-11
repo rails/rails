@@ -170,7 +170,6 @@ module AbstractController
       end
 
       private
-
         # Ensure that we mark all string values that we fetched from the cache
         # as html_safe.
         # In case the result read from the cache store is a Hash, extract the

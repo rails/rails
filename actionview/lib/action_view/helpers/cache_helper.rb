@@ -279,7 +279,6 @@ module ActionView
       end
 
       private
-
         # Takes the content_for that was read from cache store and add it back to view_flow using
         # content_for as it was done originally within the cache block.
         def replay_cached_content_for_calls

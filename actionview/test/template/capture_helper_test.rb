@@ -166,7 +166,7 @@ class CaptureHelperTest < ActionView::TestCase
   def test_cache_with_content_for
     content_for(:uncached, "content")
 
-    cache 'something' do
+    cache "something" do
       assert_not_nil @_content_for_calls_to_cache
       assert_nil content_for_calls_to_cache
 
@@ -181,7 +181,7 @@ class CaptureHelperTest < ActionView::TestCase
       assert_equal "new", content_for(:widget)
       expected = [
         [:widget, "content", {}],
-        [:widget, "new", {flush: true}]
+        [:widget, "new", { flush: true }]
       ]
       assert_equal expected, content_for_calls_to_cache
     end
