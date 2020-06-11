@@ -240,8 +240,8 @@ applications into engines.
 
 NOTE: Because of the way that Ruby does constant lookup you may run into a situation
 where your engine controller is inheriting from the main application controller and
-not your engine's application controller. Ruby is able to resolve the `ApplicationController` constant, and therefore the autoloading mechanism is not triggered. See the section [When Constants Aren't Missed](autoloading_and_reloading_constants.html#when-constants-aren-t-missed) of the [Autoloading and Reloading Constants](autoloading_and_reloading_constants.html) guide for further details. The best way to prevent this from
-happening is to use `require_dependency` to ensure that the engine's application
+not your engine's application controller. Ruby is able to resolve the `ApplicationController` constant, and therefore the autoloading mechanism is not triggered. See the section [When Constants Aren't Missed](autoloading_and_reloading_constants_classic_mode.html#when-constants-aren-t-missed). 
+The best way to prevent this from happening is to use `require_dependency` to ensure that the engine's application
 controller is loaded. For example:
 
 ``` ruby
