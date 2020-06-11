@@ -6,7 +6,7 @@
     out of the box: the value has to be url-encoded and decoded to survive transport.
 
     Now, we generate Base64 urlsafe-encoded CSRF tokens, which are inherently safe
-    to transport.  Validation accepts both urlsafe tokens, and strict-encoded tokens
+    to transport. Validation accepts both urlsafe tokens, and strict-encoded tokens
     for backwards compatibility.
 
     *Scott Blum*
