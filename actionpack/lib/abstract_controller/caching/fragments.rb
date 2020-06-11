@@ -75,16 +75,25 @@ module AbstractController
         cache_key
       end
 
-      # If +content_for+ is provided, writes both +fragment+ content and
-      # +content_for+ data in a combined hash to the location signified by
+      # If +content_for_calls+ is provided, writes both +fragment+ content and
+      # +content_for_calls+ in a combined hash to the location signified by
       # +key+.
       # If only +fragment+, writes only +fragment+ (as a string).
-      def write_fragment_and_content_for(key, fragment, content_for = nil, options = nil)
+      def write_fragment_and_content_for(key, fragment, content_for_calls = nil, options = nil)
         return fragment unless cache_configured?
 
-        if content_for.present?
-          value_to_write = {_fragment: fragment.to_str}.
-            merge(content_for.transform_values(&:to_str))
+        if content_for_calls.present?
+          value_to_write = {
+            _fragment: fragment.to_str,
+            content_for: content_for_calls.map { |args|
+              assert_valid_content_for_call(args)
+              [
+                args[0],
+                args[1].to_str,
+                *args[2..-1]
+              ]
+            }
+          }
         else
           value_to_write = fragment.to_str
         end
@@ -110,8 +119,7 @@ module AbstractController
 
         key = combined_fragment_cache_key(key)
         instrument_fragment_cache :read_fragment, key do
-          result = extract_fragment_value(cache_store.read(key, options))
-          result.respond_to?(:html_safe) ? result.html_safe : result
+          extract_fragment_value(cache_store.read(key, options))
         end
       end
 
@@ -163,18 +171,34 @@ module AbstractController
 
       private
 
-        # In case the result read from the cache store is a Hash, extract the fragment value out of
-        # it, and use the rest as cached_content_for.
+        # Ensure that we mark all string values that we fetched from the cache
+        # as html_safe.
+        # In case the result read from the cache store is a Hash, extract the
+        # :fragment value and assign the :content_for value to
+        # cached_content_for_calls.
         def extract_fragment_value(result)
           if result.is_a?(Hash)
-            self.cached_content_for = result.except(:_fragment).transform_values { |v|
-              v.respond_to?(:html_safe) ? v.html_safe : v
+            self.cached_content_for_calls = result[:content_for].map { |args|
+              assert_valid_content_for_call(args)
+              [
+                args[0],
+                args[1].respond_to?(:html_safe) ? args[1].html_safe : args[1],
+                *args[2..-1]
+              ]
             }
             result = result[:_fragment]
           end
+          result = result.respond_to?(:html_safe) ? result.html_safe : result
           result
         end
 
+        # Asserts that +args+ matches the arity and shape of args that
+        # content_for expects.
+        def assert_valid_content_for_call(args)
+          unless args.is_a?(Array) && (2..3).include?(args.length) && args[1].respond_to?(:to_str)
+            raise "must be an array of arguments for content_for (name, [content], [options]), but was #{args.inspect}"
+          end
+        end
     end
   end
 end

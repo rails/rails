@@ -167,16 +167,28 @@ class CaptureHelperTest < ActionView::TestCase
     content_for(:uncached, "content")
 
     cache 'something' do
-      assert_not_nil @_content_for_to_cache
-      assert_nil content_for_to_cache
+      assert_not_nil @_content_for_calls_to_cache
+      assert_nil content_for_calls_to_cache
+
       content_for(:widget, "content")
       assert_equal "content", content_for(:widget)
-      assert_equal "content", content_for_to_cache[:widget]
+      expected = [
+        [:widget, "content", {}],
+      ]
+      assert_equal expected, content_for_calls_to_cache
+
+      content_for(:widget, "new", flush: true)
+      assert_equal "new", content_for(:widget)
+      expected = [
+        [:widget, "content", {}],
+        [:widget, "new", {flush: true}]
+      ]
+      assert_equal expected, content_for_calls_to_cache
     end
-    assert_nil @_content_for_to_cache
-    assert_nil content_for_to_cache
+    assert_nil @_content_for_calls_to_cache
+    assert_nil content_for_calls_to_cache
     assert_equal "content", content_for(:uncached)
-    assert_equal "content", content_for(:widget)
+    assert_equal "new", content_for(:widget)
   end
 
   def test_provide

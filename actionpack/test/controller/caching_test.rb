@@ -158,16 +158,16 @@ class FragmentCachingTest < ActionController::TestCase
     assert_nil @store.read("views/name")
     content = "value".html_safe
     footer = "<p>footer</p>".html_safe
-    assert_equal content, @controller.write_fragment_and_content_for("name", content, {footer: footer})
+    assert_equal content, @controller.write_fragment_and_content_for("name", content, [[:footer, footer]])
 
     cached = @store.read("views/name")
     assert_equal content, cached[:_fragment]
-    assert_equal footer, cached[:footer]
+    assert_equal [:footer, footer], cached[:content_for][0]
     assert_equal String, cached[:_fragment].class
-    assert_equal String, cached[:footer].class
+    assert_equal String, cached[:content_for][0][1].class
 
     content_from_cache = @controller.read_fragment("name")
-    footer_from_cache = @controller.cached_content_for[:footer]
+    footer_from_cache = @controller.cached_content_for_calls[0][1]
     assert_equal content, content_from_cache
     assert_equal footer, footer_from_cache
     assert_predicate content_from_cache, :html_safe?
@@ -246,7 +246,13 @@ Ciao
     CACHED
 
     assert_equal expected_body, @response.body
-    expected_hash = {_fragment: "  \n  This fragment is cached\n", title: ": Enhanced!", footer: "<p>P.S. This footer is cached.</p>"}
+    expected_hash = {
+      _fragment: "  \n  This fragment is cached\n",
+      content_for: [
+        [:title, ": Enhanced!", {}],
+        [:footer, "<p>P.S. This footer is cached.</p>", {flush: true}]
+      ]
+    }
     assert_equal expected_hash,
       @store.read("views/functional_caching/fragment_cached_with_content_for:#{template_digest("functional_caching/fragment_cached_with_content_for", "html")}/test.host/functional_caching/fragment_cached_with_content_for")
 

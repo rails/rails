@@ -172,7 +172,7 @@ module ActionView
       #
       def cache(name = {}, options = {}, &block)
         if controller.try(:perform_caching)
-          @_content_for_to_cache = Hash.new { |h,k| h[k] = ActiveSupport::SafeBuffer.new }
+          @_content_for_calls_to_cache = []
           name_options = options.slice(:skip_digest)
           safe_concat(fragment_for(cache_fragment_name(name, **name_options), options, &block))
         else
@@ -181,7 +181,7 @@ module ActionView
 
         nil
       ensure
-        @_content_for_to_cache = nil
+        @_content_for_calls_to_cache = nil
       end
 
       # Cache fragments of a view if +condition+ is true
@@ -257,7 +257,7 @@ module ActionView
 
       def read_fragment_for(name, options)
         controller.read_fragment(name, options).tap do |cont|
-          restore_cached_content_for
+          replay_cached_content_for_calls
         end
       end
 
@@ -269,25 +269,25 @@ module ActionView
         if output_safe
           self.output_buffer = output_buffer.class.new(output_buffer)
         end
-        controller.write_fragment_and_content_for(name, fragment, content_for_to_cache, options)
+        controller.write_fragment_and_content_for(name, fragment, content_for_calls_to_cache, options)
       end
 
-      def content_for_to_cache
-        return unless instance_variable_defined?(:@_content_for_to_cache)
+      def content_for_calls_to_cache
+        return unless instance_variable_defined?(:@_content_for_calls_to_cache)
 
-        @_content_for_to_cache.presence
+        @_content_for_calls_to_cache.presence
       end
 
       private
 
         # Takes the content_for that was read from cache store and add it back to view_flow using
         # content_for as it was done originally within the cache block.
-        def restore_cached_content_for
+        def replay_cached_content_for_calls
           return unless controller.try(:perform_caching)
 
-          if controller.cached_content_for.is_a?(Hash)
-            controller.cached_content_for.each { |k, v|
-              content_for(k, v)
+          if controller.cached_content_for_calls
+            controller.cached_content_for_calls.each { |args|
+              content_for(*args)
             }
           end
         end

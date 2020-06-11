@@ -159,7 +159,7 @@ module ActionView
             content = capture(&block)
           end
           if content
-            save_content_for_to_cache(name, content)
+            save_content_for_call_to_cache(name, content, options)
             options[:flush] ? @view_flow.set(name, content) : @view_flow.append(name, content)
           end
           nil
@@ -214,15 +214,14 @@ module ActionView
       end
 
       private
-        # In case we are currently inside of a cache block, save the content passed to content_for
-        # calls so that we can write it to the cache when we write the fragment content.
-        def save_content_for_to_cache(name, content)
+        # In case we are currently inside of a cache block, save the arguments passed to content_for
+        # so that we can write these calls to the cache when we write the fragment content, so that
+        # they can be replayed when we fetch that fragment from the cache.
+        def save_content_for_call_to_cache(*args)
           return unless controller.try(:perform_caching)
+          return unless instance_variable_defined?(:@_content_for_calls_to_cache)
 
-          if instance_variable_defined?(:@_content_for_to_cache)
-            @_content_for_to_cache[name] ||= Array.new
-            @_content_for_to_cache[name] << content
-          end
+          @_content_for_calls_to_cache << args
         end
     end
   end

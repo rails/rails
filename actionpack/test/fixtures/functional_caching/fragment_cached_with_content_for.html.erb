@@ -1,7 +1,8 @@
 <% content_for :title, "My Title" %>
+<% content_for :footer, 'Some default footer' %>
 <% cache do %>
   <% content_for :title, ": Enhanced!" %>
-  <% content_for :footer do %><p>P.S. This footer is cached.</p><% end %>
+  <% content_for :footer, flush: true do %><p>P.S. This footer is cached.</p><% end %>
   This fragment is cached
 <% end %>
 <title><%= content_for :title %></title>
