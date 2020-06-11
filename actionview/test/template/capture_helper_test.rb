@@ -163,6 +163,22 @@ class CaptureHelperTest < ActionView::TestCase
     assert_predicate content_for(:title), :html_safe?
   end
 
+  def test_cache_with_content_for
+    content_for(:uncached, "content")
+
+    cache 'something' do
+      assert_not_nil @_content_for_to_cache
+      assert_nil content_for_to_cache
+      content_for(:widget, "content")
+      assert_equal "content", content_for(:widget)
+      assert_equal "content", content_for_to_cache[:widget]
+    end
+    assert_nil @_content_for_to_cache
+    assert_nil content_for_to_cache
+    assert_equal "content", content_for(:uncached)
+    assert_equal "content", content_for(:widget)
+  end
+
   def test_provide
     assert_not content_for?(:title)
     provide :title, "hi"

@@ -269,19 +269,28 @@ module ActionView
         if output_safe
           self.output_buffer = output_buffer.class.new(output_buffer)
         end
-        content_for = @_content_for_to_cache if instance_variable_defined?(:@_content_for_to_cache) && @_content_for_to_cache
-        controller.write_fragment_and_content_for(name, fragment, content_for, options)
+        controller.write_fragment_and_content_for(name, fragment, content_for_to_cache, options)
       end
 
-      def restore_cached_content_for
-        return unless controller.try(:perform_caching)
+      def content_for_to_cache
+        return unless instance_variable_defined?(:@_content_for_to_cache)
 
-        if controller.cached_content_for.is_a?(Hash)
-          controller.cached_content_for.each { |k, v|
-            content_for(k, v)
-          }
+        @_content_for_to_cache.presence
+      end
+
+      private
+
+        # Takes the content_for that was read from cache store and add it back to view_flow using
+        # content_for as it was done originally within the cache block.
+        def restore_cached_content_for
+          return unless controller.try(:perform_caching)
+
+          if controller.cached_content_for.is_a?(Hash)
+            controller.cached_content_for.each { |k, v|
+              content_for(k, v)
+            }
+          end
         end
-      end
     end
   end
 end
