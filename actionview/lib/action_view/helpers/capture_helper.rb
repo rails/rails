@@ -152,6 +152,7 @@ module ActionView
       #   <% content_for :script, javascript_include_tag(:defaults) %>
       #
       def content_for(name, content = nil, options = {}, &block)
+        options.assert_valid_keys(:flush)
         if content || block_given?
           if block_given?
             options = content if content
