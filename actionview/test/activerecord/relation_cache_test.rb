@@ -19,7 +19,7 @@ class RelationCacheTest < ActionView::TestCase
     assert_queries(1) do
       cache(Project.all) { concat("Hello World") }
     end
-    assert_equal "Hello World", controller.cache_store.read("views/test/hello_world:fa9482a68ce25bf7589b8eddad72f736/projects-#{Project.count}")[:_fragment]
+    assert_equal "Hello World", controller.cache_store.read("views/test/hello_world:fa9482a68ce25bf7589b8eddad72f736/projects-#{Project.count}")
   end
 
   def view_cache_dependencies; []; end

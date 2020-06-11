@@ -75,13 +75,19 @@ module AbstractController
         cache_key
       end
 
-      # Writes both +fragment+ content and +content_for+ data (optional) in a
-      # combined hash to the location signified by +key+.
+      # If +content_for+ is provided, writes both +fragment+ content and
+      # +content_for+ data in a combined hash to the location signified by
+      # +key+.
+      # If only +fragment+, writes only +fragment+ (as a string).
       def write_fragment_and_content_for(key, fragment, content_for = nil, options = nil)
         return fragment unless cache_configured?
 
-        value_to_write = {_fragment: fragment.to_str}
-        value_to_write.merge!(content_for.transform_values(&:to_str)) if content_for
+        if content_for.present?
+          value_to_write = {_fragment: fragment.to_str}.
+            merge(content_for.transform_values(&:to_str))
+        else
+          value_to_write = fragment.to_str
+        end
         key = combined_fragment_cache_key(key)
         instrument_fragment_cache :write_fragment, key do
           cache_store.write(key, value_to_write, options)
