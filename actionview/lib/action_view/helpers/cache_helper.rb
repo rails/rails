@@ -164,7 +164,7 @@ module ActionView
       # This will include both records as part of the cache key and updating either of them will
       # expire the cache.
       def cache(name = {}, options = {}, &block)
-        if controller.respond_to?(:perform_caching) && controller.perform_caching
+        if controller.try(:perform_caching)
           name_options = options.slice(:skip_digest)
           safe_concat(fragment_for(cache_fragment_name(name, **name_options), options, &block))
         else
