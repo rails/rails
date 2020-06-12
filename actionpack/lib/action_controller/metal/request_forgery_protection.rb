@@ -131,7 +131,7 @@ module ActionController #:nodoc:
       def protect_from_forgery(options = {})
         options = options.reverse_merge(prepend: false)
 
-        self.forgery_protection_strategy = protection_method_class(options[:with] || :null_session)
+        self.forgery_protection_strategy = protection_method_class(options[:with] || :exception)
         self.request_forgery_protection_token ||= :authenticity_token
         before_action :verify_authenticity_token, options
         append_after_action :verify_same_origin_request
