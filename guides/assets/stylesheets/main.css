@@ -741,8 +741,10 @@ div.important p, div.caution p, div.warning p, div.note p, div.info p {
   transform: rotate(45deg) translate(27.5%, -40%);
   min-width: 200px;
   font-weight: bold;
-  background: #222;
-  border: red 2px solid;
+  font-style: italic;
+  box-shadow: 0px 2px 2px 1px #1209096e;
+  text-shadow: 2px 2px 4px #5400007d;
+  background: radial-gradient(circle, rgb(255, 10, 0) 0%, rgb(200, 0, 0) 90%);
 }
 
 /* Foundation v2.1.4 http://foundation.zurb.com */
