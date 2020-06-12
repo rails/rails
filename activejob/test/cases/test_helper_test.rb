@@ -13,6 +13,41 @@ require "jobs/multiple_kwargs_job"
 require "models/person"
 
 class EnqueuedJobsTest < ActiveJob::TestCase
+  class ExplodingSerializer < ActiveJob::Serializers::ObjectSerializer
+    def serialize(object)
+      super({ "value" => object.value })
+    end
+
+    def deserialize(hash)
+      fail "bang"
+    end
+
+    private
+      def klass
+        DummyValueObject
+      end
+  end
+
+  class DummyValueObject
+    attr_accessor :value
+
+    def initialize(value)
+      @value = value
+    end
+
+    def ==(other)
+      self.value == other.value
+    end
+  end
+
+  setup do
+    @original_serializers = ActiveJob::Serializers.serializers
+  end
+
+  teardown do
+    ActiveJob::Serializers._additional_serializers = @original_serializers
+  end
+
   def test_assert_enqueued_jobs
     assert_nothing_raised do
       assert_enqueued_jobs 1 do
@@ -701,6 +736,15 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     assert_enqueued_with(job: HelloJob)
 
     assert_equal 2, queue_adapter.enqueued_jobs.count
+  end
+
+  def test_assert_enqueued_with_with_earlier_deserializable_args
+    ActiveJob::Serializers.add_serializers ExplodingSerializer
+
+    assert_enqueued_with(job: HelloJob, args: ["Owl"]) do
+      LoggingJob.perform_later(DummyValueObject.new("Test")) # ExplodingSerializer will cause deserialization to fail
+      HelloJob.perform_later("Owl")
+    end
   end
 
   def test_assert_enqueued_jobs_with_performed

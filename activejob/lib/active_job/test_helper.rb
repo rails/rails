@@ -402,6 +402,18 @@ module ActiveJob
       end
 
       matching_job = jobs.find do |enqueued_job|
+        if expected_args[:job].present?
+          if expected_args[:job].respond_to?(:call)
+            if !expected_args[:job].call(enqueued_job[:job])
+              potential_matches << enqueued_job
+              next
+            end
+          elsif expected_args[:job] != enqueued_job[:job]
+            potential_matches << enqueued_job
+            next
+          end
+        end
+
         deserialized_job = deserialize_args_for_assertion(enqueued_job)
         potential_matches << deserialized_job
 
