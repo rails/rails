@@ -728,6 +728,15 @@ div.important p, div.caution p, div.warning p, div.note p, div.info p {
   margin-bottom: 1em;
 }
 
+/* Prevent shell prompt from being selectable when selecting commands*/
+code.language-shell-session span.token.command {
+  display: inline-flex;
+}
+span.token.sh.important {
+  margin-right: 0.5em;
+  user-select: none;
+}
+
 /* Edge Badge
 --------------------------------------- */
 
