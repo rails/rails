@@ -818,6 +818,8 @@ module Arel # :nodoc: all
           core.froms       = o.relation
           core.wheres      = o.wheres
           core.projections = [key]
+          core.groups      = o.groups
+          core.havings     = o.havings
           stmt.limit       = o.limit
           stmt.offset      = o.offset
           stmt.orders      = o.orders
