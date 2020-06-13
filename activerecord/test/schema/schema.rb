@@ -743,6 +743,7 @@ ActiveRecord::Schema.define do
     t.integer :comments_count, default: 0
     t.integer :taggings_with_delete_all_count, default: 0
     t.integer :taggings_with_destroy_count, default: 0
+    t.boolean :taggings_with_max_comment, default: false
     t.integer :tags_count, default: 0
     t.integer :indestructible_tags_count, default: 0
     t.integer :tags_with_destroy_count, default: 0
