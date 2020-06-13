@@ -31,11 +31,6 @@ class Post < ActiveRecord::Base
 
   scope :limit_by, lambda { |l| limit(l) }
   scope :locked, -> { lock }
-  scope :heavily_commented, -> {
-    joins(:comments)
-    .group("posts.id")
-    .having("count(comments.id) >= 2")
-  }
 
   belongs_to :author
   belongs_to :readonly_author, -> { readonly }, class_name: "Author", foreign_key: :author_id
