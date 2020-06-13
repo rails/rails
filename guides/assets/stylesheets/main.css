@@ -734,7 +734,6 @@ code.language-shell-session span.token.command {
 }
 span.token.sh.important {
   margin-right: 0.5em;
-  user-select: none;
 }
 
 /* Edge Badge
