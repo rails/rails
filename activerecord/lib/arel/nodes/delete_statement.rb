@@ -3,7 +3,7 @@
 module Arel # :nodoc: all
   module Nodes
     class DeleteStatement < Arel::Nodes::Node
-      attr_accessor :left, :right, :orders, :limit, :offset, :key
+      attr_accessor :left, :right, :orders, :limit, :offset, :key, :groups, :havings
 
       alias :relation :left
       alias :relation= :left=
@@ -15,6 +15,8 @@ module Arel # :nodoc: all
         @left = relation
         @right = wheres
         @orders = []
+        @groups = []
+        @havings = []
         @limit = nil
         @offset = nil
         @key = nil
@@ -35,6 +37,8 @@ module Arel # :nodoc: all
           self.left == other.left &&
           self.right == other.right &&
           self.orders == other.orders &&
+          self.groups == other.groups &&
+          self.havings == other.havings &&
           self.limit == other.limit &&
           self.offset == other.offset &&
           self.key == other.key
