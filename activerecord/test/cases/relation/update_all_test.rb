@@ -33,6 +33,14 @@ class UpdateAllTest < ActiveRecord::TestCase
     posts.each { |post| assert_equal "rofl", post.title }
   end
 
+  def test_update_all_with_group_by
+    Post.heavily_commented.update_all(taggings_with_max_comment: true)
+    posts = Post.heavily_commented.all.to_a
+    assert_operator posts.length, :>, 0
+    posts.each { |post| assert_equal true, post.taggings_with_max_comment }
+    assert_equal false, Post.find_by_id(2).taggings_with_max_comment
+  end
+
   def test_update_all_with_non_standard_table_name
     assert_equal 1, WarehouseThing.where(id: 1).update_all(["value = ?", 0])
     assert_equal 0, WarehouseThing.find(1).value
