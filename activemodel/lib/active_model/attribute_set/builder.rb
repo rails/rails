@@ -14,8 +14,14 @@ module ActiveModel
 
       def build_from_database(values = {}, additional_types = {})
         attributes = LazyAttributeHash.new(types, values, additional_types, default_attributes)
-        AttributeSet.new(attributes)
+        LazyAttributeSet.new(attributes)
       end
+    end
+  end
+
+  class LazyAttributeSet < AttributeSet # :nodoc:
+    def fetch_value(name, &block)
+      attributes.fetch_value(name, &block)
     end
   end
 
@@ -26,9 +32,10 @@ module ActiveModel
       @types = types
       @values = values
       @additional_types = additional_types
-      @materialized = false
-      @delegate_hash = delegate_hash
       @default_attributes = default_attributes
+      @delegate_hash = delegate_hash
+      @casted_values = {}
+      @materialized = false
     end
 
     def key?(key)
@@ -41,6 +48,25 @@ module ActiveModel
 
     def []=(key, value)
       delegate_hash[key] = value
+    end
+
+    def fetch_value(name, &block)
+      if attr = delegate_hash[name]
+        return attr.value(&block)
+      end
+
+      @casted_values.fetch(name) do
+        value_present = true
+        value = values.fetch(name) { value_present = false }
+
+        if value_present
+          type = additional_types.fetch(name, types[name])
+          @casted_values[name] = type.deserialize(value)
+        else
+          attr = assign_default_value(name, value_present, value) || Attribute.null(name)
+          attr.value(&block)
+        end
+      end
     end
 
     def deep_dup
@@ -104,13 +130,15 @@ module ActiveModel
     private
       attr_reader :types, :values, :additional_types, :delegate_hash, :default_attributes
 
-      def assign_default_value(name)
-        type = additional_types.fetch(name, types[name])
-        value_present = true
+      def assign_default_value(
+        name,
+        value_present = true,
         value = values.fetch(name) { value_present = false }
+      )
+        type = additional_types.fetch(name, types[name])
 
         if value_present
-          delegate_hash[name] = Attribute.from_database(name, value, type)
+          delegate_hash[name] = Attribute.from_database(name, value, type, @casted_values[name])
         elsif types.key?(name)
           attr = default_attributes[name]
           if attr
