@@ -3,13 +3,15 @@
 module Arel # :nodoc: all
   module Nodes
     class UpdateStatement < Arel::Nodes::Node
-      attr_accessor :relation, :wheres, :values, :orders, :limit, :offset, :key
+      attr_accessor :relation, :wheres, :values, :orders, :limit, :offset, :key, :groups, :havings
 
       def initialize
         @relation = nil
         @wheres   = []
         @values   = []
         @orders   = []
+        @groups   = []
+        @havings  = []
         @limit    = nil
         @offset   = nil
         @key      = nil
@@ -31,6 +33,8 @@ module Arel # :nodoc: all
           self.wheres == other.wheres &&
           self.values == other.values &&
           self.orders == other.orders &&
+          self.groups == other.groups &&
+          self.havings == other.havings &&
           self.limit == other.limit &&
           self.offset == other.offset &&
           self.key == other.key
