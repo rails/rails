@@ -5,6 +5,7 @@ require "minitest"
 
 module Rails
   class TestUnitReporter < Minitest::StatisticsReporter
+    class_attribute :app_root
     class_attribute :executable, default: "rails test"
 
     def record(result)
@@ -79,11 +80,9 @@ module Rails
       end
 
       def app_root
-        @app_root ||=
+        @app_root ||= self.class.app_root ||
           if defined?(ENGINE_ROOT)
             ENGINE_ROOT
-          elsif defined?(COMPONENT_ROOT)
-            COMPONENT_ROOT
           elsif Rails.respond_to?(:root)
             Rails.root
           end
