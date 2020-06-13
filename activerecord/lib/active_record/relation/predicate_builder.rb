@@ -57,11 +57,11 @@ module ActiveRecord
       @handlers.unshift([klass, handler])
     end
 
-    def build(attribute, value)
+    def build(attribute, value, operator = nil)
       value = value.id if value.is_a?(Base)
-      if table.type(attribute.name).force_equality?(value)
+      if operator ||= table.type(attribute.name).force_equality?(value) && :eq
         bind = build_bind_attribute(attribute.name, value)
-        attribute.eq(bind)
+        attribute.public_send(operator, bind)
       else
         handler_for(value).call(attribute, value)
       end
@@ -127,11 +127,15 @@ module ActiveRecord
 
               grouping_queries(queries)
             end
+          elsif key.end_with?(">", ">=", "<", "<=") && /\A(?<key>.+?)\s*(?<operator>>|>=|<|<=)\z/ =~ key
+            build(table.arel_attribute(key), value, OPERATORS[-operator])
           else
             build(table.arel_attribute(key), value)
           end
         end
       end
+
+      OPERATORS = { ">" => :gt, ">=" => :gteq, "<" => :lt, "<=" => :lteq }.freeze
 
     private
       attr_reader :table

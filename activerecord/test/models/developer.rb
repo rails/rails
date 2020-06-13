@@ -156,6 +156,8 @@ class DeveloperFilteredOnJoins < ActiveRecord::Base
 end
 
 class DeveloperOrderedBySalary < ActiveRecord::Base
+  include Developer::TimestampAliases
+
   self.table_name = "developers"
   default_scope { order("salary DESC") }
 
