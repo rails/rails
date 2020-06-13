@@ -1,5 +1,9 @@
 APP_ROOT = File.expand_path('..', __dir__)
 Dir.chdir(APP_ROOT) do
+  # exclude bin from PATH to prevent loop.
+  ENV["PATH"] = ENV["PATH"].split(File::PATH_SEPARATOR).reject do |path|
+    File.expand_path(path) == __dir__
+  end.join(File::PATH_SEPARATOR)
   exec "yarn", *ARGV
 rescue Errno::ENOENT
   $stderr.puts "Yarn executable was not detected in the system."
