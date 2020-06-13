@@ -588,7 +588,7 @@ end
 class InheritanceAttributeMappingTest < ActiveRecord::TestCase
   setup do
     @old_registry = ActiveRecord::Type.registry
-    ActiveRecord::Type.registry = ActiveRecord::Type::AdapterSpecificRegistry.new
+    ActiveRecord::Type.registry = ActiveRecord::Type.registry.dup
     ActiveRecord::Type.register :omg_sti, InheritanceAttributeMappingTest::OmgStiType
     Company.delete_all
     Sponsor.delete_all

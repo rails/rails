@@ -117,6 +117,15 @@ module ActiveRecord
     # during an ordered finder call. Useful when the primary key is not an
     # auto-incrementing integer, for example when it's a UUID. Records are subsorted
     # by the primary key if it exists to ensure deterministic results.
+
+    ##
+    # :singleton-method: immutable_strings_by_default=
+    # :call-seq: immutable_strings_by_default=(bool)
+    #
+    # Determines whether columns should infer their type as `:string` or
+    # `:immutable_string`. This setting does not affect the behavior of
+    # `attribute :foo, :string`. Defaults to false.
+
     included do
       mattr_accessor :primary_key_prefix_type, instance_writer: false
 
@@ -126,6 +135,7 @@ module ActiveRecord
       class_attribute :internal_metadata_table_name, instance_accessor: false, default: "ar_internal_metadata"
       class_attribute :pluralize_table_names, instance_writer: false, default: true
       class_attribute :implicit_order_column, instance_accessor: false
+      class_attribute :immutable_strings_by_default, instance_accessor: false
 
       self.protected_environments = ["production"]
       self.inheritance_column = "type"
@@ -495,9 +505,11 @@ module ActiveRecord
           columns_hash = columns_hash.except(*ignored_columns) unless ignored_columns.empty?
           @columns_hash = columns_hash.freeze
           @columns_hash.each do |name, column|
+            type = connection.lookup_cast_type_from_column(column)
+            type = _convert_type_from_options(type)
             define_attribute(
               name,
-              connection.lookup_cast_type_from_column(column),
+              type,
               default: column.default,
               user_provided_default: false
             )
@@ -544,6 +556,14 @@ module ActiveRecord
           else
             # STI subclasses always use their superclass' table.
             base_class.table_name
+          end
+        end
+
+        def _convert_type_from_options(type)
+          if immutable_strings_by_default && type.respond_to?(:to_immutable_string)
+            type.to_immutable_string
+          else
+            type
           end
         end
     end
