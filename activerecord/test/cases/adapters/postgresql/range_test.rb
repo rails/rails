@@ -15,35 +15,31 @@ class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
 
   def setup
     @connection = PostgresqlRange.connection
-    begin
-      @connection.transaction do
-        @connection.execute <<~SQL
-          CREATE TYPE floatrange AS RANGE (
-              subtype = float8,
-              subtype_diff = float8mi
-          );
+    @connection.transaction do
+      @connection.execute <<~SQL
+        CREATE TYPE floatrange AS RANGE (
+            subtype = float8,
+            subtype_diff = float8mi
+        );
 
-          CREATE TYPE stringrange AS RANGE (
-              subtype = varchar
-          );
-        SQL
+        CREATE TYPE stringrange AS RANGE (
+            subtype = varchar
+        );
+      SQL
 
-        @connection.create_table("postgresql_ranges") do |t|
-          t.daterange :date_range
-          t.numrange :num_range
-          t.tsrange :ts_range
-          t.tstzrange :tstz_range
-          t.int4range :int4_range
-          t.int8range :int8_range
-        end
-
-        @connection.add_column "postgresql_ranges", "float_range", "floatrange"
-        @connection.add_column "postgresql_ranges", "string_range", "stringrange"
+      @connection.create_table("postgresql_ranges") do |t|
+        t.daterange :date_range
+        t.numrange  :num_range
+        t.tsrange   :ts_range
+        t.tstzrange :tstz_range
+        t.int4range :int4_range
+        t.int8range :int8_range
       end
-      PostgresqlRange.reset_column_information
-    rescue ActiveRecord::StatementInvalid
-      skip "do not test on PG without range"
+
+      @connection.add_column "postgresql_ranges", "float_range", "floatrange"
+      @connection.add_column "postgresql_ranges", "string_range", "stringrange"
     end
+    PostgresqlRange.reset_column_information
 
     insert_range(id: 101,
                  date_range: "[''2012-01-02'', ''2012-01-04'']",
