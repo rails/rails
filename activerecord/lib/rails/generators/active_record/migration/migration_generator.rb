@@ -43,9 +43,12 @@ module ActiveRecord
         end
 
         def set_index_names
-          attributes.each_with_index do |attr, i|
-            attr.index_name = [attr, attributes[i - 1]].map { |a| index_name_for(a) }
-          end
+          attr_one = attributes.first
+          attr_one.index_name = [attr_one, attributes[-1]].map { |a| index_name_for(a) }
+          attr_one.has_uniq_index = true
+
+          attr_two = attributes.second
+          attr_two.index_name = ":#{index_name_for(attr_two)}"
         end
 
         def index_name_for(attribute)

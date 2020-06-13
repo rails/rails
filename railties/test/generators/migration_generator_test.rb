@@ -260,13 +260,13 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
 
   def test_create_join_table_migration
     migration = "add_media_join_table"
-    run_generator [migration, "artist_id", "musics:uniq"]
+    run_generator [migration, "artists", "musics"]
 
     assert_migration "db/migrate/#{migration}.rb" do |content|
       assert_method :change, content do |change|
         assert_match(/create_join_table :artists, :musics/, change)
-        assert_match(/# t\.index \[:artist_id, :music_id\]/, change)
-        assert_match(/  t\.index \[:music_id, :artist_id\], unique: true/, change)
+        assert_match(/# t\.index \[:artist_id, :music_id\], unique: true/, change)
+        assert_match(/# t\.index \:music_id/, change)
       end
     end
   end
@@ -368,13 +368,13 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   def test_create_join_table_migration_with_singular_table_name
     with_singular_table_name do
       migration = "add_media_join_table"
-      run_generator [migration, "artist_id", "music:uniq"]
+      run_generator [migration, "artist_id", "music"]
 
       assert_migration "db/migrate/#{migration}.rb" do |content|
         assert_method :change, content do |change|
           assert_match(/create_join_table :artist, :music/, change)
           assert_match(/# t\.index \[:artist_id, :music_id\]/, change)
-          assert_match(/  t\.index \[:music_id, :artist_id\], unique: true/, change)
+          assert_match(/# t\.index :music_id/, change)
         end
       end
     end

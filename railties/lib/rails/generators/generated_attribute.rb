@@ -11,7 +11,7 @@ module Rails
 
       attr_accessor :name, :type
       attr_reader   :attr_options
-      attr_writer   :index_name
+      attr_writer   :index_name, :has_uniq_index
 
       class << self
         def parse(column_definition)
