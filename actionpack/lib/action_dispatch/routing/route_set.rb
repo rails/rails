@@ -825,7 +825,7 @@ module ActionDispatch
         path = route_with_params.path(method_name)
         params = route_with_params.params
 
-        if options.key? :params
+        if options.key?(:params) && options[:params].is_a?(Hash)
           params.merge! options[:params]
         end
 
