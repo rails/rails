@@ -30,5 +30,20 @@ module Arel # :nodoc: all
       end
       self
     end
+
+    def group(*columns)
+      columns.each do |column|
+        column = Nodes::SqlLiteral.new(column) if String === column
+        column = Nodes::SqlLiteral.new(column.to_s) if Symbol === column
+
+        @ctx.groups.push Nodes::Group.new column
+      end
+      self
+    end
+
+    def having(expr)
+      @ctx.havings << expr
+      self
+    end
   end
 end
