@@ -69,8 +69,8 @@ providing the `URL` of the relay ingress and the `INGRESS_PASSWORD` you
 previously generated. If your application lived at `https://example.com`, the
 full command would look like this:
 
-```shell
-bin/rails action_mailbox:ingress:exim URL=https://example.com/rails/action_mailbox/relay/inbound_emails INGRESS_PASSWORD=...
+```bash
+$ bin/rails action_mailbox:ingress:exim URL=https://example.com/rails/action_mailbox/relay/inbound_emails INGRESS_PASSWORD=...
 ```
 
 ### Mailgun
@@ -159,7 +159,7 @@ the `URL` of the Postfix ingress and the `INGRESS_PASSWORD` you previously
 generated. If your application lived at `https://example.com`, the full command
 would look like this:
 
-```shell
+```bash
 $ bin/rails action_mailbox:ingress:postfix URL=https://example.com/rails/action_mailbox/relay/inbound_emails INGRESS_PASSWORD=...
 ```
 
@@ -225,8 +225,8 @@ providing the `URL` of the relay ingress and the `INGRESS_PASSWORD` you
 previously generated. If your application lived at `https://example.com`, the
 full command would look like this:
 
-```shell
-bin/rails action_mailbox:ingress:qmail URL=https://example.com/rails/action_mailbox/relay/inbound_emails INGRESS_PASSWORD=...
+```bash
+$ bin/rails action_mailbox:ingress:qmail URL=https://example.com/rails/action_mailbox/relay/inbound_emails INGRESS_PASSWORD=...
 ```
 
 ### SendGrid

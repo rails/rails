@@ -189,7 +189,7 @@ end
 
 Running this test shows the friendlier assertion message:
 
-```bash
+```
 Failure:
 ArticleTest#test_should_not_save_article_without_title [/path/to/blog/test/models/article_test.rb:6]:
 Saved the article without a title
@@ -489,7 +489,7 @@ parallelize your local test suite differently from your CI, so an environment va
 to be able to easily change the number of workers a test run should use:
 
 ```bash
-PARALLEL_WORKERS=15 bin/rails test
+$ PARALLEL_WORKERS=15 bin/rails test
 ```
 
 When parallelizing tests, Active Record automatically handles creating a database and loading the schema into the database for each
@@ -542,7 +542,7 @@ want to parallelize your local test suite differently from your CI, so an enviro
 to be able to easily change the number of workers a test run should use:
 
 ```bash
-PARALLEL_WORKERS=15 bin/rails test
+$ PARALLEL_WORKERS=15 bin/rails test
 ```
 
 ### Testing Parallel Transactions
@@ -829,7 +829,7 @@ $ bin/rails generate system_test articles
 It should have created a test file placeholder for us. With the output of the
 previous command you should see:
 
-```bash
+```
       invoke  test_unit
       create    test/system/articles_test.rb
 ```
@@ -852,7 +852,7 @@ The test should see that there is an `h1` on the articles index page and pass.
 Run the system tests.
 
 ```bash
-bin/rails test:system
+$ bin/rails test:system
 ```
 
 NOTE: By default, running `bin/rails test` won't run your system tests.
@@ -978,7 +978,7 @@ $ bin/rails generate integration_test blog_flow
 It should have created a test file placeholder for us. With the output of the
 previous command we should see:
 
-```bash
+```
       invoke  test_unit
       create    test/integration/blog_flow_test.rb
 ```

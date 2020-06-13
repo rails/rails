@@ -1229,7 +1229,7 @@ edit_user GET    /users/:id/edit(.:format) users#edit
 
 You can also use the `--expanded` option to turn on the expanded table formatting mode.
 
-```
+```bash
 $ bin/rails routes --expanded
 
 --[ Route 1 ]----------------------------------------------------
@@ -1256,7 +1256,7 @@ Controller#Action | users#edit
 
 You can search through your routes with the grep option: -g. This outputs any routes that partially match the URL helper method name, the HTTP verb, or the URL path.
 
-```
+```bash
 $ bin/rails routes -g new_comment
 $ bin/rails routes -g POST
 $ bin/rails routes -g admin
@@ -1264,7 +1264,7 @@ $ bin/rails routes -g admin
 
 If you only want to see the routes that map to a specific controller, there's the -c option.
 
-```
+```bash
 $ bin/rails routes -c users
 $ bin/rails routes -c admin/users
 $ bin/rails routes -c Comments

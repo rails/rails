@@ -316,7 +316,7 @@ $ bin/rails generate controller articles index
 
 Rails will create several files and a route for you.
 
-```bash
+```
 create  app/controllers/articles_controller.rb
   route  get 'articles/index'
 invoke  erb
@@ -790,7 +790,7 @@ $ bin/rails db:migrate
 Rails will execute this migration command and tell you it created the Articles
 table.
 
-```bash
+```
 ==  CreateArticles: migrating ==================================================
 -- create_table(:articles)
    -> 0.0019s
@@ -1664,7 +1664,7 @@ $ bin/rails db:migrate
 Rails is smart enough to only execute the migrations that have not already been
 run against the current database, so in this case you will just see:
 
-```bash
+```
 ==  CreateComments: migrating =================================================
 -- create_table(:comments)
    -> 0.0115s

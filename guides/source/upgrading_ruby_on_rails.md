@@ -191,8 +191,8 @@ If you want to use Webpacker, then include it in your Gemfile and install it:
 gem "webpacker"
 ```
 
-```sh
-bin/rails webpacker:install
+```bash
+$ bin/rails webpacker:install
 ```
 
 ### Force SSL
@@ -317,7 +317,7 @@ However, `classic` mode infers file names from missing constant names (`undersco
 
 Compatibility can be checked with the `zeitwerk:check` task:
 
-```
+```bash
 $ bin/rails zeitwerk:check
 Hold on, I am eager loading the application.
 All is good!

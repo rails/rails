@@ -149,7 +149,7 @@ Generators Lookup
 
 When you run `bin/rails generate initializer core_extensions` Rails requires these files in turn until one is found:
 
-```bash
+```
 rails/generators/initializer/initializer_generator.rb
 generators/initializer/initializer_generator.rb
 rails/generators/initializer_generator.rb

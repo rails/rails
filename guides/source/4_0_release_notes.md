@@ -26,8 +26,8 @@ If you're upgrading an existing application, it's a great idea to have good test
 Creating a Rails 4.0 application
 --------------------------------
 
-```
- You should have the 'rails' RubyGem installed
+```bash
+# You should have the 'rails' RubyGem installed
 $ rails new myapp
 $ cd myapp
 ```
@@ -42,13 +42,13 @@ More information: [Bundler homepage](https://bundler.io)
 
 `Bundler` and `Gemfile` makes freezing your Rails application easy as pie with the new dedicated `bundle` command. If you want to bundle straight from the Git repository, you can pass the `--edge` flag:
 
-```
+```bash
 $ rails new myapp --edge
 ```
 
 If you have a local checkout of the Rails repository and want to generate an application using that, you can pass the `--dev` flag:
 
-```
+```bash
 $ ruby /path/to/rails/railties/bin/rails new myapp --dev
 ```
 

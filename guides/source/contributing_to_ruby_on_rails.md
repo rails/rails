@@ -418,8 +418,8 @@ $ bundle exec rake test:sqlite3
 You can now run the tests as you did for `sqlite3`. The tasks are respectively:
 
 ```bash
-test:mysql2
-test:postgresql
+$ bundle exec rake test:mysql2
+$ bundle exec rake test:postgresql
 ```
 
 Finally,
