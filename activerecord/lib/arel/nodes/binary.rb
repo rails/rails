@@ -40,12 +40,54 @@ module Arel # :nodoc: all
     end
 
     class Between < Binary; include FetchAttribute; end
-    class NotIn < Binary; include FetchAttribute; end
-    class GreaterThan < Binary; include FetchAttribute; end
-    class GreaterThanOrEqual < Binary; include FetchAttribute; end
-    class NotEqual < Binary; include FetchAttribute; end
-    class LessThan < Binary; include FetchAttribute; end
-    class LessThanOrEqual < Binary; include FetchAttribute; end
+
+    class GreaterThan < Binary
+      include FetchAttribute
+
+      def invert
+        Arel::Nodes::LessThanOrEqual.new(left, right)
+      end
+    end
+
+    class GreaterThanOrEqual < Binary
+      include FetchAttribute
+
+      def invert
+        Arel::Nodes::LessThan.new(left, right)
+      end
+    end
+
+    class LessThan < Binary
+      include FetchAttribute
+
+      def invert
+        Arel::Nodes::GreaterThanOrEqual.new(left, right)
+      end
+    end
+
+    class LessThanOrEqual < Binary
+      include FetchAttribute
+
+      def invert
+        Arel::Nodes::GreaterThan.new(left, right)
+      end
+    end
+
+    class NotEqual < Binary
+      include FetchAttribute
+
+      def invert
+        Arel::Nodes::Equality.new(left, right)
+      end
+    end
+
+    class NotIn < Binary
+      include FetchAttribute
+
+      def invert
+        Arel::Nodes::In.new(left, right)
+      end
+    end
 
     class Or < Binary
       def fetch_attribute(&block)
