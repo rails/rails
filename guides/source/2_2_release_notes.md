@@ -51,8 +51,8 @@ All told, the Guides provide tens of thousands of words of guidance for beginnin
 
 If you want to generate these guides locally, inside your application:
 
-```
-rake doc:guides
+```bash
+$ rake doc:guides
 ```
 
 This will put the guides inside `Rails.root/doc/guides` and you may start surfing straight away by opening `Rails.root/doc/guides/index.html` in your favourite browser.

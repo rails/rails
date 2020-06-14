@@ -44,19 +44,19 @@ spring environments.
 
 **Running rake tasks:**
 
-```
-bin/rake test:models
+```bash
+$ bin/rake test:models
 ```
 
 **Running a Rails command:**
 
-```
-bin/rails console
+```bash
+$ bin/rails console
 ```
 
 **Spring introspection:**
 
-```
+```bash
 $ bin/spring status
 Spring is running:
 

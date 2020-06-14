@@ -58,7 +58,7 @@ You can navigate to the directory that contains the plugin, run the `bundle inst
 
 You should see:
 
-```bash
+```
   1 runs, 1 assertions, 0 failures, 0 errors, 0 skips
 ```
 
@@ -85,7 +85,7 @@ end
 
 Run `bin/test` to run the test. This test should fail because we haven't implemented the `to_squawk` method:
 
-```bash
+```
 E
 
 Error:
@@ -131,7 +131,7 @@ end
 
 To test that your method does what it says it does, run the unit tests with `bin/test` from your plugin directory.
 
-```bash
+```
   2 runs, 2 assertions, 0 failures, 0 errors, 0 skips
 ```
 
@@ -353,7 +353,7 @@ end
 
 When you run `bin/test`, you should see the tests all pass:
 
-```bash
+```
   4 runs, 4 assertions, 0 failures, 0 errors, 0 skips
 ```
 
@@ -458,16 +458,16 @@ When the gem is ready to be shared as a formal release, it can be published to [
 
 Alternatively, you can benefit from Bundler's Rake tasks. You can see a full list with the following:
 
-```
-bundle exec rake -T
+```bash
+$ bundle exec rake -T
 
-bundle exec rake build
+$ bundle exec rake build
 # Build yaffle-0.1.0.gem into the pkg directory
 
-bundle exec rake install
+$ bundle exec rake install
 # Build and install yaffle-0.1.0.gem into system gems
 
-bundle exec rake release
+$ bundle exec rake release
 # Create tag v0.1.0 and build and push yaffle-0.1.0.gem to Rubygems
 ```
 

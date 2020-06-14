@@ -834,7 +834,7 @@ $ bin/rails db:migrate RAILS_ENV=test
 By default migrations tell you exactly what they're doing and how long it took.
 A migration creating a table and adding an index might produce output like this
 
-```bash
+```
 ==  CreateProducts: migrating =================================================
 -- create_table(:products)
    -> 0.0028s
@@ -877,7 +877,7 @@ end
 
 generates the following output
 
-```bash
+```
 ==  CreateProducts: migrating =================================================
 -- Created a table
    -> and an index!
