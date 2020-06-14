@@ -34,11 +34,11 @@ class UpdateAllTest < ActiveRecord::TestCase
   end
 
   def test_update_all_with_group_by
-    Post.heavily_commented.update_all(taggings_with_max_comment: true)
+    Post.heavily_commented.update_all(title: "trending")
     posts = Post.heavily_commented.all.to_a
     assert_operator posts.length, :>, 0
-    posts.each { |post| assert_equal true, post.taggings_with_max_comment }
-    assert_equal false, Post.find_by_id(2).taggings_with_max_comment
+    posts.each { |post| assert_equal "trending", post.title }
+    assert_not_equal "trending", Post.find_by_id(2).title
   end
 
   def test_update_all_with_non_standard_table_name
