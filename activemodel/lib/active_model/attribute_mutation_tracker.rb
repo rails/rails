@@ -7,9 +7,8 @@ module ActiveModel
   class AttributeMutationTracker # :nodoc:
     OPTION_NOT_GIVEN = Object.new
 
-    def initialize(attributes, forced_changes = Set.new)
+    def initialize(attributes)
       @attributes = attributes
-      @forced_changes = forced_changes
     end
 
     def changed_attribute_names
@@ -62,11 +61,15 @@ module ActiveModel
     end
 
     def force_change(attr_name)
-      forced_changes << attr_name
+      forced_changes[attr_name] = fetch_value(attr_name)
     end
 
     private
-      attr_reader :attributes, :forced_changes
+      attr_reader :attributes
+
+      def forced_changes
+        @forced_changes ||= {}
+      end
 
       def attr_names
         attributes.keys
@@ -82,7 +85,7 @@ module ActiveModel
   end
 
   class ForcedMutationTracker < AttributeMutationTracker # :nodoc:
-    def initialize(attributes, forced_changes = {})
+    def initialize(attributes)
       super
       @finalized_changes = nil
     end
