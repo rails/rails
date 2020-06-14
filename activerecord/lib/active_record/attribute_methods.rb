@@ -305,6 +305,7 @@ module ActiveRecord
     #   # => "[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]"
     def attribute_for_inspect(attr_name)
       attr_name = attr_name.to_s
+      attr_name = self.class.attribute_aliases[attr_name] || attr_name
       value = _read_attribute(attr_name)
       format_for_inspect(value)
     end
@@ -326,6 +327,7 @@ module ActiveRecord
     #   task.attribute_present?(:is_done) # => true
     def attribute_present?(attr_name)
       attr_name = attr_name.to_s
+      attr_name = self.class.attribute_aliases[attr_name] || attr_name
       value = _read_attribute(attr_name)
       !value.nil? && !(value.respond_to?(:empty?) && value.empty?)
     end

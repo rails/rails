@@ -34,6 +34,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     t.title = "The First Topic Now Has A Title With\nNewlines And More Than 50 Characters"
 
     assert_equal '"The First Topic Now Has A Title With\nNewlines And ..."', t.attribute_for_inspect(:title)
+    assert_equal '"The First Topic Now Has A Title With\nNewlines And ..."', t.attribute_for_inspect(:heading)
   end
 
   test "attribute_for_inspect with a date" do
@@ -69,6 +70,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     t.written_on = Time.now
     t.author_name = ""
     assert t.attribute_present?("title")
+    assert t.attribute_present?("heading")
     assert t.attribute_present?("written_on")
     assert_not t.attribute_present?("content")
     assert_not t.attribute_present?("author_name")
