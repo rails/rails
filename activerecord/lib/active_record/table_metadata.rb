@@ -2,7 +2,7 @@
 
 module ActiveRecord
   class TableMetadata # :nodoc:
-    delegate :foreign_type, :foreign_key, :join_primary_key, :join_foreign_key, to: :reflection, prefix: :association
+    delegate :join_primary_key, :join_foreign_key, :join_foreign_type, to: :reflection
 
     def initialize(klass, arel_table, reflection = nil)
       @klass = klass

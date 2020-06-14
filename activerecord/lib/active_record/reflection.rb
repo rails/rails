@@ -729,6 +729,10 @@ module ActiveRecord
         foreign_key
       end
 
+      def join_foreign_type
+        foreign_type
+      end
+
       private
         def can_find_inverse_of_automatically?(_)
           !polymorphic? && super
