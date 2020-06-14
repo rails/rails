@@ -597,6 +597,7 @@ module ActiveRecord
       stmt.offset(arel.offset)
       stmt.order(*arel.orders)
       stmt.wheres = arel.constraints
+
       affected = @klass.connection.delete(stmt, "#{@klass} Destroy")
 
       reset
