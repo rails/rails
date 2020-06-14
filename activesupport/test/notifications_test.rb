@@ -443,6 +443,17 @@ module Notifications
       assert_not not_child.parent_of?(parent)
     end
 
+    def test_subscribe_raises_error_on_non_supported_arguments
+      notifier = ActiveSupport::Notifications::Fanout.new
+
+      assert_raises ArgumentError do
+        notifier.subscribe(:symbol) { |*_| }
+      end
+      assert_raises ArgumentError do
+        notifier.subscribe(Object.new) { |*_| }
+      end
+    end
+
     private
       def random_id
         @random_id ||= SecureRandom.hex(10)
