@@ -53,6 +53,14 @@ module Rails
         Rails.logger.level = ActiveSupport::Logger.const_get(config.log_level.to_s.upcase)
       end
 
+      # Sets the Rails.application.url config
+      initializer :initialize_url, group: :all do
+        if config.url
+          Rails.application.url = config.url
+          Rails.application.default_url_options = config.url.host_and_protocol
+        end
+      end
+
       # Initialize cache early in the stack so railties can make use of it.
       initializer :initialize_cache, group: :all do
         unless Rails.cache

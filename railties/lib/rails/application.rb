@@ -117,7 +117,7 @@ module Rails
       public :new
     end
 
-    attr_accessor :assets, :sandbox
+    attr_accessor :assets, :sandbox, :url
     alias_method :sandbox?, :sandbox
     attr_reader :reloaders, :reloader, :executor
 
@@ -140,6 +140,8 @@ module Rails
       @executor          = Class.new(ActiveSupport::Executor)
       @reloader          = Class.new(ActiveSupport::Reloader)
       @reloader.executor = @executor
+
+      @url               = nil
 
       # are these actually used?
       @initial_variable_values = initial_variable_values
