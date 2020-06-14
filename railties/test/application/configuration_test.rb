@@ -3190,6 +3190,21 @@ module ApplicationTests
       assert_nil ActiveStorage.queues[:purge]
     end
 
+    test "ActiveStorage verifier supports rotating the secret key" do
+      add_to_config <<-RUBY
+        config.active_storage.rotations.tap do |rotations|
+          rotations.rotate :active_storage, "old secret"
+        end
+      RUBY
+
+      app "development"
+
+      verifier = ActiveSupport::MessageVerifier.new("old secret")
+      signed_id = verifier.generate("id", purpose: :id)
+
+      assert_equal "id", ActiveStorage.verifier.verify(signed_id, purpose: :id)
+    end
+
     test "ActiveStorage.queues[:mirror] is nil without Rails 6 defaults" do
       remove_from_config '.*config\.load_defaults.*\n'
 

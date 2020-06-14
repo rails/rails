@@ -31,6 +31,7 @@ module ActiveStorage
     config.active_storage.paths = ActiveSupport::OrderedOptions.new
     config.active_storage.queues = ActiveSupport::InheritableOptions.new
     config.active_storage.precompile_assets = true
+    config.active_storage.rotations = ActiveSupport::Messages::RotationConfiguration.new
 
     config.active_storage.variable_content_types = %w(
       image/png
@@ -135,6 +136,11 @@ module ActiveStorage
     initializer "active_storage.verifier" do
       config.after_initialize do |app|
         ActiveStorage.verifier = app.message_verifier("ActiveStorage")
+
+        app.config.active_storage.rotations.active_storage.each do |(*secrets)|
+          options = secrets.extract_options!
+          ActiveStorage.verifier.rotate(*secrets, **options)
+        end
       end
     end
 

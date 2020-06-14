@@ -22,4 +22,10 @@ class MessagesRotationConfiguration < ActiveSupport::TestCase
 
     assert_equal [ [ "old raw key", cipher: "aes-256-gcm" ] ], @config.encrypted
   end
+
+  def test_active_storage_configurations
+    @config.rotate :active_storage, "old secret"
+
+    assert_equal [ [ "old secret" ] ], @config.active_storage
+  end
 end

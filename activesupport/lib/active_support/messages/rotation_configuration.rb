@@ -3,10 +3,10 @@
 module ActiveSupport
   module Messages
     class RotationConfiguration # :nodoc:
-      attr_reader :signed, :encrypted
+      attr_reader :signed, :encrypted, :active_storage
 
       def initialize
-        @signed, @encrypted = [], []
+        @signed, @encrypted, @active_storage = [], [], []
       end
 
       def rotate(kind, *args, **options)
@@ -16,6 +16,8 @@ module ActiveSupport
           @signed << args
         when :encrypted
           @encrypted << args
+        when :active_storage
+          @active_storage << args
         end
       end
     end
