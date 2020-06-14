@@ -518,6 +518,7 @@ module ActiveRecord
       end
 
       def find_nth(index)
+        @offsets ||= {}
         @offsets[index] ||= find_nth_with_limit(index, 1).first
       end
 

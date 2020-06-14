@@ -28,7 +28,6 @@ module ActiveRecord
       @klass  = klass
       @table  = table
       @values = values
-      @offsets = {}
       @loaded = false
       @predicate_builder = predicate_builder
       @delegate_to_klass = false
@@ -653,9 +652,8 @@ module ActiveRecord
       @delegate_to_klass = false
       @_deprecated_scope_source = nil
       @to_sql = @arel = @loaded = @should_eager_load = nil
+      @offsets = @take = nil
       @records = [].freeze
-      @offsets = {}
-      @take = nil
       self
     end
 
