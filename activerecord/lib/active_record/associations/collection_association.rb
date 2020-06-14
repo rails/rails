@@ -216,11 +216,15 @@ module ActiveRecord
         elsif !association_scope.group_values.empty?
           load_target.size
         elsif !association_scope.distinct_value && !target.empty?
-          unsaved_records = target.select(&:new_record?)
           unsaved_records.size + count_records
         else
           count_records
         end
+      end
+
+      # Returns a collection's unsaved records
+      def unsaved_records
+        target.select(&:new_record?)
       end
 
       # Returns true if the collection is empty.

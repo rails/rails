@@ -1002,6 +1002,11 @@ module ActiveRecord
         load_target
       end
 
+      # Returns a collection's unsaved records
+      def unsaved_records
+        @association.unsaved_records
+      end
+
       # Adds one or more +records+ to the collection by setting their foreign keys
       # to the association's primary key. Since <tt><<</tt> flattens its argument list and
       # inserts each record, +push+ and +concat+ behave identically. Returns +self+

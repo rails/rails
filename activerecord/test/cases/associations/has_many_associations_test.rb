@@ -1134,6 +1134,16 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal size1, size2
   end
 
+  def test_collection_unsaved_records
+    company = companies(:first_firm)
+    company.contracts.create
+    assert_empty company.contracts.unsaved_records
+    company.contracts.build
+    assert_not_empty company.contracts.unsaved_records
+    company.contracts.reload
+    assert_empty company.contracts.unsaved_records
+  end
+
   def test_build_many
     company = companies(:first_firm)
 
