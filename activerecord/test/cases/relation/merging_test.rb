@@ -175,6 +175,24 @@ class RelationMergingTest < ActiveRecord::TestCase
     assert_equal [david], Author.where(id: mary).merge(non_mary_and_bob, rewhere: true)
   end
 
+  def test_merge_not_range_clause
+    david, mary, bob = authors(:david, :mary, :bob)
+
+    less_than_bob = Author.where.not(id: bob.id..Float::INFINITY).order(:id)
+
+    assert_equal [david, mary], less_than_bob
+
+    assert_deprecated do
+      assert_equal [david], Author.where(id: david).merge(less_than_bob)
+    end
+    assert_equal [david, mary], Author.where(id: david).merge(less_than_bob, rewhere: true)
+
+    assert_deprecated do
+      assert_equal [mary], Author.where(id: mary).merge(less_than_bob)
+    end
+    assert_equal [david, mary], Author.where(id: mary).merge(less_than_bob, rewhere: true)
+  end
+
   def test_merge_doesnt_duplicate_same_clauses
     david, mary, bob = authors(:david, :mary, :bob)
 

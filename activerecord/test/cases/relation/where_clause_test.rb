@@ -90,14 +90,26 @@ class ActiveRecord::Relation
     test "invert replaces each part of the predicate with its inverse" do
       original = WhereClause.new([
         table["id"].in([1, 2, 3]),
+        table["id"].not_in([1, 2, 3]),
         table["id"].eq(1),
+        table["id"].not_eq(2),
+        table["id"].gt(1),
+        table["id"].gteq(2),
+        table["id"].lt(1),
+        table["id"].lteq(2),
         table["id"].is_not_distinct_from(1),
         table["id"].is_distinct_from(2),
         "sql literal"
       ])
       expected = WhereClause.new([
         table["id"].not_in([1, 2, 3]),
+        table["id"].in([1, 2, 3]),
         table["id"].not_eq(1),
+        table["id"].eq(2),
+        table["id"].lteq(1),
+        table["id"].lt(2),
+        table["id"].gteq(1),
+        table["id"].gt(2),
         table["id"].is_distinct_from(1),
         table["id"].is_not_distinct_from(2),
         Arel::Nodes::Not.new(Arel::Nodes::SqlLiteral.new("sql literal"))
