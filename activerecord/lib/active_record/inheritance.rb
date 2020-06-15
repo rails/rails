@@ -52,12 +52,7 @@ module ActiveRecord
           raise NotImplementedError, "#{self} is an abstract class and cannot be instantiated."
         end
 
-        reflect_on_all_associations.each do |association|
-          reflection_s = association.class.to_s
-          if (reflection_s.include?("BelongsToReflection") || reflection_s.include?("HasOneReflection")) && !association.is_a?(Class)
-            raise ActiveRecord::AssociationNotFoundError.new(self, association.name)
-          end
-        end
+        validate_associations_exist
 
         if _has_attribute?(inheritance_column)
           subclass = subclass_from_attributes(attributes)
@@ -240,6 +235,16 @@ module ActiveRecord
         end
 
       private
+        def validate_associations_exist
+          reflect_on_all_associations.each do |association|
+            next if association.polymorphic?
+
+            association.klass.present?
+          rescue NameError
+            raise ActiveRecord::AssociationNotFoundError.new(self, association.name)
+          end
+        end
+
         # Called by +instantiate+ to decide which class to use for a new
         # record instance. For single-table inheritance, we check the record
         # for a +type+ column and return the corresponding class.
