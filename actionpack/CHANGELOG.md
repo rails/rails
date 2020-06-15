@@ -1,3 +1,15 @@
+## Rails 5.1.7.1 (June 17, 2020) ##
+
+*   Introduce ActionDispatch::HostAuthorization
+
+    This is a new middleware that guards against DNS rebinding attacks by
+    white-listing the allowed hosts a request can be made to.
+
+    Each host is checked with the case operator (`#===`) to support `RegExp`,
+    `Proc`, `IPAddr` and custom objects as host allowances.
+
+    *Genadi Samokovarov*
+
 ## Rails 5.1.7 (March 27, 2019) ##
 
 *   No changes.

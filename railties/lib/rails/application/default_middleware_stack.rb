@@ -11,6 +11,8 @@ module Rails
 
       def build_stack
         ActionDispatch::MiddlewareStack.new.tap do |middleware|
+          middleware.use ::ActionDispatch::HostAuthorization, config.hosts, config.action_dispatch.hosts_response_app
+
           if config.force_ssl
             middleware.use ::ActionDispatch::SSL, config.ssl_options
           end

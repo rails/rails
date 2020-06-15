@@ -1,3 +1,37 @@
+## Rails 5.1.7.1 (June 17, 2020) ##
+
+*   Introduce guard against DNS rebinding attacks
+
+    The `ActionDispatch::HostAuthorization` is a new middleware that prevent
+    against DNS rebinding and other `Host` header attacks. It is included in
+    the development environment by default with the following configuration:
+
+        Rails.application.config.hosts = [
+          IPAddr.new("0.0.0.0/0"), # All IPv4 addresses.
+          IPAddr.new("::/0"),      # All IPv6 addresses.
+          "localhost"              # The localhost reserved domain.
+        ]
+
+    In other environments `Rails.application.config.hosts` is empty and no
+    `Host` header checks will be done. If you want to guard against header
+    attacks on production, you have to manually whitelist the allowed hosts
+    with:
+
+        Rails.application.config.hosts << "product.com"
+
+    The host of a request is checked against the `hosts` entries with the case
+    operator (`#===`), which lets `hosts` support entries of type `RegExp`,
+    `Proc` and `IPAddr` to name a few. Here is an example with a regexp.
+
+        # Allow requests from subdomains like `www.product.com` and
+        # `beta1.product.com`.
+        Rails.application.config.hosts << /.*\.product\.com/
+    A special case is supported that allows you to whitelist all sub-domains:
+        # Allow requests from subdomains like `www.product.com` and
+        # `beta1.product.com`.
+        Rails.application.config.hosts << ".product.com"
+    *Genadi Samokovarov*
+
 ## Rails 5.1.7 (March 27, 2019) ##
 
 *   No changes.

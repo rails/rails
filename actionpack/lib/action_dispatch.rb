@@ -46,11 +46,13 @@ module ActionDispatch
   end
 
   autoload_under "middleware" do
+    autoload :HostAuthorization
     autoload :RequestId
     autoload :Callbacks
     autoload :Cookies
     autoload :DebugExceptions
     autoload :DebugLocks
+    autoload :DebugView
     autoload :ExceptionWrapper
     autoload :Executor
     autoload :Flash
