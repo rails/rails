@@ -1,3 +1,7 @@
+*   Deprecate YAML loading from legacy format older than Rails 5.0.
+
+    *Ryuta Kamizono*
+
 *   Added the setting `ActiveRecord::Base.immutable_strings_by_default`, which
     allows you to specify that all string columns should be frozen unless
     otherwise specified. This will reduce memory pressure for applications which
