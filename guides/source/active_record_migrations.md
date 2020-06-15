@@ -300,9 +300,7 @@ class CreateProducts < ActiveRecord::Migration[6.0]
 end
 ```
 
-You can append as many column name/type pairs as you want.
-
-The native migration types are: :primary_key, :string, :text, :integer, :bigint, :float, :decimal, :numeric, :datetime, :time, :date, :binary, :boolean.
+You can append as many column name/type pairs as you want. Common column types include: `bigint`, `binary`, `boolean`, `date`, `datetime`, `decimal`, `float`, `integer`, `numeric`, `primary_key`, `string`, `text`, and `time`.
 
 ### Passing Modifiers
 
