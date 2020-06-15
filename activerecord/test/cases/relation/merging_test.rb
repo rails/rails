@@ -43,7 +43,7 @@ class RelationMergingTest < ActiveRecord::TestCase
     assert_equal [mary], david_and_mary.and(mary_and_bob)
     assert_equal authors, david_and_mary.or(mary_and_bob)
 
-    david_and_bob = Author.where(id: david).or(Author.where(name: "Bob")).order(:id)
+    david_and_bob = Author.where(id: david).or(Author.where(name: "Bob"))
 
     assert_equal [david], david_and_mary.merge(david_and_bob)
     assert_equal [david], david_and_mary.merge(david_and_bob, rewhere: true)
@@ -96,7 +96,7 @@ class RelationMergingTest < ActiveRecord::TestCase
     assert_equal [mary], david_and_mary.and(mary_and_bob)
     assert_equal authors, david_and_mary.or(mary_and_bob)
 
-    david_and_bob = Author.where(id: david).or(Author.where(name: "Bob")).order(:id)
+    david_and_bob = Author.where(id: david).or(Author.where(name: "Bob"))
 
     assert_equal [david], david_and_mary.merge(david_and_bob)
     assert_equal [david], david_and_mary.merge(david_and_bob, rewhere: true)
@@ -149,7 +149,7 @@ class RelationMergingTest < ActiveRecord::TestCase
     assert_equal [mary], david_and_mary.and(mary_and_bob)
     assert_equal authors, david_and_mary.or(mary_and_bob)
 
-    david_and_bob = Author.where(id: david).or(Author.where(name: "Bob")).order(:id)
+    david_and_bob = Author.where(id: david).or(Author.where(name: "Bob"))
 
     assert_equal [david], david_and_mary.merge(david_and_bob)
     assert_equal [david], david_and_mary.merge(david_and_bob, rewhere: true)
