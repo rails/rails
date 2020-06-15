@@ -388,11 +388,6 @@ module Rails
         template "config/boot.rb"
       end
 
-      def create_boot_with_spring_file
-        return if options[:skip_spring]
-        template "config/boot_with_spring.rb"
-      end
-
       def create_active_record_files
         return if options[:skip_active_record]
         build(:database_yml)

@@ -1,7 +1,3 @@
 APP_PATH = File.expand_path('../config/application', __dir__)
-<% if options.skip_spring? -%>
 require_relative "../config/boot"
-<% else -%>
-require_relative "../config/boot_with_spring"
-<% end -%>
 require "rails/commands"
