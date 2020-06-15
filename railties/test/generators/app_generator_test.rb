@@ -867,12 +867,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_bundler_command_called("binstubs bundler")
   end
 
-  def test_spring_binstubs
+  def test_spring_binstub
     jruby_skip "spring doesn't run on JRuby"
 
     generator([destination_root], skip_webpack_install: true)
 
-    assert_bundler_command_called("exec spring binstub --all")
+    assert_bundler_command_called("exec spring binstub")
   end
 
   def test_spring_no_fork
@@ -902,10 +902,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_skip_javascript_option
     command_check = -> command, *_ do
-      @called ||= 0
       if command == "webpacker:install"
-        @called += 1
-        assert_equal 0, @called, "webpacker:install expected not to be called, but was called #{@called} times."
+        flunk "`webpacker:install` expected to not be called."
       end
     end
 
@@ -922,16 +920,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_webpack_option_with_js_framework
+    webpacker_called = 0
+    react_called = 0
+
     command_check = -> command, *_ do
       case command
       when "webpacker:install"
-        @webpacker ||= 0
-        @webpacker += 1
-        assert_equal 1, @webpacker, "webpacker:install expected to be called once, but was called #{@webpacker} times."
+        webpacker_called += 1
       when "webpacker:install:react"
-        @react ||= 0
-        @react += 1
-        assert_equal 1, @react, "webpacker:install:react expected to be called once, but was called #{@react} times."
+        react_called += 1
       end
     end
 
@@ -941,13 +938,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
       end
     end
 
+    assert_equal 1, webpacker_called, "`webpacker:install` expected to be called once, but was called #{webpacker_called} times."
+    assert_equal 1, react_called, "`webpacker:install:react` expected to be called once, but was called #{react_called} times."
     assert_gem "webpacker"
   end
 
   def test_skip_webpack_install
     command_check = -> command do
       if command == "webpacker:install"
-        assert false, "webpacker:install expected not to be called."
+        flunk "`webpacker:install` expected to not be called."
       end
     end
 
@@ -1208,18 +1207,18 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
 
     def assert_bundler_command_called(target_command)
-      command_check = -> (command, env = {}) do
-        @command_called ||= 0
+      called = 0
 
-        case command
-        when target_command
-          @command_called += 1
-          assert_equal 1, @command_called, "#{command} expected to be called once, but was called #{@command_called} times."
+      command_check = -> (command, env = {}) do
+        if command == target_command
+          called += 1
         end
       end
 
       generator.stub :bundle_command, command_check do
         quietly { generator.invoke_all }
       end
+
+      assert_equal 1, called, "`#{target_command}` expected to be called once, but was called #{called} times."
     end
 end
