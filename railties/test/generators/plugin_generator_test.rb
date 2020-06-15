@@ -754,11 +754,8 @@ class PluginGeneratorTest < Rails::Generators::TestCase
       generator([destination_root], options)
 
       command_check = -> command do
-        case command
-        when "install"
-          flunk "install expected to not be called"
-        when "exec spring binstub --all"
-          # Called when running tests with spring, let through unscathed.
+        if command == "install"
+          flunk "`install` expected to not be called."
         end
       end
 
