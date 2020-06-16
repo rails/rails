@@ -766,7 +766,7 @@ module ActionDispatch
         end
 
         route_name = options.delete :use_route
-        path = path_for(options, route_name)
+        path = path_for(options, route_name, [])
 
         uri = URI.parse(path)
         params = Rack::Utils.parse_nested_query(uri.query).symbolize_keys
@@ -794,12 +794,12 @@ module ActionDispatch
         options.delete(:relative_url_root) || relative_url_root
       end
 
-      def path_for(options, route_name = nil)
-        url_for(options, route_name, PATH)
+      def path_for(options, route_name = nil, reserved = RESERVED_OPTIONS)
+        url_for(options, route_name, PATH, nil, reserved)
       end
 
       # The +options+ argument must be a hash whose keys are *symbols*.
-      def url_for(options, route_name = nil, url_strategy = UNKNOWN, method_name = nil)
+      def url_for(options, route_name = nil, url_strategy = UNKNOWN, method_name = nil, reserved = RESERVED_OPTIONS)
         options = default_url_options.merge options
 
         user = password = nil
@@ -819,7 +819,7 @@ module ActionDispatch
         end
 
         path_options = options.dup
-        RESERVED_OPTIONS.each { |ro| path_options.delete ro }
+        reserved.each { |ro| path_options.delete ro }
 
         route_with_params = generate(route_name, path_options, recall)
         path = route_with_params.path(method_name)
