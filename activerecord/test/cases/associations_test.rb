@@ -310,7 +310,7 @@ class OverridingAssociationsTest < ActiveRecord::TestCase
       # silence method redefined warnings
       has_many :has_many, before_add: :enlist
     end
-    has_one :has_one_2
+    has_one :has_one_2 unless DifferentPeopleList.reflect_on_association(:has_one_2)
   end
 
   def test_habtm_association_redefinition_callbacks_should_differ_and_not_inherited
