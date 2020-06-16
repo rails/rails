@@ -11,6 +11,7 @@
 
 *   [CVE-2020-8165] Avoid Marshal.load on raw cache value in MemCacheStore
 
+
 ## Rails 6.0.3 (May 06, 2020) ##
 
 *   `Array#to_sentence` no longer returns a frozen string.

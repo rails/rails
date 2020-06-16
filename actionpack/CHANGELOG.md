@@ -10,6 +10,7 @@
 
 *   [CVE-2020-8164] Return self when calling #each, #each_pair, and #each_value instead of the raw @parameters hash
 
+
 ## Rails 6.0.3 (May 06, 2020) ##
 
 *   Include child session assertion count in ActionDispatch::IntegrationTest
