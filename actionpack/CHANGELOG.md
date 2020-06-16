@@ -1,3 +1,5 @@
+*   [CVE-2020-8185] Only allow ActionableErrors if show_detailed_exceptions is enabled
+
 ## Rails 6.0.3.1 (May 18, 2020) ##
 
 *   [CVE-2020-8166] HMAC raw CSRF token before masking it, so it cannot be used to reconstruct a per-form token
