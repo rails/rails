@@ -17,6 +17,12 @@ module ActiveStorage
       @signer = Azure::Storage::Common::Core::Auth::SharedAccessSignature.new(storage_account_name, storage_access_key)
       @container = container
       @public = public
+      if options[:retry_policy] == :exponential_retry_policy_filter
+        retry_count = options[:retry_count] || 3
+        min_retry_interval = options[:min_retry_interval] || 10
+        max_retry_interval = options[:max_retry_interval] || 90
+        @client.with_filter(Azure::Storage::Common::Core::Filter::ExponentialRetryPolicyFilter.new(retry_count, min_retry_interval, max_retry_interval))
+      end
     end
 
     def upload(key, io, checksum: nil, filename: nil, content_type: nil, disposition: nil, **)
