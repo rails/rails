@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/class/subclasses"
 require "active_support/core_ext/module/redefine_method"
 
 class Class
@@ -123,10 +122,6 @@ class Class
           methods << "silence_redefinition_of_method def #{name}?; !!self.#{name}; end"
         end
       end
-
-      if default.is_a?(Hash)
-        class_methods << inplace_updatable_class_attribute(name)
-      end
     end
 
     location = caller_locations(1, 1).first
@@ -134,26 +129,4 @@ class Class
 
     attrs.each { |name| public_send("#{name}=", default) }
   end
-
-  private
-    def inplace_updatable_class_attribute(name)
-      update_method = name.to_s.sub(/\A(_*)/, "\\1inplace_update_")
-
-      <<~RUBY
-        def #{update_method}(key, value)
-          prev_value = #{name}[key]
-          #{name}[key] = value
-
-          descendants.each do |subclass|
-            next if subclass.#{name}.equal?(#{name})
-
-            if !subclass.#{name}.key?(key) || prev_value&.equal?(subclass.#{name}[key])
-              subclass.#{name}[key] = value
-            end
-          end
-
-          #{name}
-        end
-      RUBY
-    end
 end

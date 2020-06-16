@@ -27,15 +27,25 @@ module ActiveRecord
 
       def add_reflection(ar, name, reflection)
         ar.clear_reflections_cache
-        ar.descendants.each { |sub| sub.clear_reflections_cache }
+        name = -name.to_s
 
         ar._reflections = ar._reflections.dup
-        ar._inplace_update_reflections(-name.to_s, reflection)
+        prev_reflection = ar._reflections[name]
+        ar._reflections[name] = reflection
+
+        ar.descendants.each do |sub|
+          sub.clear_reflections_cache
+          next if sub._reflections.equal?(ar._reflections)
+
+          if !sub._reflections.key?(name) || prev_reflection&.equal?(sub._reflections[name])
+            sub._reflections[name] = reflection
+          end
+        end
+        ar._reflections
       end
 
       def add_aggregate_reflection(ar, name, reflection)
-        ar.aggregate_reflections = ar.aggregate_reflections.dup
-        ar.inplace_update_aggregate_reflections(-name.to_s, reflection)
+        ar.aggregate_reflections = ar.aggregate_reflections.merge(-name.to_s => reflection)
       end
 
       private
