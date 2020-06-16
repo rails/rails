@@ -17,7 +17,6 @@ module ActionDispatch #:nodoc:
         request = ActionDispatch::Request.new env
         _, headers, _ = response = @app.call(env)
 
-        return response unless html_response?(headers)
         return response if policy_present?(headers)
 
         if policy = request.content_security_policy
@@ -31,12 +30,6 @@ module ActionDispatch #:nodoc:
       end
 
       private
-        def html_response?(headers)
-          if content_type = headers[CONTENT_TYPE]
-            /html/.match?(content_type)
-          end
-        end
-
         def header_name(request)
           if request.content_security_policy_report_only
             POLICY_REPORT_ONLY
