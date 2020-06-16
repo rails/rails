@@ -1,7 +1,3 @@
-<% if options.skip_spring? -%>
 require_relative "../config/boot"
-<% else -%>
-require_relative "../config/boot_with_spring"
-<% end -%>
 require "rake"
 Rake.application.run
