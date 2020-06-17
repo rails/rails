@@ -2076,7 +2076,6 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
   def test_extras
     params = { controller: "people" }
     assert_equal [], @routes.extra_keys(params)
-    assert_equal({ controller: "people" }, params)
 
     params = { controller: "people", foo: "bar" }
     assert_equal [:foo], @routes.extra_keys(params)

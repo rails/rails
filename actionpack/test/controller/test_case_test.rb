@@ -607,6 +607,12 @@ XML
     assert_equal "json", @request.format
   end
 
+  def test_using_as_json_with_empty_params
+    post :test_params, params: { foo: { bar: [] }}, as: :json
+
+    assert_equal({ "bar" => [] }, JSON.load(response.body)['foo'])
+  end
+
   def test_mutating_content_type_headers_for_plain_text_files_sets_the_header
     @request.headers["Content-Type"] = "text/plain"
     post :render_body, params: { name: "foo.txt" }
