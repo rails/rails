@@ -74,14 +74,21 @@ module ActionController
       non_path_parameters = {}
       path_parameters = {}
 
+      if parameters[:format] == :json
+        parameters = JSON.load(JSON.dump(parameters))
+        query_string_keys = query_string_keys.map(&:to_s)
+      end
+
       parameters.each do |key, value|
         if query_string_keys.include?(key)
           non_path_parameters[key] = value
         else
-          if value.is_a?(Array)
-            value = value.map(&:to_param)
-          else
-            value = value.to_param
+          unless parameters["format"] == "json"
+            if value.is_a?(Array)
+              value = value.map(&:to_param)
+            else
+              value = value.to_param
+            end
           end
 
           path_parameters[key] = value
