@@ -13,11 +13,11 @@ module ActiveModel
     end
 
     def [](name)
-      attributes[name] || Attribute.null(name)
+      @attributes[name] || default_attribute(name)
     end
 
     def []=(name, value)
-      attributes[name] = value
+      @attributes[name] = value
     end
 
     def values_before_type_cast
@@ -25,9 +25,9 @@ module ActiveModel
     end
 
     def to_hash
-      initialized_attributes.transform_values(&:value)
+      keys.index_with { |name| self[name].value }
     end
-    alias_method :to_h, :to_hash
+    alias :to_h :to_hash
 
     def key?(name)
       attributes.key?(name) && self[name].initialized?
@@ -42,35 +42,33 @@ module ActiveModel
     end
 
     def write_from_database(name, value)
-      attributes[name] = self[name].with_value_from_database(value)
+      @attributes[name] = self[name].with_value_from_database(value)
     end
 
     def write_from_user(name, value)
-      attributes[name] = self[name].with_value_from_user(value)
+      @attributes[name] = self[name].with_value_from_user(value)
     end
 
     def write_cast_value(name, value)
-      attributes[name] = self[name].with_cast_value(value)
+      @attributes[name] = self[name].with_cast_value(value)
     end
 
     def freeze
-      @attributes.freeze
+      attributes.freeze
       super
     end
 
     def deep_dup
-      self.class.allocate.tap do |copy|
-        copy.instance_variable_set(:@attributes, attributes.deep_dup)
-      end
+      AttributeSet.new(attributes.deep_dup)
     end
 
     def initialize_dup(_)
-      @attributes = attributes.dup
+      @attributes = @attributes.dup
       super
     end
 
     def initialize_clone(_)
-      @attributes = attributes.clone
+      @attributes = @attributes.clone
       super
     end
 
@@ -81,7 +79,7 @@ module ActiveModel
     end
 
     def accessed
-      attributes.select { |_, attr| attr.has_been_read? }.keys
+      attributes.each_key.select { |name| self[name].has_been_read? }
     end
 
     def map(&block)
@@ -97,8 +95,8 @@ module ActiveModel
       attr_reader :attributes
 
     private
-      def initialized_attributes
-        attributes.select { |_, attr| attr.initialized? }
+      def default_attribute(name)
+        Attribute.null(name)
       end
   end
 end
