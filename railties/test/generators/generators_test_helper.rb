@@ -92,6 +92,7 @@ module GeneratorsTestHelper
   private
     def gemfile_locals
       {
+        rails_prerelease: false,
         skip_active_storage: true,
         depend_on_bootsnap: false,
         depend_on_listen: false,
