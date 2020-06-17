@@ -84,11 +84,12 @@ module ActiveRecord
     def test_or_with_unscope_order
       expected = Post.where("id = 1 or id = 2")
       assert_equal expected, Post.order("body asc").where("id = 1").unscope(:order).or(Post.where("id = 2")).to_a
+      assert_equal expected, Post.order(:id).where("id = 1").or(Post.order(:id).where("id = 2").unscope(:order)).to_a
     end
 
     def test_or_with_incompatible_unscope
       error = assert_raises ArgumentError do
-        Post.order("body asc").where("id = 1").or(Post.order("body asc").where("id = 2").unscope(:order)).to_a
+        Post.order("body asc").where("id = 1").unscope(:order).or(Post.order("body asc").where("id = 2")).to_a
       end
 
       assert_equal "Relation passed to #or must be structurally compatible. Incompatible values: [:order]", error.message

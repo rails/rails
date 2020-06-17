@@ -1513,8 +1513,11 @@ module ActiveRecord
         values = other.values
         STRUCTURAL_OR_METHODS.reject do |method|
           v1, v2 = @values[method], values[method]
-          v1 = v1.uniq if v1.is_a?(Array)
-          v2 = v2.uniq if v2.is_a?(Array)
+          if v1.is_a?(Array)
+            next true unless v2.is_a?(Array)
+            v1 = v1.uniq
+            v2 = v2.uniq
+          end
           v1 == v2 || (!v1 || v1.empty?) && (!v2 || v2.empty?)
         end
       end
