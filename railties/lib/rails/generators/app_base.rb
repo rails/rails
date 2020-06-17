@@ -270,6 +270,10 @@ module Rails
         end
       end
 
+      def rails_prerelease?
+        options.dev? || options.edge? || options.main?
+      end
+
       def rails_gemfile_entry
         if options.dev?
           [
