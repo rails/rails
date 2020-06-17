@@ -1,6 +1,6 @@
 {
   "name": "@rails/activestorage",
-  "version": "6.0.3-1",
+  "version": "6.0.3-2",
   "description": "Attach cloud and local files in Rails applications",
   "main": "app/assets/javascripts/activestorage.js",
   "files": [
