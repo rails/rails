@@ -23,7 +23,7 @@ module ActionDispatch
 
     private
       def actionable_request?(request)
-        request.show_exceptions? && request.post? && request.path == endpoint
+        request.get_header("action_dispatch.show_detailed_exceptions")  && request.post? && request.path == endpoint
       end
 
       def redirect_to(location)
