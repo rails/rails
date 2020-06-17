@@ -2084,10 +2084,6 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
     params = { controller: "people", action: "create", person: { name: "Josh" } }
     assert_equal [:person], @routes.extra_keys(params)
     assert_equal({ controller: "people", action: "create", person: { name: "Josh" } }, params)
-
-    params = { controller: "people", action: "create", domain: { foo: "Josh" } }
-    assert_equal [:domain], @routes.extra_keys(params)
-    assert_equal({ controller: "people", action: "create", domain: { foo: "Josh" } }, params)
   end
 
   def test_unicode_path

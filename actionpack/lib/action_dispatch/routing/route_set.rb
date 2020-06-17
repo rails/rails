@@ -763,7 +763,6 @@ module ActionDispatch
       def generate_extras(options, recall = {})
         route_key = options.delete :use_route
         route_with_params = generate(route_key, options, recall)
-
         [route_with_params.path(nil), route_with_params.params.keys]
       end
 
@@ -788,12 +787,12 @@ module ActionDispatch
         options.delete(:relative_url_root) || relative_url_root
       end
 
-      def path_for(options, route_name = nil, reserved = RESERVED_OPTIONS)
-        url_for(options, route_name, PATH, nil, reserved)
+      def path_for(options, route_name = nil)
+        url_for(options, route_name, PATH)
       end
 
       # The +options+ argument must be a hash whose keys are *symbols*.
-      def url_for(options, route_name = nil, url_strategy = UNKNOWN, method_name = nil, reserved = RESERVED_OPTIONS)
+      def url_for(options, route_name = nil, url_strategy = UNKNOWN, method_name = nil)
         options = default_url_options.merge options
 
         user = password = nil
@@ -813,7 +812,7 @@ module ActionDispatch
         end
 
         path_options = options.dup
-        reserved.each { |ro| path_options.delete ro }
+        RESERVED_OPTIONS.each { |ro| path_options.delete ro }
 
         route_with_params = generate(route_name, path_options, recall)
         path = route_with_params.path(method_name)
