@@ -3,19 +3,11 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
 ruby <%= "\"#{RUBY_VERSION}\"" -%>
 
-<% unless gemfile_entries.first&.comment -%>
+<% unless gemfile_entries.first.to_s.start_with?("\n") -%>
 
 <% end -%>
-<% gemfile_entries.each do |gem| -%>
-<% if gem.comment -%>
-
-# <%= gem.comment %>
-<% end -%>
-<%= gem.commented_out ? "# " : "" %>gem "<%= gem.name %>"<%= %(, "#{gem.version}") if gem.version -%>
-<% if gem.options.any? -%>
-, <%= gem.options.map { |k,v|
-  "#{k}: #{v.inspect.gsub('"', '\'')}" }.join(", ") %>
-<% end -%>
+<% gemfile_entries.each do |gemfile_entry| -%>
+<%= gemfile_entry %>
 <% end -%>
 
 # Use Active Model has_secure_password

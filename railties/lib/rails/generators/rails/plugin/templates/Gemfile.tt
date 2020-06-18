@@ -17,17 +17,8 @@ end
 <% if rails_prerelease? -%>
 # Your gem is dependent on a prerelease version of Rails. Once you can lock this
 # dependency down to a specific version, move it to your gemspec.
-<% max_width = gemfile_entries.map { |g| g.name.length }.max -%>
-<% gemfile_entries.each do |gem| -%>
-<% if gem.comment -%>
-
-# <%= gem.comment %>
-<% end -%>
-<%= gem.commented_out ? "# " : "" %>gem "<%= gem.name %>"<%= %(, "#{gem.version}") if gem.version -%>
-<% if gem.options.any? -%>
-, <%= gem.options.map { |k,v|
-  "#{k}: #{v.inspect}" }.join(", ") %>
-<% end -%>
+<% gemfile_entries.each do |gemfile_entry| -%>
+<%= gemfile_entry %>
 <% end -%>
 
 <% end -%>
