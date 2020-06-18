@@ -2614,6 +2614,12 @@ module ApplicationTests
       assert_equal true, Rails.application.config.rake_eager_load
     end
 
+    test "unknown_asset_fallback is false by default" do
+      app "development"
+
+      assert_equal false, Rails.application.config.assets.unknown_asset_fallback
+    end
+
     private
       def set_custom_config(contents, config_source = "custom".inspect)
         app_file "config/custom.yml", contents
