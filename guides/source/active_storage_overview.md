@@ -578,7 +578,8 @@ directly from the client to the cloud.
     Using the npm package:
 
     ```js
-    require("@rails/activestorage").start()
+    import * as ActiveStorage from "@rails/activestorage"
+    ActiveStorage.start()
     ```
 
 2. Annotate file inputs with the direct upload URL.
