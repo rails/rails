@@ -65,6 +65,8 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal("blargles", "blargle".pluralize(0))
     assert_equal("blargle", "blargle".pluralize(1))
     assert_equal("blargles", "blargle".pluralize(2))
+    assert_equal("blargle", "blargle".pluralize(-1))
+    assert_equal("blargles", "blargle".pluralize(-2))
   end
 
   test "pluralize with count = 1 still returns new string" do
