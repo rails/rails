@@ -1,3 +1,7 @@
+*   Change default redirection status code for non-GET/HEAD requests to 308 Permanent Redirect for `ActionDispatch::SSL`.
+
+    *Alan Tan*, *Oz Ben-David*
+
 *   Fix `follow_redirect!` to follow redirection with same HTTP verb when following
     a 308 redirection.
 

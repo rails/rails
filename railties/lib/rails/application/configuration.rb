@@ -175,6 +175,7 @@ module Rails
 
           if respond_to?(:action_dispatch)
             action_dispatch.cookies_same_site_protection = :lax
+            action_dispatch.ssl_default_redirect_status = 308
           end
 
           if respond_to?(:action_controller)

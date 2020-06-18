@@ -16,7 +16,8 @@ module Rails
           middleware.use ::ActionDispatch::HostAuthorization, config.hosts, config.action_dispatch.hosts_response_app
 
           if config.force_ssl
-            middleware.use ::ActionDispatch::SSL, **config.ssl_options
+            middleware.use ::ActionDispatch::SSL, **config.ssl_options,
+              ssl_default_redirect_status: config.action_dispatch.ssl_default_redirect_status
           end
 
           middleware.use ::Rack::Sendfile, config.action_dispatch.x_sendfile_header

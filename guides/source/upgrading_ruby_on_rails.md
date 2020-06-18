@@ -176,6 +176,10 @@ This change is backwards compatible for the majority of applications, in which c
 
 Technically, however, controllers could configure `helpers_path` to point to a directoy in `$LOAD_PATH` that was not in the autoload paths. That use case is no longer supported out of the box. If the helper module is not autoloadable, the application is responsible for loading it before calling `helper`.
 
+### Redirection to HTTPS from HTTP will now use the 308 HTTP status code
+
+The default HTTP status code used in `ActionDispatch::SSL` when redirecting non-GET/HEAD requests from HTTP to HTTPS has been changed to `308` as defined in https://tools.ietf.org/html/rfc7538.
+
 Upgrading from Rails 5.2 to Rails 6.0
 -------------------------------------
 
