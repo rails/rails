@@ -387,10 +387,10 @@ gem 'connection_pool'
 Next, pass the `:pool_size` and/or `:pool_timeout` options when configuring the cache store:
 
 ```ruby
-config.cache_store = :mem_cache_store, "cache.example.com", { pool_size: 5, pool_timeout: 5 }
+config.cache_store = :mem_cache_store, "cache.example.com", { pool_size: ENV.fetch("RAILS_MAX_THREADS") { 5 }, pool_timeout: 5 }
 ```
 
-* `:pool_size` - This option sets the number of connections per process (defaults to 5).
+* `:pool_size` - This option sets the number of connections per process and it is recommended to set the value to the number threads configured on the threaded server.
 
 * `:pool_timeout` - This option sets the number of seconds to wait for a connection (defaults to 5). If no connection is available within the timeout, a `Timeout::Error` will be raised.
 
