@@ -57,7 +57,9 @@ module ActiveRecord
 
                 if save && !record.save
                   nullify_owner_attributes(record)
-                  set_owner_attributes(target) if target
+                  if target && !target.destroyed?
+                    set_owner_attributes(target)
+                  end
                   raise RecordNotSaved, "Failed to save the new associated #{reflection.name}."
                 end
               end
