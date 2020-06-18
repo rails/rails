@@ -116,6 +116,10 @@ module ActiveRecord
             SQLite3::SchemaCreation.new(self)
           end
 
+          def valid_table_definition_option_keys
+            super + [:rename]
+          end
+
           def create_table_definition(name, **options)
             SQLite3::TableDefinition.new(self, name, **options)
           end

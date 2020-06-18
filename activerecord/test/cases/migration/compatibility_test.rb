@@ -250,6 +250,26 @@ module ActiveRecord
         end
       end
 
+      def test_options_keys_are_not_validated
+        migration = Class.new(ActiveRecord::Migration[6.0]) {
+          def migrate(x)
+            create_table :tests, idd: false do |t|
+              t.references :some_table, boring_key: true
+              t.integer :some_id, uniqueee: true
+              t.string :some_string_column, nulll: false
+            end
+
+            add_column :tests, "last_name", :string, preccision: true
+          end
+        }.new
+
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration).migrate
+
+        assert connection.table_exists?(:tests)
+      ensure
+        connection.drop_table :tests, if_exists: true
+      end
+
       if current_adapter?(:PostgreSQLAdapter)
         class Testing < ActiveRecord::Base
         end

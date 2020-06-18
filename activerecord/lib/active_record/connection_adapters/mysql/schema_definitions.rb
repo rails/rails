@@ -85,6 +85,10 @@ module ActiveRecord
         end
 
         private
+          def valid_column_definition_option_keys
+            super + [:auto_increment, :charset, :as, :size, :unsigned, :first, :after, :type, :stored]
+          end
+
           def aliased_types(name, fallback)
             fallback
           end

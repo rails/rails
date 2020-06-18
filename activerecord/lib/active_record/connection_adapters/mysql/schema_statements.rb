@@ -154,6 +154,14 @@ module ActiveRecord
             MySQL::SchemaCreation.new(self)
           end
 
+          def valid_table_definition_option_keys
+            super + [:charset, :collation]
+          end
+
+          def valid_primary_key_option_keys
+            super + [:unsigned]
+          end
+
           def create_table_definition(name, **options)
             MySQL::TableDefinition.new(self, name, **options)
           end

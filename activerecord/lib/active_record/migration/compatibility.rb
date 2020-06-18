@@ -16,6 +16,13 @@ module ActiveRecord
       V6_1 = Current
 
       class V6_0 < V6_1
+        def method_missing(method, *arguments, &block)
+          if arguments.last.is_a?(Hash)
+            arguments.last[:skip_validate_options_keys] = true
+          end
+
+          super
+        end
       end
 
       class V5_2 < V6_0

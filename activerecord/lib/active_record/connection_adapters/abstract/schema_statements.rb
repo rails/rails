@@ -294,6 +294,7 @@ module ActiveRecord
       #
       # See also TableDefinition#column for details on how to create columns.
       def create_table(table_name, id: :primary_key, primary_key: nil, force: nil, **options)
+        validate_create_table_options(options)
         td = create_table_definition(table_name, **extract_table_options!(options))
 
         if id && !td.as
@@ -1441,8 +1442,32 @@ module ActiveRecord
           AlterTable.new create_table_definition(name)
         end
 
+        VALID_TABLE_OPTIONS = [:temporary, :if_not_exists, :options, :as, :comment]
+
+        def valid_table_definition_option_keys
+          VALID_TABLE_OPTIONS
+        end
+
+        VALID_PRIMARY_KEY_OPTIONS = [:limit, :default, :precision]
+
+        def valid_primary_key_option_keys
+          VALID_PRIMARY_KEY_OPTIONS
+        end
+
+        def validate_create_table_options(options)
+          unless options[:skip_validate_options_keys]
+            options.assert_valid_keys(*(valid_table_definition_option_keys + valid_primary_key_option_keys))
+          end
+        end
+
         def extract_table_options!(options)
-          options.extract!(:temporary, :if_not_exists, :options, :as, :comment, :charset, :collation)
+          table_options = options.extract!(*valid_table_definition_option_keys)
+
+          if options[:skip_validate_options_keys]
+            table_options[:skip_validate_options_keys] = options[:skip_validate_options_keys]
+          end
+
+          table_options
         end
 
         def fetch_type_metadata(sql_type)

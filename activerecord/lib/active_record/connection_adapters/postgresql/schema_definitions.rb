@@ -192,6 +192,10 @@ module ActiveRecord
         end
 
         private
+          def valid_column_definition_option_keys
+            super + [:array, :using, :cast_as]
+          end
+
           def integer_like_primary_key_type(type, options)
             if type == :bigint || options[:limit] == 8
               :bigserial
