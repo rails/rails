@@ -3,14 +3,15 @@
 require "cases/helper"
 require "models/author"
 require "models/company"
+require "models/developer"
 require "models/membership"
 require "models/person"
-require "models/post"
 require "models/project"
-require "models/subscriber"
-require "models/vegetables"
+require "models/post"
 require "models/shop"
 require "models/sponsor"
+require "models/subscriber"
+require "models/vegetables"
 
 module InheritanceTestHelper
   def with_store_full_sti_class(&block)
