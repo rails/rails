@@ -11,7 +11,7 @@ class Hash
   #   @person.update(params[:person].except(:admin))
   def except(*keys)
     slice(*self.keys - keys)
-  end unless {}.respond_to?(:except)
+  end unless method_defined?(:except)
 
   # Removes the given keys from hash and returns it.
   #   hash = { a: true, b: false, c: nil }
