@@ -59,20 +59,19 @@ module ActiveModel
             end
           end
 
-          ISO_DATETIME = /\A(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)(\.\d+)?\z/
+          ISO_DATETIME = /\A(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)(?:\.(\d{1,6})\d*)?\z/
 
           # Doesn't handle time zones.
           def fast_string_to_time(string)
-            if string =~ ISO_DATETIME
-              microsec_part = $7
-              if microsec_part && microsec_part.start_with?(".") && microsec_part.length == 7
-                microsec_part[0] = ""
-                microsec = microsec_part.to_i
-              else
-                microsec = (microsec_part.to_r * 1_000_000).to_i
-              end
-              new_time $1.to_i, $2.to_i, $3.to_i, $4.to_i, $5.to_i, $6.to_i, microsec
+            return unless ISO_DATETIME =~ string
+
+            usec = $7.to_i
+            usec_len = $7&.length
+            if usec_len&.< 6
+              usec *= 10 ** (6 - usec_len)
             end
+
+            new_time($1.to_i, $2.to_i, $3.to_i, $4.to_i, $5.to_i, $6.to_i, usec)
           end
       end
     end
