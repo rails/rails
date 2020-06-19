@@ -110,7 +110,8 @@ module Rails
                                            desc: "Show this help message and quit"
       end
 
-      def initialize(*)
+      def initialize(positional_argv, option_argv, *)
+        @argv = [*positional_argv, *option_argv]
         @gem_filter = lambda { |gem| true }
         super
       end
@@ -277,22 +278,15 @@ module Rails
 
       def rails_gemfile_entry
         if options.dev?
-          [
-            GemfileEntry.path("rails", Rails::Generators::RAILS_DEV_PATH)
-          ]
+          GemfileEntry.path("rails", Rails::Generators::RAILS_DEV_PATH)
         elsif options.edge?
           edge_branch = Rails.gem_version.prerelease? ? "main" : [*Rails.gem_version.segments.first(2), "stable"].join("-")
-          [
-            GemfileEntry.github("rails", "rails/rails", edge_branch)
-          ]
+          GemfileEntry.github("rails", "rails/rails", edge_branch)
         elsif options.main?
-          [
-            GemfileEntry.github("rails", "rails/rails", "main")
-          ]
+          GemfileEntry.github("rails", "rails/rails", "main")
         else
-          [GemfileEntry.version("rails",
-                            rails_version_specifier,
-                            "Bundle edge Rails instead: gem 'rails', github: 'rails/rails', branch: 'main'")]
+          GemfileEntry.version("rails", rails_version_specifier,
+            "Bundle edge Rails instead: gem 'rails', github: 'rails/rails', branch: 'main'")
         end
       end
 
@@ -438,6 +432,28 @@ module Rails
 
       def os_supports_listen_out_of_the_box?
         /darwin|linux/.match?(RbConfig::CONFIG["host_os"])
+      end
+
+      def target_rails_prerelease(self_command = "new")
+        return unless rails_prerelease? && bundle_install?
+
+        if !File.exist?(File.expand_path("Gemfile", destination_root))
+          create_file("Gemfile", <<~GEMFILE)
+            source "https://rubygems.org"
+            git_source(:github) { |repo| "https://github.com/\#{repo}.git" }
+            #{rails_gemfile_entry}
+          GEMFILE
+
+          run_bundle
+
+          @argv[0] = destination_root
+          require "shellwords"
+          bundle_command("exec rails #{self_command} #{Shellwords.join(@argv)}")
+          exit
+        else
+          remove_file("Gemfile")
+          remove_file("Gemfile.lock")
+        end
       end
 
       def run_bundle
