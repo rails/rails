@@ -718,7 +718,7 @@ module ActiveRecord
     end
 
     def and!(other) # :nodoc:
-      incompatible_values = structurally_incompatible_values_for_or(other)
+      incompatible_values = structurally_incompatible_values_for(other)
 
       unless incompatible_values.empty?
         raise ArgumentError, "Relation passed to #and must be structurally compatible. Incompatible values: #{incompatible_values}"
@@ -750,7 +750,7 @@ module ActiveRecord
     end
 
     def or!(other) # :nodoc:
-      incompatible_values = structurally_incompatible_values_for_or(other)
+      incompatible_values = structurally_incompatible_values_for(other)
 
       unless incompatible_values.empty?
         raise ArgumentError, "Relation passed to #or must be structurally compatible. Incompatible values: #{incompatible_values}"
@@ -1508,10 +1508,14 @@ module ActiveRecord
         end
       end
 
-      STRUCTURAL_OR_METHODS = Relation::VALUE_METHODS - [:extending, :where, :having, :unscope, :references, :annotate, :optimizer_hints]
-      def structurally_incompatible_values_for_or(other)
+      STRUCTURAL_VALUE_METHODS = (
+        Relation::VALUE_METHODS -
+        [:extending, :where, :having, :unscope, :references, :annotate, :optimizer_hints]
+      ).freeze # :nodoc:
+
+      def structurally_incompatible_values_for(other)
         values = other.values
-        STRUCTURAL_OR_METHODS.reject do |method|
+        STRUCTURAL_VALUE_METHODS.reject do |method|
           v1, v2 = @values[method], values[method]
           if v1.is_a?(Array)
             next true unless v2.is_a?(Array)
