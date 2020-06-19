@@ -1260,6 +1260,10 @@ class RelationTest < ActiveRecord::TestCase
     assert_kind_of Bird, same_parrot
     assert_predicate same_parrot, :persisted?
     assert_equal parrot, same_parrot
+
+    canary = Bird.where(Bird.arel_attribute(:color).is_distinct_from("green")).first_or_create(name: "canary")
+    assert_equal "canary", canary.name
+    assert_nil canary.color
   end
 
   def test_first_or_create_with_no_parameters
@@ -1380,6 +1384,10 @@ class RelationTest < ActiveRecord::TestCase
     assert_predicate parrot, :new_record?
     assert_equal "parrot", parrot.name
     assert_equal "green", parrot.color
+
+    canary = Bird.where(Bird.arel_attribute(:color).is_distinct_from("green")).first_or_initialize(name: "canary")
+    assert_equal "canary", canary.name
+    assert_nil canary.color
   end
 
   def test_first_or_initialize_with_no_parameters

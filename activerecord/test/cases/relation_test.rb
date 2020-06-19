@@ -50,6 +50,12 @@ module ActiveRecord
     def test_empty_where_values_hash
       relation = Relation.new(FakeKlass)
       assert_equal({}, relation.where_values_hash)
+
+      relation.where!(relation.table[:id].not_eq(10))
+      assert_equal({}, relation.where_values_hash)
+
+      relation.where!(relation.table[:id].is_distinct_from(10))
+      assert_equal({}, relation.where_values_hash)
     end
 
     def test_where_values_hash_with_in_clause

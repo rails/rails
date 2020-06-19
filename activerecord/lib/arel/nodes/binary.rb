@@ -73,6 +73,22 @@ module Arel # :nodoc: all
       end
     end
 
+    class IsDistinctFrom < Binary
+      include FetchAttribute
+
+      def invert
+        Arel::Nodes::IsNotDistinctFrom.new(left, right)
+      end
+    end
+
+    class IsNotDistinctFrom < Binary
+      include FetchAttribute
+
+      def invert
+        Arel::Nodes::IsDistinctFrom.new(left, right)
+      end
+    end
+
     class NotEqual < Binary
       include FetchAttribute
 
