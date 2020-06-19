@@ -53,7 +53,7 @@ And you have a view file `app/views/books/index.html.erb`:
 
 Rails will automatically render `app/views/books/index.html.erb` when you navigate to `/books` and you will see "Books are coming soon!" on your screen.
 
-However a coming soon screen is only minimally useful, so you will soon create your `Book` model and add the index action to `BooksController`:
+However, a coming soon screen is only minimally useful, so you will soon create your `Book` model and add the index action to `BooksController`:
 
 ```ruby
 class BooksController < ApplicationController
