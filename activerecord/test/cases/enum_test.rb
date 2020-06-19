@@ -592,6 +592,16 @@ class EnumTest < ActiveRecord::TestCase
     assert_raises(NoMethodError) { klass.proposed }
   end
 
+  test "scopes are named like methods" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "cats"
+      enum breed: { "American Bobtail" => 0, "Balinese-Javanese" => 1 }
+    end
+
+    assert_respond_to klass, :american_bobtail
+    assert_respond_to klass, :balinese_javanese
+  end
+
   test "enums with a negative condition log a warning" do
     old_logger = ActiveRecord::Base.logger
     logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new

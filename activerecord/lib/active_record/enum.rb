@@ -195,7 +195,7 @@ module ActiveRecord
               suffix = "_#{enum_suffix}"
             end
 
-            value_method_name = "#{prefix}#{label}#{suffix}"
+            value_method_name = "#{prefix}#{label.to_s.parameterize.underscore}#{suffix}"
             enum_values[label] = value
             label = label.to_s
 
