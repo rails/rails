@@ -151,7 +151,7 @@ render template: "products/show"
 
 #### Wrapping it up
 
-The above three ways of rendering (rendering another template within the controller, rendering a template within another controller, and rendering an arbitrary file on the file system) are actually variants of the same action.
+The above two ways of rendering (rendering the template of another action in the same controller, and rendering the template of another action in a different controller) are actually variants of the same operation.
 
 In fact, in the BooksController class, inside of the update action where we want to render the edit template if the book does not update successfully, all of the following render calls would all render the `edit.html.erb` template in the `views/books` directory:
 
