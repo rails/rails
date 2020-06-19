@@ -54,8 +54,10 @@ module ActiveModel
 
               time -= offset
               is_utc? ? time : time.getlocal
+            elsif is_utc?
+              ::Time.utc(year, mon, mday, hour, min, sec, microsec) rescue nil
             else
-              ::Time.public_send(default_timezone, year, mon, mday, hour, min, sec, microsec) rescue nil
+              ::Time.local(year, mon, mday, hour, min, sec, microsec) rescue nil
             end
           end
 
