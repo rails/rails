@@ -235,6 +235,10 @@ module Rails
       public_task :set_default_accessors!
       public_task :create_root
 
+      def target_rails_prerelease
+        super("plugin new")
+      end
+
       def create_root_files
         build(:readme)
         build(:rakefile)
