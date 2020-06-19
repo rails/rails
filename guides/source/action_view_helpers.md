@@ -24,7 +24,8 @@ By default, Rails links to these assets on the current host in the public folder
 
 ```ruby
 config.action_controller.asset_host = "assets.example.com"
-image_tag("rails.png") # => <img src="http://assets.example.com/images/rails.png" />
+image_tag("rails.png") 
+# => <img src="http://assets.example.com/images/rails.png" />
 ```
 
 #### auto_discovery_link_tag
@@ -32,8 +33,8 @@ image_tag("rails.png") # => <img src="http://assets.example.com/images/rails.png
 Returns a link tag that browsers and feed readers can use to auto-detect an RSS, Atom, or JSON feed.
 
 ```ruby
-auto_discovery_link_tag(:rss, "http://www.example.com/feed.rss", { title: "RSS Feed" }) # =>
-  <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="http://www.example.com/feed.rss" />
+auto_discovery_link_tag(:rss, "http://www.example.com/feed.rss", { title: "RSS Feed" }) 
+# => <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="http://www.example.com/feed.rss" />
 ```
 
 #### image_path
@@ -47,7 +48,8 @@ image_path("edit.png") # => /assets/edit.png
 Fingerprint will be added to the filename if config.assets.digest is set to true.
 
 ```ruby
-image_path("edit.png") # => /assets/edit-2d1a2db63fc738690021fedb5a65b68e.png
+image_path("edit.png") 
+# => /assets/edit-2d1a2db63fc738690021fedb5a65b68e.png
 ```
 
 #### image_url
@@ -71,7 +73,8 @@ image_tag("icon.png") # => <img src="/assets/icon.png" />
 Returns an HTML script tag for each of the sources provided. You can pass in the filename (`.js` extension is optional) of JavaScript files that exist in your `app/assets/javascripts` directory for inclusion into the current page or you can pass the full path relative to your document root.
 
 ```ruby
-javascript_include_tag "common" # => <script src="/assets/common.js"></script>
+javascript_include_tag "common" 
+# => <script src="/assets/common.js"></script>
 ```
 
 #### javascript_path
@@ -87,7 +90,8 @@ javascript_path "common" # => /assets/common.js
 Computes the URL to a JavaScript asset in the `app/assets/javascripts` directory. This will call `javascript_path` internally and merge with your current host or your asset host.
 
 ```ruby
-javascript_url "common" # => http://www.example.com/assets/common.js
+javascript_url "common" 
+# => http://www.example.com/assets/common.js
 ```
 
 #### stylesheet_link_tag
@@ -95,7 +99,8 @@ javascript_url "common" # => http://www.example.com/assets/common.js
 Returns a stylesheet link tag for the sources specified as arguments. If you don't specify an extension, `.css` will be appended automatically.
 
 ```ruby
-stylesheet_link_tag "application" # => <link href="/assets/application.css" media="screen" rel="stylesheet" />
+stylesheet_link_tag "application" 
+# => <link href="/assets/application.css" media="screen" rel="stylesheet" />
 ```
 
 #### stylesheet_path
@@ -111,7 +116,8 @@ stylesheet_path "application" # => /assets/application.css
 Computes the URL to a stylesheet asset in the `app/assets/stylesheets` directory. This will call `stylesheet_path` internally and merge with your current host or your asset host.
 
 ```ruby
-stylesheet_url "application" # => http://www.example.com/assets/application.css
+stylesheet_url "application" 
+# => http://www.example.com/assets/application.css
 ```
 
 ### AtomFeedHelper
