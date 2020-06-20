@@ -3,7 +3,6 @@
 require "active_record/relation/from_clause"
 require "active_record/relation/query_attribute"
 require "active_record/relation/where_clause"
-require "active_record/relation/where_clause_factory"
 require "active_model/forbidden_attributes_protection"
 require "active_support/core_ext/array/wrap"
 
@@ -16,8 +15,6 @@ module ActiveRecord
     # WhereChain objects act as placeholder for queries in which #where does not have any parameter.
     # In this case, #where must be chained with #not to return a new relation.
     class WhereChain
-      include ActiveModel::ForbiddenAttributesProtection
-
       def initialize(scope)
         @scope = scope
       end
@@ -43,11 +40,7 @@ module ActiveRecord
       #    User.where.not(name: %w(Ko1 Nobu))
       #    # SELECT * FROM users WHERE name NOT IN ('Ko1', 'Nobu')
       def not(opts, *rest)
-        opts = sanitize_forbidden_attributes(opts)
-
-        where_clause = @scope.send(:where_clause_factory).build(opts, rest)
-
-        @scope.references_values |= PredicateBuilder.references(opts) if Hash === opts
+        where_clause = @scope.send(:build_where_clause, opts, rest)
 
         if not_behaves_as_nor?(opts)
           ActiveSupport::Deprecation.warn(<<~MSG.squish)
@@ -1109,9 +1102,21 @@ module ActiveRecord
       def build_where_clause(opts, rest = []) # :nodoc:
         opts = sanitize_forbidden_attributes(opts)
         self.references_values |= PredicateBuilder.references(opts) if Hash === opts
-        where_clause_factory.build(opts, rest) do |table_name|
-          lookup_reflection_from_join_dependencies(table_name)
+
+        case opts
+        when String, Array
+          parts = [klass.sanitize_sql(rest.empty? ? opts : [opts, *rest])]
+        when Hash
+          parts = predicate_builder.build_from_hash(opts) do |table_name|
+            lookup_reflection_from_join_dependencies(table_name)
+          end
+        when Arel::Nodes::Node
+          parts = [opts]
+        else
+          raise ArgumentError, "Unsupported argument type: #{opts} (#{opts.class})"
         end
+
+        Relation::WhereClause.new(parts)
       end
       alias :build_having_clause :build_where_clause
 
@@ -1525,9 +1530,12 @@ module ActiveRecord
           v1 == v2 || (!v1 || v1.empty?) && (!v2 || v2.empty?)
         end
       end
+  end
 
-      def where_clause_factory
-        @where_clause_factory ||= Relation::WhereClauseFactory.new(klass, predicate_builder)
-      end
+  class Relation # :nodoc:
+    # No-op WhereClauseFactory to work Mashal.load(File.read("legacy_relation.dump")).
+    # TODO: Remove the class once Rails 6.1 has released.
+    class WhereClauseFactory # :nodoc:
+    end
   end
 end
