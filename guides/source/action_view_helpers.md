@@ -269,8 +269,10 @@ datetime_select("article", "published_on")
 Reports the approximate distance in time between two Time or Date objects or integers as seconds. Set `include_seconds` to true if you want more detailed approximations.
 
 ```ruby
-distance_of_time_in_words(Time.now, Time.now + 15.seconds)        # => less than a minute
-distance_of_time_in_words(Time.now, Time.now + 15.seconds, include_seconds: true)  # => less than 20 seconds
+distance_of_time_in_words(Time.now, Time.now + 15.seconds) 
+# => less than a minute
+distance_of_time_in_words(Time.now, Time.now + 15.seconds, include_seconds: true) 
+# => less than 20 seconds
 ```
 
 #### select_date
@@ -371,7 +373,7 @@ select_year(Date.today, start_year: 1900, end_year: 2009)
 Like `distance_of_time_in_words`, but where `to_time` is fixed to `Time.now`.
 
 ```ruby
-time_ago_in_words(3.minutes.from_now)  # => 3 minutes
+time_ago_in_words(3.minutes.from_now) # => 3 minutes
 ```
 
 #### time_select
@@ -764,7 +766,7 @@ NOTE: Only the `option` tags are returned, you have to wrap this call in a regul
 Returns a string of option tags that have been compiled by iterating over the `collection` and assigning the result of a call to the `value_method` as the option value and the `text_method` as the option text.
 
 ```ruby
-# options_from_collection_for_select(collection, value_method, text_method, selected = nil)
+options_from_collection_for_select(collection, value_method, text_method, selected = nil)
 ```
 
 For example, imagine a loop iterating over each person in `@project.people` to generate an input tag:
@@ -1008,8 +1010,8 @@ number_to_currency(1234567890.50) # => $1,234,567,890.50
 Formats the bytes in size into a more understandable representation; useful for reporting file sizes to users.
 
 ```ruby
-number_to_human_size(1234)          # => 1.2 KB
-number_to_human_size(1234567)       # => 1.2 MB
+number_to_human_size(1234)    # => 1.2 KB
+number_to_human_size(1234567) # => 1.2 MB
 ```
 
 #### number_to_percentage
@@ -1017,7 +1019,7 @@ number_to_human_size(1234567)       # => 1.2 MB
 Formats a number as a percentage string.
 
 ```ruby
-number_to_percentage(100, precision: 0)        # => 100%
+number_to_percentage(100, precision: 0) # => 100%
 ```
 
 #### number_to_phone
@@ -1041,8 +1043,8 @@ number_with_delimiter(12345678) # => 12,345,678
 Formats a number with the specified level of `precision`, which defaults to 3.
 
 ```ruby
-number_with_precision(111.2345)     # => 111.235
-number_with_precision(111.2345, precision: 2)  # => 111.23
+number_with_precision(111.2345)               # => 111.235
+number_with_precision(111.2345, precision: 2) # => 111.23
 ```
 
 ### SanitizeHelper
@@ -1157,7 +1159,7 @@ would output:
 </a>
 ```
 
-See [the API Doc for more info](https://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-link_to)
+See [the API Documentation for more information](https://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-link_to)
 
 #### button_to
 
@@ -1178,7 +1180,7 @@ would roughly output something like:
 </form>
 ```
 
-See [the API Doc for more info](https://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-button_to)
+See [the API Documentation for more information](https://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-button_to)
 
 ### CsrfHelper
 
