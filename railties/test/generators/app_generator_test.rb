@@ -1045,33 +1045,22 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_after_bundle_callback
-    path = "http://example.org/rails_template"
-    template = +%{ after_bundle { run 'echo ran after_bundle' } }
-    template.instance_eval "def read; self; end" # Make the string respond to read
+    sequence = []
 
-    check_open = -> *args do
-      assert_equal [ path, "Accept" => "application/x-thor-template" ], args
-      template
+    bundle_command_stub = -> *args do
+      sequence << [:bundle_command, *args]
     end
 
-    sequence = ["git init", "install", "binstubs bundler", "exec spring binstub --all", "webpacker:install", "echo ran after_bundle"]
-    @sequence_step ||= 0
-    ensure_bundler_first = -> command, options = nil do
-      assert_equal sequence[@sequence_step], command, "commands should be called in sequence #{sequence}"
-      @sequence_step += 1
+    generator([destination_root], skip_webpack_install: true).send(:after_bundle) do
+      sequence << [:after_bundle_callback]
     end
 
-    generator([destination_root], template: path).stub(:open, check_open, template) do
-      generator.stub(:bundle_command, ensure_bundler_first) do
-        generator.stub(:run, ensure_bundler_first) do
-          generator.stub(:rails_command, ensure_bundler_first) do
-            quietly { generator.invoke_all }
-          end
-        end
-      end
+    generator.stub(:bundle_command, bundle_command_stub) do
+      quietly { generator.invoke_all }
     end
 
-    assert_equal 6, @sequence_step
+    assert_operator sequence.length, :>, 1
+    assert_equal [:after_bundle_callback], sequence.last
   end
 
   def test_gitignore
