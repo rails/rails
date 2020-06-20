@@ -52,7 +52,7 @@ module ActiveModel
               time = ::Time.utc(year, mon, mday, hour, min, sec, microsec) rescue nil
               return unless time
 
-              time -= offset
+              time -= offset unless offset == 0
               is_utc? ? time : time.getlocal
             elsif is_utc?
               ::Time.utc(year, mon, mday, hour, min, sec, microsec) rescue nil
@@ -61,9 +61,14 @@ module ActiveModel
             end
           end
 
-          ISO_DATETIME = /\A(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)(?:\.(\d{1,6})\d*)?\z/
+          ISO_DATETIME = /
+            \A
+            (\d{4})-(\d\d)-(\d\d)(?:T|\s)            # 2020-06-20T
+            (\d\d):(\d\d):(\d\d)(?:\.(\d{1,6})\d*)?  # 10:20:30.123456
+            (?:(Z(?=\z)|[+-]\d\d)(?::?(\d\d))?)?     # +09:00
+            \z
+          /x
 
-          # Doesn't handle time zones.
           def fast_string_to_time(string)
             return unless ISO_DATETIME =~ string
 
@@ -73,7 +78,11 @@ module ActiveModel
               usec *= 10 ** (6 - usec_len)
             end
 
-            new_time($1.to_i, $2.to_i, $3.to_i, $4.to_i, $5.to_i, $6.to_i, usec)
+            if $8
+              offset = $8 == "Z" ? 0 : $8.to_i * 3600 + $9.to_i * 60
+            end
+
+            new_time($1.to_i, $2.to_i, $3.to_i, $4.to_i, $5.to_i, $6.to_i, usec, offset)
           end
       end
     end
