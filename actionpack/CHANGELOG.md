@@ -1,3 +1,8 @@
+*   Fix `follow_redirect!` to follow redirection with same HTTP verb when following
+    a 308 redirection.
+
+    *Alan Tan*
+
 *   When multiple domains are specified for a cookie, a domain will now be
     chosen only if it is equal to or is a superdomain of the request host.
 
