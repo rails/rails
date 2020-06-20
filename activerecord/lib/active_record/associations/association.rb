@@ -249,25 +249,6 @@ module ActiveRecord
           !loaded? && (!owner.new_record? || foreign_key_present?) && klass
         end
 
-        def creation_attributes
-          attributes = {}
-
-          if (reflection.has_one? || reflection.collection?) && !options[:through]
-            attributes[reflection.foreign_key] = owner[reflection.active_record_primary_key]
-
-            if reflection.type
-              attributes[reflection.type] = owner.class.polymorphic_name
-            end
-          end
-
-          attributes
-        end
-
-        # Sets the owner attributes on the given record
-        def set_owner_attributes(record)
-          creation_attributes.each { |key, value| record[key] = value }
-        end
-
         # Returns true if there is a foreign key present on the owner which
         # references the target. This is used to determine whether we can load
         # the target if the owner is currently a new record (and therefore
