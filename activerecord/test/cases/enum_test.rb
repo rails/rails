@@ -592,6 +592,17 @@ class EnumTest < ActiveRecord::TestCase
     assert_raises(NoMethodError) { klass.proposed }
   end
 
+  test "capital characters for enum names" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "computers"
+      enum extendedWarranty: [:extendedSilver, :extendedGold]
+    end
+
+    computer = klass.extendedSilver.build
+    assert_predicate computer, :extendedSilver?
+    assert_not_predicate computer, :extendedGold?
+  end
+
   test "enums with a negative condition log a warning" do
     old_logger = ActiveRecord::Base.logger
     logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
