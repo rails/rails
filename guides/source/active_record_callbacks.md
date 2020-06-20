@@ -247,6 +247,7 @@ Just as with validations, it is also possible to skip callbacks by using the fol
 * `delete_all`
 * `increment!`
 * `increment_counter`
+* `touch_all`
 * `update_column`
 * `update_columns`
 * `update_all`

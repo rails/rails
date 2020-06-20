@@ -136,6 +136,7 @@ database regardless of its validity. They should be used with caution.
 * `increment_counter`
 * `toggle!`
 * `touch`
+* `touch_all`
 * `update_all`
 * `update_attribute`
 * `update_column`

@@ -497,8 +497,8 @@ module ActiveRecord
       update_all updates
     end
 
-    # Touches all records in the current relation without instantiating records first with the +updated_at+/+updated_on+ attributes
-    # set to the current time or the time specified.
+    # Touches all records in the current relation, setting the +updated_at+/+updated_on+ attributes to the current time or the time specified.
+    # It does not instantiate the involved models, and it does not trigger Active Record callbacks or validations.
     # This method can be passed attribute names and an optional time argument.
     # If attribute names are passed, they are updated along with +updated_at+/+updated_on+ attributes.
     # If no time argument is passed, the current time is used as default.
