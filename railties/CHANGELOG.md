@@ -1,3 +1,8 @@
+*   Enroll new apps in decrypted diffs of credentials by default.  This behavior
+    can be opted out of with the app generator's `--skip-decrypted-diffs` flag.
+
+    *Jonathan Hefner*
+
 *   Support declarative-style test name filters with `bin/rails test`.
 
     This makes it possible to run a declarative-style test such as:

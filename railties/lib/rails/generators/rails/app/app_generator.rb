@@ -182,6 +182,12 @@ module Rails
       Rails::Generators::CredentialsGenerator.new([], quiet: options[:quiet]).add_credentials_file_silently
     end
 
+    def credentials_diff_enroll
+      return if options[:skip_decrypted_diffs] || options[:skip_git] || options[:dummy_app] || options[:pretend]
+
+      rails_command "credentials:diff --enroll", inline: true, shell: @generator.shell
+    end
+
     def database_yml
       template "config/databases/#{options[:database]}.yml", "config/database.yml"
     end
@@ -260,6 +266,7 @@ module Rails
       class_option :javascript, type: :string, aliases: ["-j", "--js"], default: "importmap", desc: "Choose JavaScript approach [options: importmap (default), webpack, esbuild, rollup]"
       class_option :css, type: :string, aliases: "-c", desc: "Choose CSS processor [options: tailwind, bootstrap, bulma, postcss, sass... check https://github.com/rails/cssbundling-rails]"
       class_option :skip_bundle, type: :boolean, aliases: "-B", default: false, desc: "Don't run bundle install"
+      class_option :skip_decrypted_diffs, type: :boolean, default: false, desc: "Don't configure git to show decrypted diffs of encrypted credentials"
 
       def initialize(*args)
         super
@@ -347,6 +354,7 @@ module Rails
 
       def create_credentials
         build(:credentials)
+        build(:credentials_diff_enroll)
       end
 
       def display_upgrade_guide_info
