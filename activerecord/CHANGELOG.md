@@ -1,3 +1,12 @@
+*   Support storing demodulized class name for polymorphic type.
+
+    Before Rails 6.1, storing demodulized class name is supported only for STI type
+    by `store_full_sti_class` class attribute.
+
+    Now `store_full_class_name` class attribute can handle both STI and polymorphic types.
+
+    *Ryuta Kamizono*
+
 *   Deprecate `rails db:structure:{load, dump}` tasks and extend
     `rails db:schema:{load, dump}` tasks to work with either `:ruby` or `:sql` format,
     depending on `config.active_record.schema_format` configuration value.
