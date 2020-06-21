@@ -534,6 +534,8 @@ end
 In order to validate associated records whose presence is required, you must
 specify the `:inverse_of` option for the association:
 
+NOTE: If you want to ensure that the association it is both present and valid, you also need to use `validates_associated`.
+
 ```ruby
 class Order < ApplicationRecord
   has_many :line_items, inverse_of: :order
