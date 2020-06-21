@@ -289,14 +289,6 @@ module ActiveRecord
         )
       end
 
-      def join_primary_key(klass = nil)
-        foreign_key
-      end
-
-      def join_foreign_key
-        active_record_primary_key
-      end
-
       def strict_loading?
         options[:strict_loading]
       end
@@ -455,17 +447,20 @@ module ActiveRecord
         @association_foreign_key ||= -(options[:association_foreign_key]&.to_s || class_name.foreign_key)
       end
 
-      # klass option is necessary to support loading polymorphic associations
       def association_primary_key(klass = nil)
-        if primary_key = options[:primary_key]
-          @association_primary_key ||= -primary_key.to_s
-        else
-          primary_key(klass || self.klass)
-        end
+        primary_key(klass || self.klass)
       end
 
       def active_record_primary_key
         @active_record_primary_key ||= -(options[:primary_key]&.to_s || primary_key(active_record))
+      end
+
+      def join_primary_key(klass = nil)
+        foreign_key
+      end
+
+      def join_foreign_key
+        active_record_primary_key
       end
 
       def check_validity!
@@ -681,10 +676,6 @@ module ActiveRecord
           Associations::HasManyAssociation
         end
       end
-
-      def association_primary_key(klass = nil)
-        primary_key(klass || self.klass)
-      end
     end
 
     class HasOneReflection < AssociationReflection # :nodoc:
@@ -716,6 +707,15 @@ module ActiveRecord
           Associations::BelongsToPolymorphicAssociation
         else
           Associations::BelongsToAssociation
+        end
+      end
+
+      # klass option is necessary to support loading polymorphic associations
+      def association_primary_key(klass = nil)
+        if primary_key = options[:primary_key]
+          @association_primary_key ||= -primary_key.to_s
+        else
+          primary_key(klass || self.klass)
         end
       end
 
