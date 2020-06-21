@@ -157,7 +157,7 @@ class BaseMailer < ActionMailer::Base
     mail(subject: default_i18n_subject(rapper_or_impersonator: "Slim Shady"), body: "")
   end
 
-  def with_subject_interpolations_and_locale(locale: locale)
+  def with_subject_interpolations_and_locale(locale:)
     mail(subject: default_i18n_subject(rapper_or_impersonator: "Slim Shady", locale: locale), body: "", locale: locale)
   end
 end
