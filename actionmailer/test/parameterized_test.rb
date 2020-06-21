@@ -38,7 +38,7 @@ class ParameterizedTest < ActiveSupport::TestCase
   test "parameterized headers" do
     assert_equal(["jason@basecamp.com"], @mail.to)
     assert_equal(["david@basecamp.com"], @mail.from)
-    assert_equal('Einladung', @mail.subject)
+    assert_equal("Einladung", @mail.subject)
     assert_equal("So says david@basecamp.com", @mail.body.encoded)
   end
 
