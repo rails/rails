@@ -611,6 +611,18 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile", /^# gem 'redis'/
   end
 
+  def test_generator_configures_decrypted_diffs_by_default
+    run_generator
+    assert_file ".gitattributes", /\.enc diff=/
+  end
+
+  def test_generator_does_not_configure_decrypted_diffs_if_skip_decrypted_diffs_is_given
+    run_generator [destination_root, "--skip-decrypted-diffs"]
+    assert_file ".gitattributes" do |content|
+      assert_no_match %r/\.enc diff=/, content
+    end
+  end
+
   def test_generator_if_skip_test_is_given
     run_generator [destination_root, "--skip-test"]
 
@@ -985,7 +997,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_skip_webpack_install
     generator([destination_root], skip_webpack_install: true)
 
-    command_check = -> command do
+    command_check = -> command, * do
       if command == "webpacker:install"
         flunk "`webpacker:install` expected to not be called."
       end
