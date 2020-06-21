@@ -20,7 +20,9 @@ class ParameterizedTest < ActiveSupport::TestCase
     @previous_deliver_later_queue_name = ActionMailer::Base.deliver_later_queue_name
     ActionMailer::Base.deliver_later_queue_name = :test_queue
 
-    @mail = ParamsMailer.with(inviter: "david@basecamp.com", invitee: "jason@basecamp.com").invitation
+    I18n.backend.store_translations("de", params_mailer: { invitation: { subject: "Einladung" } })
+
+    @mail = ParamsMailer.with(inviter: "david@basecamp.com", invitee: "jason@basecamp.com", locale: :de).invitation
   end
 
   teardown do
@@ -29,11 +31,14 @@ class ParameterizedTest < ActiveSupport::TestCase
 
     ActionMailer::Base.delivery_method = @previous_delivery_method
     ActionMailer::Base.deliver_later_queue_name = @previous_deliver_later_queue_name
+
+    I18n.backend.reload!
   end
 
   test "parameterized headers" do
     assert_equal(["jason@basecamp.com"], @mail.to)
     assert_equal(["david@basecamp.com"], @mail.from)
+    assert_equal('Einladung', @mail.subject)
     assert_equal("So says david@basecamp.com", @mail.body.encoded)
   end
 
@@ -42,7 +47,7 @@ class ParameterizedTest < ActiveSupport::TestCase
       "ParamsMailer",
       "invitation",
       "deliver_now",
-      params: { inviter: "david@basecamp.com", invitee: "jason@basecamp.com" },
+      params: { inviter: "david@basecamp.com", invitee: "jason@basecamp.com", locale: :de },
       args: [],
     ]
     assert_performed_with(job: ActionMailer::MailDeliveryJob, args: args) do
@@ -69,7 +74,7 @@ class ParameterizedTest < ActiveSupport::TestCase
       "ParamsMailer",
       "invitation",
       "deliver_now",
-      params: { inviter: "david@basecamp.com", invitee: "jason@basecamp.com" },
+      params: { inviter: "david@basecamp.com", invitee: "jason@basecamp.com", locale: :de },
       args: [],
     ]
 

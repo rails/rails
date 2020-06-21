@@ -1,3 +1,7 @@
+*   Add `locale` argument for `ActionMailer::Base#mail`.
+
+    *Christian Schmidt*
+
 *   Remove deprecated `ActionMailer::Base.receive` in favor of [Action Mailbox](https://github.com/rails/rails/tree/master/actionmailbox).
 
     *Rafael Mendonça França*

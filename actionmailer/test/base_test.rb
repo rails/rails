@@ -224,22 +224,89 @@ class BaseTest < ActiveSupport::TestCase
     end
   end
 
-  test "subject gets default from I18n" do
-    with_default BaseMailer, subject: nil do
-      email = BaseMailer.welcome(subject: nil)
-      assert_equal "Welcome", email.subject
+  test "subject gets default from mailer name" do
+    email = BaseMailer.welcome(subject: nil)
+    assert_equal "Welcome", email.subject
+  end
 
-      with_translation "en", base_mailer: { welcome: { subject: "New Subject!" } } do
+  test "subject gets default from I18n with I18n default locale" do
+    I18n.with_locale :de do
+      with_translation "de", base_mailer: { welcome: { subject: "Willkommen" } } do
         email = BaseMailer.welcome(subject: nil)
-        assert_equal "New Subject!", email.subject
+        assert_equal "Willkommen", email.subject
       end
     end
   end
 
-  test "default subject can have interpolations" do
-    with_translation "en", base_mailer: { with_subject_interpolations: { subject: "Will the real %{rapper_or_impersonator} please stand up?" } } do
-      email = BaseMailer.with_subject_interpolations
+  test "subject gets default from I18n with locale from class" do
+    with_translation "de", base_mailer: { welcome: { subject: "Willkommen" } } do
+      with_default BaseMailer, locale: :de do
+        email = BaseMailer.welcome(subject: nil)
+        assert_equal "Willkommen", email.subject
+      end
+    end
+  end
+
+  test "subject gets default from I18n for specified locale" do
+    with_translation "de", base_mailer: { welcome: { subject: "Willkommen" } } do
+      email = BaseMailer.welcome(subject: nil, locale: :de)
+      assert_equal "Willkommen", email.subject
+    end
+  end
+
+  test "subject gets default from I18n with default locale override" do
+    with_translation "de", base_mailer: { welcome: { subject: "Willkommen" } } do
+      I18n.with_locale :de do
+        with_default BaseMailer, locale: :nl do
+          email = BaseMailer.welcome(subject: nil, locale: nil)
+          assert_equal "Willkommen", email.subject
+        end
+      end
+    end
+  end
+
+  test "default subject can have interpolations with I18n default locale" do
+    with_translation "en-US", base_mailer: { with_subject_interpolations: { subject: "Will the real %{rapper_or_impersonator} please stand up?" } } do
+      I18n.with_locale :"en-US" do
+        email = BaseMailer.with_subject_interpolations
+        assert_equal "Will the real Slim Shady please stand up?", email.subject
+      end
+    end
+  end
+
+  test "default subject can have interpolations with locale from class" do
+    with_translation "en-US", base_mailer: { with_subject_interpolations: { subject: "Will the real %{rapper_or_impersonator} please stand up?" } } do
+      with_default BaseMailer, locale: :"en-US" do
+        email = BaseMailer.with_subject_interpolations
+        assert_equal "Will the real Slim Shady please stand up?", email.subject
+      end
+    end
+  end
+
+  test "default subject can have interpolations with locale proc from class" do
+    with_translation "en-US", base_mailer: { with_subject_interpolations: { subject: "Will the real %{rapper_or_impersonator} please stand up?" } } do
+      with_default BaseMailer, locale: -> { :"en-US" } do
+        email = BaseMailer.with_subject_interpolations
+        assert_equal "Will the real Slim Shady please stand up?", email.subject
+      end
+    end
+  end
+
+  test "default subject can have interpolations with specified locale" do
+    with_translation "en-US", base_mailer: { with_subject_interpolations_and_locale: { subject: "Will the real %{rapper_or_impersonator} please stand up?" } } do
+      email = BaseMailer.with_subject_interpolations_and_locale(locale: :"en-US")
       assert_equal "Will the real Slim Shady please stand up?", email.subject
+    end
+  end
+
+  test "default subject can have interpolations with default locale override" do
+    with_translation "en-US", base_mailer: { with_subject_interpolations_and_locale: { subject: "Will the real %{rapper_or_impersonator} please stand up?" } } do
+      I18n.with_locale :"en-US" do
+        with_default BaseMailer, locale: :nl do
+          email = BaseMailer.with_subject_interpolations_and_locale(locale: nil)
+          assert_equal "Will the real Slim Shady please stand up?", email.subject
+        end
+      end
     end
   end
 
@@ -368,7 +435,7 @@ class BaseTest < ActiveSupport::TestCase
     end
   end
 
-  test "implicit multipart with default locale" do
+  test "implicit multipart with I18n default locale" do
     email = BaseMailer.implicit_with_locale
     assert_equal(2, email.parts.size)
     assert_equal("multipart/alternative", email.mime_type)
@@ -378,8 +445,8 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("Implicit with locale EN HTML", email.parts[1].body.encoded)
   end
 
-  test "implicit multipart with other locale" do
-    swap I18n, locale: :pl do
+  test "implicit multipart with other I18n default locale" do
+    I18n.with_locale :pl do
       email = BaseMailer.implicit_with_locale
       assert_equal(2, email.parts.size)
       assert_equal("multipart/alternative", email.mime_type)
@@ -388,6 +455,28 @@ class BaseTest < ActiveSupport::TestCase
       assert_equal("text/html", email.parts[1].mime_type)
       assert_equal("Implicit with locale EN HTML", email.parts[1].body.encoded)
     end
+  end
+
+  test "implicit multipart with locale from class" do
+    with_default BaseMailer, locale: :pl do
+      email = BaseMailer.implicit_with_locale
+      assert_equal(2, email.parts.size)
+      assert_equal("multipart/alternative", email.mime_type)
+      assert_equal("text/plain", email.parts[0].mime_type)
+      assert_equal("Implicit with locale PL TEXT", email.parts[0].body.encoded)
+      assert_equal("text/html", email.parts[1].mime_type)
+      assert_equal("Implicit with locale EN HTML", email.parts[1].body.encoded)
+    end
+  end
+
+  test "implicit multipart with specified locale" do
+    email = BaseMailer.implicit_with_locale(locale: :pl)
+    assert_equal(2, email.parts.size)
+    assert_equal("multipart/alternative", email.mime_type)
+    assert_equal("text/plain", email.parts[0].mime_type)
+    assert_equal("Implicit with locale PL TEXT", email.parts[0].body.encoded)
+    assert_equal("text/html", email.parts[1].mime_type)
+    assert_equal("Implicit with locale EN HTML", email.parts[1].body.encoded)
   end
 
   test "implicit multipart with fallback locale" do
@@ -400,15 +489,13 @@ class BaseTest < ActiveSupport::TestCase
       I18n.backend = fallback_backend.new
       I18n.fallbacks[:"de-AT"] = [:de]
 
-      swap I18n, locale: "de-AT" do
-        email = BaseMailer.implicit_with_locale
-        assert_equal(2, email.parts.size)
-        assert_equal("multipart/alternative", email.mime_type)
-        assert_equal("text/plain", email.parts[0].mime_type)
-        assert_equal("Implicit with locale DE-AT TEXT", email.parts[0].body.encoded)
-        assert_equal("text/html", email.parts[1].mime_type)
-        assert_equal("Implicit with locale DE HTML", email.parts[1].body.encoded)
-      end
+      email = BaseMailer.implicit_with_locale(locale: :"de-AT")
+      assert_equal(2, email.parts.size)
+      assert_equal("multipart/alternative", email.mime_type)
+      assert_equal("text/plain", email.parts[0].mime_type)
+      assert_equal("Implicit with locale DE-AT TEXT", email.parts[0].body.encoded)
+      assert_equal("text/html", email.parts[1].mime_type)
+      assert_equal("Implicit with locale DE HTML", email.parts[1].body.encoded)
     ensure
       I18n.backend = backend
     end
@@ -962,21 +1049,6 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   private
-    # Execute the block setting the given values and restoring old values after
-    # the block is executed.
-    def swap(klass, new_values)
-      old_values = {}
-      new_values.each do |key, value|
-        old_values[key] = klass.send key
-        klass.send :"#{key}=", value
-      end
-      yield
-    ensure
-      old_values.each do |key, value|
-        klass.send :"#{key}=", value
-      end
-    end
-
     def with_default(klass, new_values)
       old = klass.default_params
       klass.default(new_values)

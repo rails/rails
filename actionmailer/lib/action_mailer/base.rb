@@ -285,6 +285,9 @@ module ActionMailer
   # <tt>parts_order</tt> and <tt>charset</tt> are not actually valid <tt>Mail::Message</tt> header fields,
   # but Action Mailer translates them appropriately and sets the correct values.
   #
+  # Passing a value for <tt>locale</tt> will set the I18n locale used for generating the subject
+  # and looking for templates for the body.
+  #
   # As you can pass in any header, you need to either quote the header as a string, or pass it in as
   # an underscored symbol, so the following will work:
   #
@@ -750,6 +753,7 @@ module ActionMailer
     #   addresses, or an array of addresses.
     # * +:reply_to+ - Who to set the Reply-To header of the email to.
     # * +:date+ - The date to say the email was sent on.
+    # * +:locale+ - The I18n locale used to generate the subject and look for templates.
     #
     # You can set default values for any of the above headers (except +:date+)
     # by using the ::default class method:
@@ -838,7 +842,9 @@ module ActionMailer
       assign_headers_to_message(message, headers)
 
       # Render the templates and blocks
-      responses = collect_responses(headers, &block)
+      responses = I18n.with_locale headers[:locale] do
+        collect_responses(headers, &block)
+      end
       @_mail_was_called = true
 
       create_parts_from_responses(message, responses)
@@ -887,9 +893,12 @@ module ActionMailer
       # If it does not find a translation for the +subject+ under the specified scope it will default to a
       # humanized version of the <tt>action_name</tt>.
       # If the subject has interpolations, you can pass them through the +interpolations+ parameter.
+      # The locale may be passing in the <tt>locale</tt> key, otherwise the mailer class default or
+      # `I18n.locale` will be used.
       def default_i18n_subject(interpolations = {}) # :doc:
         mailer_scope = self.class.mailer_name.tr("/", ".")
-        I18n.t(:subject, **interpolations.merge(scope: [mailer_scope, action_name], default: action_name.humanize))
+        locale = interpolations.key?(:locale) ? interpolations[:locale] : compute_default(self.class.default[:locale])
+        I18n.t(:subject, **interpolations.merge(scope: [mailer_scope, action_name], default: action_name.humanize, locale: locale))
       end
 
       # Emails do not support relative path links.
@@ -903,7 +912,7 @@ module ActionMailer
         end
 
         headers_with_defaults = headers.reverse_merge(default_values)
-        headers_with_defaults[:subject] ||= default_i18n_subject
+        headers_with_defaults[:subject] ||= default_i18n_subject(locale: headers_with_defaults[:locale])
         headers_with_defaults
       end
 
@@ -918,7 +927,7 @@ module ActionMailer
       end
 
       def assign_headers_to_message(message, headers)
-        assignable = headers.except(:parts_order, :content_type, :body, :template_name,
+        assignable = headers.except(:parts_order, :content_type, :body, :locale, :template_name,
                                     :template_path, :delivery_method, :delivery_method_options)
         assignable.each { |k, v| message[k] = v }
       end
