@@ -592,14 +592,15 @@ class EnumTest < ActiveRecord::TestCase
     assert_raises(NoMethodError) { klass.proposed }
   end
 
-  test "scopes are named like methods" do
+  test "capital characters for enum names" do
     klass = Class.new(ActiveRecord::Base) do
-      self.table_name = "cats"
-      enum breed: { "American Bobtail" => 0, "Balinese-Javanese" => 1 }
+      self.table_name = "computers"
+      enum extendedWarranty: [:extendedSilver, :extendedGold]
     end
 
-    assert_respond_to klass, :american_bobtail
-    assert_respond_to klass, :balinese_javanese
+    computer = klass.extendedSilver.build
+    assert_predicate computer, :extendedSilver?
+    assert_not_predicate computer, :extendedGold?
   end
 
   test "enums with a negative condition log a warning" do
