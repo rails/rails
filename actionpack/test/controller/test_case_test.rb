@@ -244,9 +244,20 @@ XML
 
     post :test_params, params: { foo: klass.new }
 
-    assert_equal JSON.parse(@response.body)["foo"], "bar"
+    assert_equal "bar", JSON.parse(@response.body)["foo"]
   end
 
+  def test_handle_to_params_json
+    klass = Class.new do
+      def as_json(_ = nil)
+        { "type" => "bar" }
+      end
+    end
+
+    post :test_params, params: { foo: klass.new }, as: :json
+
+    assert_equal({ "type" => "bar" }, JSON.parse(@response.body)["foo"])
+  end
 
   def test_body_stream
     params = Hash[:page, { name: "page name" }, "some key", 123]

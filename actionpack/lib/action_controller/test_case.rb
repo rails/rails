@@ -71,11 +71,15 @@ module ActionController
     end
 
     def assign_parameters(routes, controller_path, action, parameters, generated_path, query_string_keys)
+      fetch_header("CONTENT_TYPE") do |k|
+        set_header k, "application/x-www-form-urlencoded"
+      end
+
       non_path_parameters = {}
       path_parameters = {}
 
-      if parameters[:format] == :json
-        parameters = JSON.load(JSON.dump(parameters))
+      if content_mime_type.to_sym == :json
+        parameters = ActiveSupport::JSON.decode(ActiveSupport::JSON.encode(parameters))
         query_string_keys = query_string_keys.map(&:to_s)
       end
 
@@ -83,7 +87,7 @@ module ActionController
         if query_string_keys.include?(key)
           non_path_parameters[key] = value
         else
-          unless parameters["format"] == "json"
+          unless content_mime_type.to_sym == :json
             if value.is_a?(Array)
               value = value.map(&:to_param)
             else
@@ -104,10 +108,6 @@ module ActionController
           self.content_type = ENCODER.content_type
           data = ENCODER.build_multipart non_path_parameters
         else
-          fetch_header("CONTENT_TYPE") do |k|
-            set_header k, "application/x-www-form-urlencoded"
-          end
-
           case content_mime_type.to_sym
           when nil
             raise "Unknown Content-Type: #{content_type}"
