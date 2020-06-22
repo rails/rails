@@ -25,7 +25,16 @@ require "models/admin/user"
 require "models/ship"
 require "models/treasure"
 require "models/parrot"
+require "models/pirate"
+require "models/image"
+require "models/category"
+require "models/club"
+require "models/owner"
+require "models/pet"
 require "models/broken"
+require "models/membership"
+require "models/member_detail"
+require "models/member_type"
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,

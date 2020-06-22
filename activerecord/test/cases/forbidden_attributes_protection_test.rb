@@ -2,7 +2,11 @@
 
 require "cases/helper"
 require "models/company"
+require "models/developer"
 require "models/person"
+require "models/pirate"
+require "models/reader"
+require "models/reference"
 require "models/ship"
 require "models/ship_part"
 require "models/treasure"

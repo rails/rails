@@ -1,9 +1,12 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "models/account"
 require "models/author"
 require "models/bulb"
 require "models/car"
+require "models/category"
+require "models/comment"
 require "models/company"
 require "models/computer"
 require "models/chef"
@@ -11,12 +14,19 @@ require "models/club"
 require "models/department"
 require "models/developer"
 require "models/drink_designer"
+require "models/essay"
+require "models/hotel"
 require "models/image"
+require "models/member"
+require "models/mentor"
 require "models/membership"
+require "models/parrot"
 require "models/pirate"
 require "models/post"
 require "models/project"
 require "models/ship"
+require "models/sponsor"
+require "models/tagging"
 
 class HasOneAssociationsTest < ActiveRecord::TestCase
   self.use_transactional_tests = false unless supports_savepoints?

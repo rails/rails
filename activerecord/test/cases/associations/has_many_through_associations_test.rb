@@ -36,6 +36,12 @@ require "models/family_tree"
 require "models/section"
 require "models/seminar"
 require "models/session"
+require "models/mentor"
+require "models/sponsor"
+require "models/image"
+require "models/ship"
+require "models/member_detail"
+require "models/member_type"
 
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :readers, :people, :comments, :authors, :categories, :taggings, :tags,

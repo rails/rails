@@ -236,7 +236,7 @@ module ActiveRecord
 
       private
         def validate_associations_exist
-          reflect_on_all_associations.each do |association|
+          self.reflect_on_all_associations.each do |association|
             next unless association.has_one? || association.belongs_to?
             next if association.polymorphic? || association.through_reflection?
 
