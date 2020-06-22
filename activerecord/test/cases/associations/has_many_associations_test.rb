@@ -2151,7 +2151,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_calling_first_or_last_on_existing_record_with_build_should_load_association
+  def test_calling_first_nth_or_last_on_existing_record_with_build_should_load_association
     firm = companies(:first_firm)
     firm.clients.build(name: "Foo")
     assert_not_predicate firm.clients, :loaded?
@@ -2163,6 +2163,24 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
 
     assert_predicate firm.clients, :loaded?
+
+    author = Author.create!(name: "Carl")
+    third  = topics(:third)
+    fourth = topics(:fourth).becomes(Topic)
+
+    new_topic = author.topics_without_type.build
+
+    assert_not_predicate author.topics_without_type, :loaded?
+
+    assert_queries(1) do
+      if current_adapter?(:Mysql2Adapter, :SQLite3Adapter)
+        assert_equal fourth, author.topics_without_type.first
+        assert_equal third, author.topics_without_type.second
+      end
+      assert_equal new_topic, author.topics_without_type.last
+    end
+
+    assert_predicate author.topics_without_type, :loaded?
   end
 
   def test_calling_first_nth_or_last_on_existing_record_with_create_should_not_load_association
