@@ -592,6 +592,16 @@ class EnumTest < ActiveRecord::TestCase
     assert_raises(NoMethodError) { klass.proposed }
   end
 
+  test "scopes are named like methods" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "cats"
+      enum breed: { "American Bobtail" => 0, "Balinese-Javanese" => 1 }
+    end
+
+    assert_respond_to klass, :American_Bobtail
+    assert_respond_to klass, :Balinese_Javanese
+  end
+
   test "capital characters for enum names" do
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "computers"
