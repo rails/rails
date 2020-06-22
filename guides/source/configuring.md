@@ -889,6 +889,8 @@ There are a few configuration options available in Active Support:
 
 * `config.active_job.custom_serializers` allows to set custom argument serializers. Defaults to `[]`.
 
+* `config.active_job.time_precision` sets the precision of serialized time values. Defaults to `0`.
+
 * `config.active_job.return_false_on_aborted_enqueue` change the return value of `#enqueue` to false instead of the job instance when the enqueuing is aborted. Defaults to `false`.
 
 * `config.active_job.log_arguments` controls if the arguments of a job are logged. Defaults to `true`.

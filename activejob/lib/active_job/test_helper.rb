@@ -678,7 +678,15 @@ module ActiveJob
       def round_time_arguments(argument)
         case argument
         when Time, ActiveSupport::TimeWithZone, DateTime
-          argument.change(usec: 0)
+          nsec =
+            if ActiveJob::Serializers.time_precision > 0
+              nsec = argument.nsec
+              nsec - (nsec % (10 ** (9 - ActiveJob::Serializers.time_precision)))
+            else
+              0
+            end
+
+          argument.change(nsec: nsec)
         when Hash
           argument.transform_values { |value| round_time_arguments(value) }
         when Array

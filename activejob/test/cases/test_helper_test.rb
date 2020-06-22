@@ -608,6 +608,21 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     end
   end
 
+  def test_assert_enqueued_with_time_and_time_precision
+    original_time_precision = ActiveJob::Serializers.time_precision
+    ActiveJob::Serializers.time_precision = 3
+    time_with_zone = Time.now.in_time_zone("Tokyo")
+    time = Time.at(946702800, 1234567, :nanosecond)
+    date_time = DateTime.now
+    args = [{ argument1: [time_with_zone, time, date_time] }]
+
+    assert_enqueued_with(job: MultipleKwargsJob, args: args) do
+      MultipleKwargsJob.perform_later(argument1: [time_with_zone, time, date_time])
+    end
+  ensure
+    ActiveJob::Serializers.time_precision = original_time_precision
+  end
+
   def test_assert_enqueued_with_with_no_block_args
     assert_raise ArgumentError do
       NestedJob.set(wait_until: Date.tomorrow.noon).perform_later

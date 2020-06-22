@@ -17,8 +17,9 @@ module ActiveJob
     autoload :TimeSerializer
     autoload :ModuleSerializer
 
-    mattr_accessor :_additional_serializers
+    mattr_accessor :_additional_serializers, :time_precision
     self._additional_serializers = Set.new
+    self.time_precision = 0
 
     class << self
       # Returns serialized representative of the passed object.

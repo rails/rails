@@ -1,3 +1,7 @@
+*   Introduce `ActiveJob.time_precision` to make time precision configurable when serializing `Time`, `TimeWithZone` and `DateTime` objects.
+
+    *Alan Tan*
+
 *   While using `perform_enqueued_jobs` test helper enqueued jobs must be stored for the later check with
     `assert_enqueued_with`.
 
