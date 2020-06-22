@@ -2509,7 +2509,7 @@ single database table, Rails will save in this column the name of the model that
 is being saved. In our example, this can be "Car", "Motorcycle" or "Bicycle."
 STI won't work without a "type" field in the table.
 
-Next, we will generate the three models that inherit from Vehicle. For this,
+Next, we will generate the Car model that inherits from Vehicle. For this,
 we can use the `--parent=PARENT` option, which will generate a model that
 inherits from the specified parent and without equivalent migration (since the
 table already exists).
