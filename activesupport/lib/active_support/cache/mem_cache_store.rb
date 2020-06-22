@@ -187,9 +187,8 @@ module ActiveSupport
         end
 
         def deserialize_entry(entry)
-          if entry
-            entry.is_a?(Entry) ? entry : Entry.new(entry)
-          end
+          return if entry.nil? || (@options[:cache_nils] && entry.eql?(Dalli::Server::NOT_FOUND))
+          entry.is_a?(Entry) ? entry : Entry.new(entry)
         end
 
         def rescue_error_with(fallback)
