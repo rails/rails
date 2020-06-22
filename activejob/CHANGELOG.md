@@ -1,3 +1,7 @@
+*   Recover nano precision when serializing `Time`, `TimeWithZone` and `DateTime` objects.
+
+    *Alan Tan*
+
 *   Deprecate `config.active_job.return_false_on_aborted_enqueue`.
 
     *Rafael Mendonça França*
