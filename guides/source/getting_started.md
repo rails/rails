@@ -1991,6 +1991,140 @@ the `app/views/comments` directory.
 The `@article` object is available to any partials rendered in the view because
 we defined it as an instance variable.
 
+
+### Using Concerns
+
+  A concern is any module that contains methods you would like to be able to share across multiple controllers or models. In other frameworks they are often known as mixins. They are a good way to keep your controllers and models small and keep your code DRY.
+
+ You can use concerns in your controller or model the same way you would use any module. When you first created your app with `rails new blog` , two folders were created within `apps/` along with the rest:
+
+ ```
+ app/controllers/concerns
+ app/models/concerns
+ ```
+
+A given blog article might have various statuses - for instance, it may be `public` (visible to everyone), or `private` (only visible by the author, perhaps if an author wants to save a draft). It may also be `archived`, which means it is hidden from the author. A comment, similarly, may be `public`, `private`, or `archived`. For any given article, in the controller you might want to verify that an article is public before rendering it.
+
+Within the `article` model, after running a migration to add a `status` column, you might add:
+
+```ruby
+class Article < ApplicationRecord
+  has_many :comments
+  validates :title, presence: true,
+                    length: { minimum: 5 }
+
+  VALID_STATUSES = ['public', 'private', 'archived']
+
+  validates :status, in: VALID_STATUSES
+
+  def archived? 
+    status == 'archived'
+  end
+end
+```
+
+and in the `Comment` model:
+
+```ruby
+class Comment < ApplicationRecord
+  belongs_to :article
+
+  VALID_STATUSES = ['public', 'private', 'archived']
+
+  validates :status, in: VALID_STATUSES
+
+  def archived?
+    status == 'archived'
+  end
+end
+```
+
+Then, in our `index` action template (`app/views/articles/index.html.erb`) we would use the `archived?` method to avoid displaying any article that is archived:
+
+```html+erb
+<h1>Listing Articles</h1>
+<%= link_to 'New article', new_article_path %>
+<table>
+  <tr>
+    <th>Title</th>
+    <th>Text</th>
+    <th colspan="3"></th>
+  </tr>
+
+  <% @articles.each do |article| %>
+    <% unless article.archived? %> 
+      <tr>
+        <td><%= article.title %></td>
+        <td><%= article.text %></td>
+        <td><%= link_to 'Show', article_path(article) %></td>
+        <td><%= link_to 'Edit', edit_article_path(article) %></td>
+        <td><%= link_to 'Destroy', article_path(article),
+                method: :delete,
+                data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  <% end %>
+</table>
+```
+
+However, if you look again at our models now, you can see that the logic is duplicated. If in future we increase the functionality of our blog - to include private messages, for instance -  we might find ourselves duplicating the logic yet again. This is where concerns come in handy.
+
+Let's call our new concern (module) `Statusable`, a module to use for any model that has a status. We can create a new file inside `app/models/concerns` called `statuslike.rb` , and store all of the status methods that were duplicated in the models.
+
+`app/models/concerns/statuslike.rb`
+
+```ruby
+module Statuslike
+  def archived?
+    status == 'archived'
+  end
+end
+```
+
+To include the duplicated validations, we will want to extend `ActiveSupport::Concern` . This module allows us to write validations and other Active Model methods in the module as if we were writing them within the original models (or controllers, if writing a concern for controllers). You can read more about this in the [API Guide](https://api.rubyonrails.org/classes/ActiveSupport/Concern.html):
+
+```ruby
+module Statuslike
+  extends ActiveSupport::Concern
+
+  included do
+    VALID_STATUSES = ['public', 'private', 'archived']
+
+    validates :status, in: VALID_STATUSES
+  end
+
+  def archived?
+    status == 'archived'
+  end
+end
+```
+
+Now, we can remove the duplicated logic from each model and instead include our new `Statusable` module:
+
+
+In `app/models/article.rb`:
+```ruby
+class Article < ApplicationRecord
+  includes Statusable
+  has_many :comments
+
+  validates :title, presence: true,
+                    length: { minimum: 5 }
+
+end
+```
+
+and in `app/models/comment.rb`:
+
+```ruby
+class Comment < ApplicationRecord
+  includes Statusable
+  belongs_to :article
+end
+```
+
+Our app contains `app/models/concerns` and `app/controllers/concerns` in its `autoload_paths` so you don't need to `require` the concern. If your app is having trouble finding your concern module, you may need to check your `autoload_paths`. You can learn about how to do so [here](http://guides.rubyonrails.org/autoloading_and_reloading_constants.html#autoload-paths).
+
 Deleting Comments
 -----------------
 
@@ -2060,6 +2194,8 @@ Article model, `app/models/article.rb`, as follows:
 
 ```ruby
 class Article < ApplicationRecord
+  includes Statusable
+
   has_many :comments, dependent: :destroy
   validates :title, presence: true,
                     length: { minimum: 5 }
