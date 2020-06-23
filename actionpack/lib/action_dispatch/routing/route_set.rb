@@ -766,11 +766,9 @@ module ActionDispatch
         end
 
         route_name = options.delete :use_route
-        path = path_for(options, route_name, [])
-
-        uri = URI.parse(path)
-        params = Rack::Utils.parse_nested_query(uri.query).symbolize_keys
-        [uri.path, params.keys]
+        generator = generate(route_name, options, recall)
+        path_info = path_for(options, route_name, [])
+        [URI(path_info).path, generator.params.except(:_recall).keys]
       end
 
       def generate(route_name, options, recall = {}, method_name = nil)
