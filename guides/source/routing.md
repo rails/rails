@@ -686,7 +686,7 @@ get 'photos/:id', to: 'photos#show', id: /[A-Z]\d{5}/
 get '/:id', to: 'articles#show', constraints: { id: /^\d/ }
 ```
 
-However, note that you don't need to use anchors because all routes are anchored at the start.
+However, note that you don't need to use anchors because all routes are anchored at the start and the end.
 
 For example, the following routes would allow for `articles` with `to_param` values like `1-hello-world` that always begin with a number and `users` with `to_param` values like `david` that never begin with a number to share the root namespace:
 
