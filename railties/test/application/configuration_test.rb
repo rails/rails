@@ -1564,12 +1564,17 @@ module ApplicationTests
       assert_equal session_options, app.config.session_options
     end
 
+    test "config.log_level defaults to info" do
+      make_basic_app
+      assert_equal Logger::INFO, Rails.logger.level
+    end
+
     test "config.log_level with custom logger" do
       make_basic_app do |application|
         application.config.logger = Logger.new(STDOUT)
-        application.config.log_level = :info
+        application.config.log_level = :debug
       end
-      assert_equal Logger::INFO, Rails.logger.level
+      assert_equal Logger::DEBUG, Rails.logger.level
     end
 
     test "respond_to? accepts include_private" do

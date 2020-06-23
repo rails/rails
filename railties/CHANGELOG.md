@@ -1,3 +1,8 @@
+* Change the default logging level from :debug to :info to avoid inadvertent exposure of personally
+  identifiable information (PII) in production environments.
+  
+  *Eric M. Payne*
+
 *   Create a new rails app using a minimal stack.
 
       `rails new cool_app --minimal`
