@@ -94,9 +94,7 @@ class YamlSerializationTest < ActiveRecord::TestCase
   end
 
   def test_deserializing_rails_41_yaml
-    topic = assert_deprecated do
-      YAML.load(yaml_fixture("rails_4_1"))
-    end
+    topic = YAML.load(yaml_fixture("rails_4_1"))
 
     assert_predicate topic, :new_record?
     assert_nil topic.id
@@ -105,9 +103,7 @@ class YamlSerializationTest < ActiveRecord::TestCase
   end
 
   def test_deserializing_rails_4_2_0_yaml
-    topic = assert_deprecated do
-      YAML.load(yaml_fixture("rails_4_2_0"))
-    end
+    topic = YAML.load(yaml_fixture("rails_4_2_0"))
 
     assert_not_predicate topic, :new_record?
     assert_equal 1, topic.id
