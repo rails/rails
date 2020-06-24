@@ -192,11 +192,8 @@ module ActiveRecord
           where(key => params.bind).limit(1)
         }
 
-        record = statement.execute([id], connection)&.first
-        unless record
-          raise RecordNotFound.new("Couldn't find #{name} with '#{key}'=#{id}", name, key, id)
-        end
-        record
+        statement.execute([id], connection).first ||
+          raise(RecordNotFound.new("Couldn't find #{name} with '#{key}'=#{id}", name, key, id))
       end
 
       def find_by(*args) # :nodoc:
@@ -229,7 +226,7 @@ module ActiveRecord
         }
 
         begin
-          statement.execute(values, connection)&.first
+          statement.execute(values, connection).first
         rescue TypeError
           raise ActiveRecord::StatementInvalid
         end

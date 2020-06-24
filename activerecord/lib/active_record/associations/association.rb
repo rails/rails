@@ -220,7 +220,7 @@ module ActiveRecord
           end
 
           binds = AssociationScope.get_bind_values(owner, reflection.chain)
-          sc.execute(binds, klass.connection) { |record| set_inverse_instance(record) } || []
+          sc.execute(binds, klass.connection) { |record| set_inverse_instance(record) }
         end
 
         # The scope for this association.

@@ -68,6 +68,8 @@ module ActiveRecord
         else
           select(sql, name, binds)
         end
+      rescue ::RangeError
+        ActiveRecord::Result.new([], [])
       end
 
       # Returns a record hash with the column names as keys and column values
