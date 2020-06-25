@@ -575,6 +575,11 @@ user.highlights.second.filename # => "town.jpg"
 
 Existing applications can opt in to this new behavior by setting `config.active_storage.replace_on_assign_to_many` to `true`. The old behavior will be deprecated in Rails 6.1 and removed in a subsequent release.
 
+### `form_with` defaults to `remote:true`
+
+Starting with Rails 6, the `form_with` form helper defaults to `remote: true`. These forms will submit data using an XHR (Ajax) request.
+Either change your code to work with remote forms (also see the [Working with JavaScript in Rails](working_with_javascript_in_rails.html#remote-elements) guide) or opt into the previous default using `local: true`.
+
 Upgrading from Rails 5.1 to Rails 5.2
 -------------------------------------
 
