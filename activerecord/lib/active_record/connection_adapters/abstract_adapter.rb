@@ -39,7 +39,7 @@ module ActiveRecord
       SIMPLE_INT = /\A\d+\z/
       COMMENT_REGEX = %r{/\*(?:[^\*]|\*[^/])*\*/}m
 
-      attr_accessor :pool
+      attr_accessor :pool, :current_pool_key
       attr_reader :visitor, :owner, :logger, :lock
       alias :in_use? :owner
 

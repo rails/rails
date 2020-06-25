@@ -1109,7 +1109,9 @@ module ActiveRecord
           raise ConnectionNotEstablished, message
         end
 
-        pool.connection
+        pool.connection.tap do |conn|
+          conn.current_pool_key = pool_key
+        end
       end
 
       # Returns true if a connection that's accessible to this class has
