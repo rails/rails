@@ -203,10 +203,14 @@ module ActiveRecord
           def data_source_sql(name = nil, type: nil)
             scope = quoted_scope(name, type: type)
 
-            sql = +"SELECT table_name FROM information_schema.tables"
-            sql << " WHERE table_schema = #{scope[:schema]}"
-            sql << " AND table_name = #{scope[:name]}" if scope[:name]
-            sql << " AND table_type = #{scope[:type]}" if scope[:type]
+            sql = +"SELECT table_name FROM (SELECT * FROM information_schema.tables "
+            sql << " WHERE table_schema = #{scope[:schema]}) _subquery"
+            if scope[:type] || scope[:name]
+              conditions = []
+              conditions << "_subquery.table_type = #{scope[:type]}" if scope[:type]
+              conditions << "_subquery.table_name = #{scope[:name]}" if scope[:name]
+              sql << " WHERE #{conditions.join(" AND ")}"
+            end
             sql
           end
 
