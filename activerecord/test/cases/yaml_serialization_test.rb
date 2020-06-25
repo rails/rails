@@ -93,6 +93,24 @@ class YamlSerializationTest < ActiveRecord::TestCase
     assert coder["active_record_yaml_version"]
   end
 
+  def test_deserializing_rails_v2_yaml
+    topic = YAML.load(yaml_fixture("rails_v2"))
+
+    assert_not_predicate topic, :new_record?
+    assert_equal 1, topic.id
+    assert_equal "The First Topic", topic.title
+    assert_equal "Have a nice day", topic.content
+  end
+
+  def test_deserializing_rails_v1_mysql_yaml
+    topic = YAML.load(yaml_fixture("rails_v1_mysql"))
+
+    assert_not_predicate topic, :new_record?
+    assert_equal 1, topic.id
+    assert_equal "The First Topic", topic.title
+    assert_equal "Have a nice day", topic.content
+  end
+
   def test_deserializing_rails_41_yaml
     topic = assert_deprecated do
       YAML.load(yaml_fixture("rails_4_1"))
