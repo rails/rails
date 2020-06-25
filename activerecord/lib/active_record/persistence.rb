@@ -400,7 +400,7 @@ module ActiveRecord
         # new instance of the class. Accepts only keys as strings.
         def instantiate_instance_of(klass, attributes, column_types = {}, &block)
           attributes = klass.attributes_builder.build_from_database(attributes, column_types)
-          klass.allocate.init_with_attributes(attributes, &block)
+          klass.allocate.init_with_attributes(attributes, false, connection.current_pool_key, &block)
         end
 
         # Called by +instantiate+ to decide which class to use for a new
@@ -444,6 +444,9 @@ module ActiveRecord
     def persisted?
       !(@new_record || @destroyed)
     end
+
+    # Returns the pool key (i.e. shard) where the record is persisted.
+    attr_reader :persisted_pool_key
 
     ##
     # :call-seq:
@@ -574,6 +577,7 @@ module ActiveRecord
       became.instance_variable_set(:@mutations_from_database, @mutations_from_database ||= nil)
       became.instance_variable_set(:@new_record, new_record?)
       became.instance_variable_set(:@destroyed, destroyed?)
+      became.instance_variable_set(:@persisted_pool_key, persisted_pool_key)
       became.errors.copy!(errors)
       became
     end
@@ -811,6 +815,7 @@ module ActiveRecord
         end
 
       @attributes = fresh_object.instance_variable_get(:@attributes)
+      @persisted_pool_key = fresh_object.persisted_pool_key
       @new_record = false
       @previously_new_record = false
       self
@@ -917,6 +922,7 @@ module ActiveRecord
         @_trigger_update_callback = affected_rows == 1
       end
 
+      @persisted_pool_key = self.class.connection.current_pool_key
       @previously_new_record = false
 
       yield(self) if block_given?
@@ -935,6 +941,7 @@ module ActiveRecord
 
       self.id ||= new_id if @primary_key
 
+      @persisted_pool_key = self.class.connection.current_pool_key
       @new_record = false
       @previously_new_record = true
 

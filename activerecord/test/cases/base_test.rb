@@ -755,12 +755,19 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal false, Topic.find(1).previously_new_record?
   end
 
+  def test_presisted_pool_key_returns_default_or_nil
+    assert_nil Topic.new.persisted_pool_key
+    assert_equal :default, Topic.create.persisted_pool_key
+    assert_equal :default, Topic.find(1).persisted_pool_key
+  end
+
   def test_dup
     topic = Topic.find(1)
     duped_topic = nil
     assert_nothing_raised { duped_topic = topic.dup }
     assert_equal topic.title, duped_topic.title
     assert_not_predicate duped_topic, :persisted?
+    assert_nil duped_topic.persisted_pool_key
 
     # test if the attributes have been duped
     topic.title = "a"

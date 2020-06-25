@@ -380,11 +380,13 @@ module ActiveRecord
     # Initialize an empty model object from +attributes+.
     # +attributes+ should be an attributes object, and unlike the
     # `initialize` method, no assignment calls are made per attribute.
-    def init_with_attributes(attributes, new_record = false) # :nodoc:
+    def init_with_attributes(attributes, new_record = false, persisted_pool_key = nil) # :nodoc:
       @new_record = new_record
       @attributes = attributes
 
       init_internals
+
+      @persisted_pool_key = persisted_pool_key
 
       yield self if block_given?
 
@@ -431,6 +433,7 @@ module ActiveRecord
       @previously_new_record    = false
       @destroyed                = false
       @_start_transaction_state = nil
+      @persisted_pool_key       = nil
 
       super
     end

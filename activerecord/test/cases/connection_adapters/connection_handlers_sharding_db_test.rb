@@ -307,6 +307,12 @@ module ActiveRecord
         # from :default
         assert_not ShardConnectionTestModel.find_by_shard_key("bar")
         assert ShardConnectionTestModel.find_by_shard_key("foo")
+
+        # Make sure the persisted_pool_key result corresponds to its shard
+        assert_equal :default, ShardConnectionTestModel.first.persisted_pool_key
+        ActiveRecord::Base.connected_to(shard: :one) do
+          assert_equal :one, ShardConnectionTestModel.first.persisted_pool_key
+        end
       end
 
       def test_swapping_shards_in_a_multi_threaded_environment
