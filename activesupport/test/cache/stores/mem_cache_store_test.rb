@@ -25,7 +25,7 @@ end
 
 class MemCacheStoreTest < ActiveSupport::TestCase
   begin
-    servers = ENV["MEMCACHE_SERVERS"] || "localhost:11211"
+    servers = ENV.fetch("MEMCACHE_SERVERS", "localhost:11211")
     ss = Dalli::Client.new(servers).stats
     raise Dalli::DalliError unless ss[servers]
 
@@ -167,7 +167,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     end
 
     def store
-      [:mem_cache_store, ENV["MEMCACHE_SERVERS"] || "localhost:11211"]
+      [:mem_cache_store, ENV.fetch("MEMCACHE_SERVERS", "localhost:11211")]
     end
 
     def emulating_latency

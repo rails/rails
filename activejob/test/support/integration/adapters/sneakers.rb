@@ -7,7 +7,7 @@ module SneakersJobsManager
   def setup
     ActiveJob::Base.queue_adapter = :sneakers
     Sneakers.configure  heartbeat: 2,
-                        amqp: ENV["RABBITMQ_URL"] || "amqp://guest:guest@localhost:5672",
+                        amqp: ENV.fetch("RABBITMQ_URL", "amqp://guest:guest@localhost:5672"),
                         vhost: "/",
                         exchange: "active_jobs_sneakers_int_test",
                         exchange_type: :direct,

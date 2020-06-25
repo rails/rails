@@ -38,7 +38,7 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
 
   begin
     require "dalli"
-    servers = ENV["MEMCACHE_SERVERS"] || "localhost:11211"
+    servers = ENV.fetch("MEMCACHE_SERVERS", "localhost:11211")
     ss = Dalli::Client.new(servers).stats
     raise Dalli::DalliError unless ss[servers]
 
@@ -198,7 +198,7 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
         @app = self.class.build_app(set) do |middleware|
           middleware.use ActionDispatch::Session::MemCacheStore,
             key: "_session_id", namespace: "mem_cache_store_test:#{SecureRandom.hex(10)}",
-            memcache_server: ENV["MEMCACHE_SERVERS"] || "localhost:11211"
+            memcache_server: ENV.fetch("MEMCACHE_SERVERS", "localhost:11211")
           middleware.delete ActionDispatch::ShowExceptions
         end
 

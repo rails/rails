@@ -3,8 +3,8 @@
 require "active_record"
 require "benchmark/ips"
 
-TIME    = (ENV["BENCHMARK_TIME"] || 20).to_i
-RECORDS = (ENV["BENCHMARK_RECORDS"] || TIME * 1000).to_i
+TIME    = ENV.fetch("BENCHMARK_TIME", 20).to_i
+RECORDS = ENV.fetch("BENCHMARK_RECORDS", TIME * 1000).to_i
 
 conn = { adapter: "sqlite3", database: ":memory:" }
 

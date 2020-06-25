@@ -125,7 +125,7 @@ module ApplicationTests
             database: db/development.sqlite3
 
           development:
-            <<: *<%= ENV["DB"] || "sqlite" %>
+            <<: *<%= ENV.fetch("DB", "sqlite") %>
         YAML
 
         app_file "config/environments/development.rb", <<-RUBY

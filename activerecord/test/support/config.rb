@@ -12,7 +12,7 @@ module ARTest
 
     private
       def config_file
-        Pathname.new(ENV["ARCONFIG"] || TEST_ROOT + "/config.yml")
+        Pathname.new(ENV.fetch("ARCONFIG", TEST_ROOT + "/config.yml"))
       end
 
       def read_config

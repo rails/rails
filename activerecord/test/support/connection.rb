@@ -8,7 +8,7 @@ require "models/other_dog"
 
 module ARTest
   def self.connection_name
-    ENV["ARCONN"] || config["default_connection"]
+    ENV.fetch("ARCONN", config["default_connection"])
   end
 
   def self.test_configuration_hashes

@@ -23,9 +23,9 @@ connections:
 
   jdbcpostgresql:
     arunit:
-      username: <%= ENV['user'] || 'rails' %>
+      username: <%= ENV.fetch('user', 'rails') %>
     arunit2:
-      username: <%= ENV['user'] || 'rails' %>
+      username: <%= ENV.fetch('user', 'rails') %>
 
   jdbcsqlite3:
     arunit:
@@ -54,15 +54,15 @@ connections:
   oracle:
      arunit:
        adapter: oracle_enhanced
-       database: <%= ENV['ARUNIT_DB_NAME'] || 'orcl' %>
-       username: <%= ENV['ARUNIT_USER_NAME'] || 'arunit' %>
-       password: <%= ENV['ARUNIT_PASSWORD'] || 'arunit' %>
+       database: <%= ENV.fetch('ARUNIT_DB_NAME', 'orcl') %>
+       username: <%= ENV.fetch('ARUNIT_USER_NAME', 'arunit') %>
+       password: <%= ENV.fetch('ARUNIT_PASSWORD', 'arunit') %>
        emulate_oracle_adapter: true
      arunit2:
        adapter: oracle_enhanced
-       database: <%= ENV['ARUNIT_DB_NAME'] || 'orcl' %>
-       username: <%= ENV['ARUNIT2_USER_NAME'] || 'arunit2' %>
-       password: <%= ENV['ARUNIT2_PASSWORD'] || 'arunit2' %>
+       database: <%= ENV.fetch('ARUNIT_DB_NAME', 'orcl') %>
+       username: <%= ENV.fetch('ARUNIT2_USER_NAME', 'arunit2') %>
+       password: <%= ENV.fetch('ARUNIT2_PASSWORD', 'arunit2') %>
        emulate_oracle_adapter: true
 
   postgresql:

@@ -219,7 +219,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
   class RedisDistributedConnectionPoolBehaviourTest < ConnectionPoolBehaviourTest
     private
       def store_options
-        { url: [ENV["REDIS_URL"] || "redis://localhost:6379/0"] * 2 }
+        { url: [ENV.fetch("REDIS_URL", "redis://localhost:6379/0")] * 2 }
       end
   end
 

@@ -11,7 +11,7 @@ silence_warnings do
   Encoding.default_external = Encoding::UTF_8
 end
 
-PROCESS_COUNT = (ENV["MT_CPU"] || 4).to_i
+PROCESS_COUNT = ENV.fetch("MT_CPU", 4).to_i
 
 require "active_support/testing/autorun"
 require "abstract_controller"
