@@ -74,7 +74,8 @@ module ActiveSupport
       private
         def read_entry(key, **options)
           if File.exist?(key)
-            File.open(key) { |f| Marshal.load(f) }
+            entry = File.open(key) { |f| Marshal.load(f) }
+            entry if entry.is_a?(Cache::Entry)
           end
         rescue => e
           logger.error("FileStoreError (#{e}): #{e.message}") if logger
