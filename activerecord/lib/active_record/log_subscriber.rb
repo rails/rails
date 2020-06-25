@@ -46,7 +46,11 @@ module ActiveRecord
       name = colorize_payload_name(name, payload[:name])
       sql  = color(sql, sql_color(sql), true) if colorize_logging
 
-      debug "  #{name}  #{sql}#{binds}"
+      shard_info = ""
+      shard = payload[:connection]&.current_pool_key
+      shard_info = color("[Shard: #{shard}] ", GREEN, true) if shard && shard != ActiveRecord::Base.default_pool_key
+
+      debug "  #{shard_info}#{name}  #{sql}#{binds}"
     end
 
     private
