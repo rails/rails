@@ -107,8 +107,8 @@ module ActionDispatch
           end
 
           def visit_STAR(node)
-            re = @matchers[node.left.to_sym] || ".+"
-            "(#{re})"
+            re = @matchers[node.left.to_sym]
+            re ? "(#{re})" : "(.+)"
           end
 
           def visit_OR(node)
