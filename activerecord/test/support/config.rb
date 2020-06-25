@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "fileutils"
-require "pathname"
 require "active_support/configuration_file"
 
 module ARTest
@@ -12,11 +11,11 @@ module ARTest
 
     private
       def config_file
-        Pathname.new(ENV.fetch("ARCONFIG", File.join(TEST_ROOT, "config.yml")))
+        ENV.fetch("ARCONFIG", File.join(TEST_ROOT, "config.yml"))
       end
 
       def read_config
-        unless config_file.exist?
+        unless File.exist?(config_file)
           FileUtils.cp(File.join(TEST_ROOT, "config.example.yml"), config_file)
         end
 
