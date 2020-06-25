@@ -15,11 +15,13 @@ module ARTest
       end
 
       def read_config
-        unless File.exist?(config_file)
-          FileUtils.cp(File.join(TEST_ROOT, "config.example.yml"), config_file)
-        end
+        install_example_config unless File.exist?(config_file)
 
         expand_config ActiveSupport::ConfigurationFile.parse(config_file)
+      end
+
+      def install_example_config
+        FileUtils.cp(File.join(TEST_ROOT, "config.example.yml"), config_file)
       end
 
       def expand_config(config)
