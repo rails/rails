@@ -454,7 +454,7 @@ module ActiveSupport
         def deserialize_entry(serialized_entry, raw:)
           if serialized_entry
             if raw
-              Entry.new(serialized_entry)
+              Entry.new(serialized_entry, compress: false)
             else
               Marshal.load(serialized_entry)
             end

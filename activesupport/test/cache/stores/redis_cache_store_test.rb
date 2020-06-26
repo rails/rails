@@ -304,4 +304,14 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       assert_not cache.exist?("fu")
     end
   end
+
+  class RawTest < StoreTest
+    test "does not compress values read with \"raw\" enabled" do
+      @cache.write("foo", "bar", raw: true)
+
+      assert_not_called_on_instance_of ActiveSupport::Cache::Entry, :compress! do
+        @cache.read("foo", raw: true)
+      end
+    end
+  end
 end

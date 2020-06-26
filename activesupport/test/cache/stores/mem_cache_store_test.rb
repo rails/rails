@@ -76,6 +76,15 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     assert_equal "2", cache.read("foo")
   end
 
+  def test_raw_read_entry_compression
+    cache = lookup_store(raw: true)
+    cache.write("foo", 2)
+
+    assert_not_called_on_instance_of ActiveSupport::Cache::Entry, :compress! do
+      cache.read("foo")
+    end
+  end
+
   def test_raw_values_with_marshal
     cache = lookup_store(raw: true)
     cache.write("foo", Marshal.dump([]))

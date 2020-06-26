@@ -1,3 +1,8 @@
+*   Prevent `RedisCacheStore` and `MemCacheStore` from performing compression
+    when reading entries written with `raw: true`.
+
+    *Max Gurewitz*
+
 *   `URI.parser` is deprecated and will be removed in Rails 6.2. Use
     `URI::DEFAULT_PARSER` instead.
 
