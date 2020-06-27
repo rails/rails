@@ -21,7 +21,8 @@ class TranslationHelperTest < ActiveSupport::TestCase
         templates: {
           found: { foo: "Foo" },
           array: { foo: { bar: "Foo Bar" } },
-          default: { foo: "Foo" }
+          default: { foo: "Foo" },
+          translate_in_layout: { foo: "Foo" },
         },
         foo: "Foo",
         hello: "<a>Hello World</a>",
@@ -134,6 +135,10 @@ class TranslationHelperTest < ActiveSupport::TestCase
 
   def test_finds_translation_scoped_by_partial
     assert_equal "Foo", view.render(template: "translations/templates/found").strip
+  end
+
+  def test_finds_translation_scoped_by_translate_in_layout
+    assert_equal "Foo", view.render(template: "translations/templates/translate_in_layout").strip
   end
 
   def test_finds_array_of_translations_scoped_by_partial
