@@ -617,9 +617,8 @@ No CORS configuration is required for the Disk service since it shares your appâ
 #### Example: S3 CORS configuration
 
 ```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<CORSConfiguration xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
-<CORSRule>
+<CORSConfiguration>
+  <CORSRule>
     <AllowedOrigin>https://www.example.com</AllowedOrigin>
     <AllowedMethod>PUT</AllowedMethod>
     <AllowedHeader>Origin</AllowedHeader>
@@ -627,7 +626,7 @@ No CORS configuration is required for the Disk service since it shares your appâ
     <AllowedHeader>Content-MD5</AllowedHeader>
     <AllowedHeader>Content-Disposition</AllowedHeader>
     <MaxAgeSeconds>3600</MaxAgeSeconds>
-</CORSRule>
+  </CORSRule>
 </CORSConfiguration>
 ```
 
