@@ -613,6 +613,12 @@ XML
     assert_equal({ "bar" => [] }, JSON.load(response.body)["foo"])
   end
 
+  def test_using_as_json_with_path_parameters
+    post :test_params, params: { id: "12345" }, as: :json
+
+    assert_equal("12345", @request.path_parameters[:id])
+  end
+
   def test_mutating_content_type_headers_for_plain_text_files_sets_the_header
     @request.headers["Content-Type"] = "text/plain"
     post :render_body, params: { name: "foo.txt" }
