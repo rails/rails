@@ -2120,6 +2120,10 @@ Authentication challenge:
 
 ![Basic HTTP Authentication Challenge](images/getting_started/challenge.png)
 
+NOTE: When using HTTP Basic Authentication, the authentication popup will appear
+only once for a user and will not appear for further requests to authenticated
+controller actions, unless the user is signed out.
+
 Other authentication methods are available for Rails applications. Two popular
 authentication add-ons for Rails are the
 [Devise](https://github.com/plataformatec/devise) rails engine and
