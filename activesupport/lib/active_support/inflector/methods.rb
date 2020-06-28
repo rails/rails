@@ -334,7 +334,8 @@ module ActiveSupport
     rescue ArgumentError => e
       raise unless /not missing constant #{const_regexp(camel_cased_word)}!$/.match?(e.message)
     rescue LoadError => e
-      raise unless /Unable to autoload constant #{const_regexp(camel_cased_word)}/.match?(e.message)
+      message = e.respond_to?(:original_message) ? e.original_message : e.message
+      raise unless /Unable to autoload constant #{const_regexp(camel_cased_word)}/.match?(message)
     end
 
     # Returns the suffix that should be added to a number to denote the position
