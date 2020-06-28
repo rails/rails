@@ -710,7 +710,7 @@ In addition to "before" filters, you can also run filters after an action has be
 
 "around" filters are responsible for running their associated actions by yielding, similar to how Rack middlewares work.
 
-For example, in a website where changes have an approval workflow an administrator could be able to preview them easily, just apply them within a transaction:
+For example, in a website where changes have an approval workflow, an administrator could preview them easily by applying them within a transaction:
 
 ```ruby
 class ChangesController < ApplicationController
@@ -730,7 +730,7 @@ class ChangesController < ApplicationController
 end
 ```
 
-Note that an "around" filter also wraps rendering. In particular, if in the example above, the view itself reads from the database (e.g. via a scope), it will do so within the transaction and thus present the data to preview.
+Note that an "around" filter also wraps rendering. In particular, in the example above, if the view itself reads from the database (e.g. via a scope), it will do so within the transaction and thus present the data to preview.
 
 You can choose not to yield and build the response yourself, in which case the action will not be run.
 
@@ -751,7 +751,7 @@ class ApplicationController < ActionController::Base
 end
 ```
 
-Note that the filter in this case uses `send` because the `logged_in?` method is private and the filter does not run in the scope of the controller. This is not the recommended way to implement this particular filter, but in more simple cases it might be useful.
+Note that the filter in this case uses `send` because the `logged_in?` method is private and the filter does not run in the scope of the controller. This is not the recommended way to implement this particular filter, but in simpler cases it might be useful.
 
 Specifically for `around_action`, the block also yields in the `action`:
 
