@@ -331,8 +331,6 @@ module ActiveSupport
     rescue NameError => e
       raise if e.name && !(camel_cased_word.to_s.split("::").include?(e.name.to_s) ||
         e.name.to_s == camel_cased_word.to_s)
-    rescue ArgumentError => e
-      raise unless /not missing constant #{const_regexp(camel_cased_word)}!$/.match?(e.message)
     rescue LoadError => e
       message = e.respond_to?(:original_message) ? e.original_message : e.message
       raise unless /Unable to autoload constant #{const_regexp(camel_cased_word)}/.match?(message)
