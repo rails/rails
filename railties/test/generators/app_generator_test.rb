@@ -856,27 +856,23 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_spring
+    jruby_skip "spring doesn't run on JRuby"
+
     run_generator
+
     assert_gem "spring"
+    assert_file "bin/spring", %r{^\s*require "spring/binstub"}
+    assert_file "config/boot.rb", %r{^\s*load .+\bbin/spring"}
     assert_file("config/environments/test.rb") do |contents|
       assert_match("config.cache_classes = false", contents)
       assert_match("config.action_view.cache_template_loading = true", contents)
     end
-    assert_file "config/boot.rb", %r{^\s*load .+/bin/spring"}
   end
 
   def test_bundler_binstub
     generator([destination_root], skip_webpack_install: true)
 
     assert_bundler_command_called("binstubs bundler")
-  end
-
-  def test_spring_binstub
-    jruby_skip "spring doesn't run on JRuby"
-
-    generator([destination_root], skip_webpack_install: true)
-
-    assert_bundler_command_called("exec spring binstub")
   end
 
   def test_spring_no_fork
@@ -898,7 +894,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_match("config.cache_classes = true", contents)
     end
     assert_file "config/boot.rb" do |contents|
-      assert_no_match %r{bin/spring}, contents
+      assert_no_match %r{spring}, contents
     end
   end
 

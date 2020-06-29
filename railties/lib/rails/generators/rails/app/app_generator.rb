@@ -94,14 +94,13 @@ module Rails
         "#{shebang}\n" + content
       end
       chmod "bin", 0755 & ~File.umask, verbose: false
+
+      remove_file "bin/spring" unless spring_install?
+      remove_file "bin/yarn" if options[:skip_javascript]
     end
 
     def bin_when_updating
       bin
-
-      if options[:skip_javascript]
-        remove_file "bin/yarn"
-      end
     end
 
     def yarn_when_updating
@@ -543,16 +542,12 @@ module Rails
         end
       end
 
-      def delete_bin_yarn
-        remove_file "bin/yarn" if options[:skip_javascript]
-      end
-
       def finish_template
         build(:leftovers)
       end
 
       public_task :apply_rails_template, :run_bundle
-      public_task :generate_bundler_binstub, :generate_spring_binstub
+      public_task :generate_bundler_binstub
       public_task :run_webpack
 
       def run_after_bundle_callbacks
