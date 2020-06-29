@@ -955,16 +955,20 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
 
     generator([destination_root], skip_webpack_install: true).stub(:rails_command, command_check) do
-      quietly { generator.invoke_all }
+      generator.stub :bundle_command, nil do
+        quietly { generator.invoke_all }
+      end
     end
 
     assert_gem "webpacker"
     assert_no_file "config/webpacker.yml"
 
     output = Dir.chdir(destination_root) do
-      `rails --help`
+      `bin/rails help`
     end
+
     assert_match(/The most common rails commands are:/, output)
+    assert_match(/webpacker:install/, output)
     assert_equal true, $?.success?
   end
 
