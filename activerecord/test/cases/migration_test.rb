@@ -1510,15 +1510,6 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     clear
   end
 
-  def test_check_pending_with_stdlib_logger
-    old, ActiveRecord::Base.logger = ActiveRecord::Base.logger, ::Logger.new($stdout)
-    quietly do
-      assert_nothing_raised { ActiveRecord::Migration::CheckPending.new(Proc.new { }).call({}) }
-    end
-  ensure
-    ActiveRecord::Base.logger = old
-  end
-
   def test_unknown_migration_version_should_raise_an_argument_error
     assert_raise(ArgumentError) { ActiveRecord::Migration[1.0] }
   end

@@ -585,9 +585,33 @@ module ActiveRecord
 
       def call(env)
         @mutex.synchronize do
+          @pools ||= connection_pools.reduce({}) do |hash, connection_pool|
+            hash[connection_pool.pool_config.connection_specification_name] = true
+            hash
+          end
+
+          @subscription_callback ||= lambda { |_, _, _, _, payload|
+            spec_name = payload[:spec_name]
+
+            unless @pools[spec_name]
+              connection_pool = retrieve_connection_pool(payload[:spec_name])
+
+              @mutex.synchronize do
+                @needs_check = true
+                @pools[spec_name] = true
+                ActiveRecord::Migration.check_pending!(connection_pool.connection)
+                @needs_check = false
+              end
+            end
+          }
+
           @watcher ||= build_watcher do
             @needs_check = true
-            ActiveRecord::Migration.check_pending!(connection)
+
+            ActiveRecord::Migration.check_pendings!(
+              @pools.keys.map { |spec_name| retrieve_connection_pool(spec_name) }
+            )
+
             @needs_check = false
           end
 
@@ -598,17 +622,26 @@ module ActiveRecord
           end
         end
 
-        @app.call(env)
+        ActiveSupport::Notifications.subscribed(@subscription_callback, "!connection.active_record") do
+          @app.call(env)
+        end
       end
 
       private
         def build_watcher(&block)
-          paths = Array(connection.migration_context.migrations_paths)
+          paths = ActiveRecord::Base.configurations.configs_for(env_name: defined?(Rails.env) ? Rails.env : nil)
+            .flat_map { |config| config.migrations_paths || Migrator.migrations_paths }
+            .uniq
+
           @file_watcher.new([], paths.index_with(["rb"]), &block)
         end
 
-        def connection
-          ActiveRecord::Base.connection
+        def connection_pools
+          ActiveRecord::Base.connection_handler.connection_pools
+        end
+
+        def retrieve_connection_pool(spec_name)
+          ActiveRecord::Base.connection_handler.retrieve_connection_pool(spec_name)
         end
     end
 
@@ -623,6 +656,12 @@ module ActiveRecord
       # Raises <tt>ActiveRecord::PendingMigrationError</tt> error if any migrations are pending.
       def check_pending!(connection = Base.connection)
         raise ActiveRecord::PendingMigrationError if connection.migration_context.needs_migration?
+      end
+
+      def check_pendings!(connection_pools)
+        connection_pools.each do |connection_pool|
+          check_pending!(connection_pool.connection)
+        end
       end
 
       def load_schema_if_pending!

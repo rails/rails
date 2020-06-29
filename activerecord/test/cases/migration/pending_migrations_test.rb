@@ -8,9 +8,22 @@ module ActiveRecord
       class PendingMigrationsTest < ActiveRecord::TestCase
         setup do
           @migration_dir = Dir.mktmpdir("activerecord-migrations-")
+          @secondary_migration_dir = Dir.mktmpdir("activerecord-migrations-secondary-")
+          @original_configurations = ActiveRecord::Base.configurations
+          @original_connection_handler = ActiveRecord::Base.connection_handler
+          @original_connection_handlers = ActiveRecord::Base.connection_handlers
 
+          ActiveRecord::Base.configurations = {
+            ActiveRecord::ConnectionHandling::DEFAULT_ENV.call => {
+              "primary" => { "adapter" => "sqlite3", "database" => ":memory:", migrations_paths: @migration_dir },
+              "secondary" => { "adapter" => "sqlite3", "database" => ":memory:", migrations_paths: @secondary_migration_dir }
+            }
+          }
+
+          ActiveRecord::Base.connection_handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
+          ActiveRecord::Base.connection_handlers = {}
+          ActiveRecord::Base.establish_connection(:primary)
           file = ActiveRecord::Base.connection.raw_connection.filename
-          @conn = ActiveRecord::Base.establish_connection adapter: "sqlite3", database: ":memory:", migrations_paths: @migration_dir
           source_db = SQLite3::Database.new file
           dest_db = ActiveRecord::Base.connection.raw_connection
           backup = SQLite3::Backup.new(dest_db, "main", source_db, "main")
@@ -23,9 +36,11 @@ module ActiveRecord
         end
 
         teardown do
-          @conn.release_connection if @conn
-          ActiveRecord::Base.establish_connection :arunit
+          ActiveRecord::Base.configurations = @original_configurations
+          ActiveRecord::Base.connection_handler = @original_connection_handler
+          ActiveRecord::Base.connection_handlers = @original_connection_handlers
           FileUtils.rm_rf(@migration_dir)
+          FileUtils.rm_rf(@secondary_migration_dir)
         end
 
         def run_migrations
@@ -33,9 +48,9 @@ module ActiveRecord
           capture(:stdout) { migrator.migrate }
         end
 
-        def create_migration(number, name)
+        def create_migration(number, name, migration_dir: nil)
           filename = "#{number}_#{name.underscore}.rb"
-          File.write(File.join(@migration_dir, filename), <<~RUBY)
+          File.write(File.join(migration_dir || @migration_dir, filename), <<~RUBY)
             class #{name.classify} < ActiveRecord::Migration::Current
             end
           RUBY
@@ -99,6 +114,45 @@ module ActiveRecord
           assert_raises ActiveRecord::PendingMigrationError do
             check_pending.call({})
           end
+        end
+
+        def test_with_multiple_database
+          create_migration "01", "create_bar", migration_dir: @secondary_migration_dir
+
+          check_pending = CheckPending.new(@app)
+
+          @app.expect :call, nil, [{}]
+          check_pending.call({})
+          @app.verify
+
+          assert_raises ActiveRecord::PendingMigrationError do
+            @app.expect(:call, nil) do
+              ActiveRecord::Base.connection_handler.establish_connection(:secondary)
+            end
+
+            check_pending.call({})
+          end
+
+          assert_raises ActiveRecord::PendingMigrationError do
+            check_pending.call({})
+          end
+
+          connection = ActiveRecord::Base.connection_handler.retrieve_connection_pool("secondary").connection
+          migrator = connection.migration_context
+          capture(:stdout) { migrator.migrate }
+
+          @app.expect :call, nil, [{}]
+          check_pending.call({})
+          @app.verify
+        end
+
+        def test_with_stdlib_logger
+          old, ActiveRecord::Base.logger = ActiveRecord::Base.logger, ::Logger.new($stdout)
+          quietly do
+            assert_nothing_raised { ActiveRecord::Migration::CheckPending.new(Proc.new { }).call({}) }
+          end
+        ensure
+          ActiveRecord::Base.logger = old
         end
       end
     end
