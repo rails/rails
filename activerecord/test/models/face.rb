@@ -2,6 +2,7 @@
 
 class Face < ActiveRecord::Base
   belongs_to :human, inverse_of: :face
+  belongs_to :autosave_human, class_name: "Human", foreign_key: :human_id, inverse_of: :autosave_face
   belongs_to :super_human, polymorphic: true
   belongs_to :polymorphic_human, polymorphic: true, inverse_of: :polymorphic_face
   # Oracle identifier length is limited to 30 bytes or less, `polymorphic` renamed `poly`

@@ -1,3 +1,9 @@
+*   Allow the inverse of a `has_one` association that was previously autosaved to be loaded.
+
+    Fixes #34255.
+
+    *Steven Weber*
+
 *   Optimise the length of index names for polymorphic references by using the reference name rather than the type and id column names.
 
     Because the default behaviour when adding an index with multiple columns is to use all column names in the index name, this could frequently lead to overly long index names for polymorphic references which would fail the migration if it exceeded the database limit.
