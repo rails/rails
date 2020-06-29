@@ -2092,11 +2092,11 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
   end
 
   def test_unicode_path
-    assert_equal({ controller: "news", action: "index" }, @routes.recognize_path(URI.parser.escape("こんにちは/世界"), method: :get))
+    assert_equal({ controller: "news", action: "index" }, @routes.recognize_path(URI::DEFAULT_PARSER.escape("こんにちは/世界"), method: :get))
   end
 
   def test_downcased_unicode_path
-    assert_equal({ controller: "news", action: "index" }, @routes.recognize_path(URI.parser.escape("こんにちは/世界").downcase, method: :get))
+    assert_equal({ controller: "news", action: "index" }, @routes.recognize_path(URI::DEFAULT_PARSER.escape("こんにちは/世界").downcase, method: :get))
   end
 
   private

@@ -325,7 +325,7 @@ module ApplicationTests
       # Load app env
       app "development"
 
-      get "/assets/#{URI.parser.escape(asset_path)}"
+      get "/assets/#{URI::DEFAULT_PARSER.escape(asset_path)}"
       assert_match "not an image really", last_response.body
       assert_file_exists("#{app_path}/public/assets/#{asset_path}")
     end

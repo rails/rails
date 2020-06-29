@@ -1990,7 +1990,7 @@ module ActionDispatch
               name_for_action(options.delete(:as), action)
             end
 
-            path = Mapping.normalize_path URI.parser.escape(path), formatted
+            path = Mapping.normalize_path URI::DEFAULT_PARSER.escape(path), formatted
             ast = Journey::Parser.parse path
 
             mapping = Mapping.build(@scope, @set, ast, controller, default_action, to, via, formatted, options_constraints, anchor, options)

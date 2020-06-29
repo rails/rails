@@ -20,7 +20,7 @@ class Rails::InfoController < Rails::ApplicationController # :nodoc:
 
   def routes
     if path = params[:path]
-      path = URI.parser.escape path
+      path = URI::DEFAULT_PARSER.escape path
       normalized_path = with_leading_slash path
       render json: {
         exact: match_route { |it| it.match normalized_path },
