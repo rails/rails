@@ -880,12 +880,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_spring_no_fork
-    jruby_skip "spring doesn't run on JRuby"
-    assert_called_with(Process, :respond_to?, [[:fork], [:fork], [:fork], [:fork]], returns: false) do
+    respond_to = Process.method(:respond_to?)
+    respond_to_stub = -> (name) { name != :fork && respond_to[name] }
+    Process.stub(:respond_to?, respond_to_stub) do
       run_generator
-
-      assert_no_gem "spring"
     end
+
+    assert_no_gem "spring"
   end
 
   def test_skip_spring
