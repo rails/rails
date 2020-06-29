@@ -149,7 +149,8 @@ module ActiveSupport
             expires_in += 5.minutes
           end
           rescue_error_with false do
-            @data.with { |c| c.send(method, key, value, expires_in, **options) }
+            # The value "compress: false" prevents duplicate compression within Dalli.
+            @data.with { |c| c.send(method, key, value, expires_in, **options, compress: false) }
           end
         end
 
