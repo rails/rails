@@ -844,6 +844,10 @@ module ActiveRecord
           full_version_string.match(/^(?:5\.5\.5-)?(\d+\.\d+\.\d+)/)[1]
         end
 
+        # Alias MysqlString to work Mashal.load(File.read("legacy_record.dump")).
+        # TODO: Remove the constant alias once Rails 6.1 has released.
+        MysqlString = Type::String # :nodoc:
+
         ActiveRecord::Type.register(:immutable_string, adapter: :mysql2) do |_, **args|
           Type::ImmutableString.new(true: "1", false: "0", **args)
         end

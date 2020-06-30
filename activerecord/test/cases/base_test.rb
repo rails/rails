@@ -1226,6 +1226,21 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal 1, post.comments.length
   end
 
+  if current_adapter?(:Mysql2Adapter)
+    def test_marshal_load_legacy_6_0_record_mysql
+      path = File.expand_path(
+        "support/marshal_compatibility_fixtures/legacy_6_0_record_mysql.dump",
+        TEST_ROOT
+      )
+      topic = Marshal.load(File.read(path))
+
+      assert_not_predicate topic, :new_record?
+      assert_equal 1, topic.id
+      assert_equal "The First Topic", topic.title
+      assert_equal "Have a nice day", topic.content
+    end
+  end
+
   if Process.respond_to?(:fork) && !in_memory_db?
     def test_marshal_between_processes
       # Define a new model to ensure there are no caches
