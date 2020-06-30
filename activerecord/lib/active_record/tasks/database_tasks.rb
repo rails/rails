@@ -241,6 +241,23 @@ module ActiveRecord
         Migration.verbose = verbose_was
       end
 
+      def migrate_all
+        original_db_config = ActiveRecord::Base.connection_db_config
+
+        each_local_configuration do |db_config|
+          ActiveRecord::Base.establish_connection(db_config)
+          migrate
+
+          if ActiveRecord::Base.dump_schema_after_migration
+            dump_schema(db_config, ActiveRecord::Base.schema_format)
+          end
+        end
+      ensure
+        if original_db_config
+          ActiveRecord::Base.establish_connection(original_db_config)
+        end
+      end
+
       def migrate_status
         unless ActiveRecord::Base.connection.schema_migration.table_exists?
           Kernel.abort "Schema migrations table does not exist yet."

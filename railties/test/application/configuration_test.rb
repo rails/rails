@@ -153,14 +153,24 @@ module ApplicationTests
 
       app "development"
 
-      ActiveRecord::Migrator.migrations_paths = ["#{app_path}/db/migrate"]
-
       begin
+        original_migration_paths = ActiveRecord::Migrator.migrations_paths
+        ActiveRecord::Migrator.migrations_paths = ["#{app_path}/db/migrate"]
+
         get "/foo"
         assert_equal 500, last_response.status
         assert_match "ActiveRecord::PendingMigrationError", last_response.body
+
+        silence_stream($stdout) do
+          post "/rails/actions", { error: "ActiveRecord::PendingMigrationError", action: "Run pending migrations" }
+        end
+
+        assert_equal 302, last_response.status
+
+        get "/foo"
+        assert_equal 404, last_response.status
       ensure
-        ActiveRecord::Migrator.migrations_paths = nil
+        ActiveRecord::Migrator.migrations_paths = original_migration_paths
       end
     end
 

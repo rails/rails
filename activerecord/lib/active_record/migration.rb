@@ -134,7 +134,7 @@ module ActiveRecord
     include ActiveSupport::ActionableError
 
     action "Run pending migrations" do
-      ActiveRecord::Tasks::DatabaseTasks.migrate
+      ActiveRecord::Tasks::DatabaseTasks.migrate_all
     end
 
     def initialize(message = nil)
