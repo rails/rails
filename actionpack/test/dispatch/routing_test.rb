@@ -4538,9 +4538,13 @@ class TestInvalidUrls < ActionDispatch::IntegrationTest
     with_routing do |set|
       set.draw do
         get "/foo/show(/:id)", to: "test_invalid_urls/foo#show"
+        get "/bar/show(/:id)", controller: "test_invalid_urls/foo", action: "show"
       end
 
       get "/foo/show/%E2%EF%BF%BD%A6"
+      assert_response :ok
+
+      get "/bar/show/%E2%EF%BF%BD%A6"
       assert_response :ok
     end
   end
