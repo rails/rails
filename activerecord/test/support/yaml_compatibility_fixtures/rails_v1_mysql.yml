@@ -58,7 +58,6 @@ attributes: !ruby/object:ActiveRecord::AttributeSet
           scale: 
           limit: 65535
         coder: !ruby/object:ActiveRecord::Coders::YAMLColumn
-          attr_name: :content
           object_class: !ruby/class 'Object'
         delegate_dc_obj: *2
       important: *2
