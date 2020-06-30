@@ -89,7 +89,7 @@ module ActionDispatch
           return params unless controller && controller.valid_encoding?
 
           if binary_params_for?(controller, action)
-            ActionDispatch::Request::Utils.each_param_value(params) do |param|
+            ActionDispatch::Request::Utils.each_param_value(params.except(:controller, :action)) do |param|
               param.force_encoding ::Encoding::ASCII_8BIT
             end
           end

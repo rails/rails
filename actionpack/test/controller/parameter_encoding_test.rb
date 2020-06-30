@@ -15,7 +15,7 @@ class ParameterEncodingController < ActionController::Base
   end
 
   def test_all_values_encoding
-    render body: ::JSON.dump(params.values.map(&:encoding).map(&:name))
+    render body: ::JSON.dump(params.except(:action, :controller).values.map(&:encoding).map(&:name))
   end
 end
 
