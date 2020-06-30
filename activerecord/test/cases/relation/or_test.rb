@@ -82,9 +82,9 @@ module ActiveRecord
     end
 
     def test_or_with_unscope_order
-      expected = Post.where("id = 1 or id = 2")
-      assert_equal expected, Post.order("body asc").where("id = 1").unscope(:order).or(Post.where("id = 2")).to_a
-      assert_equal expected, Post.order(:id).where("id = 1").or(Post.order(:id).where("id = 2").unscope(:order)).to_a
+      expected = Post.where("id = 1 or id = 2").sort_by(&:id)
+      assert_equal expected, Post.order("body asc").where("id = 1").unscope(:order).or(Post.where("id = 2")).sort_by(&:id)
+      assert_equal expected, Post.order(:id).where("id = 1").or(Post.order(:id).where("id = 2").unscope(:order)).sort_by(&:id)
     end
 
     def test_or_with_incompatible_unscope
