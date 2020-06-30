@@ -1004,6 +1004,14 @@ class CalculationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_pluck_loaded_relation_aliased_attribute
+    companies = Company.order(:id).limit(3).load
+
+    assert_queries(0) do
+      assert_equal ["37signals", "Summit", "Microsoft"], companies.pluck(:new_name)
+    end
+  end
+
   def test_pick_one
     assert_equal "The First Topic", Topic.order(:id).pick(:heading)
     assert_no_queries do
@@ -1046,6 +1054,14 @@ class CalculationsTest < ActiveRecord::TestCase
 
     assert_queries 1 do
       assert_equal "37signals", companies.pick(Arel.sql("DISTINCT name"))
+    end
+  end
+
+  def test_pick_loaded_relation_aliased_attribute
+    companies = Company.order(:id).limit(3).load
+
+    assert_no_queries do
+      assert_equal "37signals", companies.pick(:new_name)
     end
   end
 
