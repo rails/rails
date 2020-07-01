@@ -515,6 +515,10 @@ class AssetTagHelperTest < ActionView::TestCase
     ActionView::Helpers::AssetTagHelper.apply_stylesheet_media_default = original_default_media
   end
 
+  def test_stylesheet_link_tag_with_nonce
+    assert_dom_equal %(<link href="http://www.example.com/styles/style.css" rel="stylesheet" nonce="iyhD0Yc0W+c=" />), stylesheet_link_tag("http://www.example.com/styles/style.css", nonce: true)
+  end
+
   def test_javascript_include_tag_without_request
     @request = nil
     assert_dom_equal %(<script src="/javascripts/foo.js"></script>), javascript_include_tag("foo.js")

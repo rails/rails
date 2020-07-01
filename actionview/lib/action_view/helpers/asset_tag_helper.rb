@@ -128,6 +128,22 @@ module ActionView
       # If the server supports Early Hints header links for these assets will be
       # automatically pushed.
       #
+      # ==== Options
+      #
+      # When the last parameter is a hash you can add HTML attributes using that
+      # parameter. The following options are supported:
+      #
+      # * <tt>:protocol</tt>  - Sets the protocol of the generated URL. This option only
+      #   applies when a relative URL and +host+ options are provided.
+      # * <tt>:host</tt>  - When a relative URL is provided the host is added to the
+      #   that path.
+      # * <tt>:skip_pipeline</tt>  - This option is used to bypass the asset pipeline
+      #   when it is set to true.
+      # * <tt>:nonce</tt>  - When set to true, adds an automatic nonce value if
+      #   you have Content Security Policy enabled.
+      #
+      # ==== Examples
+      #
       #   stylesheet_link_tag "style"
       #   # => <link href="/assets/style.css" rel="stylesheet" />
       #
@@ -146,6 +162,9 @@ module ActionView
       #   stylesheet_link_tag "random.styles", "/css/stylish"
       #   # => <link href="/assets/random.styles" rel="stylesheet" />
       #   #    <link href="/css/stylish.css" rel="stylesheet" />
+      #
+      #   stylesheet_link_tag "style", nonce: true
+      #   # => <link href="/assets/style.css" rel="stylesheet" nonce="..." />
       def stylesheet_link_tag(*sources)
         options = sources.extract_options!.stringify_keys
         path_options = options.extract!("protocol", "host", "skip_pipeline").symbolize_keys
@@ -174,6 +193,9 @@ module ActionView
             tag_options[:media] = "screen"
           end
 
+          if tag_options["nonce"] == true
+            tag_options["nonce"] = content_security_policy_nonce
+          end
           tag(:link, tag_options)
         }.join("\n").html_safe
 

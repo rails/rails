@@ -1,3 +1,7 @@
+*   Add a `nonce: true` option to the `stylesheet_link_tag` helper to support automatic nonce generation for Content Security Policies.
+
+    *AJ Esler*
+
 *   Remove legacy default `media=screen` from `stylesheet_link_tag`.
 
     *André Luis Leal Cardoso Junior*
