@@ -219,12 +219,6 @@ module ActiveModel
 
     test "marshalling dump/load legacy materialized attribute hash" do
       builder = AttributeSet::Builder.new(foo: Type::String.new)
-
-      def builder.build_from_database(values = {}, additional_types = {})
-        attributes = LazyAttributeHash.new(types, values, additional_types, default_attributes)
-        AttributeSet.new(attributes)
-      end
-
       attributes = builder.build_from_database(foo: "1")
 
       attributes.instance_variable_get(:@attributes).instance_eval do

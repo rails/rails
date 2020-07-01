@@ -13,7 +13,8 @@ module ActiveModel
       end
 
       def build_from_database(values = {}, additional_types = {})
-        LazyAttributeSet.new(values, types, additional_types, default_attributes)
+        attributes = LazyAttributeHash.new(types, values, additional_types, default_attributes)
+        AttributeSet.new(attributes)
       end
     end
   end
