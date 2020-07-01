@@ -112,11 +112,15 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     setup do
       @namespace = "test-#{SecureRandom.hex}"
 
-      @cache = ActiveSupport::Cache::RedisCacheStore.new(timeout: 0.1, namespace: @namespace, expires_in: 60, driver: DRIVER)
+      @cache = lookup_store(expires_in: 60)
       # @cache.logger = Logger.new($stdout)  # For test debugging
 
       # For LocalCacheBehavior tests
-      @peek = ActiveSupport::Cache::RedisCacheStore.new(timeout: 0.1, namespace: @namespace, driver: DRIVER)
+      @peek = lookup_store(expires_in: 60)
+    end
+
+    def lookup_store(options = {})
+      ActiveSupport::Cache.lookup_store(:redis_cache_store, { timeout: 0.1, namespace: @namespace, driver: DRIVER }.merge(options))
     end
 
     teardown do
@@ -128,6 +132,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
   class RedisCacheStoreCommonBehaviorTest < StoreTest
     include CacheStoreBehavior
     include CacheStoreVersionBehavior
+    include CacheStoreCoderBehavior
     include LocalCacheBehavior
     include CacheIncrementDecrementBehavior
     include CacheInstrumentationBehavior

@@ -26,6 +26,8 @@ module ActiveSupport
     # MemCacheStore implements the Strategy::LocalCache strategy which implements
     # an in-memory cache inside of a block.
     class MemCacheStore < Store
+      DEFAULT_CODER = NullCoder # Dalli automatically Marshal values
+
       # Provide support for raw values in the local cache strategy.
       module LocalCacheWithRaw # :nodoc:
         private
@@ -142,7 +144,7 @@ module ActiveSupport
         # Write an entry to the cache.
         def write_entry(key, entry, **options)
           method = options[:unless_exist] ? :add : :set
-          value = options[:raw] ? entry.value.to_s : entry
+          value = options[:raw] ? entry.value.to_s : serialize_entry(entry)
           expires_in = options[:expires_in].to_i
           if options[:race_condition_ttl] && expires_in > 0 && !options[:raw]
             # Set the memcache expire a few minutes in the future to support race condition ttls on read
@@ -188,10 +190,10 @@ module ActiveSupport
           key
         end
 
-        def deserialize_entry(entry)
-          if entry
-            entry.is_a?(Entry) ? entry : Entry.new(entry, compress: false)
-          end
+        def deserialize_entry(payload)
+          entry = super
+          entry = Entry.new(entry, compress: false) if entry && !entry.is_a?(Entry)
+          entry
         end
 
         def rescue_error_with(fallback)
