@@ -197,7 +197,8 @@ module ActionDispatch
             def call(t, method_name, args, inner_options, url_strategy)
               if args.size == arg_size && !inner_options && optimize_routes_generation?(t)
                 options = t.url_options.merge @options
-                options[:path] = optimized_helper(args)
+                default_params = options.fetch(:_recall, {})
+                options[:path] = optimized_helper(args, default_params)
 
                 original_script_name = options.delete(:original_script_name)
                 script_name = t._routes.find_script_name(options)
@@ -215,12 +216,12 @@ module ActionDispatch
             end
 
             private
-              def optimized_helper(args)
+              def optimized_helper(args, default_params)
                 params = parameterize_args(args) do
                   raise_generation_error(args)
                 end
 
-                @route.format params
+                @route.format default_params.merge(params)
               end
 
               def optimize_routes_generation?(t)

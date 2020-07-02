@@ -1,3 +1,24 @@
+*   Fix linking to resources when generating routes with optional scope.
+    
+    When a resource was defined within an optional scope, if that route didn't
+    take parameters the scope was lost when using path helpers. 
+    
+    For example:
+    ```ruby
+    scope "(:account)" do
+      resources :courses
+    end
+    ```
+    
+    If we were on `example.com/5/courses`, and we did not pass parameters 
+    to `courses_path` would generate `example.com/courses`. 
+    
+    This commit amends the url helper so that `courses_path` 
+    would return `example.com/5/courses`
+    
+    Fixes #12178.
+
+    *Dainius Puzas*
 *   Fix `follow_redirect!` to follow redirection with same HTTP verb when following
     a 308 redirection.
 

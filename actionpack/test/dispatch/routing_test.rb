@@ -5080,6 +5080,47 @@ class TestOptionalScopesWithOrWithoutParams < ActionDispatch::IntegrationTest
   end
 end
 
+class TestOptionalScopesWithResources < ActionDispatch::IntegrationTest
+  Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
+    app.draw do
+      scope module: "test_optional_scopes_with_resources" do
+        scope "(:account)" do
+          resources :users
+        end
+      end
+    end
+  end
+
+  class UsersController < ActionController::Base
+    include Routes.url_helpers
+
+    def index
+      render plain: users_path
+    end
+
+    def edit
+      render plain: edit_user_path(1)
+    end
+  end
+
+  APP = build_app Routes
+
+  def app
+    APP
+  end
+
+  def test_optional_scope_without_constraints
+    get "/users"
+    assert_equal "/users", response.body
+
+    get "/5/users"
+    assert_equal "/5/users", response.body
+
+    get "/5/users/1/edit"
+    assert_equal "/5/users/1/edit", response.body
+  end
+end
+
 class TestPathParameters < ActionDispatch::IntegrationTest
   Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
     app.draw do
