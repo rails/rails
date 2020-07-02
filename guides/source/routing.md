@@ -592,7 +592,7 @@ TIP: By default, dynamic segments don't accept dots - this is because the dot is
 
 ### Static Segments
 
-You can specify static segments when creating a route by not prepending a colon to a fragment:
+You can specify static segments when creating a route by not prepending a colon to a segment:
 
 ```ruby
 get 'photos/:id/with_user/:user_id', to: 'photos#show'
@@ -759,7 +759,7 @@ Route globbing is a way to specify that a particular parameter should be matched
 get 'photos/*other', to: 'photos#unknown'
 ```
 
-This route would match `photos/12` or `/photos/long/path/to/12`, setting `params[:other]` to `"12"` or `"long/path/to/12"`. The fragments prefixed with a star are called "wildcard segments".
+This route would match `photos/12` or `/photos/long/path/to/12`, setting `params[:other]` to `"12"` or `"long/path/to/12"`. The segments prefixed with a star are called "wildcard segments".
 
 Wildcard segments can occur anywhere in a route. For example:
 
