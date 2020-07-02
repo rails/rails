@@ -233,7 +233,7 @@ module ActionDispatch
                   key = @required_parts[i]
                   value = args[i].to_param
                   if key != :id
-                    value = args[i].try(key) || value
+                    value = args[i].try(key).try(:to_s) || value
                   end
                   yield key if value.nil? || value.empty?
                   params[key] = value
