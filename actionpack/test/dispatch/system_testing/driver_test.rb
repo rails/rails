@@ -14,7 +14,7 @@ class DriverTest < ActiveSupport::TestCase
     driver = ActionDispatch::SystemTesting::Driver.new(:selenium, using: :chrome, screen_size: [1400, 1400], options: { url: "http://example.com/wd/hub" })
     assert_equal :selenium, driver.instance_variable_get(:@name)
     assert_equal :chrome, driver.instance_variable_get(:@browser).name
-    assert_nil driver.instance_variable_get(:@browser).options
+    assert_instance_of Selenium::WebDriver::Chrome::Options, driver.instance_variable_get(:@browser).options
     assert_equal [1400, 1400], driver.instance_variable_get(:@screen_size)
     assert_equal ({ url: "http://example.com/wd/hub" }), driver.instance_variable_get(:@options)
   end
