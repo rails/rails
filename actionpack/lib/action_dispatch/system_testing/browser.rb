@@ -26,8 +26,8 @@ module ActionDispatch
           headless_chrome_browser_options
         when :headless_firefox
           headless_firefox_browser_options
-        when :chrome
-          chrome_browser_options
+        else
+          capabilities
         end
       end
 
@@ -72,10 +72,6 @@ module ActionDispatch
           capabilities
         end
         
-        def chrome_browser_options
-          capabilities
-        end
-
         def headless_firefox_browser_options
           capabilities.args << "-headless"
 
