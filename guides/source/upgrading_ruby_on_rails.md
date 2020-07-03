@@ -967,6 +967,14 @@ interacting with models, but also affects `:default` column settings in `db/sche
 It is recommended that you do not set columns equal to a `String`, but pass a `Hash`
 instead, which will be converted to and from a JSON string automatically.
 
+### Submit Buttons `disable_with` by Default
+
+In Rails 5.0, any `submit_tag` or `f.submit` is automatically disabled on submit to
+prevent double submits. If you have any client-side validation, this can be an issue.
+Opt out on a button-by-button basis with e.g.
+
+    <%= submit_tag "Submit", data: { disable_with: false }} %>
+
 Upgrading from Rails 4.1 to Rails 4.2
 -------------------------------------
 
