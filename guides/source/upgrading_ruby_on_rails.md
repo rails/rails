@@ -973,7 +973,7 @@ In Rails 5.0, any `submit_tag` or `f.submit` is automatically disabled on submit
 prevent double submits. If you have any client-side validation, this can be an issue.
 Opt out on a button-by-button basis with e.g.
 
-    <%= submit_tag "Submit", data: { disable_with: false }} %>
+    <%= submit_tag "Submit", { data: { disable_with: false } } %>
 
 Upgrading from Rails 4.1 to Rails 4.2
 -------------------------------------
