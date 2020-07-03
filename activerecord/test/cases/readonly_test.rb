@@ -44,6 +44,34 @@ class ReadOnlyTest < ActiveRecord::TestCase
     Developer.readonly.each { |d| assert d.readonly? }
   end
 
+  def test_build_with_readonly_option
+    assert_not_predicate Developer.all.new, :readonly?
+    assert_deprecated do
+      assert_not_predicate Developer.readonly.new, :readonly?
+    end
+    assert_predicate Developer.readonly(:new).new, :readonly?
+
+    assert_not_predicate Developer.all.build, :readonly?
+    assert_deprecated do
+      assert_not_predicate Developer.readonly.build, :readonly?
+    end
+    assert_predicate Developer.readonly(:build).build, :readonly?
+  end
+
+  def test_create_with_readonly_option
+    assert_not_predicate Developer.all.create(name: "omg"), :readonly?
+    assert_deprecated do
+      assert_not_predicate Developer.readonly.create(name: "omg"), :readonly?
+      assert_not_predicate Developer.readonly.create([name: "omg"]).first, :readonly?
+    end
+
+    assert_not_predicate Developer.all.create!(name: "omg"), :readonly?
+    assert_deprecated do
+      assert_not_predicate Developer.readonly.create!(name: "omg"), :readonly?
+      assert_not_predicate Developer.readonly.create!([name: "omg"]).first, :readonly?
+    end
+  end
+
   def test_find_with_joins_option_does_not_imply_readonly
     Developer.joins("  ").each { |d| assert_not d.readonly? }
     Developer.joins("  ").readonly(true).each { |d| assert d.readonly? }

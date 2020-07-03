@@ -852,7 +852,7 @@ module ActiveRecord
       where!("1=0").extending!(NullRelation)
     end
 
-    # Sets readonly attributes for the returned relation. If value is
+    # Sets the returned relation to readonly mode. If value is
     # true (default), attempting to update a record will result in an error.
     #
     #   users = User.readonly

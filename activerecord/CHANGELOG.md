@@ -1,3 +1,8 @@
+*   Deprecate calling `create` and `create!` on a read-only relation, and deprecate
+    `new` and `build` returning saveable records when called on a read-only relation.
+
+    *Eugene Kenny*
+
 *   Support `where` with comparison operators (`>`, `>=`, `<`, and `<=`).
 
     ```ruby

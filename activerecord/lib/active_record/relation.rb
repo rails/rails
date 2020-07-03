@@ -67,7 +67,20 @@ module ActiveRecord
     #   user.name # => Oscar
     def new(attributes = nil, &block)
       block = _deprecated_scope_block("new", &block)
-      scoping { klass.new(attributes, &block) }
+      scoping do
+        record = klass.new(attributes, &block)
+
+        if readonly_value == __callee__
+          record.readonly!
+        elsif readonly_value
+          ActiveSupport::Deprecation.warn(<<~MSG.squish)
+            Calling #{__callee__} on a read-only relation will return a read-only record in Rails 6.2.
+            To build a read-only record now, add readonly(:#{__callee__}) to the current scope.
+          MSG
+        end
+
+        record
+      end
     end
 
     alias build new
@@ -92,6 +105,12 @@ module ActiveRecord
     #   users.create(name: nil) # validation on name
     #   # => #<User id: nil, name: nil, ...>
     def create(attributes = nil, &block)
+      if readonly_value
+        ActiveSupport::Deprecation.warn(<<~MSG.squish)
+          Calling create on a read-only relation will raise an error in Rails 6.2.
+        MSG
+      end
+
       if attributes.is_a?(Array)
         attributes.collect { |attr| create(attr, &block) }
       else
@@ -107,6 +126,12 @@ module ActiveRecord
     # Expects arguments in the same format as
     # {ActiveRecord::Base.create!}[rdoc-ref:Persistence::ClassMethods#create!].
     def create!(attributes = nil, &block)
+      if readonly_value
+        ActiveSupport::Deprecation.warn(<<~MSG.squish)
+          Calling create! on a read-only relation will raise an error in Rails 6.2.
+        MSG
+      end
+
       if attributes.is_a?(Array)
         attributes.collect { |attr| create!(attr, &block) }
       else
