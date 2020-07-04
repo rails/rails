@@ -29,7 +29,7 @@ pre, code {
   font-size: 1em;
   font-family: "Anonymous Pro", "Inconsolata", "Menlo", "Consolas", "Bitstream Vera Sans Mono", "Courier New", monospace;
   line-height: 1.5;
-  margin: 1.5em 0;
+  margin: 1em 0;
   overflow: auto;
   color: #222;
 }
@@ -729,11 +729,8 @@ div.important p, div.caution p, div.warning p, div.note p, div.info p {
 }
 
 /* When triple-clicking shell code, select only the command, not the prompt */
-code.language-shell-session span.token.command {
-  display: inline-flex;
-}
-span.token.sh.important {
-  margin-right: 0.5em;
+code.highlight.console span.w {
+  display: table-cell;
 }
 
 /* Edge Badge
