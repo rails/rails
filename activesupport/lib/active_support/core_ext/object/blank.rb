@@ -102,6 +102,7 @@ end
 
 class String
   BLANK_RE = /\A[[:space:]]*\z/
+  ZERO_WIDTH_SPACE_RE = /^\u200B+/
   ENCODED_BLANKS = Concurrent::Map.new do |h, enc|
     h[enc] = Regexp.new(BLANK_RE.source.encode(enc), BLANK_RE.options | Regexp::FIXEDENCODING)
   end
@@ -124,7 +125,7 @@ class String
     # penalty for the rest of strings is marginal.
     empty? ||
       begin
-        BLANK_RE.match?(self)
+        ZERO_WIDTH_SPACE_RE.match?(self) || BLANK_RE.match?(self)
       rescue Encoding::CompatibilityError
         ENCODED_BLANKS[self.encoding].match?(self)
       end
