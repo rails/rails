@@ -388,6 +388,94 @@ module ApplicationTests
       assert_policy "default-src 'self' https:"
     end
 
+    test "global content security policy for JSON requests in an initializer" do
+      controller :pages, <<-RUBY
+        class PagesController < ApplicationController
+          def index
+            render json: { some: "json" }
+          end
+        end
+      RUBY
+
+      app_file "config/initializers/content_security_policy.rb", <<-RUBY
+        Rails.application.config.content_security_policy do |format|
+          format.json do |p|
+            p.default_src :none
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          root to: "pages#index"
+        end
+      RUBY
+
+      app("development")
+
+      get "/"
+      assert_policy "default-src 'none'"
+    end
+
+    test "override content security policy for JSON requests in a controller" do
+      controller :pages, <<-RUBY
+        class PagesController < ApplicationController
+          content_security_policy do |format|
+            format.json do |p|
+              p.default_src :none
+            end
+          end
+
+          def index
+            render json: { some: "json" }
+          end
+        end
+      RUBY
+
+      app_file "config/initializers/content_security_policy.rb", <<-RUBY
+        Rails.application.config.content_security_policy do |p|
+          p.default_src :self, :https
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          root to: "pages#index"
+        end
+      RUBY
+
+      app("development")
+
+      get "/"
+      assert_policy "default-src 'none'"
+    end
+
+    test "global content security policy for JSON requests added to rack app" do
+      app_file "config/initializers/content_security_policy.rb", <<-RUBY
+        Rails.application.config.content_security_policy do |format|
+          format.json do |p|
+            p.default_src :none
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+
+          app = ->(env) {
+            [200, { "Content-Type" => "application/json" }, ["{\\"some\\": \\"json\\"}"]]
+          }
+
+          root to: app
+        end
+      RUBY
+
+      app("development")
+
+      get "/"
+      assert_policy "default-src 'none'"
+    end
+
     private
       def assert_policy(expected, report_only: false)
         assert_equal 200, last_response.status

@@ -167,6 +167,11 @@ module ActionDispatch #:nodoc:
       yield self
     end
 
+    # TODO: this isn't going to pan out
+    def json
+      yield self
+    end
+
     def block_all_mixed_content(enabled = true)
       if enabled
         @directives["block-all-mixed-content"] = true
