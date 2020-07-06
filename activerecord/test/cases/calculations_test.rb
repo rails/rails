@@ -655,6 +655,11 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 0, Account.where("1 = 2").sum("2 * credit_limit")
   end
 
+  def test_sum_expression_with_distinct
+    assert_equal 318, Account.distinct.sum(&:credit_limit)
+    assert_equal 218, Account.distinct.sum("credit_limit")
+  end
+
   def test_count_with_from_option
     assert_equal Company.count(:all), Company.from("companies").count(:all)
     assert_equal Account.where("credit_limit = 50").count(:all),

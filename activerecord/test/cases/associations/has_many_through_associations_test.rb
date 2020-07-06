@@ -1258,32 +1258,6 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal ["parrot", "bulbul"], owner.toys.map { |r| r.pet.name }
   end
 
-  def test_has_many_through_associations_sum_on_columns
-    post1 = Post.create(title: "active", body: "sample")
-    post2 = Post.create(title: "inactive", body: "sample")
-
-    person1 = Person.create(first_name: "aaron", followers_count: 1)
-    person2 = Person.create(first_name: "schmit", followers_count: 2)
-    person3 = Person.create(first_name: "bill", followers_count: 3)
-    person4 = Person.create(first_name: "cal", followers_count: 4)
-
-    Reader.create(post_id: post1.id, person_id: person1.id)
-    Reader.create(post_id: post1.id, person_id: person2.id)
-    Reader.create(post_id: post1.id, person_id: person3.id)
-    Reader.create(post_id: post1.id, person_id: person4.id)
-
-    Reader.create(post_id: post2.id, person_id: person1.id)
-    Reader.create(post_id: post2.id, person_id: person2.id)
-    Reader.create(post_id: post2.id, person_id: person3.id)
-    Reader.create(post_id: post2.id, person_id: person4.id)
-
-    active_persons = Person.joins(:readers).joins(:posts).distinct(true).where("posts.title" => "active")
-
-    assert_equal active_persons.map(&:followers_count).reduce(:+), 10
-    assert_equal active_persons.sum(:followers_count), 10
-    assert_equal active_persons.sum(:followers_count), active_persons.map(&:followers_count).reduce(:+)
-  end
-
   def test_has_many_through_associations_on_new_records_use_null_relations
     person = Person.new
 
