@@ -1,8 +1,15 @@
 import adapters from "./adapters"
 
-// The logger can be enabled with:
+// The logger is disabled by default. You can enable it with:
 //
 //   ActionCable.logger.enabled = true
+//
+//   Example:
+//
+//   import * as ActionCable from '@rails/actioncable'
+//
+//   ActionCable.logger.enabled = true
+//   ActionCable.logger.log('Connection Established.')
 //
 
 export default {
