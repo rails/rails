@@ -16,7 +16,7 @@ class BlankTest < ActiveSupport::TestCase
     end
   end
 
-  BLANK = [ EmptyTrue.new, nil, false, "", "   ", "  \n\t  \r ", "　", "\u00a0", "\u200b", "\u200B", "\u200b  ", "  \u200b", "  \u200b  ", [], {}, " ".encode("UTF-16LE") ]
+  BLANK = [ EmptyTrue.new, nil, false, "", "   ", "  \n\t  \r ", "　", "\u00a0", "\u200b", "\u200B", "\u200b  ", "  \u200b", "  \u200b  ", "\uFEFF",  [], {}, " ".encode("UTF-16LE") ]
   NOT   = [ EmptyFalse.new, Object.new, true, 0, 1, "a", [nil], { nil => 0 }, Time.now, "my value".encode("UTF-16LE") ]
 
   def test_blank

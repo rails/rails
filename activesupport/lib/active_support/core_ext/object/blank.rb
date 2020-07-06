@@ -101,7 +101,7 @@ class Hash
 end
 
 class String
-  BLANK_RE = /\A[[:space:]\u200B]*\z/
+  BLANK_RE = /\A[[:space:]#{"\u200B"}#{"\uFEFF"}]*\z/
   ENCODED_BLANKS = Concurrent::Map.new do |h, enc|
     h[enc] = Regexp.new(BLANK_RE.source.encode(enc), BLANK_RE.options | Regexp::FIXEDENCODING)
   end
@@ -119,6 +119,7 @@ class String
   #
   # Unicode zero width space is supported:
   #   "\u200b".blank? # => true
+  #   "\uFEFF".blank? # => true
 
   # @return [true, false]
   def blank?
