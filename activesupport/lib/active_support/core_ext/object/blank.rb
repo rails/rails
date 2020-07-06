@@ -101,8 +101,7 @@ class Hash
 end
 
 class String
-  BLANK_RE = /\A[[:space:]]*\z/
-  ZERO_WIDTH_SPACE_RE = /^\u200B+/
+  BLANK_RE = /\A[[:space:]\u200B]*\z/
   ENCODED_BLANKS = Concurrent::Map.new do |h, enc|
     h[enc] = Regexp.new(BLANK_RE.source.encode(enc), BLANK_RE.options | Regexp::FIXEDENCODING)
   end
@@ -118,6 +117,9 @@ class String
   #
   #   "\u00a0".blank? # => true
   #
+  # Unicode zero width space is supported:
+  #   "\u200b".blank? # => true
+
   # @return [true, false]
   def blank?
     # The regexp that matches blank strings is expensive. For the case of empty
@@ -125,7 +127,7 @@ class String
     # penalty for the rest of strings is marginal.
     empty? ||
       begin
-        ZERO_WIDTH_SPACE_RE.match?(self) || BLANK_RE.match?(self)
+        BLANK_RE.match?(self)
       rescue Encoding::CompatibilityError
         ENCODED_BLANKS[self.encoding].match?(self)
       end
