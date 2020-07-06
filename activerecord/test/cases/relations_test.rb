@@ -658,10 +658,10 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_includes_with_select
-    query = Post.select("comments_count AS ranking").order("ranking").includes(:comments)
+    query = Post.select("legacy_comments_count AS ranking").order("ranking").includes(:comments)
       .where(comments: { id: 1 })
 
-    assert_equal ["comments_count AS ranking"], query.select_values
+    assert_equal ["legacy_comments_count AS ranking"], query.select_values
     assert_equal 1, query.to_a.size
   end
 

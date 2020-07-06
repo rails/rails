@@ -52,7 +52,7 @@ module ActiveRecord
         # the loaded flag is set to true as well.
         def count_records
           count = if reflection.has_cached_counter?
-            owner._read_attribute(reflection.counter_cache_column).to_i
+            owner.read_attribute(reflection.counter_cache_column).to_i
           else
             scope.count(:all)
           end
@@ -75,7 +75,7 @@ module ActiveRecord
           if reflection.counter_must_be_updated_by_has_many?
             counter = reflection.counter_cache_column
             owner.increment(counter, difference)
-            owner.send(:clear_attribute_change, counter) # eww
+            owner.send(:"clear_#{counter}_change")
           end
         end
 

@@ -266,7 +266,7 @@ module ActiveRecord
       def has_cached_counter?
         options[:counter_cache] ||
           inverse_which_updates_counter_cache && inverse_which_updates_counter_cache.options[:counter_cache] &&
-          !!active_record.columns_hash[counter_cache_column]
+          active_record.has_attribute?(counter_cache_column)
       end
 
       def counter_must_be_updated_by_has_many?

@@ -24,6 +24,7 @@ class Post < ActiveRecord::Base
   end
 
   alias_attribute :text, :body
+  alias_attribute :comments_count, :legacy_comments_count
 
   scope :containing_the_letter_a, -> { where("body LIKE '%a%'") }
   scope :titled_with_an_apostrophe, -> { where("title LIKE '%''%'") }
