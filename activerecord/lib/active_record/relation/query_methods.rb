@@ -1101,12 +1101,15 @@ module ActiveRecord
 
       def build_where_clause(opts, rest = []) # :nodoc:
         opts = sanitize_forbidden_attributes(opts)
-        self.references_values |= PredicateBuilder.references(opts) if Hash === opts
 
         case opts
         when String, Array
           parts = [klass.sanitize_sql(rest.empty? ? opts : [opts, *rest])]
         when Hash
+          opts = opts.stringify_keys
+          references = PredicateBuilder.references(opts)
+          self.references_values |= references unless references.empty?
+
           parts = predicate_builder.build_from_hash(opts) do |table_name|
             lookup_reflection_from_join_dependencies(table_name)
           end

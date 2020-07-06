@@ -25,21 +25,18 @@ module ActiveRecord
     end
 
     def build_from_hash(attributes, &block)
-      attributes = attributes.stringify_keys
       attributes = convert_dot_notation_to_hash(attributes)
-
       expand_from_hash(attributes, &block)
     end
 
     def self.references(attributes)
-      attributes.map do |key, value|
-        key = key.to_s
+      attributes.each_with_object([]) do |(key, value), result|
         if value.is_a?(Hash)
-          key
-        else
-          key.split(".").first if key.include?(".")
+          result << key
+        elsif key.include?(".")
+          result << key.split(".").first
         end
-      end.compact
+      end
     end
 
     # Define how a class is converted to Arel nodes when passed to +where+.
