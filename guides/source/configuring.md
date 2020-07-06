@@ -628,6 +628,11 @@ Defaults to `'signed cookie'`.
   value of the `SameSite` attribute when setting cookies. Defaults to `nil`,
   which means the `SameSite` attribute is not added.
 
+* `config.action_dispatch.ssl_default_redirect_status` configures the default
+  HTTP status code used when redirecting non-GET/HEAD requests from HTTP to HTTPS
+  in the `ActionDispatch::SSL` middleware. Defaults to `308` as defined in
+  https://tools.ietf.org/html/rfc7538.
+
 * `ActionDispatch::Callbacks.before` takes a block of code to run before the request.
 
 * `ActionDispatch::Callbacks.after` takes a block of code to run after the request.
