@@ -163,6 +163,10 @@ module ActionDispatch #:nodoc:
       end
     end
 
+    def html
+      yield self
+    end
+
     def block_all_mixed_content(enabled = true)
       if enabled
         @directives["block-all-mixed-content"] = true

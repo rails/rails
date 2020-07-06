@@ -235,7 +235,7 @@ module ApplicationTests
       assert_policy "default-src 'self' https:"
     end
 
-    test "global content security policy for HTML requests" do
+    test "global content security policy for HTML requests in an initializer" do
       controller :pages, <<-RUBY
         class PagesController < ApplicationController
           def index
@@ -255,6 +255,130 @@ module ApplicationTests
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           root to: "pages#index"
+        end
+      RUBY
+
+      app("development")
+
+      get "/"
+      assert_policy "default-src 'self' https:"
+    end
+
+    test "global report only content security policy for HTML requests in an initializer" do
+      controller :pages, <<-RUBY
+        class PagesController < ApplicationController
+          def index
+            render html: "<h1>Welcome to Rails!</h1>"
+          end
+        end
+      RUBY
+
+      app_file "config/initializers/content_security_policy.rb", <<-RUBY
+        Rails.application.config.content_security_policy do |format|
+          format.html do |p|
+            p.default_src :self, :https
+          end
+        end
+
+        Rails.application.config.content_security_policy_report_only = true
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          root to: "pages#index"
+        end
+      RUBY
+
+      app("development")
+
+      get "/"
+      assert_policy "default-src 'self' https:", report_only: true
+    end
+
+    test "global content security policy for HTML requests nonce directives in an initializer" do
+      controller :pages, <<-RUBY
+        class PagesController < ApplicationController
+          def index
+            render html: "<h1>Welcome to Rails!</h1>"
+          end
+        end
+      RUBY
+
+      app_file "config/initializers/content_security_policy.rb", <<-RUBY
+        Rails.application.config.content_security_policy do |format|
+          format.html do |p|
+            p.default_src :self, :https
+            p.script_src  :self, :https
+            p.style_src   :self, :https
+          end
+        end
+
+        Rails.application.config.content_security_policy_nonce_generator = proc { "iyhD0Yc0W+c=" }
+        Rails.application.config.content_security_policy_nonce_directives = %w(script-src)
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          root to: "pages#index"
+        end
+      RUBY
+
+      app("development")
+
+      get "/"
+      assert_policy "default-src 'self' https:; script-src 'self' https: 'nonce-iyhD0Yc0W+c='; style-src 'self' https:"
+    end
+
+    test "override content security policy for HTML requests in a controller" do
+      controller :pages, <<-RUBY
+        class PagesController < ApplicationController
+          content_security_policy do |format|
+            format.html do |p|
+              p.default_src "https://example.com"
+            end
+          end
+
+          def index
+            render html: "<h1>Welcome to Rails!</h1>"
+          end
+        end
+      RUBY
+
+      app_file "config/initializers/content_security_policy.rb", <<-RUBY
+        Rails.application.config.content_security_policy do |p|
+          p.default_src :self, :https
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          root to: "pages#index"
+        end
+      RUBY
+
+      app("development")
+
+      get "/"
+      assert_policy "default-src https://example.com"
+    end
+
+    test "global content security policy for HTML requests added to rack app" do
+      app_file "config/initializers/content_security_policy.rb", <<-RUBY
+        Rails.application.config.content_security_policy do |format|
+          format.html do |p|
+            p.default_src :self, :https
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+
+          app = ->(env) {
+            [200, { "Content-Type" => "text/html" }, ["<p>Hello, World!</p>"]]
+          }
+
+          root to: app
         end
       RUBY
 
