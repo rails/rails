@@ -754,6 +754,17 @@ connections as you have workers. The default worker pool size is set to 4, so
 that means you have to make at least 4 database connections available.
  You can change that in `config/database.yml` through the `pool` attribute.
 
+### Client side logging
+
+Client side logging is disabled by default. You can enable this by setting the `ActionCable.logger.enabled` to true.
+
+```ruby
+import * as ActionCable from '@rails/actioncable'
+
+ActionCable.logger.enabled = true
+```
+
+
 ### Other Configurations
 
 The other common option to configure is the log tags applied to the
@@ -770,14 +781,6 @@ config.action_cable.log_tags = [
 
 For a full list of all configuration options, see the
 `ActionCable::Server::Configuration` class.
-
-Client-side logs can be enabled with the following:
-
-```ruby
-import * as ActionCable from '@rails/actioncable'
-
-ActionCable.logger.enabled = true
-```
 
 ## Running Standalone Cable Servers
 
