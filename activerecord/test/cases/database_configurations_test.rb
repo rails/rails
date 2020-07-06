@@ -61,6 +61,24 @@ class DatabaseConfigurationsTest < ActiveRecord::TestCase
     assert_equal "primary", config.name
   end
 
+  def test_find_db_config_prioritize_db_config_object_for_the_current_env
+    config = ActiveRecord::DatabaseConfigurations.new({
+      "primary" => {
+        "adapter" => "randomadapter"
+      },
+      ActiveRecord::ConnectionHandling::DEFAULT_ENV.call => {
+        "primary" => {
+          "adapter" => "sqlite3",
+          "database" => ":memory:"
+        }
+      }
+    }).find_db_config("primary")
+
+    assert_equal "primary", config.name
+    assert_equal ActiveRecord::ConnectionHandling::DEFAULT_ENV.call, config.env_name
+    assert_equal ":memory:", config.database
+  end
+
   def test_to_h_turns_db_config_object_back_into_a_hash_and_is_deprecated
     configs = ActiveRecord::Base.configurations
     assert_equal "ActiveRecord::DatabaseConfigurations", configs.class.name
