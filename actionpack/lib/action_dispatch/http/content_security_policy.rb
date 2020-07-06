@@ -103,10 +103,11 @@ module ActionDispatch #:nodoc:
     end
 
     def build(content_type, *args)
-      format = case content_type
-               when /html/
+      mime_type = Mime::Type.parse(content_type).first
+      format = case mime_type.to_sym
+               when :html
                  html
-               when /json/
+               when :json
                  json
                else
                  html
