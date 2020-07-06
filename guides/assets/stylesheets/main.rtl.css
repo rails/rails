@@ -71,9 +71,12 @@ textarea, select {
 
 table {
   margin: 0 0 1.5em;
-  border: 2px solid #CCC;
   background: #FFF;
   border-collapse: collapse;
+}
+
+tbody, thead {
+  border: 2px solid #CCC;
 }
 
 table th, table td {
@@ -86,6 +89,17 @@ table th {
   border-bottom: 2px solid #CCC;
   background: #EEE;
   font-weight: bold;
+}
+
+@media only screen and (max-width: 480px) {
+  table {
+    display: block;
+    overflow-x: auto;
+  }
+
+  td {
+    min-width: 7em;
+  }
 }
 
 img {
@@ -738,25 +752,4 @@ div.important p, div.caution p, div.warning p, div.note p, div.info p {
   top: 0px;
   z-index: 100;
   border: none;
-}
-
-/* Foundation v2.1.4 http://foundation.zurb.com */
-/* Artfully masterminded by ZURB  */
-
-/* Mobile */
-@media only screen and (max-width: 767px) {
-  table.responsive { margin-bottom: 0; }
-
-  .pinned { position: absolute; right: 0; top: 0; background: #fff; width: 35%; overflow: hidden; overflow-x: scroll; border-left: 1px solid #ccc; border-right: 1px solid #ccc; }
-  .pinned table { border-left: none; border-right: none; width: 100%; }
-  .pinned table th, .pinned table td { white-space: nowrap; }
-  .pinned td:last-child { border-bottom: 0; }
-
-  div.table-wrapper { position: relative; margin-bottom: 20px; overflow: hidden; border-left: 1px solid #ccc; }
-  div.table-wrapper div.scrollable table { margin-right: 35%; }
-  div.table-wrapper div.scrollable { overflow: scroll; overflow-y: hidden; }
-
-  table.responsive td, table.responsive th { position: relative; white-space: nowrap; overflow: hidden; }
-  table.responsive th:first-child, table.responsive td:first-child, table.responsive td:first-child, table.responsive.pinned td { display: none; }
-
 }
