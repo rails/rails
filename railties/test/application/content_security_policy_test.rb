@@ -476,6 +476,46 @@ module ApplicationTests
       assert_policy "default-src 'none'"
     end
 
+    test "global content security policy for mixed formats in an initializer" do
+      controller :pages, <<-RUBY
+        class PagesController < ApplicationController
+          def index
+            render html: "<h1>Welcome to Rails!</h1>"
+          end
+
+          def api
+            render json: { some: "json" }
+          end
+        end
+      RUBY
+
+      app_file "config/initializers/content_security_policy.rb", <<-RUBY
+        Rails.application.config.content_security_policy do |format|
+          format.html do |p|
+            p.default_src :self, :https
+          end
+
+          format.json do |p|
+            p.default_src :none
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          root to: "pages#index"
+          get "/api", to: "pages#api"
+        end
+      RUBY
+
+      app("development")
+
+      get "/"
+      assert_policy "default-src 'self' https:"
+      get "/api"
+      assert_policy "default-src 'none'"
+    end
+
     private
       def assert_policy(expected, report_only: false)
         assert_equal 200, last_response.status
