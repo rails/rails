@@ -298,7 +298,7 @@ module ActiveRecord
 
           column = aggregate_column(column_name)
           select_value = operation_over_aggregate_column(column, operation, distinct)
-          select_value.distinct = true if operation == "sum" && distinct
+          select_value.distinct = true if distinct && (operation == "sum" || operation == "average")
 
           relation.select_values = [select_value]
 

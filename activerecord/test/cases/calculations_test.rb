@@ -63,6 +63,13 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_nil NumericData.average(:bank_balance)
   end
 
+  def test_average_with_distinct
+    accounts = Account.distinct
+
+    assert_equal 53.0, accounts.sum(&:credit_limit).to_f / accounts.size
+    assert_equal 54.5, Account.distinct.average(:credit_limit)
+  end
+
   def test_should_get_maximum_of_field
     assert_equal 60, Account.maximum(:credit_limit)
   end
