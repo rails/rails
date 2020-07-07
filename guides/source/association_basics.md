@@ -568,7 +568,7 @@ Here are a few things you should know to make efficient use of Active Record ass
 All of the association methods are built around caching, which keeps the result of the most recent query available for further operations. The cache is even shared across methods. For example:
 
 ```ruby
-author.books                 # retrieves books from the database
+author.books.load            # retrieves books from the database
 author.books.size            # uses the cached copy of books
 author.books.empty?          # uses the cached copy of books
 ```
@@ -576,7 +576,7 @@ author.books.empty?          # uses the cached copy of books
 But what if you want to reload the cache, because data might have been changed by some other part of the application? Just call `reload` on the association:
 
 ```ruby
-author.books                 # retrieves books from the database
+author.books.load            # retrieves books from the database
 author.books.size            # uses the cached copy of books
 author.books.reload.empty?   # discards the cached copy of books
                              # and goes back to the database
