@@ -261,6 +261,10 @@ Every Rails application comes with a standard set of middleware which it uses in
    # `beta1.product.com`.
    Rails.application.config.hosts << /.*\.product\.com/
    ```
+   
+   The provided regexp will be wrapped with both anchors (`\A` and `\z`) so it
+   must match the entire hostname. `/product.com/`, for example, once anchored,
+   would fail to match `www.product.com`.
 
    A special case is supported that allows you to permit all sub-domains:
 
