@@ -1996,14 +1996,14 @@ we defined it as an instance variable.
 
   A concern is any module that contains methods you would like to be able to share across multiple controllers or models. In other frameworks they are often known as mixins. They are a good way to keep your controllers and models small and keep your code DRY.
 
- You can use concerns in your controller or model the same way you would use any module. When you first created your app with `rails new blog` , two folders were created within `apps/` along with the rest:
+ You can use concerns in your controller or model the same way you would use any module. When you first created your app with `rails new blog` , two folders were created within `app/` along with the rest:
 
  ```
  app/controllers/concerns
  app/models/concerns
  ```
 
-A given blog article might have various statuses - for instance, it may be `public` (visible to everyone), or `private` (only visible by the author, perhaps if an author wants to save a draft). It may also be `archived`, which means it is hidden from the author. A comment, similarly, may be `public`, `private`, or `archived`. For any given article, in the controller you might want to verify that an article is public before rendering it.
+A given blog article might have various statuses - for instance, it might be visible to everyone (i.e. `public`), or only visible to the author (i.e. `private`). It may also be hidden to all but still retrievable (i.e. `archived`). Comments may similarly be hidden or visible. This could be represented using a `status` column in each model.
 
 Within the `article` model, after running a migration to add a `status` column, you might add:
 
@@ -2069,22 +2069,22 @@ Then, in our `index` action template (`app/views/articles/index.html.erb`) we wo
 
 However, if you look again at our models now, you can see that the logic is duplicated. If in future we increase the functionality of our blog - to include private messages, for instance -  we might find ourselves duplicating the logic yet again. This is where concerns come in handy.
 
-Let's call our new concern (module) `Statusable`, a module to use for any model that has a status. We can create a new file inside `app/models/concerns` called `statuslike.rb` , and store all of the status methods that were duplicated in the models.
+Let's call our new concern (module) `Visible`, a module to use for any model that has a status. We can create a new file inside `app/models/concerns` called `visible.rb` , and store all of the status methods that were duplicated in the models.
 
-`app/models/concerns/statuslike.rb`
+`app/models/concerns/visible.rb`
 
 ```ruby
-module Statuslike
+module Visible
   def archived?
     status == 'archived'
   end
 end
 ```
 
-To include the duplicated validations, we will want to extend `ActiveSupport::Concern` . This module allows us to write validations and other Active Model methods in the module as if we were writing them within the original models (or controllers, if writing a concern for controllers). You can read more about this in the [API Guide](https://api.rubyonrails.org/classes/ActiveSupport/Concern.html):
+We can add our status validation to the concern, but this is slightly more complex as validations are methods called at the class level. The `ActiveSupport::Concern` ([API Guide](https://api.rubyonrails.org/classes/ActiveSupport/Concern.html)) gives us a simpler way to include them:
 
 ```ruby
-module Statuslike
+module Visible
   extends ActiveSupport::Concern
 
   included do
@@ -2099,13 +2099,13 @@ module Statuslike
 end
 ```
 
-Now, we can remove the duplicated logic from each model and instead include our new `Statusable` module:
+Now, we can remove the duplicated logic from each model and instead include our new `Visible` module:
 
 
 In `app/models/article.rb`:
 ```ruby
 class Article < ApplicationRecord
-  includes Statusable
+  include Visible
   has_many :comments
 
   validates :title, presence: true,
@@ -2118,12 +2118,63 @@ and in `app/models/comment.rb`:
 
 ```ruby
 class Comment < ApplicationRecord
-  includes Statusable
+  include Visible
   belongs_to :article
 end
 ```
 
-Our app contains `app/models/concerns` and `app/controllers/concerns` in its `autoload_paths` so you don't need to `require` the concern. If your app is having trouble finding your concern module, you may need to check your `autoload_paths`. You can learn about how to do so [here](http://guides.rubyonrails.org/autoloading_and_reloading_constants.html#autoload-paths).
+Class methods can also added to concerns. If we want a count of public articles or comments to display on our main page, we might add a class method to Visible as follows:
+
+```ruby
+module Visible
+  extends ActiveSupport::Concern
+
+  VALID_STATUSES = ['public', 'private', 'archived']
+
+  included do
+    validates :status, in: VALID_STATUSES
+  end
+
+  class_methods do
+    def public_count
+      self.where(status: 'public')
+    end
+  end
+
+  def archived?
+    status == 'archived'
+  end
+end
+```
+
+Then in the view, you can call it like any class method:
+
+```html+erb
+<h1>Listing Articles</h1>
+Our blog has <%= Article.public_count %> articles and counting! Add yours now.
+<%= link_to 'New article', new_article_path %>
+<table>
+  <tr>
+    <th>Title</th>
+    <th>Text</th>
+    <th colspan="3"></th>
+  </tr>
+
+  <% @articles.each do |article| %>
+    <% unless article.archived? %>
+      <tr>
+        <td><%= article.title %></td>
+        <td><%= article.text %></td>
+        <td><%= link_to 'Show', article_path(article) %></td>
+        <td><%= link_to 'Edit', edit_article_path(article) %></td>
+        <td><%= link_to 'Destroy', article_path(article),
+                method: :delete,
+                data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  <% end %>
+</table>
+```
 
 Deleting Comments
 -----------------
@@ -2194,7 +2245,7 @@ Article model, `app/models/article.rb`, as follows:
 
 ```ruby
 class Article < ApplicationRecord
-  includes Statusable
+  include Visible
 
   has_many :comments, dependent: :destroy
   validates :title, presence: true,
