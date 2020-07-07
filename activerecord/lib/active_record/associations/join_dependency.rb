@@ -104,8 +104,16 @@ module ActiveRecord
         model_cache = Hash.new { |h, klass| h[klass] = {} }
         parents = model_cache[join_root]
 
-        column_aliases = aliases.column_aliases join_root
-        column_aliases += explicit_selections(column_aliases, result_set)
+        column_aliases = aliases.column_aliases(join_root)
+        column_names = explicit_selections(column_aliases, result_set)
+
+        if column_names.empty?
+          column_types = {}
+        else
+          column_types = result_set.column_types
+          column_types = column_types.slice(*column_names) unless column_types.empty?
+          column_aliases += column_names.map! { |name| Aliases::Column.new(name, name) }
+        end
 
         message_bus = ActiveSupport::Notifications.instrumenter
 
@@ -117,7 +125,7 @@ module ActiveRecord
         message_bus.instrument("instantiation.active_record", payload) do
           result_set.each { |row_hash|
             parent_key = primary_key ? row_hash[primary_key] : row_hash
-            parent = parents[parent_key] ||= join_root.instantiate(row_hash, column_aliases, &block)
+            parent = parents[parent_key] ||= join_root.instantiate(row_hash, column_aliases, column_types, &block)
             construct(parent, join_root, row_hash, seen, model_cache, strict_loading_value)
           }
         end
@@ -141,9 +149,9 @@ module ActiveRecord
 
         def explicit_selections(root_column_aliases, result_set)
           root_names = root_column_aliases.map(&:name).to_set
-          result_set.columns
-            .reject { |n| root_names.include?(n) || n =~ /\At\d+_r\d+\z/ }
-            .map { |n| Aliases::Column.new(n, n) }
+          result_set.columns.each_with_object([]) do |name, result|
+            result << name unless /\At\d+_r\d+\z/.match?(name) || root_names.include?(name)
+          end
         end
 
         def aliases

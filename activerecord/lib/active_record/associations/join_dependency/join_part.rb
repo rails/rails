@@ -62,8 +62,8 @@ module ActiveRecord
           hash
         end
 
-        def instantiate(row, aliases, &block)
-          base_klass.instantiate(extract_record(row, aliases), &block)
+        def instantiate(row, aliases, column_types = {}, &block)
+          base_klass.instantiate(extract_record(row, aliases), column_types, &block)
         end
       end
     end
