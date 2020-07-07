@@ -56,6 +56,18 @@ module ActiveRecord
       assert_equal 255, UnoverloadedType.type_for_attribute("overloaded_string_with_limit").limit
     end
 
+    test "overloaded default but keeping its own type" do
+      klass = Class.new(UnoverloadedType) do
+        attribute :overloaded_string_with_limit, default: "the overloaded default"
+      end
+
+      assert_equal 255, UnoverloadedType.type_for_attribute("overloaded_string_with_limit").limit
+      assert_equal 255, klass.type_for_attribute("overloaded_string_with_limit").limit
+
+      assert_nil UnoverloadedType.new.overloaded_string_with_limit
+      assert_equal "the overloaded default", klass.new.overloaded_string_with_limit
+    end
+
     test "extra options are forwarded to the type caster constructor" do
       klass = Class.new(OverloadedType) do
         attribute :starts_at, :datetime, precision: 3, limit: 2, scale: 1

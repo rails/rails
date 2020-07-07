@@ -253,7 +253,7 @@ module ActiveRecord
           when Proc
             type = type[type_for_attribute(name)]
           else
-            type ||= Type::Value.new
+            type ||= type_for_attribute(name)
           end
 
           define_attribute(name, type, **options.slice(:default))

@@ -1,3 +1,19 @@
+*   Allow attribute's default to be configured but keeping its own type.
+
+    ```ruby
+    class Post < ActiveRecord::Base
+      attribute :written_at, default: -> { Time.now.utc }
+    end
+
+    # Rails 6.0
+    Post.type_for_attribute(:written_at) # => #<Type::Value ... precision: nil, ...>
+
+    # Rails 6.1
+    Post.type_for_attribute(:written_at) # => #<Type::DateTime ... precision: 6, ...>
+    ```
+
+    *Ryuta Kamizono*
+
 *   Allow default to be configured for Enum.
 
     ```ruby
