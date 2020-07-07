@@ -205,13 +205,13 @@ module ActiveRecord
       # tracking is performed. The methods +changed?+ and +changed_in_place?+
       # will be called from ActiveModel::Dirty. See the documentation for those
       # methods in ActiveModel::Type::Value for more details.
-      def attribute(name, cast_type = Type::Value.new, **options)
+      def attribute(name, cast_type = nil, **options, &block)
         name = name.to_s
         reload_schema_from_cache
 
         self.attributes_to_define_after_schema_loads =
           attributes_to_define_after_schema_loads.merge(
-            name => [cast_type, options]
+            name => [cast_type || block, options]
           )
       end
 
@@ -246,12 +246,15 @@ module ActiveRecord
       def load_schema! # :nodoc:
         super
         attributes_to_define_after_schema_loads.each do |name, (type, options)|
-          if type.is_a?(Symbol)
+          case type
+          when Symbol
             adapter_name = ActiveRecord::Type.adapter_name_from(self)
             type = ActiveRecord::Type.lookup(type, **options.except(:default), adapter: adapter_name)
+          when Proc
+            type = type[name]
           end
 
-          define_attribute(name, type, **options.slice(:default))
+          define_attribute(name, type || Type::Value.new, **options.slice(:default))
         end
       end
 
