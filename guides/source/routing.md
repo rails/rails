@@ -1191,7 +1191,7 @@ end
 
 Calling `draw(:admin)` inside the `Rails.application.routes.draw` block itself will try to load a route
 file that has the same name as the argument given (`admin.rb` in this case).
-The file need to be located inside the `config/routes` directory or any sub-directory (i.e. `config/routes/admin.rb` , `config/routes/external/admin.rb`).
+The file needs to be located inside the `config/routes` directory or any sub-directory (i.e. `config/routes/admin.rb` or `config/routes/external/admin.rb`).
 
 You can use the normal routing DSL inside the `admin.rb` routing file, **however** you shouldn't surround it with the `Rails.application.routes.draw` block like you did in the main `config/routes.rb` file.
 
