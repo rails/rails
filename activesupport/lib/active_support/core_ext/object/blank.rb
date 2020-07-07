@@ -120,7 +120,7 @@ class String
   #   "\u00a0".blank? # => true
   #   "\u200b".blank? # => true
   #   "\uFEFF".blank? # => true
-
+  #
   # @return [true, false]
   def blank?
     # The regexp that matches blank strings is expensive. For the case of empty
