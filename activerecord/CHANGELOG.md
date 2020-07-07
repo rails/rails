@@ -10,7 +10,7 @@
     ```
 
     From type casting and table/column name resolution's point of view,
-    `where("create_at >=": time)` is better alternative than `where("create_at >= ?", time)`.
+    `where("created_at >=": time)` is better alternative than `where("created_at >= ?", time)`.
 
     ```ruby
     class Post < ActiveRecord::Base
