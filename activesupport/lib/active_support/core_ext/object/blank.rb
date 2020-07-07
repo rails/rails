@@ -101,7 +101,9 @@ class Hash
 end
 
 class String
-  BLANK_RE = /\A[[:space:]#{"\u200B"}#{"\uFEFF"}]*\z/
+  BLANK_RE = /\A[[:space:]]*\z/
+  OTHER_FORMAT_RE = /\A[[:space:]\p{Cf}]*\z/
+
   ENCODED_BLANKS = Concurrent::Map.new do |h, enc|
     h[enc] = Regexp.new(BLANK_RE.source.encode(enc), BLANK_RE.options | Regexp::FIXEDENCODING)
   end
@@ -113,11 +115,9 @@ class String
   #   "\t\n\r".blank? # => true
   #   ' blah '.blank? # => false
   #
-  # Unicode whitespace is supported:
+  # Unicode whitespace and zero width space are supported:
   #
   #   "\u00a0".blank? # => true
-  #
-  # Unicode zero width space is supported:
   #   "\u200b".blank? # => true
   #   "\uFEFF".blank? # => true
 
@@ -128,7 +128,7 @@ class String
     # penalty for the rest of strings is marginal.
     empty? ||
       begin
-        BLANK_RE.match?(self)
+        OTHER_FORMAT_RE.match?(self)
       rescue Encoding::CompatibilityError
         ENCODED_BLANKS[self.encoding].match?(self)
       end
