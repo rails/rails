@@ -450,10 +450,10 @@ module ActiveRecord
       stmt.table(arel.join_sources.empty? ? table : arel.source)
       stmt.key = table[primary_key]
       stmt.take(arel.limit)
-      stmt.lock(arel.locked) if arel.locked
       stmt.offset(arel.offset)
       stmt.order(*arel.orders)
       stmt.wheres = arel.constraints
+      stmt.lock(arel.locked) if arel.locked
 
       if updates.is_a?(Hash)
         if klass.locking_enabled? &&
@@ -593,10 +593,10 @@ module ActiveRecord
       stmt.from(arel.join_sources.empty? ? table : arel.source)
       stmt.key = table[primary_key]
       stmt.take(arel.limit)
-      stmt.lock(arel.locked) if arel.locked
       stmt.offset(arel.offset)
       stmt.order(*arel.orders)
       stmt.wheres = arel.constraints
+      stmt.lock(arel.locked) if arel.locked
 
       affected = @klass.connection.delete(stmt, "#{@klass} Destroy")
 

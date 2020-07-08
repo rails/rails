@@ -62,7 +62,7 @@ module Arel # :nodoc: all
         # query. However, this does not allow for LIMIT, OFFSET and ORDER. To support
         # these, we must use a subquery.
         def prepare_update_statement(o)
-          if o.offset || o.lock || has_join_sources?(o) && has_limit_or_lock_or_offset_or_orders?(o)
+          if o.offset || has_join_sources?(o) && has_limit_or_offset_or_orders?(o)
             super
           else
             o
@@ -77,7 +77,7 @@ module Arel # :nodoc: all
 
           # Materialize subquery by adding distinct
           # to work with MySQL 5.7.6 which sets optimizer_switch='derived_merge=on'
-          unless has_limit_or_lock_or_offset_or_orders?(subselect)
+          unless has_limit_or_offset_or_orders?(subselect)
             core = subselect.cores.last
             core.set_quantifier = Arel::Nodes::Distinct.new
           end
