@@ -247,11 +247,17 @@ Just as with validations, it is also possible to skip callbacks by using the fol
 * `delete_all`
 * `increment!`
 * `increment_counter`
+* `insert`
+* `insert!`
+* `insert_all`
+* `insert_all!`
 * `touch_all`
 * `update_column`
 * `update_columns`
 * `update_all`
 * `update_counters`
+* `upsert`
+* `upsert_all`
 
 These methods should be used with caution, however, because important business rules and application logic may be kept in callbacks. Bypassing them without understanding the potential implications may lead to invalid data.
 
