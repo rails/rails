@@ -314,7 +314,7 @@ module ActionView
       def locals_code #:nodoc:
         # Only locals with valid variable names get set directly. Others will
         # still be available in local_assigns.
-        locals = @locals.to_set - Module::DELEGATION_RESERVED_METHOD_NAMES
+        locals = @locals.to_set - Module::RUBY_RESERVED_WORDS
         locals = locals.grep(/\A(?![A-Z0-9])(?:[[:alnum:]_]|[^\0-\177])+\z/)
         # Double assign to suppress the dreaded 'assigned but unused variable' warning
         locals.each_with_object('') { |key, code| code << "#{key} = #{key} = local_assigns[:#{key}];" }

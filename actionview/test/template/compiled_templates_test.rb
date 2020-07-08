@@ -1,3 +1,4 @@
+# coding: utf-8
 require 'abstract_unit'
 
 class CompiledTemplatesTest < ActiveSupport::TestCase
@@ -7,6 +8,35 @@ class CompiledTemplatesTest < ActiveSupport::TestCase
 
   def test_template_with_nil_erb_return
     assert_equal "This is nil: \n", render(:template => "test/nil_return")
+  end
+
+  def test_template_with_ruby_keyword_locals
+    assert_equal "The class is foo",
+                 render(file: "test/render_file_with_ruby_keyword_locals", locals: { class: "foo" })
+  end
+
+  def test_template_with_invalid_identifier_locals
+    locals = {
+      foo: "bar",
+      Foo: "bar",
+      :"d-a-s-h-e-s" => "",
+      :"white space" => "",
+    }
+    assert_equal locals.inspect, render(file: "test/render_file_inspect_local_assigns", locals: locals)
+  end
+
+  def test_template_with_delegation_reserved_keywords
+    locals = {
+      _: "one",
+      arg: "two",
+      args: "three",
+      block: "four",
+    }
+    assert_equal "one two three four", render(file: "test/test_template_with_delegation_reserved_keywords", locals: locals)
+  end
+
+  def test_template_with_unicode_identifier
+    assert_equal "🎂", render(file: "test/render_file_unicode_local", locals: { 🎃: "🎂" })
   end
 
   def test_template_gets_recompiled_when_using_different_keys_in_local_assigns
