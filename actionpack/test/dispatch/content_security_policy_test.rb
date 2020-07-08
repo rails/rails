@@ -377,9 +377,11 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
 
     content_security_policy_report_only only: :report_only
 
-    content_security_policy only: :api do |p|
-      p.default_src :none
-      p.frame_ancestors :none
+    content_security_policy only: :api do |format|
+      format.json do |p|
+        p.default_src :none
+        p.frame_ancestors :none
+      end
     end
 
     def index

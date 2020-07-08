@@ -23,7 +23,7 @@ module ActionDispatch #:nodoc:
           nonce = request.content_security_policy_nonce
           nonce_directives = request.content_security_policy_nonce_directives
           context = request.controller_instance || request
-          headers[header_name(request)] = policy.build(headers[CONTENT_TYPE], context, nonce, nonce_directives)
+          headers[header_name(request)] = policy.build(context, nonce, nonce_directives, headers[CONTENT_TYPE])
         end
 
         response
@@ -98,39 +98,30 @@ module ActionDispatch #:nodoc:
         end
     end
 
+    FORMATS = Hash.new { |h,k| h[k] = Format.new }
+
     def initialize
       yield self if block_given?
     end
 
-    def build(content_type, *args)
+    def build(context = nil, nonce = nil, nonce_directives = nil, content_type = "text/html")
       mime_type = Mime::Type.parse(content_type).first
-      format = case mime_type.to_sym
-               when :html
-                 html
-               when :json
-                 json
-               else
-                 html
-               end
-      format.build(*args)
+      format = FORMATS.fetch(mime_type.to_sym, FORMATS[:html])
+      format.build(context, nonce, nonce_directives)
     end
 
-    def html
-      @html ||= Format.new
-      if block_given?
-        yield @html
-      else
-        @html
-      end
-    end
+    (Mime::SET.map(&:to_sym) + [:any]).each do |type|
+      class_eval(<<-METHOD, __FILE__, __LINE__ + 1)
+        def #{type}
+          FORMATS[:#{type}] ||= Format.new
 
-    def json
-      @json ||= Format.new
-      if block_given?
-        yield @json
-      else
-        @json
-      end
+          if block_given?
+            yield FORMATS[:#{type}]
+          else
+            FORMATS[:#{type}]
+          end
+        end
+      METHOD
     end
 
     def method_missing(method, *args, &block)
