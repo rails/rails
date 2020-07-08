@@ -86,13 +86,15 @@ end
 We can see how it works by looking at some `bin/rails console` output:
 
 ```ruby
-$ bin/rails console
 >> p = Person.new(name: "John Doe")
 => #<Person id: nil, name: "John Doe", created_at: nil, updated_at: nil>
+
 >> p.new_record?
 => true
+
 >> p.save
 => true
+
 >> p.new_record?
 => false
 ```

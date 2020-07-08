@@ -279,7 +279,7 @@ end
 
 Then set up a mailbox:
 
-```ruby
+```bash
 # Generate new mailbox
 $ bin/rails generate mailbox forwards
 ```
