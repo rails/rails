@@ -124,7 +124,7 @@ module ActionDispatch #:nodoc:
     def build(context = nil, nonce = nil, nonce_directives = nil, content_type = "text/html")
       mime_type = Mime::Type.parse(content_type).first
       format = @formats.fetch(mime_type.to_sym, @formats[:html])
-      format.build(context, nonce, nonce_directives)
+      format.build(context, nonce, nonce_directives, @formats[:any].directives)
     end
 
     def method_missing(method, *args)
@@ -251,9 +251,9 @@ module ActionDispatch #:nodoc:
         end
       end
 
-      def build(context = nil, nonce = nil, nonce_directives = nil)
+      def build(context = nil, nonce = nil, nonce_directives = nil, global_directives = {})
         nonce_directives = DEFAULT_NONCE_DIRECTIVES if nonce_directives.nil?
-        build_directives(context, nonce, nonce_directives).compact.join("; ")
+        build_directives(context, nonce, nonce_directives, global_directives).compact.join("; ")
       end
 
       private
@@ -276,8 +276,8 @@ module ActionDispatch #:nodoc:
           end
         end
 
-        def build_directives(context, nonce, nonce_directives)
-          @directives.map do |directive, sources|
+        def build_directives(context, nonce, nonce_directives, global_directives)
+          @directives.reverse_merge(global_directives).sort.map do |directive, sources|
             if sources.is_a?(Array)
               if nonce && nonce_directive?(directive, nonce_directives)
                 "#{directive} #{build_directive(sources, context).join(' ')} 'nonce-#{nonce}'"

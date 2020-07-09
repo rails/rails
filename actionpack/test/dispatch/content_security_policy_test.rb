@@ -384,6 +384,17 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
       end
     end
 
+    content_security_policy only: :merged do |format|
+      format.html do |p|
+        p.default_src :self
+      end
+
+      format.any do |p|
+        p.default_src :none
+        p.frame_ancestors :none
+      end
+    end
+
     def index
       head :ok
     end
@@ -416,6 +427,10 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
       render json: {}
     end
 
+    def merged
+      head :ok
+    end
+
     private
       def condition?
         params[:condition] == "true"
@@ -433,6 +448,7 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
       get "/style-src", to: "policy#style_src"
       get "/no-policy", to: "policy#no_policy"
       get "/api", to: "policy#api"
+      get "/merged", to: "policy#merged"
     end
   end
 
@@ -507,6 +523,11 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
   def test_generates_api_security_policy
     get "/api"
     assert_policy "default-src 'none'; frame-ancestors 'none'"
+  end
+
+  def test_generates_merged_security_policy
+    get "/merged"
+    assert_policy "default-src 'self'; frame-ancestors 'none'"
   end
 
   private

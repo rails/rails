@@ -498,6 +498,10 @@ module ApplicationTests
           format.json do |p|
             p.default_src :none
           end
+
+          format.any do |p|
+            p.frame_ancestors :none
+          end
         end
       RUBY
 
@@ -511,9 +515,9 @@ module ApplicationTests
       app("development")
 
       get "/"
-      assert_policy "default-src 'self' https:"
+      assert_policy "default-src 'self' https:; frame-ancestors 'none'"
       get "/api"
-      assert_policy "default-src 'none'"
+      assert_policy "default-src 'none'; frame-ancestors 'none'"
     end
 
     private
