@@ -1725,7 +1725,9 @@ Rails 4.0 no longer supports loading plugins from `vendor/plugins`. You must rep
 * Rails 4.0 has changed `serialized_attributes` and `attr_readonly` to class methods only. You shouldn't use instance methods since it's now deprecated. You should change them to use class methods, e.g. `self.serialized_attributes` to `self.class.serialized_attributes`.
 
 * When using the default coder, assigning `nil` to a serialized attribute will save it
-to the database as `NULL`. Previously, if the database column corresponding to the serialized attribute was nullable, the `nil` value through YAML was saved into the database as `"--- \n...\n"`. ActiveRecord was, and still will, return `nil` when accessing the serialized attribute. However, If the database column was not nullable, the `nil` value through YAML was saved into the database as `"--- \'\'\n"`, representing an empty string. Previously, ActiveRecord would return an empty string when accessing the serialized attribute. In this case, you will need to change the database column to allow `NULL` and ActiveRecord will now return `nil` when accessing the serialized attribute. Be aware of any code you might have that assumes the serialized attribute will not be `nil` in that case. 
+to the database as `NULL`. Active Record 3.x saved the `nil` value to the database differently:
+      * In Active Record 3.2, if the database column corresponding to the serialized attribute was nullable, the `nil` value through YAML was saved into the database as `"--- \n...\n"`. Active Record 3.2 returned `nil` when retrieving that value, and Active Record 4.0 will do the same.
+      * In Rails 3.2, if the database column corresponding to the serialized attribute was not nullable, the `nil` value through YAML was saved into the database as `"--- \'\'\n"`. Active Record 3.2 returned `""`. Active Record 4.0 will return `nil` instead.
 
 * Rails 4.0 has removed `attr_accessible` and `attr_protected` feature in favor of Strong Parameters. You can use the [Protected Attributes gem](https://github.com/rails/protected_attributes) for a smooth upgrade path.
 
