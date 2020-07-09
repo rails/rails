@@ -98,38 +98,39 @@ module ActionDispatch #:nodoc:
         end
     end
 
-    FORMATS = Hash.new { |h,k| h[k] = Format.new }
-
     def initialize
+      @formats = Hash.new { |h,k| h[k] = Format.new }
       yield self if block_given?
-    end
-
-    def build(context = nil, nonce = nil, nonce_directives = nil, content_type = "text/html")
-      mime_type = Mime::Type.parse(content_type).first
-      format = FORMATS.fetch(mime_type.to_sym, FORMATS[:html])
-      format.build(context, nonce, nonce_directives)
     end
 
     (Mime::SET.map(&:to_sym) + [:any]).each do |type|
       class_eval(<<-METHOD, __FILE__, __LINE__ + 1)
         def #{type}
-          FORMATS[:#{type}] ||= Format.new
-
           if block_given?
-            yield FORMATS[:#{type}]
+            yield @formats[:#{type}]
           else
-            FORMATS[:#{type}]
+            @formats[:#{type}]
           end
         end
       METHOD
     end
 
-    def method_missing(method, *args, &block)
-      html.send(method, *args, &block)
+    def build(context = nil, nonce = nil, nonce_directives = nil, content_type = "text/html")
+      mime_type = Mime::Type.parse(content_type).first
+      format = @formats.fetch(mime_type.to_sym, @formats[:html])
+      format.build(context, nonce, nonce_directives)
+    end
+
+    def method_missing(method, *args)
+      if html.respond_to?(method)
+        html.send(method, *args)
+      else
+        super
+      end
     end
 
     def respond_to_missing?(method, include_private = false)
-      html.respond_to?(method, include_private)
+      html.respond_to?(method, include_private) || super
     end
 
     class Format
