@@ -93,7 +93,7 @@ dollar sign `$` should be run in the command line. Verify that you have a
 current version of Ruby installed:
 
 ```bash
-$ ruby -v
+$ ruby --version
 ruby 2.5.0
 ```
 
@@ -139,7 +139,7 @@ instructions at the [Yarn website](https://classic.yarnpkg.com/en/docs/install).
 Running this command should print out Yarn version:
 
 ```bash
-$ yarn -v
+$ yarn --version
 ```
 
 If it says something like "1.22.0", Yarn has been installed correctly.
