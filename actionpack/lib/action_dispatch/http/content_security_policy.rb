@@ -98,9 +98,15 @@ module ActionDispatch #:nodoc:
         end
     end
 
+    attr_reader :formats
+
     def initialize
       @formats = Hash.new { |h,k| h[k] = Format.new }
       yield self if block_given?
+    end
+
+    def initialize_copy(other)
+      @formats = other.formats.deep_dup
     end
 
     (Mime::SET.map(&:to_sym) + [:any]).each do |type|
