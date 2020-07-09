@@ -1611,7 +1611,7 @@ The method understands qualified table names:
 "highrise_production.companies".classify # => "Company"
 ```
 
-Note that `classify` returns a class name as a string. You can get the actual class object invoking `constantize` on it, explained next.
+Note that `classify` returns a class name as a string. You can get the actual class object by invoking `constantize` on it, explained next.
 
 NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
 
@@ -1662,7 +1662,7 @@ NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
 
 The method `humanize` tweaks an attribute name for display to end users.
 
-Specifically performs these transformations:
+Specifically, it performs these transformations:
 
   * Applies human inflection rules to the argument.
   * Deletes leading underscores, if any.
