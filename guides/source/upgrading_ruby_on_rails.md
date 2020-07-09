@@ -1725,9 +1725,9 @@ Rails 4.0 no longer supports loading plugins from `vendor/plugins`. You must rep
 * Rails 4.0 has changed `serialized_attributes` and `attr_readonly` to class methods only. You shouldn't use instance methods since it's now deprecated. You should change them to use class methods, e.g. `self.serialized_attributes` to `self.class.serialized_attributes`.
 
 * When using the default coder, assigning `nil` to a serialized attribute will save it
-to the database as `NULL`. Active Record 3.x saved the `nil` value to the database differently:
+to the database as `NULL`. Active Record 3.2 saved the `nil` value to the database differently:
       * In Active Record 3.2, if the database column corresponding to the serialized attribute was nullable, the `nil` value through YAML was saved into the database as `"--- \n...\n"`. Active Record 3.2 returned `nil` when retrieving that value, and Active Record 4.0 will do the same.
-      * In Rails 3.2, if the database column corresponding to the serialized attribute was not nullable, the `nil` value through YAML was saved into the database as `"--- \'\'\n"`. Active Record 3.2 returned `""`. Active Record 4.0 will return `nil` instead.
+      * In Active Record 3.2, if the database column corresponding to the serialized attribute was not nullable, the `nil` value through YAML was saved into the database as `"--- \'\'\n"`. Active Record 3.2 returned `""`. Active Record 4.0 will return `nil` instead.
 
 * Rails 4.0 has removed `attr_accessible` and `attr_protected` feature in favor of Strong Parameters. You can use the [Protected Attributes gem](https://github.com/rails/protected_attributes) for a smooth upgrade path.
 
