@@ -278,12 +278,23 @@ module ActiveRecord
       # or saved. If +autosave+ is +false+ only new records will be returned,
       # unless the parent is/was a new record itself.
       def associated_records_to_validate_or_save(association, new_record, autosave)
+        return nil if association.nil?
+        return nil if association.target.nil?
+
         if new_record || custom_validation_context?
           association && association.target
         elsif autosave
-          association.target.find_all(&:changed_for_autosave?)
+          if association.target.is_a? Array
+            association.target.find_all(&:changed_for_autosave?)
+          else
+            [association.target] if association.target.changed_for_autosave?
+          end
         else
-          association.target.find_all(&:new_record?)
+          if association.target.is_a? Array
+            association.target.find_all(&:new_record?)
+          else
+            [association.target] if association.target.new_record?
+          end
         end
       end
 
