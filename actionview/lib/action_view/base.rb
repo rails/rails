@@ -190,6 +190,14 @@ module ActionView #:nodoc:
           # correctly.
           define_method(:compiled_method_container)           { subclass }
           define_singleton_method(:compiled_method_container) { subclass }
+
+          def self.name
+            superclass.name
+          end
+
+          def inspect
+            "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
+          end
         }
       end
 
