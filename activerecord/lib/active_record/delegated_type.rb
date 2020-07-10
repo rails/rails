@@ -120,7 +120,7 @@ module ActiveRecord
   #
   #   class Entry < ApplicationRecord
   #     delegated_type :entryable, types: %w[ Message Comment ]
-  #     delegates :title, to: :entryable
+  #     delegate :title, to: :entryable
   #   end
   #
   #   class Message < ApplicationRecord
