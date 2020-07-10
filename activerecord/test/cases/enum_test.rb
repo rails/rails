@@ -583,6 +583,15 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal :integer, Book.type_for_attribute("status").type
   end
 
+  test "overloaded default" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum status: [:proposed, :written, :published], _default: :published
+    end
+
+    assert_equal "published", klass.new.status
+  end
+
   test "scopes can be disabled" do
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "books"
