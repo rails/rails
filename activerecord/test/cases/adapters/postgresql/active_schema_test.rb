@@ -74,12 +74,12 @@ class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
       add_index(:people, :last_name, algorithm: :copy)
     end
 
-    expected = %(CREATE  INDEX  "index_people_on_first_name_last_name" ON people("first_name") INCLUDE ("last_name"))
+    expected = %(CREATE INDEX "index_people_on_first_name_last_name" ON people("first_name") INCLUDE ("last_name"))
     assert_equal expected, add_index(:people, :first_name, includes: :last_name)
     assert_equal expected, add_index(:people, "first_name", includes: :last_name)
     assert_equal expected, add_index(:people, :first_name, includes: [:last_name])
     assert_equal expected, add_index(:people, :first_name, includes: ["last_name"])
-    expected = %(CREATE  INDEX  "index_people_on_first_name_last_name_state" ON people("first_name") INCLUDE ("last_name", "state"))
+    expected = %(CREATE INDEX "index_people_on_first_name_last_name_state" ON people("first_name") INCLUDE ("last_name", "state"))
     assert_equal expected, add_index(:people, :first_name, includes: [:last_name, :state])
     assert_equal expected, add_index(:people, :first_name, includes: ["last_name", :state])
     [[], nil, ""].each do |unsupported_object|

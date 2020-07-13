@@ -1,3 +1,7 @@
+*   Add covering index support for PostgreSQL 11+.
+
+    *Sebastián Palma*
+
 *   Support `where` with comparison operators (`>`, `>=`, `<`, and `<=`).
 
     ```ruby

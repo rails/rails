@@ -97,10 +97,15 @@ module ActiveRecord
           sql << "IF NOT EXISTS" if o.if_not_exists
           sql << o.algorithm if o.algorithm
           sql << index.type if index.type
-          sql << "#{quote_column_name(index.name)} ON #{quote_table_name(index.table)}"
+          sql << if index.includes
+            "#{quote_column_name(index.name)} ON #{index.table}(#{quoted_columns(index)})"
+          else
+            "#{quote_column_name(index.name)} ON #{quote_table_name(index.table)}"
+          end
           sql << "USING #{index.using}" if supports_index_using? && index.using
-          sql << "(#{quoted_columns(index)})"
+          sql << "(#{quoted_columns(index)})" unless index.includes
           sql << "WHERE #{index.where}" if supports_partial_index? && index.where
+          sql << "INCLUDE (#{index.includes})" if index.includes
 
           sql.join(" ")
         end

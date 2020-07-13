@@ -1287,17 +1287,30 @@ module ActiveRecord
       end
 
       def add_index_options(table_name, column_name, name: nil, if_not_exists: false, internal: false, **options) # :nodoc:
-        options.assert_valid_keys(:unique, :length, :order, :opclass, :where, :type, :using, :comment, :algorithm)
+        if options.key?(:includes) && database_version < 110_000
+          raise NotImplementedError, "PostgreSQL covering indexes are only supported since version 11"
+        end
+
+        options.assert_valid_keys(:unique, :length, :order, :opclass, :where, :type, :using, :comment, :algorithm, :includes)
 
         column_names = index_column_names(column_name)
+        includes_columns = { column: column_names, includes: options[:includes] } if options.key?(:includes)
 
         index_name = name&.to_s
+        index_name ||= index_name(table_name, includes_columns) if options[:includes].present?
         index_name ||= index_name(table_name, column_names)
+
+        if supports_covering_indexes? && options.key?(:includes)
+          raise ArgumentError.new("You must add at least one column to the INCLUDES clause") if options[:includes].blank?
+          columns = Array.wrap(options[:includes])
+          includes = quoted_columns_for_index(columns, **options)
+        end
 
         validate_index_length!(table_name, index_name, internal)
 
         index = IndexDefinition.new(
-          table_name, index_name,
+          table_name,
+          index_name,
           options[:unique],
           column_names,
           lengths: options[:length] || {},
@@ -1306,10 +1319,11 @@ module ActiveRecord
           where: options[:where],
           type: options[:type],
           using: options[:using],
-          comment: options[:comment]
+          comment: options[:comment],
+          includes: includes
         )
 
-        [index, index_algorithm(options[:algorithm]), if_not_exists]
+        [index, index_algorithm(options[:algorithm]), if_not_exists, includes]
       end
 
       def index_algorithm(algorithm) # :nodoc:
