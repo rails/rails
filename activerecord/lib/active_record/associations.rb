@@ -616,8 +616,8 @@ module ActiveRecord
       # Similarly, if any of the +before_remove+ callbacks throw an exception, the object
       # will not be removed from the collection.
       #
-      # Note: In order to trigger remove callbacks use either +firm.clients.destroy_all+ or +firm.clients.destory(c).
-      # Attempting to remove them using +firm.clients.destory+ will not trigger callbacks.
+      # Note: In order to trigger remove callbacks use either +firm.clients.destroy_all+ or +firm.clients.destroy(c).
+      # Attempting to remove them using +firm.clients.destroy+ will not trigger callbacks.
       #
       # == Association extensions
       #
