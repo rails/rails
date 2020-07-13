@@ -112,6 +112,11 @@ class CookiesTest < ActionController::TestCase
       head :ok
     end
 
+    def authenticate_admin_path
+      cookies[:user_name] = { value: "david", path: "/admin/" }
+      head :ok
+    end
+
     def set_multiple_cookies
       cookies["user_name"] = { "value" => "david", "expires" => Time.utc(2005, 10, 10, 5) }
       cookies["login"]     = "XJ-122"
@@ -130,6 +135,11 @@ class CookiesTest < ActionController::TestCase
 
     def logout
       cookies.delete("user_name")
+      head :ok
+    end
+
+    def logout_admin_path
+      cookies.delete("user_name", path: "/admin/")
       head :ok
     end
 
@@ -349,6 +359,7 @@ class CookiesTest < ActionController::TestCase
 
     @request.env["action_dispatch.key_generator"] = ActiveSupport::KeyGenerator.new(SECRET_KEY_BASE, iterations: 2)
     @request.env["action_dispatch.cookies_rotations"] = ActiveSupport::Messages::RotationConfiguration.new
+    @request.env["action_dispatch.cookies_default_options"] = {}
 
     @request.env["action_dispatch.secret_key_base"] = SECRET_KEY_BASE
     @request.env["action_dispatch.use_authenticated_cookie_encryption"] = true
@@ -769,6 +780,38 @@ class CookiesTest < ActionController::TestCase
     get :delete_and_set_cookie
     assert_cookie_header "user_name=david; path=/; expires=Mon, 10 Oct 2005 05:00:00 GMT; SameSite=Lax"
     assert_equal({ "user_name" => "david" }, @response.cookies)
+  end
+
+  def test_cookie_with_default_options
+    @request.env["action_dispatch.cookies_default_options"] = { path: "/not-admin/" }
+    get :authenticate
+    assert_cookie_header "user_name=david; path=/not-admin/; SameSite=Lax"
+  end
+
+  def test_cookie_with_default_options_proc
+    @request.env["action_dispatch.cookies_default_options"] = { path: -> { "/not-admin/" } }
+    get :authenticate
+    assert_cookie_header "user_name=david; path=/not-admin/; SameSite=Lax"
+  end
+
+  def test_deleting_cookie_with_default_options
+    @request.env["action_dispatch.cookies_default_options"] = { path: "/not-admin/" }
+    get :authenticate
+    get :logout
+    assert_cookie_header "user_name=; path=/not-admin/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax"
+  end
+
+  def test_overriding_cookie_default_options
+    @request.env["action_dispatch.cookies_default_options"] = { path: "/not-admin/" }
+    get :authenticate_admin_path
+    assert_cookie_header "user_name=david; path=/admin/; SameSite=Lax"
+  end
+
+  def test_deleting_cookie_with_overriden_default_options
+    @request.env["action_dispatch.cookies_default_options"] = { path: "/not-admin/" }
+    get :authenticate_admin_path
+    get :logout_admin_path
+    assert_cookie_header "user_name=; path=/admin/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax"
   end
 
   def test_raise_data_overflow

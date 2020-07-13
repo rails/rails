@@ -77,6 +77,10 @@ module ActionDispatch
       get_header Cookies::COOKIES_DIGEST
     end
 
+    def cookies_default_options
+      get_header Cookies::COOKIES_DEFAULT_OPTIONS
+    end
+
     def cookies_rotations
       get_header Cookies::COOKIES_ROTATIONS
     end
@@ -173,6 +177,13 @@ module ActionDispatch
   #   Default is +false+.
   # * <tt>:httponly</tt> - Whether this cookie is accessible via scripting or
   #   only HTTP. Defaults to +false+.
+  #
+  # These options can be set for every cookie:
+  #
+  #   Rails.application.config.action_dispatch.cookies_default_options = {
+  #     path: "/admin/",
+  #     expires: -> { 1.day.from_now }
+  #   }
   class Cookies
     HTTP_HEADER   = "Set-Cookie"
     GENERATOR_KEY = "action_dispatch.key_generator"
@@ -186,6 +197,7 @@ module ActionDispatch
     SECRET_KEY_BASE = "action_dispatch.secret_key_base"
     COOKIES_SERIALIZER = "action_dispatch.cookies_serializer"
     COOKIES_DIGEST = "action_dispatch.cookies_digest"
+    COOKIES_DEFAULT_OPTIONS = "action_dispatch.cookies_default_options"
     COOKIES_ROTATIONS = "action_dispatch.cookies_rotations"
     COOKIES_SAME_SITE_PROTECTION = "action_dispatch.cookies_same_site_protection"
     USE_COOKIES_WITH_METADATA = "action_dispatch.use_cookies_with_metadata"
@@ -439,7 +451,23 @@ module ActionDispatch
           request.ssl? || !cookie[:secure] || always_write_cookie
         end
 
+        def default_options
+          options = request.cookies_default_options || {}
+
+          options.symbolize_keys!
+
+          options.transform_values { |v|
+            if v.is_a? Proc
+              v.call
+            else
+              v
+            end
+          }
+        end
+
         def handle_options(options)
+          options.reverse_merge!(default_options)
+
           if options[:expires].respond_to?(:from_now)
             options[:expires] = options[:expires].from_now
           end

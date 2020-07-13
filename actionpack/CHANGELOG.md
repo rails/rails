@@ -1,3 +1,11 @@
+*   Allow setting default values for cookie attributes globally.
+
+    Added new option `config.action_dispatch.cookies_default_options = {}`.
+    This allows cookie attributes such as `domain` and `path` to be set for
+    every cookie.
+
+    *Hugo Peixoto*
+
 *   Change default redirection status code for non-GET/HEAD requests to 308 Permanent Redirect for `ActionDispatch::SSL`.
 
     *Alan Tan*, *Oz Ben-David*
