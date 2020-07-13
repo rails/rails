@@ -1,3 +1,15 @@
+*   Allow default to be configured for Enum.
+
+    ```ruby
+    class Book < ActiveRecord::Base
+      enum status: [:proposed, :written, :published], _default: :published
+    end
+
+    Book.new.status # => "published"
+    ```
+
+    *Ryuta Kamizono*
+
 *   Support `where` with comparison operators (`>`, `>=`, `<`, and `<=`).
 
     ```ruby

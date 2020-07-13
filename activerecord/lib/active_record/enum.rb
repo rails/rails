@@ -159,9 +159,14 @@ module ActiveRecord
 
     def enum(definitions)
       klass = self
+
       enum_prefix = definitions.delete(:_prefix)
       enum_suffix = definitions.delete(:_suffix)
       enum_scopes = definitions.delete(:_scopes)
+
+      default = {}
+      default[:default] = definitions.delete(:_default) if definitions.key?(:_default)
+
       definitions.each do |name, values|
         assert_valid_enum_definition_values(values)
         # statuses = { }
@@ -177,7 +182,7 @@ module ActiveRecord
         detect_enum_conflict!(name, "#{name}=")
 
         attr = attribute_alias?(name) ? attribute_alias(name) : name
-        decorate_attribute_type(attr, :enum) do |subtype|
+        attribute(attr, **default) do |subtype|
           EnumType.new(attr, enum_values, subtype)
         end
 
