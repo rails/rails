@@ -606,6 +606,14 @@ module ActiveRecord
       def add_column(table_name, column_name, type, **options)
         return if options[:if_not_exists] == true && column_exists?(table_name, column_name, type)
 
+        if options.key?(:index)
+          warn <<~WARNING
+            WARNING: #add_column ignores the :index keyword argument.
+
+            To create an index, use #add_index.
+          WARNING
+        end
+
         at = create_alter_table table_name
         at.add_column(column_name, type, **options)
         execute schema_creation.accept at
