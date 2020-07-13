@@ -68,6 +68,16 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     assert_no_match("[WARNING] Rails cannot recover singular form from its plural form", regular_content)
   end
 
+  def test_impossible_inflection_rules_raises_an_error
+    content = capture(:stderr) { run_generator ["BFF"] }
+    message = <<~MESSAGE
+      Rails cannot recover the underscored form from its camelcase form 'BFF'.
+      Please use an underscored name instead, either 'bff' or 'bf_f'.
+      Or setup custom inflection rules for this noun before running the generator in config/initializers/inflections.rb.
+    MESSAGE
+    assert_match message, content
+  end
+
   def test_model_with_underscored_parent_option
     run_generator ["account", "--parent", "admin/account"]
     assert_file "app/models/account.rb", /class Account < Admin::Account/
