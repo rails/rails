@@ -68,7 +68,7 @@ module RailsGuides
 
         def lexer_language(code_type)
           case code_type
-          when "js", "html", "ruby", "sql", "yaml"
+          when "css", "js", "html", "ruby", "sql", "yaml"
             code_type
           when "erb", "html+erb"
             "erb"
