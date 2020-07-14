@@ -5,42 +5,42 @@
 <%= form_with(url: main_app.rails_conductor_inbound_emails_path, scope: :mail, local: true) do |form| %>
   <div>
     <%= form.label :from, "From" %><br>
-    <%= form.text_field :from %>
+    <%= form.text_field :from, value: params[:from] %>
   </div>
 
   <div>
     <%= form.label :to, "To" %><br>
-    <%= form.text_field :to %>
+    <%= form.text_field :to, value: params[:to] %>
   </div>
 
   <div>
     <%= form.label :cc, "CC" %><br>
-    <%= form.text_field :cc %>
+    <%= form.text_field :cc, value: params[:cc] %>
   </div>
 
   <div>
     <%= form.label :bcc, "BCC" %><br>
-    <%= form.text_field :bcc %>
+    <%= form.text_field :bcc, value: params[:bcc] %>
   </div>
 
   <div>
     <%= form.label :x_original_to, "X-Original-To" %><br>
-    <%= form.text_field :x_original_to %>
+    <%= form.text_field :x_original_to, value: params[:x_original_to] %>
   </div>
 
   <div>
     <%= form.label :in_reply_to, "In-Reply-To" %><br>
-    <%= form.text_field :in_reply_to %>
+    <%= form.text_field :in_reply_to, value: params[:in_reply_to] %>
   </div>
 
   <div>
     <%= form.label :subject, "Subject" %><br>
-    <%= form.text_field :subject %>
+    <%= form.text_field :subject, value: params[:subject] %>
   </div>
 
   <div>
     <%= form.label :body, "Body" %><br>
-    <%= form.text_area :body, size: "40x20" %>
+    <%= form.text_area :body, size: "40x20", value: params[:body] %>
   </div>
 
   <div>

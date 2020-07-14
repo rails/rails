@@ -1,3 +1,7 @@
+*   Accept params from url to prepopulate the Inbound Emails form in Rails conductor.
+
+    *Chris Oliver*
+
 *   Create a new rails app using a minimal stack.
 
       `rails new cool_app --minimal`
