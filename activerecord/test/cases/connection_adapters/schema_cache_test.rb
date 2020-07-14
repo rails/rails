@@ -17,7 +17,11 @@ module ActiveRecord
 
       def test_yaml_dump_and_load
         # Create an empty cache.
-        cache = SchemaCache.new @connection
+        cache = if defined?(PostgreSQLAdapter) && @connection.kind_of?(PostgreSQLAdapter)
+          PostgreSQL::SchemaCache.new @connection
+        else
+          SchemaCache.new @connection
+        end
 
         tempfile = Tempfile.new(["schema_cache-", ".yml"])
         # Dump it. It should get populated before dumping.
@@ -37,7 +41,11 @@ module ActiveRecord
 
       def test_yaml_dump_and_load_with_gzip
         # Create an empty cache.
-        cache = SchemaCache.new @connection
+        cache = if defined?(PostgreSQLAdapter) && @connection.kind_of?(PostgreSQLAdapter)
+          PostgreSQL::SchemaCache.new @connection
+        else
+          SchemaCache.new @connection
+        end
 
         tempfile = Tempfile.new(["schema_cache-", ".yml.gz"])
         # Dump it. It should get populated before dumping.
@@ -139,7 +147,11 @@ module ActiveRecord
 
       def test_marshal_dump_and_load
         # Create an empty cache.
-        cache = SchemaCache.new @connection
+        cache = if defined?(PostgreSQLAdapter) && @connection.kind_of?(PostgreSQLAdapter)
+          PostgreSQL::SchemaCache.new @connection
+        else
+          SchemaCache.new @connection
+        end
 
         # Populate it.
         cache.add("posts")
@@ -151,7 +163,11 @@ module ActiveRecord
 
       def test_marshal_dump_and_load_via_disk
         # Create an empty cache.
-        cache = SchemaCache.new @connection
+        cache = if defined?(PostgreSQLAdapter) && @connection.kind_of?(PostgreSQLAdapter)
+          PostgreSQL::SchemaCache.new @connection
+        else
+          SchemaCache.new @connection
+        end
 
         tempfile = Tempfile.new(["schema_cache-", ".dump"])
         # Dump it. It should get populated before dumping.
@@ -167,7 +183,11 @@ module ActiveRecord
 
       def test_marshal_dump_and_load_with_gzip
         # Create an empty cache.
-        cache = SchemaCache.new @connection
+        cache = if defined?(PostgreSQLAdapter) && @connection.kind_of?(PostgreSQLAdapter)
+          PostgreSQL::SchemaCache.new @connection
+        else
+          SchemaCache.new @connection
+        end
 
         tempfile = Tempfile.new(["schema_cache-", ".dump.gz"])
         # Dump it. It should get populated before dumping.
@@ -230,9 +250,6 @@ module ActiveRecord
             if current_adapter?(:PostgreSQLAdapter)
               assert_equal @connection.additional_type_records_cache.size, cache.postgresql_additional_type_records.size
               assert_equal @connection.known_coder_type_records_cache.size, cache.postgresql_known_coder_type_records.size
-            else
-              assert_nil cache.postgresql_additional_type_records
-              assert_nil cache.postgresql_known_coder_type_records
             end
           end
         end
