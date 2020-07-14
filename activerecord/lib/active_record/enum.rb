@@ -57,11 +57,18 @@ module ActiveRecord
   #   conversation = Conversation.new
   #   conversation.status # => "active"
   #
-  # Finally, it's also possible to explicitly map the relation between attribute and
+  # It's possible to explicitly map the relation between attribute and
   # database integer with a hash:
   #
   #   class Conversation < ActiveRecord::Base
   #     enum :status, active: 0, archived: 1
+  #   end
+  #
+  # Finally it's also possible to use a string column to persist the enumerated value.
+  # Note that this will likely lead to slower database queries:
+  #
+  #   class Conversation < ActiveRecord::Base
+  #     enum :status, active: "active", archived: "archived"
   #   end
   #
   # Note that when an array is used, the implicit mapping from the values to database
