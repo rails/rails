@@ -1,3 +1,7 @@
+*   Add `dig!` to get a deeply nested value while raising on the first missing key.
+
+    *Michael Elfassy*
+
 *   `URI.parser` is deprecated and will be removed in Rails 6.2. Use
     `URI::DEFAULT_PARSER` instead.
 

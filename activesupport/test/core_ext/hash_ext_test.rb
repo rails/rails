@@ -376,6 +376,22 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal [], hash[:c]
   end
 
+  def test_dig_bang
+    assert_equal 3, @nested_strings.dig!("a", "b", "c")
+    assert_equal 3, @nested_symbols.dig!(:a, :b, :c)
+    assert_equal 3, @nested_mixed.dig!("a", :b, "c")
+    assert_equal 3, @nested_integers.dig!(0, 1, 2)
+    assert_equal 3, @nested_upcase_strings.dig!("A", "B", "C")
+  end
+
+  def test_dig_bang_raises_when_key_is_missing
+    assert_raise(KeyError) { @nested_strings.dig!("a", "b", "z") }
+    assert_raise(KeyError) { @nested_symbols.dig!(:a, :z, :c) }
+    assert_raise(KeyError) { @nested_mixed.dig!("z", :b, "c") }
+    assert_raise(KeyError) { @nested_integers.dig!(0, 1, 10) }
+    assert_raise(KeyError) { @nested_upcase_strings.dig!("A", "Z", "C") }
+  end
+
   def test_extract
     original = { a: 1, b: 2, c: 3, d: 4 }
     expected = { a: 1, b: 2 }
