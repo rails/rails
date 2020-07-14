@@ -32,6 +32,7 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal "visible", @book.author_visibility
     assert_equal "visible", @book.illustrator_visibility
     assert_equal "medium", @book.difficulty
+    assert_equal "soft", @book.cover
   end
 
   test "find via scope" do
@@ -59,6 +60,7 @@ class EnumTest < ActiveRecord::TestCase
     assert_not_equal @book, Book.where(status: [written]).first
     assert_not_equal @book, Book.where("status <> ?", published).first
     assert_equal @book, Book.where("status <> ?", written).first
+    assert_equal @book, Book.where(cover: Book.covers[:soft]).first
   end
 
   test "find via where with symbols" do
@@ -69,6 +71,8 @@ class EnumTest < ActiveRecord::TestCase
     assert_not_equal @book, Book.where.not(status: :published).first
     assert_equal @book, Book.where.not(status: :written).first
     assert_equal books(:ddd), Book.where(last_read: :forgotten).first
+    assert_equal @book, Book.where(cover: :soft).first
+    assert_equal @book, Book.where.not(cover: :hard).first
   end
 
   test "find via where with strings" do
@@ -79,6 +83,8 @@ class EnumTest < ActiveRecord::TestCase
     assert_not_equal @book, Book.where.not(status: "published").first
     assert_equal @book, Book.where.not(status: "written").first
     assert_equal books(:ddd), Book.where(last_read: "forgotten").first
+    assert_equal @book, Book.where(cover: "soft").first
+    assert_equal @book, Book.where.not(cover: "hard").first
   end
 
   test "build from scope" do
@@ -102,11 +108,15 @@ class EnumTest < ActiveRecord::TestCase
     assert_predicate @book, :in_english?
     @book.author_visibility_visible!
     assert_predicate @book, :author_visibility_visible?
+    @book.hard!
+    assert_predicate @book, :hard?
   end
 
   test "update by setter" do
     @book.update! status: :written
     assert_predicate @book, :written?
+    @book.update! cover: :hard
+    assert_predicate @book, :hard?
   end
 
   test "enum methods are overwritable" do
@@ -117,11 +127,15 @@ class EnumTest < ActiveRecord::TestCase
   test "direct assignment" do
     @book.status = :written
     assert_predicate @book, :written?
+    @book.cover = :hard
+    assert_predicate @book, :hard?
   end
 
   test "assign string value" do
     @book.status = "written"
     assert_predicate @book, :written?
+    @book.cover = "hard"
+    assert_predicate @book, :hard?
   end
 
   test "enum changed attributes" do

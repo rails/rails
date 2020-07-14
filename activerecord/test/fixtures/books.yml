@@ -11,6 +11,7 @@ awdr:
   font_size: :medium
   difficulty: :medium
   boolean_status: :enabled
+  cover: 'soft'
 
 rfr:
   author_id: 1

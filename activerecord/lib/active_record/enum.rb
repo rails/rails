@@ -55,11 +55,18 @@ module ActiveRecord
   #
   # Good practice is to let the first declared status be the default.
   #
-  # Finally, it's also possible to explicitly map the relation between attribute and
+  # It's possible to explicitly map the relation between attribute and
   # database integer with a hash:
   #
   #   class Conversation < ActiveRecord::Base
   #     enum status: { active: 0, archived: 1 }
+  #   end
+  #
+  # Finally it's also possible to store the value as strings in the database
+  # with a hash:
+  #
+  #   class Conversation < ActiveRecord::Base
+  #     enum status: { active: 'active', archived: 'archived' }
   #   end
   #
   # Note that when an array is used, the implicit mapping from the values to database
