@@ -503,8 +503,7 @@ module ActiveRecord
     #   # SELECT "users".*
     #   # FROM "users"
     #   # INNER JOIN "posts" ON "posts"."user_id" = "users"."id"
-    #   # INNER JOIN "comments" "comments_posts"
-    #   #   ON "comments_posts"."post_id" = "posts"."id"
+    #   # INNER JOIN "comments" ON "comments"."post_id" = "posts"."id"
     #
     # You can use strings in order to customize your joins:
     #
