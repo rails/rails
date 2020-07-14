@@ -62,8 +62,8 @@ module ActiveRecord
   #     enum status: { active: 0, archived: 1 }
   #   end
   #
-  # Finally it's also possible to store the value as strings in the database
-  # with a hash:
+  # Finally it's also possible to use a non-integer column to persist the enumerated value.
+  # Note that this will likely lead to slower database queries:
   #
   #   class Conversation < ActiveRecord::Base
   #     enum status: { active: 'active', archived: 'archived' }
