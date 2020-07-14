@@ -2137,7 +2137,7 @@ module Visible
 
   class_methods do
     def public_count
-      self.where(status: 'public')
+      self.where(status: 'public').count
     end
   end
 
