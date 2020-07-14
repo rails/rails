@@ -35,7 +35,7 @@ connection instance per WebSocket connection. A single user may have multiple
 WebSockets open to your application if they use multiple browser tabs or devices.
 The client of a WebSocket connection is called the consumer.
 
-Each consumer can in turn subscribe to multiple cable channels. Each channel
+Each consumer can in turn subscribe to multiple channels. Each channel
 encapsulates a logical unit of work, similar to what a controller does in
 a regular MVC setup. For example, you could have a `ChatChannel` and
 an `AppearancesChannel`, and a consumer could be subscribed to either
@@ -185,7 +185,7 @@ A consumer could then be subscribed to either or both of these channels.
 
 Consumers subscribe to channels, acting as *subscribers*. Their connection is
 called a *subscription*. Produced messages are then routed to these channel
-subscriptions based on an identifier sent by the cable consumer.
+subscriptions based on an identifier sent by the channel consumer.
 
 ```ruby
 # app/channels/chat_channel.rb
