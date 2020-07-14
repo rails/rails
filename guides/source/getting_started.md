@@ -1147,7 +1147,7 @@ something went wrong. To do that, you'll modify
 ```html+erb
 <%= form_with scope: :article, url: articles_path, local: true do |form| %>
 
-  <% if @article.errors.any? %>
+  <% if @article && @article.errors.any? %>
     <div id="error_explanation">
       <h2>
         <%= pluralize(@article.errors.count, "error") %> prohibited
