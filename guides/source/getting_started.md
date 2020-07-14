@@ -1994,7 +1994,7 @@ we defined it as an instance variable.
 
 ### Using Concerns
 
-  A concern is any module that contains methods you would like to be able to share across multiple controllers or models. In other frameworks they are often known as mixins. They are a good way to keep your controllers and models small and keep your code DRY.
+A concern is any module that contains methods representing a well-defined slice of the functionality that a model or controller is responsible for. In other frameworks they are often known as mixins. Concerns are a way to make large controllers or models easier to understand and manage. This also has the advantage of reusability when multiple models (or controllers) share the same concerns.
 
  You can use concerns in your controller or model the same way you would use any module. When you first created your app with `rails new blog` , two folders were created within `app/` along with the rest:
 
@@ -2069,7 +2069,7 @@ Then, in our `index` action template (`app/views/articles/index.html.erb`) we wo
 
 However, if you look again at our models now, you can see that the logic is duplicated. If in future we increase the functionality of our blog - to include private messages, for instance -  we might find ourselves duplicating the logic yet again. This is where concerns come in handy.
 
-Let's call our new concern (module) `Visible`, a module to use for any model that has a status. We can create a new file inside `app/models/concerns` called `visible.rb` , and store all of the status methods that were duplicated in the models.
+A concern is only responsible for a focused subset of the model's responsibility; the methods in our concern will all be related to the visibility of a model. Let's call our new concern (module) `Visible`. We can create a new file inside `app/models/concerns` called `visible.rb` , and store all of the status methods that were duplicated in the models.
 
 `app/models/concerns/visible.rb`
 
