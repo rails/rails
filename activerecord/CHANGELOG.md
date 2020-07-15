@@ -1,3 +1,14 @@
+*   Add support for `where` with not equal comparison operator(`<>`, `!=`).
+
+    ```ruby
+    posts = Post.order(:id)
+
+    posts.where("id <>": 10).pluck(:id)  # => [9, 11]
+    posts.where("id !=": 10).pluck(:id)  # => [9, 11]
+    ```
+
+    *Abhay Nikam*
+
 *   Allow attribute's default to be configured but keeping its own type.
 
     ```ruby

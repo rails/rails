@@ -124,7 +124,7 @@ module ActiveRecord
 
               grouping_queries(queries)
             end
-          elsif key.end_with?(">", ">=", "<", "<=") && /\A(?<key>.+?)\s*(?<operator>>|>=|<|<=)\z/ =~ key
+          elsif key.end_with?(">", ">=", "<", "<=", "<>", "!=") && /\A(?<key>.+?)\s*(?<operator>>|>=|<|<=|<>|!=)\z/ =~ key
             build(table.arel_attribute(key), value, OPERATORS[-operator])
           else
             build(table.arel_attribute(key), value)
@@ -132,7 +132,7 @@ module ActiveRecord
         end
       end
 
-      OPERATORS = { ">" => :gt, ">=" => :gteq, "<" => :lt, "<=" => :lteq }.freeze
+      OPERATORS = { ">" => :gt, ">=" => :gteq, "<" => :lt, "<=" => :lteq, "<>" => :not_eq, "!=" => :not_eq }.freeze
 
     private
       attr_reader :table

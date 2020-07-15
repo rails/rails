@@ -2168,6 +2168,8 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal [9, 10, 11], posts.where("id >=": 9).pluck(:id)
     assert_equal [1, 2], posts.where("id <": 3).pluck(:id)
     assert_equal [1, 2, 3], posts.where("id <=": 3).pluck(:id)
+    assert_not_includes posts.where("id <>": 3).pluck(:id), 3
+    assert_not_includes posts.where("id !=": 3).pluck(:id), 3
   end
 
   def test_where_with_table_name_resolution
