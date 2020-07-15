@@ -457,7 +457,7 @@ module ActionDispatch
           options.symbolize_keys!
 
           options.transform_values { |v|
-            if v.is_a? Proc
+            if v.respond_to?(:call)
               v.call
             else
               v
