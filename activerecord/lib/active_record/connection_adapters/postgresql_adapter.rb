@@ -625,9 +625,18 @@ module ActiveRecord
         def load_additional_types(oids = nil)
           initializer = OID::TypeMapInitializer.new(type_map)
 
-          if additional_type_records_cache.present? && oids.blank?
-            initializer.run(additional_type_records_cache)
-            return
+          if additional_type_records_cache.present?
+            use_cache = if oids.nil?
+              true
+            else
+              cached_oids = additional_type_records_cache.map { |oid| oid["oid"] }
+              (oids - cached_oids).empty?
+            end
+
+            if use_cache
+              initializer.run(additional_type_records_cache)
+              return
+            end
           end
 
           query = <<~SQL
