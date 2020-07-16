@@ -111,6 +111,7 @@ module ActionView
     eager_autoload do
       autoload :Error
       autoload :RawFile
+      autoload :Renderable
       autoload :Handlers
       autoload :HTML
       autoload :Inline

@@ -282,7 +282,7 @@ TIP: `send_file` is often a faster and better option if a layout isn't required.
 Rails can render objects responding to `:render_in`.
 
 ```ruby
-render MyComponent.new
+render MyRenderable.new
 ```
 
 This calls `render_in` on the provided object with the current view context.
