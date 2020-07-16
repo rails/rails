@@ -88,11 +88,10 @@ module ActionDispatch
     # :startdoc:
   end
 
-  # \Cookies are read and written through ActionController#cookies.
+  # Read and write data to cookies through ActionController#cookies.
   #
-  # The cookies being read are the ones received along with the request, the cookies
-  # being written will be sent out with the response. Reading a cookie does not get
-  # the cookie object itself back, just the value it holds.
+  # When reading cookie data, the data is read from the HTTP request header, Cookie.
+  # When writing cookie data, the data is sent out in the HTTP response header, Set-Cookie.
   #
   # Examples of writing:
   #
