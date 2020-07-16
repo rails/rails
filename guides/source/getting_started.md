@@ -1994,9 +1994,9 @@ we defined it as an instance variable.
 
 ### Using Concerns
 
-A concern is any module that contains methods representing a well-defined slice of the functionality that a model or controller is responsible for. In other frameworks they are often known as mixins. Concerns are a way to make large controllers or models easier to understand and manage. This also has the advantage of reusability when multiple models (or controllers) share the same concerns.
+Concerns are a way to make large controllers or models easier to understand and manage. This also has the advantage of reusability when multiple models (or controllers) share the same concerns. Concerns are implemented using modules that contain methods representing a well-defined slice of the functionality that a model or controller is responsible for. In other languages, modules are often known as mixins.
 
- You can use concerns in your controller or model the same way you would use any module. When you first created your app with `rails new blog` , two folders were created within `app/` along with the rest:
+You can use concerns in your controller or model the same way you would use any module. When you first created your app with `rails new blog`, two folders were created within `app/` along with the rest:
 
  ```
  app/controllers/concerns
@@ -2067,7 +2067,7 @@ Then, in our `index` action template (`app/views/articles/index.html.erb`) we wo
 </table>
 ```
 
-However, if you look again at our models now, you can see that the logic is duplicated. If in future we increase the functionality of our blog - to include private messages, for instance -  we might find ourselves duplicating the logic yet again. This is where concerns come in handy.
+However, if you look again at our models now, you can see that the logic is duplicated. If in the future we increase the functionality of our blog - to include private messages, for instance -  we might find ourselves duplicating the logic yet again. This is where concerns come in handy.
 
 A concern is only responsible for a focused subset of the model's responsibility; the methods in our concern will all be related to the visibility of a model. Let's call our new concern (module) `Visible`. We can create a new file inside `app/models/concerns` called `visible.rb` , and store all of the status methods that were duplicated in the models.
 
@@ -2123,7 +2123,7 @@ class Comment < ApplicationRecord
 end
 ```
 
-Class methods can also added to concerns. If we want a count of public articles or comments to display on our main page, we might add a class method to Visible as follows:
+Class methods can also be added to concerns. If we want a count of public articles or comments to display on our main page, we might add a class method to Visible as follows:
 
 ```ruby
 module Visible
@@ -2137,7 +2137,7 @@ module Visible
 
   class_methods do
     def public_count
-      self.where(status: 'public').count
+      where(status: 'public').count
     end
   end
 
