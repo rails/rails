@@ -98,12 +98,8 @@ if supports_datetime_with_precision?
       date = ::Time.utc(2014, 8, 17, 12, 30, 0, 999999)
       Foo.create!(created_at: date, updated_at: date)
 
-      assert_nil Foo.find_by("created_at >= ?", date)
-      assert_equal 0, Foo.where("updated_at >= ?", date).count
-
-      assert foo = Foo.find_by("created_at >=": date)
-      assert_equal 1, Foo.where("updated_at >=": date).count
-
+      assert foo = Foo.find_by(created_at: date)
+      assert_equal 1, Foo.where(updated_at: date).count
       assert_equal date.to_s, foo.created_at.to_s
       assert_equal date.to_s, foo.updated_at.to_s
       assert_equal 000000, foo.created_at.usec

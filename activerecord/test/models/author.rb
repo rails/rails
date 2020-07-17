@@ -38,7 +38,7 @@ class Author < ActiveRecord::Base
            -> { where(title: "Welcome to the weblog").where(comments_count: 1) },
            class_name: "Post"
   has_many :welcome_posts_with_comments,
-           -> { where(title: "Welcome to the weblog").where("comments_count >": 0) },
+           -> { where(title: "Welcome to the weblog").where("legacy_comments_count > 0") },
            class_name: "Post"
 
   has_many :comments_desc, -> { order("comments.id DESC") }, through: :posts_sorted_by_id, source: :comments
