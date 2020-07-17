@@ -2445,6 +2445,7 @@ module ApplicationTests
 
     test "ActionDispatch::Response.return_only_media_type_on_content_type can be configured in the new framework defaults" do
       remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "5.2"'
 
       app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
         Rails.application.config.action_dispatch.return_only_media_type_on_content_type = false
