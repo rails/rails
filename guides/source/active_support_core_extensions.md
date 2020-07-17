@@ -2427,7 +2427,7 @@ NOTE: Defined in `active_support/core_ext/array/wrap.rb`.
 ### Duplicating
 
 The method `Array#deep_dup` duplicates itself and all objects inside
-recursively with Active Support method `Object#deep_dup`. It works like `Array#map` with sending `deep_dup` method to each object inside.
+recursively with the Active Support method `Object#deep_dup`. It works like `Array#map`, sending `deep_dup` method to each object inside.
 
 ```ruby
 array = [1, [2, 3]]
@@ -2460,19 +2460,19 @@ or yields them in turn if a block is passed:
 <% end %>
 ```
 
-The first example shows `in_groups_of` fills the last group with as many `nil` elements as needed to have the requested size. You can change this padding value using the second optional argument:
+The first example shows how `in_groups_of` fills the last group with as many `nil` elements as needed to have the requested size. You can change this padding value using the second optional argument:
 
 ```ruby
 [1, 2, 3].in_groups_of(2, 0) # => [[1, 2], [3, 0]]
 ```
 
-And you can tell the method not to fill the last group passing `false`:
+And you can tell the method not to fill the last group by passing `false`:
 
 ```ruby
 [1, 2, 3].in_groups_of(2, false) # => [[1, 2], [3]]
 ```
 
-As a consequence `false` can't be a used as a padding value.
+As a consequence `false` can't be used as a padding value.
 
 NOTE: Defined in `active_support/core_ext/array/grouping.rb`.
 
@@ -2503,14 +2503,14 @@ You can change this padding value using the second optional argument:
 # => [["1", "2", "3"], ["4", "5", "0"], ["6", "7", "0"]]
 ```
 
-And you can tell the method not to fill the smaller groups passing `false`:
+And you can tell the method not to fill the smaller groups by passing `false`:
 
 ```ruby
 %w(1 2 3 4 5 6 7).in_groups(3, false)
 # => [["1", "2", "3"], ["4", "5"], ["6", "7"]]
 ```
 
-As a consequence `false` can't be a used as a padding value.
+As a consequence `false` can't be used as a padding value.
 
 NOTE: Defined in `active_support/core_ext/array/grouping.rb`.
 
@@ -2680,7 +2680,7 @@ If the receiver responds to `convert_key`, the method is called on each of the a
 {a: 1}.with_indifferent_access.except("a") # => {}
 ```
 
-There's also the bang variant `except!` that removes keys in the very receiver.
+There's also the bang variant `except!` that removes keys in place.
 
 NOTE: Defined in `active_support/core_ext/hash/except.rb`.
 
@@ -2713,9 +2713,9 @@ end
 
 The second line can safely access the "type" key, and let the user to pass either `:type` or "type".
 
-There's also the bang variant `stringify_keys!` that stringifies keys in the very receiver.
+There's also the bang variant `stringify_keys!` that stringifies keys in place.
 
-Besides that, one can use `deep_stringify_keys` and `deep_stringify_keys!` to stringify all the keys in the given hash and all the hashes nested into it. An example of the result is:
+Besides that, one can use `deep_stringify_keys` and `deep_stringify_keys!` to stringify all the keys in the given hash and all the hashes nested in it. An example of the result is:
 
 ```ruby
 {nil => nil, 1 => 1, nested: {a: 3, 5 => 5}}.deep_stringify_keys
@@ -2756,9 +2756,9 @@ end
 
 The third line can safely access the `:input` key, and let the user to pass either `:input` or "input".
 
-There's also the bang variant `symbolize_keys!` that symbolizes keys in the very receiver.
+There's also the bang variant `symbolize_keys!` that symbolizes keys in place.
 
-Besides that, one can use `deep_symbolize_keys` and `deep_symbolize_keys!` to symbolize all the keys in the given hash and all the hashes nested into it. An example of the result is:
+Besides that, one can use `deep_symbolize_keys` and `deep_symbolize_keys!` to symbolize all the keys in the given hash and all the hashes nested in it. An example of the result is:
 
 ```ruby
 {nil => nil, 1 => 1, "nested" => {"a" => 3, 5 => 5}}.deep_symbolize_keys
@@ -2825,7 +2825,7 @@ rest = hash.extract!(:a) # => {:a=>1}
 hash                     # => {:b=>2}
 ```
 
-The method `extract!` returns the same subclass of Hash, that the receiver is.
+The method `extract!` returns the same subclass of Hash that the receiver is.
 
 ```ruby
 hash = {a: 1, b: 2}.with_indifferent_access
