@@ -122,11 +122,15 @@ module ActiveRecord
 
               grouping_queries(queries)
             end
+          elsif key.end_with?(">", ">=", "<", "<=") && /\A(?<key>.+?)\s*(?<operator>>|>=|<|<=)\z/ =~ key
+            self[key, value, OPERATORS[operator]]
           else
             self[key, value]
           end
         end
       end
+
+      OPERATORS = { ">" => :gt, ">=" => :gteq, "<" => :lt, "<=" => :lteq }.freeze
 
     private
       attr_reader :table

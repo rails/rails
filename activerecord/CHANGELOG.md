@@ -1,3 +1,35 @@
+*   Support `where` with comparison operators (`>`, `>=`, `<`, and `<=`).
+
+    ```ruby
+    posts = Post.order(:id)
+
+    posts.where("id >": 9).pluck(:id)  # => [10, 11]
+    posts.where("id >=": 9).pluck(:id) # => [9, 10, 11]
+    posts.where("id <": 3).pluck(:id)  # => [1, 2]
+    posts.where("id <=": 3).pluck(:id) # => [1, 2, 3]
+    ```
+
+    From type casting and table/column name resolution's point of view,
+    `where("created_at >=": time)` is better alternative than `where("created_at >= ?", time)`.
+
+    ```ruby
+    class Post < ActiveRecord::Base
+      attribute :created_at, :datetime, precision: 3
+    end
+
+    time = Time.now.utc # => 2020-06-24 10:11:12.123456 UTC
+
+    Post.create!(created_at: time) # => #<Post id: 1, created_at: "2020-06-24 10:11:12.123000">
+
+    # SELECT `posts`.* FROM `posts` WHERE (created_at >= '2020-06-24 10:11:12.123456')
+    Post.where("created_at >= ?", time) # => []
+
+    # SELECT `posts`.* FROM `posts` WHERE `posts`.`created_at` >= '2020-06-24 10:11:12.123000'
+    Post.where("created_at >=": time) # => [#<Post id: 1, created_at: "2020-06-24 10:11:12.123000">]
+    ```
+
+    *Ryuta Kamizono*
+
 *   Type cast enum values by the original attribute type.
 
     The notable thing about this change is that unknown labels will no longer match 0 on MySQL.

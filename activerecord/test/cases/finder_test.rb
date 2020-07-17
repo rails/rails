@@ -315,17 +315,15 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal true, Topic.where(id: 1).or(Topic.where(id: 9223372036854775808)).exists?
     assert_equal true, Topic.where.not(id: 9223372036854775808).exists?
 
-    attr = Topic.predicate_builder
+    assert_predicate Topic.where("id >":  -9223372036854775809), :exists?
+    assert_predicate Topic.where("id >=": -9223372036854775809), :exists?
+    assert_predicate Topic.where("id <":  9223372036854775808),  :exists?
+    assert_predicate Topic.where("id <=": 9223372036854775808),  :exists?
 
-    assert_predicate Topic.where(attr[:id, -9223372036854775809, :gt]),   :exists?
-    assert_predicate Topic.where(attr[:id, -9223372036854775809, :gteq]), :exists?
-    assert_predicate Topic.where(attr[:id,  9223372036854775808, :lt]),   :exists?
-    assert_predicate Topic.where(attr[:id,  9223372036854775808, :lteq]), :exists?
-
-    assert_not_predicate Topic.where(attr[:id,  9223372036854775808, :gt]),   :exists?
-    assert_not_predicate Topic.where(attr[:id,  9223372036854775808, :gteq]), :exists?
-    assert_not_predicate Topic.where(attr[:id, -9223372036854775809, :lt]),   :exists?
-    assert_not_predicate Topic.where(attr[:id, -9223372036854775809, :lteq]), :exists?
+    assert_not_predicate Topic.where("id >":  9223372036854775808),  :exists?
+    assert_not_predicate Topic.where("id >=": 9223372036854775808),  :exists?
+    assert_not_predicate Topic.where("id <":  -9223372036854775809), :exists?
+    assert_not_predicate Topic.where("id <=": -9223372036854775809), :exists?
   end
 
   def test_exists_with_joins

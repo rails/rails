@@ -1004,7 +1004,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 11, posts.count(:all)
     assert_equal 11, posts.count(:id)
 
-    assert_equal 3, posts.where("legacy_comments_count > 1").count
+    assert_equal 3, posts.where("comments_count >": 1).count
     assert_equal 6, posts.where(comments_count: 0).count
   end
 
@@ -1124,7 +1124,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_count_complex_chained_relations
-    posts = Post.select("comments_count").where("id is not null").group("author_id").where("legacy_comments_count > 0")
+    posts = Post.select("comments_count").where("id is not null").group("author_id").where("comments_count >": 0)
 
     expected = { 1 => 4, 2 => 1 }
     assert_equal expected, posts.count
@@ -1146,7 +1146,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_empty_complex_chained_relations
-    posts = Post.select("comments_count").where("id is not null").group("author_id").where("legacy_comments_count > 0")
+    posts = Post.select("comments_count").where("id is not null").group("author_id").where("comments_count >": 0)
 
     assert_queries(1) { assert_equal false, posts.empty? }
     assert_not_predicate posts, :loaded?
@@ -2195,6 +2195,25 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_equal "3", third_post.title
     assert_not_same first_post, third_post
+  end
+
+  def test_where_with_comparison_operator
+    posts = Post.order(:id)
+
+    assert_equal [10, 11], posts.where("id >": 9).pluck(:id)
+    assert_equal [9, 10, 11], posts.where("id >=": 9).pluck(:id)
+    assert_equal [1, 2], posts.where("id <": 3).pluck(:id)
+    assert_equal [1, 2, 3], posts.where("id <=": 3).pluck(:id)
+  end
+
+  def test_where_with_table_name_resolution
+    posts = Post.joins(:comments).order(:id)
+
+    assert_equal [1, 1, 2], posts.where("id <": 3).pluck(:id)
+
+    assert_raise(ActiveRecord::StatementInvalid) do
+      posts.where("id < ?", 3).pluck(:id) # ambiguous column name: id
+    end
   end
 
   test "#skip_query_cache!" do
