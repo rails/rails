@@ -519,11 +519,16 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_scaffold_generator_database
+  def test_scaffold_generator_multi_db_abstract_class
     with_secondary_database_configuration do
       run_generator ["posts", "--database=secondary"]
 
       assert_migration "db/secondary_migrate/create_posts.rb"
+      assert_file "app/models/secondary_record.rb" do |content|
+        assert_match(/class SecondaryRecord < ApplicationRecord/, content)
+        assert_match(/connects_to database: { writing: :secondary }/, content)
+        assert_match(/self.abstract_class = true/, content)
+      end
     end
   end
 
