@@ -1078,6 +1078,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_principle_tasks_go_before_finish_template
+    tasks = generator.class.tasks.keys
+
+    assert_equal tasks.index("apply_rails_template") - 1, tasks.index("finish_template")
+  end
+
   def test_after_bundle_callback
     path = "http://example.org/rails_template"
     template = +%{ after_bundle { run 'echo ran after_bundle' } }

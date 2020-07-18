@@ -491,6 +491,12 @@ module Rails
         end
       end
 
+      def delete_active_job_folder_if_skipping_active_job
+        if options[:skip_active_job]
+          remove_dir "app/jobs"
+        end
+      end
+
       def delete_action_mailer_files_skipping_action_mailer
         if options[:skip_action_mailer]
           remove_file "app/views/layouts/mailer.html.erb"
@@ -534,12 +540,6 @@ module Rails
 
       def finish_template
         build(:leftovers)
-      end
-
-      def delete_active_job_folder_if_skipping_active_job
-        if options[:skip_active_job]
-          remove_dir "app/jobs"
-        end
       end
 
       public_task :apply_rails_template, :run_bundle
