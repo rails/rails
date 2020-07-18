@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "models/author"
+require "models/categorization"
 require "models/post"
 require "models/comment"
 
 module ActiveRecord
   class SelectTest < ActiveRecord::TestCase
-    fixtures :posts, :comments
+    fixtures :posts, :comments, :authors
 
     def test_select_with_nil_argument
       expected = Post.select(:title).to_sql
@@ -52,6 +54,32 @@ module ActiveRecord
         id author_id title body type legacy_comments_count taggings_with_delete_all_count taggings_with_destroy_count
         tags_count indestructible_tags_count tags_with_destroy_count tags_with_nullify_count
       ), posts.first.attributes.keys
+    end
+
+    def test_select_with_symbol_alias
+      post = Post.select(:id, id: :aliased_id).take
+      assert_not_nil post.id
+      assert_equal post.id, post.aliased_id
+    end
+
+    def test_select_with_string_alias
+      post = Post.select(:title, 'title': :aliased_title).take
+      assert_not_nil post.title
+      assert_equal post.title, post.aliased_title
+    end
+
+    def test_select_joined_alias
+      post = Post.joins(:author).select(:id, :author_id, 'authors.name': :author_name).take
+
+      assert_not_nil post.author_name
+      assert_equal post.author.name, post.author_name
+    end
+
+    def test_select_joined_aggregated_alias
+      post = Post.joins(:comments).select(:id, "COUNT(comments.id)" => :comment_count).group(:id).take
+
+      assert_not_nil post.comment_count
+      assert_equal post.comments.count, post.comment_count
     end
   end
 end

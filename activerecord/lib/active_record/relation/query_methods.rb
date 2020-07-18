@@ -1313,21 +1313,32 @@ module ActiveRecord
       def arel_columns(columns)
         columns.flat_map do |field|
           case field
-          when Symbol
-            arel_column(field.to_s) do |attr_name|
-              connection.quote_table_name(attr_name)
+          when Hash
+            field.map do |field_name, field_alias|
+              arel_column(field_name).as(field_alias.to_s)
             end
-          when String
-            arel_column(field, &:itself)
-          when Proc
-            field.call
           else
-            field
+            arel_column(field)
           end
         end
       end
 
       def arel_column(field)
+        case field
+        when Symbol
+          arel_column_attribute(field.to_s) do |attr_name|
+            connection.quote_table_name(attr_name)
+          end
+        when String
+          arel_column_attribute(field, &:itself)
+        when Proc
+          field.call
+        else
+          field
+        end
+      end
+
+      def arel_column_attribute(field)
         field = klass.attribute_aliases[field] || field
         from = from_clause.name || from_clause.value
 
@@ -1339,7 +1350,7 @@ module ActiveRecord
             lookup_reflection_from_join_dependencies(table)
           end
         else
-          yield field
+          yield Arel::Nodes::SqlLiteral.new(field)
         end
       end
 
@@ -1455,7 +1466,7 @@ module ActiveRecord
       end
 
       def order_column(field)
-        arel_column(field) do |attr_name|
+        arel_column_attribute(field) do |attr_name|
           if attr_name == "count" && !group_values.empty?
             arel_attribute(attr_name)
           else
