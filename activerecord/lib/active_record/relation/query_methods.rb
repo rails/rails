@@ -384,6 +384,18 @@ module ActiveRecord
       self
     end
 
+    def select_append(*fields)
+      check_if_method_has_arguments!(:select_append, fields, "Call `select_append' with at least one field.")
+      spawn._select_append!(*fields)
+    end
+
+    def _select_append!(*fields) # :nodoc:
+      self.select_values = default_select_values if self.select_values.empty?
+
+      self.select_values += fields
+      self
+    end
+
     # Allows you to change a previously set select statement.
     #
     #   Post.select(:title, :body)
@@ -1578,7 +1590,15 @@ module ActiveRecord
         elsif klass.ignored_columns.any? || klass.enumerate_columns_in_select_statements
           arel.project(*klass.column_names.map { |field| table[field] })
         else
-          arel.project(table[Arel.star])
+          arel.project(*default_select_values)
+        end
+      end
+
+      def default_select_values
+        if klass.ignored_columns.any?
+          klass.column_names.map { |field| arel_attribute(field) }
+        else
+          [table[Arel.star]]
         end
       end
 

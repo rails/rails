@@ -101,5 +101,18 @@ module ActiveRecord
 
       assert_equal "`select' with block doesn't take arguments.", error.message
     end
+
+    def test_default_select_append
+      posts = Post.select_append("id AS appended_id")
+      assert_equal %w(
+        id author_id title body type legacy_comments_count taggings_with_delete_all_count taggings_with_destroy_count
+        tags_count indestructible_tags_count tags_with_destroy_count tags_with_nullify_count appended_id
+      ), posts.first.attributes.keys
+    end
+
+    def test_select_append
+      posts = Post.select(:id).select_append(:title)
+      assert_equal %w(id title), posts.first.attributes.keys
+    end
   end
 end
