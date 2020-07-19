@@ -1304,7 +1304,7 @@ module ActiveRecord
         if select_values.any?
           arel.project(*arel_columns(select_values.uniq))
         elsif klass.ignored_columns.any?
-          arel.project(*klass.column_names.map { |field| arel_attribute(field) })
+          arel.project(*klass.column_names.map { |field| table[field] })
         else
           arel.project(table[Arel.star])
         end
@@ -1332,7 +1332,7 @@ module ActiveRecord
         from = from_clause.name || from_clause.value
 
         if klass.columns_hash.key?(field) && (!from || table_name_matches?(from))
-          arel_attribute(field)
+          table[field]
         elsif field.match?(/\A\w+\.\w+\z/)
           table, column = field.split(".")
           predicate_builder.resolve_arel_attribute(table, column) do
@@ -1351,7 +1351,7 @@ module ActiveRecord
 
       def reverse_sql_order(order_query)
         if order_query.empty?
-          return [arel_attribute(primary_key).desc] if primary_key
+          return [table[primary_key].desc] if primary_key
           raise IrreversibleOrderError,
             "Relation has no current order and table has no primary key to be used as default order"
         end
@@ -1457,7 +1457,7 @@ module ActiveRecord
       def order_column(field)
         arel_column(field) do |attr_name|
           if attr_name == "count" && !group_values.empty?
-            arel_attribute(attr_name)
+            table[attr_name]
           else
             Arel.sql(connection.quote_table_name(attr_name))
           end

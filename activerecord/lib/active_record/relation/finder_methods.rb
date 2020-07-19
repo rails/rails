@@ -410,7 +410,7 @@ module ActiveRecord
 
       def limited_ids_for(relation)
         values = @klass.connection.columns_for_distinct(
-          connection.visitor.compile(arel_attribute(primary_key)),
+          connection.visitor.compile(table[primary_key]),
           relation.order_values
         )
 
@@ -562,9 +562,9 @@ module ActiveRecord
       def ordered_relation
         if order_values.empty? && (implicit_order_column || primary_key)
           if implicit_order_column && primary_key && implicit_order_column != primary_key
-            order(arel_attribute(implicit_order_column).asc, arel_attribute(primary_key).asc)
+            order(table[implicit_order_column].asc, table[primary_key].asc)
           else
-            order(arel_attribute(implicit_order_column || primary_key).asc)
+            order(table[implicit_order_column || primary_key].asc)
           end
         else
           self

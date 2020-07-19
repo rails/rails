@@ -260,7 +260,7 @@ module ActiveRecord
         end
 
         def type_condition(table = arel_table)
-          sti_column = arel_attribute(inheritance_column, table)
+          sti_column = table[inheritance_column]
           sti_names  = ([self] + descendants).map(&:sti_name)
 
           predicate_builder.build(sti_column, sti_names)

@@ -11,11 +11,7 @@ module ActiveRecord
     end
 
     def arel_attribute(column_name)
-      if klass
-        klass.arel_attribute(column_name, arel_table)
-      else
-        arel_table[column_name]
-      end
+      arel_table[column_name]
     end
 
     def type(column_name)

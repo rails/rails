@@ -28,7 +28,7 @@ class Post < ActiveRecord::Base
 
   scope :containing_the_letter_a, -> { where("body LIKE '%a%'") }
   scope :titled_with_an_apostrophe, -> { where("title LIKE '%''%'") }
-  scope :ranked_by_comments, -> { order(arel_attribute(:comments_count).desc) }
+  scope :ranked_by_comments, -> { order(table[:comments_count].desc) }
 
   scope :limit_by, lambda { |l| limit(l) }
   scope :locked, -> { lock }
@@ -337,10 +337,6 @@ class FakeKlass
 
     def sanitize_sql_for_order(sql)
       sql
-    end
-
-    def arel_attribute(name, table)
-      table[name]
     end
 
     def disallow_raw_sql!(*args)

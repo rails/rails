@@ -280,7 +280,7 @@ module ActiveRecord
       end
 
       def batch_order(order)
-        arel_attribute(primary_key).public_send(order)
+        table[primary_key].public_send(order)
       end
 
       def act_on_ignored_order(error_on_ignore)
