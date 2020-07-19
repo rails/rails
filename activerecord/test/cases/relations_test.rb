@@ -1122,14 +1122,6 @@ class RelationTest < ActiveRecord::TestCase
   def test_any
     posts = Post.all
 
-    # This test was failing when run on its own (as opposed to running the entire suite).
-    # The second line in the assert_queries block was causing visit_Arel_Attributes_Attribute
-    # in Arel::Visitors::ToSql to trigger a SHOW TABLES query. Running that line here causes
-    # the SHOW TABLES result to be cached so we don't have to do it again in the block.
-    #
-    # This is obviously a rubbish fix but it's the best I can come up with for now...
-    posts.where(id: nil).any?
-
     assert_queries(3) do
       assert posts.any? # Uses COUNT()
       assert_not_predicate posts.where(id: nil), :any?
