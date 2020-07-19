@@ -1,0 +1,10 @@
+version: '3.4'
+
+services:
+  devrails:
+    tty: true
+    stdin_open: true
+    build:
+      dockerfile: Dockerfile
+      context: .
+    entrypoint: ["tail", "-f", "/dev/null"]
