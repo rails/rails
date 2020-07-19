@@ -3452,7 +3452,7 @@ t.advance(seconds: 1)
 # => Sun Mar 28 03:00:00 +0200 2010
 ```
 
-* If `since` or `ago` jump to a time that can't be expressed with `Time` a `DateTime` object is returned instead.
+* If `since` or `ago` jumps to a time that can't be expressed with `Time` a `DateTime` object is returned instead.
 
 #### `Time.current`
 
