@@ -5,7 +5,6 @@ require "active_support/dependencies"
 require "active_support/descendants_tracker"
 require "active_support/time"
 require "active_support/core_ext/class/subclasses"
-require "active_record/attribute_decorators"
 require "active_record/log_subscriber"
 require "active_record/explain_subscriber"
 require "active_record/relation/delegation"
@@ -293,7 +292,6 @@ module ActiveRecord #:nodoc:
     include Validations
     include CounterCache
     include Attributes
-    include AttributeDecorators
     include Locking::Optimistic
     include Locking::Pessimistic
     include AttributeMethods

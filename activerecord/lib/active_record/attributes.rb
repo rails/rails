@@ -246,17 +246,7 @@ module ActiveRecord
       def load_schema! # :nodoc:
         super
         attributes_to_define_after_schema_loads.each do |name, (type, options)|
-          case type
-          when Symbol
-            adapter_name = ActiveRecord::Type.adapter_name_from(self)
-            type = ActiveRecord::Type.lookup(type, **options.except(:default), adapter: adapter_name)
-          when Proc
-            type = type[type_for_attribute(name)]
-          else
-            type ||= type_for_attribute(name)
-          end
-
-          define_attribute(name, type, **options.slice(:default))
+          define_attribute(name, _lookup_cast_type(name, type, options), **options.slice(:default))
         end
       end
 
@@ -278,6 +268,18 @@ module ActiveRecord
             default_attribute = ActiveModel::Attribute.from_database(name, value, type)
           end
           _default_attributes[name] = default_attribute
+        end
+
+        def _lookup_cast_type(name, type, options)
+          case type
+          when Symbol
+            adapter_name = ActiveRecord::Type.adapter_name_from(self)
+            ActiveRecord::Type.lookup(type, **options.except(:default), adapter: adapter_name)
+          when Proc
+            type[type_for_attribute(name)]
+          else
+            type || type_for_attribute(name)
+          end
         end
     end
   end
