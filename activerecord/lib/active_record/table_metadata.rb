@@ -10,10 +10,6 @@ module ActiveRecord
       @reflection = reflection
     end
 
-    def arel_attribute(column_name)
-      arel_table[column_name]
-    end
-
     def type(column_name)
       arel_table.type_for_attribute(column_name)
     end
@@ -69,7 +65,9 @@ module ActiveRecord
       end
     end
 
+    attr_reader :arel_table
+
     private
-      attr_reader :klass, :arel_table, :reflection
+      attr_reader :klass, :reflection
   end
 end

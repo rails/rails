@@ -295,6 +295,7 @@ module ActiveRecord
       def arel_attribute(name, table = arel_table) # :nodoc:
         table[name]
       end
+      deprecate :arel_attribute
 
       def predicate_builder # :nodoc:
         @predicate_builder ||= PredicateBuilder.new(table_metadata)

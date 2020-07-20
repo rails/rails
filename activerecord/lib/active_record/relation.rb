@@ -41,6 +41,7 @@ module ActiveRecord
     def arel_attribute(name) # :nodoc:
       table[name]
     end
+    deprecate :arel_attribute
 
     def bind_attribute(name, value) # :nodoc:
       if reflection = klass._reflect_on_association(name)
