@@ -859,7 +859,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_match("config.cache_classes = false", contents)
       assert_match("config.action_view.cache_template_loading = true", contents)
     end
-    assert_file "config/boot.rb", %r{^\s*load .+/bin/spring"}
+    assert_file "config/boot.rb", %r{^\s*require .+/bin/spring"}
   end
 
   def test_bundler_binstub
