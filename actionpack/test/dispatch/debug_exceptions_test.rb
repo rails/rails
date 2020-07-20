@@ -137,6 +137,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   DevelopmentApp = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp)
   InterceptedApp = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp, :default, [Interceptor])
   BadInterceptedApp = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp, :default, [BadInterceptor])
+  ApiApp = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp, :api)
 
   test "skip diagnosis if not showing detailed exceptions" do
     @app = ProductionApp
@@ -269,7 +270,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   end
 
   test "rescue with JSON error for JSON API request" do
-    @app = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp, :api)
+    @app = ApiApp
 
     get "/", headers: { "action_dispatch.show_exceptions" => true }, as: :json
     assert_response 500
@@ -307,10 +308,16 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_no_match(/<body>/, body)
     assert_equal "application/json", response.media_type
     assert_match(/ActionController::ParameterMissing/, body)
+
+    get "/invalid_mimetype", headers: { "Accept" => "text/html,*", "action_dispatch.show_exceptions" => true }, as: :json
+    assert_response 406
+    assert_no_match(/<body>/, body)
+    assert_equal "application/json", response.media_type
+    assert_match(/Mime::Type::InvalidMimeType/, body)
   end
 
   test "rescue with HTML format for HTML API request" do
-    @app = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp, :api)
+    @app = ApiApp
 
     get "/index.html", headers: { "action_dispatch.show_exceptions" => true }
     assert_response 500
@@ -321,7 +328,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   end
 
   test "rescue with XML format for XML API requests" do
-    @app = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp, :api)
+    @app = ApiApp
 
     get "/index.xml", headers: { "action_dispatch.show_exceptions" => true }
     assert_response 500
@@ -335,7 +342,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     ActionDispatch::IntegrationTest.register_encoder(:wibble,
       param_encoder: -> params { params })
 
-    @app = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp, :api)
+    @app = ApiApp
 
     get "/index", headers: { "action_dispatch.show_exceptions" => true }, as: :wibble
     assert_response 500

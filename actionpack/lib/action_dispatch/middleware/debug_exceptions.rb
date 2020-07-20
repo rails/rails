@@ -64,7 +64,7 @@ module ActionDispatch
           begin
             content_type = request.formats.first
           rescue Mime::Type::InvalidMimeType
-            render_for_api_request(Mime[:text], wrapper)
+            content_type = Mime[:text]
           end
 
           if api_request?(content_type)
