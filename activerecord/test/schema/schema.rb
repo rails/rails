@@ -1127,6 +1127,7 @@ ActiveRecord::Schema.define do
     t.string :overloaded_string_with_limit, limit: 255
     t.string :string_with_default, default: "the original default"
     t.string :inferred_string, limit: 255
+    t.datetime :starts_at, :ends_at
   end
 
   create_table :users, force: true do |t|
