@@ -149,15 +149,15 @@ module Rails
 
         def model_resource_name(prefix: "") # :doc:
           resource_name = "#{prefix}#{singular_table_name}"
-          if options[:model_name]
-            "[#{(controller_class_path.map { |name| ":" + name }.to_a << resource_name) * ', '}]"
+          if options[:model_name] && !controller_class_path.empty?
+            "[#{(controller_class_path.map { |name| ":" + name } << resource_name) * ', '}]"
           else
             resource_name
           end
         end
 
         def singular_route_name # :doc:
-          if options[:model_name]
+          if options[:model_name] && !controller_class_path.empty?
             (controller_class_path + [ singular_table_name ]) * "_"
           else
             singular_table_name
@@ -165,7 +165,7 @@ module Rails
         end
 
         def plural_route_name # :doc:
-          if options[:model_name]
+          if options[:model_name] && !controller_class_path.empty?
             (controller_class_path + [ plural_table_name ]) * "_"
           else
             plural_table_name
