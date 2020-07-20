@@ -166,16 +166,9 @@ module ActiveRecord
           end
 
           private
-            # We need to apply this decorator here, rather than on module inclusion. The closure
-            # created by the matcher would otherwise evaluate for `ActiveRecord::Base`, not the
-            # sub class being decorated. As such, changes to `lock_optimistically`, or
-            # `locking_column` would not be picked up.
-            def inherited(subclass)
-              subclass.class_eval do
-                is_lock_column = ->(name, _) { lock_optimistically && name == locking_column }
-                decorate_matching_attribute_types(is_lock_column, "_optimistic_locking") do |type|
-                  LockingType.new(type)
-                end
+            def add_attribute_to_attribute_set(attribute_set, name, type, **)
+              if lock_optimistically && name == locking_column
+                type = LockingType.new(type)
               end
               super
             end
