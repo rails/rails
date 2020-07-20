@@ -6,6 +6,10 @@ module ActiveRecord
   module AttributeMethods
     module TimeZoneConversion
       class TimeZoneConverter < DelegateClass(Type::Value) # :nodoc:
+        def self.new(subtype)
+          self === subtype ? subtype : super
+        end
+
         def deserialize(value)
           convert_time_to_time_zone(super)
         end
