@@ -192,30 +192,37 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     get "/", headers: { "action_dispatch.show_exceptions" => true }
     assert_response 500
+    assert_match(/<body>/, body)
     assert_match(/puke/, body)
 
     get "/not_found", headers: { "action_dispatch.show_exceptions" => true }
     assert_response 404
+    assert_match(/<body>/, body)
     assert_match(/#{AbstractController::ActionNotFound.name}/, body)
 
     get "/method_not_allowed", headers: { "action_dispatch.show_exceptions" => true }
     assert_response 405
+    assert_match(/<body>/, body)
     assert_match(/ActionController::MethodNotAllowed/, body)
 
     get "/unknown_http_method", headers: { "action_dispatch.show_exceptions" => true }
     assert_response 405
+    assert_match(/<body>/, body)
     assert_match(/ActionController::UnknownHttpMethod/, body)
 
     get "/bad_request", headers: { "action_dispatch.show_exceptions" => true }
     assert_response 400
+    assert_match(/<body>/, body)
     assert_match(/ActionController::BadRequest/, body)
 
     get "/parameter_missing", headers: { "action_dispatch.show_exceptions" => true }
     assert_response 400
+    assert_match(/<body>/, body)
     assert_match(/ActionController::ParameterMissing/, body)
 
     get "/invalid_mimetype", headers: { "Accept" => "text/html,*", "action_dispatch.show_exceptions" => true }
     assert_response 406
+    assert_match(/<body>/, body)
     assert_match(/Mime::Type::InvalidMimeType/, body)
   end
 
