@@ -430,7 +430,7 @@ module ActionView
       #   # => <a href="/accounts/show/3">my_username</a>
       def link_to_if(condition, name, options = {}, html_options = {}, &block)
         if condition
-          link_to(name, options, html_options)
+          link_to(name, options, html_options, &block)
         else
           if block_given?
             block.arity <= 1 ? capture(name, &block) : capture(name, options, html_options, &block)
