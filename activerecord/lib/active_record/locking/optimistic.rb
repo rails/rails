@@ -167,7 +167,7 @@ module ActiveRecord
 
           private
             def add_attribute_to_attribute_set(attribute_set, name, type, **)
-              if lock_optimistically && name == locking_column
+              if !type.is_a?(LockingType) && lock_optimistically && name == locking_column
                 type = LockingType.new(type)
               end
               super
