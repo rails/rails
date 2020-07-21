@@ -21,13 +21,19 @@ class ActiveStorage::Attachment < ActiveRecord::Base
 
   # Synchronously deletes the attachment and {purges the blob}[rdoc-ref:ActiveStorage::Blob#purge].
   def purge
-    delete
+    transaction do
+      delete
+      record&.touch
+    end
     blob&.purge
   end
 
   # Deletes the attachment and {enqueues a background job}[rdoc-ref:ActiveStorage::Blob#purge_later] to purge the blob.
   def purge_later
-    delete
+    transaction do
+      delete
+      record&.touch
+    end
     blob&.purge_later
   end
 
@@ -47,7 +53,6 @@ class ActiveStorage::Attachment < ActiveRecord::Base
     def purge_dependent_blob_later
       blob&.purge_later if dependent == :purge_later
     end
-
 
     def dependent
       record.attachment_reflections[name]&.options[:dependent]
