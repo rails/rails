@@ -68,14 +68,14 @@ module RailsGuides
 
         def lexer_language(code_type)
           case code_type
-          when "css", "js", "html", "ruby", "sql", "yaml"
-            code_type
-          when "erb", "html+erb"
+          when "html+erb"
             "erb"
           when "bash"
             "console"
-          else
+          when nil
             "plaintext"
+          else
+            ::Rouge::Lexer.find(language) ? code_type : "plaintext"
           end
         end
 
