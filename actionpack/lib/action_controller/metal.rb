@@ -41,12 +41,9 @@ module ActionController
 
       def build_middleware(klass, args, block)
         options = args.extract_options!
-        only   = Array(options.delete(:only)).map(&:to_s)
-        except = Array(options.delete(:except)).map(&:to_s)
+        only   = Array(options.delete(:only)).map!(&:to_s)
+        except = Array(options.delete(:except)).map!(&:to_s)
         args << options unless options.empty?
-
-        strategy = NULL
-        list     = nil
 
         if only.any?
           strategy = INCLUDE
@@ -54,6 +51,9 @@ module ActionController
         elsif except.any?
           strategy = EXCLUDE
           list     = except
+        else
+          strategy = NULL
+          list     = nil
         end
 
         Middleware.new(klass, args, list, strategy, block)
