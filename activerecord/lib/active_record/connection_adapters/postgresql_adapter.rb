@@ -80,6 +80,19 @@ module ActiveRecord
     class PostgreSQLAdapter < AbstractAdapter
       ADAPTER_NAME = "PostgreSQL".freeze
 
+      cattr_accessor :additional_type_records_cache, default: []
+      cattr_accessor :known_coder_type_records_cache, default: []
+
+      def self.clear_type_records_cache!
+        self.additional_type_records_cache = []
+        self.known_coder_type_records_cache = []
+      end
+
+      def reload_type_map
+        clear_type_records_cache!
+        super
+      end
+
       NATIVE_DATABASE_TYPES = {
         primary_key: "bigserial primary key",
         string:      { name: "character varying" },
@@ -565,6 +578,20 @@ module ActiveRecord
         def load_additional_types(oids = nil)
           initializer = OID::TypeMapInitializer.new(type_map)
 
+          if additional_type_records_cache.present?
+            use_cache = if oids.nil?
+              true
+            else
+              cached_oids = additional_type_records_cache.map { |oid| oid["oid"] }
+              (oids - cached_oids).empty?
+            end
+
+            if use_cache
+              initializer.run(additional_type_records_cache)
+              return
+            end
+          end
+
           if supports_ranges?
             query = <<-SQL
               SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype, t.typtype, t.typbasetype
@@ -585,6 +612,7 @@ module ActiveRecord
           end
 
           execute_and_clear(query, "SCHEMA", []) do |records|
+            additional_type_records_cache |= records.to_a
             initializer.run(records)
           end
         end
@@ -817,16 +845,24 @@ module ActiveRecord
             "float8" => PG::TextDecoder::Float,
             "bool" => PG::TextDecoder::Boolean,
           }
-          known_coder_types = coders_by_name.keys.map { |n| quote(n) }
-          query = <<-SQL % known_coder_types.join(", ")
-            SELECT t.oid, t.typname
-            FROM pg_type as t
-            WHERE t.typname IN (%s)
-          SQL
-          coders = execute_and_clear(query, "SCHEMA", []) do |result|
-            result
-              .map { |row| construct_coder(row, coders_by_name[row["typname"]]) }
-              .compact
+          if known_coder_type_records_cache.present?
+            coders = known_coder_type_records_cache
+                      .map { |row| construct_coder(row, coders_by_name[row["typname"]]) }
+                      .compact
+          else
+            known_coder_types = coders_by_name.keys.map { |n| quote(n) }
+            query = <<-SQL % known_coder_types.join(", ")
+              SELECT t.oid, t.typname
+              FROM pg_type as t
+              WHERE t.typname IN (%s)
+            SQL
+            coders = execute_and_clear(query, "SCHEMA", []) do |result|
+              known_coder_type_records_cache = result.to_a
+
+              result
+                .map { |row| construct_coder(row, coders_by_name[row["typname"]]) }
+                .compact
+            end
           end
 
           map = PG::TypeMapByOid.new

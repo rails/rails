@@ -6,6 +6,8 @@ module ActiveRecord
       attr_reader :version
       attr_accessor :connection
 
+      attr_reader :postgresql_additional_type_records, :postgresql_known_coder_type_records
+
       def initialize(conn)
         @connection = conn
 
@@ -13,6 +15,8 @@ module ActiveRecord
         @columns_hash = {}
         @primary_keys = {}
         @data_sources = {}
+        @postgresql_additional_type_records = []
+        @postgresql_known_coder_type_records = []
       end
 
       def initialize_dup(other)
@@ -24,10 +28,14 @@ module ActiveRecord
       end
 
       def encode_with(coder)
+        reset_postgresql_type_records!
+
         coder["columns"] = @columns
         coder["columns_hash"] = @columns_hash
         coder["primary_keys"] = @primary_keys
         coder["data_sources"] = @data_sources
+        coder["postgresql_additional_type_records"] = @postgresql_additional_type_records
+        coder["postgresql_known_coder_type_records"] = @postgresql_known_coder_type_records
         coder["version"] = connection.migration_context.current_version
       end
 
@@ -36,6 +44,8 @@ module ActiveRecord
         @columns_hash = coder["columns_hash"]
         @primary_keys = coder["primary_keys"]
         @data_sources = coder["data_sources"]
+        @postgresql_additional_type_records = coder["postgresql_additional_type_records"]
+        @postgresql_known_coder_type_records = coder["postgresql_known_coder_type_records"]
         @version = coder["version"]
       end
 
@@ -83,6 +93,8 @@ module ActiveRecord
         @columns_hash.clear
         @primary_keys.clear
         @data_sources.clear
+        @postgresql_additional_type_records = []
+        @postgresql_known_coder_type_records = []
         @version = nil
       end
 
@@ -99,16 +111,22 @@ module ActiveRecord
       end
 
       def marshal_dump
+        reset_postgresql_type_records!
+
         # if we get current version during initialization, it happens stack over flow.
         @version = connection.migration_context.current_version
-        [@version, @columns, @columns_hash, @primary_keys, @data_sources]
+        [@version, @columns, @columns_hash, @primary_keys, @data_sources, @postgresql_additional_type_records, @postgresql_known_coder_type_records]
       end
 
       def marshal_load(array)
-        @version, @columns, @columns_hash, @primary_keys, @data_sources = array
+        @version, @columns, @columns_hash, @primary_keys, @data_sources, @postgresql_additional_type_records, @postgresql_known_coder_type_records = array
       end
 
       private
+        def reset_postgresql_type_records!
+          @postgresql_additional_type_records = connection&.additional_type_records_cache
+          @postgresql_known_coder_type_records = connection&.known_coder_type_records_cache
+        end
 
         def prepare_data_sources
           connection.data_sources.each { |source| @data_sources[source] = true }

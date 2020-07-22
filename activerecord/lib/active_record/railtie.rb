@@ -96,10 +96,19 @@ module ActiveRecord
               next if current_version.nil?
 
               cache = YAML.load(File.read(filename))
+
+              if ActiveRecord::ConnectionAdapters.const_defined?(:PostgreSQLAdapter)
+                ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.additional_type_records_cache = cache.postgresql_additional_type_records
+                ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.known_coder_type_records_cache = cache.postgresql_known_coder_type_records
+              end
+
               if cache.version == current_version
                 connection.schema_cache = cache
                 connection_pool.schema_cache = cache.dup
               else
+                if ActiveRecord::ConnectionAdapters.const_defined?(:PostgreSQLAdapter)
+                  ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.clear_type_records_cache!
+                end
                 warn "Ignoring db/schema_cache.yml because it has expired. The current schema version is #{current_version}, but the one in the cache is #{cache.version}."
               end
             end
