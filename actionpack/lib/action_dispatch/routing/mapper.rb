@@ -128,9 +128,19 @@ module ActionDispatch
           @internal           = options.delete(:internal)
           @scope_options      = scope_params[:options]
 
-          path_params = ast.find_all(&:symbol?).map(&:to_sym)
+          path_params = []
+          wildcard_options = {}
+          ast.each do |node|
+            if node.symbol?
+              path_params << node.to_sym
+            elsif formatted != false && node.star?
+              # Add a constraint for wildcard route to make it non-greedy and match the
+              # optional format part of the route by default.
+              wildcard_options[node.name.to_sym] ||= /.+?/
+            end
+          end
 
-          options = add_wildcard_options(options, formatted, ast)
+          options = wildcard_options.merge!(options)
 
           options = normalize_options!(options, path_params, scope_params[:module])
 
@@ -231,18 +241,6 @@ module ActionDispatch
         private
           def intern(object)
             object.is_a?(String) ? -object : object
-          end
-
-          def add_wildcard_options(options, formatted, path_ast)
-            # Add a constraint for wildcard route to make it non-greedy and match the
-            # optional format part of the route by default.
-            if formatted != false
-              path_ast.grep(Journey::Nodes::Star).each_with_object({}) { |node, hash|
-                hash[node.name.to_sym] ||= /.+?/
-              }.merge options
-            else
-              options
-            end
           end
 
           def normalize_options!(options, path_params, modyoule)
