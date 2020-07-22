@@ -9,6 +9,7 @@ module ActiveJob
     extend ActiveSupport::Autoload
 
     autoload :ObjectSerializer
+    autoload :TimeObjectSerializer
     autoload :SymbolSerializer
     autoload :DurationSerializer
     autoload :DateTimeSerializer
@@ -17,9 +18,8 @@ module ActiveJob
     autoload :TimeSerializer
     autoload :ModuleSerializer
 
-    mattr_accessor :_additional_serializers, :time_precision
+    mattr_accessor :_additional_serializers
     self._additional_serializers = Set.new
-    self.time_precision = 0
 
     class << self
       # Returns serialized representative of the passed object.

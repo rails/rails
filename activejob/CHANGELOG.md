@@ -1,4 +1,4 @@
-*   Introduce `ActiveJob.time_precision` to make time precision configurable when serializing `Time`, `TimeWithZone` and `DateTime` objects.
+*   Recover nano precision when serializing `Time`, `TimeWithZone` and `DateTime` objects.
 
     *Alan Tan*
 

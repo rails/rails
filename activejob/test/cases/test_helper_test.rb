@@ -609,18 +609,18 @@ class EnqueuedJobsTest < ActiveJob::TestCase
   end
 
   def test_assert_enqueued_with_time_and_time_precision
-    original_time_precision = ActiveJob::Serializers.time_precision
-    ActiveJob::Serializers.time_precision = 3
-    time_with_zone = Time.now.in_time_zone("Tokyo")
+    time_with_zone = ActiveSupport::TimeWithZone.new(
+      Time.utc(1999, 12, 31, 23, 59, "59.123456789".to_r),
+      ActiveSupport::TimeZone["Tokyo"]
+    )
+
     time = Time.at(946702800, 1234567, :nanosecond)
-    date_time = DateTime.now
+    date_time = DateTime.new(2001, 2, 3, 4, 5, 6.123456, "+03:00")
     args = [{ argument1: [time_with_zone, time, date_time] }]
 
     assert_enqueued_with(job: MultipleKwargsJob, args: args) do
       MultipleKwargsJob.perform_later(argument1: [time_with_zone, time, date_time])
     end
-  ensure
-    ActiveJob::Serializers.time_precision = original_time_precision
   end
 
   def test_assert_enqueued_with_with_no_block_args

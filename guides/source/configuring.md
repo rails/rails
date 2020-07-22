@@ -263,7 +263,7 @@ Every Rails application comes with a standard set of middleware which it uses in
    # `beta1.product.com`.
    Rails.application.config.hosts << /.*\.product\.com/
    ```
-   
+
    The provided regexp will be wrapped with both anchors (`\A` and `\z`) so it
    must match the entire hostname. `/product.com/`, for example, once anchored,
    would fail to match `www.product.com`.
@@ -888,8 +888,6 @@ There are a few configuration options available in Active Support:
 * `config.active_job.logger` accepts a logger conforming to the interface of Log4r or the default Ruby Logger class, which is then used to log information from Active Job. You can retrieve this logger by calling `logger` on either an Active Job class or an Active Job instance. Set to `nil` to disable logging.
 
 * `config.active_job.custom_serializers` allows to set custom argument serializers. Defaults to `[]`.
-
-* `config.active_job.time_precision` sets the precision of serialized time values. Defaults to `0`.
 
 * `config.active_job.return_false_on_aborted_enqueue` change the return value of `#enqueue` to false instead of the job instance when the enqueuing is aborted. Defaults to `false`.
 

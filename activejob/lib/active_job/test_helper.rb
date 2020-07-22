@@ -671,28 +671,6 @@ module ActiveJob
             at_range = arguments[:at] - 1..arguments[:at] + 1
             arguments[:at] = ->(at) { at_range.cover?(at) }
           end
-          arguments[:args] = round_time_arguments(arguments[:args]) if arguments[:args]
-        end
-      end
-
-      def round_time_arguments(argument)
-        case argument
-        when Time, ActiveSupport::TimeWithZone, DateTime
-          nsec =
-            if ActiveJob::Serializers.time_precision > 0
-              nsec = argument.nsec
-              nsec - (nsec % (10 ** (9 - ActiveJob::Serializers.time_precision)))
-            else
-              0
-            end
-
-          argument.change(nsec: nsec)
-        when Hash
-          argument.transform_values { |value| round_time_arguments(value) }
-        when Array
-          argument.map { |element| round_time_arguments(element) }
-        else
-          argument
         end
       end
 

@@ -2,11 +2,7 @@
 
 module ActiveJob
   module Serializers
-    class TimeWithZoneSerializer < ObjectSerializer # :nodoc:
-      def serialize(time)
-        super("value" => time.iso8601(ActiveJob::Serializers.time_precision))
-      end
-
+    class TimeWithZoneSerializer < TimeObjectSerializer # :nodoc:
       def deserialize(hash)
         Time.iso8601(hash["value"]).in_time_zone
       end
