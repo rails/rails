@@ -473,7 +473,7 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
 
   APP = build_app(ROUTES) do |middleware|
     middleware.use PolicyConfigMiddleware
-    middleware.use ActionDispatch::ContentSecurityPolicy::Middleware
+    middleware.use ActionDispatch::ContentSecurityPolicy::Middleware, true
   end
 
   def app
@@ -518,6 +518,15 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
 
     assert_nil response.headers["Content-Security-Policy"]
     assert_nil response.headers["Content-Security-Policy-Report-Only"]
+  end
+
+  def test_warns_on_no_content_security_policy
+    log = StringIO.new
+    logger = Logger.new(log)
+
+    get "/no-policy", env: {"action_dispatch.logger" => logger}
+
+    assert_match("No Content Security Policy set", log.string)
   end
 
   def test_generates_api_security_policy

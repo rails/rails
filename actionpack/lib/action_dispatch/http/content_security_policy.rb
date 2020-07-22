@@ -9,8 +9,9 @@ module ActionDispatch #:nodoc:
       POLICY = "Content-Security-Policy"
       POLICY_REPORT_ONLY = "Content-Security-Policy-Report-Only"
 
-      def initialize(app)
+      def initialize(app, warn_on_no_content_security_policy = false)
         @app = app
+        @warn_on_no_content_security_policy = warn_on_no_content_security_policy
       end
 
       def call(env)
@@ -24,6 +25,10 @@ module ActionDispatch #:nodoc:
           nonce_directives = request.content_security_policy_nonce_directives
           context = request.controller_instance || request
           headers[header_name(request)] = policy.build(context, nonce, nonce_directives, headers[CONTENT_TYPE])
+        else
+          if (Rails.env.development? || Rails.env.test?) && logger(request) && @warn_on_no_content_security_policy
+            logger(request).warn "No Content Security Policy set"
+          end
         end
 
         response
@@ -40,6 +45,10 @@ module ActionDispatch #:nodoc:
 
         def policy_present?(headers)
           headers[POLICY] || headers[POLICY_REPORT_ONLY]
+        end
+
+        def logger(request)
+          request.logger
         end
     end
 
