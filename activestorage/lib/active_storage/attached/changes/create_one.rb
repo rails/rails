@@ -65,7 +65,7 @@ module ActiveStorage
             **attachable.reverse_merge(
               record: record,
               service_name: attachment_service_name
-            )
+            ).symbolize_keys
           )
         when String
           ActiveStorage::Blob.find_signed!(attachable, record: record)
