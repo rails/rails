@@ -1359,4 +1359,15 @@ class CalculationsTest < ActiveRecord::TestCase
       end
     end
   end
+
+  test "calculate works with order and limit" do
+    conn = ActiveRecord::Base.connection
+    quoted_posts_table = conn.quote_table_name(Post.table_name)
+    quoted_post_id = "#{quoted_posts_table}.#{conn.quote_column_name('id')}"
+
+    assert_sql(
+      /SELECT DISTINCT.* #{quoted_post_id} FROM #{quoted_posts_table} ORDER BY #{quoted_post_id} DESC LIMIT/,
+      /SELECT.*FROM #{quoted_posts_table} WHERE #{quoted_post_id} IN \(.*\) LIMIT/
+    ) { Post.order(id: :desc).limit(5).average(:comments_count) }
+  end
 end

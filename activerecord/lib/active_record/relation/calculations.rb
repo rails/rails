@@ -294,7 +294,12 @@ module ActiveRecord
           query_builder = build_count_subquery(spawn, column_name, distinct)
         else
           # PostgreSQL doesn't like ORDER BY when there are no GROUP BY
-          relation = unscope(:order).distinct!(false)
+          if has_limit_or_offset? && order_values.any?
+            limited_ids = limited_ids_for(self)
+            relation = limited_ids.empty? ? none : where(primary_key => limited_ids).unscope(:order).distinct!(false)
+          else
+            relation = unscope(:order).distinct!(false)
+          end
 
           column = aggregate_column(column_name)
           select_value = operation_over_aggregate_column(column, operation, distinct)
