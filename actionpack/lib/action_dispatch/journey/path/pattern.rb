@@ -4,7 +4,8 @@ module ActionDispatch
   module Journey # :nodoc:
     module Path # :nodoc:
       class Pattern # :nodoc:
-        attr_reader :spec, :requirements, :anchored
+        attr_reader :names, :spec, :requirements, :anchored
+        alias :ast :spec
 
         def self.from_string(string)
           build(string, {}, "/.?", true)
@@ -22,11 +23,22 @@ module ActionDispatch
           @separators   = separators
           @anchored     = anchored
 
-          @names          = nil
           @optional_names = nil
           @required_names = nil
           @re             = nil
           @offsets        = nil
+
+          @names = []
+          @spec.each do |node|
+            if node.symbol?
+              @names << node.name
+              re = @requirements[node.to_sym]
+              node.regexp = re if re
+            elsif node.star?
+              node = node.left
+              node.regexp = @requirements[node.to_sym] || /(.+)/
+            end
+          end
         end
 
         def build_formatter
@@ -38,24 +50,6 @@ module ActionDispatch
           offsets
           to_regexp
           nil
-        end
-
-        def ast
-          @spec.each do |node|
-            if node.symbol?
-              re = @requirements[node.to_sym]
-              node.regexp = re if re
-            elsif node.star?
-              node = node.left
-              node.regexp = @requirements[node.to_sym] || /(.+)/
-            end
-          end
-
-          @spec
-        end
-
-        def names
-          @names ||= spec.find_all(&:symbol?).map(&:name)
         end
 
         def required_names
