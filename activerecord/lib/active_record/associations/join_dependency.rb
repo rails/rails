@@ -173,11 +173,9 @@ module ActiveRecord
           foreign_table = parent.table
           foreign_klass = parent.base_klass
           child.join_constraints(foreign_table, foreign_klass, join_type, alias_tracker) do |reflection|
-            alias_tracker.aliased_table_for(
-              reflection.table_name,
-              table_alias_for(reflection, parent, reflection != child.reflection),
-              reflection.klass
-            )
+            alias_tracker.aliased_table_for(reflection.klass.arel_table) do
+              table_alias_for(reflection, parent, reflection != child.reflection)
+            end
           end.concat child.children.flat_map { |c| make_constraints(child, c, join_type) }
         end
 

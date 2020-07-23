@@ -106,11 +106,9 @@ module ActiveRecord
           name = reflection.name
           chain = [Reflection::RuntimeReflection.new(reflection, association)]
           reflection.chain.drop(1).each do |refl|
-            aliased_table = tracker.aliased_table_for(
-              refl.table_name,
-              refl.alias_candidate(name),
-              refl.klass
-            )
+            aliased_table = tracker.aliased_table_for(refl.klass.arel_table) do
+              refl.alias_candidate(name)
+            end
             chain << ReflectionProxy.new(refl, aliased_table)
           end
           chain

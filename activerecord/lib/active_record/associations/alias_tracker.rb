@@ -51,25 +51,23 @@ module ActiveRecord
         @connection = connection
       end
 
-      def aliased_table_for(table_name, aliased_name, klass)
-        if aliases[table_name].zero?
+      def aliased_table_for(arel_table)
+        if aliases[arel_table.name] == 0
           # If it's zero, we can have our table_name
-          aliases[table_name] = 1
-          Arel::Table.new(table_name, klass: klass)
+          aliases[arel_table.name] = 1
         else
           # Otherwise, we need to use an alias
-          aliased_name = @connection.table_alias_for(aliased_name)
+          aliased_name = @connection.table_alias_for(yield)
 
           # Update the count
-          aliases[aliased_name] += 1
+          count = aliases[aliased_name] += 1
 
-          table_alias = if aliases[aliased_name] > 1
-            "#{truncate(aliased_name)}_#{aliases[aliased_name]}"
-          else
-            aliased_name
-          end
-          Arel::Table.new(table_name, klass: klass).alias(table_alias)
+          aliased_name = "#{truncate(aliased_name)}_#{count}" if count > 1
+
+          arel_table = arel_table.alias(aliased_name)
         end
+
+        arel_table
       end
 
       attr_reader :aliases
