@@ -137,6 +137,8 @@ module ActionDispatch
               # Add a constraint for wildcard route to make it non-greedy and match the
               # optional format part of the route by default.
               wildcard_options[node.name.to_sym] ||= /.+?/
+            elsif node.cat?
+              alter_regex_for_custom_routes(node)
             end
           end
 
@@ -185,8 +187,10 @@ module ActionDispatch
           app(@blocks)
         end
 
+        JOINED_SEPARATORS = SEPARATORS.join # :nodoc:
+
         def path
-          build_path @ast, requirements, @anchor
+          Journey::Path::Pattern.new(@ast, requirements, JOINED_SEPARATORS, @anchor)
         end
 
         def conditions
@@ -207,16 +211,10 @@ module ActionDispatch
         end
         private :request_method
 
-        JOINED_SEPARATORS = SEPARATORS.join # :nodoc:
-
-        def build_path(ast, requirements, anchor)
-          pattern = Journey::Path::Pattern.new(ast, requirements, JOINED_SEPARATORS, anchor)
-
+        private
           # Find all the symbol nodes that are adjacent to literal nodes and alter
           # the regexp so that Journey will partition them into custom routes.
-          ast.find_all { |node|
-            next unless node.cat?
-
+          def alter_regex_for_custom_routes(node)
             if node.left.literal? && node.right.symbol?
               symbol = node.right
             elsif node.left.literal? && node.right.cat? && node.right.left.symbol?
@@ -225,20 +223,13 @@ module ActionDispatch
               symbol = node.left
             elsif node.left.symbol? && node.right.cat? && node.right.left.literal?
               symbol = node.left
-            else
-              next
             end
 
             if symbol
               symbol.regexp = /(?:#{Regexp.union(symbol.regexp, '-')})+/
             end
-          }
+          end
 
-          pattern
-        end
-        private :build_path
-
-        private
           def intern(object)
             object.is_a?(String) ? -object : object
           end
