@@ -1,3 +1,8 @@
+*   Add rails routes separated format option that outputs routes separated by
+    empty line between each controller routes.
+
+    *Sakurai Kenji*
+
 *   Change default redirection status code for non-GET/HEAD requests to 308 Permanent Redirect for `ActionDispatch::SSL`.
 
     *Alan Tan*, *Oz Ben-David*

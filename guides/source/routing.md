@@ -1227,6 +1227,19 @@ For example, here's a small section of the `bin/rails routes` output for a RESTf
 edit_user GET    /users/:id/edit(.:format) users#edit
 ```
 
+You can use the `--separated` option to turn on the separated formatting mode that outputs routes separated by empty line between each controller routes.
+
+```bash
+$ bin/rails routes --separated
+
+Prefix Verb   URI Pattern       Controller#Action
+ users GET    /users(.:format)  users#index
+       POST   /users(.:format)  users#create
+
+admins GET    /admins(.:format) admins#index
+       POST   /admins(.:format) admins#create
+```
+
 You can also use the `--expanded` option to turn on the expanded table formatting mode.
 
 ```bash

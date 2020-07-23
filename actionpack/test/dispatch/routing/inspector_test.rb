@@ -379,6 +379,86 @@ module ActionDispatch
         ], output
       end
 
+      def test_routes_when_separated
+        output = draw(formatter: ActionDispatch::Routing::ConsoleFormatter::Separated.new) do
+          resources :articles, only: [:index, :show] do
+            get "preview", on: :member
+            get "favorites", on: :collection
+            resources :posts, only: [:index]
+          end
+          get "/foo", to: redirect("/redirect_foo") # route.controller is nil
+          get "/bar", to: redirect("/redirect_bar") # route.controller is nil
+        end
+
+        assert_equal [
+          "            Prefix Verb URI Pattern                           Controller#Action",
+          "   preview_article GET  /articles/:id/preview(.:format)       articles#preview",
+          "favorites_articles GET  /articles/favorites(.:format)         articles#favorites",
+          "",
+          "     article_posts GET  /articles/:article_id/posts(.:format) posts#index",
+          "",
+          "          articles GET  /articles(.:format)                   articles#index",
+          "           article GET  /articles/:id(.:format)               articles#show",
+          "",
+          "               foo GET  /foo(.:format)                        redirect(301, /redirect_foo)",
+          "               bar GET  /bar(.:format)                        redirect(301, /redirect_bar)"
+        ], output
+      end
+
+      def test_routes_for_engines_when_separated
+        engine = Class.new(Rails::Engine) do
+          def self.inspect
+            "Blog::Engine"
+          end
+        end
+        engine.routes.draw do
+          get "/cart", to: "cart#show"
+          post "/cart", to: "cart#create"
+          get "/posts", to: "posts#index"
+        end
+
+        output = draw(formatter: ActionDispatch::Routing::ConsoleFormatter::Separated.new) do
+          get "/custom/assets", to: "custom_assets#show"
+          mount engine => "/blog", :as => "blog"
+        end
+
+        assert_equal [
+          "       Prefix Verb URI Pattern              Controller#Action",
+          "custom_assets GET  /custom/assets(.:format) custom_assets#show",
+          "",
+          "         blog      /blog                    Blog::Engine",
+          "",
+          "Routes for Blog::Engine:",
+          "  cart GET  /cart(.:format)  cart#show",
+          "       POST /cart(.:format)  cart#create",
+          "",
+          " posts GET  /posts(.:format) posts#index"
+        ], output
+      end
+
+      def test_no_routes_matched_filter_when_separated
+        output = draw(grep: "rails/dummy", formatter: ActionDispatch::Routing::ConsoleFormatter::Separated.new) do
+          get "photos/:id" => "photos#show", :id => /[A-Z]\d{5}/
+        end
+
+        assert_equal [
+          "No routes were found for this grep pattern.",
+          "For more information about routes, see the Rails guide: https://guides.rubyonrails.org/routing.html."
+        ], output
+      end
+
+      def test_no_routes_were_defined_when_separated
+        output = draw(grep: "Rails::DummyController", formatter: ActionDispatch::Routing::ConsoleFormatter::Separated.new) { }
+
+        assert_equal [
+          "You don't have any routes defined!",
+          "",
+          "Please add some routes in config/routes.rb.",
+          "",
+          "For more information about routes, see the Rails guide: https://guides.rubyonrails.org/routing.html."
+        ], output
+      end
+
       def test_routes_can_be_filtered_with_namespaced_controllers
         output = draw(grep: "admin/posts") do
           resources :articles

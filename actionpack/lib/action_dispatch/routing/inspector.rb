@@ -107,10 +107,11 @@ module ActionDispatch
           end.reject(&:internal?).collect do |route|
             collect_engine_routes(route)
 
-            { name: route.name,
-              verb: route.verb,
-              path: route.path,
-              reqs: route.reqs }
+            { name:       route.name,
+              verb:       route.verb,
+              path:       route.path,
+              reqs:       route.reqs,
+              controller: route.controller }
           end
         end
 
@@ -178,7 +179,6 @@ module ActionDispatch
 
         private
           def draw_section(routes)
-            header_lengths = ["Prefix", "Verb", "URI Pattern"].map(&:length)
             name_width, verb_width, path_width = widths(routes).zip(header_lengths).map(&:max)
 
             routes.map do |r|
@@ -196,6 +196,24 @@ module ActionDispatch
             [routes.map { |r| r[:name].length }.max || 0,
              routes.map { |r| r[:verb].length }.max || 0,
              routes.map { |r| r[:path].length }.max || 0]
+          end
+
+          def header_lengths
+            ["Prefix", "Verb", "URI Pattern"].map(&:length)
+          end
+      end
+
+      class Separated < Sheet
+        private
+          def draw_section(routes)
+            name_width, verb_width, path_width = widths(routes).zip(header_lengths).map(&:max)
+            prev_route = nil
+
+            routes.map do |r|
+              prepend_empty_line = prev_route && prev_route[:controller] != r[:controller]
+              prev_route = r
+              "#{"\n" if prepend_empty_line}#{r[:name].rjust(name_width)} #{r[:verb].ljust(verb_width)} #{r[:path].ljust(path_width)} #{r[:reqs]}"
+            end
           end
       end
 
