@@ -39,8 +39,9 @@ module ActiveRecord
     end
 
     def arel_attribute(name) # :nodoc:
-      klass.arel_attribute(name, table)
+      table[name]
     end
+    deprecate :arel_attribute
 
     def bind_attribute(name, value) # :nodoc:
       if reflection = klass._reflect_on_association(name)
@@ -48,7 +49,7 @@ module ActiveRecord
         value = value.read_attribute(reflection.klass.primary_key) unless value.nil?
       end
 
-      attr = arel_attribute(name)
+      attr = table[name]
       bind = predicate_builder.build_bind_attribute(attr.name, value)
       yield attr, bind
     end
@@ -352,7 +353,7 @@ module ActiveRecord
       else
         collection = eager_loading? ? apply_join_dependency : self
 
-        column = connection.visitor.compile(arel_attribute(timestamp_column))
+        column = connection.visitor.compile(table[timestamp_column])
         select_values = "COUNT(*) AS #{connection.quote_column_name("size")}, MAX(%s) AS timestamp"
 
         if collection.has_limit_or_offset?
@@ -447,7 +448,7 @@ module ActiveRecord
 
       stmt = Arel::UpdateManager.new
       stmt.table(arel.join_sources.empty? ? table : arel.source)
-      stmt.key = arel_attribute(primary_key)
+      stmt.key = table[primary_key]
       stmt.take(arel.limit)
       stmt.offset(arel.offset)
       stmt.order(*arel.orders)
@@ -457,7 +458,7 @@ module ActiveRecord
         if klass.locking_enabled? &&
             !updates.key?(klass.locking_column) &&
             !updates.key?(klass.locking_column.to_sym)
-          attr = arel_attribute(klass.locking_column)
+          attr = table[klass.locking_column]
           updates[attr.name] = _increment_attribute(attr)
         end
         stmt.set _substitute_values(updates)
@@ -493,7 +494,7 @@ module ActiveRecord
 
       updates = {}
       counters.each do |counter_name, value|
-        attr = arel_attribute(counter_name)
+        attr = table[counter_name]
         updates[attr.name] = _increment_attribute(attr, value)
       end
 
@@ -589,7 +590,7 @@ module ActiveRecord
 
       stmt = Arel::DeleteManager.new
       stmt.from(arel.join_sources.empty? ? table : arel.source)
-      stmt.key = arel_attribute(primary_key)
+      stmt.key = table[primary_key]
       stmt.take(arel.limit)
       stmt.offset(arel.offset)
       stmt.order(*arel.orders)
@@ -813,7 +814,7 @@ module ActiveRecord
 
       def _substitute_values(values)
         values.map do |name, value|
-          attr = arel_attribute(name)
+          attr = table[name]
           unless Arel.arel_node?(value)
             type = klass.type_for_attribute(attr.name)
             value = predicate_builder.build_bind_attribute(attr.name, type.cast(value))

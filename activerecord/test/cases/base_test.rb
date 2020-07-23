@@ -78,6 +78,23 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "Post::GeneratedRelationMethods", mod.inspect
   end
 
+  def test_arel_attribute_normalization
+    assert_equal Post.arel_table["body"], Post.arel_table[:body]
+    assert_equal Post.arel_table["body"], Post.arel_table[:text]
+  end
+
+  def test_deprecated_arel_attribute
+    assert_deprecated do
+      assert_equal Post.arel_table["body"], Post.arel_attribute(:body)
+    end
+  end
+
+  def test_deprecated_arel_attribute_on_relation
+    assert_deprecated do
+      assert_equal Post.arel_table["body"], Post.all.arel_attribute(:body)
+    end
+  end
+
   def test_incomplete_schema_loading
     topic = Topic.first
     payload = { foo: 42 }

@@ -109,7 +109,7 @@ module ActiveRecord
             aliased_table = tracker.aliased_table_for(
               refl.table_name,
               refl.alias_candidate(name),
-              refl.klass.type_caster
+              refl.klass
             )
             chain << ReflectionProxy.new(refl, aliased_table)
           end

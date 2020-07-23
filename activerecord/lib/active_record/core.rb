@@ -289,14 +289,13 @@ module ActiveRecord
       #     scope :published_and_commented, -> { published.and(arel_table[:comments_count].gt(0)) }
       #   end
       def arel_table # :nodoc:
-        @arel_table ||= Arel::Table.new(table_name, type_caster: type_caster)
+        @arel_table ||= Arel::Table.new(table_name, klass: self)
       end
 
       def arel_attribute(name, table = arel_table) # :nodoc:
-        name = name.to_s
-        name = attribute_aliases[name] || name
         table[name]
       end
+      deprecate :arel_attribute
 
       def predicate_builder # :nodoc:
         @predicate_builder ||= PredicateBuilder.new(table_metadata)

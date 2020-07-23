@@ -8,7 +8,7 @@ module Arel # :nodoc: all
       alias :table_alias :name
 
       def [](name)
-        Attribute.new(self, name)
+        relation.is_a?(Table) ? relation[name, self] : Attribute.new(self, name)
       end
 
       def table_name

@@ -1253,7 +1253,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_predicate same_parrot, :persisted?
     assert_equal parrot, same_parrot
 
-    canary = Bird.where(Bird.arel_attribute(:color).is_distinct_from("green")).first_or_create(name: "canary")
+    canary = Bird.where(Bird.arel_table[:color].is_distinct_from("green")).first_or_create(name: "canary")
     assert_equal "canary", canary.name
     assert_nil canary.color
   end
@@ -1377,7 +1377,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal "parrot", parrot.name
     assert_equal "green", parrot.color
 
-    canary = Bird.where(Bird.arel_attribute(:color).is_distinct_from("green")).first_or_initialize(name: "canary")
+    canary = Bird.where(Bird.arel_table[:color].is_distinct_from("green")).first_or_initialize(name: "canary")
     assert_equal "canary", canary.name
     assert_nil canary.color
   end
@@ -1955,7 +1955,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal post, custom_post_relation.joins(:author).where!(title: post.title).take
   end
 
-  test "arel_attribute respects a custom table" do
+  test "arel_table respects a custom table" do
     assert_equal [posts(:sti_comments)], custom_post_relation.ranked_by_comments.limit_by(1).to_a
   end
 
@@ -2085,7 +2085,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_unscope_with_arel_sql
-    posts = Post.where(Arel.sql("'Welcome to the weblog'").eq(Post.arel_attribute(:title)))
+    posts = Post.where(Arel.sql("'Welcome to the weblog'").eq(Post.arel_table[:title]))
 
     assert_equal 1, posts.count
     assert_equal Post.count, posts.unscope(where: :title).count

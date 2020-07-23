@@ -176,7 +176,7 @@ module ActiveRecord
             alias_tracker.aliased_table_for(
               reflection.table_name,
               table_alias_for(reflection, parent, reflection != child.reflection),
-              reflection.klass.type_caster
+              reflection.klass
             )
           end.concat child.children.flat_map { |c| make_constraints(child, c, join_type) }
         end
