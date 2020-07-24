@@ -429,7 +429,7 @@ $ bin/rails test test/controllers # run all tests from specific directory
 ```
 
 The test runner also provides a lot of other features like failing fast, deferring test output
-at the end of test run and so on. Check the documentation of the test runner as follows:
+at the end of the test run and so on. Check the documentation of the test runner as follows:
 
 ```bash
 $ bin/rails test -h
@@ -710,7 +710,7 @@ create  test/models/article_test.rb
 create  test/fixtures/articles.yml
 ```
 
-Model tests don't have their own superclass like `ActionMailer::TestCase` instead they inherit from [`ActiveSupport::TestCase`](https://api.rubyonrails.org/classes/ActiveSupport/TestCase.html).
+Model tests don't have their own superclass like `ActionMailer::TestCase`; instead they inherit from [`ActiveSupport::TestCase`](https://api.rubyonrails.org/classes/ActiveSupport/TestCase.html).
 
 System Testing
 --------------
@@ -931,7 +931,7 @@ publishing draft articles, etc.
 Integration Testing
 -------------------
 
-Integration tests are used to test how various parts of your application interact. They are generally used to test important workflows within our application.
+Integration tests are used to test how various parts of your application interact. They are generally used to test important workflows within your application.
 
 For creating Rails integration tests, we use the `test/integration` directory for our application. Rails provides a generator to create an integration test skeleton for us.
 
@@ -1485,7 +1485,7 @@ This has the downside of increasing the boot-up time, as opposed to manually req
 Testing Routes
 --------------
 
-Like everything else in your Rails application, you can test your routes. Route tests reside in `test/controllers/` or are part of controller tests.
+Like everything else in your Rails application, you can test your routes. Route tests reside in `test/controllers/` or are part of functional tests.
 
 NOTE: If your application has complex routes, Rails provides a number of useful helpers to test them.
 
@@ -1494,7 +1494,7 @@ For more information on routing assertions available in Rails, see the API docum
 Testing Views
 -------------
 
-Testing the response to your request by asserting the presence of key HTML elements and their content is a common way to test the views of your application. Like route tests, view tests reside in `test/controllers/` or are part of controller tests. The `assert_select` method allows you to query HTML elements of the response by using a simple yet powerful syntax.
+Testing the response to your request by asserting the presence of key HTML elements and their content is a common way to test the views of your application. Like route tests, view tests reside in `test/controllers/` or are part of functional tests. The `assert_select` method allows you to query HTML elements of the response by using a simple yet powerful syntax.
 
 There are two forms of `assert_select`:
 
@@ -1607,7 +1607,7 @@ The goals of testing your mailer classes are to ensure that:
 
 #### From All Sides
 
-There are two aspects of testing your mailer, the unit tests and the functional tests. In the unit tests, you run the mailer in isolation with tightly controlled inputs and compare the output to a known value (a fixture.) In the functional tests you don't so much test the minute details produced by the mailer; instead, we test that our controllers and models are using the mailer in the right way. You test to prove that the right email was sent at the right time.
+There are two aspects of testing your mailer, the unit tests and the functional tests. In the unit tests, you run the mailer in isolation with tightly controlled inputs and compare the output to a known value (a fixture). In the functional tests you don't so much test the minute details produced by the mailer; instead, we test that our controllers and models are using the mailer in the right way. You test to prove that the right email was sent at the right time.
 
 ### Unit Testing
 
