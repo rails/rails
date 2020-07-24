@@ -966,7 +966,6 @@ ActiveRecord::Schema.define do
     t.string   :type
     t.string   :group
     t.timestamps null: true
-    t.index [:author_name, :title]
   end
 
   create_table :toys, primary_key: :toy_id, force: true do |t|

@@ -175,8 +175,6 @@ class Author < ActiveRecord::Base
   has_many :other_top_posts, -> { order(id: :asc) }, class_name: "Post"
 
   has_many :topics, primary_key: "name", foreign_key: "author_name"
-  has_many :topics_without_type, -> { select(:id, :title, :author_name) },
-    class_name: "Topic", primary_key: "name", foreign_key: "author_name"
 
   has_many :lazy_readers_skimmers_or_not, through: :posts
   has_many :lazy_readers_skimmers_or_not_2, through: :posts_with_no_comments, source: :lazy_readers_skimmers_or_not
