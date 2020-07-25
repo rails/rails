@@ -54,6 +54,10 @@ module ActiveRecord
       @handlers.unshift([klass, handler])
     end
 
+    def [](attr_name, value, operator = nil)
+      build(table.arel_table[attr_name], value, operator)
+    end
+
     def build(attribute, value, operator = nil)
       value = value.id if value.is_a?(Base)
       if operator ||= table.type(attribute.name).force_equality?(value) && :eq
