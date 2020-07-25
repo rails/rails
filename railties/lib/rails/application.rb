@@ -220,27 +220,27 @@ module Rails
     #       config.middleware.use ExceptionNotifier, config_for(:exception_notification)
     #     end
     def config_for(name, env: Rails.env)
-      if name.is_a?(Pathname)
-        yaml = name
-      else
-        yaml = Pathname.new("#{paths["config"].existent.first}/#{name}.yml")
-      end
+      yaml = name.is_a?(Pathname) ? name : Pathname.new("#{paths["config"].existent.first}/#{name}.yml")
 
       if yaml.exist?
         require "erb"
-        config = YAML.load(ERB.new(yaml.read).result) || {}
-        config = (config["shared"] || {}).merge(config[env] || {})
+        all_configs    = YAML.load(ERB.new(yaml.read).result) || {}
+        config, shared = all_configs[env], all_configs["shared"]
 
-        ActiveSupport::OrderedOptions.new.tap do |options|
-          options.update(NonSymbolAccessDeprecatedHash.new(config))
+        config ||= {} if shared.nil? || shared.is_a?(Hash)
+
+        if config.is_a?(Hash)
+          ActiveSupport::OrderedOptions.new.update(NonSymbolAccessDeprecatedHash.new(shared&.deep_merge(config) || config))
+        else
+          config || shared
         end
       else
         raise "Could not load configuration. No such file - #{yaml}"
       end
-    rescue Psych::SyntaxError => e
+    rescue Psych::SyntaxError => error
       raise "YAML syntax error occurred while parsing #{yaml}. " \
         "Please note that YAML must be consistently indented using spaces. Tabs are not allowed. " \
-        "Error: #{e.message}"
+        "Error: #{error.message}"
     end
 
     # Stores some of the Rails initial environment parameters which
