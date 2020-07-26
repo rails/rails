@@ -234,14 +234,10 @@ module ActiveRecord
       #
       # +user_provided_default+ Whether the default value should be cast using
       # +cast+ or +deserialize+.
-      def define_attribute(
-        name,
-        cast_type,
-        default: NO_DEFAULT_PROVIDED,
-        user_provided_default: true
-      )
-        attribute_types[name] = cast_type
-        define_default_attribute(name, default, cast_type, from_user: user_provided_default)
+      def define_attribute(name, cast_type, default: NO_DEFAULT_PROVIDED, user_provided_default: true)
+        add_attribute_to_attribute_set(_default_attributes,
+          name, cast_type, default: default, from_user: user_provided_default)
+        attribute_types[name] = _default_attributes[name].type
       end
 
       def load_schema! # :nodoc:
@@ -264,20 +260,16 @@ module ActiveRecord
         NO_DEFAULT_PROVIDED = Object.new # :nodoc:
         private_constant :NO_DEFAULT_PROVIDED
 
-        def define_default_attribute(name, value, type, from_user:)
-          if value == NO_DEFAULT_PROVIDED
-            default_attribute = _default_attributes[name].with_type(type)
-          elsif from_user
-            default_attribute = ActiveModel::Attribute::UserProvidedDefault.new(
-              name,
-              value,
-              type,
-              _default_attributes.fetch(name.to_s) { nil },
-            )
-          else
-            default_attribute = ActiveModel::Attribute.from_database(name, value, type)
-          end
-          _default_attributes[name] = default_attribute
+        def add_attribute_to_attribute_set(attribute_set, name, type, default: NO_DEFAULT_PROVIDED, from_user: true)
+          attribute_set[name] =
+            if default == NO_DEFAULT_PROVIDED
+              attribute_set[name].with_type(type)
+            elsif from_user
+              ActiveModel::Attribute::UserProvidedDefault.new(name, default, type, attribute_set.fetch(name) { nil })
+            else
+              ActiveModel::Attribute.from_database(name, default, type)
+            end
+          attribute_set
         end
     end
   end

@@ -165,7 +165,7 @@ module ActiveRecord
             super
           end
 
-          def define_attribute(name, cast_type, **) # :nodoc:
+          def add_attribute_to_attribute_set(attribute_set, name, cast_type, **) # :nodoc:
             if lock_optimistically && name == locking_column
               cast_type = LockingType.new(cast_type)
             end

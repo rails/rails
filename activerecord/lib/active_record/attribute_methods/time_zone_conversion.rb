@@ -68,7 +68,7 @@ module ActiveRecord
       end
 
       module ClassMethods # :nodoc:
-        def define_attribute(name, cast_type, **)
+        def add_attribute_to_attribute_set(attribute_set, name, cast_type, **)
           if create_time_zone_conversion_attribute?(name, cast_type)
             cast_type = TimeZoneConverter.new(cast_type)
           end
