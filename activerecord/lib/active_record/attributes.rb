@@ -247,12 +247,12 @@ module ActiveRecord
             adapter_name = ActiveRecord::Type.adapter_name_from(self)
             type = ActiveRecord::Type.lookup(type, **options.except(:default), adapter: adapter_name)
           elsif type.nil?
-            type = type_for_attribute(name)
+            type = _default_attributes[name].type
           end
 
           type = transform[type] if transform
 
-          define_attribute(name, type, **options.slice(:default))
+          add_attribute_to_attribute_set(_default_attributes, name, type, **options.slice(:default))
         end
       end
 

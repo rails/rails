@@ -370,8 +370,9 @@ module ActiveRecord
       end
 
       def attribute_types # :nodoc:
-        load_schema
-        @attribute_types ||= Hash.new(Type.default_value)
+        @attribute_types ||= _default_attributes.cast_types.tap do |hash|
+          hash.default = Type.default_value
+        end
       end
 
       def yaml_encoder # :nodoc:
@@ -403,13 +404,12 @@ module ActiveRecord
       # Returns a hash where the keys are column names and the values are
       # default values when instantiating the Active Record object for this table.
       def column_defaults
-        load_schema
         @column_defaults ||= _default_attributes.deep_dup.to_hash.freeze
       end
 
       def _default_attributes # :nodoc:
         load_schema
-        @default_attributes ||= ActiveModel::AttributeSet.new({})
+        @default_attributes ||= ActiveModel::AttributeSet.new
       end
 
       # Returns an array of column names as strings.
@@ -507,12 +507,7 @@ module ActiveRecord
           @columns_hash.each do |name, column|
             type = connection.lookup_cast_type_from_column(column)
             type = _convert_type_from_options(type)
-            define_attribute(
-              name,
-              type,
-              default: column.default,
-              user_provided_default: false
-            )
+            add_attribute_to_attribute_set(_default_attributes, name, type, default: column.default, from_user: false)
           end
         end
 

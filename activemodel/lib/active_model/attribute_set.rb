@@ -8,7 +8,7 @@ module ActiveModel
   class AttributeSet # :nodoc:
     delegate :each_value, :fetch, :except, to: :attributes
 
-    def initialize(attributes)
+    def initialize(attributes = {})
       @attributes = attributes
     end
 
@@ -18,6 +18,10 @@ module ActiveModel
 
     def []=(name, value)
       @attributes[name] = value
+    end
+
+    def cast_types
+      attributes.transform_values(&:type)
     end
 
     def values_before_type_cast

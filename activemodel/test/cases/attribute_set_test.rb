@@ -103,6 +103,14 @@ module ActiveModel
       assert_equal({ foo: "1.1", bar: "2.2" }, attributes.values_before_type_cast)
     end
 
+    test "cast_types" do
+      types = { foo: Type::Integer.new, bar: Type::Float.new }
+      builder = AttributeSet::Builder.new(types)
+      attributes = builder.build_from_database(foo: "1.1", bar: "2.2")
+
+      assert_equal types, attributes.cast_types
+    end
+
     test "known columns are built with uninitialized attributes" do
       attributes = attributes_with_uninitialized_key
       assert_predicate attributes[:foo], :initialized?
