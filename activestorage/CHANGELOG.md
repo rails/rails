@@ -1,3 +1,9 @@
+*   `ActiveStorage::BaseController` now inherits from `ActionController::API`
+
+    This allows Active Storage to be used from within API-only applications.
+    
+    *Andrew White*
+
 *   Files can now be served by proxying them from the underlying storage service
     instead of redirecting to a signed service URL. Use the
     `rails_storage_proxy_path` and `_url` helpers to proxy an attached file:
