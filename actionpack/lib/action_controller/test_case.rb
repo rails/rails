@@ -91,7 +91,7 @@ module ActionController
             end
           end
 
-          path_parameters[key] = value
+          path_parameters[key.to_sym] = value
         end
       end
 
