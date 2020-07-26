@@ -142,6 +142,14 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       end
     end
 
+    def test_fetch_multi_with_namespace
+      assert_called_with(@cache.redis, :mget, ["custom-namespace:a", "custom-namespace:b", "custom-namespace:c"], returns: []) do
+        @cache.fetch_multi("a", "b", "c", namespace: "custom-namespace") do |key|
+          key * 2
+        end
+      end
+    end
+
     def test_fetch_multi_without_names
       assert_not_called(@cache.redis, :mget) do
         @cache.fetch_multi() { }

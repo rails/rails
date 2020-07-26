@@ -351,7 +351,7 @@ module ActiveSupport
 
         def read_multi_entries(names, **options)
           if mget_capable?
-            read_multi_mget(*names)
+            read_multi_mget(*names, **options)
           else
             super
           end
