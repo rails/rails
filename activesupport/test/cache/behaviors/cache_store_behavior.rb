@@ -218,10 +218,6 @@ module CacheStoreBehavior
     assert_compressed(SMALL_OBJECT, compress: true, compress_threshold: 1)
   end
 
-  def test_large_string_with_default_compression_settings
-    assert_compressed(LARGE_STRING)
-  end
-
   def test_large_string_with_compress_true
     assert_compressed(LARGE_STRING, compress: true)
   end
@@ -232,10 +228,6 @@ module CacheStoreBehavior
 
   def test_large_string_with_high_compress_threshold
     assert_uncompressed(LARGE_STRING, compress: true, compress_threshold: 1.megabyte)
-  end
-
-  def test_large_object_with_default_compression_settings
-    assert_compressed(LARGE_OBJECT)
   end
 
   def test_large_object_with_compress_true
