@@ -209,10 +209,11 @@ module ActiveRecord
         name = name.to_s
         reload_schema_from_cache
 
-        self.attributes_to_define_after_schema_loads =
-          attributes_to_define_after_schema_loads.merge(
-            name => [cast_type || block, options]
-          )
+        prev_cast_type, prev_options, prev_block = (attributes_to_define_after_schema_loads[name] unless cast_type)
+
+        self.attributes_to_define_after_schema_loads = attributes_to_define_after_schema_loads.merge(
+          name => [cast_type || prev_cast_type, options.presence || prev_options || {}, block || prev_block]
+        )
       end
 
       # This is the low level API which sits beneath +attribute+. It only
@@ -245,8 +246,17 @@ module ActiveRecord
 
       def load_schema! # :nodoc:
         super
-        attributes_to_define_after_schema_loads.each do |name, (type, options)|
-          define_attribute(name, _lookup_cast_type(name, type, options), **options.slice(:default))
+        attributes_to_define_after_schema_loads.each do |name, (type, options, transform)|
+          if type.is_a?(Symbol)
+            adapter_name = ActiveRecord::Type.adapter_name_from(self)
+            type = ActiveRecord::Type.lookup(type, **options.except(:default), adapter: adapter_name)
+          elsif type.nil?
+            type = type_for_attribute(name)
+          end
+
+          type = transform[type] if transform
+
+          define_attribute(name, type, **options.slice(:default))
         end
       end
 
@@ -268,18 +278,6 @@ module ActiveRecord
             default_attribute = ActiveModel::Attribute.from_database(name, value, type)
           end
           _default_attributes[name] = default_attribute
-        end
-
-        def _lookup_cast_type(name, type, options)
-          case type
-          when Symbol
-            adapter_name = ActiveRecord::Type.adapter_name_from(self)
-            ActiveRecord::Type.lookup(type, **options.except(:default), adapter: adapter_name)
-          when Proc
-            type[type_for_attribute(name)]
-          else
-            type || type_for_attribute(name)
-          end
         end
     end
   end

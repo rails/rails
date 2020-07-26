@@ -69,14 +69,7 @@ module ActiveRecord
             Coders::YAMLColumn.new(attr_name, class_name_or_coder)
           end
 
-          attr_name = attr_name.to_s
-          type, options = attributes_to_define_after_schema_loads[attr_name]
-
           attribute(attr_name) do |cast_type|
-            if type && !type.is_a?(Proc)
-              cast_type = _lookup_cast_type(attr_name, type, options)
-            end
-
             if type_incompatible_with_serialize?(cast_type, class_name_or_coder)
               raise ColumnNotSerializableError.new(attr_name, cast_type)
             end
