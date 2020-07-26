@@ -813,15 +813,11 @@ module Arel # :nodoc: all
 
         # FIXME: we should probably have a 2-pass visitor for this
         def build_subselect(key, o)
-          stmt             = Nodes::SelectStatement.new
-          core             = stmt.cores.first
-          core.froms       = o.relation
-          core.wheres      = o.wheres
-          core.projections = [key]
-          stmt.limit       = o.limit
-          stmt.offset      = o.offset
-          stmt.orders      = o.orders
-          stmt
+          Arel::TreeManager::LockMethods.build_subselect(key, o).tap do |stmt|
+            stmt.limit = o.limit
+            stmt.offset = o.offset
+            stmt.orders = o.orders
+          end
         end
 
         def infix_value(o, collector, value)

@@ -9,7 +9,7 @@ module FakeRecord
 
   class Connection
     attr_reader :tables
-    attr_accessor :visitor
+    attr_accessor :visitor, :adapter_name
 
     def initialize(visitor = nil)
       @tables = %w{ users photos developers products}

@@ -3,24 +3,6 @@
 module Arel # :nodoc: all
   class SelectManager < Arel::TreeManager
     include Arel::Crud
-
-    def lock(locking = Arel.sql("FOR UPDATE"))
-      case locking
-      when true
-        locking = Arel.sql("FOR UPDATE")
-      when Arel::Nodes::SqlLiteral
-      when String
-        locking = Arel.sql locking
-      end
-
-      @ast.lock = Nodes::Lock.new(locking)
-      self
-    end
-
-    def locked
-      @ast.lock
-    end
-
     STRING_OR_SYMBOL_CLASS = [Symbol, String]
 
     def initialize(table = nil)
@@ -33,6 +15,15 @@ module Arel # :nodoc: all
     def initialize_copy(other)
       super
       @ctx = @ast.cores.last
+    end
+
+    def lock(locking = Arel.sql("FOR UPDATE"))
+      @ast.lock = TreeManager::LockMethods.build_lock_node(locking)
+      self
+    end
+
+    def locked
+      @ast.lock
     end
 
     def limit

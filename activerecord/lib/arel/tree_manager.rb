@@ -4,7 +4,50 @@ module Arel # :nodoc: all
   class TreeManager
     include Arel::FactoryMethods
 
+    module LockMethods
+      extend self
+
+      def build_lock_node(locking)
+        case locking
+        when true
+          locking = Arel.sql("FOR UPDATE")
+        when Arel::Nodes::SqlLiteral
+        when String
+          locking = Arel.sql locking
+        end
+
+        Nodes::Lock.new(locking)
+      end
+
+      def build_subselect(key, o)
+        Nodes::SelectStatement.new.tap do |stmt|
+          core             = stmt.cores.first
+          core.froms       = o.relation
+          core.wheres      = o.wheres
+          core.projections = [key]
+        end
+      end
+
+      def use_tmp_table(subselect, quoted_key_name)
+        Nodes::SelectStatement.new.tap do |stmt|
+          core = stmt.cores.last
+          core.froms = Nodes::Grouping.new(subselect).as("__active_record_temp")
+          core.projections = [Arel.sql(quoted_key_name)]
+        end
+      end
+    end
+
     module StatementMethods
+      def lock(locking = Arel.sql("FOR UPDATE"), connection = Table.engine.connection)
+        stmt = LockMethods.build_subselect(@ast.key, @ast)
+        stmt.lock = LockMethods.build_lock_node(locking)
+        if connection.adapter_name == "Mysql2"
+          stmt = LockMethods.use_tmp_table(stmt, connection.quote_column_name(key.name))
+        end
+        @ast.wheres = [Nodes::In.new(@ast.key, [stmt])]
+        self
+      end
+
       def take(limit)
         @ast.limit = Nodes::Limit.new(Nodes.build_quoted(limit)) if limit
         self

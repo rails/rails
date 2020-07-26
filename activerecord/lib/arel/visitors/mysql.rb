@@ -82,11 +82,7 @@ module Arel # :nodoc: all
             core.set_quantifier = Arel::Nodes::Distinct.new
           end
 
-          Nodes::SelectStatement.new.tap do |stmt|
-            core = stmt.cores.last
-            core.froms = Nodes::Grouping.new(subselect).as("__active_record_temp")
-            core.projections = [Arel.sql(quote_column_name(key.name))]
-          end
+          Arel::TreeManager::LockMethods.use_tmp_table(subselect, quote_column_name(key.name))
         end
     end
   end

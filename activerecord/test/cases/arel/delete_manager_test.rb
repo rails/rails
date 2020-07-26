@@ -62,6 +62,22 @@ module Arel
           (SELECT "users"."id" FROM "users" FOR UPDATE)
         }
       end
+
+      describe "with mysql2 adapter" do
+        it "uses subsubquery with temporary table" do
+          table = Table.new :users
+          dm = Arel::DeleteManager.new
+          dm.from table
+          dm.key = table[:id]
+          connection = FakeRecord::Connection.new.tap { |conn| conn.adapter_name = "Mysql2" }
+
+          _(dm.lock(Arel.sql("FOR UPDATE"), connection).to_sql).must_be_like %{
+            DELETE FROM "users" WHERE "users"."id" IN
+              (SELECT "id" FROM
+                (SELECT "users"."id" FROM "users" FOR UPDATE) AS __active_record_temp)
+          }
+        end
+      end
     end
   end
 end
