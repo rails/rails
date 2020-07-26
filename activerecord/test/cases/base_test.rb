@@ -104,7 +104,7 @@ class BasicsTest < ActiveRecord::TestCase
 
     Topic.connection.stub(:lookup_cast_type_from_column, ->(_) { raise "Some Error" }) do
       assert_raises RuntimeError do
-        Topic.columns_hash
+        Topic.first
       end
     end
 

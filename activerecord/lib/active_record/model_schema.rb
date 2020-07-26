@@ -360,12 +360,15 @@ module ActiveRecord
       end
 
       def columns_hash # :nodoc:
-        load_schema
-        @columns_hash
+        @columns_hash ||= begin
+          unless table_name
+            raise ActiveRecord::TableNotSpecified, "#{self} has no table configured. Set one with #{self}.table_name="
+          end
+          connection.schema_cache.columns_hash(table_name).except(*ignored_columns).freeze
+        end
       end
 
       def columns
-        load_schema
         @columns ||= columns_hash.values.freeze
       end
 
@@ -478,14 +481,11 @@ module ActiveRecord
           child_class.initialize_load_schema_monitor
         end
 
-        def schema_loaded?
-          defined?(@schema_loaded) && @schema_loaded
-        end
-
         def load_schema
-          return if schema_loaded?
+          return if defined?(@schema_loaded) && @schema_loaded
           @load_schema_monitor.synchronize do
-            return if defined?(@columns_hash) && @columns_hash
+            return if defined?(@schema_loaded) && !@schema_loaded.nil?
+            @schema_loaded = false
 
             load_schema!
 
@@ -497,14 +497,7 @@ module ActiveRecord
         end
 
         def load_schema!
-          unless table_name
-            raise ActiveRecord::TableNotSpecified, "#{self} has no table configured. Set one with #{self}.table_name="
-          end
-
-          columns_hash = connection.schema_cache.columns_hash(table_name)
-          columns_hash = columns_hash.except(*ignored_columns) unless ignored_columns.empty?
-          @columns_hash = columns_hash.freeze
-          @columns_hash.each do |name, column|
+          columns_hash.each do |name, column|
             type = connection.lookup_cast_type_from_column(column)
             type = _convert_type_from_options(type)
             add_attribute_to_attribute_set(_default_attributes, name, type, default: column.default, from_user: false)
@@ -523,7 +516,7 @@ module ActiveRecord
           @attributes_builder = nil
           @columns = nil
           @columns_hash = nil
-          @schema_loaded = false
+          @schema_loaded = nil
           @attribute_names = nil
           @yaml_encoder = nil
           direct_descendants.each do |descendant|
