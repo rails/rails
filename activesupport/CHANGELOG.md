@@ -1,3 +1,8 @@
+*   Fixed issue in `ActiveSupport::Cache::RedisCacheStore` not passing options
+    to `read_multi` causing `fetch_multi` to not work properly.
+
+    *Rajesh Sharma*
+
 *   `with_options` copies its options hash again to avoid leaking mutations.
 
     Fixes #39343.
