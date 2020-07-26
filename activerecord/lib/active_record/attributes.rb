@@ -8,7 +8,7 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :attributes_to_define_after_schema_loads, instance_accessor: false, default: {} # :internal:
+      class_attribute :deferred_attribute_definitions, instance_accessor: false, default: {} # :internal:
     end
 
     module ClassMethods
@@ -209,9 +209,9 @@ module ActiveRecord
         name = name.to_s
         reload_schema_from_cache
 
-        prev_cast_type, prev_options, prev_block = (attributes_to_define_after_schema_loads[name] unless cast_type)
+        prev_cast_type, prev_options, prev_block = (deferred_attribute_definitions[name] unless cast_type)
 
-        self.attributes_to_define_after_schema_loads = attributes_to_define_after_schema_loads.merge(
+        self.deferred_attribute_definitions = deferred_attribute_definitions.merge(
           name => [cast_type || prev_cast_type, options.presence || prev_options || {}, block || prev_block]
         )
       end
@@ -242,18 +242,7 @@ module ActiveRecord
 
       def load_schema! # :nodoc:
         super
-        attributes_to_define_after_schema_loads.each do |name, (type, options, transform)|
-          if type.is_a?(Symbol)
-            adapter_name = ActiveRecord::Type.adapter_name_from(self)
-            type = ActiveRecord::Type.lookup(type, **options.except(:default), adapter: adapter_name)
-          elsif type.nil?
-            type = _default_attributes[name].type
-          end
-
-          type = transform[type] if transform
-
-          add_attribute_to_attribute_set(_default_attributes, name, type, **options.slice(:default))
-        end
+        add_deferred_to_attribute_set(_default_attributes)
       end
 
       private
@@ -270,6 +259,21 @@ module ActiveRecord
               ActiveModel::Attribute.from_database(name, default, type)
             end
           attribute_set
+        end
+
+        def add_deferred_to_attribute_set(attribute_set)
+          deferred_attribute_definitions.reduce(attribute_set) do |set, (name, (type, options, transform))|
+            if type.is_a?(Symbol)
+              adapter_name = ActiveRecord::Type.adapter_name_from(self)
+              type = ActiveRecord::Type.lookup(type, **options.except(:default), adapter: adapter_name)
+            elsif type.nil?
+              type = set[name].type
+            end
+
+            type = transform[type] if transform
+
+            add_attribute_to_attribute_set(set, name, type, **options.slice(:default))
+          end
         end
     end
   end
