@@ -182,9 +182,9 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal "The First Topic", topics(:first).becomes(Reply).title
   end
 
-  def test_becomes_after_reload_schema_from_cache
+  def test_becomes_after_reload_model_schema
     Reply.define_attribute_methods
-    Reply.serialize(:content) # invoke reload_schema_from_cache
+    Reply.serialize(:content) # trigger model schema reload
     assert_kind_of Reply, topics(:first).becomes(Reply)
     assert_equal "The First Topic", topics(:first).becomes(Reply).title
   end

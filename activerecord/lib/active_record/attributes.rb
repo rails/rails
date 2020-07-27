@@ -13,8 +13,7 @@ module ActiveRecord
 
     module ClassMethods
       def _default_attributes # :nodoc:
-        load_schema
-        @default_attributes ||= ActiveModel::AttributeSet.new
+        @default_attributes ||= add_deferred_to_attribute_set(ActiveModel::AttributeSet.new)
       end
 
       def attribute_types # :nodoc:
@@ -218,7 +217,7 @@ module ActiveRecord
       # methods in ActiveModel::Type::Value for more details.
       def attribute(name, cast_type = nil, **options, &block)
         name = name.to_s
-        reload_schema_from_cache
+        reset_attributes
 
         prev_cast_type, prev_options, prev_block = (deferred_attribute_definitions[name] unless cast_type)
 
@@ -249,11 +248,6 @@ module ActiveRecord
         @default_attributes = add_attribute_to_attribute_set(@default_attributes ||= ActiveModel::AttributeSet.new,
           name, cast_type, default: default, from_user: user_provided_default)
         @attribute_types = nil
-      end
-
-      def load_schema! # :nodoc:
-        super
-        add_deferred_to_attribute_set(_default_attributes)
       end
 
       private
@@ -287,10 +281,10 @@ module ActiveRecord
           end
         end
 
-        def reload_schema_from_cache
+        def reset_attributes
           @default_attributes = nil
           @attribute_types = nil
-          super
+          subclasses.each { |klass| klass.send(__method__) }
         end
     end
   end

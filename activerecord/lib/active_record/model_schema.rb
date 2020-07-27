@@ -298,7 +298,7 @@ module ActiveRecord
       # Sets the columns names the model should ignore. Ignored columns won't have attribute
       # accessors defined, and won't be referenced in SQL queries.
       def ignored_columns=(columns)
-        reload_schema_from_cache
+        reset_attributes
         @ignored_columns = columns.map(&:to_s).freeze
       end
 
@@ -455,7 +455,7 @@ module ActiveRecord
         ([self] + descendants).each(&:undefine_attribute_methods)
         connection.schema_cache.clear_data_source_cache!(table_name)
 
-        reload_schema_from_cache
+        reset_attributes
         initialize_find_by_cache
       end
 
@@ -480,20 +480,25 @@ module ActiveRecord
 
             @schema_loaded = true
           rescue
-            reload_schema_from_cache # If the schema loading failed half way through, we must reset the state.
+            reset_attributes # If the schema loading failed half way through, we must reset the state.
             raise
           end
         end
 
         def load_schema!
-          columns_hash.each do |name, column|
-            type = connection.lookup_cast_type_from_column(column)
-            type = _convert_type_from_options(type)
-            add_attribute_to_attribute_set(_default_attributes, name, type, default: column.default, from_user: false)
-          end
+          _default_attributes
         end
 
-        def reload_schema_from_cache
+        def add_deferred_to_attribute_set(attribute_set)
+          attribute_set = columns_hash.reduce(attribute_set) do |set, (name, column)|
+            type = _convert_type_from_options(connection.lookup_cast_type_from_column(column))
+            add_attribute_to_attribute_set(set, name, type, default: column.default, from_user: false)
+          end
+          super
+        end
+
+        def reset_attributes
+          super
           @arel_table = nil
           @column_names = nil
           @symbol_column_to_string_name_hash = nil
@@ -506,9 +511,6 @@ module ActiveRecord
           @schema_loaded = nil
           @attribute_names = nil
           @yaml_encoder = nil
-          direct_descendants.each do |descendant|
-            descendant.send(:reload_schema_from_cache)
-          end
         end
 
         # Guesses the table name, but does not decorate it with prefix and suffix information.
