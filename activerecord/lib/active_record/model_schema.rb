@@ -142,8 +142,6 @@ module ActiveRecord
       self.ignored_columns = [].freeze
 
       delegate :type_for_attribute, to: :class
-
-      initialize_load_schema_monitor
     end
 
     # Derives the join table name for +first_table+ and +second_table+. The
@@ -459,36 +457,7 @@ module ActiveRecord
         initialize_find_by_cache
       end
 
-      protected
-        def initialize_load_schema_monitor
-          @load_schema_monitor = Monitor.new
-        end
-
       private
-        def inherited(child_class)
-          super
-          child_class.initialize_load_schema_monitor
-        end
-
-        def load_schema
-          return if defined?(@schema_loaded) && @schema_loaded
-          @load_schema_monitor.synchronize do
-            return if defined?(@schema_loaded) && !@schema_loaded.nil?
-            @schema_loaded = false
-
-            load_schema!
-
-            @schema_loaded = true
-          rescue
-            reset_attributes # If the schema loading failed half way through, we must reset the state.
-            raise
-          end
-        end
-
-        def load_schema!
-          _default_attributes
-        end
-
         def add_deferred_to_attribute_set(attribute_set)
           attribute_set = columns_hash.reduce(attribute_set) do |set, (name, column)|
             type = _convert_type_from_options(connection.lookup_cast_type_from_column(column))
