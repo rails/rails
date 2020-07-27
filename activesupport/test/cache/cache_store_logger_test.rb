@@ -12,7 +12,7 @@ class CacheStoreLoggerTest < ActiveSupport::TestCase
   end
 
   def test_logging
-    @cache.fetch("foo") { "bar" }
+    @cache.fetch("foo") { "bar" } # rubocop:disable Style/RedundantFetchBlock
     assert_predicate @buffer.string, :present?
   end
 
@@ -30,7 +30,7 @@ class CacheStoreLoggerTest < ActiveSupport::TestCase
   end
 
   def test_mute_logging
-    @cache.mute { @cache.fetch("foo") { "bar" } }
+    @cache.mute { @cache.fetch("foo") { "bar" } } # rubocop:disable Style/RedundantFetchBlock
     assert_predicate @buffer.string, :blank?
   end
 end

@@ -268,3 +268,6 @@ Performance/DeletePrefix:
 
 Performance/DeleteSuffix:
   Enabled: true
+
+Style/RedundantFetchBlock:
+  Enabled: true

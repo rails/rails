@@ -55,9 +55,9 @@ module CacheStoreVersionBehavior
     m1v1 = ModelWithKeyAndVersion.new("model/1", 1)
     m1v2 = ModelWithKeyAndVersion.new("model/1", 2)
 
-    @cache.fetch(m1v1) { "bar" }
-    assert_equal "bar", @cache.fetch(m1v1) { "bu" }
-    assert_equal "bu", @cache.fetch(m1v2) { "bu" }
+    @cache.fetch(m1v1) { "bar" } # rubocop:disable Style/RedundantFetchBlock
+    assert_equal "bar", @cache.fetch(m1v1) { "bu" } # rubocop:disable Style/RedundantFetchBlock
+    assert_equal "bu", @cache.fetch(m1v2) { "bu" } # rubocop:disable Style/RedundantFetchBlock
   end
 
   def test_exist_with_model_supporting_cache_version

@@ -131,8 +131,8 @@ module ActiveRecord
         mapping = TypeMap.new
         mapping.register_type(1, "string")
 
-        assert_equal "string", mapping.fetch(1) { "int" }
-        assert_equal "int", mapping.fetch(2) { "int" }
+        assert_equal "string", mapping.fetch(1) { "int" } # rubocop:disable Style/RedundantFetchBlock
+        assert_equal "int", mapping.fetch(2) { "int" } # rubocop:disable Style/RedundantFetchBlock
       end
 
       def test_fetch_yields_args

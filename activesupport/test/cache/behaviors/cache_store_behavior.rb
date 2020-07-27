@@ -16,13 +16,13 @@ module CacheStoreBehavior
   def test_fetch_without_cache_miss
     @cache.write("foo", "bar")
     assert_not_called(@cache, :write) do
-      assert_equal "bar", @cache.fetch("foo") { "baz" }
+      assert_equal "bar", @cache.fetch("foo") { "baz" } # rubocop:disable Style/RedundantFetchBlock
     end
   end
 
   def test_fetch_with_cache_miss
     assert_called_with(@cache, :write, ["foo", "baz", @cache.options]) do
-      assert_equal "baz", @cache.fetch("foo") { "baz" }
+      assert_equal "baz", @cache.fetch("foo") { "baz" } # rubocop:disable Style/RedundantFetchBlock
     end
   end
 
@@ -48,7 +48,7 @@ module CacheStoreBehavior
   def test_fetch_with_cached_nil
     @cache.write("foo", nil)
     assert_not_called(@cache, :write) do
-      assert_nil @cache.fetch("foo") { "baz" }
+      assert_nil @cache.fetch("foo") { "baz" } # rubocop:disable Style/RedundantFetchBlock
     end
   end
 
@@ -511,7 +511,7 @@ module CacheStoreBehavior
     ActiveSupport::Notifications.subscribe(/^cache_(.*)\.active_support$/) do |*args|
       @events << ActiveSupport::Notifications::Event.new(*args)
     end
-    assert_not @cache.fetch("bad_key") { }
+    assert_not @cache.fetch("bad_key") { } # rubocop:disable Style/RedundantFetchBlock
     assert_equal 3, @events.length
     assert_equal "cache_read.active_support", @events[0].name
     assert_equal "cache_generate.active_support", @events[1].name
