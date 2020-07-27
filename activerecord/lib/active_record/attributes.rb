@@ -270,6 +270,18 @@ module ActiveRecord
           _default_attributes[name] = default_attribute
         end
 
+        def decorate_attribute_type(attr_name, **default)
+          type, options = attributes_to_define_after_schema_loads[attr_name]
+
+          attribute(attr_name, **default) do |cast_type|
+            if type && !type.is_a?(Proc)
+              cast_type = _lookup_cast_type(attr_name, type, options)
+            end
+
+            yield cast_type
+          end
+        end
+
         def _lookup_cast_type(name, type, options)
           case type
           when Symbol
