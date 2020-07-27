@@ -12,6 +12,17 @@ module ActiveRecord
     end
 
     module ClassMethods
+      def _default_attributes # :nodoc:
+        load_schema
+        @default_attributes ||= ActiveModel::AttributeSet.new
+      end
+
+      def attribute_types # :nodoc:
+        @attribute_types ||= _default_attributes.cast_types.tap do |hash|
+          hash.default = Type.default_value
+        end
+      end
+
       # Defines an attribute with a type on this model. It will override the
       # type of existing attributes if needed. This allows control over how
       # values are converted to and from SQL when assigned to a model. It also
@@ -235,9 +246,9 @@ module ActiveRecord
       # +user_provided_default+ Whether the default value should be cast using
       # +cast+ or +deserialize+.
       def define_attribute(name, cast_type, default: NO_DEFAULT_PROVIDED, user_provided_default: true)
-        add_attribute_to_attribute_set(_default_attributes,
+        @default_attributes = add_attribute_to_attribute_set(@default_attributes ||= ActiveModel::AttributeSet.new,
           name, cast_type, default: default, from_user: user_provided_default)
-        attribute_types[name] = _default_attributes[name].type
+        @attribute_types = nil
       end
 
       def load_schema! # :nodoc:
@@ -274,6 +285,12 @@ module ActiveRecord
 
             add_attribute_to_attribute_set(set, name, type, **options.slice(:default))
           end
+        end
+
+        def reload_schema_from_cache
+          @default_attributes = nil
+          @attribute_types = nil
+          super
         end
     end
   end

@@ -372,12 +372,6 @@ module ActiveRecord
         @columns ||= columns_hash.values.freeze
       end
 
-      def attribute_types # :nodoc:
-        @attribute_types ||= _default_attributes.cast_types.tap do |hash|
-          hash.default = Type.default_value
-        end
-      end
-
       def yaml_encoder # :nodoc:
         @yaml_encoder ||= ActiveModel::AttributeSet::YAMLEncoder.new(attribute_types)
       end
@@ -408,11 +402,6 @@ module ActiveRecord
       # default values when instantiating the Active Record object for this table.
       def column_defaults
         @column_defaults ||= _default_attributes.deep_dup.to_hash.freeze
-      end
-
-      def _default_attributes # :nodoc:
-        load_schema
-        @default_attributes ||= ActiveModel::AttributeSet.new
       end
 
       # Returns an array of column names as strings.
@@ -508,9 +497,7 @@ module ActiveRecord
           @arel_table = nil
           @column_names = nil
           @symbol_column_to_string_name_hash = nil
-          @attribute_types = nil
           @content_columns = nil
-          @default_attributes = nil
           @column_defaults = nil
           @inheritance_column = nil unless defined?(@explicit_inheritance_column) && @explicit_inheritance_column
           @attributes_builder = nil
