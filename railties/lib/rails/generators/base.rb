@@ -19,7 +19,7 @@ module Rails
       include Rails::Generators::Actions
 
       class_option :skip_namespace, type: :boolean, default: false,
-                                    desc: "Skip namespace (affects only isolated applications)"
+                                    desc: "Skip namespace (affects only isolated engines)"
       class_option :skip_collision_check, type: :boolean, default: false,
                                           desc: "Skip collision check"
 
