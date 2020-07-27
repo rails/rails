@@ -445,7 +445,9 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
       @user.highlights.attach blobs
       assert @user.highlights.attached?
 
-      @user.highlights.purge
+      assert_changes -> { @user.updated_at } do
+        @user.highlights.purge
+      end
       assert_not @user.highlights.attached?
       assert_not ActiveStorage::Blob.exists?(blobs.first.id)
       assert_not ActiveStorage::Blob.exists?(blobs.second.id)
@@ -487,7 +489,9 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
       assert @user.highlights.attached?
 
       perform_enqueued_jobs do
-        @user.highlights.purge_later
+        assert_changes -> { @user.updated_at } do
+          @user.highlights.purge_later
+        end
       end
 
       assert_not @user.highlights.attached?

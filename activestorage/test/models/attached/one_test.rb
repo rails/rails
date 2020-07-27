@@ -449,7 +449,9 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
       @user.avatar.attach blob
       assert @user.avatar.attached?
 
-      @user.avatar.purge
+      assert_changes -> { @user.updated_at } do
+        @user.avatar.purge
+      end
       assert_not @user.avatar.attached?
       assert_not ActiveStorage::Blob.exists?(blob.id)
       assert_not ActiveStorage::Blob.service.exist?(blob.key)
@@ -478,7 +480,9 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
       assert @user.avatar.attached?
 
       perform_enqueued_jobs do
-        @user.avatar.purge_later
+        assert_changes -> { @user.updated_at } do
+          @user.avatar.purge_later
+        end
       end
 
       assert_not @user.avatar.attached?
