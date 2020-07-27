@@ -156,7 +156,7 @@ required for running Active Record tests.
 
 In order to be able to run the test suite against MySQL you need to create a user named `rails` with privileges on the test databases:
 
-```bash
+```sql
 $ mysql -uroot -p
 
 mysql> CREATE USER 'rails'@'localhost';
