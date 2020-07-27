@@ -6,16 +6,6 @@ module ActionDispatch
       class Pattern # :nodoc:
         attr_reader :spec, :requirements, :anchored
 
-        def self.from_string(string)
-          build(string, {}, "/.?", true)
-        end
-
-        def self.build(path, requirements, separators, anchored)
-          parser = Journey::Parser.new
-          ast = parser.parse path
-          new ast, requirements, separators, anchored
-        end
-
         def initialize(ast, requirements, separators, anchored)
           @spec         = ast
           @requirements = requirements
