@@ -923,6 +923,39 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     assert_not_nil hash
     assert_equal %w(cc ac), [hash[:controller], hash[:action]]
   end
+
+  def test_drawing_more_routes_after_eager_loading
+    rs = ::ActionDispatch::Routing::RouteSet.new
+    rs.disable_clear_and_finalize = true
+
+    rs.draw do
+      get "/plain" => "c#plain"
+      get "/:symbol" => "c#symbol"
+      get "/glob/*" => "c#glob"
+      get "/with#anchor" => "c#with_anchor"
+    end
+
+    hash = rs.recognize_path "/symbol"
+    assert_not_nil hash
+    assert_equal %w(c symbol), [hash[:controller], hash[:action]]
+
+    rs.eager_load!
+
+    rs.draw do
+      get "/more/plain" => "c#plain"
+      get "/more/:symbol" => "c#symbol"
+      get "/more/glob/*" => "c#glob"
+      get "/more/with#anchor" => "c#with_anchor"
+    end
+
+    hash = rs.recognize_path "/symbol"
+    assert_not_nil hash
+    assert_equal %w(c symbol), [hash[:controller], hash[:action]]
+
+    hash = rs.recognize_path "/more/symbol"
+    assert_not_nil hash
+    assert_equal %w(c symbol), [hash[:controller], hash[:action]]
+  end
 end
 
 class RouteSetTest < ActiveSupport::TestCase
