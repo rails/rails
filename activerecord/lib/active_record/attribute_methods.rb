@@ -166,7 +166,7 @@ module ActiveRecord
           attribute_types.keys
         else
           []
-        end
+        end.freeze
       end
 
       # Returns true if the given attribute exists, otherwise false.
