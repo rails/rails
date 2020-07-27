@@ -587,7 +587,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_preloading_has_many_through_with_implicit_source
-    authors = Author.includes(:very_special_comments).to_a
+    authors = Author.includes(:very_special_comments).to_a.sort_by(&:id)
     assert_no_queries do
       special_comment_authors = authors.map { |author| [author.name, author.very_special_comments.size] }
       assert_equal [["David", 1], ["Mary", 0], ["Bob", 0]], special_comment_authors
