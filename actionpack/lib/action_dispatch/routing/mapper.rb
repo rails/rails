@@ -122,31 +122,17 @@ module ActionDispatch
           @to                 = intern(to)
           @default_controller = intern(controller)
           @default_action     = intern(default_action)
-          @ast                = ast
+          @ast                = Journey::Ast.new(ast, formatted)
           @anchor             = anchor
           @via                = via
           @internal           = options.delete(:internal)
           @scope_options      = scope_params[:options]
 
-          path_params = []
-          wildcard_options = {}
-          ast.each do |node|
-            if node.symbol?
-              path_params << node.to_sym
-            elsif formatted != false && node.star?
-              # Add a constraint for wildcard route to make it non-greedy and match the
-              # optional format part of the route by default.
-              wildcard_options[node.name.to_sym] ||= /.+?/
-            elsif node.cat?
-              alter_regex_for_custom_routes(node)
-            end
-          end
+          options = @ast.wildcard_options.merge!(options)
 
-          options = wildcard_options.merge!(options)
+          options = normalize_options!(options, @ast.path_params, scope_params[:module])
 
-          options = normalize_options!(options, path_params, scope_params[:module])
-
-          split_options = constraints(options, path_params)
+          split_options = constraints(options, @ast.path_params)
 
           constraints = scope_params[:constraints].merge Hash[split_options[:constraints] || []]
 
@@ -160,7 +146,7 @@ module ActionDispatch
             @blocks = blocks(options_constraints)
           end
 
-          requirements, conditions = split_constraints path_params, constraints
+          requirements, conditions = split_constraints @ast.path_params, constraints
           verify_regexp_requirements requirements.map(&:last).grep(Regexp)
 
           formats = normalize_format(formatted)
@@ -169,11 +155,13 @@ module ActionDispatch
           @conditions = Hash[conditions]
           @defaults = formats[:defaults].merge(@defaults).merge(normalize_defaults(options))
 
-          if path_params.include?(:action) && !@requirements.key?(:action)
+          if @ast.path_params.include?(:action) && !@requirements.key?(:action)
             @defaults[:action] ||= "index"
           end
 
           @required_defaults = (split_options[:required_defaults] || []).map(&:first)
+
+          @ast.requirements = @requirements
         end
 
         def make_route(name, precedence)
@@ -190,7 +178,7 @@ module ActionDispatch
         JOINED_SEPARATORS = SEPARATORS.join # :nodoc:
 
         def path
-          Journey::Path::Pattern.new(@ast, requirements, JOINED_SEPARATORS, @anchor)
+          Journey::Path::Pattern.new(ast, requirements, JOINED_SEPARATORS, @anchor)
         end
 
         def conditions
@@ -212,24 +200,6 @@ module ActionDispatch
         private :request_method
 
         private
-          # Find all the symbol nodes that are adjacent to literal nodes and alter
-          # the regexp so that Journey will partition them into custom routes.
-          def alter_regex_for_custom_routes(node)
-            if node.left.literal? && node.right.symbol?
-              symbol = node.right
-            elsif node.left.literal? && node.right.cat? && node.right.left.symbol?
-              symbol = node.right.left
-            elsif node.left.symbol? && node.right.literal?
-              symbol = node.left
-            elsif node.left.symbol? && node.right.cat? && node.right.left.literal?
-              symbol = node.left
-            end
-
-            if symbol
-              symbol.regexp = /(?:#{Regexp.union(symbol.regexp, '-')})+/
-            end
-          end
-
           def intern(object)
             object.is_a?(String) ? -object : object
           end

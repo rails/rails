@@ -4,6 +4,88 @@ require "action_dispatch/journey/visitors"
 
 module ActionDispatch
   module Journey # :nodoc:
+    class Ast # :nodoc:
+      delegate :find_all, :left, :right, :to_s, :to_sym, :type, to: :tree
+      attr_reader :names, :path_params, :tree, :wildcard_options
+      alias :root :tree
+
+      def initialize(tree, formatted)
+        @tree = tree
+        @path_params = []
+        @names = []
+        @symbols = []
+        @glob = false
+        @wildcard_options = {}
+        @terminals = []
+
+        visit_tree(formatted)
+      end
+
+      def requirements=(requirements)
+        symbols.each do |node|
+          re = requirements[node.to_sym]
+          node.regexp = re if re
+        end
+      end
+
+      def route=(route)
+        terminals.each { |n| n.memo = route }
+      end
+
+      def default_regexp?
+        symbols.all?(&:default_regexp?)
+      end
+
+      def glob?
+        @glob
+      end
+
+      private
+        attr_reader :symbols, :terminals
+
+        def visit_tree(formatted)
+          tree.each do |node|
+            if node.symbol?
+              path_params << node.to_sym
+              names << node.name
+              symbols << node
+            elsif node.star?
+              @glob = true
+
+              if formatted != false
+                # Add a constraint for wildcard route to make it non-greedy and
+                # match the optional format part of the route by default.
+                wildcard_options[node.name.to_sym] ||= /.+?/
+              end
+            elsif node.cat?
+              alter_regex_for_custom_routes(node)
+            end
+
+            if node.terminal?
+              terminals << node
+            end
+          end
+        end
+
+        # Find all the symbol nodes that are adjacent to literal nodes and alter
+        # the regexp so that Journey will partition them into custom routes.
+        def alter_regex_for_custom_routes(node)
+          if node.left.literal? && node.right.symbol?
+            symbol = node.right
+          elsif node.left.literal? && node.right.cat? && node.right.left.symbol?
+            symbol = node.right.left
+          elsif node.left.symbol? && node.right.literal?
+            symbol = node.left
+          elsif node.left.symbol? && node.right.cat? && node.right.left.literal?
+            symbol = node.left
+          end
+
+          if symbol
+            symbol.regexp = /(?:#{Regexp.union(symbol.regexp, '-')})+/
+          end
+        end
+    end
+
     module Nodes # :nodoc:
       class Node # :nodoc:
         include Enumerable

@@ -4,7 +4,8 @@ module ActionDispatch
   module Journey # :nodoc:
     module Path # :nodoc:
       class Pattern # :nodoc:
-        attr_reader :spec, :requirements, :anchored
+        attr_reader :names, :spec, :requirements, :anchored
+        alias :ast :spec
 
         def initialize(ast, requirements, separators, anchored)
           @spec         = ast
@@ -12,7 +13,7 @@ module ActionDispatch
           @separators   = separators
           @anchored     = anchored
 
-          @names          = nil
+          @names          = ast.names
           @optional_names = nil
           @required_names = nil
           @re             = nil
@@ -28,19 +29,6 @@ module ActionDispatch
           offsets
           to_regexp
           nil
-        end
-
-        def ast
-          @spec.find_all(&:symbol?).each do |node|
-            re = @requirements[node.to_sym]
-            node.regexp = re if re
-          end
-
-          @spec
-        end
-
-        def names
-          @names ||= spec.find_all(&:symbol?).map(&:name)
         end
 
         def required_names

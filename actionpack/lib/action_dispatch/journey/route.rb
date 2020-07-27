@@ -82,9 +82,8 @@ module ActionDispatch
 
       def ast
         @decorated_ast ||= begin
-          decorated_ast = path.ast
-          decorated_ast.find_all(&:terminal?).each { |n| n.memo = self }
-          decorated_ast
+          path.ast.route = self
+          path.ast
         end
       end
 
@@ -142,7 +141,7 @@ module ActionDispatch
       end
 
       def glob?
-        path.spec.any?(Nodes::Star)
+        path.ast.glob?
       end
 
       def dispatcher?
