@@ -455,6 +455,12 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_dummy_application_loads_plugin
+    run_generator
+
+    assert_file "test/dummy/config/application.rb", /^require "bukkits"/
+  end
+
   def test_dummy_application_uses_dynamic_rails_version_number
     run_generator
 
