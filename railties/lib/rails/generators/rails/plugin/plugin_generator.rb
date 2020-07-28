@@ -185,7 +185,7 @@ task default: :test
                                   desc: "Generate a rails engine with bundled Rails application for testing"
 
       class_option :mountable,    type: :boolean, default: false,
-                                  desc: "Generate mountable isolated application"
+                                  desc: "Generate mountable isolated engine"
 
       class_option :skip_gemspec, type: :boolean, default: false,
                                   desc: "Skip gemspec file"
