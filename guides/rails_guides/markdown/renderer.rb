@@ -75,7 +75,7 @@ module RailsGuides
           when nil
             "plaintext"
           else
-            ::Rouge::Lexer.find(language) ? code_type : "plaintext"
+            ::Rouge::Lexer.find(code_type) ? code_type : "plaintext"
           end
         end
 
