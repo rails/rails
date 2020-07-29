@@ -71,7 +71,7 @@ module ActionDispatch
         ANCHOR_CHARACTERS_REGEX = %r{\A(\\A|\^)|(\\Z|\\z|\$)\Z}
         OPTIONAL_FORMAT_REGEX = %r{(?:\(\.:format\)+|\.:format|/)\Z}
 
-        attr_reader :requirements, :defaults, :to, :default_controller,
+        attr_reader :path, :requirements, :defaults, :to, :default_controller,
                     :default_action, :required_defaults, :ast, :scope_options
 
         def self.build(scope, set, ast, controller, default_action, to, via, formatted, options_constraints, anchor, options)
@@ -122,17 +122,17 @@ module ActionDispatch
           @to                 = intern(to)
           @default_controller = intern(controller)
           @default_action     = intern(default_action)
-          @ast                = Journey::Ast.new(ast, formatted)
+          ast                = Journey::Ast.new(ast, formatted)
           @anchor             = anchor
           @via                = via
           @internal           = options.delete(:internal)
           @scope_options      = scope_params[:options]
 
-          options = @ast.wildcard_options.merge!(options)
+          options = ast.wildcard_options.merge!(options)
 
-          options = normalize_options!(options, @ast.path_params, scope_params[:module])
+          options = normalize_options!(options, ast.path_params, scope_params[:module])
 
-          split_options = constraints(options, @ast.path_params)
+          split_options = constraints(options, ast.path_params)
 
           constraints = scope_params[:constraints].merge Hash[split_options[:constraints] || []]
 
@@ -146,7 +146,7 @@ module ActionDispatch
             @blocks = blocks(options_constraints)
           end
 
-          requirements, conditions = split_constraints @ast.path_params, constraints
+          requirements, conditions = split_constraints ast.path_params, constraints
           verify_regexp_requirements requirements.map(&:last).grep(Regexp)
 
           formats = normalize_format(formatted)
@@ -155,14 +155,17 @@ module ActionDispatch
           @conditions = Hash[conditions]
           @defaults = formats[:defaults].merge(@defaults).merge(normalize_defaults(options))
 
-          if @ast.path_params.include?(:action) && !@requirements.key?(:action)
+          if ast.path_params.include?(:action) && !@requirements.key?(:action)
             @defaults[:action] ||= "index"
           end
 
           @required_defaults = (split_options[:required_defaults] || []).map(&:first)
 
-          @ast.requirements = @requirements
+          ast.requirements = @requirements
+          @path = Journey::Path::Pattern.new(ast, @requirements, JOINED_SEPARATORS, @anchor)
         end
+
+        JOINED_SEPARATORS = SEPARATORS.join # :nodoc:
 
         def make_route(name, precedence)
           Journey::Route.new(name: name, app: application, path: path, constraints: conditions,
@@ -173,12 +176,6 @@ module ActionDispatch
 
         def application
           app(@blocks)
-        end
-
-        JOINED_SEPARATORS = SEPARATORS.join # :nodoc:
-
-        def path
-          Journey::Path::Pattern.new(ast, requirements, JOINED_SEPARATORS, @anchor)
         end
 
         def conditions

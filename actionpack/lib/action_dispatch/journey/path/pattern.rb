@@ -28,7 +28,7 @@ module ActionDispatch
           required_names
           offsets
           to_regexp
-          nil
+          @spec = nil
         end
 
         def required_names

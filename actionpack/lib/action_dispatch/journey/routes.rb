@@ -50,7 +50,7 @@ module ActionDispatch
 
       def ast
         @ast ||= begin
-          nodes = anchored_routes.map { |route| route.ast.root }
+          nodes = anchored_routes.map(&:ast_root)
           Nodes::Or.new(nodes)
         end
       end

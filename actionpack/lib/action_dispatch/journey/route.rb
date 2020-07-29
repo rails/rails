@@ -70,21 +70,23 @@ module ActionDispatch
         @path_formatter    = @path.build_formatter
         @scope_options     = scope_options
         @internal          = internal
+
+        @path.ast.route = self
       end
 
       def eager_load!
         path.eager_load!
-        ast
         parts
         required_defaults
         nil
       end
 
       def ast
-        @decorated_ast ||= begin
-          path.ast.route = self
-          path.ast
-        end
+        path.ast
+      end
+
+      def ast_root
+        @ast_root ||= path.ast.root
       end
 
       # Needed for `bin/rails routes`. Picks up succinctly defined requirements
