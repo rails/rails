@@ -1,3 +1,9 @@
+*   Prevent collection associations from being autosaved multiple times.
+
+    Fixes #39173.
+
+    *Eugene Kenny*
+
 *   Resolve issue with insert_all unique_by option when used with expression index.
 
     When the `:unique_by` option of `ActiveRecord::Persistence.insert_all` and

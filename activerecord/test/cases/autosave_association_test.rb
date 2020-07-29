@@ -6,6 +6,7 @@ require "models/book"
 require "models/bird"
 require "models/post"
 require "models/comment"
+require "models/category"
 require "models/company"
 require "models/contract"
 require "models/customer"
@@ -819,6 +820,15 @@ class TestDefaultAutosaveAssociationOnNewRecord < ActiveRecord::TestCase
     post.save!
 
     assert_not_nil post.author_id
+  end
+
+  def test_autosave_new_record_with_after_create_callback_and_habtm_association
+    post = PostWithAfterCreateCallback.new(title: "Captain Murphy", body: "is back")
+    post.comments.build(body: "foo")
+    post.categories.build(name: "bar")
+    post.save!
+
+    assert_equal 1, post.categories.reload.length
   end
 end
 
