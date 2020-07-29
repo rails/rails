@@ -60,13 +60,16 @@ module ActiveSupport
       dup
     end
 
+    # An optimization, override the initialization method `nested_under_indifferent_access`
+    # who was defined in `activesupport/lib/active_support/core_ext/hash/indifferent_access.rb`.
+    # If `self.is_a?(HashWithIndifferentAccess)` is true, we don't need to instantiate again.
     def nested_under_indifferent_access
       self
     end
 
     def initialize(constructor = {})
       if constructor.respond_to?(:to_hash)
-        super()
+        super
         update(constructor)
 
         hash = constructor.is_a?(Hash) ? constructor : constructor.to_hash
@@ -368,7 +371,7 @@ module ActiveSupport
       end
 
       def convert_value(value, conversion: nil)
-        if value.is_a? Hash
+        if value.is_a?(Hash)
           if conversion == :to_hash
             value.to_hash
           else
@@ -393,7 +396,7 @@ module ActiveSupport
       end
 
       def update_with_single_argument(other_hash, block)
-        if other_hash.is_a? HashWithIndifferentAccess
+        if other_hash.is_a?(HashWithIndifferentAccess)
           regular_update(other_hash, &block)
         else
           other_hash.to_hash.each_pair do |key, value|
