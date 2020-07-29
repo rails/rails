@@ -141,7 +141,7 @@ module ActionDispatch
           end
 
           def symbol(edge)
-            edge.is_a?(Journey::Nodes::Symbol) ? edge.regexp : edge.left
+            edge.symbol? ? edge.regexp : edge.left
           end
       end
     end
