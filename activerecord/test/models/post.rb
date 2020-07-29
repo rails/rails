@@ -291,6 +291,7 @@ class PostWithAfterCreateCallback < ActiveRecord::Base
   self.inheritance_column = :disabled
   self.table_name = "posts"
   has_many :comments, foreign_key: :post_id
+  has_and_belongs_to_many :categories, foreign_key: :post_id
 
   after_create do |post|
     update_attribute(:author_id, comments.first.id)
