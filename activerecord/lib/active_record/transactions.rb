@@ -290,10 +290,14 @@ module ActiveRecord
 
     def destroy #:nodoc:
       with_transaction_returning_status { super }
+    rescue ActiveRecord::Rollback
+      false
     end
 
     def save(**) #:nodoc:
       with_transaction_returning_status { super }
+    rescue ActiveRecord::Rollback
+      false
     end
 
     def save!(**) #:nodoc:

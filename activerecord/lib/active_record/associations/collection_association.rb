@@ -412,7 +412,10 @@ module ActiveRecord
         def replace_records(new_target, original_target)
           delete(difference(target, new_target))
 
-          unless concat(difference(new_target, target))
+          result = nil
+          transaction(requires_new: true) { result = concat(difference(new_target, target)) }
+
+          unless result
             @target = original_target
             raise RecordNotSaved, "Failed to replace #{reflection.name} because one or more of the " \
                                   "new records could not be saved."

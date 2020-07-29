@@ -256,14 +256,16 @@ class TransactionTest < ActiveRecord::TestCase
     def @first.before_save_for_transaction
       raise ActiveRecord::Rollback
     end
+
     assert_not_predicate @first, :approved?
 
-    assert_not_called(@first, :rolledback!) do
+    assert_called(@first, :rolledback!) do
       Topic.transaction do
         @first.approved = true
         @first.save!
       end
     end
+
     assert_not_predicate Topic.find(@first.id), :approved?, "Should not commit the approved flag"
   end
 
@@ -279,6 +281,31 @@ class TransactionTest < ActiveRecord::TestCase
     end
 
     assert_predicate topic, :new_record?, "#{topic.inspect} should be new record"
+  end
+
+  def test_manually_rolling_back_a_nested_transaction
+    assert_not_predicate @first, :approved?
+    assert_predicate @second, :approved?
+
+    Topic.transaction do
+      @first.approved = true
+      @first.save!
+
+      Topic.transaction do
+        @second.approved = false
+        @second.save!
+
+        raise ActiveRecord::Rollback
+      end
+
+      assert false, "This should not be reached"
+    end
+
+    assert_predicate @first, :approved?, "First should still be changed in the objects"
+    assert_not_predicate @second, :approved?, "Second should still be changed in the objects"
+
+    assert_not_predicate @first.reload, :approved?, "First shouldn't have been approved"
+    assert_predicate @second.reload, :approved?, "Second should still be approved"
   end
 
   def test_transaction_state_is_cleared_when_record_is_persisted
@@ -572,6 +599,63 @@ class TransactionTest < ActiveRecord::TestCase
 
     assert_not_predicate @first.reload, :approved?
     assert_not_predicate @second.reload, :approved?
+  end if Topic.connection.supports_savepoints?
+
+  def test_manually_rolling_back_a_nested_transaction_with_savepoint
+    Topic.transaction do
+      @first.approved = true
+      @first.save!
+
+      Topic.transaction(requires_new: true) do
+        @first.approved = false
+        @first.save!
+        raise ActiveRecord::Rollback
+      end
+
+      @second.approved = false
+      @second.save!
+    end
+
+    assert_predicate @first.reload, :approved?
+    assert_not_predicate @second.reload, :approved?
+  end if Topic.connection.supports_savepoints?
+
+  def test_manually_rolling_back_a_nested_transaction_with_savepoint_on_instance
+    @first.transaction do
+      @first.approved  = true
+      @first.save!
+
+      @second.transaction(requires_new: true) do
+        @first.approved = false
+        @first.save!
+        raise ActiveRecord::Rollback
+      end
+
+      @second.approved = false
+      @second.save!
+    end
+
+    assert_predicate @first.reload, :approved?
+    assert_not_predicate @second.reload, :approved?
+  end if Topic.connection.supports_savepoints?
+
+  def test_manually_rolling_back_a_nested_transaction_without_savepoint
+    Topic.transaction do
+      @first.approved = true
+      @first.save!
+
+      Topic.transaction do
+        @first.approved = false
+        @first.save!
+        raise ActiveRecord::Rollback
+      end
+
+      @second.approved = false
+      @second.save!
+    end
+
+    assert_not_predicate @first.reload, :approved?
+    assert_predicate @second.reload, :approved?
   end if Topic.connection.supports_savepoints?
 
   def test_many_savepoints

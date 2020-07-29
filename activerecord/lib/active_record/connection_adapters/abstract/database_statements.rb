@@ -206,7 +206,7 @@ module ActiveRecord
       #
       # #transaction calls can be nested. By default, this makes all database
       # statements in the nested transaction block become part of the parent
-      # transaction. For example, the following behavior may be surprising:
+      # transaction.
       #
       #   ActiveRecord::Base.transaction do
       #     Post.create(title: 'first')
@@ -214,12 +214,17 @@ module ActiveRecord
       #       Post.create(title: 'second')
       #       raise ActiveRecord::Rollback
       #     end
+      #
+      #     # Since the nested transaction cannot rolled back on its own, it
+      #     # will bubble up the rollback request to its parent transaction,
+      #     # and the entire database transaction will be rolled back. As a
+      #     # result, the follow line is not reached and no users are created
+      #     # in the database.
+      #     raise 'Not reached'
       #   end
       #
-      # This creates both "first" and "second" posts. Reason is the
-      # ActiveRecord::Rollback exception in the nested block does not issue a
-      # ROLLBACK. Since these exceptions are captured in transaction blocks,
-      # the parent block does not see it and the real transaction is committed.
+      #   Post.exists?(title: 'first') # => false
+      #   Post.exists?(title: 'second') # => false
       #
       # Most databases don't support true nested transactions. At the time of
       # writing, the only database that supports true nested transactions that
@@ -311,12 +316,18 @@ module ActiveRecord
           if isolation
             raise ActiveRecord::TransactionIsolationError, "cannot set isolation when joining a transaction"
           end
+
           yield
         else
-          transaction_manager.within_new_transaction(isolation: isolation, joinable: joinable) { yield }
+          begin
+            transaction_manager.within_new_transaction(isolation: isolation, joinable: joinable) { yield }
+          rescue ActiveRecord::Rollback
+            # `ActiveRecord::Rollback` is a special exception that's used to
+            # manually rollback transactions. Once the rollback is handled,
+            # the "exception" can be safely discarded since it's not a real
+            # error.
+          end
         end
-      rescue ActiveRecord::Rollback
-        # rollbacks are silently swallowed
       end
 
       attr_reader :transaction_manager #:nodoc:
