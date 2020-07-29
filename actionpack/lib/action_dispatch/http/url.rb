@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/module/attribute_accessors"
+require "active_support/core_ext/module/attribute_accessors_per_thread"
 
 module ActionDispatch
   module Http
@@ -10,7 +11,7 @@ module ActionDispatch
       PROTOCOL_REGEXP = /^([^:]+)(:)?(\/\/)?$/
 
       mattr_accessor :secure_protocol, default: false
-      mattr_accessor :tld_length, default: 1
+      thread_mattr_accessor :tld_length, default: 1
 
       class << self
         # Returns the domain part of a host given the domain level.
@@ -153,7 +154,7 @@ module ActionDispatch
           def normalize_host(_host, options)
             return _host unless named_host?(_host)
 
-            tld_length = options[:tld_length] || @@tld_length
+            tld_length = options[:tld_length] || URL.tld_length
             subdomain  = options.fetch :subdomain, true
             domain     = options[:domain]
 
@@ -326,7 +327,7 @@ module ActionDispatch
 
       # Returns the \domain part of a \host, such as "rubyonrails.org" in "www.rubyonrails.org". You can specify
       # a different <tt>tld_length</tt>, such as 2 to catch rubyonrails.co.uk in "www.rubyonrails.co.uk".
-      def domain(tld_length = @@tld_length)
+      def domain(tld_length = URL.tld_length)
         ActionDispatch::Http::URL.extract_domain(host, tld_length)
       end
 
@@ -334,7 +335,7 @@ module ActionDispatch
       # returned for "dev.www.rubyonrails.org". You can specify a different <tt>tld_length</tt>,
       # such as 2 to catch <tt>["www"]</tt> instead of <tt>["www", "rubyonrails"]</tt>
       # in "www.rubyonrails.co.uk".
-      def subdomains(tld_length = @@tld_length)
+      def subdomains(tld_length = URL.tld_length)
         ActionDispatch::Http::URL.extract_subdomains(host, tld_length)
       end
 
@@ -342,7 +343,7 @@ module ActionDispatch
       # returned for "dev.www.rubyonrails.org". You can specify a different <tt>tld_length</tt>,
       # such as 2 to catch <tt>"www"</tt> instead of <tt>"www.rubyonrails"</tt>
       # in "www.rubyonrails.co.uk".
-      def subdomain(tld_length = @@tld_length)
+      def subdomain(tld_length = URL.tld_length)
         ActionDispatch::Http::URL.extract_subdomain(host, tld_length)
       end
     end
