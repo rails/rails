@@ -10,7 +10,6 @@ module ActiveRecord
         case options[:dependent]
         when :destroy
           target.destroy
-          raise ActiveRecord::Rollback unless target.destroyed?
         else
           target.send(options[:dependent])
         end

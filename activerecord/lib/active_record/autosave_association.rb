@@ -452,7 +452,12 @@ module ActiveRecord
                 end
               end
 
-              saved = record.save(validate: !autosave)
+              saved = false
+
+              transaction(requires_new: true) do
+                saved = record.save(validate: !autosave)
+              end
+
               raise ActiveRecord::Rollback if !saved && autosave
               saved
             end
@@ -488,7 +493,13 @@ module ActiveRecord
             self[reflection.foreign_key] = nil
             record.destroy
           elsif autosave != false
-            saved = record.save(validate: !autosave) if record.new_record? || (autosave && record.changed_for_autosave?)
+            if record.new_record? || (autosave && record.changed_for_autosave?)
+              saved = false
+
+              transaction(requires_new: true) do
+                saved = record.save(validate: !autosave)
+              end
+            end
 
             if association.updated?
               association_id = record.send(reflection.options[:primary_key] || :id)

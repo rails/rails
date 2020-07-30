@@ -372,7 +372,13 @@ module ActiveRecord
           if raise
             record.save!(validate: validate, &block)
           else
-            record.save(validate: validate, &block)
+            result = false
+
+            transaction(requires_new: true) do
+              result = record.save(validate: validate, &block)
+            end
+
+            result
           end
         end
 
@@ -412,7 +418,7 @@ module ActiveRecord
         def replace_records(new_target, original_target)
           delete(difference(target, new_target))
 
-          result = nil
+          result = false
           transaction(requires_new: true) { result = concat(difference(new_target, target)) }
 
           unless result

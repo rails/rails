@@ -35,7 +35,7 @@ module ActiveRecord
           attributes.collect { |attr| create(attr, &block) }
         else
           object = new(attributes, &block)
-          object.save
+          transaction(requires_new: true) { object.save }
           object
         end
       end
@@ -552,7 +552,9 @@ module ActiveRecord
     # and #destroy! raises ActiveRecord::RecordNotDestroyed.
     # See ActiveRecord::Callbacks for further details.
     def destroy!
-      destroy || _raise_record_not_destroyed
+      result = false
+      transaction(requires_new: true) { result = destroy }
+      result || _raise_record_not_destroyed
     end
 
     # Returns an instance of the specified +klass+ with the attributes of the

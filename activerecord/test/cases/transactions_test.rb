@@ -283,10 +283,50 @@ class TransactionTest < ActiveRecord::TestCase
     assert_predicate topic, :new_record?, "#{topic.inspect} should be new record"
   end
 
-  def test_manually_rolling_back_a_nested_transaction
-    assert_not_predicate @first, :approved?
-    assert_predicate @second, :approved?
+  def test_automatic_rollback_on_save_nested_transaction
+    def @second.before_save_for_transaction
+      raise ActiveRecord::Rollback
+    end
 
+    Topic.transaction do
+      @first.approved = true
+      @first.save
+
+      Topic.transaction do
+        @second.approved = false
+        @second.save
+      end
+
+      assert false, "This should not be reached"
+    end
+
+    assert_predicate @first, :approved?, "First should still be changed in the objects"
+    assert_not_predicate @second, :approved?, "Second should still be changed in the objects"
+
+    assert_not_predicate @first.reload, :approved?, "First shouldn't have been approved"
+    assert_predicate @second.reload, :approved?, "Second should still be approved"
+  end
+
+  def test_automatic_rollback_on_destroy_nested_transaction
+    def @second.before_destroy_for_transaction
+      raise ActiveRecord::Rollback
+    end
+
+    Topic.transaction do
+      @first.destroy
+
+      Topic.transaction do
+        @second.destroy
+      end
+
+      assert false, "This should not be reached"
+    end
+
+    assert @first.reload
+    assert @second.reload
+  end
+
+  def test_manually_rolling_back_a_nested_transaction
     Topic.transaction do
       @first.approved = true
       @first.save!

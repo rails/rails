@@ -55,10 +55,20 @@ module ActiveRecord
                 set_owner_attributes(record)
                 set_inverse_instance(record)
 
-                if save && !record.save
-                  nullify_owner_attributes(record)
-                  set_owner_attributes(target) if target
-                  raise RecordNotSaved, "Failed to save the new associated #{reflection.name}."
+                if save
+                  result = false
+
+                  if save
+                    reflection.klass.transaction(requires_new: true) { result = record.save }
+                  else
+                    result = record.save
+                  end
+
+                  unless result
+                    nullify_owner_attributes(record)
+                    set_owner_attributes(target) if target
+                    raise RecordNotSaved, "Failed to save the new associated #{reflection.name}."
+                  end
                 end
               end
             end
@@ -88,10 +98,15 @@ module ActiveRecord
             nullify_owner_attributes(target)
             remove_inverse_instance(target)
 
-            if target.persisted? && owner.persisted? && !target.save
-              set_owner_attributes(target)
-              raise RecordNotSaved, "Failed to remove the existing associated #{reflection.name}. " \
-                                    "The record failed to save after its foreign key was set to nil."
+            if target.persisted? && owner.persisted?
+              result = false
+              reflection.klass.transaction(requires_new: true) { result = target.save }
+
+              unless result
+                set_owner_attributes(target)
+                raise RecordNotSaved, "Failed to remove the existing associated #{reflection.name}. " \
+                                      "The record failed to save after its foreign key was set to nil."
+              end
             end
           end
         end
