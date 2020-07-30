@@ -520,7 +520,7 @@ class TransactionTest < ActiveRecord::TestCase
 
       begin
         Topic.transaction requires_new: true do
-          @first.happy = false
+          @first.approved = false
           @first.save!
           raise
         end
@@ -541,7 +541,7 @@ class TransactionTest < ActiveRecord::TestCase
 
       begin
         @second.transaction requires_new: true do
-          @first.happy = false
+          @first.approved = false
           @first.save!
           raise
         end
