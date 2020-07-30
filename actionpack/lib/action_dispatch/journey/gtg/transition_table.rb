@@ -135,11 +135,17 @@ module ActionDispatch
         end
 
         def transitions
-          @string_states.flat_map { |from, hash|
-            hash.map { |s, to| [from, s, to] }
-          } + @regexp_states.flat_map { |from, hash|
-            hash.map { |s, to| [from, s, to] }
-          }
+          transitions = []
+
+          @string_states.each do |from, hash|
+            hash.each { |s, to| transitions << [from, s, to] }
+          end
+
+          @regexp_states.each do |from, hash|
+            hash.each { |s, to| transitions << [from, s, to] }
+          end
+
+          transitions
         end
 
         private
