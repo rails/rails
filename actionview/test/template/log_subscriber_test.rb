@@ -28,6 +28,7 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
 
   def teardown
     super
+    ActionController::Base.view_paths.map(&:clear_cache)
 
     ActiveSupport::LogSubscriber.log_subscribers.clear
 
