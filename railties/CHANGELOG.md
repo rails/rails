@@ -1,3 +1,20 @@
+*   Added `Railtie#server` hook called when Rails starts a server.
+    This is useful in case your application or a library needs to run
+    another process next to the Rails server. This is quite common in development
+    for instance to run the Webpack or the React server.
+
+    It can be used like this:
+
+    ```ruby
+      class MyRailtie < Rails::Railtie
+        server do
+          WebpackServer.run
+        end
+      end
+    ```
+
+    *Edouard Chin*
+
 *   Automatically generate abstract class when using multiple databases.
 
     When generating a scaffold for a multiple database application, Rails will now automatically generate the abstract class for the database when the database argument is passed. This abstract class will include the connection information for the writing configuration and any models generated for that database will automatically inherit from the abstract class.
@@ -39,7 +56,6 @@
     ```
 
     *Eileen M. Uchitelle*, *John Crepezzi*
-
 
 *   Accept params from url to prepopulate the Inbound Emails form in Rails conductor.
 

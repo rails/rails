@@ -323,6 +323,12 @@ module Rails
       self.class.generators(&blk)
     end
 
+    # Sends any server called in the instance of a new application up
+    # to the +server+ method defined in Rails::Railtie.
+    def server(&blk)
+      self.class.server(&blk)
+    end
+
     # Sends the +isolate_namespace+ method up to the class method.
     def isolate_namespace(mod)
       self.class.isolate_namespace(mod)
@@ -548,6 +554,11 @@ module Rails
 
     def run_console_blocks(app) #:nodoc:
       railties.each { |r| r.run_console_blocks(app) }
+      super
+    end
+
+    def run_server_blocks(app) #:nodoc:
+      railties.each { |r| r.run_server_blocks(app) }
       super
     end
 

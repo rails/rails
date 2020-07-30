@@ -140,6 +140,7 @@ module Rails
       @config_target_version = Rails.application.config.loaded_config_version || "5.0"
 
       config
+      configru
 
       unless cookie_serializer_config_exist
         gsub_file "config/initializers/cookies_serializer.rb", /json(?!,)/, "marshal"
