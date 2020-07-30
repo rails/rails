@@ -470,6 +470,13 @@ module Rails
       self
     end
 
+    # Invoke the server registered hooks.
+    # Check <tt>Rails::Railtie.server</tt> for more info.
+    def load_server(app = self)
+      run_server_blocks(app)
+      self
+    end
+
     def eager_load!
       # Already done by Zeitwerk::Loader.eager_load_all. We need this guard to
       # easily provide a compatible API for both zeitwerk and classic modes.

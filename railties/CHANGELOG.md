@@ -1,3 +1,20 @@
+*   Added `Railtie#server` hook called when Rails starts a server.
+    This is useful in case your application or a library needs to run
+    another process next to the Rails server. This is quite common in development
+    for instance to run the Webpack or the React server.
+
+    It can be used like this:
+
+    ```ruby
+      class MyRailtie < Rails::Railtie
+        server do
+          WebpackServer.run
+        end
+      end
+    ```
+
+    *Edouard Chin*
+
 *   Remove deprecated `rake dev:cache` tasks.
 
     *Rafael Mendonça França*
@@ -93,7 +110,6 @@
     ```
 
     *Eileen M. Uchitelle*, *John Crepezzi*
-
 
 *   Accept params from url to prepopulate the Inbound Emails form in Rails conductor.
 
