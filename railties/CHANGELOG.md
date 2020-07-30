@@ -31,7 +31,7 @@
     rails generate scaffold Pet name:string --database=animals --parent=SecondaryBase
     ```
 
-    This will ensure the model inherits from the `SecondaryBase` parent instead of `AnimalsRecrd`
+    This will ensure the model inherits from the `SecondaryBase` parent instead of `AnimalsRecord`
 
     ```ruby
     class Pet < SecondaryBase
