@@ -585,7 +585,7 @@ class CommentsController < ApplicationController
 end
 ```
 
-Note that while for session values you set the key to `nil`, to delete a cookie value you should use `cookies.delete(:key)`.
+Note that while for session values you can set the key to `nil`, to delete a cookie value you should use `cookies.delete(:key)`.
 
 Rails also provides a signed cookie jar and an encrypted cookie jar for storing
 sensitive data. The signed cookie jar appends a cryptographic signature on the
