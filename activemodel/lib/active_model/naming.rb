@@ -8,9 +8,9 @@ module ActiveModel
   class Name
     include Comparable
 
-    attr_accessor :singular, :plural, :element, :collection,
+    attr_accessor :name, :singular, :plural, :element, :collection,
       :singular_route_key, :route_key, :param_key, :i18n_key,
-      :name
+      :singular_ivar, :plural_ivar
 
     alias_method :cache_key, :collection
 
@@ -175,6 +175,8 @@ module ActiveModel
       @collection   = ActiveSupport::Inflector.tableize(@name)
       @param_key    = (namespace ? _singularize(@unnamespaced) : @singular)
       @i18n_key     = @name.underscore.to_sym
+      @singular_ivar = :"@#{@singular}"
+      @plural_ivar   = :"@#{@plural}"
 
       @route_key          = (namespace ? ActiveSupport::Inflector.pluralize(@param_key) : @plural.dup)
       @singular_route_key = ActiveSupport::Inflector.singularize(@route_key)

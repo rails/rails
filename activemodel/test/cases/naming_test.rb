@@ -42,6 +42,14 @@ class NamingTest < ActiveModel::TestCase
   def test_i18n_key
     assert_equal :"post/track_back", @model_name.i18n_key
   end
+
+  def test_singular_ivar
+    assert_equal :@post_track_back, @model_name.singular_ivar
+  end
+
+  def test_plural_ivar
+    assert_equal :@post_track_backs, @model_name.plural_ivar
+  end
 end
 
 class NamingWithNamespacedModelInIsolatedNamespaceTest < ActiveModel::TestCase
