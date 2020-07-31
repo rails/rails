@@ -76,7 +76,10 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
     assert_file "lib/bukkits/railtie.rb", /module Bukkits\n  class Railtie < ::Rails::Railtie\n  end\nend/
     assert_file "lib/bukkits.rb", /require "bukkits\/railtie"/
-    assert_file "test/bukkits_test.rb", /assert_kind_of Module, Bukkits/
+    assert_file "test/bukkits_test.rb" do |content|
+      assert_match(/class BukkitsTest < ActiveSupport::TestCase/, content)
+      assert_match(/assert_kind_of Module, Bukkits/, content)
+    end
     assert_file "bin/test"
     assert_no_file "bin/rails"
   end
