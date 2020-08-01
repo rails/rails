@@ -119,19 +119,20 @@ module Rails
 
           if environment_specified?
             # Rails.configuration initializes credentials paths based on the existence of credentials files. So,
-            # config_path == default_path when credentials don't yet exist for the specified environment (happens the
-            # first time credentials:edit -e $environment is invoked). We don't want the default path in this case
-            # though, so only return config_path if it has been changed by the user. Otherwise, return env_path.
+            # config_path is the same as default_path when credentials don't yet exist for the specified environment
+            # (happens the first time credentials:edit -e $environment is invoked). We don't want the default path
+            # when an environment has been specified though, so only return config_path if it has been changed by the
+            # user. Otherwise, return env_path.
             return config_path if config_path != default_path
             env_path
           else
             # Rails.configuration initializes credentials paths based on the existence of credentials files.
             # Furthermore, Rails and its configuration default to the "development" environment when no environment is
             # specified, unlike the credentials command, which can run without an environment to edit shared files.
-            # config_path == env_path when credentials already exist for the specified environment, which, according
-            # to Rails.configuration, will be development even if no environment is specified for the credentials
-            # command. We don't want the environment-based path in this case though, so only return config_path if it
-            # has been changed by the user. Otherwise, return default_path.
+            # config_path is the same as env_path when credentials already exist for the specified environment, which,
+            # according to Rails.configuration, will be development even if no environment is specified for the
+            # credentials command. We don't want the environment-based path when no environment option was given though,
+            # so only return config_path if it has been changed by the user. Otherwise, return default_path.
             return config_path if config_path != env_path
             default_path
           end
