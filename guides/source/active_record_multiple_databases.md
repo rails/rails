@@ -191,7 +191,7 @@ If you are using Rails generators, the scaffold and model generators will create
 class for you. Simply pass the database key to the command line
 
 ```bash
-$ bin/rails generate scaffold Dog name:title --database animals
+$ bin/rails generate scaffold Dog name:string --database animals
 ```
 
 A class with the database name and `Record` will be created. In this example
@@ -222,7 +222,7 @@ If you already have an abstract class and its name differs from `AnimalsRecord` 
 the `--parent` option to indicate you want a different abstract class:
 
 ```bash
-$ bin/rails generate scaffold Dog name:title --database animals --parent Animals::Record
+$ bin/rails generate scaffold Dog name:string --database animals --parent Animals::Record
 ```
 
 This will skip generating `AnimalsRecord` since you've indicated to Rails that you want to
