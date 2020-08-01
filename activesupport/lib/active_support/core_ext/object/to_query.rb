@@ -11,7 +11,7 @@ class Object
   # Converts an object into a string suitable for use as a URL query string,
   # using the given <tt>key</tt> as the param name.
   def to_query(key)
-    "#{CGI.escape(key.to_param)}=#{CGI.escape(to_param.to_s)}"
+    self.nil? ? "#{CGI.escape(key.to_param)}" : "#{CGI.escape(key.to_param)}=#{CGI.escape(to_param.to_s)}"
   end
 end
 
