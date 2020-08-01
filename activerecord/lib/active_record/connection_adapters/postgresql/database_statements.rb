@@ -69,7 +69,7 @@ module ActiveRecord
         end
         alias :exec_update :exec_delete
 
-        def sql_for_insert(sql, pk, binds) # :nodoc:
+        def sql_for_insert(sql, pk, binds, returning) # :nodoc:
           if pk.nil?
             # Extract the table from the insert sql. Yuck.
             table_ref = extract_table_ref_from_insert_sql(sql)
@@ -77,14 +77,18 @@ module ActiveRecord
           end
 
           if pk = suppress_composite_primary_key(pk)
-            sql = "#{sql} RETURNING #{quote_column_name(pk)}"
+            returning.unshift(pk)
+          end
+
+          if returning.present?
+            sql = "#{sql} RETURNING #{returning.join(', ')}"
           end
 
           super
         end
         private :sql_for_insert
 
-        def exec_insert(sql, name = nil, binds = [], pk = nil, sequence_name = nil)
+        def exec_insert(sql, name = nil, binds = [], pk = nil, sequence_name = nil, returning = [])
           if use_insert_returning? || pk == false
             super
           else
