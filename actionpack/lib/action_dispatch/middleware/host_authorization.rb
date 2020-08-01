@@ -6,7 +6,7 @@ module ActionDispatch
   # This middleware guards from DNS rebinding attacks by explicitly permitting
   # the hosts a request can be sent to.
   #
-  # When a request comes to an unauthorized host, the +response_app+
+  # When a request comes from an unauthorized host, the +response_app+
   # application will be executed and rendered. If no +response_app+ is given, a
   # default one will run, which responds with +403 Forbidden+.
   class HostAuthorization
