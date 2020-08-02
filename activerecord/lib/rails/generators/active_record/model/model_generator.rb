@@ -66,7 +66,7 @@ module ActiveRecord
         end
 
         def abstract_class_name
-          "#{database.classify}Record"
+          "#{database.camelize}Record"
         end
 
         def database

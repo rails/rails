@@ -520,7 +520,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_scaffold_generator_multi_db_abstract_class
-    with_secondary_database_configuration do
+    with_database_configuration do
       run_generator ["posts", "--database=secondary"]
 
       assert_migration "db/secondary_migrate/create_posts.rb"
@@ -533,7 +533,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_scaffold_generator_database_with_aliases
-    with_secondary_database_configuration do
+    with_database_configuration do
       run_generator ["posts", "--db=secondary"]
 
       assert_migration "db/secondary_migrate/create_posts.rb"
