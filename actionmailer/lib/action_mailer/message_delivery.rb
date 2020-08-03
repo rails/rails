@@ -53,12 +53,14 @@ module ActionMailer
     #   Notifier.welcome(User.first).deliver_later!
     #   Notifier.welcome(User.first).deliver_later!(wait: 1.hour)
     #   Notifier.welcome(User.first).deliver_later!(wait_until: 10.hours.from_now)
+    #   Notifier.welcome(User.first).deliver_later!(priority: 10)
     #
     # Options:
     #
     # * <tt>:wait</tt> - Enqueue the email to be delivered with a delay
     # * <tt>:wait_until</tt> - Enqueue the email to be delivered at (after) a specific date / time
     # * <tt>:queue</tt> - Enqueue the email on the specified queue
+    # * <tt>:priority</tt> - Enqueues the email with the specified priority
     #
     # By default, the email will be enqueued using <tt>ActionMailer::DeliveryJob</tt>. Each
     # <tt>ActionMailer::Base</tt> class can specify the job to use by setting the class variable
@@ -77,12 +79,14 @@ module ActionMailer
     #   Notifier.welcome(User.first).deliver_later
     #   Notifier.welcome(User.first).deliver_later(wait: 1.hour)
     #   Notifier.welcome(User.first).deliver_later(wait_until: 10.hours.from_now)
+    #   Notifier.welcome(User.first).deliver_later(priority: 10)
     #
     # Options:
     #
     # * <tt>:wait</tt> - Enqueue the email to be delivered with a delay.
     # * <tt>:wait_until</tt> - Enqueue the email to be delivered at (after) a specific date / time.
     # * <tt>:queue</tt> - Enqueue the email on the specified queue.
+    # * <tt>:priority</tt> - Enqueues the email with the specified priority
     #
     # By default, the email will be enqueued using <tt>ActionMailer::DeliveryJob</tt>. Each
     # <tt>ActionMailer::Base</tt> class can specify the job to use by setting the class variable

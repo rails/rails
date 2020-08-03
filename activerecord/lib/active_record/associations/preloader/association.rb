@@ -6,7 +6,7 @@ module ActiveRecord
       class Association #:nodoc:
         def initialize(klass, owners, reflection, preload_scope)
           @klass         = klass
-          @owners        = owners
+          @owners        = owners.uniq(&:__id__)
           @reflection    = reflection
           @preload_scope = preload_scope
           @model         = owners.first && owners.first.class
@@ -132,7 +132,9 @@ module ActiveRecord
           end
 
           def reflection_scope
-            @reflection_scope ||= reflection.scope ? reflection.scope_for(klass.unscoped) : klass.unscoped
+            @reflection_scope ||= begin
+              reflection.join_scopes(klass.arel_table, klass.predicate_builder, klass).inject(&:merge!) || klass.unscoped
+            end
           end
 
           def build_scope
@@ -142,7 +144,7 @@ module ActiveRecord
               scope.where!(reflection.type => model.polymorphic_name)
             end
 
-            scope.merge!(reflection_scope) if reflection.scope
+            scope.merge!(reflection_scope) unless reflection_scope.empty_scope?
 
             if preload_scope && !preload_scope.empty_scope?
               scope.merge!(preload_scope)

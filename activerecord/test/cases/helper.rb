@@ -8,6 +8,7 @@ require "active_record"
 require "cases/test_case"
 require "active_support/dependencies"
 require "active_support/logger"
+require "active_support/core_ext/kernel/singleton_class"
 
 require "support/config"
 require "support/connection"
@@ -57,6 +58,7 @@ end
   supports_savepoints?
   supports_partial_index?
   supports_partitioned_indexes?
+  supports_expression_index?
   supports_insert_returning?
   supports_insert_on_duplicate_skip?
   supports_insert_on_duplicate_update?

@@ -180,7 +180,7 @@ array     # => ['foo']
 duplicate # => ['foo', 'another-string']
 ```
 
-As you can see, after duplicating the `Array` instance, we got another object, therefore we can modify it and the original object will stay unchanged. This is not true for array's elements, however. Since `dup` does not make deep copy, the string inside the array is still the same object.
+As you can see, after duplicating the `Array` instance, we got another object, therefore we can modify it and the original object will stay unchanged. This is not true for array's elements, however. Since `dup` does not make a deep copy, the string inside the array is still the same object.
 
 If you need a deep copy of an object, you should use `deep_dup`. Here is an example:
 
@@ -1611,7 +1611,7 @@ The method understands qualified table names:
 "highrise_production.companies".classify # => "Company"
 ```
 
-Note that `classify` returns a class name as a string. You can get the actual class object invoking `constantize` on it, explained next.
+Note that `classify` returns a class name as a string. You can get the actual class object by invoking `constantize` on it, explained next.
 
 NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
 
@@ -1650,7 +1650,7 @@ Mailer test cases obtain the mailer being tested from the name of the test class
 ```ruby
 # action_mailer/test_case.rb
 def determine_default_mailer(name)
-  name.sub(/Test$/, '').constantize
+  name.delete_suffix("Test").constantize
 rescue NameError => e
   raise NonInferrableMailerError.new(name)
 end
@@ -1662,7 +1662,7 @@ NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
 
 The method `humanize` tweaks an attribute name for display to end users.
 
-Specifically performs these transformations:
+Specifically, it performs these transformations:
 
   * Applies human inflection rules to the argument.
   * Deletes leading underscores, if any.
@@ -1757,6 +1757,20 @@ Please refer to the documentation of `Date._parse` for further details.
 INFO: The three of them return `nil` for blank receivers.
 
 NOTE: Defined in `active_support/core_ext/string/conversions.rb`.
+
+Extensions to `Symbol`
+----------------------
+
+### `starts_with?` and `ends_with?`
+
+Active Support defines 3rd person aliases of `Symbol#start_with?` and `Symbol#end_with?`:
+
+```ruby
+:foo.starts_with?("f") # => true
+:foo.ends_with?("o")   # => true
+```
+
+NOTE: Defined in `active_support/core_ext/symbol/starts_ends_with.rb`.
 
 Extensions to `Numeric`
 -----------------------
@@ -2413,7 +2427,7 @@ NOTE: Defined in `active_support/core_ext/array/wrap.rb`.
 ### Duplicating
 
 The method `Array#deep_dup` duplicates itself and all objects inside
-recursively with Active Support method `Object#deep_dup`. It works like `Array#map` with sending `deep_dup` method to each object inside.
+recursively with the Active Support method `Object#deep_dup`. It works like `Array#map`, sending `deep_dup` method to each object inside.
 
 ```ruby
 array = [1, [2, 3]]
@@ -2446,19 +2460,19 @@ or yields them in turn if a block is passed:
 <% end %>
 ```
 
-The first example shows `in_groups_of` fills the last group with as many `nil` elements as needed to have the requested size. You can change this padding value using the second optional argument:
+The first example shows how `in_groups_of` fills the last group with as many `nil` elements as needed to have the requested size. You can change this padding value using the second optional argument:
 
 ```ruby
 [1, 2, 3].in_groups_of(2, 0) # => [[1, 2], [3, 0]]
 ```
 
-And you can tell the method not to fill the last group passing `false`:
+And you can tell the method not to fill the last group by passing `false`:
 
 ```ruby
 [1, 2, 3].in_groups_of(2, false) # => [[1, 2], [3]]
 ```
 
-As a consequence `false` can't be a used as a padding value.
+As a consequence `false` can't be used as a padding value.
 
 NOTE: Defined in `active_support/core_ext/array/grouping.rb`.
 
@@ -2489,14 +2503,14 @@ You can change this padding value using the second optional argument:
 # => [["1", "2", "3"], ["4", "5", "0"], ["6", "7", "0"]]
 ```
 
-And you can tell the method not to fill the smaller groups passing `false`:
+And you can tell the method not to fill the smaller groups by passing `false`:
 
 ```ruby
 %w(1 2 3 4 5 6 7).in_groups(3, false)
 # => [["1", "2", "3"], ["4", "5"], ["6", "7"]]
 ```
 
-As a consequence `false` can't be a used as a padding value.
+As a consequence `false` can't be used as a padding value.
 
 NOTE: Defined in `active_support/core_ext/array/grouping.rb`.
 
@@ -2666,7 +2680,7 @@ If the receiver responds to `convert_key`, the method is called on each of the a
 {a: 1}.with_indifferent_access.except("a") # => {}
 ```
 
-There's also the bang variant `except!` that removes keys in the very receiver.
+There's also the bang variant `except!` that removes keys in place.
 
 NOTE: Defined in `active_support/core_ext/hash/except.rb`.
 
@@ -2699,9 +2713,9 @@ end
 
 The second line can safely access the "type" key, and let the user to pass either `:type` or "type".
 
-There's also the bang variant `stringify_keys!` that stringifies keys in the very receiver.
+There's also the bang variant `stringify_keys!` that stringifies keys in place.
 
-Besides that, one can use `deep_stringify_keys` and `deep_stringify_keys!` to stringify all the keys in the given hash and all the hashes nested into it. An example of the result is:
+Besides that, one can use `deep_stringify_keys` and `deep_stringify_keys!` to stringify all the keys in the given hash and all the hashes nested in it. An example of the result is:
 
 ```ruby
 {nil => nil, 1 => 1, nested: {a: 3, 5 => 5}}.deep_stringify_keys
@@ -2742,9 +2756,9 @@ end
 
 The third line can safely access the `:input` key, and let the user to pass either `:input` or "input".
 
-There's also the bang variant `symbolize_keys!` that symbolizes keys in the very receiver.
+There's also the bang variant `symbolize_keys!` that symbolizes keys in place.
 
-Besides that, one can use `deep_symbolize_keys` and `deep_symbolize_keys!` to symbolize all the keys in the given hash and all the hashes nested into it. An example of the result is:
+Besides that, one can use `deep_symbolize_keys` and `deep_symbolize_keys!` to symbolize all the keys in the given hash and all the hashes nested in it. An example of the result is:
 
 ```ruby
 {nil => nil, 1 => 1, "nested" => {"a" => 3, 5 => 5}}.deep_symbolize_keys
@@ -2761,7 +2775,7 @@ NOTE: Defined in `active_support/core_ext/hash/keys.rb`.
 
 #### `assert_valid_keys`
 
-The method `assert_valid_keys` receives an arbitrary number of arguments, and checks whether the receiver has any key outside that white list. If it does `ArgumentError` is raised.
+The method `assert_valid_keys` receives an arbitrary number of arguments, and checks whether the receiver has any key outside that list. If it does `ArgumentError` is raised.
 
 ```ruby
 {a: 1}.assert_valid_keys(:a)  # passes
@@ -2811,7 +2825,7 @@ rest = hash.extract!(:a) # => {:a=>1}
 hash                     # => {:b=>2}
 ```
 
-The method `extract!` returns the same subclass of Hash, that the receiver is.
+The method `extract!` returns the same subclass of Hash that the receiver is.
 
 ```ruby
 hash = {a: 1, b: 2}.with_indifferent_access
@@ -3648,7 +3662,7 @@ For example, when an action of `ArticlesController` is called Rails tries optimi
 
 ```ruby
 def default_helper_module!
-  module_name = name.sub(/Controller$/, '')
+  module_name = name.delete_suffix("Controller")
   module_path = module_name.underscore
   helper module_path
 rescue LoadError => e
@@ -3671,7 +3685,7 @@ For example, when an action of `ArticlesController` is called Rails tries to loa
 
 ```ruby
 def default_helper_module!
-  module_name = name.sub(/Controller$/, '')
+  module_name = name.delete_suffix("Controller")
   module_path = module_name.underscore
   helper module_path
 rescue LoadError => e

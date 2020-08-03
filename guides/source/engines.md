@@ -112,7 +112,7 @@ that provides the following:
 
 The `--mountable` option will add to the `--full` option:
 
-  * Asset manifest files (`application.js` and `application.css`)
+  * Asset manifest files (`blorgh_manifest.js` and `application.css`)
   * A namespaced `ApplicationController` stub
   * A namespaced `ApplicationHelper` stub
   * A layout view template for the engine
@@ -207,8 +207,8 @@ instead be namespaced and called `Blorgh::Article`. In addition, the table for t
 model is namespaced, becoming `blorgh_articles`, rather than simply `articles`.
 Similar to the model namespacing, a controller called `ArticlesController` becomes
 `Blorgh::ArticlesController` and the views for that controller will not be at
-`app/views/articles`, but `app/views/blorgh/articles` instead. Mailers are namespaced
-as well.
+`app/views/articles`, but `app/views/blorgh/articles` instead. Mailers, jobs
+and helpers are namespaced as well.
 
 Finally, routes will also be isolated within the engine. This is one of the most
 important parts about namespacing, and is discussed later in the
@@ -240,8 +240,8 @@ applications into engines.
 
 NOTE: Because of the way that Ruby does constant lookup you may run into a situation
 where your engine controller is inheriting from the main application controller and
-not your engine's application controller. Ruby is able to resolve the `ApplicationController` constant, and therefore the autoloading mechanism is not triggered. See the section [When Constants Aren't Missed](autoloading_and_reloading_constants.html#when-constants-aren-t-missed) of the [Autoloading and Reloading Constants](autoloading_and_reloading_constants.html) guide for further details. The best way to prevent this from
-happening is to use `require_dependency` to ensure that the engine's application
+not your engine's application controller. Ruby is able to resolve the `ApplicationController` constant, and therefore the autoloading mechanism is not triggered. See the section [When Constants Aren't Missed](autoloading_and_reloading_constants_classic_mode.html#when-constants-aren-t-missed).
+The best way to prevent this from happening is to use `require_dependency` to ensure that the engine's application
 controller is loaded. For example:
 
 ``` ruby
@@ -259,29 +259,12 @@ WARNING: Don't use `require` because it will break the automatic reloading of cl
 in the development environment - using `require_dependency` ensures that classes are
 loaded and unloaded in the correct manner.
 
-Within the `app/helpers` directory there is a `blorgh` directory that
-contains a file called `application_helper.rb`. This file will provide any
-common functionality for the helpers of the engine. The `blorgh` directory
-is where the other helpers for the engine will go. By placing them within
-this namespaced directory, you prevent them from possibly clashing with
-identically-named route helpers within other engines or even within the
-application.
-
-Within the `app/jobs` directory there is a `blorgh` directory that
-contains a file called `application_job.rb`. This file will provide any
-common functionality for the jobs of the engine. The `blorgh` directory
-is where the other jobs for the engine will go. By placing them within
-this namespaced directory, you prevent them from possibly clashing with
-identically-named jobs within other engines or even within the
-application.
-
-Within the `app/mailers` directory there is a `blorgh` directory that
-contains a file called `application_mailer.rb`. This file will provide any
-common functionality for the mailers of the engine. The `blorgh` directory
-is where the other mailers for the engine will go. By placing them within
-this namespaced directory, you prevent them from possibly clashing with
-identically-named mailers within other engines or even within the
-application.
+Just like for `app/controllers`, you will find a `blorgh` subdirectory under
+the `app/helpers`, `app/jobs`, `app/mailers` and `app/models` directories
+containing the associated `application_*.rb` file for gathering common
+functionalities. By placing your files under this subdirectory and namespacing
+your objects, you prevent them from possibly clashing with identically-named
+elements within other engines or even within the application.
 
 Lastly, the `app/views` directory contains a `layouts` folder, which contains a
 file at `blorgh/application.html.erb`. This file allows you to specify a layout
@@ -730,7 +713,7 @@ from the engine. When run the next time, it will only copy over migrations that
 haven't been copied over already. The first run for this command will output
 something such as this:
 
-```bash
+```
 Copied migration [timestamp_1]_create_blorgh_articles.blorgh.rb from blorgh
 Copied migration [timestamp_2]_create_blorgh_comments.blorgh.rb from blorgh
 ```
@@ -1344,7 +1327,7 @@ which case the application's asset would take precedence and the engine's one
 would be ignored.
 
 Imagine that you did have an asset located at
-`app/assets/stylesheets/blorgh/style.css` To include this asset inside an
+`app/assets/stylesheets/blorgh/style.css`. To include this asset inside an
 application, just use `stylesheet_link_tag` and reference the asset as if it
 were inside the engine:
 

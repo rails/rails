@@ -69,7 +69,10 @@ end
 module ActionDispatch
   module SharedRoutes
     def before_setup
-      @routes = SharedTestRoutes
+      @routes = Routing::RouteSet.new
+      ActiveSupport::Deprecation.silence do
+        @routes.draw { get ":controller(/:action)" }
+      end
       super
     end
   end
@@ -176,7 +179,7 @@ end
 class Rack::TestCase < ActionDispatch::IntegrationTest
   def self.testing(klass = nil)
     if klass
-      @testing = "/#{klass.name.underscore}".sub(/_controller$/, "")
+      @testing = "/#{klass.name.underscore}".delete_suffix("_controller")
     else
       @testing
     end

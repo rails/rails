@@ -366,7 +366,7 @@ All session stores use a cookie to store a unique ID for each session (you must 
 
 For most stores, this ID is used to look up the session data on the server, e.g. in a database table. There is one exception, and that is the default and recommended session store - the CookieStore - which stores all session data in the cookie itself (the ID is still available to you if you need it). This has the advantage of being very lightweight and it requires zero setup in a new application in order to use the session. The cookie data is cryptographically signed to make it tamper-proof. And it is also encrypted so anyone with access to it can't read its contents. (Rails will not accept it if it has been edited).
 
-The CookieStore can store around 4kB of data - much less than the others - but this is usually enough. Storing large amounts of data in the session is discouraged no matter which session store your application uses. You should especially avoid storing complex objects (anything other than basic Ruby objects, the most common example being model instances) in the session, as the server might not be able to reassemble them between requests, which will result in an error.
+The CookieStore can store around 4kB of data - much less than the others - but this is usually enough. Storing large amounts of data in the session is discouraged no matter which session store your application uses. You should especially avoid storing complex objects (such as model instances) in the session, as the server might not be able to reassemble them between requests, which will result in an error.
 
 If your user sessions don't store critical data or don't need to be around for long periods (for instance if you just use the flash for messaging), you can consider using `ActionDispatch::Session::CacheStore`. This will store sessions using the cache implementation you have configured for your application. The advantage of this is that you can use your existing cache infrastructure for storing sessions without requiring any additional setup or administration. The downside, of course, is that the sessions will be ephemeral and could disappear at any time.
 
@@ -585,7 +585,7 @@ class CommentsController < ApplicationController
 end
 ```
 
-Note that while for session values you set the key to `nil`, to delete a cookie value you should use `cookies.delete(:key)`.
+Note that while for session values you can set the key to `nil`, to delete a cookie value you should use `cookies.delete(:key)`.
 
 Rails also provides a signed cookie jar and an encrypted cookie jar for storing
 sensitive data. The signed cookie jar appends a cryptographic signature on the
@@ -710,7 +710,7 @@ In addition to "before" filters, you can also run filters after an action has be
 
 "around" filters are responsible for running their associated actions by yielding, similar to how Rack middlewares work.
 
-For example, in a website where changes have an approval workflow an administrator could be able to preview them easily, just apply them within a transaction:
+For example, in a website where changes have an approval workflow, an administrator could preview them easily by applying them within a transaction:
 
 ```ruby
 class ChangesController < ApplicationController
@@ -730,7 +730,7 @@ class ChangesController < ApplicationController
 end
 ```
 
-Note that an "around" filter also wraps rendering. In particular, if in the example above, the view itself reads from the database (e.g. via a scope), it will do so within the transaction and thus present the data to preview.
+Note that an "around" filter also wraps rendering. In particular, in the example above, if the view itself reads from the database (e.g. via a scope), it will do so within the transaction and thus present the data to preview.
 
 You can choose not to yield and build the response yourself, in which case the action will not be run.
 
@@ -751,7 +751,7 @@ class ApplicationController < ActionController::Base
 end
 ```
 
-Note that the filter in this case uses `send` because the `logged_in?` method is private and the filter does not run in the scope of the controller. This is not the recommended way to implement this particular filter, but in more simple cases it might be useful.
+Note that the filter in this case uses `send` because the `logged_in?` method is private and the filter does not run in the scope of the controller. This is not the recommended way to implement this particular filter, but in simpler cases it might be useful.
 
 Specifically for `around_action`, the block also yields in the `action`:
 
@@ -1012,7 +1012,7 @@ NOTE: Configuration files are not reloaded on each request, so you have to resta
 
 Now the user can request to get a PDF version of a client just by adding ".pdf" to the URL:
 
-```bash
+```
 GET /clients/1.pdf
 ```
 
@@ -1144,7 +1144,7 @@ Rails default exception handling displays a "500 Server Error" message for all e
 
 ### The Default 500 and 404 Templates
 
-By default a production application will render either a 404 or a 500 error message, in the development environment all unhandled exceptions are raised. These messages are contained in static HTML files in the public folder, in `404.html` and `500.html` respectively. You can customize these files to add some extra information and style, but remember that they are static HTML; i.e. you can't use ERB, SCSS, CoffeeScript, or layouts for them.
+By default, in the production environment the application will render either a 404 or a 500 error message. In the development environment all unhandled exceptions are simply raised. These messages are contained in static HTML files in the public folder, in `404.html` and `500.html` respectively. You can customize these files to add some extra information and style, but remember that they are static HTML; i.e. you can't use ERB, SCSS, CoffeeScript, or layouts for them.
 
 ### `rescue_from`
 

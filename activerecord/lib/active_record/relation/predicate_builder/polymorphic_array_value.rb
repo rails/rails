@@ -11,8 +11,8 @@ module ActiveRecord
       def queries
         type_to_ids_mapping.map do |type, ids|
           {
-            associated_table.association_foreign_type.to_s => type,
-            associated_table.association_foreign_key.to_s => ids
+            associated_table.join_foreign_type => type,
+            associated_table.join_foreign_key => ids
           }
         end
       end
@@ -28,7 +28,7 @@ module ActiveRecord
         end
 
         def primary_key(value)
-          associated_table.association_join_primary_key(klass(value))
+          associated_table.join_primary_key(klass(value))
         end
 
         def klass(value)

@@ -39,6 +39,7 @@ group :doc do
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
   gem "w3c_validators"
   gem "kindlerb", "~> 1.2.0"
+  gem "rouge"
 end
 
 # Active Support
@@ -114,7 +115,7 @@ group :test do
     gem "byebug"
   end
 
-  gem "benchmark-ips", "< 2.8"
+  gem "benchmark-ips"
 end
 
 platforms :ruby, :mswin, :mswin64, :mingw, :x64_mingw do

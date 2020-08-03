@@ -75,6 +75,8 @@ To allow you to upgrade to new defaults one by one, the update task has created 
 Upgrading from Rails 6.0 to Rails 6.1
 -------------------------------------
 
+For more information on changes made to Rails 6.1 please see the [release notes](6_1_release_notes.html).
+
 ### `Rails.application.config_for` return value no longer supports access with String keys.
 
 Given a configuration file like this:
@@ -174,6 +176,10 @@ This change is backwards compatible for the majority of applications, in which c
 
 Technically, however, controllers could configure `helpers_path` to point to a directoy in `$LOAD_PATH` that was not in the autoload paths. That use case is no longer supported out of the box. If the helper module is not autoloadable, the application is responsible for loading it before calling `helper`.
 
+### Redirection to HTTPS from HTTP will now use the 308 HTTP status code
+
+The default HTTP status code used in `ActionDispatch::SSL` when redirecting non-GET/HEAD requests from HTTP to HTTPS has been changed to `308` as defined in https://tools.ietf.org/html/rfc7538.
+
 Upgrading from Rails 5.2 to Rails 6.0
 -------------------------------------
 
@@ -189,8 +195,8 @@ If you want to use Webpacker, then include it in your Gemfile and install it:
 gem "webpacker"
 ```
 
-```sh
-bin/rails webpacker:install
+```bash
+$ bin/rails webpacker:install
 ```
 
 ### Force SSL
@@ -315,7 +321,7 @@ However, `classic` mode infers file names from missing constant names (`undersco
 
 Compatibility can be checked with the `zeitwerk:check` task:
 
-```
+```bash
 $ bin/rails zeitwerk:check
 Hold on, I am eager loading the application.
 All is good!
@@ -521,7 +527,7 @@ Applications can load Rails 6 defaults and still use the classic autoloader by s
 ```ruby
 # config/application.rb
 
-config.load_defaults "6.0"
+config.load_defaults 6.0
 config.autoloader = :classic
 ```
 
@@ -529,7 +535,7 @@ When using the Classic Autoloader in Rails 6 application it is recommended to se
 
 ### Active Storage assignment behavior change
 
-In Rails 5.2, assigning to a collection of attachments declared with `has_many_attached` appended new files:
+With the configuration defaults for Rails 5.2, assigning to a collection of attachments declared with `has_many_attached` appends new files:
 
 ```ruby
 class User < ApplicationRecord
@@ -547,8 +553,7 @@ user.highlights.first.filename # => "funky.jpg"
 user.highlights.second.filename # => "town.jpg"
 ```
 
-With the default configuration for Rails 6.0, assigning to a collection of attachments replaces existing files
-instead of appending to them. This matches Active Record behavior when assigning to a collection association:
+With the configuration defaults for Rails 6.0, assigning to a collection of attachments replaces existing files instead of appending to them. This matches Active Record behavior when assigning to a collection association:
 
 ```ruby
 user.highlights.attach(filename: "funky.jpg", ...)
@@ -572,8 +577,7 @@ user.highlights.first.filename # => "funky.jpg"
 user.highlights.second.filename # => "town.jpg"
 ```
 
-Opt in to the new default behavior by setting `config.active_storage.replace_on_assign_to_many` to `true`.
-The old behavior will be deprecated in Rails 6.1 and removed in a subsequent release.
+Existing applications can opt in to this new behavior by setting `config.active_storage.replace_on_assign_to_many` to `true`. The old behavior will be deprecated in Rails 6.1 and removed in a subsequent release.
 
 Upgrading from Rails 5.1 to Rails 5.2
 -------------------------------------
@@ -884,8 +888,8 @@ end
 
 This can be turned off per-association with `optional: true`.
 
-This default will be automatically configured in new applications. If existing application
-want to add this feature it will need to be turned on in an initializer.
+This default will be automatically configured in new applications. If an existing application
+wants to add this feature it will need to be turned on in an initializer:
 
     config.active_record.belongs_to_required_by_default = true
 
@@ -1219,7 +1223,7 @@ If you want to use Spring as your application preloader you need to:
 
 1. Add `gem 'spring', group: :development` to your `Gemfile`.
 2. Install spring using `bundle install`.
-3. Springify your binstubs with `bundle exec spring binstub --all`.
+3. Generate the Spring binstub with `bundle exec spring binstub`.
 
 NOTE: User defined rake tasks will run in the `development` environment by
 default. If you want them to run in other environments consult the
@@ -1623,7 +1627,7 @@ However, you will need to make a change if you are using `form_for` to update
 a resource in conjunction with a custom route using the `PUT` HTTP method:
 
 ```ruby
-resources :users, do
+resources :users do
   put :update_name, on: :member
 end
 ```
@@ -1643,15 +1647,15 @@ end
 If the action is not being used in a public API and you are free to change the
 HTTP method, you can update your route to use `patch` instead of `put`:
 
-`PUT` requests to `/users/:id` in Rails 4 get routed to `update` as they are
-today. So, if you have an API that gets real PUT requests it is going to work.
-The router also routes `PATCH` requests to `/users/:id` to the `update` action.
-
 ```ruby
 resources :users do
   patch :update_name, on: :member
 end
 ```
+
+`PUT` requests to `/users/:id` in Rails 4 get routed to `update` as they are
+today. So, if you have an API that gets real PUT requests it is going to work.
+The router also routes `PATCH` requests to `/users/:id` to the `update` action.
 
 If the action is being used in a public API and you can't change to HTTP method
 being used, you can update your form to use the `PUT` method instead:

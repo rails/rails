@@ -125,7 +125,7 @@ module ActiveSupport
     #   hash_2['key'] = 12
     #   hash_1.update(hash_2) { |key, old, new| old + new } # => {"key"=>22}
     def update(*other_hashes, &block)
-      if other_hashes.one?
+      if other_hashes.size == 1
         update_with_single_argument(other_hashes.first, block)
       else
         other_hashes.each do |other_hash|

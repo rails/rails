@@ -31,7 +31,7 @@ $ bin/rails generate
 
 NOTE: To create a rails application we use the `rails` global command, the rails gem installed via `gem install rails`. When inside the directory of your application, we use  the command `bin/rails` which uses the bundled rails inside this application.
 
-You will get a list of all generators that comes with Rails. If you need a detailed description of the helper generator, for example, you can simply do:
+You will get a list of all generators that come with Rails. If you need a detailed description of the helper generator, for example, you can simply do:
 
 ```bash
 $ bin/rails generate helper --help
@@ -149,7 +149,7 @@ Generators Lookup
 
 When you run `bin/rails generate initializer core_extensions` Rails requires these files in turn until one is found:
 
-```bash
+```
 rails/generators/initializer/initializer_generator.rb
 generators/initializer/initializer_generator.rb
 rails/generators/initializer_generator.rb

@@ -44,6 +44,7 @@ Having a way to reproduce your issue will be very helpful for others to help con
 * Template for Action Pack (controllers, routing) issues: [gem](https://github.com/rails/rails/blob/master/guides/bug_report_templates/action_controller_gem.rb) / [master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/action_controller_master.rb)
 * Template for Active Job issues: [gem](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_job_gem.rb) / [master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_job_master.rb)
 * Template for Active Storage issues: [gem](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_storage_gem.rb) / [master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/active_storage_master.rb)
+* Template for Action Mailbox issues: [gem](https://github.com/rails/rails/blob/master/guides/bug_report_templates/action_mailbox_gem.rb) / [master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/action_mailbox_master.rb)
 * Generic template for other issues: [gem](https://github.com/rails/rails/blob/master/guides/bug_report_templates/generic_gem.rb) / [master](https://github.com/rails/rails/blob/master/guides/bug_report_templates/generic_master.rb)
 
 These templates include the boilerplate code to set up a test case against either a released version of Rails (`*_gem.rb`) or edge Rails (`*_master.rb`).
@@ -140,7 +141,7 @@ changes to the master branch.
 
 When working with documentation, please take into account the [API Documentation Guidelines](api_documentation_guidelines.html) and the [Ruby on Rails Guides Guidelines](ruby_on_rails_guides_guidelines.html).
 
-NOTE: For documentation changes, your commit message should include [ci skip]. This will skip running the test suite, helping us to cut down on our server costs. Keep in mind that you should only skip CI when your change touches documentation exclusively.
+NOTE: For documentation changes, your pull request title should include [ci skip]. This will skip running the test suite, helping us to cut down on our server costs. Keep in mind that you should only skip CI when your change touches documentation exclusively.
 
 Translating Rails Guides
 ------------------------
@@ -418,8 +419,8 @@ $ bundle exec rake test:sqlite3
 You can now run the tests as you did for `sqlite3`. The tasks are respectively:
 
 ```bash
-test:mysql2
-test:postgresql
+$ bundle exec rake test:mysql2
+$ bundle exec rake test:postgresql
 ```
 
 Finally,

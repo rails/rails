@@ -592,7 +592,7 @@ TIP: By default, dynamic segments don't accept dots - this is because the dot is
 
 ### Static Segments
 
-You can specify static segments when creating a route by not prepending a colon to a fragment:
+You can specify static segments when creating a route by not prepending a colon to a segment:
 
 ```ruby
 get 'photos/:id/with_user/:user_id', to: 'photos#show'
@@ -686,7 +686,7 @@ get 'photos/:id', to: 'photos#show', id: /[A-Z]\d{5}/
 get '/:id', to: 'articles#show', constraints: { id: /^\d/ }
 ```
 
-However, note that you don't need to use anchors because all routes are anchored at the start.
+However, note that you don't need to use anchors because all routes are anchored at the start and the end.
 
 For example, the following routes would allow for `articles` with `to_param` values like `1-hello-world` that always begin with a number and `users` with `to_param` values like `david` that never begin with a number to share the root namespace:
 
@@ -715,7 +715,7 @@ namespace :admin do
 end
 ```
 
-NOTE: Request constraints work by calling a method on the [Request object](action_controller_overview.html#the-request-object) with the same name as the hash key and then compare the return value with the hash value. Therefore, constraint values should match the corresponding Request object method return type. For example: `constraints: { subdomain: 'api' }` will match an `api` subdomain as expected, however using a symbol `constraints: { subdomain: :api }` will not, because `request.subdomain` returns `'api'` as a String.
+NOTE: Request constraints work by calling a method on the [Request object](action_controller_overview.html#the-request-object) with the same name as the hash key and then comparing the return value with the hash value. Therefore, constraint values should match the corresponding Request object method return type. For example: `constraints: { subdomain: 'api' }` will match an `api` subdomain as expected. However, using a symbol `constraints: { subdomain: :api }` will not, because `request.subdomain` returns `'api'` as a String.
 
 NOTE: There is an exception for the `format` constraint: while it's a method on the Request object, it's also an implicit optional parameter on every path. Segment constraints take precedence and the `format` constraint is only applied as such when enforced through a hash. For example, `get 'foo', constraints: { format: 'json' }` will match `GET  /foo` because the format is optional by default. However, you can [use a lambda](#advanced-constraints) like in `get 'foo', constraints: lambda { |req| req.format == :json }` and the route will only match explicit JSON requests.
 
@@ -759,7 +759,7 @@ Route globbing is a way to specify that a particular parameter should be matched
 get 'photos/*other', to: 'photos#unknown'
 ```
 
-This route would match `photos/12` or `/photos/long/path/to/12`, setting `params[:other]` to `"12"` or `"long/path/to/12"`. The fragments prefixed with a star are called "wildcard segments".
+This route would match `photos/12` or `/photos/long/path/to/12`, setting `params[:other]` to `"12"` or `"long/path/to/12"`. The segments prefixed with a star are called "wildcard segments".
 
 Wildcard segments can occur anywhere in a route. For example:
 
@@ -1151,7 +1151,7 @@ edit_video GET  /videos/:identifier/edit(.:format) videos#edit
 Video.find_by(identifier: params[:identifier])
 ```
 
-You can override `ActiveRecord::Base#to_param` of a related model to construct
+You can override `ActiveRecord::Base#to_param` of the associated model to construct
 a URL:
 
 ```ruby
@@ -1191,7 +1191,7 @@ end
 
 Calling `draw(:admin)` inside the `Rails.application.routes.draw` block itself will try to load a route
 file that has the same name as the argument given (`admin.rb` in this case).
-The file need to be located inside the `config/routes` directory or any sub-directory (i.e. `config/routes/admin.rb` , `config/routes/external/admin.rb`).
+The file needs to be located inside the `config/routes` directory or any sub-directory (i.e. `config/routes/admin.rb` or `config/routes/external/admin.rb`).
 
 You can use the normal routing DSL inside the `admin.rb` routing file, **however** you shouldn't surround it with the `Rails.application.routes.draw` block like you did in the main `config/routes.rb` file.
 
@@ -1229,7 +1229,7 @@ edit_user GET    /users/:id/edit(.:format) users#edit
 
 You can also use the `--expanded` option to turn on the expanded table formatting mode.
 
-```
+```bash
 $ bin/rails routes --expanded
 
 --[ Route 1 ]----------------------------------------------------
@@ -1256,7 +1256,7 @@ Controller#Action | users#edit
 
 You can search through your routes with the grep option: -g. This outputs any routes that partially match the URL helper method name, the HTTP verb, or the URL path.
 
-```
+```bash
 $ bin/rails routes -g new_comment
 $ bin/rails routes -g POST
 $ bin/rails routes -g admin
@@ -1264,7 +1264,7 @@ $ bin/rails routes -g admin
 
 If you only want to see the routes that map to a specific controller, there's the -c option.
 
-```
+```bash
 $ bin/rails routes -c users
 $ bin/rails routes -c admin/users
 $ bin/rails routes -c Comments

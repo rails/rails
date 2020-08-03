@@ -559,25 +559,24 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     end
   end
 
-  def test_assert_enqueued_with_selective_args
-    args = ->(job_args) do
-      assert_equal 1, job_args.first[:argument1]
-      assert job_args.first[:argument2].key?(:b)
-    end
+  def test_assert_enqueued_with_supports_matcher_procs
+    facets = {
+      job: HelloJob,
+      args: ["Rails"],
+      at: Date.tomorrow.noon,
+      queue: "important",
+    }
 
-    assert_enqueued_with(job: MultipleKwargsJob, args: args) do
-      MultipleKwargsJob.perform_later(argument2: { b: 2, a: 1 }, argument1: 1)
-    end
-  end
+    facets[:job].set(queue: facets[:queue], wait_until: facets[:at]).perform_later(*facets[:args])
 
-  def test_assert_enqueued_with_selective_args_fails
-    args = ->(job_args) do
-      false
-    end
+    facets.each do |facet, value|
+      matcher = ->(job_value) { job_value == value }
+      refuser = ->(job_value) { false }
 
-    assert_raise ActiveSupport::TestCase::Assertion do
-      assert_enqueued_with(job: MultipleKwargsJob, args: args) do
-        MultipleKwargsJob.perform_later(argument2: { b: 2, a: 1 }, argument1: 1)
+      assert_enqueued_with(**{ facet => matcher })
+
+      assert_raises ActiveSupport::TestCase::Assertion do
+        assert_enqueued_with(**{ facet => refuser })
       end
     end
   end
@@ -1804,18 +1803,6 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
   end
 
-  def test_assert_performed_with_with_at_option_as_a_proc
-    assert_performed_with(job: HelloJob, at: ->(at) { (4.minutes.from_now..6.minutes.from_now).cover?(at) }) do
-      HelloJob.set(wait: 5.minutes).perform_later
-    end
-
-    assert_raise ActiveSupport::TestCase::Assertion do
-      assert_performed_with(job: HelloJob, at: ->(at) { (1.minute.from_now..3.minutes.from_now).cover?(at) }) do
-        HelloJob.set(wait: 1.minute).perform_later
-      end
-    end
-  end
-
   def test_assert_performed_with_without_block_with_at_option
     HelloJob.set(wait_until: Date.tomorrow.noon).perform_later
 
@@ -1838,25 +1825,25 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
   end
 
-  def test_assert_performed_with_selective_args
-    args = ->(job_args) do
-      assert_equal 1, job_args.first[:argument1]
-      assert job_args.first[:argument2].key?(:b)
-    end
+  def test_assert_performed_with_supports_matcher_procs
+    facets = {
+      job: HelloJob,
+      args: ["Rails"],
+      at: Date.tomorrow.noon,
+      queue: "important",
+    }
 
-    assert_performed_with(job: MultipleKwargsJob, args: args) do
-      MultipleKwargsJob.perform_later(argument2: { b: 2, a: 1 }, argument1: 1)
-    end
-  end
+    facets[:job].set(queue: facets[:queue], wait_until: facets[:at]).perform_later(*facets[:args])
+    perform_enqueued_jobs
 
-  def test_assert_performed_with_selective_args_fails
-    args = ->(job_args) do
-      false
-    end
+    facets.each do |facet, value|
+      matcher = ->(job_value) { job_value == value }
+      refuser = ->(job_value) { false }
 
-    assert_raise ActiveSupport::TestCase::Assertion do
-      assert_performed_with(job: MultipleKwargsJob, args: args) do
-        MultipleKwargsJob.perform_later(argument2: { b: 2, a: 1 }, argument1: 1)
+      assert_performed_with(**{ facet => matcher })
+
+      assert_raises ActiveSupport::TestCase::Assertion do
+        assert_performed_with(**{ facet => refuser })
       end
     end
   end

@@ -14,7 +14,6 @@ module ActiveRecord
           super(reflection.klass, children)
 
           @reflection = reflection
-          @tables     = nil
         end
 
         def match?(other)
@@ -22,8 +21,10 @@ module ActiveRecord
           super && reflection == other.reflection
         end
 
-        def join_constraints(foreign_table, foreign_klass, join_type, alias_tracker)
+        def join_constraints(foreign_table, foreign_klass, join_type, alias_tracker, &block)
           joins = []
+          tables = reflection.chain.map(&block)
+          @table = tables.first
 
           # The chain starts with the target table, but we want to end with it here (makes
           # more sense in this context), so we reverse
@@ -32,6 +33,13 @@ module ActiveRecord
             klass = reflection.klass
 
             join_scope = reflection.join_scope(table, foreign_table, foreign_klass)
+
+            unless join_scope.references_values.empty?
+              join_dependency = join_scope.construct_join_dependency(
+                join_scope.eager_load_values | join_scope.includes_values, Arel::Nodes::OuterJoin
+              )
+              join_scope.joins!(join_dependency)
+            end
 
             arel = join_scope.arel(alias_tracker.aliases)
             nodes = arel.constraints.first
@@ -54,11 +62,6 @@ module ActiveRecord
           end
 
           joins
-        end
-
-        def tables=(tables)
-          @tables = tables
-          @table  = tables.first
         end
 
         def readonly?

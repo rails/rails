@@ -5,12 +5,38 @@ require "active_support/core_ext/string/conversions"
 
 module ActiveRecord
   class AssociationNotFoundError < ConfigurationError #:nodoc:
+    attr_reader :record, :association_name
     def initialize(record = nil, association_name = nil)
+      @record           = record
+      @association_name = association_name
       if record && association_name
         super("Association named '#{association_name}' was not found on #{record.class.name}; perhaps you misspelled it?")
       else
         super("Association was not found.")
       end
+    end
+
+    class Correction
+      def initialize(error)
+        @error = error
+      end
+
+      def corrections
+        if @error.association_name
+          maybe_these = @error.record.class.reflections.keys
+
+          maybe_these.sort_by { |n|
+            DidYouMean::Jaro.distance(@error.association_name.to_s, n)
+          }.reverse.first(4)
+        else
+          []
+        end
+      end
+    end
+
+    # We may not have DYM, and DYM might not let us register error handlers
+    if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
+      DidYouMean.correct_error(self, Correction)
     end
   end
 
@@ -25,12 +51,40 @@ module ActiveRecord
   end
 
   class HasManyThroughAssociationNotFoundError < ActiveRecordError #:nodoc:
-    def initialize(owner_class_name = nil, reflection = nil)
-      if owner_class_name && reflection
-        super("Could not find the association #{reflection.options[:through].inspect} in model #{owner_class_name}")
+    attr_reader :owner_class, :reflection
+
+    def initialize(owner_class = nil, reflection = nil)
+      if owner_class && reflection
+        @owner_class = owner_class
+        @reflection = reflection
+        super("Could not find the association #{reflection.options[:through].inspect} in model #{owner_class.name}")
       else
         super("Could not find the association.")
       end
+    end
+
+    class Correction
+      def initialize(error)
+        @error = error
+      end
+
+      def corrections
+        if @error.reflection && @error.owner_class
+          maybe_these = @error.owner_class.reflections.keys
+          maybe_these -= [@error.reflection.name.to_s] # remove failing reflection
+
+          maybe_these.sort_by { |n|
+            DidYouMean::Jaro.distance(@error.reflection.options[:through].to_s, n)
+          }.reverse.first(4)
+        else
+          []
+        end
+      end
+    end
+
+    # We may not have DYM, and DYM might not let us register error handlers
+    if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
+      DidYouMean.correct_error(self, Correction)
     end
   end
 

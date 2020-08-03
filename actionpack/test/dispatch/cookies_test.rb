@@ -1106,6 +1106,27 @@ class CookiesTest < ActionController::TestCase
     assert_cookie_header "user_name=rizwanreza; domain=example1.com; path=/; SameSite=Lax"
   end
 
+  def test_cookie_with_several_preset_domains_using_subdomain
+    @request.host = "subdomain.example1.com"
+    get :set_cookie_with_domains
+    assert_response :success
+    assert_cookie_header "user_name=rizwanreza; domain=example1.com; path=/; SameSite=Lax"
+  end
+
+  def test_cookie_with_several_preset_domains_using_similar_tld
+    @request.host = "example1.com.au"
+    get :set_cookie_with_domains
+    assert_response :success
+    assert_cookie_header "user_name=rizwanreza; path=/; SameSite=Lax"
+  end
+
+  def test_cookie_with_several_preset_domains_using_similar_domain
+    @request.host = "myexample1.com"
+    get :set_cookie_with_domains
+    assert_response :success
+    assert_cookie_header "user_name=rizwanreza; path=/; SameSite=Lax"
+  end
+
   def test_cookie_with_several_preset_domains_using_other_domain
     @request.host = "other-domain.com"
     get :set_cookie_with_domains
@@ -1280,6 +1301,20 @@ class CookiesTest < ActionController::TestCase
       get :cookie_expires_in_two_hours
       assert_cookie_header "user_name=assain; path=/; expires=Tue, 15 Aug 2017 02:00:00 GMT; SameSite=Lax"
     end
+  end
+
+  def test_signed_cookie_with_false_value_and_metadata
+    request.env["action_dispatch.use_cookies_with_metadata"] = true
+
+    cookies.signed[:foo] = false
+    assert_equal false, cookies.signed[:foo]
+  end
+
+  def test_encrypted_cookie_with_false_value_and_metadata
+    request.env["action_dispatch.use_cookies_with_metadata"] = true
+
+    cookies.encrypted[:foo] = false
+    assert_equal false, cookies.encrypted[:foo]
   end
 
   def test_purpose_metadata_for_encrypted_cookies

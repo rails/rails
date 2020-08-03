@@ -43,6 +43,7 @@ module ActiveRecord
   autoload :ConnectionHandling
   autoload :CounterCache
   autoload :DynamicMatchers
+  autoload :DelegatedType
   autoload :Enum
   autoload :InternalMetadata
   autoload :Explain
@@ -69,13 +70,13 @@ module ActiveRecord
   autoload :Serialization
   autoload :StatementCache
   autoload :Store
+  autoload :SignedId
   autoload :Suppressor
   autoload :Timestamp
   autoload :Transactions
   autoload :Translation
   autoload :Validations
   autoload :SecureToken
-  autoload :DatabaseSelector, "active_record/middleware/database_selector"
 
   eager_autoload do
     autoload :ConnectionAdapters
@@ -185,3 +186,4 @@ end
 YAML.load_tags["!ruby/object:ActiveRecord::AttributeSet"] = "ActiveModel::AttributeSet"
 YAML.load_tags["!ruby/object:ActiveRecord::Attribute::FromDatabase"] = "ActiveModel::Attribute::FromDatabase"
 YAML.load_tags["!ruby/object:ActiveRecord::LazyAttributeHash"] = "ActiveModel::LazyAttributeHash"
+YAML.load_tags["!ruby/object:ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter::MysqlString"] = "ActiveRecord::Type::String"

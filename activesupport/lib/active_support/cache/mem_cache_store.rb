@@ -29,14 +29,6 @@ module ActiveSupport
       # Provide support for raw values in the local cache strategy.
       module LocalCacheWithRaw # :nodoc:
         private
-          def read_entry(key, **options)
-            entry = super
-            if options[:raw] && local_cache && entry
-              entry = deserialize_entry(entry.value)
-            end
-            entry
-          end
-
           def write_entry(key, entry, **options)
             if options[:raw] && local_cache
               raw_entry = Entry.new(entry.value.to_s)
@@ -157,7 +149,8 @@ module ActiveSupport
             expires_in += 5.minutes
           end
           rescue_error_with false do
-            @data.with { |c| c.send(method, key, value, expires_in, **options) }
+            # The value "compress: false" prevents duplicate compression within Dalli.
+            @data.with { |c| c.send(method, key, value, expires_in, **options, compress: false) }
           end
         end
 
@@ -195,10 +188,9 @@ module ActiveSupport
           key
         end
 
-        def deserialize_entry(raw_value)
-          if raw_value
-            entry = Marshal.load(raw_value) rescue raw_value
-            entry.is_a?(Entry) ? entry : Entry.new(entry)
+        def deserialize_entry(entry)
+          if entry
+            entry.is_a?(Entry) ? entry : Entry.new(entry, compress: false)
           end
         end
 

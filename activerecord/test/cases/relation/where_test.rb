@@ -25,6 +25,24 @@ module ActiveRecord
       assert_equal [comment], Comment.joins(post: :author).where(authors: { id: "2-foo" })
     end
 
+    def test_where_with_through_association
+      assert_equal [authors(:david)], Author.joins(:comments).where(comments: comments(:greetings))
+    end
+
+    def test_type_cast_is_not_evaluated_at_relation_build_time
+      posts = nil
+
+      assert_not_called_on_instance_of(Type::Value, :cast) do
+        posts = Post.where(id: "1-foo")
+      end
+      assert_equal [posts(:welcome)], posts.to_a
+
+      assert_not_called_on_instance_of(Type::Value, :cast) do
+        posts = Post.where(id: ["1-foo", "bar"])
+      end
+      assert_equal [posts(:welcome)], posts.to_a
+    end
+
     def test_where_copies_bind_params
       author = authors(:david)
       posts  = author.posts.where("posts.id != 1")
@@ -350,6 +368,12 @@ module ActiveRecord
     def test_where_with_integer_for_binary_column
       count = Binary.where(data: 0).count
       assert_equal 0, count
+    end
+
+    def test_where_with_emoji_for_binary_column
+      Binary.create!(data: "🥦")
+      assert Binary.where(data: ["🥦", "🍦"]).to_sql.include?("f09fa5a6")
+      assert Binary.where(data: ["🥦", "🍦"]).to_sql.include?("f09f8da6")
     end
 
     def test_where_on_association_with_custom_primary_key

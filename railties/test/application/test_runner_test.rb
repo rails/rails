@@ -320,6 +320,17 @@ module ApplicationTests
       end
     end
 
+    def test_run_windows_style_path
+      create_test_file :models, "account"
+      create_test_file :controllers, "accounts_controller"
+
+      # double-escape backslash -- once for Ruby and again for shelling out
+      run_test_command("test\\\\models").tap do |output|
+        assert_match "AccountTest", output
+        assert_match "1 runs, 1 assertions, 0 failures, 0 errors, 0 skips", output
+      end
+    end
+
     def test_run_with_ruby_command
       app_file "test/models/post_test.rb", <<-RUBY
         require "test_helper"
@@ -893,6 +904,21 @@ module ApplicationTests
 
       output = Dir.chdir(app_path) { `bin/rake test TEST=test/system/dummy_test.rb` }
       assert_match "1 runs, 1 assertions, 0 failures, 0 errors, 0 skips", output
+    end
+
+    def test_can_exclude_files_from_being_tested_via_default_rails_command_by_setting_DEFAULT_TEST_EXCLUDE_env_var
+      create_test_file "smoke", "smoke_foo"
+
+      switch_env "DEFAULT_TEST_EXCLUDE", "test/smoke/**/*_test.rb" do
+        assert_match "0 runs, 0 assertions, 0 failures, 0 errors, 0 skips", run_test_command("")
+      end
+    end
+
+    def test_can_exclude_files_from_being_tested_via_rake_task_by_setting_DEFAULT_TEST_EXCLUDE_env_var
+      create_test_file "smoke", "smoke_foo"
+
+      output = Dir.chdir(app_path) { `DEFAULT_TEST_EXCLUDE="test/smoke/**/*_test.rb" bin/rake test` }
+      assert_match "0 runs, 0 assertions, 0 failures, 0 errors, 0 skips", output
     end
 
     private

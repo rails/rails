@@ -142,6 +142,8 @@ db_namespace = namespace :db do
 
     desc "Rolls back the database one migration and re-migrates up (options: STEP=x, VERSION=x)."
     task redo: :load_config do
+      ActiveRecord::Tasks::DatabaseTasks.raise_for_multi_db(command: "db:migrate:redo")
+
       raise "Empty VERSION provided" if ENV["VERSION"] && ENV["VERSION"].empty?
 
       if ENV["VERSION"]
@@ -150,6 +152,23 @@ db_namespace = namespace :db do
       else
         db_namespace["rollback"].invoke
         db_namespace["migrate"].invoke
+      end
+    end
+
+    namespace :redo do
+      ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
+        desc "Rolls back #{name} database one migration and re-migrates up (options: STEP=x, VERSION=x)."
+        task name => :load_config do
+          raise "Empty VERSION provided" if ENV["VERSION"] && ENV["VERSION"].empty?
+
+          if ENV["VERSION"]
+            db_namespace["migrate:down:#{name}"].invoke
+            db_namespace["migrate:up:#{name}"].invoke
+          else
+            db_namespace["rollback:#{name}"].invoke
+            db_namespace["migrate:#{name}"].invoke
+          end
+        end
       end
     end
 
@@ -563,7 +582,7 @@ db_namespace = namespace :db do
       end
     ensure
       if should_reconnect
-        ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env, name: "primary"))
+        ActiveRecord::Base.establish_connection(ActiveRecord::Tasks::DatabaseTasks.env.to_sym)
       end
     end
 

@@ -27,14 +27,13 @@ module ActiveRecord
         name = self.class.attribute_aliases[name] || name
 
         name = @primary_key if name == "id" && @primary_key
-        _read_attribute(name, &block)
+        @attributes.fetch_value(name, &block)
       end
 
       # This method exists to avoid the expensive primary_key check internally, without
       # breaking compatibility with the read_attribute API
       def _read_attribute(attr_name, &block) # :nodoc
-        sync_with_transaction_state if @transaction_state&.finalized?
-        @attributes.fetch_value(attr_name.to_s, &block)
+        @attributes.fetch_value(attr_name, &block)
       end
 
       alias :attribute :_read_attribute

@@ -55,6 +55,7 @@ require "ostruct"
 class ActiveStorage::Variant
   attr_reader :blob, :variation
   delegate :service, to: :blob
+  delegate :filename, :content_type, to: :specification
 
   def initialize(blob, variation_or_variation_key)
     @blob, @variation = blob, ActiveStorage::Variation.wrap(variation_or_variation_key)
@@ -82,6 +83,12 @@ class ActiveStorage::Variant
 
   alias_method :service_url, :url
   deprecate service_url: :url
+
+  # Downloads the file associated with this variant. If no block is given, the entire file is read into memory and returned.
+  # That'll use a lot of RAM for very large files. If a block is given, then the download is streamed and yielded in chunks.
+  def download(&block)
+    service.download key, &block
+  end
 
   # Returns the receiving variant. Allows ActiveStorage::Variant and ActiveStorage::Preview instances to be used interchangeably.
   def image
@@ -117,7 +124,7 @@ class ActiveStorage::Variant
         end
     end
 
-    delegate :filename, :content_type, :format, to: :specification
+    delegate :format, to: :specification
 
     class Specification < OpenStruct; end
 end

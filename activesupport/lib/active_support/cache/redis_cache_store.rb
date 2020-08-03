@@ -74,14 +74,6 @@ module ActiveSupport
       # Support raw values in the local cache strategy.
       module LocalCacheWithRaw # :nodoc:
         private
-          def read_entry(key, **options)
-            entry = super
-            if options[:raw] && local_cache && entry
-              entry = deserialize_entry(entry.value)
-            end
-            entry
-          end
-
           def write_entry(key, entry, **options)
             if options[:raw] && local_cache
               raw_entry = Entry.new(serialize_entry(entry, raw: true))
@@ -203,7 +195,7 @@ module ActiveSupport
 
       def inspect
         instance = @redis || @redis_options
-        "<##{self.class} options=#{options.inspect} redis=#{instance.inspect}>"
+        "#<#{self.class} options=#{options.inspect} redis=#{instance.inspect}>"
       end
 
       # Cache Store API implementation.
@@ -352,13 +344,14 @@ module ActiveSupport
         # Read an entry from the cache.
         def read_entry(key, **options)
           failsafe :read_entry do
-            deserialize_entry redis.with { |c| c.get(key) }
+            raw = options&.fetch(:raw, false)
+            deserialize_entry(redis.with { |c| c.get(key) }, raw: raw)
           end
         end
 
         def read_multi_entries(names, **options)
           if mget_capable?
-            read_multi_mget(*names)
+            read_multi_mget(*names, **options)
           else
             super
           end
@@ -368,6 +361,7 @@ module ActiveSupport
           options = names.extract_options!
           options = merged_options(options)
           return {} if names == []
+          raw = options&.fetch(:raw, false)
 
           keys = names.map { |name| normalize_key(name, options) }
 
@@ -377,7 +371,7 @@ module ActiveSupport
 
           names.zip(values).each_with_object({}) do |(name, value), results|
             if value
-              entry = deserialize_entry(value)
+              entry = deserialize_entry(value, raw: raw)
               unless entry.nil? || entry.expired? || entry.mismatched?(normalize_version(name, options))
                 results[name] = entry.value
               end
@@ -404,7 +398,7 @@ module ActiveSupport
               modifiers[:nx] = unless_exist
               modifiers[:px] = (1000 * expires_in.to_f).ceil if expires_in
 
-              redis.with { |c| c.set key, serialized_entry, modifiers }
+              redis.with { |c| c.set key, serialized_entry, **modifiers }
             else
               redis.with { |c| c.set key, serialized_entry }
             end
@@ -457,10 +451,13 @@ module ActiveSupport
           end
         end
 
-        def deserialize_entry(serialized_entry)
+        def deserialize_entry(serialized_entry, raw:)
           if serialized_entry
-            entry = Marshal.load(serialized_entry) rescue serialized_entry
-            entry.is_a?(Entry) ? entry : Entry.new(entry)
+            if raw
+              Entry.new(serialized_entry, compress: false)
+            else
+              Marshal.load(serialized_entry)
+            end
           end
         end
 

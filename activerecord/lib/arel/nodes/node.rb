@@ -44,6 +44,8 @@ module Arel # :nodoc: all
 
       def fetch_attribute
       end
+
+      def equality?; false; end
     end
   end
 end

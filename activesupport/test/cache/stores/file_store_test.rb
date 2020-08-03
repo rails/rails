@@ -124,6 +124,14 @@ class FileStoreTest < ActiveSupport::TestCase
     end
   end
 
+  def test_cleanup_when_non_active_support_cache_file_exists
+    cache_file_path = @cache.send(:normalize_key, "foo", nil)
+    FileUtils.makedirs(File.dirname(cache_file_path))
+    File.atomic_write(cache_file_path, cache_dir) { |f| Marshal.dump({ "foo": "bar" }, f) }
+    assert_nothing_raised { @cache.cleanup }
+    assert_equal 1, Dir.glob(File.join(cache_dir, "**")).size
+  end
+
   def test_write_with_unless_exist
     assert_equal true, @cache.write(1, "aaaaaaaaaa")
     assert_equal false, @cache.write(1, "aaaaaaaaaa", unless_exist: true)

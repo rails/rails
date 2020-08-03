@@ -116,6 +116,7 @@ use Rails::Rack::Logger
 use ActionDispatch::ShowExceptions
 use WebConsole::Middleware
 use ActionDispatch::DebugExceptions
+use ActionDispatch::ActionableExceptions
 use ActionDispatch::Reloader
 use ActionDispatch::Callbacks
 use ActiveRecord::Migration::CheckPending
@@ -260,6 +261,10 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 **`ActionDispatch::DebugExceptions`**
 
 * Responsible for logging exceptions and showing a debugging page in case the request is local.
+
+**`ActionDispatch::ActionableExceptions`**
+
+* Provides a way to dispatch actions from Rails' error pages.
 
 **`ActionDispatch::Reloader`**
 

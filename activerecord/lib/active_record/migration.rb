@@ -3,6 +3,7 @@
 require "benchmark"
 require "set"
 require "zlib"
+require "active_support/core_ext/array/access"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/actionable_error"
@@ -529,6 +530,7 @@ module ActiveRecord
   class Migration
     autoload :CommandRecorder, "active_record/migration/command_recorder"
     autoload :Compatibility, "active_record/migration/compatibility"
+    autoload :JoinTable, "active_record/migration/join_table"
 
     # This must be defined before the inherited hook, below
     class Current < Migration #:nodoc:

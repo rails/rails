@@ -109,7 +109,7 @@ module Rails
       results = {}
 
       Dir.glob("#{dir}/*") do |item|
-        next if File.basename(item)[0] == ?.
+        next if File.basename(item).start_with?(".")
 
         if File.directory?(item)
           results.update(find_in(item))

@@ -7,14 +7,6 @@ module Arel
     describe "equality" do
       # FIXME: backwards compat
       describe "backwards compat" do
-        describe "operator" do
-          it "returns :==" do
-            attr = Table.new(:users)[:id]
-            left = attr.eq(10)
-            _(left.operator).must_equal :==
-          end
-        end
-
         describe "to_sql" do
           it "takes an engine" do
             engine = FakeRecord::Base.new

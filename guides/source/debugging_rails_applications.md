@@ -353,7 +353,7 @@ processing the entire request.
 
 For example:
 
-```bash
+```
 => Booting Puma
 => Rails 6.0.0 application starting in development
 => Run `bin/rails server --help` for more startup options
@@ -876,7 +876,7 @@ will be stopped and you will have to start it again.
 TIP: You can save these settings in an `.byebugrc` file in your home directory.
 The debugger reads these global settings when it starts. For example:
 
-```bash
+```
 set callstyle short
 set listsize 25
 ```

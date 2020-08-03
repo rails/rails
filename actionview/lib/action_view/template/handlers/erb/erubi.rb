@@ -14,10 +14,10 @@ module ActionView
             # Dup properties so that we don't modify argument
             properties = Hash[properties]
 
+            properties[:bufvar]     ||= "@output_buffer"
             properties[:preamble]   ||= ""
-            properties[:postamble]  ||= "@output_buffer.to_s"
+            properties[:postamble]  ||= "#{properties[:bufvar]}.to_s"
 
-            properties[:bufvar]     = "@output_buffer"
             properties[:escapefunc] = ""
 
             super
@@ -39,7 +39,7 @@ module ActionView
             if text == "\n"
               @newline_pending += 1
             else
-              src << "@output_buffer.safe_append='"
+              src << bufvar << ".safe_append='"
               src << "\n" * @newline_pending if @newline_pending > 0
               src << text.gsub(/['\\]/, '\\\\\&')
               src << "'.freeze;"
@@ -54,9 +54,9 @@ module ActionView
             flush_newline_if_pending(src)
 
             if (indicator == "==") || @escape
-              src << "@output_buffer.safe_expr_append="
+              src << bufvar << ".safe_expr_append="
             else
-              src << "@output_buffer.append="
+              src << bufvar << ".append="
             end
 
             if BLOCK_EXPR.match?(code)
@@ -78,7 +78,7 @@ module ActionView
 
           def flush_newline_if_pending(src)
             if @newline_pending > 0
-              src << "@output_buffer.safe_append='#{"\n" * @newline_pending}'.freeze;"
+              src << bufvar << ".safe_append='#{"\n" * @newline_pending}'.freeze;"
               @newline_pending = 0
             end
           end

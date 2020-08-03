@@ -83,6 +83,15 @@ class TaggedLoggingTest < ActiveSupport::TestCase
     assert_equal "Dull story\n[OMG] Cool story\n[BCX] Funky time\n", @output.string
   end
 
+  test "keeps each tag in their own thread even when pushed directly" do
+    Thread.new do
+      @logger.push_tags("OMG")
+      @logger.info "Cool story"
+    end.join
+    @logger.info "Funky time"
+    assert_equal "[OMG] Cool story\nFunky time\n", @output.string
+  end
+
   test "keeps each tag in their own instance" do
     other_output = StringIO.new
     other_logger = ActiveSupport::TaggedLogging.new(MyLogger.new(other_output))

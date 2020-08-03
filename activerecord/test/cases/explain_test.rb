@@ -63,14 +63,6 @@ if ActiveRecord::Base.connection.supports_explain?
       end
     end
 
-    def test_unsupported_connection_adapter
-      connection.stub(:supports_explain?, false) do
-        assert_not_called(base.logger, :warn) do
-          Car.where(name: "honda").to_a
-        end
-      end
-    end
-
     private
       def stub_explain_for_query_plans(query_plans = ["query plan foo", "query plan bar"])
         explain_called = 0

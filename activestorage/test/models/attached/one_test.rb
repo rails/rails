@@ -32,7 +32,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
   test "attaching an existing blob from a signed ID passes record" do
     blob = create_blob(filename: "funky.jpg")
     arguments = [blob.signed_id, record: @user]
-    assert_called_with(ActiveStorage::Blob, :find_signed, arguments, returns: blob) do
+    assert_called_with(ActiveStorage::Blob, :find_signed!, arguments, returns: blob) do
       @user.avatar.attach blob.signed_id
     end
   end
@@ -449,7 +449,9 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
       @user.avatar.attach blob
       assert @user.avatar.attached?
 
-      @user.avatar.purge
+      assert_changes -> { @user.updated_at } do
+        @user.avatar.purge
+      end
       assert_not @user.avatar.attached?
       assert_not ActiveStorage::Blob.exists?(blob.id)
       assert_not ActiveStorage::Blob.service.exist?(blob.key)
@@ -478,7 +480,9 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
       assert @user.avatar.attached?
 
       perform_enqueued_jobs do
-        @user.avatar.purge_later
+        assert_changes -> { @user.updated_at } do
+          @user.avatar.purge_later
+        end
       end
 
       assert_not @user.avatar.attached?
@@ -527,6 +531,20 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
         @user.destroy!
       end
     end
+  end
+
+  test "duped record does not share attachments" do
+    @user.avatar.attach create_blob(filename: "funky.jpg")
+
+    assert_not_equal @user.avatar.attachment, @user.dup.avatar.attachment
+  end
+
+  test "duped record does not share attachment changes" do
+    @user.avatar.attach create_blob(filename: "funky.jpg")
+    assert_not_predicate @user, :changed_for_autosave?
+
+    @user.dup.avatar.attach create_blob(filename: "town.jpg")
+    assert_not_predicate @user, :changed_for_autosave?
   end
 
   test "clearing change on reload" do

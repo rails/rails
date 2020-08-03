@@ -1,4 +1,26 @@
-*   `ActionView::Base.annotate_template_file_names` annotates HTML output with template file names.
+*   Ensure cache fragment digests include all relevant template dependencies when
+    fragments are contained in a block passed to the render helper. Remove the
+    virtual_path keyword arguments found in CacheHelper as they no longer possess
+    any function following 1581cab.
+
+    Fixes #38984.
+
+    *Aaron Lipman*
+
+*   Deprecate `config.action_view.raise_on_missing_translations` in favor of
+    `config.i18n.raise_on_missing_translations`.
+
+    New generalized configuration option now determines whether an error should be raised
+    for missing translations in controllers and views.
+
+    *fatkodima*
+
+*   Instrument layout rendering in `TemplateRenderer#render_with_layout` as `render_layout.action_view`,
+    and include (when necessary) the layout's virtual path in notification payloads for collection and partial renders.
+
+    *Zach Kemp*
+
+*   `ActionView::Base.annotate_rendered_view_with_filenames` annotates HTML output with template file names.
 
     *Joel Hawksley*, *Aaron Patterson*
 

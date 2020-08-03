@@ -144,6 +144,7 @@ module ActionView
         ActiveSupport::Notifications.instrument(
           "render_collection.action_view",
           identifier: identifier,
+          layout: layout && layout.virtual_path,
           count: collection.size
         ) do |payload|
           spacer = if @options.key?(:spacer_template)

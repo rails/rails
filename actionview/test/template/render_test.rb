@@ -22,6 +22,7 @@ module RenderTestCases
 
     controller = TestController.new
     controller.perform_caching = true
+    controller.cache_store = :memory_store
     @view.controller = controller
 
     @controller_view = controller.view_context_class.with_empty_template_cache.new(
@@ -55,6 +56,11 @@ module RenderTestCases
                      { "format" => "XML", "children" => ["XML"] },
                      { "format" => "HTML", "children" => ["HTML"] },
     ] }, rendered_templates)
+  end
+
+  def test_explicit_js_format_adds_html_fallback
+    rendered_templates = @controller_view.render(template: "test/js_html_fallback", formats: :js)
+    assert_equal(%Q(document.write("<b>Hello from a HTML partial!<\\/b>")\n), rendered_templates)
   end
 
   def test_render_without_options
@@ -200,7 +206,9 @@ module RenderTestCases
   def test_render_outside_path
     assert File.exist?(File.expand_path("../../test/abstract_unit.rb", __dir__))
     assert_raises ActionView::MissingTemplate do
-      @view.render(template: "../\\../test/abstract_unit.rb")
+      assert_deprecated do
+        @view.render(template: "../\\../test/abstract_unit.rb")
+      end
     end
   end
 
@@ -338,8 +346,10 @@ module RenderTestCases
   end
 
   def test_render_partial_collection_with_partial_name_containing_dot
-    assert_equal "Hello: davidHello: mary",
-      @view.render(partial: "test/customer.mobile", collection: [ Customer.new("david"), Customer.new("mary") ])
+    assert_deprecated do
+      assert_equal "Hello: davidHello: mary",
+        @view.render(partial: "test/customer.mobile", collection: [ Customer.new("david"), Customer.new("mary") ])
+    end
   end
 
   def test_render_partial_collection_as_by_string
@@ -579,7 +589,11 @@ module RenderTestCases
   def test_render_ignores_templates_with_malformed_template_handlers
     %w(malformed malformed.erb malformed.html.erb malformed.en.html.erb).each do |name|
       assert File.exist?(File.expand_path("#{FIXTURE_LOAD_PATH}/test/malformed/#{name}~")), "Malformed file (#{name}~) which should be ignored does not exists"
-      assert_raises(ActionView::MissingTemplate) { @view.render(template: "test/malformed/#{name}") }
+      assert_raises(ActionView::MissingTemplate) do
+        ActiveSupport::Deprecation.silence do
+          @view.render(template: "test/malformed/#{name}")
+        end
+      end
     end
   end
 
@@ -696,6 +710,13 @@ class CachedViewRenderTest < ActiveSupport::TestCase
     view_paths = ActionController::Base.view_paths
     assert_equal ActionView::OptimizedFileSystemResolver, view_paths.first.class
     setup_view(view_paths)
+  end
+
+  def test_cache_fragments_inside_render_layout_call_with_block
+    cat = @view.render(template: "test/cache_fragment_inside_render_layout_block_1")
+    dog = @view.render(template: "test/cache_fragment_inside_render_layout_block_2")
+
+    assert_not_equal cat, dog
   end
 end
 

@@ -43,12 +43,17 @@
     -
       name: Action View Overview
       url: action_view_overview.html
-      description: This guide provides an introduction to Action View and introduces a few of the more common view helpers.
+      description: This guide provides an introduction to Action View.
       work_in_progress: true
     -
       name: Layouts and Rendering in Rails
       url: layouts_and_rendering.html
       description: This guide covers the basic layout features of Action Controller and Action View, including rendering and redirecting, using content_for blocks, and working with partials.
+    -
+      name: Action View Helpers
+      url: action_view_helpers.html
+      description: This guide introduces a few of the more common view helpers.
+      work_in_progress: true
     -
       name: Action View Form Helpers
       url: form_helpers.html
@@ -226,6 +231,11 @@
       name: Upgrading Ruby on Rails
       url: upgrading_ruby_on_rails.html
       description: This guide helps in upgrading applications to latest Ruby on Rails versions.
+    -
+      name: Version 6.1 - May 2020
+      url: 6_1_release_notes.html
+      description: Release notes for Rails 6.1.
+      work_in_progress: true
     -
       name: Version 6.0 - August 2019
       url: 6_0_release_notes.html

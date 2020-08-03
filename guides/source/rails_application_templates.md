@@ -63,7 +63,7 @@ gem "nokogiri"
 Please note that this will NOT install the gems for you and you will have to run `bundle install` to do that.
 
 ```bash
-bundle install
+$ bundle install
 ```
 
 ### gem_group(*names, &block)

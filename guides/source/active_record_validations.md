@@ -86,13 +86,15 @@ end
 We can see how it works by looking at some `bin/rails console` output:
 
 ```ruby
-$ bin/rails console
 >> p = Person.new(name: "John Doe")
 => #<Person id: nil, name: "John Doe", created_at: nil, updated_at: nil>
+
 >> p.new_record?
 => true
+
 >> p.save
 => true
+
 >> p.new_record?
 => false
 ```
@@ -133,13 +135,20 @@ database regardless of its validity. They should be used with caution.
 * `decrement_counter`
 * `increment!`
 * `increment_counter`
+* `insert`
+* `insert!`
+* `insert_all`
+* `insert_all!`
 * `toggle!`
 * `touch`
+* `touch_all`
 * `update_all`
 * `update_attribute`
 * `update_column`
 * `update_columns`
 * `update_counters`
+* `upsert`
+* `upsert_all`
 
 Note that `save` also has the ability to skip validations if passed `validate:
 false` as an argument. This technique should be used with caution.
@@ -532,6 +541,8 @@ end
 
 In order to validate associated records whose presence is required, you must
 specify the `:inverse_of` option for the association:
+
+NOTE: If you want to ensure that the association it is both present and valid, you also need to use `validates_associated`.
 
 ```ruby
 class Order < ApplicationRecord
@@ -985,7 +996,7 @@ and performs the validation on it. The custom validator is called using the
 ```ruby
 class MyValidator < ActiveModel::Validator
   def validate(record)
-    unless record.name.starts_with? 'X'
+    unless record.name.start_with? 'X'
       record.errors.add :name, "Need a name starting with X please!"
     end
   end

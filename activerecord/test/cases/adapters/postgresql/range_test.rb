@@ -15,30 +15,31 @@ class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
 
   def setup
     @connection = PostgresqlRange.connection
-    begin
-      @connection.transaction do
-        @connection.execute <<~SQL
-          CREATE TYPE floatrange AS RANGE (
-              subtype = float8,
-              subtype_diff = float8mi
-          );
-        SQL
+    @connection.transaction do
+      @connection.execute <<~SQL
+        CREATE TYPE floatrange AS RANGE (
+            subtype = float8,
+            subtype_diff = float8mi
+        );
 
-        @connection.create_table("postgresql_ranges") do |t|
-          t.daterange :date_range
-          t.numrange :num_range
-          t.tsrange :ts_range
-          t.tstzrange :tstz_range
-          t.int4range :int4_range
-          t.int8range :int8_range
-        end
+        CREATE TYPE stringrange AS RANGE (
+            subtype = varchar
+        );
+      SQL
 
-        @connection.add_column "postgresql_ranges", "float_range", "floatrange"
+      @connection.create_table("postgresql_ranges") do |t|
+        t.daterange :date_range
+        t.numrange  :num_range
+        t.tsrange   :ts_range
+        t.tstzrange :tstz_range
+        t.int4range :int4_range
+        t.int8range :int8_range
       end
-      PostgresqlRange.reset_column_information
-    rescue ActiveRecord::StatementInvalid
-      skip "do not test on PG without range"
+
+      @connection.add_column "postgresql_ranges", "float_range", "floatrange"
+      @connection.add_column "postgresql_ranges", "string_range", "stringrange"
     end
+    PostgresqlRange.reset_column_information
 
     insert_range(id: 101,
                  date_range: "[''2012-01-02'', ''2012-01-04'']",
@@ -96,6 +97,7 @@ class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
   teardown do
     @connection.drop_table "postgresql_ranges", if_exists: true
     @connection.execute "DROP TYPE IF EXISTS floatrange"
+    @connection.execute "DROP TYPE IF EXISTS stringrange"
     reset_connection
   end
 
@@ -197,6 +199,11 @@ class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
                           Time.parse("2010-01-01 14:30:00 +0100")...Time.parse("2010-01-01 13:30:00 +0000"))
   end
 
+  def test_escaped_tstzrange
+    assert_equal_round_trip(@first_range, :tstz_range,
+                            Time.parse("-1000-01-01 14:30:00 CDT")...Time.parse("2020-02-02 14:30:00 CET"))
+  end
+
   def test_create_tsrange
     tz = ::ActiveRecord::Base.default_timezone
     assert_equal_round_trip(@new_range, :ts_range,
@@ -209,6 +216,12 @@ class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
                             Time.send(tz, 2010, 1, 1, 14, 30, 0)...Time.send(tz, 2011, 2, 2, 14, 30, 0))
     assert_nil_round_trip(@first_range, :ts_range,
                           Time.send(tz, 2010, 1, 1, 14, 30, 0)...Time.send(tz, 2010, 1, 1, 14, 30, 0))
+  end
+
+  def test_escaped_tsrange
+    tz = ::ActiveRecord::Base.default_timezone
+    assert_equal_round_trip(@first_range, :ts_range,
+                            Time.send(tz, -1000, 1, 1, 14, 30, 0)...Time.send(tz, 2020, 2, 2, 14, 30, 0))
   end
 
   def test_timezone_awareness_tsrange
@@ -361,6 +374,16 @@ class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
     assert_nothing_raised do
       PostgresqlRange.first
     end
+  end
+
+  def test_ranges_correctly_unescape_output
+    @connection.execute(<<~SQL)
+      INSERT INTO postgresql_ranges (id, string_range)
+      VALUES (106, '["ca""t","do\\\\g")')
+    SQL
+
+    escaped_range = PostgresqlRange.find(106)
+    assert_equal('ca"t'...'do\\g', escaped_range.string_range)
   end
 
   def test_infinity_values

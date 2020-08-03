@@ -75,8 +75,14 @@ class PluginGeneratorTest < Rails::Generators::TestCase
       assert_match(/Rails::TestUnitReporter\.executable = 'bin\/test'/, content)
     end
     assert_file "lib/bukkits/railtie.rb", /module Bukkits\n  class Railtie < ::Rails::Railtie\n  end\nend/
-    assert_file "lib/bukkits.rb", /require "bukkits\/railtie"/
-    assert_file "test/bukkits_test.rb", /assert_kind_of Module, Bukkits/
+    assert_file "lib/bukkits.rb" do |content|
+      assert_match(/require "bukkits\/version"/, content)
+      assert_match(/require "bukkits\/railtie"/, content)
+    end
+    assert_file "test/bukkits_test.rb" do |content|
+      assert_match(/class BukkitsTest < ActiveSupport::TestCase/, content)
+      assert_match(/assert Bukkits::VERSION/, content)
+    end
     assert_file "bin/test"
     assert_no_file "bin/rails"
   end
@@ -346,7 +352,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "hyphenated-name/lib/hyphenated/name/engine.rb",                             /module Hyphenated\n  module Name\n    class Engine < ::Rails::Engine\n      isolate_namespace Hyphenated::Name\n    end\n  end\nend/
     assert_file "hyphenated-name/lib/hyphenated/name.rb",                                    /require "hyphenated\/name\/engine"/
     assert_file "hyphenated-name/test/dummy/config/routes.rb",                               /mount Hyphenated::Name::Engine => "\/hyphenated-name"/
-    assert_file "hyphenated-name/app/controllers/hyphenated/name/application_controller.rb", /module Hyphenated\n  module Name\n    class ApplicationController < ActionController::Base\n      protect_from_forgery with: :exception\n    end\n  end\nend\n/
+    assert_file "hyphenated-name/app/controllers/hyphenated/name/application_controller.rb", /module Hyphenated\n  module Name\n    class ApplicationController < ActionController::Base\n    end\n  end\nend\n/
     assert_file "hyphenated-name/app/models/hyphenated/name/application_record.rb",          /module Hyphenated\n  module Name\n    class ApplicationRecord < ActiveRecord::Base\n      self\.abstract_class = true\n    end\n  end\nend/
     assert_file "hyphenated-name/app/jobs/hyphenated/name/application_job.rb",               /module Hyphenated\n  module Name\n    class ApplicationJob < ActiveJob::Base/
     assert_file "hyphenated-name/app/mailers/hyphenated/name/application_mailer.rb",         /module Hyphenated\n  module Name\n    class ApplicationMailer < ActionMailer::Base\n      default from: 'from@example\.com'\n      layout 'mailer'\n    end\n  end\nend/
@@ -368,7 +374,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "my_hyphenated-name/lib/my_hyphenated/name/engine.rb",                             /module MyHyphenated\n  module Name\n    class Engine < ::Rails::Engine\n      isolate_namespace MyHyphenated::Name\n    end\n  end\nend/
     assert_file "my_hyphenated-name/lib/my_hyphenated/name.rb",                                    /require "my_hyphenated\/name\/engine"/
     assert_file "my_hyphenated-name/test/dummy/config/routes.rb",                                  /mount MyHyphenated::Name::Engine => "\/my_hyphenated-name"/
-    assert_file "my_hyphenated-name/app/controllers/my_hyphenated/name/application_controller.rb", /module MyHyphenated\n  module Name\n    class ApplicationController < ActionController::Base\n      protect_from_forgery with: :exception\n    end\n  end\nend\n/
+    assert_file "my_hyphenated-name/app/controllers/my_hyphenated/name/application_controller.rb", /module MyHyphenated\n  module Name\n    class ApplicationController < ActionController::Base\n    end\n  end\nend\n/
     assert_file "my_hyphenated-name/app/models/my_hyphenated/name/application_record.rb",          /module MyHyphenated\n  module Name\n    class ApplicationRecord < ActiveRecord::Base\n      self\.abstract_class = true\n    end\n  end\nend/
     assert_file "my_hyphenated-name/app/jobs/my_hyphenated/name/application_job.rb",               /module MyHyphenated\n  module Name\n    class ApplicationJob < ActiveJob::Base/
     assert_file "my_hyphenated-name/app/mailers/my_hyphenated/name/application_mailer.rb",         /module MyHyphenated\n  module Name\n    class ApplicationMailer < ActionMailer::Base\n      default from: 'from@example\.com'\n      layout 'mailer'\n    end\n  end\nend/
@@ -390,7 +396,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "deep-hyphenated-name/lib/deep/hyphenated/name/engine.rb",                             /module Deep\n  module Hyphenated\n    module Name\n      class Engine < ::Rails::Engine\n        isolate_namespace Deep::Hyphenated::Name\n      end\n    end\n  end\nend/
     assert_file "deep-hyphenated-name/lib/deep/hyphenated/name.rb",                                    /require "deep\/hyphenated\/name\/engine"/
     assert_file "deep-hyphenated-name/test/dummy/config/routes.rb",                                    /mount Deep::Hyphenated::Name::Engine => "\/deep-hyphenated-name"/
-    assert_file "deep-hyphenated-name/app/controllers/deep/hyphenated/name/application_controller.rb", /module Deep\n  module Hyphenated\n    module Name\n      class ApplicationController < ActionController::Base\n        protect_from_forgery with: :exception\n      end\n    end\n  end\nend\n/
+    assert_file "deep-hyphenated-name/app/controllers/deep/hyphenated/name/application_controller.rb", /module Deep\n  module Hyphenated\n    module Name\n      class ApplicationController < ActionController::Base\n      end\n    end\n  end\nend\n/
     assert_file "deep-hyphenated-name/app/models/deep/hyphenated/name/application_record.rb",          /module Deep\n  module Hyphenated\n    module Name\n      class ApplicationRecord < ActiveRecord::Base\n        self\.abstract_class = true\n      end\n    end\n  end\nend/
     assert_file "deep-hyphenated-name/app/jobs/deep/hyphenated/name/application_job.rb",               /module Deep\n  module Hyphenated\n    module Name\n      class ApplicationJob < ActiveJob::Base/
     assert_file "deep-hyphenated-name/app/mailers/deep/hyphenated/name/application_mailer.rb",         /module Deep\n  module Hyphenated\n    module Name\n      class ApplicationMailer < ActionMailer::Base\n        default from: 'from@example\.com'\n        layout 'mailer'\n      end\n    end\n  end\nend/
@@ -453,6 +459,12 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file ".gitignore" do |contents|
       assert_match(/spec\/dummy/, contents)
     end
+  end
+
+  def test_dummy_application_loads_plugin
+    run_generator
+
+    assert_file "test/dummy/config/application.rb", /^require "bukkits"/
   end
 
   def test_dummy_application_uses_dynamic_rails_version_number
@@ -754,11 +766,8 @@ class PluginGeneratorTest < Rails::Generators::TestCase
       generator([destination_root], options)
 
       command_check = -> command do
-        case command
-        when "install"
-          flunk "install expected to not be called"
-        when "exec spring binstub --all"
-          # Called when running tests with spring, let through unscathed.
+        if command == "install"
+          flunk "`install` expected to not be called."
         end
       end
 

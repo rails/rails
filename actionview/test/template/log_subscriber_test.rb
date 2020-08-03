@@ -28,6 +28,7 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
 
   def teardown
     super
+    ActionController::Base.view_paths.map(&:clear_cache)
 
     ActiveSupport::LogSubscriber.log_subscribers.clear
 
@@ -60,6 +61,21 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
       assert_equal 1, @logger.logged(:info).size
       assert_match(/Rendering test\/hello_world\.erb/, @logger.logged(:debug).last)
       assert_match(/Rendered test\/hello_world\.erb/, @logger.logged(:info).last)
+    end
+  end
+
+  def test_render_template_with_layout
+    Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
+      @view.render(template: "test/hello_world", layout: "layouts/yield")
+      wait
+
+      assert_equal 2, @logger.logged(:debug).size
+      assert_equal 2, @logger.logged(:info).size
+
+      assert_match(/Rendering layout layouts\/yield\.erb/, @logger.logged(:debug).first)
+      assert_match(/Rendering test\/hello_world\.erb within layouts\/yield/, @logger.logged(:debug).last)
+      assert_match(/Rendered test\/hello_world\.erb within layouts\/yield/, @logger.logged(:info).first)
+      assert_match(/Rendered layout layouts\/yield\.erb/, @logger.logged(:info).last)
     end
   end
 
@@ -137,6 +153,30 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
     end
   end
 
+  def test_render_partial_as_layout
+    Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
+      set_view_cache_dependencies
+      set_cache_controller
+
+      @view.render(layout: "layouts/yield_only") { "hello" }
+
+      assert_equal 1, @logger.logged(:debug).size
+      assert_match(/Rendered layouts\/_yield_only\.erb/, @logger.logged(:debug).first)
+    end
+  end
+
+  def test_render_partial_with_layout
+    Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
+      set_view_cache_dependencies
+      set_cache_controller
+
+      @view.render(partial: "partial", layout: "layouts/yield_only")
+
+      assert_equal 1, @logger.logged(:debug).size
+      assert_match(/Rendered test\/_partial\.html\.erb within layouts\/_yield_only/, @logger.logged(:debug).first)
+    end
+  end
+
   def test_render_uncached_outer_partial_with_inner_cached_partial_wont_mix_cache_hits_or_misses
     Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
       set_view_cache_dependencies
@@ -207,6 +247,19 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
       assert_match(/Rendered collection of test\/_customer.erb \[2 times\]/, @logger.logged(:debug).last)
     end
   end
+
+  def test_render_collection_template_with_layout
+    Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
+      set_cache_controller
+
+      @view.render(partial: "test/customer", layout: "layouts/yield_only", collection: [ Customer.new("david"), Customer.new("mary") ])
+      wait
+
+      assert_equal 1, @logger.logged(:debug).size
+      assert_match(/Rendered collection of test\/_customer.erb within layouts\/_yield_only \[2 times\]/, @logger.logged(:debug).last)
+    end
+  end
+
 
   def test_render_collection_with_implicit_path
     Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do

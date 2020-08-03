@@ -186,8 +186,7 @@ module Arel # :nodoc: all
     def where_sql(engine = Table.engine)
       return if @ctx.wheres.empty?
 
-      viz = Visitors::WhereSql.new(engine.connection.visitor, engine.connection)
-      Nodes::SqlLiteral.new viz.accept(@ctx, Collectors::SQLString.new).value
+      Nodes::SqlLiteral.new("WHERE #{Nodes::And.new(@ctx.wheres).to_sql(engine)}")
     end
 
     def union(operation, other = nil)

@@ -4599,9 +4599,13 @@ class TestInvalidUrls < ActionDispatch::IntegrationTest
     with_routing do |set|
       set.draw do
         get "/foo/show(/:id)", to: "test_invalid_urls/foo#show"
+        get "/bar/show(/:id)", controller: "test_invalid_urls/foo", action: "show"
       end
 
       get "/foo/show/%E2%EF%BF%BD%A6"
+      assert_response :ok
+
+      get "/bar/show/%E2%EF%BF%BD%A6"
       assert_response :ok
     end
   end
@@ -4868,7 +4872,7 @@ class TestUrlGenerationErrors < ActionDispatch::IntegrationTest
     message = "No route matches #{url.inspect}, possible unmatched constraints: #{missing.inspect}"
 
     error = assert_raises(ActionController::UrlGenerationError, message) { product_path(id: nil) }
-    assert_equal message, error.message
+    assert_match message, error.message
   end
 
   test "URL helpers raise message with mixed parameters when generation fails" do
@@ -4877,11 +4881,28 @@ class TestUrlGenerationErrors < ActionDispatch::IntegrationTest
 
     # Optimized URL helper
     error = assert_raises(ActionController::UrlGenerationError) { product_path(nil, "id" => "url-tested") }
-    assert_equal message, error.message
+    assert_match message, error.message
 
     # Non-optimized URL helper
     error = assert_raises(ActionController::UrlGenerationError, message) { product_path(id: nil, "id" => "url-tested") }
-    assert_equal message, error.message
+    assert_match message, error.message
+  end
+
+  if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
+    test "exceptions have suggestions for fix" do
+      error = assert_raises(ActionController::UrlGenerationError) { product_path(nil, "id" => "url-tested") }
+      assert_match "Did you mean?", error.message
+    end
+  end
+
+  # FIXME: we should fix all locations that raise this exception to provide
+  # the info DidYouMean needs and then delete this test.  Just adding the
+  # test for now because some parameters to the constructor are optional, and
+  # we don't want to break other code.
+  test "correct for empty UrlGenerationError" do
+    err = ActionController::UrlGenerationError.new("oh no!")
+    correction = ActionController::UrlGenerationError::Correction.new(err)
+    assert_equal [], correction.corrections
   end
 end
 

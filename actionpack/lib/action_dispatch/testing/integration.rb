@@ -2,7 +2,6 @@
 
 require "stringio"
 require "uri"
-require "active_support/core_ext/kernel/singleton_class"
 require "rack/test"
 require "minitest"
 
@@ -55,16 +54,21 @@ module ActionDispatch
 
       # Follow a single redirect response. If the last response was not a
       # redirect, an exception will be raised. Otherwise, the redirect is
-      # performed on the location header. If the redirection is a 307 redirect,
+      # performed on the location header. If the redirection is a 307 or 308 redirect,
       # the same HTTP verb will be used when redirecting, otherwise a GET request
       # will be performed. Any arguments are passed to the
       # underlying request.
       def follow_redirect!(**args)
         raise "not a redirect! #{status} #{status_message}" unless redirect?
 
-        method = response.status == 307 ? request.method.downcase : :get
-        public_send(method, response.location, **args)
+        method =
+          if [307, 308].include?(response.status)
+            request.method.downcase
+          else
+            :get
+          end
 
+        public_send(method, response.location, **args)
         status
       end
     end

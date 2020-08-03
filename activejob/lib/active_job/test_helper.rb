@@ -345,44 +345,40 @@ module ActiveJob
     #
     #   def test_assert_enqueued_with
     #     MyJob.perform_later(1,2,3)
-    #     assert_enqueued_with(job: MyJob, args: [1,2,3], queue: 'low')
+    #     assert_enqueued_with(job: MyJob, args: [1,2,3])
     #
-    #     MyJob.set(wait_until: Date.tomorrow.noon).perform_later
-    #     assert_enqueued_with(job: MyJob, at: Date.tomorrow.noon)
+    #     MyJob.set(wait_until: Date.tomorrow.noon, queue: "my_queue").perform_later
+    #     assert_enqueued_with(at: Date.tomorrow.noon, queue: "my_queue")
     #   end
     #
-    # The +at+ and +args+ arguments also accept a proc.
+    # The given arguments may also be specified as matcher procs that return a
+    # boolean value indicating whether a job's attribute meets certain criteria.
     #
-    # To the +at+ proc, it will get passed the actual job's at argument.
+    # For example, a proc can be used to match a range of times:
     #
     #   def test_assert_enqueued_with
-    #     expected_time = ->(at) do
-    #       (Date.yesterday..Date.tomorrow).cover?(at)
-    #     end
+    #     at_matcher = ->(job_at) { (Date.yesterday..Date.tomorrow).cover?(job_at) }
     #
-    #     MyJob.set(at: Date.today.noon).perform_later
-    #     assert_enqueued_with(job: MyJob, at: expected_time)
+    #     MyJob.set(wait_until: Date.today.noon).perform_later
+    #
+    #     assert_enqueued_with(job: MyJob, at: at_matcher)
     #   end
     #
-    # To the +args+ proc, it will get passed the actual job's arguments
-    # Your proc needs to return a boolean value determining if
-    # the job's arguments matches your expectation. This is useful to check only
-    # for a subset of arguments.
+    # A proc can also be used to match a subset of a job's args:
     #
     #   def test_assert_enqueued_with
-    #     expected_args = ->(job_args) do
-    #       assert job_args.first.key?(:foo)
-    #     end
+    #     args_matcher = ->(job_args) { job_args[0].key?(:foo) }
     #
-    #     MyJob.perform_later(foo: 'bar', other_arg: 'No need to check in the test')
-    #     assert_enqueued_with(job: MyJob, args: expected_args, queue: 'low')
+    #     MyJob.perform_later(foo: "bar", other_arg: "No need to check in the test")
+    #
+    #     assert_enqueued_with(job: MyJob, args: args_matcher)
     #   end
     #
     # If a block is passed, asserts that the block will cause the job to be
     # enqueued with the given arguments.
     #
     #   def test_assert_enqueued_with
-    #     assert_enqueued_with(job: MyJob, args: [1,2,3], queue: 'low') do
+    #     assert_enqueued_with(job: MyJob, args: [1,2,3]) do
     #       MyJob.perform_later(1,2,3)
     #     end
     #
@@ -431,42 +427,40 @@ module ActiveJob
     #
     #     perform_enqueued_jobs
     #
-    #     assert_performed_with(job: MyJob, args: [1,2,3], queue: 'high')
+    #     assert_performed_with(job: MyJob, args: [1,2,3])
     #
-    #     MyJob.set(wait_until: Date.tomorrow.noon).perform_later
+    #     MyJob.set(wait_until: Date.tomorrow.noon, queue: "my_queue").perform_later
     #
     #     perform_enqueued_jobs
     #
-    #     assert_performed_with(job: MyJob, at: Date.tomorrow.noon)
+    #     assert_performed_with(at: Date.tomorrow.noon, queue: "my_queue")
     #   end
     #
-    # The +at+ and +args+ arguments also accept a proc.
+    # The given arguments may also be specified as matcher procs that return a
+    # boolean value indicating whether a job's attribute meets certain criteria.
     #
-    # To the +at+ proc, it will get passed the actual job's at argument.
-    #
-    #   def test_assert_enqueued_with
-    #     expected_time = ->(at) do
-    #       (Date.yesterday..Date.tomorrow).cover?(at)
-    #     end
-    #
-    #     MyJob.set(at: Date.today.noon).perform_later
-    #     assert_enqueued_with(job: MyJob, at: expected_time)
-    #   end
-    #
-    # To the +args+ proc, it will get passed the actual job's arguments
-    # Your proc needs to return a boolean value determining if
-    # the job's arguments matches your expectation. This is useful to check only
-    # for a subset of arguments.
+    # For example, a proc can be used to match a range of times:
     #
     #   def test_assert_performed_with
-    #     expected_args = ->(job_args) do
-    #       assert job_args.first.key?(:foo)
-    #     end
-    #     MyJob.perform_later(foo: 'bar', other_arg: 'No need to check in the test')
+    #     at_matcher = ->(job_at) { (Date.yesterday..Date.tomorrow).cover?(job_at) }
+    #
+    #     MyJob.set(wait_until: Date.today.noon).perform_later
     #
     #     perform_enqueued_jobs
     #
-    #     assert_performed_with(job: MyJob, args: expected_args, queue: 'high')
+    #     assert_performed_with(job: MyJob, at: at_matcher)
+    #   end
+    #
+    # A proc can also be used to match a subset of a job's args:
+    #
+    #   def test_assert_performed_with
+    #     args_matcher = ->(job_args) { job_args[0].key?(:foo) }
+    #
+    #     MyJob.perform_later(foo: "bar", other_arg: "No need to check in the test")
+    #
+    #     perform_enqueued_jobs
+    #
+    #     assert_performed_with(job: MyJob, args: args_matcher)
     #   end
     #
     # If a block is passed, that block performs all of the jobs that were
@@ -474,7 +468,7 @@ module ActiveJob
     # the job has been performed with the given arguments in the block.
     #
     #   def test_assert_performed_with
-    #     assert_performed_with(job: MyJob, args: [1,2,3], queue: 'high') do
+    #     assert_performed_with(job: MyJob, args: [1,2,3]) do
     #       MyJob.perform_later(1,2,3)
     #     end
     #
@@ -673,7 +667,7 @@ module ActiveJob
 
       def prepare_args_for_assertion(args)
         args.dup.tap do |arguments|
-          if arguments[:at] && !arguments[:at].respond_to?(:call)
+          if arguments[:at].acts_like?(:time)
             at_range = arguments[:at] - 1..arguments[:at] + 1
             arguments[:at] = ->(at) { at_range.cover?(at) }
           end

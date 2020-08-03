@@ -11,15 +11,8 @@ require "rails/test_unit/line_filtering"
 require "active_support"
 require "active_support/test_case"
 
-class << Rails
-  # Necessary to get rerun-snippets working.
-  def root
-    @root ||= Pathname.new(COMPONENT_ROOT)
-  end
-  alias __root root
-end
-
 ActiveSupport::TestCase.extend Rails::LineFiltering
+Rails::TestUnitReporter.app_root = COMPONENT_ROOT
 Rails::TestUnitReporter.executable = "bin/test"
 
 Rails::TestUnit::Runner.parse_options(ARGV)

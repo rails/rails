@@ -8,7 +8,7 @@ module ActiveJob
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :retry_jitter, instance_accessor: false, instance_predicate: false, default: 0.15
+      class_attribute :retry_jitter, instance_accessor: false, instance_predicate: false, default: 0.0
     end
 
     module ClassMethods
@@ -22,7 +22,7 @@ module ActiveJob
       #
       # ==== Options
       # * <tt>:wait</tt> - Re-enqueues the job with a delay specified either in seconds (default: 3 seconds),
-      #   as a computing proc that the number of executions so far as an argument, or as a symbol reference of
+      #   as a computing proc that takes the number of executions so far as an argument, or as a symbol reference of
       #   <tt>:exponentially_longer</tt>, which applies the wait algorithm of <tt>((executions**4) + (Kernel.rand * (executions**4) * jitter)) + 2</tt>
       #   (first wait ~3s, then ~18s, then ~83s, etc)
       # * <tt>:attempts</tt> - Re-enqueues the job the specified number of times (default: 5 attempts)

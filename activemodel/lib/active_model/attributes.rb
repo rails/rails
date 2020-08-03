@@ -48,7 +48,7 @@ module ActiveModel
           ) do |temp_method_name, attr_name_expr|
             owner <<
               "def #{temp_method_name}(value)" <<
-              "  write_attribute(#{attr_name_expr}, value)" <<
+              "  _write_attribute(#{attr_name_expr}, value)" <<
               "end"
           end
         end
@@ -74,6 +74,11 @@ module ActiveModel
 
     def initialize(*)
       @attributes = self.class._default_attributes.deep_dup
+      super
+    end
+
+    def initialize_dup(other) # :nodoc:
+      @attributes = @attributes.deep_dup
       super
     end
 
@@ -120,19 +125,22 @@ module ActiveModel
         name = self.class.attribute_aliases[name] || name
 
         @attributes.write_from_user(name, value)
-        value
       end
 
-      def attribute(attr_name)
+      def _write_attribute(attr_name, value)
+        @attributes.write_from_user(attr_name, value)
+      end
+      alias :attribute= :_write_attribute
+
+      def read_attribute(attr_name)
         name = attr_name.to_s
         name = self.class.attribute_aliases[name] || name
 
         @attributes.fetch_value(name)
       end
 
-      # Dispatch target for <tt>*=</tt> attribute methods.
-      def attribute=(attribute_name, value)
-        write_attribute(attribute_name, value)
+      def attribute(attr_name)
+        @attributes.fetch_value(attr_name)
       end
   end
 end

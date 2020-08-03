@@ -1056,6 +1056,23 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       assert_equal "This is a comment", column(:birthdate).comment
     end
 
+    def test_rename_columns
+      with_bulk_change_table do |t|
+        t.string :qualification
+      end
+
+      assert column(:qualification)
+
+      with_bulk_change_table do |t|
+        t.rename :qualification, :experience
+        t.string :qualification_experience
+      end
+
+      assert_not column(:qualification)
+      assert column(:experience)
+      assert column(:qualification_experience)
+    end
+
     def test_removing_columns
       with_bulk_change_table do |t|
         t.string :qualification, :experience
@@ -1084,7 +1101,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       classname = ActiveRecord::Base.connection.class.name[/[^:]*$/]
       expected_query_count = {
         "Mysql2Adapter"     => 1, # mysql2 supports creating two indexes using one statement
-        "PostgreSQLAdapter" => 2,
+        "PostgreSQLAdapter" => 3,
       }.fetch(classname) {
         raise "need an expected query count for #{classname}"
       }
@@ -1092,7 +1109,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       assert_queries(expected_query_count) do
         with_bulk_change_table do |t|
           t.index :username, unique: true, name: :awesome_username_index
-          t.index [:name, :age]
+          t.index [:name, :age], comment: "This is a comment"
         end
       end
 
@@ -1100,6 +1117,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
 
       name_age_index = index(:index_delete_me_on_name_and_age)
       assert_equal ["name", "age"].sort, name_age_index.columns.sort
+      assert_equal "This is a comment", name_age_index.comment
       assert_not name_age_index.unique
 
       assert index(:awesome_username_index).unique

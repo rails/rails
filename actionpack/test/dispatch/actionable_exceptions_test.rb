@@ -30,7 +30,7 @@ class ActionableExceptionsTest < ActionDispatch::IntegrationTest
       error: ActionError.name,
       action: "Successful action",
       location: "/",
-    }
+    }, headers: { "action_dispatch.show_detailed_exceptions" => true }
 
     assert_equal ["Action!"], Actions
 
@@ -43,7 +43,7 @@ class ActionableExceptionsTest < ActionDispatch::IntegrationTest
       error: ActionError.name,
       action: "Successful action",
       location: "/",
-    }, headers: { "action_dispatch.show_exceptions" => false }
+    }, headers: { "action_dispatch.show_detailed_exceptions" => false }
 
     assert_empty Actions
   end
@@ -54,7 +54,7 @@ class ActionableExceptionsTest < ActionDispatch::IntegrationTest
         error: ActionError.name,
         action: "Failed action",
         location: "/",
-      }
+      }, headers: { "action_dispatch.show_detailed_exceptions" => true }
     end
   end
 
@@ -64,7 +64,7 @@ class ActionableExceptionsTest < ActionDispatch::IntegrationTest
         error: RuntimeError.name,
         action: "Inexistent action",
         location: "/",
-      }
+      }, headers: { "action_dispatch.show_detailed_exceptions" => true }
     end
   end
 
@@ -74,7 +74,7 @@ class ActionableExceptionsTest < ActionDispatch::IntegrationTest
         error: "",
         action: "Inexistent action",
         location: "/",
-      }
+      }, headers: { "action_dispatch.show_detailed_exceptions" => true }
     end
   end
 end

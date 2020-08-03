@@ -6,7 +6,7 @@ class Author < ActiveRecord::Base
   has_one :post
   has_many :very_special_comments, through: :posts
   has_many :posts_with_comments, -> { includes(:comments) }, class_name: "Post"
-  has_many :popular_grouped_posts, -> { includes(:comments).group("type").having("SUM(comments_count) > 1").select("type") }, class_name: "Post"
+  has_many :popular_grouped_posts, -> { includes(:comments).group("type").having("SUM(legacy_comments_count) > 1").select("type") }, class_name: "Post"
   has_many :posts_with_comments_sorted_by_comment_id, -> { includes(:comments).order("comments.id") }, class_name: "Post"
   has_many :posts_sorted_by_id, -> { order(:id) }, class_name: "Post"
   has_many :posts_sorted_by_id_limited, -> { order("posts.id").limit(1) }, class_name: "Post"
@@ -35,10 +35,10 @@ class Author < ActiveRecord::Base
   has_many :welcome_posts, -> { where(title: "Welcome to the weblog") }, class_name: "Post"
 
   has_many :welcome_posts_with_one_comment,
-           -> { where(title: "Welcome to the weblog").where("comments_count = ?", 1) },
+           -> { where(title: "Welcome to the weblog").where(comments_count: 1) },
            class_name: "Post"
   has_many :welcome_posts_with_comments,
-           -> { where(title: "Welcome to the weblog").where(Post.arel_table[:comments_count].gt(0)) },
+           -> { where(title: "Welcome to the weblog").where("legacy_comments_count > 0") },
            class_name: "Post"
 
   has_many :comments_desc, -> { order("comments.id DESC") }, through: :posts_sorted_by_id, source: :comments
@@ -173,6 +173,13 @@ class Author < ActiveRecord::Base
 
   has_many :top_posts, -> { order(id: :asc) }, class_name: "Post"
   has_many :other_top_posts, -> { order(id: :asc) }, class_name: "Post"
+
+  has_many :topics, primary_key: "name", foreign_key: "author_name"
+  has_many :topics_without_type, -> { select(:id, :title, :author_name) },
+    class_name: "Topic", primary_key: "name", foreign_key: "author_name"
+
+  has_many :lazy_readers_skimmers_or_not, through: :posts
+  has_many :lazy_readers_skimmers_or_not_2, through: :posts_with_no_comments, source: :lazy_readers_skimmers_or_not
 
   attr_accessor :post_log
   after_initialize :set_post_log

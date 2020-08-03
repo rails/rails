@@ -117,23 +117,23 @@ To install the latest version of Bundler, run `gem install bundler`.
 
 To generate all the guides, just `cd` into the `guides` directory, run `bundle install`, and execute:
 
-```
-bundle exec rake guides:generate
+```bash
+$ bundle exec rake guides:generate
 ```
 
 or
 
-```
-bundle exec rake guides:generate:html
+```bash
+$ bundle exec rake guides:generate:html
 ```
 
 Resulting HTML files can be found in the `./output` directory.
 
 To process `my_guide.md` and nothing else use the `ONLY` environment variable:
 
-```
-touch my_guide.md
-bundle exec rake guides:generate ONLY=my_guide
+```bash
+$ touch my_guide.md
+$ bundle exec rake guides:generate ONLY=my_guide
 ```
 
 By default, guides that have not been modified are not processed, so `ONLY` is rarely needed in practice.
@@ -142,25 +142,25 @@ To force processing all the guides, pass `ALL=1`.
 
 If you want to generate guides in a language other than English, you can keep them in a separate directory under `source` (e.g. `source/es`) and use the `GUIDES_LANGUAGE` environment variable:
 
-```
-bundle exec rake guides:generate GUIDES_LANGUAGE=es
+```bash
+$ bundle exec rake guides:generate GUIDES_LANGUAGE=es
 ```
 
 If you want to see all the environment variables you can use to configure the generation script just run:
 
-```
-rake
+```bash
+$ rake
 ```
 
 ### Validation
 
 Please validate the generated HTML with:
 
-```
-bundle exec rake guides:validate
+```bash
+$ bundle exec rake guides:validate
 ```
 
-Particularly, titles get an ID generated from their content and this often leads to duplicates. Please set `WARNINGS=1` when generating guides to detect them. The warning messages suggest a solution.
+Particularly, titles get an ID generated from their content and this often leads to duplicates.
 
 Kindle Guides
 -------------
@@ -169,6 +169,6 @@ Kindle Guides
 
 To generate guides for the Kindle, use the following rake task:
 
-```
-bundle exec rake guides:generate:kindle
+```bash
+$ bundle exec rake guides:generate:kindle
 ```

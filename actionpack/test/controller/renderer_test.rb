@@ -109,7 +109,7 @@ class RendererTest < ActiveSupport::TestCase
     xml  = "<p>Hello world!</p>\n"
 
     assert_equal html, render["respond_to/using_defaults"]
-    assert_equal xml,  render["respond_to/using_defaults.xml.builder"]
+    assert_equal xml,  assert_deprecated { render["respond_to/using_defaults.xml.builder"] }
     assert_equal xml,  render["respond_to/using_defaults", formats: :xml]
   end
 

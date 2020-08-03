@@ -90,7 +90,7 @@ module ActiveRecord
             # Only SQLite uses a filename as the "database" name; for
             # anything else, a leading slash would be silly.
 
-            uri.path.sub(%r{^/}, "")
+            uri.path.delete_prefix("/")
           end
         end
     end

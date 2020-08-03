@@ -49,6 +49,45 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     assert_no_migration "db/migrate/create_accounts.rb"
   end
 
+  def test_model_with_database_option
+    with_secondary_database_configuration do
+      run_generator ["account", "--database", "secondary"]
+      assert_file "app/models/secondary_record.rb", /class SecondaryRecord < ApplicationRecord/
+      assert_file "app/models/account.rb", /class Account < SecondaryRecord/
+      assert_migration "db/secondary_migrate/create_accounts.rb", /class CreateAccounts < ActiveRecord::Migration\[[0-9.]+\]/
+    end
+  end
+
+  def test_model_with_parent_and_database_option
+    with_secondary_database_configuration do
+      run_generator ["account", "--parent", "Admin::Account", "--database", "secondary"]
+      assert_file "app/models/account.rb", /class Account < Admin::Account/
+      assert_migration "db/secondary_migrate/create_accounts.rb", /class CreateAccounts < ActiveRecord::Migration\[[0-9.]+\]/
+    end
+  end
+
+  def test_model_with_no_migration_and_database_option
+    with_secondary_database_configuration do
+      run_generator ["account", "--migration", "false", "--database", "secondary"]
+      assert_file "app/models/account.rb", /class Account < SecondaryRecord/
+      assert_no_migration "db/secondary_migrate/create_accounts.rb"
+    end
+  end
+
+  def test_model_with_no_migration_option
+    run_generator ["account", "--migration", "false"]
+    assert_file "app/models/account.rb", /class Account < ApplicationRecord/
+    assert_no_migration "db/migrate/create_accounts.rb"
+  end
+
+  def test_model_with_parent_option_database_option_and_no_migration_option
+    with_secondary_database_configuration do
+      run_generator ["account", "--migration", "false", "--database", "secondary", "--migration", "false", "--parent", "Admin::Account"]
+      assert_file "app/models/account.rb", /class Account < Admin::Account/
+      assert_no_migration "db/secondary_migrate/create_accounts.rb"
+    end
+  end
+
   def test_plural_names_are_singularized
     content = run_generator ["accounts"]
     assert_file "app/models/account.rb", /class Account < ApplicationRecord/

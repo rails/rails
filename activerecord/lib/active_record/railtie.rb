@@ -129,13 +129,11 @@ To keep using the current cache store, you can turn off cache versioning entirel
       if config.active_record.delete(:use_schema_cache_dump)
         config.after_initialize do |app|
           ActiveSupport.on_load(:active_record) do
-            db_config = ActiveRecord::Base.configurations.configs_for(
-              env_name: Rails.env,
-              name: "primary",
-            )
+            db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).first
+
             filename = ActiveRecord::Tasks::DatabaseTasks.cache_dump_filename(
-              "primary",
-              schema_cache_path: db_config&.schema_cache_path,
+              db_config.name,
+              schema_cache_path: db_config&.schema_cache_path
             )
 
             cache = ActiveRecord::ConnectionAdapters::SchemaCache.load_from(filename)
@@ -261,6 +259,12 @@ To keep using the current cache store, you can turn off cache versioning entirel
     initializer "active_record.set_filter_attributes" do
       ActiveSupport.on_load(:active_record) do
         self.filter_attributes += Rails.application.config.filter_parameters
+      end
+    end
+
+    initializer "active_record.set_signed_id_verifier_secret" do
+      ActiveSupport.on_load(:active_record) do
+        self.signed_id_verifier_secret ||= -> { Rails.application.key_generator.generate_key("active_record/signed_id") }
       end
     end
   end

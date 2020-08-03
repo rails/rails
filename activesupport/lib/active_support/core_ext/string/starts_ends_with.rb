@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
 class String
-  alias_method :starts_with?, :start_with?
-  alias_method :ends_with?, :end_with?
+  alias :starts_with? :start_with?
+  alias :ends_with? :end_with?
 end

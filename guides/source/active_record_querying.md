@@ -678,7 +678,7 @@ SELECT viewable_by, locked FROM clients
 
 Be careful because this also means you're initializing a model object with only the fields that you've selected. If you attempt to access a field that is not in the initialized record you'll receive:
 
-```bash
+```
 ActiveModel::MissingAttributeError: missing attribute: <attribute>
 ```
 

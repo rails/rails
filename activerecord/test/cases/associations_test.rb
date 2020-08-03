@@ -276,8 +276,10 @@ class AssociationProxyTest < ActiveRecord::TestCase
     david.posts.reload
 
     assert_predicate david.posts, :loaded?
+    assert_predicate david.posts, :loaded
     david.posts.reset
     assert_not_predicate david.posts, :loaded?
+    assert_not_predicate david.posts, :loaded
   end
 end
 

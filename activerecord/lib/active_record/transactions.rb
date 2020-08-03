@@ -292,11 +292,11 @@ module ActiveRecord
       with_transaction_returning_status { super }
     end
 
-    def save(*, **) #:nodoc:
+    def save(**) #:nodoc:
       with_transaction_returning_status { super }
     end
 
-    def save!(*, **) #:nodoc:
+    def save!(**) #:nodoc:
       with_transaction_returning_status { super }
     end
 
@@ -342,13 +342,11 @@ module ActiveRecord
     # instance.
     def with_transaction_returning_status
       status = nil
-      self.class.transaction do
-        if has_transactional_callbacks?
-          add_to_transaction
-        else
-          sync_with_transaction_state if @transaction_state&.finalized?
-          @transaction_state = self.class.connection.transaction_state
-        end
+      connection = self.class.connection
+      ensure_finalize = !connection.transaction_open?
+
+      connection.transaction do
+        add_to_transaction(ensure_finalize || has_transactional_callbacks?)
         remember_transaction_record_state
 
         status = yield
@@ -395,7 +393,6 @@ module ActiveRecord
       # Force to clear the transaction record state.
       def force_clear_transaction_record_state
         @_start_transaction_state = nil
-        @transaction_state = nil
       end
 
       # Restore the new record state and id of a record that was previously saved by a call to save_record_state.
@@ -436,39 +433,12 @@ module ActiveRecord
 
       # Add the record to the current transaction so that the #after_rollback and #after_commit
       # callbacks can be called.
-      def add_to_transaction
-        self.class.connection.add_transaction_record(self)
+      def add_to_transaction(ensure_finalize = true)
+        self.class.connection.add_transaction_record(self, ensure_finalize)
       end
 
       def has_transactional_callbacks?
         !_rollback_callbacks.empty? || !_commit_callbacks.empty? || !_before_commit_callbacks.empty?
-      end
-
-      # Updates the attributes on this particular Active Record object so that
-      # if it's associated with a transaction, then the state of the Active Record
-      # object will be updated to reflect the current state of the transaction.
-      #
-      # The <tt>@transaction_state</tt> variable stores the states of the associated
-      # transaction. This relies on the fact that a transaction can only be in
-      # one rollback or commit (otherwise a list of states would be required).
-      # Each Active Record object inside of a transaction carries that transaction's
-      # TransactionState.
-      #
-      # This method checks to see if the ActiveRecord object's state reflects
-      # the TransactionState, and rolls back or commits the Active Record object
-      # as appropriate.
-      def sync_with_transaction_state
-        if transaction_state = @transaction_state
-          if transaction_state.fully_committed?
-            force_clear_transaction_record_state
-          elsif transaction_state.committed?
-            clear_transaction_record_state
-          elsif transaction_state.rolledback?
-            force_restore_state = transaction_state.fully_rolledback?
-            restore_transaction_record_state(force_restore_state)
-            clear_transaction_record_state
-          end
-        end
       end
   end
 end

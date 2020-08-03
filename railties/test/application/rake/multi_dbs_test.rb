@@ -306,6 +306,33 @@ module ApplicationTests
         end
       end
 
+      def db_migrate_redo(namespace = nil)
+        Dir.chdir(app_path) do
+          generate_models_for_animals
+          rails("db:migrate")
+
+          if namespace
+            redo_output = rails("db:migrate:redo:#{namespace}")
+          else
+            assert_raises RuntimeError, /You're using a multiple database application/ do
+              redo_output = rails("db:migrate:redo")
+            end
+          end
+
+          case namespace
+          when "primary"
+            assert_no_match(/OneMigration/, redo_output)
+            assert_match(/CreateBooks: reverted/, redo_output)
+            assert_match(/CreateBooks: migrated/, redo_output)
+          when nil
+          else
+            assert_no_match(/TwoMigration/, redo_output)
+            assert_match(/CreateDogs: reverted/, redo_output)
+            assert_match(/CreateDogs: migrated/, redo_output)
+          end
+        end
+      end
+
       def db_prepare
         Dir.chdir(app_path) do
           generate_models_for_animals
@@ -503,6 +530,28 @@ module ApplicationTests
 
         db_up_and_down "01", "primary"
         db_up_and_down "02", "animals"
+      end
+
+      test "db:migrate:redo raises in a multi-db application" do
+        require "#{app_path}/config/environment"
+        db_migrate_redo
+      end
+
+      test "db:migrate:redo:namespace works" do
+        require "#{app_path}/config/environment"
+
+        app_file "db/migrate/01_one_migration.rb", <<-MIGRATION
+          class OneMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        app_file "db/animals_migrate/02_two_migration.rb", <<-MIGRATION
+          class TwoMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        db_migrate_redo "primary"
+        db_migrate_redo "animals"
       end
 
       test "db:rollback raises on a multi-db application" do

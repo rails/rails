@@ -19,7 +19,7 @@ module Rails
       include Rails::Generators::Actions
 
       class_option :skip_namespace, type: :boolean, default: false,
-                                    desc: "Skip namespace (affects only isolated applications)"
+                                    desc: "Skip namespace (affects only isolated engines)"
       class_option :skip_collision_check, type: :boolean, default: false,
                                           desc: "Skip collision check"
 
@@ -53,7 +53,7 @@ module Rails
       # is removed.
       def self.namespace(name = nil)
         return super if name
-        @namespace ||= super.sub(/_generator$/, "").sub(/:generators:/, ":")
+        @namespace ||= super.delete_suffix("_generator").sub(/:generators:/, ":")
       end
 
       # Convenience method to hide this generator from the available ones when
@@ -319,7 +319,7 @@ module Rails
 
         # Use Rails default banner.
         def self.banner # :doc:
-          "rails generate #{namespace.sub(/^rails:/, '')} #{arguments.map(&:usage).join(' ')} [options]".gsub(/\s+/, " ")
+          "rails generate #{namespace.delete_prefix("rails:")} #{arguments.map(&:usage).join(' ')} [options]".gsub(/\s+/, " ")
         end
 
         # Sets the base_name taking into account the current class namespace.
@@ -336,7 +336,7 @@ module Rails
         def self.generator_name # :doc:
           @generator_name ||= begin
             if generator = name.to_s.split("::").last
-              generator.sub!(/Generator$/, "")
+              generator.delete_suffix!("Generator")
               generator.underscore
             end
           end

@@ -78,7 +78,7 @@ development environment, you would add the following to
 config.active_storage.service = :local
 ```
 
-To use the Amazon S3 service in production, you add the following to
+To use the S3 service in production, you add the following to
 `config/environments/production.rb`:
 
 ```ruby
@@ -107,9 +107,9 @@ local:
   root: <%= Rails.root.join("storage") %>
 ```
 
-### Amazon S3 Service
+### S3 Service (Amazon S3 and S3-compatible APIs)
 
-Declare an S3 service in `config/storage.yml`:
+To connect to Amazon S3, declare an S3 service in `config/storage.yml`:
 
 ```yaml
 amazon:
@@ -120,7 +120,7 @@ amazon:
   bucket: ""
 ```
 
-Optionally provide a Hash of upload options:
+Optionally provide client and upload options:
 
 ```yaml
 amazon:
@@ -129,9 +129,13 @@ amazon:
   secret_access_key: ""
   region: ""
   bucket: ""
+  http_open_timeout: 0
+  http_read_timeout: 0
+  retry_limit: 0
   upload: 
     server_side_encryption: "" # 'aws:kms' or 'AES256'
 ```
+TIP: Set sensible client HTTP timeouts and retry limits for your application. In certain failure scenarios, the default AWS client configuration may cause connections to be held for up to several minutes and lead to request queuing.
 
 Add the [`aws-sdk-s3`](https://github.com/aws/aws-sdk-ruby) gem to your `Gemfile`:
 
@@ -143,10 +147,20 @@ NOTE: The core features of Active Storage require the following permissions: `s3
 
 NOTE: If you want to use environment variables, standard SDK configuration files, profiles,
 IAM instance profiles or task roles, you can omit the `access_key_id`, `secret_access_key`,
-and `region` keys in the example above. The Amazon S3 Service supports all of the
+and `region` keys in the example above. The S3 Service supports all of the
 authentication options described in the [AWS SDK documentation]
 (https://docs.aws.amazon.com/sdk-for-ruby/v3/developer-guide/setup-config.html).
 
+To connect to an S3-compatible object storage API such as Digital Ocean Spaces, provide the `endpoint`:
+
+```yaml
+digitalocean:
+  service: S3
+  endpoint: https://nyc3.digitaloceanspaces.com
+  access_key_id: ...
+  secret_access_key: ...
+  # ...and other options
+```
 
 ### Microsoft Azure Storage Service
 
@@ -568,7 +582,8 @@ directly from the client to the cloud.
     Using the npm package:
 
     ```js
-    require("@rails/activestorage").start()
+    import * as ActiveStorage from "@rails/activestorage"
+    ActiveStorage.start()
     ```
 
 2. Annotate file inputs with the direct upload URL.
@@ -606,9 +621,8 @@ No CORS configuration is required for the Disk service since it shares your appâ
 #### Example: S3 CORS configuration
 
 ```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<CORSConfiguration xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
-<CORSRule>
+<CORSConfiguration>
+  <CORSRule>
     <AllowedOrigin>https://www.example.com</AllowedOrigin>
     <AllowedMethod>PUT</AllowedMethod>
     <AllowedHeader>Origin</AllowedHeader>
@@ -616,7 +630,7 @@ No CORS configuration is required for the Disk service since it shares your appâ
     <AllowedHeader>Content-MD5</AllowedHeader>
     <AllowedHeader>Content-Disposition</AllowedHeader>
     <MaxAgeSeconds>3600</MaxAgeSeconds>
-</CORSRule>
+  </CORSRule>
 </CORSConfiguration>
 ```
 

@@ -78,6 +78,23 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "Post::GeneratedRelationMethods", mod.inspect
   end
 
+  def test_arel_attribute_normalization
+    assert_equal Post.arel_table["body"], Post.arel_table[:body]
+    assert_equal Post.arel_table["body"], Post.arel_table[:text]
+  end
+
+  def test_deprecated_arel_attribute
+    assert_deprecated do
+      assert_equal Post.arel_table["body"], Post.arel_attribute(:body)
+    end
+  end
+
+  def test_deprecated_arel_attribute_on_relation
+    assert_deprecated do
+      assert_equal Post.arel_table["body"], Post.all.arel_attribute(:body)
+    end
+  end
+
   def test_incomplete_schema_loading
     topic = Topic.first
     payload = { foo: 42 }
@@ -1106,8 +1123,8 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_find_keeps_multiple_group_values
-    combined = Developer.all.merge!(group: "developers.name, developers.salary, developers.id, developers.created_at, developers.updated_at, developers.created_on, developers.updated_on").to_a
-    assert_equal combined, Developer.all.merge!(group: ["developers.name", "developers.salary", "developers.id", "developers.created_at", "developers.updated_at", "developers.created_on", "developers.updated_on"]).to_a
+    combined = Developer.merge(group: "developers.name, developers.salary, developers.id, developers.legacy_created_at, developers.legacy_updated_at, developers.legacy_created_on, developers.legacy_updated_on").to_a
+    assert_equal combined, Developer.merge(group: ["developers.name", "developers.salary", "developers.id", "developers.created_at", "developers.updated_at", "developers.created_on", "developers.updated_on"]).to_a
   end
 
   def test_find_symbol_ordered_last
@@ -1226,6 +1243,21 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal 1, post.comments.length
   end
 
+  if current_adapter?(:Mysql2Adapter)
+    def test_marshal_load_legacy_6_0_record_mysql
+      path = File.expand_path(
+        "support/marshal_compatibility_fixtures/legacy_6_0_record_mysql.dump",
+        TEST_ROOT
+      )
+      topic = Marshal.load(File.read(path))
+
+      assert_not_predicate topic, :new_record?
+      assert_equal 1, topic.id
+      assert_equal "The First Topic", topic.title
+      assert_equal "Have a nice day", topic.content
+    end
+  end
+
   if Process.respond_to?(:fork) && !in_memory_db?
     def test_marshal_between_processes
       # Define a new model to ensure there are no caches
@@ -1277,14 +1309,38 @@ class BasicsTest < ActiveRecord::TestCase
     assert Company.has_attribute?("id")
     assert Company.has_attribute?("type")
     assert Company.has_attribute?("name")
+    assert Company.has_attribute?("new_name")
     assert Company.has_attribute?("metadata")
     assert_not Company.has_attribute?("lastname")
     assert_not Company.has_attribute?("age")
+
+    company = Company.new
+    assert company.has_attribute?("id")
+    assert company.has_attribute?("type")
+    assert company.has_attribute?("name")
+    assert company.has_attribute?("new_name")
+    assert company.has_attribute?("metadata")
+    assert_not company.has_attribute?("lastname")
+    assert_not company.has_attribute?("age")
   end
 
   def test_has_attribute_with_symbol
     assert Company.has_attribute?(:id)
+    assert Company.has_attribute?(:type)
+    assert Company.has_attribute?(:name)
+    assert Company.has_attribute?(:new_name)
+    assert Company.has_attribute?(:metadata)
+    assert_not Company.has_attribute?(:lastname)
     assert_not Company.has_attribute?(:age)
+
+    company = Company.new
+    assert company.has_attribute?(:id)
+    assert company.has_attribute?(:type)
+    assert company.has_attribute?(:name)
+    assert company.has_attribute?(:new_name)
+    assert company.has_attribute?(:metadata)
+    assert_not company.has_attribute?(:lastname)
+    assert_not company.has_attribute?(:age)
   end
 
   def test_attribute_names_on_table_not_exists

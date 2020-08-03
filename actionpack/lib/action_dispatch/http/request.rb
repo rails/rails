@@ -50,9 +50,9 @@ module ActionDispatch
     ENV_METHODS.each do |env|
       class_eval <<-METHOD, __FILE__, __LINE__ + 1
         # frozen_string_literal: true
-        def #{env.sub(/^HTTP_/n, '').downcase}  # def accept_charset
-          get_header "#{env}"                   #   get_header "HTTP_ACCEPT_CHARSET"
-        end                                     # end
+        def #{env.delete_prefix("HTTP_").downcase}  # def accept_charset
+          get_header "#{env}"                       #   get_header "HTTP_ACCEPT_CHARSET"
+        end                                         # end
       METHOD
     end
 
@@ -334,7 +334,7 @@ module ActionDispatch
     # variable is already set, wrap it in a StringIO.
     def body
       if raw_post = get_header("RAW_POST_DATA")
-        raw_post = raw_post.dup.force_encoding(Encoding::BINARY)
+        raw_post = (+raw_post).force_encoding(Encoding::BINARY)
         StringIO.new(raw_post)
       else
         body_stream
