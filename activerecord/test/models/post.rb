@@ -357,6 +357,10 @@ class FakeKlass
       Post.predicate_builder
     end
 
+    def finder_needs_type_condition?
+      false
+    end
+
     def base_class?
       true
     end

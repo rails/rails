@@ -110,6 +110,11 @@ module ActiveRecord
       assert_equal expected, Post.order(id: :desc).typographically_interesting
     end
 
+    def test_or_with_sti_relation
+      expected = Post.where("id = 1 or id = 2").sort_by(&:id)
+      assert_equal expected, Post.where(id: 1).or(SpecialPost.all).sort_by(&:id)
+    end
+
     def test_or_on_loaded_relation
       expected = Post.where("id = 1 or id = 2").to_a
       p = Post.where("id = 1")
