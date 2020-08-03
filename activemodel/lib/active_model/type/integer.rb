@@ -11,7 +11,7 @@ module ActiveModel
 
       def initialize(**)
         super
-        @range = min_value...max_value
+        @range = min_value...after_max_value
       end
 
       def type
@@ -51,12 +51,12 @@ module ActiveModel
           value
         end
 
-        def max_value
+        def after_max_value
           1 << (_limit * 8 - 1) # 8 bits per byte with one bit for sign
         end
 
         def min_value
-          -max_value
+          -after_max_value
         end
 
         def _limit
