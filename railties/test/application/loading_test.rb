@@ -283,12 +283,12 @@ class LoadingTest < ActiveSupport::TestCase
     require "#{rails_root}/config/environment"
 
     get "/c"
-    assert_equal "3", last_response.body
+    assert_equal "5", last_response.body
 
     app_file "db/schema.rb", ""
 
     get "/c"
-    assert_equal "7", last_response.body
+    assert_equal "11", last_response.body
   end
 
   test "columns migrations also trigger reloading" do

@@ -1,3 +1,8 @@
+*   Allow appended root routes to take precedence over internal welcome controller.
+
+    *Gannon McGibbon*
+
+
 ## Rails 6.1.0.rc1 (November 02, 2020) ##
 
 *   Added `Railtie#server` hook called when Rails starts a server.

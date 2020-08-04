@@ -82,20 +82,6 @@ module Rails
         end
       end
 
-      initializer :add_builtin_route do |app|
-        if Rails.env.development?
-          app.routes.prepend do
-            get "/rails/info/properties" => "rails/info#properties", internal: true
-            get "/rails/info/routes"     => "rails/info#routes", internal: true
-            get "/rails/info"            => "rails/info#index", internal: true
-          end
-
-          app.routes.append do
-            get "/"                      => "rails/welcome#index", internal: true
-          end
-        end
-      end
-
       # Setup default session store if not already set in config/application.rb
       initializer :setup_default_session_store, before: :build_middleware_stack do |app|
         unless app.config.session_store?
@@ -206,6 +192,22 @@ module Rails
           # some sort of reloaders dependency support, to be added.
           require_unload_lock!
           reloader.execute
+        end
+      end
+
+      initializer :add_builtin_route do |app|
+        if Rails.env.development?
+          app.routes.prepend do
+            get "/rails/info/properties" => "rails/info#properties", internal: true
+            get "/rails/info/routes"     => "rails/info#routes", internal: true
+            get "/rails/info"            => "rails/info#index", internal: true
+          end
+
+          app.routes.append do
+            get "/"                      => "rails/welcome#index", internal: true
+          end
+
+          routes_reloader.execute
         end
       end
 
