@@ -58,7 +58,7 @@ module ActiveStorage
             filename: attachable.original_filename,
             content_type: attachable.content_type
         when Hash
-          ActiveStorage::Blob.build_after_unfurling(**attachable)
+          ActiveStorage::Blob.build_after_unfurling(**attachable.symbolize_keys)
         when String
           ActiveStorage::Blob.find_signed(attachable)
         else

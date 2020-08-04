@@ -286,6 +286,13 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     assert_equal 2736, @user.avatar.metadata[:height]
   end
 
+  test "creating an attachment as part of an autosave association through nested attributes" do
+    group = Group.create!(users_attributes: [{ name: "John", avatar: { io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg" } }])
+    group.save!
+    new_user = User.find_by(name: "John")
+    assert new_user.avatar.attached?
+  end
+
   test "updating an attachment as part of an autosave association" do
     group = Group.create!(users: [@user])
     @user.avatar = fixture_file_upload("racecar.jpg")
