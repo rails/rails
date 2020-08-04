@@ -88,24 +88,15 @@ module ActionView
         fully_resolved_key = scope_key_by_partial(key)
 
         if html_safe_translation_key?(key)
-          html_safe_options = options.dup
-
-          options.except(*I18n::RESERVED_KEYS).each do |name, value|
-            unless name == :count && value.is_a?(Numeric)
-              html_safe_options[name] = ERB::Util.html_escape(value.to_s)
-            end
-          end
-
+          html_safe_options = html_escape_translation_options(options)
           html_safe_options[:default] = MISSING_TRANSLATION unless html_safe_options[:default].blank?
 
           translation = I18n.translate(fully_resolved_key, **html_safe_options.merge(raise: i18n_raise))
 
           if translation.equal?(MISSING_TRANSLATION)
             translated_text = options[:default].first
-          elsif translation.respond_to?(:map)
-            translated_text = translation.map { |element| element.respond_to?(:html_safe) ? element.html_safe : element }
           else
-            translated_text = translation.respond_to?(:html_safe) ? translation.html_safe : translation
+            translated_text = html_safe_translation(translation)
           end
         else
           translated_text = I18n.translate(fully_resolved_key, **options.merge(raise: i18n_raise))
@@ -122,18 +113,7 @@ module ActionView
         else
           raise e if raise_error
 
-          keys = I18n.normalize_keys(e.locale, e.key, e.options[:scope])
-          title = +"translation missing: #{keys.join('.')}"
-
-          interpolations = options.except(:default, :scope)
-
-          if interpolations.any?
-            title << ", " << interpolations.map { |k, v| "#{k}: #{ERB::Util.html_escape(v)}" }.join(", ")
-          end
-
-          return title unless ActionView::Base.debug_missing_translation
-
-          translated_fallback = content_tag("span", keys.last.to_s.titleize, class: "translation_missing", title: title)
+          translated_fallback = missing_translation(e, options)
 
           if block_given?
             yield(translated_fallback, scope_key_by_partial(key))
@@ -172,8 +152,45 @@ module ActionView
           end
         end
 
+        def html_escape_translation_options(options)
+          html_safe_options = options.dup
+
+          options.except(*I18n::RESERVED_KEYS).each do |name, value|
+            unless name == :count && value.is_a?(Numeric)
+              html_safe_options[name] = ERB::Util.html_escape(value.to_s)
+            end
+          end
+
+          html_safe_options
+        end
+
         def html_safe_translation_key?(key)
           /(?:_|\b)html\z/.match?(key.to_s)
+        end
+
+        def html_safe_translation(translation)
+          if translation.respond_to?(:map)
+            translation.map { |element| element.respond_to?(:html_safe) ? element.html_safe : element }
+          else
+            translation.respond_to?(:html_safe) ? translation.html_safe : translation
+          end
+        end
+
+        def missing_translation(error, options)
+          keys = I18n.normalize_keys(error.locale, error.key, error.options[:scope])
+
+          title = +"translation missing: #{keys.join(".")}"
+
+          interpolations = options.except(:default, :scope)
+          if interpolations.any?
+            title << ", " << interpolations.map { |k, v| "#{k}: #{ERB::Util.html_escape(v)}" }.join(", ")
+          end
+
+          if ActionView::Base.debug_missing_translation
+            content_tag("span", keys.last.to_s.titleize, class: "translation_missing", title: title)
+          else
+            title
+          end
         end
     end
   end

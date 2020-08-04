@@ -102,6 +102,15 @@ class TranslationHelperTest < ActiveSupport::TestCase
     ActionView::Base.raise_on_missing_translations = false
   end
 
+  def test_raise_arg_overrides_raise_config_option
+    ActionView::Base.raise_on_missing_translations = true
+
+    expected = "translation missing: en.translations.missing"
+    assert_equal expected, translate(:"translations.missing", raise: false)
+  ensure
+    ActionView::Base.raise_on_missing_translations = false
+  end
+
   def test_raises_missing_translation_message_with_raise_option
     assert_raise(I18n::MissingTranslationData) do
       translate(:"translations.missing", raise: true)
@@ -162,6 +171,16 @@ class TranslationHelperTest < ActiveSupport::TestCase
   def test_missing_translation_scoped_by_partial_yield_block
     expected = 'translations.templates.missing_yield_block.missing: <span class="translation_missing" title="translation missing: en.translations.templates.missing_yield_block.missing">Missing</span>'
     assert_equal expected, view.render(template: "translations/templates/missing_yield_block").strip
+  end
+
+  def test_missing_translation_scoped_by_partial_yield_block_without_debug_wrapper
+    old_debug_missing_translation = ActionView::Base.debug_missing_translation
+    ActionView::Base.debug_missing_translation = false
+
+    expected = "translations.templates.missing_yield_block.missing: translation missing: en.translations.templates.missing_yield_block.missing"
+    assert_equal expected, view.render(template: "translations/templates/missing_yield_block").strip
+  ensure
+    ActionView::Base.debug_missing_translation = old_debug_missing_translation
   end
 
   def test_missing_translation_with_default_scoped_by_partial_yield_block
@@ -229,6 +248,12 @@ class TranslationHelperTest < ActiveSupport::TestCase
     end
   end
 
+  def test_translate_with_html_key_and_missing_default_and_raise_option
+    assert_raise(I18n::MissingTranslationData) do
+      translate(:"translations.missing_html", default: :"translations.missing_html", raise: true)
+    end
+  end
+
   def test_translate_with_two_defaults_named_html
     translation = translate(:'translations.missing', default: [:'translations.missing_html', :'translations.hello_html'])
     assert_equal "<a>Hello World</a>", translation
@@ -287,6 +312,11 @@ class TranslationHelperTest < ActiveSupport::TestCase
   def test_translate_with_nil_default
     translation = translate(:'translations.missing', default: nil)
     assert_nil translation
+  end
+
+  def test_translate_bulk_lookup
+    translations = translate([:"translations.foo", :"translations.foo"])
+    assert_equal ["Foo", "Foo"], translations
   end
 
   def test_translate_does_not_change_options
