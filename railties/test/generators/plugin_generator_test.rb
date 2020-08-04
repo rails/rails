@@ -232,6 +232,24 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_skip_action_mailer_and_skip_active_job_with_mountable
+    run_generator [destination_root, "--mountable", "--skip-action-mailer", "--skip-active-job"]
+    assert_no_directory "app/mailers"
+    assert_no_directory "app/jobs"
+  end
+
+  def test_skip_action_mailer_and_skip_active_job_with_api_and_mountable
+    run_generator [destination_root, "--api", "--mountable", "--skip-action-mailer", "--skip-active-job"]
+    assert_no_directory "app/mailers"
+    assert_no_directory "app/jobs"
+  end
+
+  def test_skip_action_mailer_and_skip_active_job_with_full
+    run_generator [destination_root, "--full", "--skip-action-mailer", "--skip-active-job"]
+    assert_no_directory "app/mailers"
+    assert_no_directory "app/jobs"
+  end
+
   def test_template_from_dir_pwd
     FileUtils.cd(Rails.root)
     assert_match(/It works from file!/, run_generator([destination_root, "-m", "lib/template.rb"]))
@@ -268,6 +286,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "app/views"
     assert_file "app/helpers"
     assert_file "app/mailers"
+    assert_file "app/jobs"
     assert_file "bin/rails", /\s+require\s+["']rails\/all["']/
     assert_file "config/routes.rb", /Rails.application.routes.draw do/
     assert_file "lib/bukkits/engine.rb", /module Bukkits\n  class Engine < ::Rails::Engine\n  end\nend/
@@ -284,6 +303,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "hyphenated-name/app/views"
     assert_file "hyphenated-name/app/helpers"
     assert_file "hyphenated-name/app/mailers"
+    assert_file "hyphenated-name/app/jobs"
     assert_file "hyphenated-name/bin/rails"
     assert_file "hyphenated-name/config/routes.rb",              /Rails.application.routes.draw do/
     assert_file "hyphenated-name/lib/hyphenated/name/engine.rb", /module Hyphenated\n  module Name\n    class Engine < ::Rails::Engine\n    end\n  end\nend/
@@ -301,6 +321,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "my_hyphenated-name/app/views"
     assert_file "my_hyphenated-name/app/helpers"
     assert_file "my_hyphenated-name/app/mailers"
+    assert_file "my_hyphenated-name/app/jobs"
     assert_file "my_hyphenated-name/bin/rails"
     assert_file "my_hyphenated-name/config/routes.rb",              /Rails\.application\.routes\.draw do/
     assert_file "my_hyphenated-name/lib/my_hyphenated/name/engine.rb", /module MyHyphenated\n  module Name\n    class Engine < ::Rails::Engine\n    end\n  end\nend/
