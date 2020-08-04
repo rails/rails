@@ -940,8 +940,10 @@ class MigrationTest < ActiveRecord::TestCase
 
       e = assert_raises(ActiveRecord::ConcurrentMigrationError) do
         silence_stream($stderr) do
-          migrator.send(:with_advisory_lock) do
-            ActiveRecord::AdvisoryLockBase.connection.release_advisory_lock(lock_id)
+          migrator.stub(:with_advisory_lock_connection, ->(&block) { block.call(ActiveRecord::Base.connection) }) do
+            migrator.send(:with_advisory_lock) do
+              ActiveRecord::Base.connection.release_advisory_lock(lock_id)
+            end
           end
         end
       end
