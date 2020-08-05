@@ -172,6 +172,25 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     assert_equal 8, image.height
   end
 
+  test "resized variation of PNG blob without format should be PNG type" do
+    blob = create_file_blob(filename: "png_image_without_format", content_type: "image/png")
+    variant = blob.variant(resize: "15x15").processed
+
+    assert_equal "PNG", read_image(variant).type
+  end
+
+  test "resized variation of JFIF works for vips processor" do
+    ActiveStorage.variant_processor = :vips
+    blob = create_file_blob(filename: "image.jfif", content_type: "image/jpeg")
+    assert_nothing_raised do
+      blob.variant(thumbnail_image: 100).processed
+    end
+  rescue LoadError
+    # libvips not installed
+  ensure
+    ActiveStorage.variant_processor = :mini_magick
+  end
+
   test "optimized variation of GIF blob" do
     blob = create_file_blob(filename: "image.gif", content_type: "image/gif")
 
