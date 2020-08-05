@@ -182,11 +182,12 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   test "resized variation of JFIF works for vips processor" do
     ActiveStorage.variant_processor = :vips
     blob = create_file_blob(filename: "image.jfif", content_type: "image/jpeg")
+
     assert_nothing_raised do
       blob.variant(thumbnail_image: 100).processed
     end
-  rescue LoadError
-    # libvips not installed
+  rescue LoadError => e
+    skip(e.message)
   ensure
     ActiveStorage.variant_processor = :mini_magick
   end
@@ -219,8 +220,8 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     image = read_image(variant)
     assert_equal 100, image.width
     assert_equal 67, image.height
-  rescue LoadError
-    # libvips not installed
+  rescue LoadError => e
+    skip(e.message)
   ensure
     ActiveStorage.variant_processor = :mini_magick
   end
