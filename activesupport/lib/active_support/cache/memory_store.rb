@@ -22,7 +22,6 @@ module ActiveSupport
         options ||= {}
         super(options)
         @data = {}
-        @key_access = {}
         @max_size = options[:size] || 32.megabytes
         @max_prune_time = options[:max_prune_time] || 2
         @cache_size = 0
@@ -39,7 +38,6 @@ module ActiveSupport
       def clear(options = nil)
         synchronize do
           @data.clear
-          @key_access.clear
           @cache_size = 0
         end
       end
@@ -65,7 +63,7 @@ module ActiveSupport
           start_time = Concurrent.monotonic_time
           cleanup
           instrument(:prune, target_size, from: @cache_size) do
-            keys = synchronize { @key_access.keys.sort { |a, b| @key_access[a].to_f <=> @key_access[b].to_f } }
+            keys = synchronize { @data.keys }
             keys.each do |key|
               delete_entry(key, **options)
               return if @cache_size <= target_size || (max_time && Concurrent.monotonic_time - start_time > max_time)
@@ -104,7 +102,7 @@ module ActiveSupport
       end
 
       def inspect # :nodoc:
-        "<##{self.class.name} entries=#{@data.size}, size=#{@cache_size}, options=#{@options.inspect}>"
+        "#<#{self.class.name} entries=#{@data.size}, size=#{@cache_size}, options=#{@options.inspect}>"
       end
 
       # Synchronize calls to the cache. This should be called wherever the underlying cache implementation
@@ -121,30 +119,29 @@ module ActiveSupport
         end
 
         def read_entry(key, **options)
-          entry = @data[key]
+          entry = nil
           synchronize do
+            entry = @data.delete(key)
             if entry
+              @data[key] = entry
               entry = entry.dup
-              entry.dup_value!
-              @key_access[key] = Time.now.to_f
-            else
-              @key_access.delete(key)
             end
           end
+          entry&.dup_value!
           entry
         end
 
         def write_entry(key, entry, **options)
           entry.dup_value!
           synchronize do
-            old_entry = @data[key]
-            return false if @data.key?(key) && options[:unless_exist]
+            return false if options[:unless_exist] && @data.key?(key)
+
+            old_entry = @data.delete(key)
             if old_entry
               @cache_size -= (old_entry.size - entry.size)
             else
               @cache_size += cached_size(key, entry)
             end
-            @key_access[key] = Time.now.to_f
             @data[key] = entry
             prune(@max_size * 0.75, @max_prune_time) if @cache_size > @max_size
             true
@@ -153,7 +150,6 @@ module ActiveSupport
 
         def delete_entry(key, **options)
           synchronize do
-            @key_access.delete(key)
             entry = @data.delete(key)
             @cache_size -= cached_size(key, entry) if entry
             !!entry

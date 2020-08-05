@@ -147,7 +147,7 @@ module ActiveModel
     # override +validate_each+ with validation logic.
     def validate(record)
       attributes.each do |attribute|
-        value = record.read_attribute_for_validation(attribute)
+        value = read_attribute_for_validation(record, attribute)
         next if (value.nil? && options[:allow_nil]) || (value.blank? && options[:allow_blank])
         validate_each(record, attribute, value)
       end
@@ -164,6 +164,11 @@ module ActiveModel
     # +ArgumentError+ when invalid options are supplied.
     def check_validity!
     end
+
+    private
+      def read_attribute_for_validation(record, attr_name)
+        record.read_attribute_for_validation(attr_name)
+      end
   end
 
   # +BlockValidator+ is a special +EachValidator+ which receives a block on initialization

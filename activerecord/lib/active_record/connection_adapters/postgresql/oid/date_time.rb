@@ -10,8 +10,8 @@ module ActiveRecord
             when "infinity" then ::Float::INFINITY
             when "-infinity" then -::Float::INFINITY
             when / BC$/
-              astronomical_year = format("%04d", -value[/^\d+/].to_i + 1)
-              super(value.sub(/ BC$/, "").sub(/^\d+/, astronomical_year))
+              value = value.sub(/^\d+/) { |year| format("%04d", -year.to_i + 1) }
+              super(value.delete_suffix!(" BC"))
             else
               super
             end

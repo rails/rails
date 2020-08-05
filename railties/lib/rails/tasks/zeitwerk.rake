@@ -14,8 +14,8 @@ end
 report_not_checked = ->(not_checked) do
   puts
   puts <<~EOS
-    WARNING: The files in these directories cannot be checked because they
-    are not eager loaded:
+    WARNING: The following directories will only be checked if you configure
+    them to be eager loaded:
   EOS
   puts
 

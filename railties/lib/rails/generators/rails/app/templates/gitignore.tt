@@ -19,6 +19,11 @@
 <% if keeps? -%>
 !/log/.keep
 !/tmp/.keep
+
+# Ignore pidfiles, but keep the directory.
+/tmp/pids/*
+!/tmp/pids/
+!/tmp/pids/.keep
 <% end -%>
 
 <% unless skip_active_storage? -%>

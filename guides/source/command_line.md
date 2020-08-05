@@ -267,7 +267,7 @@ ActiveRecord options:
 ...
 
 Description:
-    Stubs out a new model. Pass the model name, either CamelCased or
+    Generates a new model. Pass the model name, either CamelCased or
     under_scored, and an optional list of attribute pairs as arguments.
 
 ...
@@ -370,7 +370,7 @@ Inside the `bin/rails console` you have access to the `app` and `helper` instanc
 
 With the `app` method you can access named route helpers, as well as do requests.
 
-```bash
+```ruby
 >> app.root_path
 => "/"
 
@@ -381,7 +381,7 @@ Started GET "/" for 127.0.0.1 at 2014-06-19 10:41:57 -0300
 
 With the `helper` method it is possible to access Rails and your application's helpers.
 
-```bash
+```ruby
 >> helper.time_ago_in_words 30.days.ago
 => "about 1 month"
 

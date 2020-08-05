@@ -25,19 +25,33 @@ module ActiveRecord
       assert_equal expected, actual
     end
 
+    def test_type_casted_extra_select_with_eager_loading
+      posts = Post.select("posts.id * 1.1 AS foo").eager_load(:comments)
+      assert_equal 1.1, posts.first.foo
+    end
+
     def test_aliased_select_using_as_with_joins_and_includes
       posts = Post.select("posts.id AS field_alias").joins(:comments).includes(:comments)
-      assert_includes posts.first.attributes, "field_alias"
+      assert_equal %w(
+        id author_id title body type legacy_comments_count taggings_with_delete_all_count taggings_with_destroy_count
+        tags_count indestructible_tags_count tags_with_destroy_count tags_with_nullify_count field_alias
+      ), posts.first.attributes.keys
     end
 
     def test_aliased_select_not_using_as_with_joins_and_includes
       posts = Post.select("posts.id field_alias").joins(:comments).includes(:comments)
-      assert_includes posts.first.attributes, "field_alias"
+      assert_equal %w(
+        id author_id title body type legacy_comments_count taggings_with_delete_all_count taggings_with_destroy_count
+        tags_count indestructible_tags_count tags_with_destroy_count tags_with_nullify_count field_alias
+      ), posts.first.attributes.keys
     end
 
     def test_star_select_with_joins_and_includes
       posts = Post.select("posts.*").joins(:comments).includes(:comments)
-      assert_not_includes posts.first.attributes, "posts.*"
+      assert_equal %w(
+        id author_id title body type legacy_comments_count taggings_with_delete_all_count taggings_with_destroy_count
+        tags_count indestructible_tags_count tags_with_destroy_count tags_with_nullify_count
+      ), posts.first.attributes.keys
     end
   end
 end

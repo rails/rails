@@ -9,13 +9,18 @@ module ActiveModel
         end
 
         def cast(value)
-          value = \
+          # Checks whether the value is numeric. Spaceship operator
+          # will return nil if value is not numeric.
+          value = if value <=> 0
+            value
+          else
             case value
             when true then 1
             when false then 0
-            when ::String then value.presence
-            else value
+            else value.presence
             end
+          end
+
           super(value)
         end
 

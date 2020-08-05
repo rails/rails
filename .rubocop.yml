@@ -12,7 +12,6 @@ AllCops:
     - '**/templates/**/*'
     - '**/vendor/**/*'
     - 'actionpack/lib/action_dispatch/journey/parser.rb'
-    - 'railties/test/fixtures/tmp/**/*'
     - 'actionmailbox/test/dummy/**/*'
     - 'actiontext/test/dummy/**/*'
     - '**/node_modules/**/*'
@@ -30,6 +29,12 @@ Rails/AssertNot:
 Rails/RefuteMethods:
   Include:
     - '**/test/**/*'
+
+Rails/IndexBy:
+  Enabled: true
+
+Rails/IndexWith:
+  Enabled: true
 
 # Prefer &&/|| over and/or.
 Style/AndOr:
@@ -167,7 +172,7 @@ Style/StringLiterals:
   EnforcedStyle: double_quotes
 
 # Detect hard tabs, no hard tabs.
-Layout/Tab:
+Layout/IndentationStyle:
   Enabled: true
 
 # Empty lines should not have any spaces.
@@ -256,4 +261,10 @@ Performance/ReverseEach:
   Enabled: true
 
 Performance/UnfreezeString:
+  Enabled: true
+
+Performance/DeletePrefix:
+  Enabled: true
+
+Performance/DeleteSuffix:
   Enabled: true

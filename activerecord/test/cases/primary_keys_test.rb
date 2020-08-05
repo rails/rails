@@ -312,15 +312,15 @@ class PrimaryKeyAnyTypeTest < ActiveRecord::TestCase
 
   test "schema dump primary key includes type and options" do
     schema = dump_table_schema "barcodes"
-    assert_match %r{create_table "barcodes", primary_key: "code", id: :string, limit: 42}, schema
+    assert_match %r/create_table "barcodes", primary_key: "code", id: { type: :string, limit: 42 }/, schema
     assert_no_match %r{t\.index \["code"\]}, schema
   end
 
-  if current_adapter?(:Mysql2Adapter) && subsecond_precision_supported?
+  if current_adapter?(:Mysql2Adapter) && supports_datetime_with_precision?
     test "schema typed primary key column" do
       @connection.create_table(:scheduled_logs, id: :timestamp, precision: 6, force: true)
       schema = dump_table_schema("scheduled_logs")
-      assert_match %r/create_table "scheduled_logs", id: :timestamp, precision: 6/, schema
+      assert_match %r/create_table "scheduled_logs", id: { type: :timestamp, precision: 6.* }/, schema
     end
   end
 end
@@ -462,7 +462,7 @@ if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
         assert_predicate column, :unsigned?
 
         schema = dump_table_schema "widgets"
-        assert_match %r{create_table "widgets", id: :integer, unsigned: true, }, schema
+        assert_match %r/create_table "widgets", id: { type: :integer, unsigned: true }/, schema
       end
 
       test "bigint primary key with unsigned" do
@@ -474,7 +474,7 @@ if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
         assert_predicate column, :unsigned?
 
         schema = dump_table_schema "widgets"
-        assert_match %r{create_table "widgets", id: :bigint, unsigned: true, }, schema
+        assert_match %r/create_table "widgets", id: { type: :bigint, unsigned: true }/, schema
       end
     end
   end

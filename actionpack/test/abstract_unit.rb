@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 $:.unshift File.expand_path("lib", __dir__)
-$:.unshift File.expand_path("fixtures/helpers", __dir__)
-$:.unshift File.expand_path("fixtures/alternate_helpers", __dir__)
 
 require "active_support/core_ext/kernel/reporting"
 
@@ -35,6 +33,19 @@ module Rails
   end
 end
 
+module ActionPackTestSuiteUtils
+  def self.require_helpers(helpers_dirs)
+    Array(helpers_dirs).each do |helpers_dir|
+      Dir.glob("#{helpers_dir}/**/*_helper.rb") do |helper_file|
+        require helper_file
+      end
+    end
+  end
+end
+
+ActionPackTestSuiteUtils.require_helpers("#{__dir__}/fixtures/helpers")
+ActionPackTestSuiteUtils.require_helpers("#{__dir__}/fixtures/alternate_helpers")
+
 ActiveSupport::Dependencies.hook!
 
 Thread.abort_on_exception = true
@@ -58,7 +69,10 @@ end
 module ActionDispatch
   module SharedRoutes
     def before_setup
-      @routes = SharedTestRoutes
+      @routes = Routing::RouteSet.new
+      ActiveSupport::Deprecation.silence do
+        @routes.draw { get ":controller(/:action)" }
+      end
       super
     end
   end
@@ -165,7 +179,7 @@ end
 class Rack::TestCase < ActionDispatch::IntegrationTest
   def self.testing(klass = nil)
     if klass
-      @testing = "/#{klass.name.underscore}".sub(/_controller$/, "")
+      @testing = "/#{klass.name.underscore}".delete_suffix("_controller")
     else
       @testing
     end

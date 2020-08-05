@@ -3,7 +3,9 @@
 require "active_support/core_ext/object/blank"
 
 module ActiveSupport
-  # Usually key value pairs are handled something like this:
+  # +OrderedOptions+ inherits from +Hash+ and provides dynamic accessor methods.
+  #
+  # With a +Hash+, key-value pairs are typically managed like this:
   #
   #   h = {}
   #   h[:boy] = 'John'
@@ -12,7 +14,7 @@ module ActiveSupport
   #   h[:girl] # => 'Mary'
   #   h[:dog]  # => nil
   #
-  # Using +OrderedOptions+, the above code could be reduced to:
+  # Using +OrderedOptions+, the above code can be written as:
   #
   #   h = ActiveSupport::OrderedOptions.new
   #   h.boy = 'John'

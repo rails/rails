@@ -71,6 +71,13 @@ else
 
       assert_not_equal derived_key, different_length_key
     end
+
+    test "Does not cache key for different salts and lengths that are different but are equal when concatenated" do
+      derived_key = @caching_generator.generate_key("13", 37)
+      different_length_key = @caching_generator.generate_key("1", 337)
+
+      assert_not_equal derived_key, different_length_key
+    end
   end
 
 end

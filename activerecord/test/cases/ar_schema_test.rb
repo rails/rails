@@ -160,7 +160,7 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
     assert @connection.column_exists?(:has_timestamps, :updated_at, null: false)
   end
 
-  if subsecond_precision_supported?
+  if supports_datetime_with_precision?
     def test_timestamps_sets_precision_on_create_table
       ActiveRecord::Schema.define do
         create_table :has_timestamps do |t|

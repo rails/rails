@@ -3,7 +3,7 @@
 require "cases/helper"
 require "support/schema_dumping_helper"
 
-if subsecond_precision_supported?
+if supports_datetime_with_precision?
   class DateTimePrecisionTest < ActiveRecord::TestCase
     include SchemaDumpingHelper
     self.use_transactional_tests = false
@@ -94,8 +94,10 @@ if subsecond_precision_supported?
         t.datetime :created_at, precision: 0
         t.datetime :updated_at, precision: 4
       end
+
       date = ::Time.utc(2014, 8, 17, 12, 30, 0, 999999)
       Foo.create!(created_at: date, updated_at: date)
+
       assert foo = Foo.find_by(created_at: date)
       assert_equal 1, Foo.where(updated_at: date).count
       assert_equal date.to_s, foo.created_at.to_s

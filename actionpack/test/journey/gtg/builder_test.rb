@@ -40,10 +40,10 @@ module ActionDispatch
             /articles/:id(.:format)
           }
 
-          sim = NFA::Simulator.new table
+          sim = Simulator.new table
 
-          match = sim.match "/articles/new"
-          assert_equal 2, match.memos.length
+          memos = sim.memos "/articles/new"
+          assert_equal 2, memos.length
         end
 
         ##
@@ -54,10 +54,10 @@ module ActionDispatch
             /articles/new(.:format)
           }
 
-          sim = NFA::Simulator.new table
+          sim = Simulator.new table
 
-          match = sim.match "/articles/new"
-          assert_equal 2, match.memos.length
+          memos = sim.memos "/articles/new"
+          assert_equal 2, memos.length
         end
 
         private

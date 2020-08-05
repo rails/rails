@@ -77,6 +77,20 @@ class TransactionTest < ActiveRecord::TestCase
     assert_equal topic.title, topic.reload.title
   end
 
+  def test_rollback_dirty_changes_then_retry_save_on_new_record_with_autosave_association
+    author = Author.new(name: "DHH")
+    book = Book.create!
+    author.books << book
+
+    author.transaction do
+      author.save!
+      raise ActiveRecord::Rollback
+    end
+
+    author.save!
+    assert_equal author, book.reload.author
+  end
+
   def test_persisted_in_a_model_with_custom_primary_key_after_failed_save
     movie = Movie.create
     assert_not_predicate movie, :persisted?
@@ -85,13 +99,11 @@ class TransactionTest < ActiveRecord::TestCase
   def test_raise_after_destroy
     assert_not_predicate @first, :frozen?
 
-    assert_not_called(@first, :rolledback!) do
-      assert_raises(RuntimeError) do
-        Topic.transaction do
-          @first.destroy
-          assert_predicate @first, :frozen?
-          raise
-        end
+    assert_raises(RuntimeError) do
+      Topic.transaction do
+        @first.destroy
+        assert_predicate @first, :frozen?
+        raise
       end
     end
 
@@ -99,13 +111,11 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_successful
-    assert_not_called(@first, :committed!) do
-      Topic.transaction do
-        @first.approved  = true
-        @second.approved = false
-        @first.save
-        @second.save
-      end
+    Topic.transaction do
+      @first.approved  = true
+      @second.approved = false
+      @first.save
+      @second.save
     end
 
     assert_predicate Topic.find(1), :approved?, "First should have been approved"
@@ -138,10 +148,8 @@ class TransactionTest < ActiveRecord::TestCase
       end
     end
 
-    assert_not_called(@first, :committed!) do
-      assert_deprecated do
-        transaction_with_return
-      end
+    assert_deprecated do
+      transaction_with_return
     end
     assert committed
 
@@ -169,6 +177,14 @@ class TransactionTest < ActiveRecord::TestCase
     assert Topic.find(1).approved?, "First should have been approved"
   end
 
+  def test_early_return_from_transaction
+    assert_not_deprecated do
+      @first.with_lock do
+        break
+      end
+    end
+  end
+
   def test_number_of_transactions_in_commit
     num = nil
 
@@ -180,11 +196,9 @@ class TransactionTest < ActiveRecord::TestCase
       end
     end
 
-    assert_not_called(@first, :committed!) do
-      Topic.transaction do
-        @first.approved = true
-        @first.save!
-      end
+    Topic.transaction do
+      @first.approved = true
+      @first.save!
     end
 
     assert_equal 0, num
@@ -196,13 +210,11 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_successful_with_instance_method
-    assert_not_called(@first, :committed!) do
-      @first.transaction do
-        @first.approved  = true
-        @second.approved = false
-        @first.save
-        @second.save
-      end
+    @first.transaction do
+      @first.approved  = true
+      @second.approved = false
+      @first.save
+      @second.save
     end
 
     assert_predicate Topic.find(1), :approved?, "First should have been approved"
@@ -210,7 +222,7 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_failing_on_exception
-    assert_not_called(@first, :rolledback!) do
+    begin
       Topic.transaction do
         @first.approved  = true
         @second.approved = false
@@ -235,10 +247,8 @@ class TransactionTest < ActiveRecord::TestCase
     end
 
     @first.approved = true
-    assert_not_called(@first, :rolledback!) do
-      e = assert_raises(RuntimeError) { @first.save }
-      assert_equal "Make the transaction rollback", e.message
-    end
+    e = assert_raises(RuntimeError) { @first.save }
+    assert_equal "Make the transaction rollback", e.message
     assert_not_predicate Topic.find(1), :approved?
   end
 
@@ -264,10 +274,8 @@ class TransactionTest < ActiveRecord::TestCase
       raise "Make the transaction rollback"
     end
 
-    assert_not_called(topic, :rolledback!) do
-      assert_raises(RuntimeError) do
-        Topic.transaction { topic.save }
-      end
+    assert_raises(RuntimeError) do
+      Topic.transaction { topic.save }
     end
 
     assert_predicate topic, :new_record?, "#{topic.inspect} should be new record"
@@ -512,7 +520,7 @@ class TransactionTest < ActiveRecord::TestCase
 
       begin
         Topic.transaction requires_new: true do
-          @first.happy = false
+          @first.approved = false
           @first.save!
           raise
         end
@@ -533,7 +541,7 @@ class TransactionTest < ActiveRecord::TestCase
 
       begin
         @second.transaction requires_new: true do
-          @first.happy = false
+          @first.approved = false
           @first.save!
           raise
         end

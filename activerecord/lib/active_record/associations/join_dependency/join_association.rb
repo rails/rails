@@ -14,7 +14,6 @@ module ActiveRecord
           super(reflection.klass, children)
 
           @reflection = reflection
-          @tables     = nil
         end
 
         def match?(other)
@@ -22,8 +21,10 @@ module ActiveRecord
           super && reflection == other.reflection
         end
 
-        def join_constraints(foreign_table, foreign_klass, join_type, alias_tracker)
+        def join_constraints(foreign_table, foreign_klass, join_type, alias_tracker, &block)
           joins = []
+          tables = reflection.chain.map(&block)
+          @table = tables.first
 
           # The chain starts with the target table, but we want to end with it here (makes
           # more sense in this context), so we reverse
@@ -33,16 +34,25 @@ module ActiveRecord
 
             join_scope = reflection.join_scope(table, foreign_table, foreign_klass)
 
+            unless join_scope.references_values.empty?
+              join_dependency = join_scope.construct_join_dependency(
+                join_scope.eager_load_values | join_scope.includes_values, Arel::Nodes::OuterJoin
+              )
+              join_scope.joins!(join_dependency)
+            end
+
             arel = join_scope.arel(alias_tracker.aliases)
             nodes = arel.constraints.first
 
-            others = nodes.children.extract! do |node|
-              !Arel.fetch_attribute(node) { |attr| attr.relation.name == table.name }
+            if nodes.is_a?(Arel::Nodes::And)
+              others = nodes.children.extract! do |node|
+                !Arel.fetch_attribute(node) { |attr| attr.relation.name == table.name }
+              end
             end
 
             joins << table.create_join(table, table.create_on(nodes), join_type)
 
-            unless others.empty?
+            if others && !others.empty?
               joins.concat arel.join_sources
               append_constraints(joins.last, others)
             end
@@ -52,11 +62,6 @@ module ActiveRecord
           end
 
           joins
-        end
-
-        def tables=(tables)
-          @tables = tables
-          @table  = tables.first
         end
 
         def readonly?
@@ -77,7 +82,8 @@ module ActiveRecord
               join_string = table.create_and(constraints.unshift(join.left))
               join.left = Arel.sql(base_klass.connection.visitor.compile(join_string))
             else
-              join.right.expr.children.concat(constraints)
+              right = join.right
+              right.expr = Arel::Nodes::And.new(constraints.unshift right.expr)
             end
           end
       end

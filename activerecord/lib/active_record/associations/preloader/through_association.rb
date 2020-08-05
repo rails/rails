@@ -90,7 +90,7 @@ module ActiveRecord
               end
 
               if values[:references] && !values[:references].empty?
-                scope.references!(values[:references])
+                scope.references_values |= values[:references]
               else
                 scope.references!(source_reflection.table_name)
               end

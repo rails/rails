@@ -10,6 +10,7 @@ class Date
     short: "%d %b",
     long: "%B %d, %Y",
     db: "%Y-%m-%d",
+    inspect: "%Y-%m-%d",
     number: "%Y%m%d",
     long_ordinal: lambda { |date|
       day_format = ActiveSupport::Inflector.ordinalize(date.day)

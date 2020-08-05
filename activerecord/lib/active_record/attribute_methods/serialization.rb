@@ -69,12 +69,12 @@ module ActiveRecord
             Coders::YAMLColumn.new(attr_name, class_name_or_coder)
           end
 
-          decorate_attribute_type(attr_name, :serialize) do |type|
-            if type_incompatible_with_serialize?(type, class_name_or_coder)
-              raise ColumnNotSerializableError.new(attr_name, type)
+          decorate_attribute_type(attr_name.to_s) do |cast_type|
+            if type_incompatible_with_serialize?(cast_type, class_name_or_coder)
+              raise ColumnNotSerializableError.new(attr_name, cast_type)
             end
 
-            Type::Serialized.new(type, coder)
+            Type::Serialized.new(cast_type, coder)
           end
         end
 

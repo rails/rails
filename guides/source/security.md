@@ -413,7 +413,7 @@ Intranet and Admin Security
 
 Intranet and administration interfaces are popular attack targets, because they allow privileged access. Although this would require several extra-security measures, the opposite is the case in the real world.
 
-In 2007 there was the first tailor-made trojan which stole information from an Intranet, namely the "Monster for employers" web site of Monster.com, an online recruitment web application. Tailor-made Trojans are very rare, so far, and the risk is quite low, but it is certainly a possibility and an example of how the security of the client host is important, too. However, the highest threat to Intranet and Admin applications are XSS and CSRF. 
+In 2007 there was the first tailor-made trojan which stole information from an Intranet, namely the "Monster for employers" web site of Monster.com, an online recruitment web application. Tailor-made Trojans are very rare, so far, and the risk is quite low, but it is certainly a possibility and an example of how the security of the client host is important, too. However, the highest threat to Intranet and Admin applications are XSS and CSRF.
 
 **XSS** If your application re-displays malicious user input from the extranet, the application will be vulnerable to XSS. User names, comments, spam reports, order addresses are just a few uncommon examples, where there can be XSS.
 
@@ -425,7 +425,7 @@ Refer to the Injection section for countermeasures against XSS.
 
 A real-world example is a [router reconfiguration by CSRF](http://www.h-online.com/security/news/item/Symantec-reports-first-active-attack-on-a-DSL-router-735883.html). The attackers sent a malicious e-mail, with CSRF in it, to Mexican users. The e-mail claimed there was an e-card waiting for the user, but it also contained an image tag that resulted in an HTTP-GET request to reconfigure the user's router (which is a popular model in Mexico). The request changed the DNS-settings so that requests to a Mexico-based banking site would be mapped to the attacker's site. Everyone who accessed the banking site through that router saw the attacker's fake web site and had their credentials stolen.
 
-Another example changed Google Adsense's e-mail address and password. If the victim was logged into Google Adsense, the administration interface for Google advertisement campaigns, an attacker could change the credentials of the victim. 
+Another example changed Google Adsense's e-mail address and password. If the victim was logged into Google Adsense, the administration interface for Google advertisement campaigns, an attacker could change the credentials of the victim.
 
 Another popular attack is to spam your web application, your blog, or forum to propagate malicious XSS. Of course, the attacker has to know the URL structure, but most Rails URLs are quite straightforward or they will be easy to find out, if it is an open-source application's admin interface. The attacker may even do 1,000 lucky guesses by just including malicious IMG-tags which try every possible combination.
 
@@ -850,7 +850,7 @@ alert(eval('document.body.inne' + 'rHTML'));
 The next problem was MySpace filtering the word `"javascript"`, so the author used `"java<NEWLINE>script"` to get around this:
 
 ```html
-<div id="mycode" expr="alert('hah!')" style="background:url('java↵ script:eval(document.all.mycode.expr)')">
+<div id="mycode" expr="alert('hah!')" style="background:url('java↵script:eval(document.all.mycode.expr)')">
 ```
 
 Another problem for the worm's author was the [CSRF security tokens](#cross-site-request-forgery-csrf). Without them he couldn't send a friend request over POST. He got around it by sending a GET to the page right before adding a user and parsing the result for the CSRF token.
@@ -954,7 +954,7 @@ If Header Injection was possible, Response Splitting might be, too. In HTTP, the
 ```
 HTTP/1.1 302 Found [First standard 302 response]
 Date: Tue, 12 Apr 2005 22:09:07 GMT
-Location: Content-Type: text/html
+Location:Content-Type: text/html
 
 
 HTTP/1.1 200 OK [Second New response created by attacker begins]
@@ -1173,30 +1173,30 @@ It is beyond the scope of this guide to inform you on how to secure your applica
 
 ### Custom Credentials
 
-Rails stores secrets in `config/credentials.yml.enc`, which is encrypted and hence cannot be edited directly. Rails uses `config/master.key` or alternatively looks for environment variable `ENV["RAILS_MASTER_KEY"]` to encrypt the credentials file. The credentials file can be stored in version control, as long as master key is kept safe.
+Rails stores secrets in `config/credentials.yml.enc`, which is encrypted and hence cannot be edited directly. Rails uses `config/master.key` or alternatively looks for the environment variable `ENV["RAILS_MASTER_KEY"]` to encrypt the credentials file. Because the credentials file is encrypted, it can be stored in version control, as long as the master key is kept safe.
 
-To add new secret to credentials, first run `bin/rails secret` to get a new secret. Then run `bin/rails credentials:edit` to edit credentials, and add the secret. Running `credentials:edit` creates new credentials file and master key, if they did not already exist.
+By default, the credentials file contains the application's
+`secret_key_base`. It can also be used to store other secrets such as access keys for external APIs.
 
-By default, this file contains the application's
-`secret_key_base`, but it could also be used to store other credentials such as access keys for external APIs.
+To edit the credentials file, run `bin/rails credentials:edit`. This command will create the credentials file if it does not exist. Additionally, this command will create `config/master.key` if no master key is defined.
 
-The secrets kept in credentials file are accessible via `Rails.application.credentials`.
+Secrets kept in the credentials file are accessible via `Rails.application.credentials`.
 For example, with the following decrypted `config/credentials.yml.enc`:
 
 ```yaml
-secret_key_base: 3b7cd727ee24e8444053437c36cc66c3
+secret_key_base: 3b7cd72...
 some_api_key: SOMEKEY
 ```
 
-`Rails.application.credentials.some_api_key` returns `SOMEKEY` in any environment.
+`Rails.application.credentials.some_api_key` returns `"SOMEKEY"`.
 
-If you want an exception to be raised when some key is blank, use the bang
+If you want an exception to be raised when some key is blank, you can use the bang
 version:
 
 ```ruby
-Rails.application.credentials.some_api_key! # => raises KeyError: :some_api_key is blank
+# When some_api_key is blank...
+Rails.application.credentials.some_api_key! # => KeyError: :some_api_key is blank
 ```
-
 
 TIP: Learn more about credentials with `bin/rails credentials:help`.
 
@@ -1214,5 +1214,5 @@ The security landscape shifts and it is important to keep up to date, because mi
 
 * Subscribe to the Rails security [mailing list](https://groups.google.com/forum/#!forum/rubyonrails-security).
 * [Brakeman - Rails Security Scanner](https://brakemanscanner.org/) - To perform static security analysis for Rails applications.
-* [Keep up to date on the other application layers](http://secunia.com/) (they have a weekly newsletter, too).
+* [Mozilla's Web Security Guidelines](https://infosec.mozilla.org/guidelines/web_security.html) - Recommendations on topics covering Content Security Policy, HTTP headers, Cookies, TLS configuration, etc.
 * A [good security blog](https://www.owasp.org) including the [Cross-Site scripting Cheat Sheet](https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.md).

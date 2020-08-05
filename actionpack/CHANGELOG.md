@@ -1,3 +1,80 @@
+*   Change default redirection status code for non-GET/HEAD requests to 308 Permanent Redirect for `ActionDispatch::SSL`.
+
+    *Alan Tan*, *Oz Ben-David*
+
+*   Fix `follow_redirect!` to follow redirection with same HTTP verb when following
+    a 308 redirection.
+
+    *Alan Tan*
+
+*   When multiple domains are specified for a cookie, a domain will now be
+    chosen only if it is equal to or is a superdomain of the request host.
+
+    *Jonathan Hefner*
+
+*   `ActionDispatch::Static` handles precompiled Brotli (.br) files.
+
+    Adds to existing support for precompiled gzip (.gz) files.
+    Brotli files are preferred due to much better compression.
+
+    When the browser requests /some.js with `Accept-Encoding: br`,
+    we check for public/some.js.br and serve that file, if present, with
+    `Content-Encoding: br` and `Vary: Accept-Encoding` headers.
+
+    *Ryan Edward Hall*, *Jeremy Daer*
+
+*   Add raise_on_missing_translations support for controllers.
+
+    This configuration determines whether an error should be raised for missing translations.
+    It can be enabled through `config.i18n.raise_on_missing_translations`. Note that described
+    configuration also affects raising error for missing translations in views.
+
+    *fatkodima*
+
+*   Added `compact` and `compact!` to `ActionController::Parameters`.
+
+    *Eugene Kenny*
+
+*   Calling `each_pair` or `each_value` on an `ActionController::Parameters`
+    without passing a block now returns an enumerator.
+
+    *Eugene Kenny*
+
+*   `fixture_file_upload` now uses path relative to `file_fixture_path`
+
+    Previously the path had to be relative to `fixture_path`.
+    You can change your existing code as follow:
+
+    ```ruby
+    # Before
+    fixture_file_upload('files/dog.png')
+
+    # After
+    fixture_file_upload('dog.png')
+    ```
+
+    *Edouard Chin*
+
+*   Remove deprecated `force_ssl` at the controller level.
+
+    *Rafael Mendonça França*
+
+*   The +helper+ class method for controllers loads helper modules specified as
+    strings/symbols with `String#constantize` instead of `require_dependency`.
+
+    Remember that support for strings/symbols is only a convenient API. You can
+    always pass a module object:
+
+    ```ruby
+    helper UtilsHelper
+    ```
+
+    which is recommended because it is simple and direct. When a string/symbol
+    is received, `helper` just manipulates and inflects the argument to obtain
+    that same module object.
+
+    *Xavier Noria*, *Jean Boussier*
+
 *   Correctly identify the entire localhost IPv4 range as trusted proxy.
 
     *Nick Soracco*
@@ -15,7 +92,7 @@
     out of the box: the value has to be url-encoded and decoded to survive transport.
 
     Now, we generate Base64 urlsafe-encoded CSRF tokens, which are inherently safe
-    to transport.  Validation accepts both urlsafe tokens, and strict-encoded tokens
+    to transport. Validation accepts both urlsafe tokens, and strict-encoded tokens
     for backwards compatibility.
 
     *Scott Blum*

@@ -10,7 +10,6 @@ module ActionController
   autoload :API
   autoload :Base
   autoload :Metal
-  autoload :Middleware
   autoload :Renderer
   autoload :FormBuilder
 
@@ -32,7 +31,6 @@ module ActionController
     autoload :EtagWithFlash
     autoload :FeaturePolicy
     autoload :Flash
-    autoload :ForceSSL
     autoload :Head
     autoload :Helpers
     autoload :HttpAuthentication

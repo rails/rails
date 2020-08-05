@@ -10,6 +10,8 @@ exemptLabels:
   - attached PR
   - regression
   - release blocker
+# Issues on a milestone will never be considered stale
+exemptMilestones: true
 # Label to use when marking an issue as stale
 staleLabel: stale
 # Comment to post when marking an issue as stale. Set to `false` to disable

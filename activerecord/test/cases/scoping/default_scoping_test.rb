@@ -6,7 +6,6 @@ require "models/comment"
 require "models/developer"
 require "models/project"
 require "models/computer"
-require "models/vehicle"
 require "models/cat"
 require "concurrent/atomic/cyclic_barrier"
 
@@ -167,10 +166,10 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_unscope_string_where_clauses_involved
-    dev_relation = Developer.order("salary DESC").where("created_at > ?", 1.year.ago)
+    dev_relation = Developer.order("salary DESC").where("legacy_created_at > ?", 1.year.ago)
     expected = dev_relation.collect(&:name)
 
-    dev_ordered_relation = DeveloperOrderedBySalary.where(name: "Jamis").where("created_at > ?", 1.year.ago)
+    dev_ordered_relation = DeveloperOrderedBySalary.where(name: "Jamis").where("legacy_created_at > ?", 1.year.ago)
     received = dev_ordered_relation.unscope(where: [:name]).collect(&:name)
 
     assert_equal expected.sort, received.sort
@@ -499,13 +498,13 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
   test "a scope can remove the condition from the default scope" do
     scope = DeveloperCalledJamis.david2
-    assert_equal 1, scope.where_clause.ast.children.length
+    assert_instance_of Arel::Nodes::Equality, scope.where_clause.ast
     assert_equal Developer.where(name: "David").map(&:id), scope.map(&:id)
   end
 
   def test_with_abstract_class_where_clause_should_not_be_duplicated
-    scope = Bus.all
-    assert_equal scope.where_clause.ast.children.length, 1
+    scope = Lion.all
+    assert_instance_of Arel::Nodes::Equality, scope.where_clause.ast
   end
 
   def test_sti_conditions_are_not_carried_in_default_scope

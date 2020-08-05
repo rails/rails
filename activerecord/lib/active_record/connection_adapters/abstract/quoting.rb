@@ -9,10 +9,12 @@ module ActiveRecord
       # Quotes the column value to help prevent
       # {SQL injection attacks}[https://en.wikipedia.org/wiki/SQL_injection].
       def quote(value)
-        value = id_value_for_database(value) if value.is_a?(Base)
-
-        if value.respond_to?(:value_for_database)
-          value = value.value_for_database
+        if value.is_a?(Base)
+          ActiveSupport::Deprecation.warn(<<~MSG)
+            Passing an Active Record object to `quote` directly is deprecated
+            and will be no longer quoted as id value in Rails 6.2.
+          MSG
+          value = value.id_for_database
         end
 
         _quote(value)
@@ -22,16 +24,23 @@ module ActiveRecord
       # SQLite does not understand dates, so this method will convert a Date
       # to a String.
       def type_cast(value, column = nil)
-        value = id_value_for_database(value) if value.is_a?(Base)
+        if value.is_a?(Base)
+          ActiveSupport::Deprecation.warn(<<~MSG)
+            Passing an Active Record object to `type_cast` directly is deprecated
+            and will be no longer type casted as id value in Rails 6.2.
+          MSG
+          value = value.id_for_database
+        end
 
         if column
-          value = type_cast_from_column(column, value)
+          ActiveSupport::Deprecation.warn(<<~MSG)
+            Passing a column to `type_cast` is deprecated and will be removed in Rails 6.2.
+          MSG
+          type = lookup_cast_type_from_column(column)
+          value = type.serialize(value)
         end
 
         _type_cast(value)
-      rescue TypeError
-        to_type = column ? " to #{column.type}" : ""
-        raise TypeError, "can't cast #{value.class}#{to_type}"
       end
 
       # If you are having to call this function, you are likely doing something
@@ -43,16 +52,6 @@ module ActiveRecord
       # represent the type doesn't sufficiently reflect the differences
       # (varchar vs binary) for example. The type used to get this primitive
       # should have been provided before reaching the connection adapter.
-      def type_cast_from_column(column, value) # :nodoc:
-        if column
-          type = lookup_cast_type_from_column(column)
-          type.serialize(value)
-        else
-          value
-        end
-      end
-
-      # See docs for #type_cast_from_column
       def lookup_cast_type_from_column(column) # :nodoc:
         lookup_cast_type(column.sql_type)
       end
@@ -197,21 +196,22 @@ module ActiveRecord
 
       private
         def type_casted_binds(binds)
-          if binds.first.is_a?(Array)
+          case binds.first
+          when Array
             binds.map { |column, value| type_cast(value, column) }
           else
-            binds.map { |attr| type_cast(attr.value_for_database) }
+            binds.map do |value|
+              if ActiveModel::Attribute === value
+                type_cast(value.value_for_database)
+              else
+                type_cast(value)
+              end
+            end
           end
         end
 
         def lookup_cast_type(sql_type)
           type_map.lookup(sql_type)
-        end
-
-        def id_value_for_database(value)
-          if primary_key = value.class.primary_key
-            value.instance_variable_get(:@attributes)[primary_key].value_for_database
-          end
         end
 
         def _quote(value)
@@ -243,7 +243,7 @@ module ActiveRecord
           when nil, Numeric, String then value
           when Type::Time::Value then quoted_time(value)
           when Date, Time then quoted_date(value)
-          else raise TypeError
+          else raise TypeError, "can't cast #{value.class.name}"
           end
         end
     end

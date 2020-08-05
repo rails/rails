@@ -79,10 +79,12 @@ module ActiveRecord
     # If the application has multiple databases +find_db_config+ will return
     # the first DatabaseConfig for the environment.
     def find_db_config(env)
-      configurations.find do |db_config|
-        db_config.env_name == env.to_s ||
-          (db_config.for_current_env? && db_config.name == env.to_s)
-      end
+      configurations
+        .sort_by { |db_config| db_config.for_current_env? ? 0 : 1 }
+        .find do |db_config|
+          db_config.env_name == env.to_s ||
+            (db_config.for_current_env? && db_config.name == env.to_s)
+        end
     end
 
     # Returns the DatabaseConfigurations object as a Hash.

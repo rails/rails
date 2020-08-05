@@ -71,7 +71,7 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
 
   def test_deduplicate_joins
     posts = Post.arel_table
-    constraint = posts[:author_id].eq(Author.arel_attribute(:id))
+    constraint = posts[:author_id].eq(Author.arel_table[:id])
 
     authors = Author.joins(posts.create_join(posts, posts.create_on(constraint)))
     authors = authors.joins(:author_address).merge(authors.where("posts.type": "SpecialPost"))
@@ -85,6 +85,15 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     SQL
 
     assert_equal 3, Person.eager_load(:agents).joins(string_join).count
+  end
+
+  def test_eager_load_with_arel_joins
+    agents = Person.arel_table.alias("agents_people")
+    agents_2 = Person.arel_table.alias("agents_people_2")
+    constraint = agents[:primary_contact_id].eq(agents_2[:id]).and(agents[:id].gt(agents_2[:id]))
+    arel_join = agents.create_join(agents, agents.create_on(constraint), Arel::Nodes::OuterJoin)
+
+    assert_equal 3, Person.eager_load(:agents).joins(arel_join).count
   end
 
   def test_construct_finder_sql_ignores_empty_joins_hash
@@ -110,7 +119,7 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
 
   def test_join_conditions_allow_nil_associations
     authors = Author.includes(:essays).where(essays: { id: nil })
-    assert_equal 2, authors.count
+    assert_equal 1, authors.count
   end
 
   def test_find_with_implicit_inner_joins_without_select_does_not_imply_readonly

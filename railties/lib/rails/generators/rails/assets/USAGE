@@ -1,5 +1,5 @@
 Description:
-    Stubs out new asset placeholders. Pass the asset name, either CamelCased
+    Generates new asset placeholders. Pass the asset name, either CamelCased
     or under_scored.
 
     To create an asset within a folder, specify the asset's name as a

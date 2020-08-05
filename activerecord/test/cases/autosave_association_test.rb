@@ -6,6 +6,7 @@ require "models/book"
 require "models/bird"
 require "models/post"
 require "models/comment"
+require "models/category"
 require "models/company"
 require "models/contract"
 require "models/customer"
@@ -739,6 +740,15 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     assert_equal 2, firm.clients.length
     assert_includes firm.clients, Client.find_by_name("New Client")
   end
+
+  def test_replace_on_duplicated_object
+    firm = Firm.create!("name" => "New Firm").dup
+    firm.clients = [companies(:second_client), Client.new("name" => "New Client")]
+    assert firm.save
+    firm.reload
+    assert_equal 2, firm.clients.length
+    assert_includes firm.clients, Client.find_by_name("New Client")
+  end
 end
 
 class TestDefaultAutosaveAssociationOnNewRecord < ActiveRecord::TestCase
@@ -811,6 +821,15 @@ class TestDefaultAutosaveAssociationOnNewRecord < ActiveRecord::TestCase
 
     assert_not_nil post.author_id
   end
+
+  def test_autosave_new_record_with_after_create_callback_and_habtm_association
+    post = PostWithAfterCreateCallback.new(title: "Captain Murphy", body: "is back")
+    post.comments.build(body: "foo")
+    post.categories.build(name: "bar")
+    post.save!
+
+    assert_equal 1, post.categories.reload.length
+  end
 end
 
 class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
@@ -875,7 +894,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
   def test_should_rollback_destructions_if_an_exception_occurred_while_saving_a_child
     # Stub the save method of the @pirate.ship instance to destroy and then raise an exception
     class << @pirate.ship
-      def save(*, **)
+      def save(**)
         super
         destroy
         raise "Oh noes!"
@@ -938,7 +957,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
   def test_should_rollback_destructions_if_an_exception_occurred_while_saving_a_parent
     # Stub the save method of the @ship.pirate instance to destroy and then raise an exception
     class << @ship.pirate
-      def save(*, **)
+      def save(**)
         super
         destroy
         raise "Oh noes!"
@@ -1325,7 +1344,7 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
 
     # Stub the save method of the @pirate.ship instance to raise an exception
     class << @pirate.ship
-      def save(*, **)
+      def save(**)
         super
         raise "Oh noes!"
       end
@@ -1362,7 +1381,7 @@ class TestAutosaveAssociationOnAHasOneThroughAssociation < ActiveRecord::TestCas
     member = create_member_with_organization
 
     class << member.organization
-      def save(*, **)
+      def save(**)
         super
         raise "Oh noes!"
       end
@@ -1383,7 +1402,7 @@ class TestAutosaveAssociationOnAHasOneThroughAssociation < ActiveRecord::TestCas
     author = create_author_with_post_with_comment
 
     class << author.comment_on_first_post
-      def save(*, **)
+      def save(**)
         super
         raise "Oh noes!"
       end
@@ -1473,7 +1492,7 @@ class TestAutosaveAssociationOnABelongsToAssociation < ActiveRecord::TestCase
 
     # Stub the save method of the @ship.pirate instance to raise an exception
     class << @ship.pirate
-      def save(*, **)
+      def save(**)
         super
         raise "Oh noes!"
       end
@@ -1627,7 +1646,7 @@ module AutosaveAssociationOnACollectionAssociationTests
 
     # Stub the save method of the first child instance to raise an exception
     class << @pirate.send(@association_name).first
-      def save(*, **)
+      def save(**)
         super
         raise "Oh noes!"
       end

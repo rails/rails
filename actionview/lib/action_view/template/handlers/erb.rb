@@ -54,7 +54,7 @@ module ActionView
           # wrong, we can still find an encoding tag
           # (<%# encoding %>) inside the String using a regular
           # expression
-          template_source = source.dup.force_encoding(Encoding::ASCII_8BIT)
+          template_source = source.b
 
           erb = template_source.gsub(ENCODING_TAG, "")
           encoding = $2
@@ -79,7 +79,7 @@ module ActionView
 
       private
         def annotate?(template)
-          ActionView::Base.annotate_template_file_names && template.format == :html
+          ActionView::Base.annotate_rendered_view_with_filenames && template.format == :html
         end
 
         def valid_encoding(string, encoding)

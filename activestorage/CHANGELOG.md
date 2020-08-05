@@ -1,3 +1,41 @@
+*   Touch parent model when an attachment is purged.
+
+    *Víctor Pérez Rodríguez*
+
+*   Files can now be served by proxying them from the underlying storage service
+    instead of redirecting to a signed service URL. Use the
+    `rails_storage_proxy_path` and `_url` helpers to proxy an attached file:
+
+    ```erb
+    <%= image_tag rails_storage_proxy_path(@user.avatar) %>
+    ```
+
+    To proxy by default, set `config.active_storage.resolve_model_to_route`:
+
+    ```ruby
+    # Proxy attached files instead.
+    config.active_storage.resolve_model_to_route = :rails_storage_proxy
+    ```
+
+    ```erb
+    <%= image_tag @user.avatar %>
+    ```
+
+    To redirect to a signed service URL when the default file serving strategy
+    is set to proxying, use the `rails_storage_redirect_path` and `_url` helpers:
+
+    ```erb
+    <%= image_tag rails_storage_redirect_path(@user.avatar) %>
+    ```
+
+    *Jonathan Fleckenstein*
+
+*   Add `config.active_storage.web_image_content_types` to allow applications
+    to add content types (like `image/webp`) in which variants can be processed,
+    instead of letting those images be converted to the fallback PNG format.
+
+    *Jeroen van Haperen*
+
 *   Add support for creating variants of `WebP` images out of the box.
 
     *Dino Maric*

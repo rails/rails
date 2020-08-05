@@ -104,10 +104,8 @@ module ActiveRecord
         elsif timestamp = updated_at
           timestamp.utc.to_s(cache_timestamp_format)
         end
-      else
-        if self.class.has_attribute?("updated_at")
-          raise ActiveModel::MissingAttributeError, "missing attribute: updated_at"
-        end
+      elsif self.class.has_attribute?("updated_at")
+        raise ActiveModel::MissingAttributeError, "missing attribute: updated_at"
       end
     end
 

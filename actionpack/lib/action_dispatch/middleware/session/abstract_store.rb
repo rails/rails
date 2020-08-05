@@ -82,7 +82,7 @@ module ActionDispatch
       include SessionObject
 
       private
-        def set_cookie(request, session_id, cookie)
+        def set_cookie(request, response, cookie)
           request.cookie_jar[key] = cookie
         end
     end
@@ -97,7 +97,7 @@ module ActionDispatch
       end
 
       private
-        def set_cookie(request, session_id, cookie)
+        def set_cookie(request, response, cookie)
           request.cookie_jar[key] = cookie
         end
     end

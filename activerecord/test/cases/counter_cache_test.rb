@@ -264,7 +264,7 @@ class CounterCacheTest < ActiveRecord::TestCase
   test "reset multiple counters with touch: true" do
     assert_touching @topic, :updated_at do
       Topic.update_counters(@topic.id, replies_count: 1, unique_replies_count: 1)
-      Topic.reset_counters(@topic.id, :replies, :unique_replies, touch: true)
+      Topic.reset_counters(@topic.id, :replies, :unique_replies, touch: { time: Time.now.utc })
     end
   end
 

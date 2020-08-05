@@ -60,6 +60,15 @@ module ActiveRecord
         self.class.locking_enabled?
       end
 
+      def increment!(*, **) #:nodoc:
+        super.tap do
+          if locking_enabled?
+            self[self.class.locking_column] += 1
+            clear_attribute_change(self.class.locking_column)
+          end
+        end
+      end
+
       private
         def _create_record(attribute_names = self.attribute_names)
           if locking_enabled?
@@ -81,6 +90,7 @@ module ActiveRecord
           begin
             locking_column = self.class.locking_column
             previous_lock_value = read_attribute_before_type_cast(locking_column)
+            attribute_names = attribute_names.dup if attribute_names.frozen?
             attribute_names << locking_column
 
             self[locking_column] += 1
@@ -88,7 +98,7 @@ module ActiveRecord
             affected_rows = self.class._update_record(
               attributes_with_values(attribute_names),
               @primary_key => id_in_database,
-              locking_column => previous_lock_value
+              locking_column => @attributes[locking_column].original_value_for_database
             )
 
             if affected_rows != 1
@@ -155,20 +165,12 @@ module ActiveRecord
             super
           end
 
-          private
-            # We need to apply this decorator here, rather than on module inclusion. The closure
-            # created by the matcher would otherwise evaluate for `ActiveRecord::Base`, not the
-            # sub class being decorated. As such, changes to `lock_optimistically`, or
-            # `locking_column` would not be picked up.
-            def inherited(subclass)
-              subclass.class_eval do
-                is_lock_column = ->(name, _) { lock_optimistically && name == locking_column }
-                decorate_matching_attribute_types(is_lock_column, "_optimistic_locking") do |type|
-                  LockingType.new(type)
-                end
-              end
-              super
+          def define_attribute(name, cast_type, **) # :nodoc:
+            if lock_optimistically && name == locking_column
+              cast_type = LockingType.new(cast_type)
             end
+            super
+          end
         end
     end
 
@@ -176,6 +178,10 @@ module ActiveRecord
     # `nil` values to `lock_version`, and not result in `ActiveRecord::StaleObjectError`
     # during update record.
     class LockingType < DelegateClass(Type::Value) # :nodoc:
+      def self.new(subtype)
+        self === subtype ? subtype : super
+      end
+
       def deserialize(value)
         super.to_i
       end

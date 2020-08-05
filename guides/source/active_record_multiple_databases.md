@@ -93,11 +93,11 @@ Lastly, for new primary databases you need to set the `migrations_paths` to the 
 where you will store migrations for that database. We'll look more at `migrations_paths`
 later on in this guide.
 
-Now that we have a new database, let's set up the model. In order to use the new database we
-need to create a new abstract class and connect to the animals databases.
+Now that we have a new database, let's set up the connection model. In order to use the
+new database we need to create a new abstract class and connect to the animals databases.
 
 ```ruby
-class AnimalsBase < ApplicationRecord
+class AnimalsRecord < ApplicationRecord
   self.abstract_class = true
 
   connects_to database: { writing: :animals, reading: :animals_replica }
@@ -171,7 +171,7 @@ Note that there is no command for creating the users and you'll need to do that 
 to support the readonly users for your replicas. If you want to create just the animals
 database you can run `bin/rails db:create:animals`.
 
-## Migrations
+## Generators & Migrations
 
 Migrations for multiple databases should live in their own folders prefixed with the
 name of the database key in the configuration.
@@ -186,6 +186,47 @@ so that the file is generated in the correct directory. The command can be run l
 ```bash
 $ bin/rails generate migration CreateDogs name:string --database animals
 ```
+
+If you are using Rails generators, the scaffold and model generators will create the abstract
+class for you. Simply pass the database key to the command line
+
+```bash
+$ bin/rails generate scaffold Dog name:string --database animals
+```
+
+A class with the database name and `Record` will be created. In this example
+the database is `Animals` so we end up with `AnimalsRecord`:
+
+```ruby
+class AnimalsRecord < ApplicationRecord
+  self.abstract_class = true
+
+  connects_to database: { writing: :animals }
+end
+```
+
+The generated model will automatically inherit from `AnimalsRecord`.
+
+```ruby
+class Dog < AnimalsRecord
+end
+```
+
+Note: Since Rails doesn't know which database is the replica for your writer you will need to
+add this to the abstract class after you're done.
+
+Rails will only generate the new class once. It will not be overwritten by new scaffolds
+or deleted if the scaffold is deleted.
+
+If you already have an abstract class and its name differs from `AnimalsRecord` you can pass
+the `--parent` option to indicate you want a different abstract class:
+
+```bash
+$ bin/rails generate scaffold Dog name:string --database animals --parent Animals::Record
+```
+
+This will skip generating `AnimalsRecord` since you've indicated to Rails that you want to
+use a different parent class.
 
 ## Activating automatic connection switching
 
@@ -303,6 +344,7 @@ class ApplicationRecord < ActiveRecord::Base
     shard_one: { writing: :primary_shard_one, reading: :primary_shard_one_replica }
   }
 end
+```
 
 Then models can swap connections manually via the `connected_to` API:
 

@@ -393,7 +393,7 @@ module Arel
           attribute = Attribute.new nil, nil
           equality = attribute.eq 1
           _(equality.left).must_equal attribute
-          _(equality.right.val).must_equal 1
+          _(equality.right.value).must_equal 1
           _(equality).must_be_kind_of Nodes::Equality
         end
 
@@ -1040,6 +1040,38 @@ module Arel
           _(mgr.to_sql).must_be_like %{
             SELECT "users"."id" FROM "users" ORDER BY "users"."id" DESC
           }
+        end
+      end
+
+      describe "#contains" do
+        it "should create a Contains node" do
+          relation = Table.new(:products)
+          query = Nodes.build_quoted("{foo,bar}")
+          _(relation[:tags].contains(query)).must_be_kind_of Nodes::Contains
+        end
+
+        it "should generate @> in sql" do
+          relation = Table.new(:products)
+          mgr = relation.project relation[:id]
+          query = Nodes.build_quoted("{foo,bar}")
+          mgr.where relation[:tags].contains(query)
+          _(mgr.to_sql).must_be_like %{ SELECT "products"."id" FROM "products" WHERE "products"."tags" @> '{foo,bar}' }
+        end
+      end
+
+      describe "#overlaps" do
+        it "should create an Overlaps node" do
+          relation = Table.new(:products)
+          query = Nodes.build_quoted("{foo,bar}")
+          _(relation[:tags].overlaps(query)).must_be_kind_of Nodes::Overlaps
+        end
+
+        it "should generate && in sql" do
+          relation = Table.new(:products)
+          mgr = relation.project relation[:id]
+          query = Nodes.build_quoted("{foo,bar}")
+          mgr.where relation[:tags].overlaps(query)
+          _(mgr.to_sql).must_be_like %{ SELECT "products"."id" FROM "products" WHERE "products"."tags" && '{foo,bar}' }
         end
       end
 

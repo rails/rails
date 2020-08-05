@@ -162,8 +162,8 @@ module ActionView #:nodoc:
     # Specify whether submit_tag should automatically disable on click
     cattr_accessor :automatically_disable_submit_tag, default: true
 
-    # Render template filenames as comments in HTML
-    cattr_accessor :annotate_template_file_names, default: false
+    # Annotate rendered view with file names
+    cattr_accessor :annotate_rendered_view_with_filenames, default: false
 
     class_attribute :_routes
     class_attribute :logger
@@ -269,13 +269,13 @@ module ActionView #:nodoc:
       _prepare_context
     end
 
-    def _run(method, template, locals, buffer, &block)
-      _old_output_buffer, _old_virtual_path, _old_template = @output_buffer, @virtual_path, @current_template
-      @current_template = template
+    def _run(method, template, locals, buffer, add_to_stack: true, &block)
+      _old_output_buffer, _old_template = @output_buffer, @current_template
+      @current_template = template if add_to_stack
       @output_buffer = buffer
       send(method, locals, buffer, &block)
     ensure
-      @output_buffer, @virtual_path, @current_template = _old_output_buffer, _old_virtual_path, _old_template
+      @output_buffer, @current_template = _old_output_buffer, _old_template
     end
 
     def compiled_method_container

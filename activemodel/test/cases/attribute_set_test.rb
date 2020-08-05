@@ -219,17 +219,24 @@ module ActiveModel
 
     test "marshalling dump/load legacy materialized attribute hash" do
       builder = AttributeSet::Builder.new(foo: Type::String.new)
+
+      def builder.build_from_database(values = {}, additional_types = {})
+        attributes = LazyAttributeHash.new(types, values, additional_types, default_attributes)
+        AttributeSet.new(attributes)
+      end
+
       attributes = builder.build_from_database(foo: "1")
 
       attributes.instance_variable_get(:@attributes).instance_eval do
         class << self
           def marshal_dump
-            materialize
+            materialize # legacy marshal format before Rails 5.1
           end
         end
       end
 
-      attributes = Marshal.load(Marshal.dump(attributes))
+      data = Marshal.dump(attributes)
+      attributes = assert_deprecated { Marshal.load(data) }
       assert_equal({ foo: "1" }, attributes.to_hash)
     end
 

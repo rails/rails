@@ -561,8 +561,8 @@ Rails Metal is a new mechanism that provides superfast endpoints inside of your 
 
 Rails 2.3 incorporates Jeremy McAnally's [rg](https://github.com/jm/rg) application generator. What this means is that we now have template-based application generation built right into Rails; if you have a set of plugins you include in every application (among many other use cases), you can just set up a template once and use it over and over again when you run the `rails` command. There's also a rake task to apply a template to an existing application:
 
-```
-rake rails:template LOCATION=~/template.rb
+```bash
+$ rake rails:template LOCATION=~/template.rb
 ```
 
 This will layer the changes from the template on top of whatever code the project already contains.

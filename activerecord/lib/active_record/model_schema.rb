@@ -117,6 +117,15 @@ module ActiveRecord
     # during an ordered finder call. Useful when the primary key is not an
     # auto-incrementing integer, for example when it's a UUID. Records are subsorted
     # by the primary key if it exists to ensure deterministic results.
+
+    ##
+    # :singleton-method: immutable_strings_by_default=
+    # :call-seq: immutable_strings_by_default=(bool)
+    #
+    # Determines whether columns should infer their type as `:string` or
+    # `:immutable_string`. This setting does not affect the behavior of
+    # `attribute :foo, :string`. Defaults to false.
+
     included do
       mattr_accessor :primary_key_prefix_type, instance_writer: false
 
@@ -126,12 +135,13 @@ module ActiveRecord
       class_attribute :internal_metadata_table_name, instance_accessor: false, default: "ar_internal_metadata"
       class_attribute :pluralize_table_names, instance_writer: false, default: true
       class_attribute :implicit_order_column, instance_accessor: false
+      class_attribute :immutable_strings_by_default, instance_accessor: false
 
       self.protected_environments = ["production"]
       self.inheritance_column = "type"
       self.ignored_columns = [].freeze
 
-      delegate :type_for_attribute, to: :class
+      delegate :type_for_attribute, :column_for_attribute, to: :class
 
       initialize_load_schema_monitor
     end
@@ -288,7 +298,8 @@ module ActiveRecord
       # Sets the columns names the model should ignore. Ignored columns won't have attribute
       # accessors defined, and won't be referenced in SQL queries.
       def ignored_columns=(columns)
-        @ignored_columns = columns.map(&:to_s)
+        reload_schema_from_cache
+        @ignored_columns = columns.map(&:to_s).freeze
       end
 
       def sequence_name
@@ -355,7 +366,7 @@ module ActiveRecord
 
       def columns
         load_schema
-        @columns ||= columns_hash.values
+        @columns ||= columns_hash.values.freeze
       end
 
       def attribute_types # :nodoc:
@@ -380,6 +391,8 @@ module ActiveRecord
       # a string or a symbol.
       def type_for_attribute(attr_name, &block)
         attr_name = attr_name.to_s
+        attr_name = attribute_aliases[attr_name] || attr_name
+
         if block
           attribute_types.fetch(attr_name, &block)
         else
@@ -387,11 +400,31 @@ module ActiveRecord
         end
       end
 
+      # Returns the column object for the named attribute.
+      # Returns an +ActiveRecord::ConnectionAdapters::NullColumn+ if the
+      # named attribute does not exist.
+      #
+      #   class Person < ActiveRecord::Base
+      #   end
+      #
+      #   person = Person.new
+      #   person.column_for_attribute(:name) # the result depends on the ConnectionAdapter
+      #   # => #<ActiveRecord::ConnectionAdapters::Column:0x007ff4ab083980 @name="name", @sql_type="varchar(255)", @null=true, ...>
+      #
+      #   person.column_for_attribute(:nothing)
+      #   # => #<ActiveRecord::ConnectionAdapters::NullColumn:0xXXX @name=nil, @sql_type=nil, @cast_type=#<Type::Value>, ...>
+      def column_for_attribute(name)
+        name = name.to_s
+        columns_hash.fetch(name) do
+          ConnectionAdapters::NullColumn.new(name)
+        end
+      end
+
       # Returns a hash where the keys are column names and the values are
       # default values when instantiating the Active Record object for this table.
       def column_defaults
         load_schema
-        @column_defaults ||= _default_attributes.deep_dup.to_hash
+        @column_defaults ||= _default_attributes.deep_dup.to_hash.freeze
       end
 
       def _default_attributes # :nodoc:
@@ -401,7 +434,7 @@ module ActiveRecord
 
       # Returns an array of column names as strings.
       def column_names
-        @column_names ||= columns.map(&:name)
+        @column_names ||= columns.map(&:name).freeze
       end
 
       def symbol_column_to_string(name_symbol) # :nodoc:
@@ -416,7 +449,7 @@ module ActiveRecord
           c.name == primary_key ||
           c.name == inheritance_column ||
           c.name.end_with?("_id", "_count")
-        end
+        end.freeze
       end
 
       # Resets all the cached information about columns, which will cause them
@@ -487,11 +520,16 @@ module ActiveRecord
           unless table_name
             raise ActiveRecord::TableNotSpecified, "#{self} has no table configured. Set one with #{self}.table_name="
           end
-          @columns_hash = connection.schema_cache.columns_hash(table_name).except(*ignored_columns)
+
+          columns_hash = connection.schema_cache.columns_hash(table_name)
+          columns_hash = columns_hash.except(*ignored_columns) unless ignored_columns.empty?
+          @columns_hash = columns_hash.freeze
           @columns_hash.each do |name, column|
+            type = connection.lookup_cast_type_from_column(column)
+            type = _convert_type_from_options(type)
             define_attribute(
               name,
-              connection.lookup_cast_type_from_column(column),
+              type,
               default: column.default,
               user_provided_default: false
             )
@@ -538,6 +576,14 @@ module ActiveRecord
           else
             # STI subclasses always use their superclass' table.
             base_class.table_name
+          end
+        end
+
+        def _convert_type_from_options(type)
+          if immutable_strings_by_default && type.respond_to?(:to_immutable_string)
+            type.to_immutable_string
+          else
+            type
           end
         end
     end

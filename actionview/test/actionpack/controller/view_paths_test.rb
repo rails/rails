@@ -137,6 +137,9 @@ class ViewLoadPathsTest < ActionController::TestCase
         @path_set = path_set
       end
 
+      def clear_cache
+      end
+
       def find_all(*args)
         @path_set.find_all(*args).collect do |template|
           ::ActionView::Template.new(

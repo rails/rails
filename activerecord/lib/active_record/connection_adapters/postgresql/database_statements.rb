@@ -9,60 +9,14 @@ module ActiveRecord
           PostgreSQL::ExplainPrettyPrinter.new.pp(exec_query(sql, "EXPLAIN", binds))
         end
 
-        # The internal PostgreSQL identifier of the money data type.
-        MONEY_COLUMN_TYPE_OID = 790 #:nodoc:
-        # The internal PostgreSQL identifier of the BYTEA data type.
-        BYTEA_COLUMN_TYPE_OID = 17 #:nodoc:
-
-        # create a 2D array representing the result set
-        def result_as_array(res) #:nodoc:
-          # check if we have any binary column and if they need escaping
-          ftypes = Array.new(res.nfields) do |i|
-            [i, res.ftype(i)]
-          end
-
-          rows = res.values
-          return rows unless ftypes.any? { |_, x|
-            x == BYTEA_COLUMN_TYPE_OID || x == MONEY_COLUMN_TYPE_OID
-          }
-
-          typehash = ftypes.group_by { |_, type| type }
-          binaries = typehash[BYTEA_COLUMN_TYPE_OID] || []
-          monies   = typehash[MONEY_COLUMN_TYPE_OID] || []
-
-          rows.each do |row|
-            # unescape string passed BYTEA field (OID == 17)
-            binaries.each do |index, _|
-              row[index] = unescape_bytea(row[index])
-            end
-
-            # If this is a money type column and there are any currency symbols,
-            # then strip them off. Indeed it would be prettier to do this in
-            # PostgreSQLColumn.string_to_decimal but would break form input
-            # fields that call value_before_type_cast.
-            monies.each do |index, _|
-              data = row[index]
-              # Because money output is formatted according to the locale, there are two
-              # cases to consider (note the decimal separators):
-              #  (1) $12,345,678.12
-              #  (2) $12.345.678,12
-              case data
-              when /^-?\D+[\d,]+\.\d{2}$/  # (1)
-                data.gsub!(/[^-\d.]/, "")
-              when /^-?\D+[\d.]+,\d{2}$/  # (2)
-                data.gsub!(/[^-\d,]/, "").sub!(/,/, ".")
-              end
-            end
-          end
-        end
-
         # Queries the database and returns the results in an Array-like object
         def query(sql, name = nil) #:nodoc:
           materialize_transactions
+          mark_transaction_written_if_write(sql)
 
           log(sql, name) do
             ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-              result_as_array @connection.async_exec(sql)
+              @connection.async_exec(sql).map_types!(@type_map_for_results).values
             end
           end
         end
@@ -86,6 +40,7 @@ module ActiveRecord
           end
 
           materialize_transactions
+          mark_transaction_written_if_write(sql)
 
           log(sql, name) do
             ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
@@ -101,7 +56,11 @@ module ActiveRecord
             fields.each_with_index do |fname, i|
               ftype = result.ftype i
               fmod  = result.fmod i
-              types[fname] = get_oid_type(ftype, fmod, fname)
+              case type = get_oid_type(ftype, fmod, fname)
+              when Type::Integer, Type::Float, Type::Decimal, Type::String, Type::DateTime, Type::Boolean
+                # skip if a column has already been type casted by pg decoders
+              else types[fname] = type
+              end
             end
             build_result(columns: fields, rows: result.values, column_types: types)
           end

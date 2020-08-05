@@ -35,6 +35,12 @@ namespace :test do
     end
   end
 
+  desc "Runs all tests, including system tests"
+  task all: "test:prepare" do
+    $: << "test"
+    Rails::TestUnit::Runner.rake_run(["test/**/*_test.rb"])
+  end
+
   task generators: "test:prepare" do
     $: << "test"
     Rails::TestUnit::Runner.rake_run(["test/lib/generators"])

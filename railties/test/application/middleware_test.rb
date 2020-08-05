@@ -145,7 +145,7 @@ module ApplicationTests
       add_to_config "config.ssl_options = { redirect: { host: 'example.com' } }"
       boot!
 
-      assert_equal [{ redirect: { host: "example.com" } }], Rails.application.middleware[2].args
+      assert_equal [{ redirect: { host: "example.com" }, ssl_default_redirect_status: 308 }], Rails.application.middleware[2].args
     end
 
     test "removing Active Record omits its middleware" do

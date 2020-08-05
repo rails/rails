@@ -107,7 +107,7 @@ ActiveRecord::Schema.define do
     t.string :format
     t.column :name, :string
     t.column :status, :integer, **default_zero
-    t.column :read_status, :integer, **default_zero
+    t.column :last_read, :integer, **default_zero
     t.column :nullable_status, :integer
     t.column :language, :integer, **default_zero
     t.column :author_visibility, :integer, **default_zero
@@ -116,10 +116,12 @@ ActiveRecord::Schema.define do
     t.column :difficulty, :integer, **default_zero
     t.column :cover, :string, default: "hard"
     t.string :isbn, **case_sensitive_options
+    t.string :external_id
     t.datetime :published_on
     t.boolean :boolean_status
     t.index [:author_id, :name], unique: true
     t.index :isbn, where: "published_on IS NOT NULL", unique: true
+    t.index "(lower(external_id))", unique: true if supports_expression_index?
 
     t.datetime :created_at
     t.datetime :updated_at
@@ -294,16 +296,16 @@ ActiveRecord::Schema.define do
     t.integer  :salary, default: 70000
     t.references :firm, index: false
     t.integer :mentor_id
-    if subsecond_precision_supported?
-      t.datetime :created_at, precision: 6
-      t.datetime :updated_at, precision: 6
-      t.datetime :created_on, precision: 6
-      t.datetime :updated_on, precision: 6
+    if supports_datetime_with_precision?
+      t.datetime :legacy_created_at, precision: 6
+      t.datetime :legacy_updated_at, precision: 6
+      t.datetime :legacy_created_on, precision: 6
+      t.datetime :legacy_updated_on, precision: 6
     else
-      t.datetime :created_at
-      t.datetime :updated_at
-      t.datetime :created_on
-      t.datetime :updated_on
+      t.datetime :legacy_created_at
+      t.datetime :legacy_updated_at
+      t.datetime :legacy_created_on
+      t.datetime :legacy_updated_on
     end
   end
 
@@ -345,6 +347,11 @@ ActiveRecord::Schema.define do
   create_table :entrants, force: true do |t|
     t.string  :name, null: false
     t.integer :course_id, null: false
+  end
+
+  create_table :entries, force: true do |t|
+    t.string  :entryable_type, null: false
+    t.integer :entryable_id, null: false
   end
 
   create_table :essays, force: true do |t|
@@ -420,7 +427,7 @@ ActiveRecord::Schema.define do
 
   create_table :invoices, force: true do |t|
     t.integer :balance
-    if subsecond_precision_supported?
+    if supports_datetime_with_precision?
       t.datetime :updated_at, precision: 6
     else
       t.datetime :updated_at
@@ -542,6 +549,10 @@ ActiveRecord::Schema.define do
     t.string :name
   end
 
+  create_table :messages, force: true do |t|
+    t.string :subject
+  end
+
   create_table :minivans, force: true, id: false do |t|
     t.string :minivan_id
     t.string :name
@@ -611,7 +622,7 @@ ActiveRecord::Schema.define do
 
   create_table :owners, primary_key: :owner_id, force: true do |t|
     t.string :name
-    if subsecond_precision_supported?
+    if supports_datetime_with_precision?
       t.column :updated_at, :datetime, precision: 6
     else
       t.column :updated_at, :datetime
@@ -635,7 +646,7 @@ ActiveRecord::Schema.define do
       t.string :parrot_sti_class
       t.integer :killer_id
       t.integer :updated_count, :integer, default: 0
-      if subsecond_precision_supported?
+      if supports_datetime_with_precision?
         t.datetime :created_at, precision: 0
         t.datetime :created_on, precision: 0
         t.datetime :updated_at, precision: 0
@@ -652,7 +663,7 @@ ActiveRecord::Schema.define do
       t.string :catchphrase
       t.integer :parrot_id
       t.integer :non_validated_parrot_id
-      if subsecond_precision_supported?
+      if supports_datetime_with_precision?
         t.datetime :created_on, precision: 6
         t.datetime :updated_on, precision: 6
       else
@@ -729,7 +740,7 @@ ActiveRecord::Schema.define do
       t.text    :body, null: false
     end
     t.string  :type
-    t.integer :comments_count, default: 0
+    t.integer :legacy_comments_count, default: 0
     t.integer :taggings_with_delete_all_count, default: 0
     t.integer :taggings_with_destroy_count, default: 0
     t.integer :tags_count, default: 0
@@ -758,8 +769,12 @@ ActiveRecord::Schema.define do
   create_table :products, force: true do |t|
     t.references :collection
     t.references :type
-    t.string     :name
+    t.string :name
+    t.decimal :price
+    t.decimal :discounted_price
   end
+
+  add_check_constraint :products, "price > discounted_price", name: "products_price_check"
 
   create_table :product_types, force: true do |t|
     t.string :name
@@ -847,7 +862,7 @@ ActiveRecord::Schema.define do
   create_table :ship_parts, force: true do |t|
     t.string :name
     t.integer :ship_id
-    if subsecond_precision_supported?
+    if supports_datetime_with_precision?
       t.datetime :updated_at, precision: 6
     else
       t.datetime :updated_at
@@ -927,7 +942,7 @@ ActiveRecord::Schema.define do
     t.string   :title, limit: 250, **case_sensitive_options
     t.string   :author_name, **case_sensitive_options
     t.string   :author_email_address
-    if subsecond_precision_supported?
+    if supports_datetime_with_precision?
       t.datetime :written_on, precision: 6
     else
       t.datetime :written_on
@@ -951,6 +966,7 @@ ActiveRecord::Schema.define do
     t.string   :type
     t.string   :group
     t.timestamps null: true
+    t.index [:author_name, :title]
   end
 
   create_table :toys, primary_key: :toy_id, force: true do |t|
@@ -1110,6 +1126,8 @@ ActiveRecord::Schema.define do
     t.float :unoverloaded_float
     t.string :overloaded_string_with_limit, limit: 255
     t.string :string_with_default, default: "the original default"
+    t.string :inferred_string, limit: 255
+    t.datetime :starts_at, :ends_at
   end
 
   create_table :users, force: true do |t|

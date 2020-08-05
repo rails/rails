@@ -8,6 +8,7 @@ module ActiveRecord
     #
     # * add_column
     # * add_foreign_key
+    # * add_check_constraint
     # * add_index
     # * add_reference
     # * add_timestamps
@@ -25,6 +26,7 @@ module ActiveRecord
     # * remove_column (must supply a type)
     # * remove_columns (must specify at least one column name or more)
     # * remove_foreign_key (must supply a second table)
+    # * remove_check_constraint
     # * remove_index
     # * remove_reference
     # * remove_timestamps
@@ -39,7 +41,8 @@ module ActiveRecord
         :drop_join_table, :drop_table, :execute_block, :enable_extension, :disable_extension,
         :change_column, :execute, :remove_columns, :change_column_null,
         :add_foreign_key, :remove_foreign_key,
-        :change_column_comment, :change_table_comment
+        :change_column_comment, :change_table_comment,
+        :add_check_constraint, :remove_check_constraint
       ]
       include JoinTable
 
@@ -74,12 +77,7 @@ module ActiveRecord
       #   recorder.record(:method_name, [:arg1, :arg2])
       def record(*command, &block)
         if @reverting
-          inverse_command = inverse_of(*command, &block)
-          if inverse_command[0].is_a?(Array)
-            @commands = @commands.concat(inverse_command)
-          else
-            @commands << inverse_command
-          end
+          @commands << inverse_of(*command, &block)
         else
           @commands << (command << block)
         end
@@ -137,9 +135,11 @@ module ActiveRecord
               create_table:      :drop_table,
               create_join_table: :drop_join_table,
               add_column:        :remove_column,
+              add_index:         :remove_index,
               add_timestamps:    :remove_timestamps,
               add_reference:     :remove_reference,
               add_foreign_key:   :remove_foreign_key,
+              add_check_constraint: :remove_check_constraint,
               enable_extension:  :disable_extension
             }.each do |cmd, inv|
               [[inv, cmd], [cmd, inv]].uniq.each do |method, inverse|
@@ -186,54 +186,44 @@ module ActiveRecord
             raise ActiveRecord::IrreversibleMigration, "remove_columns is only reversible if given a type."
           end
 
-          column_options = args.extract_options!
-          type = column_options.delete(:type)
-          args[1..-1].map do |arg|
-            [:add_column, [args[0], arg, type, column_options]]
-          end
+          [:add_columns, args]
         end
 
         def invert_rename_index(args)
-          [:rename_index, [args.first] + args.last(2).reverse]
+          table_name, old_name, new_name = args
+          [:rename_index, [table_name, new_name, old_name]]
         end
 
         def invert_rename_column(args)
-          [:rename_column, [args.first] + args.last(2).reverse]
-        end
-
-        def invert_add_index(args)
-          table, columns, options = *args
-          options ||= {}
-
-          options_hash = options.slice(:name, :algorithm)
-          options_hash[:column] = columns if !options_hash[:name]
-
-          [:remove_index, [table, options_hash]]
+          table_name, old_name, new_name = args
+          [:rename_column, [table_name, new_name, old_name]]
         end
 
         def invert_remove_index(args)
-          table, columns, options = *args
-          options ||= {}
+          options = args.extract_options!
+          table, columns = args
 
-          if columns.is_a?(Hash)
-            options = columns.dup
-            columns = options.delete(:column)
-          end
+          columns ||= options.delete(:column)
 
           unless columns
             raise ActiveRecord::IrreversibleMigration, "remove_index is only reversible if given a :column option."
           end
 
-          [:add_index, [table, columns, options]]
+          options.delete(:if_exists)
+
+          args = [table, columns]
+          args << options unless options.empty?
+
+          [:add_index, args]
         end
 
         alias :invert_add_belongs_to :invert_add_reference
         alias :invert_remove_belongs_to :invert_remove_reference
 
         def invert_change_column_default(args)
-          table, column, options = *args
+          table, column, options = args
 
-          unless options && options.is_a?(Hash) && options.has_key?(:from) && options.has_key?(:to)
+          unless options.is_a?(Hash) && options.has_key?(:from) && options.has_key?(:to)
             raise ActiveRecord::IrreversibleMigration, "change_column_default is only reversible if given a :from and :to option."
           end
 
@@ -260,9 +250,9 @@ module ActiveRecord
         end
 
         def invert_change_column_comment(args)
-          table, column, options = *args
+          table, column, options = args
 
-          unless options && options.is_a?(Hash) && options.has_key?(:from) && options.has_key?(:to)
+          unless options.is_a?(Hash) && options.has_key?(:from) && options.has_key?(:to)
             raise ActiveRecord::IrreversibleMigration, "change_column_comment is only reversible if given a :from and :to option."
           end
 
@@ -270,13 +260,18 @@ module ActiveRecord
         end
 
         def invert_change_table_comment(args)
-          table, options = *args
+          table, options = args
 
-          unless options && options.is_a?(Hash) && options.has_key?(:from) && options.has_key?(:to)
+          unless options.is_a?(Hash) && options.has_key?(:from) && options.has_key?(:to)
             raise ActiveRecord::IrreversibleMigration, "change_table_comment is only reversible if given a :from and :to option."
           end
 
           [:change_table_comment, [table, from: options[:to], to: options[:from]]]
+        end
+
+        def invert_remove_check_constraint(args)
+          raise ActiveRecord::IrreversibleMigration, "remove_check_constraint is only reversible if given an expression." if args.size < 2
+          super
         end
 
         def respond_to_missing?(method, _)

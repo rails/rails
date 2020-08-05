@@ -3,6 +3,7 @@
 require "benchmark"
 require "set"
 require "zlib"
+require "active_support/core_ext/array/access"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/actionable_error"
@@ -187,6 +188,14 @@ module ActiveRecord
       else
         super("#{msg}\n\n")
       end
+    end
+  end
+
+  class EnvironmentStorageError < ActiveRecordError # :nodoc:
+    def initialize
+      msg = +"You are attempting to store the environment in a database where metadata is disabled.\n"
+      msg << "Check your database configuration to see if this is intended."
+      super(msg)
     end
   end
 
@@ -521,6 +530,7 @@ module ActiveRecord
   class Migration
     autoload :CommandRecorder, "active_record/migration/command_recorder"
     autoload :Compatibility, "active_record/migration/compatibility"
+    autoload :JoinTable, "active_record/migration/join_table"
 
     # This must be defined before the inherited hook, below
     class Current < Migration #:nodoc:
@@ -1138,6 +1148,7 @@ module ActiveRecord
     end
 
     def last_stored_environment
+      return nil unless ActiveRecord::InternalMetadata.enabled?
       return nil if current_version == 0
       raise NoEnvironmentInSchemaError unless ActiveRecord::InternalMetadata.table_exists?
 
@@ -1259,7 +1270,7 @@ module ActiveRecord
       def run_without_lock
         migration = migrations.detect { |m| m.version == @target_version }
         raise UnknownMigrationVersionError.new(@target_version) if migration.nil?
-        result = execute_migration_in_transaction(migration, @direction)
+        result = execute_migration_in_transaction(migration)
 
         record_environment
         result
@@ -1271,10 +1282,7 @@ module ActiveRecord
           raise UnknownMigrationVersionError.new(@target_version)
         end
 
-        result = runnable.each do |migration|
-          execute_migration_in_transaction(migration, @direction)
-        end
-
+        result = runnable.each(&method(:execute_migration_in_transaction))
         record_environment
         result
       end
@@ -1294,14 +1302,14 @@ module ActiveRecord
         @target_version && @target_version != 0 && !target
       end
 
-      def execute_migration_in_transaction(migration, direction)
+      def execute_migration_in_transaction(migration)
         return if down? && !migrated.include?(migration.version.to_i)
         return if up?   &&  migrated.include?(migration.version.to_i)
 
         Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
 
         ddl_transaction(migration) do
-          migration.migrate(direction)
+          migration.migrate(@direction)
           record_version_state_after_migrating(migration.version)
         end
       rescue => e
@@ -1368,18 +1376,27 @@ module ActiveRecord
 
       def with_advisory_lock
         lock_id = generate_migrator_advisory_lock_id
-        AdvisoryLockBase.establish_connection(ActiveRecord::Base.connection_db_config) unless AdvisoryLockBase.connected?
-        connection = AdvisoryLockBase.connection
-        got_lock = connection.get_advisory_lock(lock_id)
-        raise ConcurrentMigrationError unless got_lock
-        load_migrated # reload schema_migrations to be sure it wasn't changed by another process before we got the lock
-        yield
-      ensure
-        if got_lock && !connection.release_advisory_lock(lock_id)
-          raise ConcurrentMigrationError.new(
-            ConcurrentMigrationError::RELEASE_LOCK_FAILED_MESSAGE
-          )
+
+        with_advisory_lock_connection do |connection|
+          got_lock = connection.get_advisory_lock(lock_id)
+          raise ConcurrentMigrationError unless got_lock
+          load_migrated # reload schema_migrations to be sure it wasn't changed by another process before we got the lock
+          yield
+        ensure
+          if got_lock && !connection.release_advisory_lock(lock_id)
+            raise ConcurrentMigrationError.new(
+              ConcurrentMigrationError::RELEASE_LOCK_FAILED_MESSAGE
+            )
+          end
         end
+      end
+
+      def with_advisory_lock_connection
+        pool = ActiveRecord::ConnectionAdapters::ConnectionHandler.new.establish_connection(
+          ActiveRecord::Base.connection_db_config
+        )
+
+        pool.with_connection { |connection| yield(connection) }
       end
 
       MIGRATOR_SALT = 2053462845

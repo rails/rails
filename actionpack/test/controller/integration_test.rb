@@ -235,6 +235,10 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       redirect_to action_url("post"), status: 307
     end
 
+    def redirect_308
+      redirect_to action_url("post"), status: 308
+    end
+
     def remove_header
       response.headers.delete params[:header]
       head :ok, "c" => "3"
@@ -363,6 +367,15 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     with_test_route_set do
       post "/redirect_307"
       assert_equal 307, status
+      follow_redirect!
+      assert_equal "POST", request.method
+    end
+  end
+
+  def test_308_redirect_uses_the_same_http_verb
+    with_test_route_set do
+      post "/redirect_308"
+      assert_equal 308, status
       follow_redirect!
       assert_equal "POST", request.method
     end
@@ -1205,7 +1218,7 @@ class IntegrationFileUploadTest < ActionDispatch::IntegrationTest
     self.class
   end
 
-  def self.fixture_path
+  def self.file_fixture_path
     File.expand_path("../fixtures/multipart", __dir__)
   end
 

@@ -1,3 +1,67 @@
+*   Fixed issue in `ActiveSupport::Cache::RedisCacheStore` not passing options
+    to `read_multi` causing `fetch_multi` to not work properly
+
+    *Rajesh Sharma*
+
+*   Fixed issue in `ActiveSupport::Cache::MemCacheStore` which caused duplicate compression,
+    and caused the provided `compression_threshold` to not be respected.
+
+    *Max Gurewitz*
+
+*   Prevent `RedisCacheStore` and `MemCacheStore` from performing compression
+    when reading entries written with `raw: true`.
+
+    *Max Gurewitz*
+
+*   `URI.parser` is deprecated and will be removed in Rails 6.2. Use
+    `URI::DEFAULT_PARSER` instead.
+
+    *Jean Boussier*
+
+*   `require_dependency` has been documented to be _obsolete_ in `:zeitwerk`
+    mode. The method is not deprecated as such (yet), but applications are
+    encouraged to not use it.
+
+    In `:zeitwerk` mode, semantics match Ruby's and you do not need to be
+    defensive with load order. Just refer to classes and modules normally. If
+    the constant name is dynamic, camelize if needed, and constantize.
+
+    *Xavier Noria*
+
+*   Add 3rd person aliases of `Symbol#start_with?` and `Symbol#end_with?`.
+
+    ```ruby
+    :foo.starts_with?("f") # => true
+    :foo.ends_with?("o")   # => true
+    ```
+
+    *Ryuta Kamizono*
+
+*   Add override of unary plus for `ActiveSupport::Duration`.
+
+    `+ 1.second` is now identical to `+1.second` to prevent errors
+    where a seemingly innocent change of formatting leads to a change in the code behavior.
+
+    Before:
+    ```ruby
+    +1.second.class
+    # => ActiveSupport::Duration
+    (+ 1.second).class
+    # => Integer
+    ```
+
+    After:
+    ```ruby
+    +1.second.class
+    # => ActiveSupport::Duration
+    (+ 1.second).class
+    # => ActiveSupport::Duration
+    ```
+
+    Fixes #39079.
+
+    *Roman Kushnir*
+
 *   Add subsec to `ActiveSupport::TimeWithZone#inspect`.
 
     Before:

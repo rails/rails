@@ -1,8 +1,11 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "models/author"
 require "models/book"
 require "models/speedometer"
+require "models/subscription"
+require "models/subscriber"
 
 class ReadonlyNameBook < Book
   attr_readonly :name
@@ -10,6 +13,14 @@ end
 
 class InsertAllTest < ActiveRecord::TestCase
   fixtures :books
+
+  def setup
+    Arel::Table.engine = nil # should not rely on the global Arel::Table.engine
+  end
+
+  def teardown
+    Arel::Table.engine = ActiveRecord::Base
+  end
 
   def test_insert
     skip unless supports_insert_on_duplicate_skip?
@@ -165,6 +176,20 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_raise ActiveRecord::RecordNotUnique do
       Book.upsert_all [{ name: "Rework", author_id: 1 }], unique_by: :isbn
     end
+  end
+
+  def test_insert_all_and_upsert_all_with_expression_index
+    skip unless supports_expression_index? && supports_insert_conflict_target?
+
+    book = Book.create!(external_id: "abc")
+
+    assert_no_difference "Book.count" do
+      Book.insert_all [{ external_id: "ABC" }], unique_by: :index_books_on_lower_external_id
+    end
+
+    Book.upsert_all [{ external_id: "Abc" }], unique_by: :index_books_on_lower_external_id
+
+    assert_equal "Abc", book.reload.external_id
   end
 
   def test_insert_all_and_upsert_all_raises_when_index_is_missing
@@ -339,6 +364,68 @@ class InsertAllTest < ActiveRecord::TestCase
     Book.insert_all! [{ status: :published, isbn: "1234566", name: "Rework", author_id: 1 },
                       { status: :proposed, isbn: "1234567", name: "Remote", author_id: 2 }]
     assert_equal ["published", "proposed"], Book.where(isbn: ["1234566", "1234567"]).order(:id).pluck(:status)
+  end
+
+  def test_insert_all_on_relation
+    author = Author.create!(name: "Jimmy")
+
+    assert_difference "author.books.count", +1 do
+      author.books.insert_all!([{ name: "My little book", isbn: "1974522598" }])
+    end
+  end
+
+  def test_insert_all_on_relation_precedence
+    author = Author.create!(name: "Jimmy")
+    second_author = Author.create!(name: "Bob")
+
+    assert_difference "author.books.count", +1 do
+      author.books.insert_all!([{ name: "My little book", isbn: "1974522598", author_id: second_author.id }])
+    end
+  end
+
+  def test_insert_all_create_with
+    assert_difference "Book.where(format: 'X').count", +2 do
+      Book.create_with(format: "X").insert_all!([ { name: "A" }, { name: "B" } ])
+    end
+  end
+
+  def test_insert_all_has_many_through
+    book = Book.first
+    assert_raise(ArgumentError) { book.subscribers.insert_all!([ { nick: "Jimmy" } ]) }
+  end
+
+  def test_upsert_all_on_relation
+    skip unless supports_insert_on_duplicate_update?
+
+    author = Author.create!(name: "Jimmy")
+
+    assert_difference "author.books.count", +1 do
+      author.books.upsert_all([{ name: "My little book", isbn: "1974522598" }])
+    end
+  end
+
+  def test_upsert_all_on_relation_precedence
+    skip unless supports_insert_on_duplicate_update?
+
+    author = Author.create!(name: "Jimmy")
+    second_author = Author.create!(name: "Bob")
+
+    assert_difference "author.books.count", +1 do
+      author.books.upsert_all([{ name: "My little book", isbn: "1974522598", author_id: second_author.id }])
+    end
+  end
+
+  def test_upsert_all_create_with
+    skip unless supports_insert_on_duplicate_update?
+
+    assert_difference "Book.where(format: 'X').count", +2 do
+      Book.create_with(format: "X").upsert_all([ { name: "A" }, { name: "B" } ])
+    end
+  end
+
+  def test_upsert_all_has_many_through
+    book = Book.first
+    assert_raise(ArgumentError) { book.subscribers.upsert_all([ { nick: "Jimmy" } ]) }
   end
 
   private

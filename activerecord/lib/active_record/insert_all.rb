@@ -10,8 +10,14 @@ module ActiveRecord
     def initialize(model, inserts, on_duplicate:, returning: nil, unique_by: nil)
       raise ArgumentError, "Empty list of attributes passed" if inserts.blank?
 
-      @model, @connection, @inserts, @keys = model, model.connection, inserts, inserts.first.keys.map(&:to_s).to_set
+      @model, @connection, @inserts, @keys = model, model.connection, inserts, inserts.first.keys.map(&:to_s)
       @on_duplicate, @returning, @unique_by = on_duplicate, returning, unique_by
+
+      if model.scope_attributes?
+        @scope_attributes = model.scope_attributes
+        @keys |= @scope_attributes.keys
+      end
+      @keys = @keys.to_set
 
       @returning = (connection.supports_insert_returning? ? primary_keys : false) if @returning.nil?
       @returning = false if @returning == []
@@ -49,6 +55,8 @@ module ActiveRecord
     def map_key_with_value
       inserts.map do |attributes|
         attributes = attributes.stringify_keys
+        attributes.merge!(scope_attributes) if scope_attributes
+
         verify_attributes(attributes)
 
         keys.map do |key|
@@ -58,6 +66,8 @@ module ActiveRecord
     end
 
     private
+      attr_reader :scope_attributes
+
       def find_unique_index_for(unique_by)
         name_or_columns = unique_by || model.primary_key
         match = Array(name_or_columns).map(&:to_s)
@@ -135,7 +145,7 @@ module ActiveRecord
             connection.with_yaml_fallback(types[key].serialize(value))
           end
 
-          Arel::InsertManager.new.create_values_list(values_list).to_sql
+          connection.visitor.compile(Arel::Nodes::ValuesList.new(values_list))
         end
 
         def returning
@@ -185,7 +195,7 @@ module ActiveRecord
           end
 
           def format_columns(columns)
-            quote_columns(columns).join(",")
+            columns.respond_to?(:map) ? quote_columns(columns).join(",") : columns
           end
 
           def quote_columns(columns)

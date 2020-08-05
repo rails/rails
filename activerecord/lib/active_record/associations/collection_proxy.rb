@@ -51,6 +51,7 @@ module ActiveRecord
       def loaded?
         @association.loaded?
       end
+      alias :loaded :loaded?
 
       ##
       # :method: select
@@ -1086,7 +1087,7 @@ module ActiveRecord
       end
 
       def reset_scope # :nodoc:
-        @offsets = {}
+        @offsets = @take = nil
         @scope = nil
         self
       end
@@ -1096,7 +1097,9 @@ module ActiveRecord
         SpawnMethods,
       ].flat_map { |klass|
         klass.public_instance_methods(false)
-      } - self.public_instance_methods(false) - [:select] + [:scoping, :values]
+      } - self.public_instance_methods(false) - [:select] + [
+        :scoping, :values, :insert, :insert_all, :insert!, :insert_all!, :upsert, :upsert_all
+      ]
 
       delegate(*delegate_methods, to: :scope)
 

@@ -1,16 +1,7 @@
 # frozen_string_literal: true
 
-# Make sure we're using pg high enough for type casts and Ruby 2.2+ compatibility
-gem "pg", ">= 0.18", "< 2.0"
+gem "pg", "~> 1.1"
 require "pg"
-
-# Use async_exec instead of exec_params on pg versions before 1.1
-class ::PG::Connection # :nodoc:
-  unless self.public_method_defined?(:async_exec_params)
-    remove_method :exec_params
-    alias exec_params async_exec
-  end
-end
 
 require "active_support/core_ext/object/try"
 require "active_record/connection_adapters/abstract_adapter"
@@ -32,9 +23,7 @@ module ActiveRecord
   module ConnectionHandling # :nodoc:
     # Establishes a connection to the database that's used by all Active Record objects
     def postgresql_connection(config)
-      conn_params = config.symbolize_keys
-
-      conn_params.delete_if { |_, v| v.nil? }
+      conn_params = config.symbolize_keys.compact
 
       # Map ActiveRecords param names to PGs.
       conn_params[:user] = conn_params.delete(:username) if conn_params[:username]
@@ -174,6 +163,10 @@ module ActiveRecord
       end
 
       def supports_foreign_keys?
+        true
+      end
+
+      def supports_check_constraints?
         true
       end
 
@@ -427,16 +420,6 @@ module ActiveRecord
         @use_insert_returning
       end
 
-      def column_name_for_operation(operation, node) # :nodoc:
-        OPERATION_ALIASES.fetch(operation) { operation.downcase }
-      end
-
-      OPERATION_ALIASES = { # :nodoc:
-        "maximum" => "max",
-        "minimum" => "min",
-        "average" => "avg",
-      }
-
       # Returns the version of the connected PostgreSQL server.
       def get_database_version # :nodoc:
         @connection.server_version
@@ -552,7 +535,7 @@ module ActiveRecord
           m.register_type "uuid", OID::Uuid.new
           m.register_type "xml", OID::Xml.new
           m.register_type "tsvector", OID::SpecializedString.new(:tsvector)
-          m.register_type "macaddr", OID::SpecializedString.new(:macaddr)
+          m.register_type "macaddr", OID::Macaddr.new
           m.register_type "citext", OID::SpecializedString.new(:citext)
           m.register_type "ltree", OID::SpecializedString.new(:ltree)
           m.register_type "line", OID::SpecializedString.new(:line)
@@ -672,6 +655,7 @@ module ActiveRecord
 
         def exec_no_cache(sql, name, binds)
           materialize_transactions
+          mark_transaction_written_if_write(sql)
 
           # make sure we carry over any changes to ActiveRecord::Base.default_timezone that have been
           # made since we established the connection
@@ -687,6 +671,7 @@ module ActiveRecord
 
         def exec_cache(sql, name, binds)
           materialize_transactions
+          mark_transaction_written_if_write(sql)
           update_typemap_for_default_timezone
 
           stmt_key = prepare_statement(sql, binds)
@@ -904,14 +889,11 @@ module ActiveRecord
             "oid" => PG::TextDecoder::Integer,
             "float4" => PG::TextDecoder::Float,
             "float8" => PG::TextDecoder::Float,
+            "numeric" => PG::TextDecoder::Numeric,
             "bool" => PG::TextDecoder::Boolean,
+            "timestamp" => PG::TextDecoder::TimestampUtc,
+            "timestamptz" => PG::TextDecoder::TimestampWithTimeZone,
           }
-
-          if defined?(PG::TextDecoder::TimestampUtc)
-            # Use native PG encoders available since pg-1.1
-            coders_by_name["timestamp"] = PG::TextDecoder::TimestampUtc
-            coders_by_name["timestamptz"] = PG::TextDecoder::TimestampWithTimeZone
-          end
 
           known_coder_types = coders_by_name.keys.map { |n| quote(n) }
           query = <<~SQL % known_coder_types.join(", ")
@@ -929,6 +911,11 @@ module ActiveRecord
           coders.each { |coder| map.add_coder(coder) }
           @connection.type_map_for_results = map
 
+          @type_map_for_results = PG::TypeMapByOid.new
+          @type_map_for_results.default_type_map = map
+          @type_map_for_results.add_coder(PG::TextDecoder::Bytea.new(oid: 17, name: "bytea"))
+          @type_map_for_results.add_coder(MoneyDecoder.new(oid: 790, name: "money"))
+
           # extract timestamp decoder for use in update_typemap_for_default_timezone
           @timestamp_decoder = coders.find { |coder| coder.name == "timestamp" }
           update_typemap_for_default_timezone
@@ -937,6 +924,14 @@ module ActiveRecord
         def construct_coder(row, coder_class)
           return unless coder_class
           coder_class.new(oid: row["oid"].to_i, name: row["typname"])
+        end
+
+        class MoneyDecoder < PG::SimpleDecoder # :nodoc:
+          TYPE = OID::Money.new
+
+          def decode(value, tuple = nil, field = nil)
+            TYPE.deserialize(value)
+          end
         end
 
         ActiveRecord::Type.add_modifier({ array: true }, OID::Array, adapter: :postgresql)

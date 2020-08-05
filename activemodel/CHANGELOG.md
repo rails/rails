@@ -1,3 +1,7 @@
+*   Deprecate marshalling load from legacy attributes format.
+
+    *Ryuta Kamizono*
+
 *   `*_previously_changed?` accepts `:from` and `:to` keyword arguments like `*_changed?`.
 
         topic.update!(status: :archived)

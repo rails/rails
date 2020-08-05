@@ -91,6 +91,11 @@ class DurationTest < ActiveSupport::TestCase
     assert_nothing_raised { Date.today - Date.today }
   end
 
+  def test_unary_plus
+    assert_equal (+ 1.second), 1.second
+    assert_instance_of ActiveSupport::Duration, + 1.second
+  end
+
   def test_plus
     assert_equal 2.seconds, 1.second + 1.second
     assert_instance_of ActiveSupport::Duration, 1.second + 1.second

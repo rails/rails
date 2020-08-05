@@ -1,3 +1,333 @@
+*   Allow attribute's default to be configured but keeping its own type.
+
+    ```ruby
+    class Post < ActiveRecord::Base
+      attribute :written_at, default: -> { Time.now.utc }
+    end
+
+    # Rails 6.0
+    Post.type_for_attribute(:written_at) # => #<Type::Value ... precision: nil, ...>
+
+    # Rails 6.1
+    Post.type_for_attribute(:written_at) # => #<Type::DateTime ... precision: 6, ...>
+    ```
+
+    *Ryuta Kamizono*
+
+*   Allow default to be configured for Enum.
+
+    ```ruby
+    class Book < ActiveRecord::Base
+      enum status: [:proposed, :written, :published], _default: :published
+    end
+
+    Book.new.status # => "published"
+    ```
+
+    *Ryuta Kamizono*
+
+*   Deprecate YAML loading from legacy format older than Rails 5.0.
+
+    *Ryuta Kamizono*
+
+*   Added the setting `ActiveRecord::Base.immutable_strings_by_default`, which
+    allows you to specify that all string columns should be frozen unless
+    otherwise specified. This will reduce memory pressure for applications which
+    do not generally mutate string properties of Active Record objects.
+
+    *Sean Griffin*
+
+*   Deprecate `map!` and `collect!` on `ActiveRecord::Result`.
+
+    *Ryuta Kamizono*
+
+*   Support `relation.and` for intersection as Set theory.
+
+    ```ruby
+    david_and_mary = Author.where(id: [david, mary])
+    mary_and_bob   = Author.where(id: [mary, bob])
+
+    david_and_mary.merge(mary_and_bob) # => [mary, bob]
+
+    david_and_mary.and(mary_and_bob) # => [mary]
+    david_and_mary.or(mary_and_bob)  # => [david, mary, bob]
+    ```
+
+    *Ryuta Kamizono*
+
+*   Merging conditions on the same column no longer maintain both conditions,
+    and will be consistently replaced by the latter condition in Rails 6.2.
+    To migrate to Rails 6.2's behavior, use `relation.merge(other, rewhere: true)`.
+
+    ```ruby
+    # Rails 6.1 (IN clause is replaced by merger side equality condition)
+    Author.where(id: [david.id, mary.id]).merge(Author.where(id: bob)) # => [bob]
+
+    # Rails 6.1 (both conflict conditions exists, deprecated)
+    Author.where(id: david.id..mary.id).merge(Author.where(id: bob)) # => []
+
+    # Rails 6.1 with rewhere to migrate to Rails 6.2's behavior
+    Author.where(id: david.id..mary.id).merge(Author.where(id: bob), rewhere: true) # => [bob]
+
+    # Rails 6.2 (same behavior with IN clause, mergee side condition is consistently replaced)
+    Author.where(id: [david.id, mary.id]).merge(Author.where(id: bob)) # => [bob]
+    Author.where(id: david.id..mary.id).merge(Author.where(id: bob)) # => [bob]
+    ```
+
+    *Ryuta Kamizono*
+
+*   Do not mark Postgresql MAC address and UUID attributes as changed when the assigned value only varies by case.
+
+    *Peter Fry*
+
+*   Resolve issue with insert_all unique_by option when used with expression index.
+
+    When the `:unique_by` option of `ActiveRecord::Persistence.insert_all` and
+    `ActiveRecord::Persistence.upsert_all` was used with the name of an expression index, an error
+    was raised. Adding a guard around the formatting behavior for the `:unique_by` corrects this.
+
+    Usage:
+
+    ```ruby
+    create_table :books, id: :integer, force: true do |t|
+      t.column :name, :string
+      t.index "lower(name)", unique: true
+    end
+
+    Book.insert_all [{ name: "MyTest" }], unique_by: :index_books_on_lower_name
+    ```
+
+    Fixes #39516.
+
+    *Austen Madden*
+
+*   Add basic support for CHECK constraints to database migrations.
+
+    Usage:
+
+    ```ruby
+    add_check_constraint :products, "price > 0", name: "price_check"
+    remove_check_constraint :products, name: "price_check"
+    ```
+
+    *fatkodima*
+
+*   Add `ActiveRecord::Base.strict_loading_by_default` and `ActiveRecord::Base.strict_loading_by_default=`
+    to enable/disable strict_loading mode by default for a model. The configuration's value is
+    inheritable by subclasses, but they can override that value and it will not impact parent class.
+
+    Usage:
+
+    ```ruby
+    class Developer < ApplicationRecord
+      self.strict_loading_by_default = true
+
+      has_many :projects
+    end
+
+    dev = Developer.first
+    dev.projects.first
+    # => ActiveRecord::StrictLoadingViolationError Exception: Developer is marked as strict_loading and Project cannot be lazily loaded.
+    ```
+
+    *bogdanvlviv*
+
+*   Deprecate passing an Active Record object to `quote`/`type_cast` directly.
+
+    *Ryuta Kamizono*
+
+*   Default engine `ENGINE=InnoDB` is no longer dumped to make schema more agnostic.
+
+    Before:
+
+    ```ruby
+    create_table "accounts", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci", force: :cascade do |t|
+    end
+    ```
+
+    After:
+
+    ```ruby
+    create_table "accounts", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    end
+    ```
+
+    *Ryuta Kamizono*
+
+*   Added delegated type as an alternative to single-table inheritance for representing class hierarchies.
+    See ActiveRecord::DelegatedType for the full description.
+
+    *DHH*
+
+*   Deprecate aggregations with group by duplicated fields.
+
+    To migrate to Rails 6.2's behavior, use `uniq!(:group)` to deduplicate group fields.
+
+    ```ruby
+    accounts = Account.group(:firm_id)
+
+    # duplicated group fields, deprecated.
+    accounts.merge(accounts.where.not(credit_limit: nil)).sum(:credit_limit)
+    # => {
+    #   [1, 1] => 50,
+    #   [2, 2] => 60
+    # }
+
+    # use `uniq!(:group)` to deduplicate group fields.
+    accounts.merge(accounts.where.not(credit_limit: nil)).uniq!(:group).sum(:credit_limit)
+    # => {
+    #   1 => 50,
+    #   2 => 60
+    # }
+    ```
+
+    *Ryuta Kamizono*
+
+*   Deprecate duplicated query annotations.
+
+    To migrate to Rails 6.2's behavior, use `uniq!(:annotate)` to deduplicate query annotations.
+
+    ```ruby
+    accounts = Account.where(id: [1, 2]).annotate("david and mary")
+
+    # duplicated annotations, deprecated.
+    accounts.merge(accounts.rewhere(id: 3))
+    # SELECT accounts.* FROM accounts WHERE accounts.id = 3 /* david and mary */ /* david and mary */
+
+    # use `uniq!(:annotate)` to deduplicate annotations.
+    accounts.merge(accounts.rewhere(id: 3)).uniq!(:annotate)
+    # SELECT accounts.* FROM accounts WHERE accounts.id = 3 /* david and mary */
+    ```
+
+    *Ryuta Kamizono*
+
+*   Resolve conflict between counter cache and optimistic locking.
+
+    Bump an Active Record instance's lock version after updating its counter
+    cache. This avoids raising an unnecessary `ActiveRecord::StaleObjectError`
+    upon subsequent transactions by maintaining parity with the corresponding
+    database record's `lock_version` column.
+
+    Fixes #16449.
+
+    *Aaron Lipman*
+
+*   Support merging option `:rewhere` to allow mergee side condition to be replaced exactly.
+
+    ```ruby
+    david_and_mary = Author.where(id: david.id..mary.id)
+
+    # both conflict conditions exists
+    david_and_mary.merge(Author.where(id: bob)) # => []
+
+    # mergee side condition is replaced by rewhere
+    david_and_mary.merge(Author.rewhere(id: bob)) # => [bob]
+
+    # mergee side condition is replaced by rewhere option
+    david_and_mary.merge(Author.where(id: bob), rewhere: true) # => [bob]
+    ```
+
+    *Ryuta Kamizono*
+
+*   Add support for finding records based on signed ids, which are tamper-proof, verified ids that can be
+    set to expire and scoped with a purpose. This is particularly useful for things like password reset
+    or email verification, where you want the bearer of the signed id to be able to interact with the
+    underlying record, but usually only within a certain time period.
+
+    ```ruby
+    signed_id = User.first.signed_id expires_in: 15.minutes, purpose: :password_reset
+
+    User.find_signed signed_id # => nil, since the purpose does not match
+
+    travel 16.minutes
+    User.find_signed signed_id, purpose: :password_reset # => nil, since the signed id has expired
+
+    travel_back
+    User.find_signed signed_id, purpose: :password_reset # => User.first
+
+    User.find_signed! "bad data" # => ActiveSupport::MessageVerifier::InvalidSignature
+    ```
+
+    *DHH*
+
+*   Support `ALGORITHM = INSTANT` DDL option for index operations on MySQL.
+
+    *Ryuta Kamizono*
+
+*   Fix index creation to preserve index comment in bulk change table on MySQL.
+
+    *Ryuta Kamizono*
+
+*   Allow `unscope` to be aware of table name qualified values.
+
+    It is possible to unscope only the column in the specified table.
+
+    ```ruby
+    posts = Post.joins(:comments).group(:"posts.hidden")
+    posts = posts.where("posts.hidden": false, "comments.hidden": false)
+
+    posts.count
+    # => { false => 10 }
+
+    # unscope both hidden columns
+    posts.unscope(where: :hidden).count
+    # => { false => 11, true => 1 }
+
+    # unscope only comments.hidden column
+    posts.unscope(where: :"comments.hidden").count
+    # => { false => 11 }
+    ```
+
+    *Ryuta Kamizono*, *Slava Korolev*
+
+*   Fix `rewhere` to truly overwrite collided where clause by new where clause.
+
+    ```ruby
+    steve = Person.find_by(name: "Steve")
+    david = Author.find_by(name: "David")
+
+    relation = Essay.where(writer: steve)
+
+    # Before
+    relation.rewhere(writer: david).to_a # => []
+
+    # After
+    relation.rewhere(writer: david).to_a # => [david]
+    ```
+
+    *Ryuta Kamizono*
+
+*   Inspect time attributes with subsec.
+
+    ```ruby
+    p Knot.create
+    => #<Knot id: 1, created_at: "2016-05-05 01:29:47.116928000">
+    ```
+
+    *akinomaeni*
+
+*   Deprecate passing a column to `type_cast`.
+
+    *Ryuta Kamizono*
+
+*   Deprecate `in_clause_length` and `allowed_index_name_length` in `DatabaseLimits`.
+
+    *Ryuta Kamizono*
+
+*   Support bulk insert/upsert on relation to preserve scope values.
+
+    *Josef Šimánek*, *Ryuta Kamizono*
+
+*   Preserve column comment value on changing column name on MySQL.
+
+    *Islam Taha*
+
+*   Add support for `if_exists` option for removing an index.
+
+    The `remove_index` method can take an `if_exists` option. If this is set to true an error won't be raised if the index doesn't exist.
+
+    *Eileen M. Uchitelle*
+
 *   Remove ibm_db, informix, mssql, oracle, and oracle12 Arel visitors which are not used in the code base.
 
     *Ryuta Kamizono*
@@ -61,7 +391,7 @@
 
     *Eugene Kenny*
 
-*   Deprecate using `return`, `break` or `throw` to exit a transaction block.
+*   Deprecate using `return`, `break` or `throw` to exit a transaction block after writes.
 
     *Dylan Thacker-Smith*
 

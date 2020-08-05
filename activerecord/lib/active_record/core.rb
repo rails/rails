@@ -123,6 +123,8 @@ module ActiveRecord
 
       class_attribute :belongs_to_required_by_default, instance_accessor: false
 
+      class_attribute :strict_loading_by_default, instance_accessor: false, default: false
+
       mattr_accessor :connection_handlers, instance_accessor: false, default: {}
 
       mattr_accessor :writing_role, instance_accessor: false, default: :writing
@@ -165,16 +167,20 @@ module ActiveRecord
       def inherited(child_class) # :nodoc:
         # initialize cache at class definition for thread safety
         child_class.initialize_find_by_cache
+        unless child_class.base_class?
+          klass = self
+          until klass.base_class?
+            klass.initialize_find_by_cache
+            klass = klass.superclass
+          end
+        end
         super
       end
 
       def find(*ids) # :nodoc:
         # We don't have cache keys for this stuff yet
         return super unless ids.length == 1
-        return super if block_given? ||
-                        primary_key.nil? ||
-                        scope_attributes? ||
-                        columns_hash.key?(inheritance_column) && !base_class?
+        return super if block_given? || primary_key.nil? || scope_attributes?
 
         id = ids.first
 
@@ -186,34 +192,41 @@ module ActiveRecord
           where(key => params.bind).limit(1)
         }
 
-        record = statement.execute([id], connection)&.first
-        unless record
-          raise RecordNotFound.new("Couldn't find #{name} with '#{key}'=#{id}", name, key, id)
-        end
-        record
+        statement.execute([id], connection).first ||
+          raise(RecordNotFound.new("Couldn't find #{name} with '#{key}'=#{id}", name, key, id))
       end
 
       def find_by(*args) # :nodoc:
-        return super if scope_attributes? || reflect_on_all_aggregations.any? ||
-                        columns_hash.key?(inheritance_column) && !base_class?
+        return super if scope_attributes?
 
         hash = args.first
+        return super unless Hash === hash
 
-        return super if !(Hash === hash) || hash.values.any? { |v|
-          StatementCache.unsupported_value?(v)
-        }
+        values = hash.values.map! { |value| value.is_a?(Base) ? value.id : value }
+        return super if values.any? { |v| StatementCache.unsupported_value?(v) }
 
-        # We can't cache Post.find_by(author: david) ...yet
-        return super unless hash.keys.all? { |k| columns_hash.has_key?(k.to_s) }
+        keys = hash.keys.map! do |key|
+          attribute_aliases[name = key.to_s] || begin
+            reflection = _reflect_on_association(name)
+            if reflection&.belongs_to? && !reflection.polymorphic?
+              reflection.join_foreign_key
+            elsif reflect_on_aggregation(name)
+              return super
+            else
+              name
+            end
+          end
+        end
 
-        keys = hash.keys
+        return super unless keys.all? { |k| columns_hash.key?(k) }
 
         statement = cached_find_by_statement(keys) { |params|
           wheres = keys.index_with { params.bind }
           where(wheres).limit(1)
         }
+
         begin
-          statement.execute(hash.values, connection)&.first
+          statement.execute(values, connection).first
         rescue TypeError
           raise ActiveRecord::StatementInvalid
         end
@@ -276,14 +289,13 @@ module ActiveRecord
       #     scope :published_and_commented, -> { published.and(arel_table[:comments_count].gt(0)) }
       #   end
       def arel_table # :nodoc:
-        @arel_table ||= Arel::Table.new(table_name, type_caster: type_caster)
+        @arel_table ||= Arel::Table.new(table_name, klass: self)
       end
 
       def arel_attribute(name, table = arel_table) # :nodoc:
-        name = name.to_s
-        name = attribute_aliases[name] || name
         table[name]
       end
+      deprecate :arel_attribute
 
       def predicate_builder # :nodoc:
         @predicate_builder ||= PredicateBuilder.new(table_metadata)
@@ -297,18 +309,17 @@ module ActiveRecord
         false
       end
 
-      private
-        def cached_find_by_statement(key, &block)
-          cache = @find_by_statement_cache[connection.prepared_statements]
-          cache.compute_if_absent(key) { StatementCache.create(connection, &block) }
-        end
+      def cached_find_by_statement(key, &block) # :nodoc:
+        cache = @find_by_statement_cache[connection.prepared_statements]
+        cache.compute_if_absent(key) { StatementCache.create(connection, &block) }
+      end
 
+      private
         def relation
           relation = Relation.create(self)
 
           if finder_needs_type_condition? && !ignore_default_scope?
             relation.where!(type_condition)
-            relation.create_with!(inheritance_column.to_s => sti_name)
           else
             relation
           end
@@ -415,7 +426,6 @@ module ActiveRecord
       @previously_new_record    = false
       @destroyed                = false
       @_start_transaction_state = nil
-      @transaction_state        = nil
 
       super
     end
@@ -475,7 +485,6 @@ module ActiveRecord
 
     # Returns +true+ if the attributes hash has been frozen.
     def frozen?
-      sync_with_transaction_state if @transaction_state&.finalized?
       @attributes.frozen?
     end
 
@@ -496,16 +505,23 @@ module ActiveRecord
       false
     end
 
-    # Returns +true+ if the record is read only. Records loaded through joins with piggy-back
-    # attributes will be marked as read only since they cannot be saved.
+    # Returns +true+ if the record is read only.
     def readonly?
       @readonly
     end
 
+    # Returns +true+ if the record is in strict_loading mode.
     def strict_loading?
       @strict_loading
     end
 
+    # Sets the record to strict_loading mode. This will raise an error
+    # if the record tries to lazily load an association.
+    #
+    #   user = User.first
+    #   user.strict_loading!
+    #   user.comments.to_a
+    #   => ActiveRecord::StrictLoadingViolationError
     def strict_loading!
       @strict_loading = true
     end
@@ -525,7 +541,7 @@ module ActiveRecord
       # allocated but not initialized.
       inspection = if defined?(@attributes) && @attributes
         self.class.attribute_names.collect do |name|
-          if has_attribute?(name)
+          if _has_attribute?(name)
             attr = _read_attribute(name)
             value = if attr.nil?
               attr.inspect
@@ -549,7 +565,7 @@ module ActiveRecord
       return super if custom_inspect_method_defined?
       pp.object_address_group(self) do
         if defined?(@attributes) && @attributes
-          attr_names = self.class.attribute_names.select { |name| has_attribute?(name) }
+          attr_names = self.class.attribute_names.select { |name| _has_attribute?(name) }
           pp.seplist(attr_names, proc { pp.text "," }) do |attr_name|
             pp.breakable " "
             pp.group(1) do
@@ -594,8 +610,7 @@ module ActiveRecord
         @marked_for_destruction   = false
         @destroyed_by_association = nil
         @_start_transaction_state = nil
-        @transaction_state        = nil
-        @strict_loading           = false
+        @strict_loading           = self.class.strict_loading_by_default
 
         self.class.define_attribute_methods
       end

@@ -559,25 +559,24 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     end
   end
 
-  def test_assert_enqueued_with_selective_args
-    args = ->(job_args) do
-      assert_equal 1, job_args.first[:argument1]
-      assert job_args.first[:argument2].key?(:b)
-    end
+  def test_assert_enqueued_with_supports_matcher_procs
+    facets = {
+      job: HelloJob,
+      args: ["Rails"],
+      at: Date.tomorrow.noon,
+      queue: "important",
+    }
 
-    assert_enqueued_with(job: MultipleKwargsJob, args: args) do
-      MultipleKwargsJob.perform_later(argument2: { b: 2, a: 1 }, argument1: 1)
-    end
-  end
+    facets[:job].set(queue: facets[:queue], wait_until: facets[:at]).perform_later(*facets[:args])
 
-  def test_assert_enqueued_with_selective_args_fails
-    args = ->(job_args) do
-      false
-    end
+    facets.each do |facet, value|
+      matcher = ->(job_value) { job_value == value }
+      refuser = ->(job_value) { false }
 
-    assert_raise ActiveSupport::TestCase::Assertion do
-      assert_enqueued_with(job: MultipleKwargsJob, args: args) do
-        MultipleKwargsJob.perform_later(argument2: { b: 2, a: 1 }, argument1: 1)
+      assert_enqueued_with(**{ facet => matcher })
+
+      assert_raises ActiveSupport::TestCase::Assertion do
+        assert_enqueued_with(**{ facet => refuser })
       end
     end
   end
@@ -1826,25 +1825,25 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
   end
 
-  def test_assert_performed_with_selective_args
-    args = ->(job_args) do
-      assert_equal 1, job_args.first[:argument1]
-      assert job_args.first[:argument2].key?(:b)
-    end
+  def test_assert_performed_with_supports_matcher_procs
+    facets = {
+      job: HelloJob,
+      args: ["Rails"],
+      at: Date.tomorrow.noon,
+      queue: "important",
+    }
 
-    assert_performed_with(job: MultipleKwargsJob, args: args) do
-      MultipleKwargsJob.perform_later(argument2: { b: 2, a: 1 }, argument1: 1)
-    end
-  end
+    facets[:job].set(queue: facets[:queue], wait_until: facets[:at]).perform_later(*facets[:args])
+    perform_enqueued_jobs
 
-  def test_assert_performed_with_selective_args_fails
-    args = ->(job_args) do
-      false
-    end
+    facets.each do |facet, value|
+      matcher = ->(job_value) { job_value == value }
+      refuser = ->(job_value) { false }
 
-    assert_raise ActiveSupport::TestCase::Assertion do
-      assert_performed_with(job: MultipleKwargsJob, args: args) do
-        MultipleKwargsJob.perform_later(argument2: { b: 2, a: 1 }, argument1: 1)
+      assert_performed_with(**{ facet => matcher })
+
+      assert_raises ActiveSupport::TestCase::Assertion do
+        assert_performed_with(**{ facet => refuser })
       end
     end
   end

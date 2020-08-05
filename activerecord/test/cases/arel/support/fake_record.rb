@@ -64,10 +64,6 @@ module FakeRecord
       comment
     end
 
-    def in_clause_length
-      3
-    end
-
     def schema_cache
       self
     end

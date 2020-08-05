@@ -315,7 +315,7 @@ and specify the `Content-Type` as `application/json`.
 
 Here's an example in jQuery:
 
-```javascript
+```js
 jQuery.ajax({
   type: 'POST',
   url: '/people',

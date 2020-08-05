@@ -52,7 +52,7 @@ module ActiveRecord
           raise NotImplementedError, "#{self} is an abstract class and cannot be instantiated."
         end
 
-        if has_attribute?(inheritance_column)
+        if _has_attribute?(inheritance_column)
           subclass = subclass_from_attributes(attributes)
 
           if subclass.nil? && scope_attributes = current_scope&.scope_for_create
@@ -245,7 +245,7 @@ module ActiveRecord
         end
 
         def using_single_table_inheritance?(record)
-          record[inheritance_column].present? && has_attribute?(inheritance_column)
+          record[inheritance_column].present? && _has_attribute?(inheritance_column)
         end
 
         def find_sti_class(type_name)
@@ -260,7 +260,7 @@ module ActiveRecord
         end
 
         def type_condition(table = arel_table)
-          sti_column = arel_attribute(inheritance_column, table)
+          sti_column = table[inheritance_column]
           sti_names  = ([self] + descendants).map(&:sti_name)
 
           predicate_builder.build(sti_column, sti_names)

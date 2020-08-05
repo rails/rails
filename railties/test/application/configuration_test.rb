@@ -4,7 +4,6 @@ require "isolation/abstract_unit"
 require "rack/test"
 require "env_helpers"
 require "set"
-require "active_support/core_ext/string/starts_ends_with"
 
 class ::MyMailInterceptor
   def self.delivering_email(email); email; end
@@ -1320,7 +1319,7 @@ module ApplicationTests
       app "development"
 
       post "/posts.json", '{ "title": "foo", "name": "bar" }', "CONTENT_TYPE" => "application/json"
-      assert_equal '<ActionController::Parameters {"title"=>"foo"} permitted: false>', last_response.body
+      assert_equal '#<ActionController::Parameters {"title"=>"foo"} permitted: false>', last_response.body
     end
 
     test "config.action_controller.permit_all_parameters = true" do
@@ -1710,8 +1709,8 @@ module ApplicationTests
     test "autoload paths do not include asset paths" do
       app "development"
       ActiveSupport::Dependencies.autoload_paths.each do |path|
-        assert_not_operator path, :ends_with?, "app/assets"
-        assert_not_operator path, :ends_with?, "app/javascript"
+        assert_not_operator path, :end_with?, "app/assets"
+        assert_not_operator path, :end_with?, "app/javascript"
       end
     end
 
@@ -1722,8 +1721,8 @@ module ApplicationTests
       app "development"
 
       ActiveSupport::Dependencies.autoload_paths.each do |path|
-        assert_not_operator path, :ends_with?, "app/assets"
-        assert_not_operator path, :ends_with?, "app/webpack"
+        assert_not_operator path, :end_with?, "app/assets"
+        assert_not_operator path, :end_with?, "app/webpack"
       end
     end
 
@@ -1733,7 +1732,7 @@ module ApplicationTests
       # Action Mailer modifies AS::Dependencies.autoload_paths in-place.
       autoload_paths = ActiveSupport::Dependencies.autoload_paths
       autoload_paths_from_app_and_engines = autoload_paths.reject do |path|
-        path.ends_with?("mailers/previews")
+        path.end_with?("mailers/previews")
       end
       assert_equal true, Rails.configuration.add_autoload_paths_to_load_path
       assert_empty autoload_paths_from_app_and_engines - $LOAD_PATH
@@ -2121,25 +2120,6 @@ module ApplicationTests
       assert_equal :default, Rails.configuration.debug_exception_response_format
     end
 
-    test "controller force_ssl declaration can be used even if session_store is disabled" do
-      make_basic_app do |application|
-        application.config.session_store :disabled
-      end
-
-      class ::OmgController < ActionController::Base
-        force_ssl
-
-        def index
-          render plain: "Yay! You're on Rails!"
-        end
-      end
-
-      get "/"
-
-      assert_equal 301, last_response.status
-      assert_equal "https://example.org/", last_response.location
-    end
-
     test "ActiveRecord::Base.has_many_inversing is true by default for new apps" do
       app "development"
 
@@ -2277,10 +2257,17 @@ module ApplicationTests
       end
     end
 
-    test "ActiveJob::Base.retry_jitter is 0.15 by default" do
+    test "ActiveJob::Base.retry_jitter is 0.15 by default for new apps" do
       app "development"
 
       assert_equal 0.15, ActiveJob::Base.retry_jitter
+    end
+
+    test "ActiveJob::Base.retry_jitter is 0.0 by default for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      app "development"
+
+      assert_equal 0.0, ActiveJob::Base.retry_jitter
     end
 
     test "ActiveJob::Base.retry_jitter can be set by config" do
@@ -2358,6 +2345,28 @@ module ApplicationTests
       app "development"
 
       assert_equal :lax, Rails.application.config.action_dispatch.cookies_same_site_protection
+    end
+
+    test "Rails.application.config.action_dispatch.ssl_default_redirect_status is 308 in 6.1 defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.1"'
+
+      app "production"
+
+      assert_equal 308, Rails.application.config.action_dispatch.ssl_default_redirect_status
+    end
+
+    test "Rails.application.config.action_dispatch.ssl_default_redirect_status can be configured in an initializer" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.0"'
+
+      app_file "config/initializers/new_framework_defaults_6_1.rb", <<-RUBY
+        Rails.application.config.action_dispatch.ssl_default_redirect_status = 308
+      RUBY
+
+      app "production"
+
+      assert_equal 308, Rails.application.config.action_dispatch.ssl_default_redirect_status
     end
 
     test "ActiveSupport.utc_to_local_returns_utc_offset_times is true in 6.1 defaults" do
@@ -2562,12 +2571,16 @@ module ApplicationTests
 
       output = rails("routes", "-g", "active_storage")
       assert_equal <<~MESSAGE, output
-                           Prefix Verb URI Pattern                                                               Controller#Action
-               rails_service_blob GET  /files/blobs/:signed_id/*filename(.:format)                               active_storage/blobs#show
-        rails_blob_representation GET  /files/representations/:signed_blob_id/:variation_key/*filename(.:format) active_storage/representations#show
-               rails_disk_service GET  /files/disk/:encoded_key/*filename(.:format)                              active_storage/disk#show
-        update_rails_disk_service PUT  /files/disk/:encoded_token(.:format)                                      active_storage/disk#update
-             rails_direct_uploads POST /files/direct_uploads(.:format)                                           active_storage/direct_uploads#create
+                               Prefix Verb URI Pattern                                                                        Controller#Action
+                   rails_service_blob GET  /files/blobs/redirect/:signed_id/*filename(.:format)                               active_storage/blobs/redirect#show
+             rails_service_blob_proxy GET  /files/blobs/proxy/:signed_id/*filename(.:format)                                  active_storage/blobs/proxy#show
+                                      GET  /files/blobs/:signed_id/*filename(.:format)                                        active_storage/blobs/redirect#show
+            rails_blob_representation GET  /files/representations/redirect/:signed_blob_id/:variation_key/*filename(.:format) active_storage/representations/redirect#show
+      rails_blob_representation_proxy GET  /files/representations/proxy/:signed_blob_id/:variation_key/*filename(.:format)    active_storage/representations/proxy#show
+                                      GET  /files/representations/:signed_blob_id/:variation_key/*filename(.:format)          active_storage/representations/redirect#show
+                   rails_disk_service GET  /files/disk/:encoded_key/*filename(.:format)                                       active_storage/disk#show
+            update_rails_disk_service PUT  /files/disk/:encoded_token(.:format)                                               active_storage/disk#update
+                 rails_direct_uploads POST /files/direct_uploads(.:format)                                                    active_storage/direct_uploads#create
       MESSAGE
     end
 

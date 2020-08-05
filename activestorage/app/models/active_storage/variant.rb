@@ -53,10 +53,9 @@ require "ostruct"
 # * {ImageProcessing::Vips}[https://github.com/janko-m/image_processing/blob/master/doc/vips.md#methods]
 # * {ruby-vips reference}[http://www.rubydoc.info/gems/ruby-vips/Vips/Image]
 class ActiveStorage::Variant
-  WEB_IMAGE_CONTENT_TYPES = %w[ image/png image/jpeg image/jpg image/gif ]
-
   attr_reader :blob, :variation
   delegate :service, to: :blob
+  delegate :filename, :content_type, to: :specification
 
   def initialize(blob, variation_or_variation_key)
     @blob, @variation = blob, ActiveStorage::Variation.wrap(variation_or_variation_key)
@@ -85,6 +84,12 @@ class ActiveStorage::Variant
   alias_method :service_url, :url
   deprecate service_url: :url
 
+  # Downloads the file associated with this variant. If no block is given, the entire file is read into memory and returned.
+  # That'll use a lot of RAM for very large files. If a block is given, then the download is streamed and yielded in chunks.
+  def download(&block)
+    service.download key, &block
+  end
+
   # Returns the receiving variant. Allows ActiveStorage::Variant and ActiveStorage::Preview instances to be used interchangeably.
   def image
     self
@@ -106,7 +111,7 @@ class ActiveStorage::Variant
 
     def specification
       @specification ||=
-        if WEB_IMAGE_CONTENT_TYPES.include?(blob.content_type)
+        if ActiveStorage.web_image_content_types.include?(blob.content_type)
           Specification.new \
             filename: blob.filename,
             content_type: blob.content_type,
@@ -119,7 +124,7 @@ class ActiveStorage::Variant
         end
     end
 
-    delegate :filename, :content_type, :format, to: :specification
+    delegate :format, to: :specification
 
     class Specification < OpenStruct; end
 end

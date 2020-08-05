@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "set"
-require "active_record/connection_adapters/determine_if_preparable_visitor"
 require "active_record/connection_adapters/schema_cache"
 require "active_record/connection_adapters/sql_type_metadata"
 require "active_record/connection_adapters/abstract/schema_dumper"
@@ -95,12 +94,9 @@ module ActiveRecord
         @statements = build_statement_pool
         @lock = ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
 
-        if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
-          @prepared_statements = true
-          @visitor.extend(DetermineIfPreparableVisitor)
-        else
-          @prepared_statements = false
-        end
+        @prepared_statements = self.class.type_cast_config_to_boolean(
+          config.fetch(:prepared_statements, true)
+        )
 
         @advisory_locks_enabled = self.class.type_cast_config_to_boolean(
           config.fetch(:advisory_locks, true)
@@ -109,6 +105,10 @@ module ActiveRecord
 
       def replica?
         @config[:replica] || false
+      end
+
+      def use_metadata_table?
+        @config.fetch(:use_metadata_table, true)
       end
 
       # Determines whether writes are currently being prevents.
@@ -338,6 +338,11 @@ module ActiveRecord
       end
       deprecate :supports_foreign_keys_in_create?
 
+      # Does this adapter support creating check constraints?
+      def supports_check_constraints?
+        false
+      end
+
       # Does this adapter support views?
       def supports_views?
         false
@@ -559,10 +564,6 @@ module ActiveRecord
       # Check the connection back in to the connection pool
       def close
         pool.checkin self
-      end
-
-      def column_name_for_operation(operation, node) # :nodoc:
-        visitor.compile(node)
       end
 
       def default_index_type?(index) # :nodoc:
