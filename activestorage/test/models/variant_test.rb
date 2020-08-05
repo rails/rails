@@ -182,10 +182,13 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   test "resized variation of JFIF works for vips processor" do
     ActiveStorage.variant_processor = :vips
     blob = create_file_blob(filename: "image.jfif", content_type: "image/jpeg")
+    variant = blob.variant(resize_to_fill: [100, 100]).processed
+    assert_match(/image\.jfif/, variant.url)
 
-    assert_nothing_raised do
-      blob.variant(thumbnail_image: 100).processed
-    end
+    image = read_image(variant)
+    assert_equal "JPEG", image.type
+    assert_equal 100, image.width
+    assert_equal 100, image.height
   rescue LoadError => e
     skip(e.message)
   ensure

@@ -114,7 +114,7 @@ class ActiveStorage::Variant
           Specification.new \
             filename: blob.filename,
             content_type: blob.content_type,
-            format: Rack::Mime::MIME_TYPES.invert[blob.content_type]
+            format: MimeMagic.new(blob.content_type).extensions.first
         else
           Specification.new \
             filename: ActiveStorage::Filename.new("#{blob.filename.base}.png"),
