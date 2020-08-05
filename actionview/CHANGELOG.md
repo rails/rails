@@ -1,3 +1,8 @@
+## Rails 5.1.7.1 (August 05, 2020) ##
+
+*   [CVE-2020-8167] Check that request is same-origin prior to including CSRF token in XHRs
+
+
 ## Rails 5.1.7 (March 27, 2019) ##
 
 *   Fix issue with `button_to`'s `to_form_params`

@@ -1,3 +1,8 @@
+## Rails 5.1.7.1 (August 05, 2020) ##
+
+*   No changes.
+
+
 ## Rails 5.1.7 (March 27, 2019) ##
 
 *   No changes.
