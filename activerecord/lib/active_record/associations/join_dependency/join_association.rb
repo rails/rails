@@ -50,7 +50,7 @@ module ActiveRecord
               end
             end
 
-            joins << table.create_join(table, table.create_on(nodes), join_type)
+            joins << join_type.new(table, Arel::Nodes::On.new(nodes))
 
             if others && !others.empty?
               joins.concat arel.join_sources
@@ -79,7 +79,7 @@ module ActiveRecord
         private
           def append_constraints(join, constraints)
             if join.is_a?(Arel::Nodes::StringJoin)
-              join_string = table.create_and(constraints.unshift(join.left))
+              join_string = Arel::Nodes::And.new(constraints.unshift join.left)
               join.left = Arel.sql(base_klass.connection.visitor.compile(join_string))
             else
               right = join.right
