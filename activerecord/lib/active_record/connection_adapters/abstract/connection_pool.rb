@@ -1031,7 +1031,7 @@ module ActiveRecord
       end
       alias :connection_pools :connection_pool_list
 
-      def establish_connection(config, shard = Base.default_shard, owner_name = Base.name)
+      def establish_connection(config, owner_name: Base.name, shard: Base.default_shard)
         owner_name = config.to_s if config.is_a?(Symbol)
 
         pool_config = resolve_pool_config(config, owner_name)
@@ -1040,7 +1040,7 @@ module ActiveRecord
         # Protects the connection named `ActiveRecord::Base` from being removed
         # if the user calls `establish_connection :primary`.
         if owner_to_pool_manager.key?(pool_config.connection_specification_name)
-          remove_connection_pool(pool_config.connection_specification_name, shard)
+          remove_connection_pool(pool_config.connection_specification_name, shard: shard)
         end
 
         message_bus = ActiveSupport::Notifications.instrumenter
@@ -1094,8 +1094,8 @@ module ActiveRecord
       # active or defined connection: if it is the latter, it will be
       # opened and set as the active connection for the class it was defined
       # for (not necessarily the current class).
-      def retrieve_connection(spec_name, shard = ActiveRecord::Base.default_shard) # :nodoc:
-        pool = retrieve_connection_pool(spec_name, shard)
+      def retrieve_connection(spec_name, shard: ActiveRecord::Base.default_shard) # :nodoc:
+        pool = retrieve_connection_pool(spec_name, shard: shard)
 
         unless pool
           if shard != ActiveRecord::Base.default_shard
@@ -1114,8 +1114,8 @@ module ActiveRecord
 
       # Returns true if a connection that's accessible to this class has
       # already been opened.
-      def connected?(spec_name, shard = ActiveRecord::Base.default_shard)
-        pool = retrieve_connection_pool(spec_name, shard)
+      def connected?(spec_name, shard: ActiveRecord::Base.default_shard)
+        pool = retrieve_connection_pool(spec_name, shard: shard)
         pool && pool.connected?
       end
 
@@ -1123,12 +1123,12 @@ module ActiveRecord
       # connection and the defined connection (if they exist). The result
       # can be used as an argument for #establish_connection, for easily
       # re-establishing the connection.
-      def remove_connection(owner, shard = ActiveRecord::Base.default_shard)
-        remove_connection_pool(owner, shard)&.configuration_hash
+      def remove_connection(owner, shard: ActiveRecord::Base.default_shard)
+        remove_connection_pool(owner, shard: shard)&.configuration_hash
       end
       deprecate remove_connection: "Use #remove_connection_pool, which now returns a DatabaseConfig object instead of a Hash"
 
-      def remove_connection_pool(owner, shard = ActiveRecord::Base.default_shard)
+      def remove_connection_pool(owner, shard: ActiveRecord::Base.default_shard)
         if pool_manager = get_pool_manager(owner)
           pool_config = pool_manager.remove_pool_config(shard)
 
@@ -1142,7 +1142,7 @@ module ActiveRecord
       # Retrieving the connection pool happens a lot, so we cache it in @owner_to_pool_manager.
       # This makes retrieving the connection pool O(1) once the process is warm.
       # When a connection is established or removed, we invalidate the cache.
-      def retrieve_connection_pool(owner, shard = ActiveRecord::Base.default_shard)
+      def retrieve_connection_pool(owner, shard: ActiveRecord::Base.default_shard)
         pool_config = get_pool_manager(owner)&.get_pool_config(shard)
         pool_config&.pool
       end
