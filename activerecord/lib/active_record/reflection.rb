@@ -690,11 +690,6 @@ module ActiveRecord
           Associations::HasOneAssociation
         end
       end
-
-      private
-        def calculate_constructable(macro, options)
-          !options[:through]
-        end
     end
 
     class BelongsToReflection < AssociationReflection # :nodoc:

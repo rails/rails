@@ -1,3 +1,8 @@
+*   Allow constructors (`build_association` and `create_association`) on
+    `has_one :through` associations.
+
+    *Santiago Perez Perret*
+
 ## Rails 6.1.0.rc1 (November 02, 2020) ##
 
 *   Add `connected_to_many` API.
