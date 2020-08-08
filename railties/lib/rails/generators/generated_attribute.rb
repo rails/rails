@@ -195,6 +195,10 @@ module Rails
           if reference? && !polymorphic?
             options[:foreign_key] = true
           end
+
+          if reference? && Rails.application.config.generators.options.dig(:activerecord, :primary_key_type) == :uuid
+            options[:type] = :uuid
+          end
         end
       end
     end
