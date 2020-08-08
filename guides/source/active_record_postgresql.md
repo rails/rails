@@ -318,9 +318,9 @@ You can use `uuid` type to define references in migrations:
 ```ruby
 # db/migrate/20150418012400_create_blog.rb
 enable_extension 'pgcrypto' unless extension_enabled?('pgcrypto')
-create_table :posts, id: :uuid, default: 'gen_random_uuid()'
+create_table :posts, id: :uuid
 
-create_table :comments, id: :uuid, default: 'gen_random_uuid()' do |t|
+create_table :comments, id: :uuid do |t|
   # t.belongs_to :post, type: :uuid
   t.references :post, type: :uuid
 end
@@ -414,7 +414,7 @@ extension to generate random UUIDs.
 ```ruby
 # db/migrate/20131220144913_create_devices.rb
 enable_extension 'pgcrypto' unless extension_enabled?('pgcrypto')
-create_table :devices, id: :uuid, default: 'gen_random_uuid()' do |t|
+create_table :devices, id: :uuid do |t|
   t.string :kind
 end
 
