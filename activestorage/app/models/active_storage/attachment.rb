@@ -11,12 +11,12 @@ class ActiveStorage::Attachment < ActiveRecord::Base
   self.table_name = "active_storage_attachments"
 
   belongs_to :record, polymorphic: true, touch: true
-  belongs_to :blob, class_name: "ActiveStorage::Blob"
+  belongs_to :blob, class_name: "ActiveStorage::Blob", autosave: true
 
   delegate_missing_to :blob
   delegate :signed_id, to: :blob
 
-  after_create_commit :mirror_blob_later, :analyze_blob_later, :identify_blob
+  after_create_commit :mirror_blob_later, :analyze_blob_later
   after_destroy_commit :purge_dependent_blob_later
 
   # Synchronously deletes the attachment and {purges the blob}[rdoc-ref:ActiveStorage::Blob#purge].
@@ -38,10 +38,6 @@ class ActiveStorage::Attachment < ActiveRecord::Base
   end
 
   private
-    def identify_blob
-      blob.identify
-    end
-
     def analyze_blob_later
       blob.analyze_later unless blob.analyzed?
     end

@@ -260,13 +260,13 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_equal ["is invalid"], blob.errors[:service_name]
   end
 
-  test "identify updates service metadata" do
+  test "updating the content_type updates service metadata" do
     blob = directly_upload_file_blob(filename: "racecar.jpg", content_type: "application/octet-stream")
 
     expected_arguments = [blob.key, content_type: "image/jpeg"]
 
     assert_called_with(blob.service, :update_metadata, expected_arguments) do
-      blob.identify
+      blob.update!(content_type: "image/jpeg")
     end
   end
 
