@@ -93,7 +93,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
     mw.call({})
   ensure
-    ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+    clean_up_connection_handler
   end
 
 
@@ -157,7 +157,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
       rd.close
     ensure
-      ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+      clean_up_connection_handler
     end
   end
 
@@ -607,7 +607,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
     mw.call({})
   ensure
-    ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+    clean_up_connection_handler
   end
 
   test "query cache is enabled in threads with shared connection" do
