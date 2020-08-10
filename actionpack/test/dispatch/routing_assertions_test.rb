@@ -14,11 +14,22 @@ class QueryBooksController < BooksController; end
 
 class RoutingAssertionsTest < ActionController::TestCase
   def setup
+    root_engine = Class.new(Rails::Engine) do
+      def self.name
+        "root_engine"
+      end
+    end
+
+    root_engine.routes.draw do
+      root to: "books#index"
+    end
+
     engine = Class.new(Rails::Engine) do
       def self.name
         "blog_engine"
       end
     end
+
     engine.routes.draw do
       resources :books
 
@@ -52,6 +63,8 @@ class RoutingAssertionsTest < ActionController::TestCase
       end
 
       mount engine => "/shelf"
+
+      mount root_engine => "/"
 
       get "/shelf/foo", controller: "query_articles", action: "index"
     end
@@ -116,6 +129,10 @@ class RoutingAssertionsTest < ActionController::TestCase
   def test_assert_recognizes_with_engine
     assert_recognizes({ controller: "books", action: "index" }, "/shelf/books")
     assert_recognizes({ controller: "books", action: "show", id: "1" }, "/shelf/books/1")
+  end
+
+  def test_assert_recognizes_with_engine_at_root
+    assert_recognizes({ controller: "books", action: "index" }, "/")
   end
 
   def test_assert_recognizes_with_engine_and_extras
