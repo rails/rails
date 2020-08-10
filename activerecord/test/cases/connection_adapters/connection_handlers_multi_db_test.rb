@@ -217,6 +217,14 @@ module ActiveRecord
           assert_equal "`connected_to` cannot accept a `database` argument with any other arguments.", error.message
         end
 
+        def test_database_argument_is_deprecated
+          assert_deprecated do
+            ActiveRecord::Base.connected_to(database: { writing: { adapter: "sqlite3", database: "test/db/primary.sqlite3" } }) { }
+          end
+        ensure
+          ActiveRecord::Base.establish_connection(:arunit)
+        end
+
         def test_switching_connections_without_database_and_role_raises
           error = assert_raises(ArgumentError) do
             ActiveRecord::Base.connected_to { }
