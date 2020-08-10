@@ -49,7 +49,7 @@ module ActiveRecord
     def establish_connection(config_or_env = nil)
       config_or_env ||= DEFAULT_ENV.call.to_sym
       db_config, owner_name = resolve_config_for_connection(config_or_env)
-      connection_handler.establish_connection(db_config, owner_name: owner_name, shard: current_shard)
+      connection_handler.establish_connection(db_config, owner_name: owner_name)
     end
 
     # Connects a model to the databases specified. The +database+ keyword
@@ -89,7 +89,7 @@ module ActiveRecord
         db_config, owner_name = resolve_config_for_connection(database_key)
         handler = lookup_connection_handler(role.to_sym)
 
-        connections << handler.establish_connection(db_config, owner_name: owner_name, shard: default_shard)
+        connections << handler.establish_connection(db_config, owner_name: owner_name)
       end
 
       shards.each do |shard, database_keys|
@@ -154,7 +154,7 @@ module ActiveRecord
         db_config, owner_name = resolve_config_for_connection(database)
         handler = lookup_connection_handler(role)
 
-        handler.establish_connection(db_config, default_shard, owner_name)
+        handler.establish_connection(db_config, owner_name: owner_name)
 
         with_handler(role, &blk)
       elsif shard
