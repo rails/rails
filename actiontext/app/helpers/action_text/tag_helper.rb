@@ -12,6 +12,7 @@ module ActionText
     #
     # ==== Options
     # * <tt>:class</tt> - Defaults to "trix-content" which ensures default styling is applied.
+    # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
     #
     # ==== Example
     #
@@ -29,7 +30,7 @@ module ActionText
       options[:data][:blob_url_template] = main_app.rails_service_blob_url(":signed_id", ":filename")
 
       editor_tag = content_tag("trix-editor", "", options)
-      input_tag = hidden_field_tag(name, value, id: options[:input])
+      input_tag = hidden_field_tag(name, value, id: options[:input], disabled: options[:disabled])
 
       input_tag + editor_tag
     end
