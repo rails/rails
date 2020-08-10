@@ -149,6 +149,10 @@ def disable_extension!(extension, connection)
   connection.reconnect!
 end
 
+def clean_up_connection_handler
+  ActiveRecord::Base.connection_handlers = { ActiveRecord::Base.writing_role => ActiveRecord::Base.default_connection_handler }
+end
+
 def load_schema
   # silence verbose schema loading
   original_stdout = $stdout

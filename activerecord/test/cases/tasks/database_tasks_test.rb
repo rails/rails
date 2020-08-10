@@ -1112,7 +1112,7 @@ module ActiveRecord
       def teardown
         SchemaMigration.delete_all
         InternalMetadata.delete_all
-        ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+        clean_up_connection_handler
       end
 
       def test_truncate_tables

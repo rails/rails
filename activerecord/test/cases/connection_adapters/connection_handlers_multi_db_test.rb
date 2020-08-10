@@ -21,7 +21,7 @@ module ActiveRecord
       end
 
       def teardown
-        ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+        clean_up_connection_handler
       end
 
       class MultiConnectionTestModel < ActiveRecord::Base
@@ -369,8 +369,6 @@ module ActiveRecord
       end
 
       def test_connection_handlers_are_per_thread_and_not_per_fiber
-        original_handlers = ActiveRecord::Base.connection_handlers
-
         ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler, reading: ActiveRecord::ConnectionAdapters::ConnectionHandler.new }
 
         reading_handler = ActiveRecord::Base.connection_handlers[:reading]
@@ -382,7 +380,7 @@ module ActiveRecord
         assert_not_equal reading, ActiveRecord::Base.connection_handler
         assert_equal reading, reading_handler
       ensure
-        ActiveRecord::Base.connection_handlers = original_handlers
+        clean_up_connection_handler
       end
 
       def test_connection_handlers_swapping_connections_in_fiber
