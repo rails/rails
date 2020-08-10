@@ -80,6 +80,7 @@ module ActiveRecord
 
       def join_constraints(joins_to_add, alias_tracker)
         @alias_tracker = alias_tracker
+        @joined_tables = {}
 
         joins = make_join_constraints(join_root, join_type)
 
@@ -173,9 +174,16 @@ module ActiveRecord
           foreign_table = parent.table
           foreign_klass = parent.base_klass
           child.join_constraints(foreign_table, foreign_klass, join_type, alias_tracker) do |reflection|
-            alias_tracker.aliased_table_for(reflection.klass.arel_table) do
+            table = @joined_tables[reflection]
+
+            next table, true if table && reflection != child.reflection
+
+            table = alias_tracker.aliased_table_for(reflection.klass.arel_table) do
               table_alias_for(reflection, parent, reflection != child.reflection)
             end
+
+            @joined_tables[reflection] ||= table if join_type == Arel::Nodes::OuterJoin
+            table
           end.concat child.children.flat_map { |c| make_constraints(child, c, join_type) }
         end
 

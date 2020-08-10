@@ -93,6 +93,9 @@ class Author < ActiveRecord::Base
   has_many :special_categories, through: :special_categorizations, source: :category
   has_one  :special_category,   through: :special_categorizations, source: :category
 
+  has_many :general_categorizations, -> { joins(:category).where("categories.name": "General") }, class_name: "Categorization"
+  has_many :general_posts, through: :general_categorizations, source: :post
+
   has_many :special_categories_with_conditions, -> { where(categorizations: { special: true }) }, through: :categorizations, source: :category
   has_many :nonspecial_categories_with_conditions, -> { where(categorizations: { special: false }) }, through: :categorizations, source: :category
 
