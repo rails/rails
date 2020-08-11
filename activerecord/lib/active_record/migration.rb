@@ -563,17 +563,16 @@ module ActiveRecord
         @app = app
         @needs_check = true
         @mutex = Mutex.new
-        @file_watcher = file_watcher
+
+        @watcher = build_watcher(file_watcher) do
+          @needs_check = true
+          ActiveRecord::Migration.check_pending!(connection)
+          @needs_check = false
+        end
       end
 
       def call(env)
         @mutex.synchronize do
-          @watcher ||= build_watcher do
-            @needs_check = true
-            ActiveRecord::Migration.check_pending!(connection)
-            @needs_check = false
-          end
-
           if @needs_check
             @watcher.execute
           else
@@ -585,9 +584,9 @@ module ActiveRecord
       end
 
       private
-        def build_watcher(&block)
+        def build_watcher(watcher, &block)
           paths = Array(connection.migration_context.migrations_paths)
-          @file_watcher.new([], paths.index_with(["rb"]), &block)
+          watcher.new([], paths.index_with(["rb"]), &block)
         end
 
         def connection
