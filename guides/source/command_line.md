@@ -395,6 +395,12 @@ With the `helper` method it is possible to access Rails and your application's h
 
 INFO: You can also use the alias "db" to invoke the dbconsole: `bin/rails db`.
 
+If you are using multiple databases, `bin/rails dbconsole` will connect to the primary database by default. You can specify which database to connect to using `--database` or `--db`:
+
+```bash
+$ bin/rails dbconsole --database=animals
+```
+
 ### `bin/rails runner`
 
 `runner` runs Ruby code in the context of Rails non-interactively. For instance:
