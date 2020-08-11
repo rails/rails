@@ -9,6 +9,7 @@ module ActiveStorage
 
     def initialize(name, record, attachable)
       @name, @record, @attachable = name, record, attachable
+      blob.identify_without_saving
     end
 
     def attachment
