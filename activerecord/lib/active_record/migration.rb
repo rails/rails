@@ -2,6 +2,7 @@
 
 require "benchmark"
 require "set"
+require "weakref"
 require "zlib"
 require "active_support/core_ext/array/access"
 require "active_support/core_ext/enumerable"
@@ -579,30 +580,41 @@ module ActiveRecord
     class CheckPending
       def initialize(app, file_watcher: ActiveSupport::FileUpdateChecker)
         @app = app
-        @needs_check = true
-        @mutex = Mutex.new
         @file_watcher = file_watcher
       end
 
       def call(env)
-        @mutex.synchronize do
-          @watcher ||= build_watcher do
-            @needs_check = true
-            ActiveRecord::Migration.check_pending!(connection)
-            @needs_check = false
-          end
-
-          if @needs_check
-            @watcher.execute
-          else
-            @watcher.execute_if_updated
-          end
+        if force_pending_migration_check?
+          watcher.execute
+        else
+          watcher.execute_if_updated
         end
 
         @app.call(env)
       end
 
       private
+        def force_pending_migration_check_flags
+          @force_pending_migration_check_flags ||= Hash.new true
+        end
+
+        def force_pending_migration_check=(value)
+          force_pending_migration_check_flags[WeakRef.new Thread.current] = value
+        end
+
+        def force_pending_migration_check?
+          force_pending_migration_check_flags[WeakRef.new Thread.current]
+        end
+
+        def watcher
+          @watchers ||= {}
+          @watchers[WeakRef.new Thread.current] ||= build_watcher do
+            self.force_pending_migration_check = true
+            ActiveRecord::Migration.check_pending!(connection)
+            self.force_pending_migration_check = false
+          end
+        end
+
         def build_watcher(&block)
           paths = Array(connection.migration_context.migrations_paths)
           @file_watcher.new([], paths.index_with(["rb"]), &block)
