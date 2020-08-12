@@ -161,7 +161,7 @@ defaults to `:debug` for all environments. The available log levels are: `:debug
 
 * `config.time_zone` sets the default time zone for the application and enables time zone awareness for Active Record.
 
-* `config.autoloader` sets the autoloading mode. This option defaults to `:zeitwerk` if `6.0` is specified in `config.load_defaults`. Applications can still use the classic autoloader by setting this value to `:classic` after loading the framework defaults:
+* `config.autoloader` sets the autoloading mode. This option defaults to `:zeitwerk` when `config.load_defaults` is called with `6.0` or greater. Applications can still use the classic autoloader by setting this value to `:classic` after loading the framework defaults:
 
     ```ruby
     config.load_defaults 6.0
@@ -263,7 +263,7 @@ Every Rails application comes with a standard set of middleware which it uses in
    # `beta1.product.com`.
    Rails.application.config.hosts << /.*\.product\.com/
    ```
-   
+
    The provided regexp will be wrapped with both anchors (`\A` and `\z`) so it
    must match the entire hostname. `/product.com/`, for example, once anchored,
    would fail to match `www.product.com`.
@@ -460,10 +460,9 @@ in controllers and views. This defaults to `false`.
   to be reused when the object being cached of type `ActiveRecord::Relation`
   changes by moving the volatile information (max updated at and count) of
   the relation's cache key into the cache version to support recycling cache key.
-  Defaults to `false`.
 
 * `config.active_record.has_many_inversing` enables setting the inverse record
-  when traversing `belongs_to` to `has_many` associations. Defaults to `false`.
+  when traversing `belongs_to` to `has_many` associations.
 
 The MySQL adapter adds one additional configuration option:
 
@@ -509,9 +508,9 @@ The schema dumper adds two additional configuration options:
 
 * `config.action_controller.per_form_csrf_tokens` configures whether CSRF tokens are only valid for the method/action they were generated for.
 
-* `config.action_controller.default_protect_from_forgery` determines whether forgery protection is added on `ActionController::Base`. This is false by default.
+* `config.action_controller.default_protect_from_forgery` determines whether forgery protection is added on `ActionController::Base`.
 
-* `config.action_controller.urlsafe_csrf_tokens` configures whether generated CSRF tokens are URL-safe. Defaults to `false`.
+* `config.action_controller.urlsafe_csrf_tokens` configures whether generated CSRF tokens are URL-safe.
 
 * `config.action_controller.relative_url_root` can be used to tell Rails that you are [deploying to a subdirectory](configuring.html#deploy-to-a-subdirectory-relative-url-root). The default is `ENV['RAILS_RELATIVE_URL_ROOT']`.
 
@@ -629,8 +628,8 @@ Defaults to `'signed cookie'`.
   header without modification. Defaults to `false`.
 
 * `config.action_dispatch.cookies_same_site_protection` configures the default
-  value of the `SameSite` attribute when setting cookies. Defaults to `nil`,
-  which means the `SameSite` attribute is not added.
+  value of the `SameSite` attribute when setting cookies. When set to `nil`, the
+  `SameSite` attribute is not added.
 
 * `config.action_dispatch.ssl_default_redirect_status` configures the default
   HTTP status code used when redirecting non-GET/HEAD requests from HTTP to HTTPS
@@ -688,7 +687,7 @@ Defaults to `'signed cookie'`.
 
 * `config.action_view.form_with_generates_remote_forms` determines whether `form_with` generates remote forms or not. This defaults to `true`.
 
-* `config.action_view.form_with_generates_ids` determines whether `form_with` generates ids on inputs. This defaults to `false`.
+* `config.action_view.form_with_generates_ids` determines whether `form_with` generates ids on inputs.
 
 * `config.action_view.default_enforce_utf8` determines whether forms are generated with a hidden tag that forces older versions of Internet Explorer to submit forms encoded in UTF-8. This defaults to `false`.
 
@@ -795,7 +794,7 @@ There are a number of settings available on `config.action_mailer`:
 
 * `config.action_mailer.perform_caching` specifies whether the mailer templates should perform fragment caching or not. If it's not specified, the default will be `true`.
 
-* `config.action_mailer.delivery_job` specifies delivery job for mail. Defaults to `ActionMailer::DeliveryJob`.
+* `config.action_mailer.delivery_job` specifies delivery job for mail.
 
 
 ### Configuring Active Support
@@ -812,9 +811,9 @@ There are a few configuration options available in Active Support:
 
 * `config.active_support.time_precision` sets the precision of JSON encoded time values. Defaults to `3`.
 
-* `config.active_support.use_sha1_digests` specifies whether to use SHA-1 instead of MD5 to generate non-sensitive digests, such as the ETag header. Defaults to false.
+* `config.active_support.use_sha1_digests` specifies whether to use SHA-1 instead of MD5 to generate non-sensitive digests, such as the ETag header.
 
-* `config.active_support.use_authenticated_message_encryption` specifies whether to use AES-256-GCM authenticated encryption as the default cipher for encrypting messages instead of AES-256-CBC. This is false by default.
+* `config.active_support.use_authenticated_message_encryption` specifies whether to use AES-256-GCM authenticated encryption as the default cipher for encrypting messages instead of AES-256-CBC.
 
 * `ActiveSupport::Logger.silencer` is set to `false` to disable the ability to silence logging in a block. The default is `true`.
 
@@ -832,7 +831,7 @@ There are a few configuration options available in Active Support:
 
 * `ActiveSupport.utc_to_local_returns_utc_offset_times` configures
   `ActiveSupport::TimeZone.utc_to_local` to return a time with a UTC offset
-  instead of a UTC time incorporating that offset. Defaults to `false`.
+  instead of a UTC time incorporating that offset.
 
 ### Configuring Active Job
 
@@ -889,15 +888,15 @@ There are a few configuration options available in Active Support:
 
 * `config.active_job.custom_serializers` allows to set custom argument serializers. Defaults to `[]`.
 
-* `config.active_job.return_false_on_aborted_enqueue` change the return value of `#enqueue` to false instead of the job instance when the enqueuing is aborted. Defaults to `false`.
+* `config.active_job.return_false_on_aborted_enqueue` change the return value of `#enqueue` to false instead of the job instance when the enqueuing is aborted.
 
 * `config.active_job.log_arguments` controls if the arguments of a job are logged. Defaults to `true`.
 
-* `config.active_job.retry_jitter` controls the amount of "jitter" (random variation) applied to the delay time calculated when retrying failed jobs. Defaults to `0.0`.
+* `config.active_job.retry_jitter` controls the amount of "jitter" (random variation) applied to the delay time calculated when retrying failed jobs.
 
 * `config.active_job.skip_after_callbacks_if_terminated` controls whether
   `after_enqueue` / `after_perform` callbacks run when a `before_enqueue` /
-  `before_perform` callback halts with `throw :abort`. Defaults to `false`.
+  `before_perform` callback halts with `throw :abort`.
 
 ### Configuring Action Cable
 
@@ -999,7 +998,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
 `config.load_defaults` sets new defaults up to and including the version passed. Such that passing, say, '6.0' also gets the new defaults from every version before it.
 
-#### For '6.1', new defaults from previous versions below and:
+#### For '6.1', defaults from previous versions below and:
 
 - `config.active_record.has_many_inversing`: `true`
 - `config.active_storage.track_variants`: `true`
@@ -1010,7 +1009,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 - `ActiveSupport.utc_to_local_returns_utc_offset_times`: `true`
 - `config.action_controller.urlsafe_csrf_tokens`: `true`
 
-#### For '6.0', new defaults from previous versions below and:
+#### For '6.0', defaults from previous versions below and:
 
 - `config.autoloader`: `:zeitwerk`
 - `config.action_view.default_enforce_utf8`: `false`
@@ -1023,7 +1022,7 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 - `config.active_storage.replace_on_assign_to_many`: `true`
 - `config.active_record.collection_cache_versioning`: `true`
 
-#### For '5.2', new defaults from previous versions below and:
+#### For '5.2', defaults from previous versions below and:
 
 - `config.active_record.cache_versioning`: `true`
 - `config.action_dispatch.use_authenticated_cookie_encryption`: `true`
@@ -1032,18 +1031,34 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 - `config.action_controller.default_protect_from_forgery`: `true`
 - `config.action_view.form_with_generates_ids`: `true`
 
-#### For '5.1', new defaults from previous versions below and:
+#### For '5.1', defaults from previous versions below and:
 
 - `config.assets.unknown_asset_fallback`: `false`
 - `config.action_view.form_with_generates_remote_forms`: `true`
 
-#### For '5.0':
+#### For '5.0', baseline defaults from below and:
 
 - `config.action_controller.per_form_csrf_tokens`: `true`
 - `config.action_controller.forgery_protection_origin_check`: `true`
 - `ActiveSupport.to_time_preserves_timezone`: `true`
 - `config.active_record.belongs_to_required_by_default`: `true`
 - `config.ssl_options`: `{ hsts: { subdomains: true } }`
+
+#### Baseline defaults:
+
+- `config.action_controller.default_protect_from_forgery`: `false`
+- `config.action_controller.urlsafe_csrf_tokens`: `false`
+- `config.action_dispatch.cookies_same_site_protection`: `nil`
+- `config.action_mailer.delivery_job`: `ActionMailer::DeliveryJob`
+- `config.action_view.form_with_generates_ids`: `false`
+- `config.active_job.retry_jitter`: `0.0`
+- `config.active_job.return_false_on_aborted_enqueue`: `false`
+- `config.active_job.skip_after_callbacks_if_terminated`: `false`
+- `config.active_record.collection_cache_versioning`: `false`
+- `config.active_record.has_many_inversing`: `false`
+- `config.active_support.use_authenticated_message_encryption`: `false`
+- `config.active_support.use_sha1_digests`: `false`
+- `ActiveSupport.utc_to_local_returns_utc_offset_times`: `false`
 
 ### Configuring a Database
 
