@@ -91,6 +91,10 @@ module ActiveRecord
       n ? hash_rows.last(n) : hash_rows.last
     end
 
+    def result # :nodoc:
+      self
+    end
+
     def cast_values(type_overrides = {}) # :nodoc:
       if columns.one?
         # Separated to avoid allocating an array per row

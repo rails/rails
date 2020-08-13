@@ -84,6 +84,7 @@ module ActiveRecord
       end
 
       def initialize(connection, logger, connection_options, config)
+        @memory_database = config[:database] == ":memory:"
         super(connection, logger, config)
         configure_connection
       end
@@ -152,6 +153,10 @@ module ActiveRecord
       alias supports_insert_on_duplicate_skip? supports_insert_on_conflict?
       alias supports_insert_on_duplicate_update? supports_insert_on_conflict?
       alias supports_insert_conflict_target? supports_insert_on_conflict?
+
+      def supports_concurrent_connections?
+        !@memory_database
+      end
 
       def active?
         !@connection.closed?

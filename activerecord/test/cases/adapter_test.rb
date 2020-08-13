@@ -343,6 +343,120 @@ module ActiveRecord
     end
   end
 
+  module AsynchronousQueriesSharedTests
+    def test_async_select_failure
+      ActiveRecord::Base.asynchronous_queries_tracker.start_session
+
+      future_result = @connection.select_all "SELECT * FROM does_not_exists", async: true
+      assert_kind_of ActiveRecord::FutureResult, future_result
+      assert_raises ActiveRecord::StatementInvalid do
+        future_result.result
+      end
+    ensure
+      ActiveRecord::Base.asynchronous_queries_tracker.finalize_session
+    end
+
+    def test_async_query_from_transaction
+      ActiveRecord::Base.asynchronous_queries_tracker.start_session
+
+      assert_nothing_raised do
+        @connection.select_all "SELECT * FROM posts", async: true
+      end
+
+      @connection.transaction do
+        assert_raises AsynchronousQueryInsideTransactionError do
+          @connection.select_all "SELECT * FROM posts", async: true
+        end
+      end
+    ensure
+      ActiveRecord::Base.asynchronous_queries_tracker.finalize_session
+    end
+
+    def test_async_query_cache
+      ActiveRecord::Base.asynchronous_queries_tracker.start_session
+
+      @connection.enable_query_cache!
+
+      @connection.select_all "SELECT * FROM posts"
+      result = @connection.select_all "SELECT * FROM posts", async: true
+      assert_equal Result, result.class
+    ensure
+      ActiveRecord::Base.asynchronous_queries_tracker.finalize_session
+      @connection.disable_query_cache!
+    end
+
+    def test_async_query_outside_session
+      status = {}
+
+      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
+        if event.payload[:sql] == "SELECT * FROM does_not_exists"
+          status[:executed] = true
+          status[:async] = event.payload[:async]
+        end
+      end
+
+      future_result = @connection.select_all "SELECT * FROM does_not_exists", async: true
+      assert_kind_of ActiveRecord::FutureResult, future_result
+      assert_raises ActiveRecord::StatementInvalid do
+        future_result.result
+      end
+
+      assert_equal true, status[:executed]
+      assert_equal false, status[:async]
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+    end
+  end
+
+  class AsynchronousQueriesTest < ActiveRecord::TestCase
+    self.use_transactional_tests = false
+
+    include AsynchronousQueriesSharedTests
+
+    def setup
+      @connection = ActiveRecord::Base.connection
+    end
+
+    def test_async_select_all
+      ActiveRecord::Base.asynchronous_queries_tracker.start_session
+      status = {}
+
+      monitor = Monitor.new
+      condition = monitor.new_cond
+
+      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
+        if event.payload[:sql] == "SELECT * FROM posts"
+          status[:executed] = true
+          status[:async] = event.payload[:async]
+          monitor.synchronize { condition.signal }
+        end
+      end
+
+      future_result = @connection.select_all "SELECT * FROM posts", async: true
+      assert_kind_of ActiveRecord::FutureResult, future_result
+
+      monitor.synchronize do
+        condition.wait_until { status[:executed] }
+      end
+      assert_kind_of ActiveRecord::Result, future_result.result
+      assert_equal @connection.supports_concurrent_connections?, status[:async]
+    ensure
+      ActiveRecord::Base.asynchronous_queries_tracker.finalize_session
+      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+    end
+  end
+
+  class AsynchronousQueriesWithTransactionalTest < ActiveRecord::TestCase
+    self.use_transactional_tests = true
+
+    include AsynchronousQueriesSharedTests
+
+    def setup
+      @connection = ActiveRecord::Base.connection
+      @connection.materialize_transactions
+    end
+  end
+
   class AdapterForeignKeyTest < ActiveRecord::TestCase
     self.use_transactional_tests = false
 

@@ -1,0 +1,49 @@
+# frozen_string_literal: true
+
+module ActiveRecord
+  class AsynchronousQueriesTracker # :nodoc:
+    class Session # :nodoc:
+      def initialize
+        @active = true
+      end
+
+      def active?
+        @active
+      end
+
+      def finalize
+        @active = false
+      end
+    end
+
+    class << self
+      def install_executor_hooks(executor = ActiveSupport::Executor)
+        executor.register_hook(self)
+      end
+
+      def run
+        ActiveRecord::Base.asynchronous_queries_tracker.start_session
+      end
+
+      def complete(asynchronous_queries_tracker)
+        asynchronous_queries_tracker.finalize_session
+      end
+    end
+
+    attr_reader :current_session
+
+    def initialize
+      @current_session = nil
+    end
+
+    def start_session
+      @current_session = Session.new
+      self
+    end
+
+    def finalize_session
+      @current_session&.finalize
+      @current_session = nil
+    end
+  end
+end
