@@ -174,22 +174,22 @@ module ActiveRecord
           foreign_table = parent.table
           foreign_klass = parent.base_klass
           child.join_constraints(foreign_table, foreign_klass, join_type, alias_tracker) do |reflection|
-            table = @joined_tables[reflection]
+            table, terminated = @joined_tables[reflection]
+            root = reflection == child.reflection
 
-            next table, true if table && reflection != child.reflection
-
-            table = alias_tracker.aliased_table_for(reflection.klass.arel_table) do
-              table_alias_for(reflection, parent, reflection != child.reflection)
+            if table && (!root || !terminated)
+              @joined_tables[reflection] = [table, root] if root
+              next table, true
             end
 
-            @joined_tables[reflection] ||= table if join_type == Arel::Nodes::OuterJoin
+            table = alias_tracker.aliased_table_for(reflection.klass.arel_table) do
+              name = reflection.alias_candidate(parent.table_name)
+              root ? name : "#{name}_join"
+            end
+
+            @joined_tables[reflection] ||= [table, root] if join_type == Arel::Nodes::OuterJoin
             table
           end.concat child.children.flat_map { |c| make_constraints(child, c, join_type) }
-        end
-
-        def table_alias_for(reflection, parent, join)
-          name = reflection.alias_candidate(parent.table_name)
-          join ? "#{name}_join" : name
         end
 
         def walk(left, right, join_type)

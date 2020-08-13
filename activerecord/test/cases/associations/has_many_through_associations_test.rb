@@ -1072,6 +1072,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_duplicated_has_many_through_with_join_scope
     Categorization.create!(author: authors(:david), post: posts(:thinking), category: categories(:technology))
 
+    expected = [categorizations(:david_welcome_general)]
+    assert_equal expected, Author.preload(:general_posts, :general_categorizations).first.general_categorizations
+    assert_equal expected, Author.eager_load(:general_posts, :general_categorizations).first.general_categorizations
+
     expected = [posts(:welcome)]
     assert_equal expected, Author.preload(:general_categorizations, :general_posts).first.general_posts
     assert_equal expected, Author.eager_load(:general_categorizations, :general_posts).first.general_posts
