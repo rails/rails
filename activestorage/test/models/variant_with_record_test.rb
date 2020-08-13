@@ -56,4 +56,11 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
 
     assert_equal "local_public", variant.image.blob.service_name
   end
+
+  test "resized variation of PNG blob without format should be PNG type" do
+    blob = create_file_blob(filename: "png_image_without_format", content_type: "image/png")
+    variant = blob.variant(resize: "100x100").process
+
+    assert_equal "png", variant.image.blob.filename.extension
+  end
 end

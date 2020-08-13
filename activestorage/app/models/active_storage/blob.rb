@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "mimemagic"
+
 # A blob is a record that contains the metadata about a file and a key for where that file resides on the service.
 # Blobs can be created in two ways:
 #
@@ -152,6 +154,12 @@ class ActiveStorage::Blob < ActiveRecord::Base
   # that's safe to use in URLs.
   def filename
     ActiveStorage::Filename.new(self[:filename])
+  end
+
+  # Returns the destination format to be used by processors when a variant
+  # image is created.
+  def destination_format
+    MimeMagic.new(content_type).extensions.last
   end
 
   # Returns true if the content_type of this blob is in the image range, like image/png.
