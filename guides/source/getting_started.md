@@ -413,82 +413,233 @@ action and is rendering the view correctly.
 
 TIP: For more information about routing, refer to [Rails Routing from the Outside In](routing.html).
 
-Getting Up and Running
-----------------------
+## Adding Articles
 
-Now that you've seen how to create a controller, an action, and a view, let's
-create something with a bit more substance.
+So far, we have seen routes, controllers, actions and views within our Rails
+application. All of these are conventional parts of Rails applications and it
+is done this way to follow the MVC pattern. The MVC pattern is an application
+design pattern which makes it easy to separate the different responsibilities
+of applications into easy to reason about pieces.
 
-In the Blog application, you will now create a new _resource_. A resource is the
-term used for a collection of similar objects, such as articles, people, or
-animals.
-You can create, read, update, and destroy items for a resource and these
-operations are referred to as _CRUD_ operations.
+With "MVC", you might guess that the "V" stands for "View" and the "C"
+stands for controller, but you might have trouble guessing what the "M" stands
+for. This next section is all about that "M" part, the _model_.
 
-Rails provides a `resources` method which can be used to declare a standard REST
-resource. You need to add the _article resource_ to the
-`config/routes.rb` so the file will look as follows:
+### Generating an Article Model
+
+A model is a class that is used to represent data in our application. In a
+plain-Ruby application, you might have a class defined like this:
 
 ```ruby
-Rails.application.routes.draw do
-  get 'welcome/index'
+class Article
+  attr_reader :title, :body
 
-  resources :articles
-
-  root 'welcome#index'
+  def initialize(title:, body:)
+    @title = title
+    @body = body
+  end
 end
 ```
 
-If you run `bin/rails routes`, you'll see that it has defined routes for all the
-standard RESTful actions.  The meaning of the prefix column (and other columns)
-will be seen later, but for now notice that Rails has inferred the
-singular form `article` and makes meaningful use of the distinction.
+In a Rails application, models are used for more than just representing data.
+Models are also used to interact with the application's database. Models use a
+part of Rails called Active Record to interact with the database of the
+application.
+
+In this section, we're going to use a model to put data into our database and
+to pull that data back out, using methods that are provided to us from Active
+Record.
+
+To start with, we're going to need to generate a model. We can do that with the
+following command:
 
 ```bash
-$ bin/rails routes
-       Prefix Verb   URI Pattern                  Controller#Action
-welcome_index GET    /welcome/index(.:format)     welcome#index
-     articles GET    /articles(.:format)          articles#index
-              POST   /articles(.:format)          articles#create
-  new_article GET    /articles/new(.:format)      articles#new
- edit_article GET    /articles/:id/edit(.:format) articles#edit
-      article GET    /articles/:id(.:format)      articles#show
-              PATCH  /articles/:id(.:format)      articles#update
-              PUT    /articles/:id(.:format)      articles#update
-              DELETE /articles/:id(.:format)      articles#destroy
-         root GET    /                            welcome#index
+$ bin/rails g model article title:string body:text
 ```
 
-In the next section, you will add the ability to create new articles in your
-application and be able to view them. This is the "C" and the "R" from CRUD:
-create and read. The form for doing this will look like this:
+NOTE: The model name here is _singular_, because model classes are classes that
+are used to represent single instances. To help remember this rule, in a Ruby
+application to start building a new object, you would define the class as
+`Article`, and then do `Article.new`, not `Articles` and `Articles.new`. In
+plain English: we want to "build a _new article_", not a "_new articles_".
 
-![The new article form](images/getting_started/new_article.png)
-
-It will look a little basic for now, but that's ok. We'll look at improving the
-styling for it afterwards.
-
-### Laying down the Groundwork
-
-Firstly, you need a place within the application to create a new article. A
-great place for that would be at `/articles/new`. With the route already
-defined, requests can now be made to `/articles/new` in the application.
-Navigate to <http://localhost:3000/articles/new> and you'll see a routing
-error:
-
-![Another routing error, uninitialized constant ArticlesController](images/getting_started/routing_error_no_controller.png)
-
-This error occurs because the route needs to have a controller defined in order
-to serve the request. The solution to this particular problem is to create
-a controller called `ArticlesController`. You can do this by running this
-command:
+When this command runs, it will generate the following files:
 
 ```bash
-$ bin/rails generate controller Articles
+invoke  active_record
+create    db/migrate/[timestamp]_create_articles.rb
+create    app/models/article.rb
+invoke    test_unit
+create      test/models/article_test.rb
+create      test/fixtures/articles.yml
 ```
 
-If you open up the newly generated `app/controllers/articles_controller.rb`
-you'll see a fairly empty controller:
+The two files we'll focus on here are the _migration_ (the file at
+`db/migrate`) and the _model_.
+
+A migration is used to alter the structure of our database, and it is written
+in Ruby. Let's look at this file now,
+`db/migrate/[timestamp]_create_articles.rb`.
+
+```ruby
+class CreateArticles < ActiveRecord::Migration[6.0]
+  def change
+    create_table :articles do |t|
+      t.string :title
+      t.text :body
+
+      t.timestamps
+    end
+  end
+end
+```
+
+This file contains Ruby code to create a table within our application's
+database. Migrations are written in Ruby so that they can be database-agnostic
+-- regardless of what database you use with Rails, you'll always write
+migrations in Ruby.
+
+Inside this migration file, there's a `create_table` method that defines how
+the `articles` table should be constructed. This method will create a table in
+our database that contains an `id` auto-incrementing primary key. That means
+that the first record in our table will have an `id` of 1, and the next `id` of
+2, and so on.  Rails assumes by default this is the behaviour we want, and so
+it does this for us.
+
+Inside the block for `create_table`, we have two fields, `title` and `body`.
+These were added to the migration automatically because we put them at the end
+of the `rails g model` call:
+
+```bash
+$ bin/rails g model article title:string body:text
+```
+
+On the last line of the block is `t.timestamps`. This method defines two
+additional fields in our table, called `created_at` and `updated_at`. When we
+create or update model objects, these fields will be set respectively.
+
+The structure of our table will look like this:
+
+| id | title  | body | created_at | updated_at |
+|----|------- |------|------------|------------|
+|    | &nbsp; |      |            |            |
+
+
+To create this table in our application's database, we can run this command:
+
+```bash
+$ bin/rails db:migrate
+```
+
+This command will show us output indicating that the table was created:
+
+```plaintext
+== [timestamp] CreateArticles: migrating ===================================
+-- create_table(:articles)
+   -> 0.0018s
+== [timestamp] CreateArticles: migrated (0.0018s) ==========================
+```
+
+Now that we have a table in our application's database, we can use the model to interact with this table.
+
+To use the model, we'll use a feature of Rails called the _console_. The
+console allows us write code like we might in `irb`, but the code of our
+application is available there too. Let's launch the console with this command:
+
+```bash
+$ bin/rails console
+```
+
+We can use a shorter version for this too:
+
+```bash
+$ bin/rails c
+```
+
+Just like we used "g" for "generate", we can use "c" for "console".
+
+When we launch this, we should see an irb prompt:
+
+```plaintext
+Loading development environment (Rails 6.0.2.1)
+irb(main):001:0>
+```
+
+In this prompt, we can use our model to initialize a new `Article` object:
+
+```ruby
+irb(main):001:0> article = Article.new(title: "Hello Rails", body: "I am on Rails!")
+```
+
+It's important to note that we have just _initialized_ this object. This object
+is not saved to the database at all, it's only available in the console so far.
+To save the object to the database, we need to call `save`:
+
+```ruby
+irb(main):002:0> article.save
+```
+
+This command will show us the following output:
+
+```plaintext
+(0.1ms)  begin transaction
+Article Create (0.4ms)  INSERT INTO "articles" ("title", "body", "created_at", "updated_at") VALUES (?, ?, ?, ?)  [["title", "Hello Rails"], ["body", "I am on Rails!"], ["created_at", "2020-01-18 23:47:30.734416"], ["updated_at", "2020-01-18 23:47:30.734416"]]
+(0.9ms)  commit transaction
+=> true
+```
+
+This output shows an `INSERT INTO "articles"...` database query. This means
+that our article has been successfully inserted into our table.
+
+If we take a look at our `article` object again, an interesting thing has happened:
+
+```ruby
+irb(main):003:0> article
+=> #<Article id: 1, title: "Hello Rails", body: "I am on Rails!", created_at: "2020-01-18 23:47:30", updated_at: "2020-01-18 23:47:30">
+```
+
+Our object now has the `id`, `created_at` and `updated_at` fields set. All of
+this happened automatically for us when we saved this article.
+
+If we wanted to retrieve this article back from the database later on, we can
+do that with `find`, and pass that `id` as an argument:
+
+```ruby
+irb(main):004:0> article = Article.find(1)
+=> #<Article id: 1, title: "Hello Rails", body: "I am on Rails!", created_at: "2020-01-18 23:47:30", updated_at: "2020-01-18 23:47:30">
+```
+
+A shorter way to add articles into our database is to use `Article.create`, like this:
+
+```ruby
+irb(main):005:0> Article.create(title: "Post #2", body: "Still riding the Rails!")
+```
+
+This way, we don't need to call `new` and then `save`.
+
+Lastly, models provide a method to find all of their data:
+
+```ruby
+irb(main):006:0> articles = Article.all
+ #<ActiveRecord::Relation [
+   #<Article id: 1, title: "Hello Rails", body: "I am on Rails!", created_at: "2020-01-18 23:47:30", updated_at: "2020-01-18 23:47:30">,
+   #<Article id: 2, title: "Post #2", body: "Still riding the Rails!", created_at: "2020-01-18 23:53:45", updated_at: "2020-01-18 23:53:45">]>
+```
+
+This method returns an `ActiveRecord::Relation` object, which you can think of
+as a super-powered array. This array contains both of the topics that we have
+created so far.
+
+TIP: For more about models, read the [Active Record
+Basics](https://guides.rubyonrails.org/active_record_basics.html) and [Active
+Record Query
+Interface](https://guides.rubyonrails.org/active_record_querying.html) guides.
+
+As you can see, models are very helpful classes for interacting with databases
+within Rails applications. Models are the final piece of the "MVC" puzzle.
+Let's look at how we can go about connecting all these pieces together into a
+cohesive whole.
+
 
 ```ruby
 class ArticlesController < ApplicationController
