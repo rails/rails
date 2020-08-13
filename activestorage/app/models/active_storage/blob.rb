@@ -53,7 +53,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
     self.service_name ||= self.class.service.name
   end
 
-  after_commit :update_service_metadata, if: :content_type_previously_changed?
+  after_update_commit :update_service_metadata, if: :content_type_previously_changed?
 
   before_destroy(prepend: true) do
     raise ActiveRecord::InvalidForeignKey if attachments.exists?
