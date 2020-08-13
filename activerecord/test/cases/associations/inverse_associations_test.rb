@@ -658,6 +658,24 @@ class InverseBelongsToTests < ActiveRecord::TestCase
     end
   end
 
+  def test_unscope_does_not_set_inverse_when_incorrect
+    interest = interests(:trainspotting)
+    human = interest.human
+    created_human = Human.create(name: "wrong human")
+    found_interest = created_human.interests.or(human.interests).detect { |this_interest| interest.id == this_interest.id }
+
+    assert_equal human, found_interest.human
+  end
+
+  def test_or_does_not_set_inverse_when_incorrect
+    interest = interests(:trainspotting)
+    human = interest.human
+    created_human = Human.create(name: "wrong human")
+    found_interest = created_human.interests.unscope(:where).detect { |this_interest| interest.id == this_interest.id }
+
+    assert_equal human, found_interest.human
+  end
+
   def test_child_instance_should_be_shared_with_replaced_via_accessor_parent
     face = Face.first
     human = Human.new(name: "Charles")

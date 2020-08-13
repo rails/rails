@@ -131,8 +131,12 @@ module ActiveRecord
       end
 
       def inversed_from(record)
-        self.target = record
-        @inversed = !!record
+        if inversable?(record)
+          self.target = record
+          @inversed = true
+        else
+          @inversed = false
+        end
       end
       alias :inversed_from_queries :inversed_from
 
@@ -324,6 +328,19 @@ module ActiveRecord
 
         def enqueue_destroy_association(options)
           owner.class.destroy_association_async_job&.perform_later(**options)
+        end
+
+        def inversable?(record)
+          record &&
+            ((!record.persisted? || !owner.persisted?) || matches_foreign_key?(record))
+        end
+
+        def matches_foreign_key?(record)
+          if foreign_key_for?(record)
+            record.read_attribute(reflection.foreign_key) == owner.id
+          else
+            owner.read_attribute(reflection.foreign_key) == record.id
+          end
         end
     end
   end
