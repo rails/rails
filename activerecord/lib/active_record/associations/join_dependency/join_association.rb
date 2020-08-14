@@ -21,19 +21,19 @@ module ActiveRecord
           super && reflection == other.reflection
         end
 
-        def join_constraints(foreign_table, foreign_klass, join_type, alias_tracker, &block)
+        def join_constraints(foreign_table, foreign_klass, join_type, alias_tracker)
           joins = []
           chain = []
 
           reflection.chain.each do |reflection|
             table, terminated = yield reflection
+            @table ||= table
 
             if terminated
               foreign_table, foreign_klass = table, reflection.klass
               break
             end
 
-            @table ||= table
             chain << [reflection, table]
           end
 
