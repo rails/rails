@@ -49,7 +49,7 @@ module ActiveRecord
     def establish_connection(config_or_env = nil)
       config_or_env ||= DEFAULT_ENV.call.to_sym
       db_config, owner_name = resolve_config_for_connection(config_or_env)
-      connection_handler.establish_connection(db_config, owner_name: owner_name)
+      connection_handler.establish_connection(db_config, owner_name: owner_name, shard: current_shard)
     end
 
     # Connects a model to the databases specified. The +database+ keyword
