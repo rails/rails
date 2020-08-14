@@ -25,6 +25,16 @@ module ActiveRecord
       end
 
       unless in_memory_db?
+        def test_establishing_a_connection_in_connected_to_block_uses_current_role_and_shard
+          ActiveRecord::Base.connected_to(shard: :shard_one) do
+            db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+            ActiveRecord::Base.establish_connection(db_config)
+            assert_nothing_raised { Person.first }
+
+            assert_equal [:default, :shard_one], ActiveRecord::Base.connection_handlers[:writing].send(:owner_to_pool_manager).fetch("ActiveRecord::Base").instance_variable_get(:@name_to_pool_config).keys
+          end
+        end
+
         def test_establish_connection_using_3_levels_config
           previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
 
