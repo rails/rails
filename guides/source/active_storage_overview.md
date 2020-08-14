@@ -151,7 +151,7 @@ and `region` keys in the example above. The S3 Service supports all of the
 authentication options described in the [AWS SDK documentation]
 (https://docs.aws.amazon.com/sdk-for-ruby/v3/developer-guide/setup-config.html).
 
-To connect to an S3-compatible object storage API such as Digital Ocean Spaces, provide the `endpoint`:
+To connect to an S3-compatible object storage API such as DigitalOcean Spaces, provide the `endpoint`:
 
 ```yaml
 digitalocean:
