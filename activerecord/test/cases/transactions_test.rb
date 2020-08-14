@@ -185,6 +185,18 @@ class TransactionTest < ActiveRecord::TestCase
     end
   end
 
+  def test_early_exit_from_transaction_using_next
+    assert_not_deprecated do
+      Topic.transaction do
+        @first.approved = true
+        @first.save!
+        next
+      end
+    end
+
+    assert Topic.find(1).approved?, "First should have been approved"
+  end
+
   def test_number_of_transactions_in_commit
     num = nil
 
