@@ -320,7 +320,7 @@ specify to make your test failure messages clearer.
 | `assert_in_delta( expected, actual, [delta], [msg] )`            | Ensures that the numbers `expected` and `actual` are within `delta` of each other.|
 | `assert_not_in_delta( expected, actual, [delta], [msg] )`        | Ensures that the numbers `expected` and `actual` are not within `delta` of each other.|
 | `assert_in_epsilon ( expected, actual, [epsilon], [msg] )`       | Ensures that the numbers `expected` and `actual` have a relative error less than `epsilon`.|
-| `assert_not_in_epsilon ( expected, actual, [epsilon], [msg] )`   | Ensures that the numbers `expected` and `actual` don't have a relative error less than `epsilon`.|
+| `assert_not_in_epsilon ( expected, actual, [epsilon], [msg] )`   | Ensures that the numbers `expected` and `actual` have a relative error not less than `epsilon`.|
 | `assert_throws( symbol, [msg] ) { block }`                       | Ensures that the given block throws the symbol.|
 | `assert_raises( exception1, exception2, ... ) { block }`         | Ensures that the given block raises one of the given exceptions.|
 | `assert_instance_of( class, obj, [msg] )`                        | Ensures that `obj` is an instance of `class`.|
