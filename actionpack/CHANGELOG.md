@@ -1,3 +1,8 @@
+*   Add `HTTP_REFERER` when following redirects on integration tests
+
+    This makes `follow_redirect!` a closer simulation of what happens in a real browser
+
+    *Ricardo Díaz*
 *   Drop support for the `SERVER_ADDR` header
 
     Following up https://github.com/rack/rack/pull/1573 and https://github.com/rails/rails/pull/42349

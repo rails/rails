@@ -354,6 +354,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       assert_equal 1, request_count
 
       follow_redirect!
+      assert_equal "http://www.example.com/redirect", request.referer
       assert_response :success
       assert_equal "/get", path
 
