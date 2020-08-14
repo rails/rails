@@ -19,7 +19,7 @@ require "models/ship"
 require "models/liquid"
 require "models/molecule"
 require "models/electron"
-require "models/man"
+require "models/human"
 require "models/interest"
 require "models/pirate"
 require "models/parrot"
@@ -240,13 +240,13 @@ class AssociationProxyTest < ActiveRecord::TestCase
   end
 
   test "inverses get set of subsets of the association" do
-    man = Man.create
-    man.interests.create
+    human = Human.create
+    human.interests.create
 
-    man = Man.find(man.id)
+    human = Human.find(human.id)
 
     assert_queries(1) do
-      assert_equal man, man.interests.where("1=1").first.man
+      assert_equal human, human.interests.where("1=1").first.human
     end
   end
 
