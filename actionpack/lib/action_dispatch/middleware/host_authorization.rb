@@ -34,7 +34,7 @@ module ActionDispatch
           Array(hosts).map do |host|
             case host
             when Regexp then sanitize_regexp(host)
-            when String then sanitize_string(host)
+            when String then sanitize_string(host.downcase)
             else host
             end
           end
