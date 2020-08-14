@@ -1027,7 +1027,7 @@ module ActiveRecord
       end
 
       def connection_pool_list
-        owner_to_pool_manager.values.compact.flat_map { |m| m.pool_configs.map(&:pool) }
+        owner_to_pool_manager.values.flat_map { |m| m.pool_configs.map(&:pool) }
       end
       alias :connection_pools :connection_pool_list
 
