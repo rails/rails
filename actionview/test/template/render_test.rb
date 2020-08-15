@@ -327,6 +327,11 @@ module RenderTestCases
     assert_equal File.expand_path("#{FIXTURE_LOAD_PATH}/test/_raise.html.erb"), e.file_name
   end
 
+  def test_undefined_method_error_references_named_class
+    e = assert_raises(ActionView::Template::Error) { @view.render(inline: "<%= undefined %>") }
+    assert_match(/`undefined' for #<ActionView::Base:0x[0-9a-f]+>/, e.message)
+  end
+
   def test_render_object
     assert_equal "Hello: david", @view.render(partial: "test/customer", object: Customer.new("david"))
     assert_equal "FalseClass", @view.render(partial: "test/klass", object: false)
