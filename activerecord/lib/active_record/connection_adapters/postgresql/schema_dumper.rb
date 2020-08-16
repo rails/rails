@@ -19,6 +19,13 @@ module ActiveRecord
           def prepare_column_options(column)
             spec = super
             spec[:array] = "true" if column.array?
+
+            if @connection.supports_virtual_columns? && column.virtual?
+              spec[:as] = extract_expression_for_virtual_column(column)
+              spec[:stored] = true
+              spec = { type: schema_type(column).inspect }.merge!(spec)
+            end
+
             spec
           end
 
@@ -42,6 +49,10 @@ module ActiveRecord
 
           def schema_expression(column)
             super unless column.serial?
+          end
+
+          def extract_expression_for_virtual_column(column)
+            column.default_function.inspect
           end
       end
     end
