@@ -1,3 +1,9 @@
+*   `perform.active_job` notification payloads now include `:db_runtime`, which
+    is the total time (in ms) taken by database queries while performing a job.
+    This value can be used to better understand how a job's time is spent.
+
+    *Jonathan Hefner*
+
 *   Update `ActiveJob::QueueAdapters::QueAdapter` te remove deprecation warning
 
     Remove a deprecation warning introduced in que 1.2 to prepare for changes in
