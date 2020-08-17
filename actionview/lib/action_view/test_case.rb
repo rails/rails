@@ -102,7 +102,8 @@ module ActionView
       end
 
       def setup_with_controller
-        @controller = Class.new(ActionView::TestCase::TestController).new
+        controller_class = Class.new(ActionView::TestCase::TestController)
+        @controller = controller_class.new
         @request = @controller.request
         @view_flow = ActionView::OutputFlow.new
         # empty string ensures buffer has UTF-8 encoding as
@@ -110,8 +111,8 @@ module ActionView
         @output_buffer = ActiveSupport::SafeBuffer.new ""
         @rendered = +""
 
-        make_test_case_available_to_view!
-        say_no_to_protect_against_forgery!
+        test_case_instance = self
+        controller_class.define_method(:_test_case) { test_case_instance }
       end
 
       def config
@@ -161,31 +162,22 @@ module ActionView
       included do
         setup :setup_with_controller
         ActiveSupport.run_load_hooks(:action_view_test_case, self)
+
+        helper do
+          def protect_against_forgery?
+            false
+          end
+
+          def _test_case
+            controller._test_case
+          end
+        end
       end
 
     private
       # Need to experiment if this priority is the best one: rendered => output_buffer
       def document_root_element
         Nokogiri::HTML::Document.parse(@rendered.blank? ? @output_buffer : @rendered).root
-      end
-
-      def say_no_to_protect_against_forgery!
-        _helpers.module_eval do
-          silence_redefinition_of_method :protect_against_forgery?
-          def protect_against_forgery?
-            false
-          end
-        end
-      end
-
-      def make_test_case_available_to_view!
-        test_case_instance = self
-        _helpers.module_eval do
-          unless private_method_defined?(:_test_case)
-            define_method(:_test_case) { test_case_instance }
-            private :_test_case
-          end
-        end
       end
 
       module Locals
