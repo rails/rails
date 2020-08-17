@@ -751,6 +751,35 @@ end
 
 Both the `matches?` method and the lambda gets the `request` object as an argument.
 
+#### Constraints in a block form
+
+You can specify constraints in a block form. This is useful for when you need to apply the same rule to several routes. For example
+
+```
+class RestrictedListConstraint
+  # ...Same as the example above
+end
+
+Rails.application.routes.draw do
+  constraints(RestrictedListConstraint.new) do
+    get '*path', to: 'restricted_list#index',
+    get '*other-path', to: 'other_restricted_list#index',
+  end
+end
+```
+
+You also use a `lambda`:
+
+```
+Rails.application.routes.draw do
+  constraints(lambda { |request| RestrictedList.retrieve_ips.include?(request.remote_ip) }) do
+    get '*path', to: 'restricted_list#index',
+    get '*other-path', to: 'other_restricted_list#index',
+  end
+end
+```
+
+
 ### Route Globbing and Wildcard Segments
 
 Route globbing is a way to specify that a particular parameter should be matched to all the remaining parts of a route. For example:
