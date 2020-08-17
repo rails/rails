@@ -1,5 +1,5 @@
 Description:
-    Stubs out a new helper. Pass the helper name, either CamelCased
+    Generates a new helper. Pass the helper name, either CamelCased
     or under_scored.
 
     To create a helper within a module, specify the helper name as a

@@ -1055,6 +1055,32 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_has_many_through_with_source_scope
+    expected = [readers(:michael_welcome).becomes(LazyReader)]
+    assert_equal expected, Author.first.lazy_readers_skimmers_or_not
+    assert_equal expected, Author.preload(:lazy_readers_skimmers_or_not).first.lazy_readers_skimmers_or_not
+    assert_equal expected, Author.eager_load(:lazy_readers_skimmers_or_not).first.lazy_readers_skimmers_or_not
+  end
+
+  def test_has_many_through_with_join_scope
+    expected = [readers(:bob_welcome).becomes(LazyReader)]
+    assert_equal expected, Author.last.lazy_readers_skimmers_or_not_2
+    assert_equal expected, Author.preload(:lazy_readers_skimmers_or_not_2).last.lazy_readers_skimmers_or_not_2
+    assert_equal expected, Author.eager_load(:lazy_readers_skimmers_or_not_2).last.lazy_readers_skimmers_or_not_2
+  end
+
+  def test_duplicated_has_many_through_with_join_scope
+    Categorization.create!(author: authors(:david), post: posts(:thinking), category: categories(:technology))
+
+    expected = [categorizations(:david_welcome_general)]
+    assert_equal expected, Author.preload(:general_posts, :general_categorizations).first.general_categorizations
+    assert_equal expected, Author.eager_load(:general_posts, :general_categorizations).first.general_categorizations
+
+    expected = [posts(:welcome)]
+    assert_equal expected, Author.preload(:general_categorizations, :general_posts).first.general_posts
+    assert_equal expected, Author.eager_load(:general_categorizations, :general_posts).first.general_posts
+  end
+
   def test_has_many_through_polymorphic_with_rewhere
     post = TaggedPost.create!(title: "Tagged", body: "Post")
     tag = post.tags.create!(name: "Tag")

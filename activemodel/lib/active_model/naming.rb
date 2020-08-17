@@ -166,7 +166,7 @@ module ActiveModel
 
       raise ArgumentError, "Class name cannot be blank. You need to supply a name argument when anonymous class given" if @name.blank?
 
-      @unnamespaced = @name.sub(/^#{namespace.name}::/, "") if namespace
+      @unnamespaced = @name.delete_prefix("#{namespace.name}::") if namespace
       @klass        = klass
       @singular     = _singularize(@name)
       @plural       = ActiveSupport::Inflector.pluralize(@singular)

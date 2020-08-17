@@ -118,7 +118,7 @@ end
 ```
 
 When used alone, `belongs_to` produces a one-directional one-to-one connection. Therefore each book in the above example "knows" its author, but the authors don't know about their books.
-To setup a [bi-directional association](#bi-directional-associations) - use `belongs_to` in combination with a `has_one` or `has_many` on the other model. 
+To setup a [bi-directional association](#bi-directional-associations) - use `belongs_to` in combination with a `has_one` or `has_many` on the other model.
 
 `belongs_to` does not ensure reference consistency, so depending on the use case, you might also need to add a database-level foreign key constraint on the reference column, like this:
 
@@ -356,7 +356,9 @@ end
 
 ### The `has_and_belongs_to_many` Association
 
-A `has_and_belongs_to_many` association creates a direct many-to-many connection with another model, with no intervening model. For example, if your application includes assemblies and parts, with each assembly having many parts and each part appearing in many assemblies, you could declare the models this way:
+A `has_and_belongs_to_many` association creates a direct many-to-many connection with another model, with no intervening model.
+This association indicates that each instance of the declaring model refers to zero or more instances of another model.
+For example, if your application includes assemblies and parts, with each assembly having many parts and each part appearing in many assemblies, you could declare the models this way:
 
 ```ruby
 class Assembly < ApplicationRecord
@@ -545,7 +547,7 @@ In your migrations/schema, you will add a references column to the model itself.
 class CreateEmployees < ActiveRecord::Migration[6.0]
   def change
     create_table :employees do |t|
-      t.references :manager
+      t.references :manager, foreign_key: { to_table: :employees }
       t.timestamps
     end
   end
@@ -568,7 +570,7 @@ Here are a few things you should know to make efficient use of Active Record ass
 All of the association methods are built around caching, which keeps the result of the most recent query available for further operations. The cache is even shared across methods. For example:
 
 ```ruby
-author.books                 # retrieves books from the database
+author.books.load            # retrieves books from the database
 author.books.size            # uses the cached copy of books
 author.books.empty?          # uses the cached copy of books
 ```
@@ -576,7 +578,7 @@ author.books.empty?          # uses the cached copy of books
 But what if you want to reload the cache, because data might have been changed by some other part of the application? Just call `reload` on the association:
 
 ```ruby
-author.books                 # retrieves books from the database
+author.books.load            # retrieves books from the database
 author.books.size            # uses the cached copy of books
 author.books.reload.empty?   # discards the cached copy of books
                              # and goes back to the database
@@ -2509,7 +2511,7 @@ single database table, Rails will save in this column the name of the model that
 is being saved. In our example, this can be "Car", "Motorcycle" or "Bicycle."
 STI won't work without a "type" field in the table.
 
-Next, we will generate the three models that inherit from Vehicle. For this,
+Next, we will generate the Car model that inherits from Vehicle. For this,
 we can use the `--parent=PARENT` option, which will generate a model that
 inherits from the specified parent and without equivalent migration (since the
 table already exists).

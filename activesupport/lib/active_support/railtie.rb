@@ -22,6 +22,11 @@ module ActiveSupport
       app.reloader.before_class_unload { ActiveSupport::CurrentAttributes.clear_all }
       app.executor.to_run              { ActiveSupport::CurrentAttributes.reset_all }
       app.executor.to_complete         { ActiveSupport::CurrentAttributes.reset_all }
+
+      ActiveSupport.on_load(:active_support_test_case) do
+        require "active_support/current_attributes/test_helper"
+        include ActiveSupport::CurrentAttributes::TestHelper
+      end
     end
 
     initializer "active_support.deprecation_behavior" do |app|

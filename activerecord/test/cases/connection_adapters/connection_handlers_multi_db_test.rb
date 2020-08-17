@@ -21,7 +21,7 @@ module ActiveRecord
       end
 
       def teardown
-        ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+        clean_up_connection_handler
       end
 
       class MultiConnectionTestModel < ActiveRecord::Base
@@ -217,6 +217,14 @@ module ActiveRecord
           assert_equal "`connected_to` cannot accept a `database` argument with any other arguments.", error.message
         end
 
+        def test_database_argument_is_deprecated
+          assert_deprecated do
+            ActiveRecord::Base.connected_to(database: { writing: { adapter: "sqlite3", database: "test/db/primary.sqlite3" } }) { }
+          end
+        ensure
+          ActiveRecord::Base.establish_connection(:arunit)
+        end
+
         def test_switching_connections_without_database_and_role_raises
           error = assert_raises(ArgumentError) do
             ActiveRecord::Base.connected_to { }
@@ -369,8 +377,6 @@ module ActiveRecord
       end
 
       def test_connection_handlers_are_per_thread_and_not_per_fiber
-        original_handlers = ActiveRecord::Base.connection_handlers
-
         ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler, reading: ActiveRecord::ConnectionAdapters::ConnectionHandler.new }
 
         reading_handler = ActiveRecord::Base.connection_handlers[:reading]
@@ -382,7 +388,7 @@ module ActiveRecord
         assert_not_equal reading, ActiveRecord::Base.connection_handler
         assert_equal reading, reading_handler
       ensure
-        ActiveRecord::Base.connection_handlers = original_handlers
+        clean_up_connection_handler
       end
 
       def test_connection_handlers_swapping_connections_in_fiber

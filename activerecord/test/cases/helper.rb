@@ -58,6 +58,7 @@ end
   supports_savepoints?
   supports_partial_index?
   supports_partitioned_indexes?
+  supports_expression_index?
   supports_insert_returning?
   supports_insert_on_duplicate_skip?
   supports_insert_on_duplicate_update?
@@ -146,6 +147,10 @@ def disable_extension!(extension, connection)
 
   connection.disable_extension extension
   connection.reconnect!
+end
+
+def clean_up_connection_handler
+  ActiveRecord::Base.connection_handlers = { ActiveRecord::Base.writing_role => ActiveRecord::Base.default_connection_handler }
 end
 
 def load_schema

@@ -70,11 +70,12 @@ module ActiveRecord
       def closed?; true; end
       def open?; false; end
       def joinable?; false; end
-      def add_record(record); end
+      def add_record(record, _ = true); end
     end
 
     class Transaction #:nodoc:
-      attr_reader :connection, :state, :records, :savepoint_name, :isolation_level
+      attr_reader :connection, :state, :savepoint_name, :isolation_level
+      attr_accessor :written
 
       def initialize(connection, isolation: nil, joinable: true, run_commit_callbacks: false)
         @connection = connection
@@ -84,11 +85,25 @@ module ActiveRecord
         @materialized = false
         @joinable = joinable
         @run_commit_callbacks = run_commit_callbacks
+        @lazy_enrollment_records = nil
       end
 
-      def add_record(record)
+      def add_record(record, ensure_finalize = true)
         @records ||= []
-        @records << record
+        if ensure_finalize
+          @records << record
+        else
+          @lazy_enrollment_records ||= ObjectSpace::WeakMap.new
+          @lazy_enrollment_records[record] = record
+        end
+      end
+
+      def records
+        if @lazy_enrollment_records
+          @records.concat @lazy_enrollment_records.values
+          @lazy_enrollment_records = nil
+        end
+        @records
       end
 
       def materialize!
@@ -306,14 +321,14 @@ module ActiveRecord
             if Thread.current.status == "aborting"
               rollback_transaction
             else
-              unless completed
+              if !completed && transaction.written
                 ActiveSupport::Deprecation.warn(<<~EOW)
                   Using `return`, `break` or `throw` to exit a transaction block is
                   deprecated without replacement. If the `throw` came from
                   `Timeout.timeout(duration)`, pass an exception class as a second
                   argument so it doesn't use `throw` to abort its block. This results
                   in the transaction being committed, but in the next release of Rails
-                  it will raise and rollback.
+                  it will rollback.
                 EOW
               end
               begin

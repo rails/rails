@@ -544,7 +544,7 @@ module ActiveSupport #:nodoc:
 
       if file_path
         expanded = File.expand_path(file_path)
-        expanded.sub!(/\.rb\z/, "")
+        expanded.delete_suffix!(".rb")
 
         if loading.include?(expanded)
           raise "Circular dependency detected while autoloading constant #{qualified_name}"
@@ -722,7 +722,7 @@ module ActiveSupport #:nodoc:
     # A module, class, symbol, or string may be provided.
     def to_constant_name(desc) #:nodoc:
       case desc
-      when String then desc.sub(/^::/, "")
+      when String then desc.delete_prefix("::")
       when Symbol then desc.to_s
       when Module
         real_mod_name(desc) ||
@@ -733,7 +733,7 @@ module ActiveSupport #:nodoc:
 
     def remove_constant(const) #:nodoc:
       # Normalize ::Foo, ::Object::Foo, Object::Foo, Object::Object::Foo, etc. as Foo.
-      normalized = const.to_s.sub(/\A::/, "")
+      normalized = const.to_s.delete_prefix("::")
       normalized.sub!(/\A(Object::)+/, "")
 
       constants = normalized.split("::")
@@ -743,7 +743,7 @@ module ActiveSupport #:nodoc:
       file_path = search_for_file(const.underscore)
       if file_path
         expanded = File.expand_path(file_path)
-        expanded.sub!(/\.rb\z/, "")
+        expanded.delete_suffix!(".rb")
         loaded.delete(expanded)
       end
 

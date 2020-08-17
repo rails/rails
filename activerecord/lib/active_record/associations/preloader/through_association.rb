@@ -4,7 +4,7 @@ module ActiveRecord
   module Associations
     class Preloader
       class ThroughAssociation < Association # :nodoc:
-        PRELOADER = ActiveRecord::Associations::Preloader.new
+        PRELOADER = ActiveRecord::Associations::Preloader.new(associate_by_default: false)
 
         def initialize(*)
           super
@@ -90,7 +90,7 @@ module ActiveRecord
               end
 
               if values[:references] && !values[:references].empty?
-                scope.references!(values[:references])
+                scope.references_values |= values[:references]
               else
                 scope.references!(source_reflection.table_name)
               end

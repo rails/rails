@@ -152,12 +152,12 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   end
 
   test "resized variation of BMP blob" do
-    blob = create_file_blob(filename: "colors.bmp")
+    blob = create_file_blob(filename: "colors.bmp", content_type: "image/bmp")
     variant = blob.variant(resize: "15x15").processed
-    assert_match(/colors\.bmp/, variant.url)
+    assert_match(/colors\.png/, variant.url)
 
     image = read_image(variant)
-    assert_equal "BMP", image.type
+    assert_equal "PNG", image.type
     assert_equal 15, image.width
     assert_equal 8, image.height
   end

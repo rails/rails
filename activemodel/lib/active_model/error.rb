@@ -103,7 +103,7 @@ module ActiveModel
       @options = options
     end
 
-    def initialize_dup(other)
+    def initialize_dup(other) # :nodoc:
       @attribute = @attribute.dup
       @raw_type = @raw_type.dup
       @type = @type.dup
@@ -121,6 +121,11 @@ module ActiveModel
     # The options provided when calling `errors#add`
     attr_reader :options
 
+    # Returns the error message.
+    #
+    #   error = ActiveModel::Error.new(person, :name, :too_short, count: 5)
+    #   error.message
+    #   # => "is too short (minimum is 5 characters)"
     def message
       case raw_type
       when Symbol
@@ -130,15 +135,27 @@ module ActiveModel
       end
     end
 
+    # Returns the error detail.
+    #
+    #   error = ActiveModel::Error.new(person, :name, :too_short, count: 5)
+    #   error.detail
+    #   # => { error: :too_short, count: 5 }
     def detail
       { error: raw_type }.merge(options.except(*CALLBACKS_OPTIONS + MESSAGE_OPTIONS))
     end
 
+    # Returns the full error message.
+    #
+    #   error = ActiveModel::Error.new(person, :name, :too_short, count: 5)
+    #   error.full_message
+    #   # => "Name is too short (minimum is 5 characters)"
     def full_message
       self.class.full_message(attribute, message, @base.class)
     end
 
     # See if error matches provided +attribute+, +type+ and +options+.
+    #
+    # Omitted params are not checked for a match.
     def match?(attribute, type = nil, **options)
       if @attribute != attribute || (type && @type != type)
         return false
@@ -153,23 +170,27 @@ module ActiveModel
       true
     end
 
+    # See if error matches provided +attribute+, +type+ and +options+ exactly.
+    #
+    # All params must be equal to Error's own attributes to be considered a
+    # strict match.
     def strict_match?(attribute, type, **options)
       return false unless match?(attribute, type)
 
       options == @options.except(*CALLBACKS_OPTIONS + MESSAGE_OPTIONS)
     end
 
-    def ==(other)
+    def ==(other) # :nodoc:
       other.is_a?(self.class) && attributes_for_hash == other.attributes_for_hash
     end
     alias eql? ==
 
-    def hash
+    def hash # :nodoc:
       attributes_for_hash.hash
     end
 
     def inspect # :nodoc:
-      "<##{self.class.name} attribute=#{@attribute}, type=#{@type}, options=#{@options.inspect}>"
+      "#<#{self.class.name} attribute=#{@attribute}, type=#{@type}, options=#{@options.inspect}>"
     end
 
     protected

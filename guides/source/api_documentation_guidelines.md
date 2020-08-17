@@ -20,7 +20,7 @@ The [Rails API documentation](https://api.rubyonrails.org) is generated with
 in the rails root directory, run `bundle install` and execute:
 
 ```bash
-  bundle exec rake rdoc
+$ bundle exec rake rdoc
 ```
 
 Resulting HTML files can be found in the ./doc/rdoc directory.

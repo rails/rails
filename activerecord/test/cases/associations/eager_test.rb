@@ -587,7 +587,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_preloading_has_many_through_with_implicit_source
-    authors = Author.includes(:very_special_comments).to_a
+    authors = Author.includes(:very_special_comments).to_a.sort_by(&:id)
     assert_no_queries do
       special_comment_authors = authors.map { |author| [author.name, author.very_special_comments.size] }
       assert_equal [["David", 1], ["Mary", 0], ["Bob", 0]], special_comment_authors
@@ -721,7 +721,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     post1 = general.posts.to_a.find { |p| p == welcome }
     post2 = technology.posts.to_a.find { |p| p == welcome }
 
-    assert_equal post1.object_id, post2.object_id
+    assert_same post1, post2
   end
 
   def test_eager_with_has_many_and_limit_and_conditions_on_the_eagers
@@ -814,22 +814,31 @@ class EagerAssociationTest < ActiveRecord::TestCase
     e = assert_raise(ActiveRecord::AssociationNotFoundError) {
       Post.all.merge!(includes: :monkeys).find(6)
     }
-    assert_equal("Association named 'monkeys' was not found on Post; perhaps you misspelled it?", e.message)
+    assert_match(/Association named 'monkeys' was not found on Post; perhaps you misspelled it\?/, e.message)
 
     e = assert_raise(ActiveRecord::AssociationNotFoundError) {
       Post.all.merge!(includes: [ :monkeys ]).find(6)
     }
-    assert_equal("Association named 'monkeys' was not found on Post; perhaps you misspelled it?", e.message)
+    assert_match(/Association named 'monkeys' was not found on Post; perhaps you misspelled it\?/, e.message)
 
     e = assert_raise(ActiveRecord::AssociationNotFoundError) {
       Post.all.merge!(includes: [ "monkeys" ]).find(6)
     }
-    assert_equal("Association named 'monkeys' was not found on Post; perhaps you misspelled it?", e.message)
+    assert_match(/Association named 'monkeys' was not found on Post; perhaps you misspelled it\?/, e.message)
 
     e = assert_raise(ActiveRecord::AssociationNotFoundError) {
       Post.all.merge!(includes: [ :monkeys, :elephants ]).find(6)
     }
-    assert_equal("Association named 'monkeys' was not found on Post; perhaps you misspelled it?", e.message)
+    assert_match(/Association named 'monkeys' was not found on Post; perhaps you misspelled it\?/, e.message)
+  end
+
+  if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
+    test "exceptions have suggestions for fix" do
+      error = assert_raise(ActiveRecord::AssociationNotFoundError) {
+        Post.all.merge!(includes: :monkeys).find(6)
+      }
+      assert_match "Did you mean?", error.message
+    end
   end
 
   def test_eager_has_many_through_with_order

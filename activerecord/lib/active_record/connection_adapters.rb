@@ -17,6 +17,7 @@ module ActiveRecord
       autoload :ColumnDefinition
       autoload :ChangeColumnDefinition
       autoload :ForeignKeyDefinition
+      autoload :CheckConstraintDefinition
       autoload :TableDefinition
       autoload :Table
       autoload :AlterTable

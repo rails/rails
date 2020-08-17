@@ -236,6 +236,10 @@ class EnumTest < ActiveRecord::TestCase
     assert_nil @book.reload.status
   end
 
+  test "deserialize nil value to enum which defines nil value to hash" do
+    assert_equal "forgotten", books(:ddd).last_read
+  end
+
   test "assign nil value" do
     @book.status = nil
     assert_nil @book.status
@@ -583,6 +587,15 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal :integer, Book.type_for_attribute("status").type
   end
 
+  test "overloaded default" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum status: [:proposed, :written, :published], _default: :published
+    end
+
+    assert_equal "published", klass.new.status
+  end
+
   test "scopes can be disabled" do
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "books"
@@ -590,6 +603,17 @@ class EnumTest < ActiveRecord::TestCase
     end
 
     assert_raises(NoMethodError) { klass.proposed }
+  end
+
+  test "capital characters for enum names" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "computers"
+      enum extendedWarranty: [:extendedSilver, :extendedGold]
+    end
+
+    computer = klass.extendedSilver.build
+    assert_predicate computer, :extendedSilver?
+    assert_not_predicate computer, :extendedGold?
   end
 
   test "enums with a negative condition log a warning" do

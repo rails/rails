@@ -8,9 +8,16 @@ module ActiveModel
         @registrations = []
       end
 
+      def initialize_dup(other)
+        @registrations = @registrations.dup
+        super
+      end
+
       def register(type_name, klass = nil, **options, &block)
-        block ||= proc { |_, *args| klass.new(*args) }
-        block.ruby2_keywords if block.respond_to?(:ruby2_keywords)
+        unless block_given?
+          block = proc { |_, *args| klass.new(*args) }
+          block.ruby2_keywords if block.respond_to?(:ruby2_keywords)
+        end
         registrations << registration_klass.new(type_name, block, **options)
       end
 

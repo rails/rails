@@ -46,8 +46,7 @@ module ActiveRecord
       #   task.read_attribute_before_type_cast('completed_on') # => "2012-10-21"
       #   task.read_attribute_before_type_cast(:completed_on)  # => "2012-10-21"
       def read_attribute_before_type_cast(attr_name)
-        sync_with_transaction_state if @transaction_state&.finalized?
-        @attributes[attr_name.to_s].value_before_type_cast
+        attribute_before_type_cast(attr_name.to_s)
       end
 
       # Returns a hash of attributes before typecasting and deserialization.
@@ -61,19 +60,17 @@ module ActiveRecord
       #   task.attributes_before_type_cast
       #   # => {"id"=>nil, "title"=>nil, "is_done"=>true, "completed_on"=>"2012-10-21", "created_at"=>nil, "updated_at"=>nil}
       def attributes_before_type_cast
-        sync_with_transaction_state if @transaction_state&.finalized?
         @attributes.values_before_type_cast
       end
 
       private
         # Dispatch target for <tt>*_before_type_cast</tt> attribute methods.
-        def attribute_before_type_cast(attribute_name)
-          read_attribute_before_type_cast(attribute_name)
+        def attribute_before_type_cast(attr_name)
+          @attributes[attr_name].value_before_type_cast
         end
 
-        def attribute_came_from_user?(attribute_name)
-          sync_with_transaction_state if @transaction_state&.finalized?
-          @attributes[attribute_name].came_from_user?
+        def attribute_came_from_user?(attr_name)
+          @attributes[attr_name].came_from_user?
         end
     end
   end

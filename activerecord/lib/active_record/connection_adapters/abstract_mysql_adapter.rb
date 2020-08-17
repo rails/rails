@@ -92,6 +92,14 @@ module ActiveRecord
         true
       end
 
+      def supports_check_constraints?
+        if mariadb?
+          database_version >= "10.2.1"
+        else
+          database_version >= "8.0.16"
+        end
+      end
+
       def supports_views?
         true
       end
@@ -191,6 +199,7 @@ module ActiveRecord
       # Executes the SQL statement in the context of this connection.
       def execute(sql, name = nil)
         materialize_transactions
+        mark_transaction_written_if_write(sql)
 
         log(sql, name) do
           ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
@@ -322,7 +331,7 @@ module ActiveRecord
       # Although this command ignores most +options+ and the block if one is given,
       # it can be helpful to provide these in a migration's +change+ method so it can be reverted.
       # In that case, +options+ and the block will be used by create_table.
-      def drop_table(table_name, options = {})
+      def drop_table(table_name, **options)
         schema_cache.clear_data_source_cache!(table_name.to_s)
         execute "DROP#{' TEMPORARY' if options[:temporary]} TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}#{' CASCADE' if options[:force] == :cascade}"
       end
@@ -355,8 +364,8 @@ module ActiveRecord
         change_column table_name, column_name, nil, comment: comment
       end
 
-      def change_column(table_name, column_name, type, options = {}) #:nodoc:
-        execute("ALTER TABLE #{quote_table_name(table_name)} #{change_column_for_alter(table_name, column_name, type, options)}")
+      def change_column(table_name, column_name, type, **options) #:nodoc:
+        execute("ALTER TABLE #{quote_table_name(table_name)} #{change_column_for_alter(table_name, column_name, type, **options)}")
       end
 
       def rename_column(table_name, column_name, new_column_name) #:nodoc:
@@ -364,10 +373,10 @@ module ActiveRecord
         rename_column_indexes(table_name, column_name, new_column_name)
       end
 
-      def add_index(table_name, column_name, options = {}) #:nodoc:
-        return if options[:if_not_exists] && index_exists?(table_name, column_name, options)
+      def add_index(table_name, column_name, **options) #:nodoc:
+        index, algorithm, if_not_exists = add_index_options(table_name, column_name, **options)
 
-        index, algorithm, _ = add_index_options(table_name, column_name, **options)
+        return if if_not_exists && index_exists?(table_name, column_name, name: index.name)
 
         create_index = CreateIndexDefinition.new(index, algorithm)
         execute schema_creation.accept(create_index)
@@ -414,25 +423,56 @@ module ActiveRecord
         end
       end
 
-      def table_options(table_name) # :nodoc:
-        table_options = {}
+      def check_constraints(table_name)
+        scope = quoted_scope(table_name)
 
+        chk_info = exec_query(<<~SQL, "SCHEMA")
+          SELECT cc.constraint_name AS 'name',
+                 cc.check_clause AS 'expression'
+          FROM information_schema.check_constraints cc
+          JOIN information_schema.table_constraints tc
+          USING (constraint_schema, constraint_name)
+          WHERE tc.table_schema = #{scope[:schema]}
+            AND tc.table_name = #{scope[:name]}
+            AND cc.constraint_schema = #{scope[:schema]}
+        SQL
+
+        chk_info.map do |row|
+          options = {
+            name: row["name"]
+          }
+          expression = row["expression"]
+          expression = expression[1..-2] unless mariadb? # remove parentheses added by mysql
+          CheckConstraintDefinition.new(table_name, expression, options)
+        end
+      end
+
+      def table_options(table_name) # :nodoc:
         create_table_info = create_table_info(table_name)
 
         # strip create_definitions and partition_options
         # Be aware that `create_table_info` might not include any table options due to `NO_TABLE_OPTIONS` sql mode.
         raw_table_options = create_table_info.sub(/\A.*\n\) ?/m, "").sub(/\n\/\*!.*\*\/\n\z/m, "").strip
 
+        return if raw_table_options.empty?
+
+        table_options = {}
+
+        if / DEFAULT CHARSET=(?<charset>\w+)(?: COLLATE=(?<collation>\w+))?/ =~ raw_table_options
+          raw_table_options = $` + $' # before part + after part
+          table_options[:charset] = charset
+          table_options[:collation] = collation if collation
+        end
+
         # strip AUTO_INCREMENT
         raw_table_options.sub!(/(ENGINE=\w+)(?: AUTO_INCREMENT=\d+)/, '\1')
-
-        table_options[:options] = raw_table_options unless raw_table_options.blank?
 
         # strip COMMENT
         if raw_table_options.sub!(/ COMMENT='.+'/, "")
           table_options[:comment] = table_comment(table_name)
         end
 
+        table_options[:options] = raw_table_options unless raw_table_options == "ENGINE=InnoDB"
         table_options
       end
 
@@ -536,7 +576,10 @@ module ActiveRecord
         def initialize_type_map(m = type_map)
           super
 
-          register_class_with_limit m, %r(char)i, MysqlString
+          m.register_type(%r(char)i) do |sql_type|
+            limit = extract_limit(sql_type)
+            Type.lookup(:string, adapter: :mysql2, limit: limit)
+          end
 
           m.register_type %r(tinytext)i,   Type::Text.new(limit: 2**8 - 1)
           m.register_type %r(tinyblob)i,   Type::Binary.new(limit: 2**8 - 1)
@@ -556,20 +599,11 @@ module ActiveRecord
           register_integer_type m, %r(^tinyint)i,   limit: 1
 
           m.register_type %r(^tinyint\(1\))i, Type::Boolean.new if emulate_booleans
-          m.alias_type %r(year)i,          "integer"
-          m.alias_type %r(bit)i,           "binary"
+          m.alias_type %r(year)i, "integer"
+          m.alias_type %r(bit)i,  "binary"
 
-          m.register_type(%r(enum)i) do |sql_type|
-            limit = sql_type[/^enum\s*\((.+)\)/i, 1]
-              .split(",").map { |enum| enum.strip.length - 2 }.max
-            MysqlString.new(limit: limit)
-          end
-
-          m.register_type(%r(^set)i) do |sql_type|
-            limit = sql_type[/^set\s*\((.+)\)/i, 1]
-              .split(",").map { |set| set.strip.length - 1 }.sum - 1
-            MysqlString.new(limit: limit)
-          end
+          m.register_type %r(^enum)i, Type.lookup(:string, adapter: :mysql2)
+          m.register_type %r(^set)i,  Type.lookup(:string, adapter: :mysql2)
         end
 
         def register_integer_type(mapping, key, **options)
@@ -645,7 +679,7 @@ module ActiveRecord
           end
         end
 
-        def change_column_for_alter(table_name, column_name, type, options = {})
+        def change_column_for_alter(table_name, column_name, type, **options)
           column = column_for(table_name, column_name)
           type ||= column.sql_type
 
@@ -667,6 +701,8 @@ module ActiveRecord
         end
 
         def rename_column_for_alter(table_name, column_name, new_column_name)
+          return rename_column_sql(table_name, column_name, new_column_name) if supports_rename_column?
+
           column  = column_for(table_name, column_name)
           options = {
             default: column.default,
@@ -681,14 +717,14 @@ module ActiveRecord
           schema_creation.accept(ChangeColumnDefinition.new(cd, column.name))
         end
 
-        def add_index_for_alter(table_name, column_name, options = {})
+        def add_index_for_alter(table_name, column_name, **options)
           index, algorithm, _ = add_index_options(table_name, column_name, **options)
           algorithm = ", #{algorithm}" if algorithm
 
           "ADD #{schema_creation.accept(index)}#{algorithm}"
         end
 
-        def remove_index_for_alter(table_name, column_name = nil, options = {})
+        def remove_index_for_alter(table_name, column_name = nil, **options)
           index_name = index_name_for_remove(table_name, column_name, options)
           "DROP INDEX #{quote_column_name(index_name)}"
         end
@@ -698,6 +734,14 @@ module ActiveRecord
             database_version >= "10.5.2"
           else
             database_version >= "5.7.6"
+          end
+        end
+
+        def supports_rename_column?
+          if mariadb?
+            database_version >= "10.5.2"
+          else
+            database_version >= "8.0.3"
           end
         end
 
@@ -800,26 +844,16 @@ module ActiveRecord
           full_version_string.match(/^(?:5\.5\.5-)?(\d+\.\d+\.\d+)/)[1]
         end
 
-        class MysqlString < Type::String # :nodoc:
-          def serialize(value)
-            case value
-            when true then "1"
-            when false then "0"
-            else super
-            end
-          end
+        # Alias MysqlString to work Mashal.load(File.read("legacy_record.dump")).
+        # TODO: Remove the constant alias once Rails 6.1 has released.
+        MysqlString = Type::String # :nodoc:
 
-          private
-            def cast_value(value)
-              case value
-              when true then "1"
-              when false then "0"
-              else super
-              end
-            end
+        ActiveRecord::Type.register(:immutable_string, adapter: :mysql2) do |_, **args|
+          Type::ImmutableString.new(true: "1", false: "0", **args)
         end
-
-        ActiveRecord::Type.register(:string, MysqlString, adapter: :mysql2)
+        ActiveRecord::Type.register(:string, adapter: :mysql2) do |_, **args|
+          Type::String.new(true: "1", false: "0", **args)
+        end
         ActiveRecord::Type.register(:unsigned_integer, Type::UnsignedInteger, adapter: :mysql2)
     end
   end

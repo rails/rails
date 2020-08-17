@@ -42,19 +42,19 @@ module GeneratorsTestHelper
       setup :prepare_destination
 
       begin
-        base.tests Rails::Generators.const_get(base.name.sub(/Test$/, ""))
+        base.tests Rails::Generators.const_get(base.name.delete_suffix("Test"))
       rescue
       end
     end
   end
 
-  def with_secondary_database_configuration
+  def with_database_configuration(database_name = "secondary")
     original_configurations = ActiveRecord::Base.configurations
     ActiveRecord::Base.configurations = {
       test: {
-        secondary: {
-          database: "db/secondary.sqlite3",
-          migrations_paths: "db/secondary_migrate",
+        "#{database_name}": {
+          database: "db/#{database_name}.sqlite3",
+          migrations_paths: "db/#{database_name}_migrate",
         },
       },
     }

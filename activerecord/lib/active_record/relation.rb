@@ -28,7 +28,6 @@ module ActiveRecord
       @klass  = klass
       @table  = table
       @values = values
-      @offsets = {}
       @loaded = false
       @predicate_builder = predicate_builder
       @delegate_to_klass = false
@@ -40,8 +39,9 @@ module ActiveRecord
     end
 
     def arel_attribute(name) # :nodoc:
-      klass.arel_attribute(name, table)
+      table[name]
     end
+    deprecate :arel_attribute
 
     def bind_attribute(name, value) # :nodoc:
       if reflection = klass._reflect_on_association(name)
@@ -49,7 +49,7 @@ module ActiveRecord
         value = value.read_attribute(reflection.klass.primary_key) unless value.nil?
       end
 
-      attr = arel_attribute(name)
+      attr = table[name]
       bind = predicate_builder.build_bind_attribute(attr.name, value)
       yield attr, bind
     end
@@ -308,7 +308,7 @@ module ActiveRecord
     # last updated record.
     #
     #   Product.where("name like ?", "%Game%").cache_key(:last_reviewed_at)
-    def cache_key(timestamp_column = :updated_at)
+    def cache_key(timestamp_column = "updated_at")
       @cache_keys ||= {}
       @cache_keys[timestamp_column] ||= klass.collection_cache_key(self, timestamp_column)
     end
@@ -343,15 +343,17 @@ module ActiveRecord
     end
 
     def compute_cache_version(timestamp_column) # :nodoc:
+      timestamp_column = timestamp_column.to_s
+
       if loaded? || distinct_value
         size = records.size
         if size > 0
-          timestamp = max_by(&timestamp_column)._read_attribute(timestamp_column)
+          timestamp = records.map { |record| record.read_attribute(timestamp_column) }.max
         end
       else
         collection = eager_loading? ? apply_join_dependency : self
 
-        column = connection.visitor.compile(arel_attribute(timestamp_column))
+        column = connection.visitor.compile(table[timestamp_column])
         select_values = "COUNT(*) AS #{connection.quote_column_name("size")}, MAX(%s) AS timestamp"
 
         if collection.has_limit_or_offset?
@@ -365,14 +367,12 @@ module ActiveRecord
           arel = query.arel
         end
 
-        result = connection.select_one(arel, nil)
+        size, timestamp = connection.select_rows(arel, nil).first
 
-        if result
+        if size
           column_type = klass.type_for_attribute(timestamp_column)
-          timestamp = column_type.deserialize(result["timestamp"])
-          size = result["size"]
+          timestamp = column_type.deserialize(timestamp)
         else
-          timestamp = nil
           size = 0
         end
       end
@@ -448,7 +448,7 @@ module ActiveRecord
 
       stmt = Arel::UpdateManager.new
       stmt.table(arel.join_sources.empty? ? table : arel.source)
-      stmt.key = arel_attribute(primary_key)
+      stmt.key = table[primary_key]
       stmt.take(arel.limit)
       stmt.offset(arel.offset)
       stmt.order(*arel.orders)
@@ -458,7 +458,7 @@ module ActiveRecord
         if klass.locking_enabled? &&
             !updates.key?(klass.locking_column) &&
             !updates.key?(klass.locking_column.to_sym)
-          attr = arel_attribute(klass.locking_column)
+          attr = table[klass.locking_column]
           updates[attr.name] = _increment_attribute(attr)
         end
         stmt.set _substitute_values(updates)
@@ -494,7 +494,7 @@ module ActiveRecord
 
       updates = {}
       counters.each do |counter_name, value|
-        attr = arel_attribute(counter_name)
+        attr = table[counter_name]
         updates[attr.name] = _increment_attribute(attr, value)
       end
 
@@ -509,8 +509,8 @@ module ActiveRecord
       update_all updates
     end
 
-    # Touches all records in the current relation without instantiating records first with the +updated_at+/+updated_on+ attributes
-    # set to the current time or the time specified.
+    # Touches all records in the current relation, setting the +updated_at+/+updated_on+ attributes to the current time or the time specified.
+    # It does not instantiate the involved models, and it does not trigger Active Record callbacks or validations.
     # This method can be passed attribute names and an optional time argument.
     # If attribute names are passed, they are updated along with +updated_at+/+updated_on+ attributes.
     # If no time argument is passed, the current time is used as default.
@@ -590,7 +590,7 @@ module ActiveRecord
 
       stmt = Arel::DeleteManager.new
       stmt.from(arel.join_sources.empty? ? table : arel.source)
-      stmt.key = arel_attribute(primary_key)
+      stmt.key = table[primary_key]
       stmt.take(arel.limit)
       stmt.offset(arel.offset)
       stmt.order(*arel.orders)
@@ -653,9 +653,8 @@ module ActiveRecord
       @delegate_to_klass = false
       @_deprecated_scope_source = nil
       @to_sql = @arel = @loaded = @should_eager_load = nil
+      @offsets = @take = nil
       @records = [].freeze
-      @offsets = {}
-      @take = nil
       self
     end
 
@@ -687,6 +686,7 @@ module ActiveRecord
 
     def scope_for_create
       hash = where_values_hash
+      hash.delete(klass.inheritance_column) if klass.finder_needs_type_condition?
       create_with_value.each { |k, v| hash[k.to_s] = v } unless create_with_value.empty?
       hash
     end
@@ -749,11 +749,10 @@ module ActiveRecord
     end
 
     def alias_tracker(joins = [], aliases = nil) # :nodoc:
-      joins += [aliases] if aliases
-      ActiveRecord::Associations::AliasTracker.create(connection, table.name, joins)
+      ActiveRecord::Associations::AliasTracker.create(connection, table.name, joins, aliases)
     end
 
-    class StrictLoadingScope
+    class StrictLoadingScope # :nodoc:
       def self.empty_scope?
         true
       end
@@ -816,7 +815,7 @@ module ActiveRecord
 
       def _substitute_values(values)
         values.map do |name, value|
-          attr = arel_attribute(name)
+          attr = table[name]
           unless Arel.arel_node?(value)
             type = klass.type_for_attribute(attr.name)
             value = predicate_builder.build_bind_attribute(attr.name, type.cast(value))

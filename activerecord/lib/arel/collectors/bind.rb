@@ -16,6 +16,11 @@ module Arel # :nodoc: all
         self
       end
 
+      def add_binds(binds)
+        @binds.concat binds
+        self
+      end
+
       def value
         @binds
       end

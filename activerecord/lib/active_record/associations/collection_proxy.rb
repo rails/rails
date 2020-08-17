@@ -51,6 +51,7 @@ module ActiveRecord
       def loaded?
         @association.loaded?
       end
+      alias :loaded :loaded?
 
       ##
       # :method: select
@@ -1086,7 +1087,7 @@ module ActiveRecord
       end
 
       def reset_scope # :nodoc:
-        @offsets = {}
+        @offsets = @take = nil
         @scope = nil
         self
       end
@@ -1103,10 +1104,6 @@ module ActiveRecord
       delegate(*delegate_methods, to: :scope)
 
       private
-        def check_reorder_deprecation
-          super unless loaded?
-        end
-
         def find_nth_with_limit(index, limit)
           load_target if find_from_target?
           super

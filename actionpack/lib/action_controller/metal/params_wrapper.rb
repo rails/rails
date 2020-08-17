@@ -151,7 +151,7 @@ module ActionController
         # try to find Foo::Bar::User, Foo::User and finally User.
         def _default_wrap_model
           return nil if klass.anonymous?
-          model_name = klass.name.sub(/Controller$/, "").classify
+          model_name = klass.name.delete_suffix("Controller").classify
 
           begin
             if model_klass = model_name.safe_constantize
@@ -189,7 +189,7 @@ module ActionController
       #
       #   wrap_parameters Person
       #     # wraps parameters by determining the wrapper key from Person class
-      #     (+person+, in this case) and the list of attribute names
+      #     # (+person+, in this case) and the list of attribute names
       #
       #   wrap_parameters include: [:username, :title]
       #     # wraps only +:username+ and +:title+ attributes from parameters.

@@ -68,7 +68,7 @@ module ActionView
       end
 
       def expanded_cache_key(key, view, template, digest_path)
-        key = view.combined_fragment_cache_key(view.cache_fragment_name(key, virtual_path: template.virtual_path, digest_path: digest_path))
+        key = view.combined_fragment_cache_key(view.cache_fragment_name(key, digest_path: digest_path))
         key.frozen? ? key.dup : key # #read_multi & #write may require mutability, Dalli 2.6.0.
       end
 

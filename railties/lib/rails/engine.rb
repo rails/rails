@@ -36,10 +36,10 @@ module Rails
   #
   # == Configuration
   #
-  # Besides the +Railtie+ configuration which is shared across the application, in a
-  # <tt>Rails::Engine</tt> you can access <tt>autoload_paths</tt>, <tt>eager_load_paths</tt>
-  # and <tt>autoload_once_paths</tt>, which, differently from a <tt>Railtie</tt>, are scoped to
-  # the current engine.
+  # Like railties, engines can access a config object which contains configuration shared by
+  # all railties and the application.
+  # Additionally, each engine can access <tt>autoload_paths</tt>, <tt>eager_load_paths</tt> and
+  # <tt>autoload_once_paths</tt> settings which are scoped to that engine.
   #
   #   class MyEngine < Rails::Engine
   #     # Add a load path for this specific Engine
@@ -113,7 +113,7 @@ module Rails
   # == Endpoint
   #
   # An engine can also be a Rack application. It can be useful if you have a Rack application that
-  # you would like to wrap with +Engine+ and provide with some of the +Engine+'s features.
+  # you would like to provide with some of the +Engine+'s features.
   #
   # To do that, use the +endpoint+ method:
   #
@@ -123,7 +123,7 @@ module Rails
   #     end
   #   end
   #
-  # Now you can mount your engine in application's routes just like that:
+  # Now you can mount your engine in application's routes:
   #
   #   Rails.application.routes.draw do
   #     mount MyEngine::Engine => "/engine"
@@ -314,7 +314,7 @@ module Rails
   #     helper MyEngine::Engine.helpers
   #   end
   #
-  # It will include all of the helpers from engine's directory. Take into account that this does
+  # It will include all of the helpers from engine's directory. Take into account this does
   # not include helpers defined in controllers with helper_method or other similar solutions,
   # only helpers defined in the helpers directory will be included.
   #

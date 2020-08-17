@@ -11,6 +11,7 @@ require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/string/output_safety"
 require "active_support/core_ext/string/inflections"
+require "active_support/core_ext/symbol/starts_ends_with"
 
 module ActionView
   # = Action View Form Helpers
@@ -1668,8 +1669,8 @@ module ActionView
 
         convert_to_legacy_options(@options)
 
-        if @object_name.to_s.match(/\[\]$/)
-          if (object ||= @template.instance_variable_get("@#{Regexp.last_match.pre_match}")) && object.respond_to?(:to_param)
+        if @object_name&.end_with?("[]")
+          if (object ||= @template.instance_variable_get("@#{@object_name[0..-3]}")) && object.respond_to?(:to_param)
             @auto_index = object.to_param
           else
             raise ArgumentError, "object[] naming but object param and @object var don't exist or don't respond to to_param: #{object.inspect}"
@@ -1792,7 +1793,7 @@ module ActionView
       # Wraps ActionView::Helpers::FormHelper#time_field for form builders:
       #
       #   <%= form_with model: @user do |f| %>
-      #     <%= f.time_field :borned_at %>
+      #     <%= f.time_field :born_at %>
       #   <% end %>
       #
       # Please refer to the documentation of the base helper for details.
@@ -2162,7 +2163,6 @@ module ActionView
 
         case record_name
         when String, Symbol
-          record_name = record_name.to_s
           if nested_attributes_association?(record_name)
             return fields_for_with_nested_attributes(record_name, record_object, fields_options, block)
           end
@@ -2175,15 +2175,14 @@ module ActionView
         index = if options.has_key?(:index)
           options[:index]
         elsif defined?(@auto_index)
-          object_name = object_name.to_s.sub(/\[\]$/, "")
+          object_name = object_name.to_s.delete_suffix("[]")
           @auto_index
         end
 
         record_name = if index
           "#{object_name}[#{index}][#{record_name}]"
         elsif record_name.end_with?("[]")
-          record_name = record_name.sub(/(.*)\[\]$/, "[\\1][#{record_object.id}]")
-          "#{object_name}#{record_name}"
+          "#{object_name}[#{record_name[0..-3]}][#{record_object.id}]"
         else
           "#{object_name}[#{record_name}]"
         end

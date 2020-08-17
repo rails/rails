@@ -78,7 +78,7 @@ module ActiveRecord
           scope_value = if record.class._reflect_on_association(scope_item)
             record.association(scope_item).reader
           else
-            record._read_attribute(scope_item)
+            record.read_attribute(scope_item)
           end
           relation = relation.where(scope_item => scope_value)
         end

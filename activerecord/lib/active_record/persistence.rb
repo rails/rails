@@ -414,8 +414,8 @@ module ActiveRecord
 
         def _substitute_values(values)
           values.map do |name, value|
-            attr = arel_attribute(name)
-            bind = predicate_builder.build_bind_attribute(name, value)
+            attr = arel_table[name]
+            bind = predicate_builder.build_bind_attribute(attr.name, value)
             [attr, bind]
           end
         end
@@ -424,7 +424,6 @@ module ActiveRecord
     # Returns true if this object hasn't been saved yet -- that is, a record
     # for the object doesn't exist in the database yet; otherwise, returns false.
     def new_record?
-      sync_with_transaction_state if @transaction_state&.finalized?
       @new_record
     end
 
@@ -432,20 +431,17 @@ module ActiveRecord
     # save, the object didn't exist in the database and new_record? would have
     # returned true.
     def previously_new_record?
-      sync_with_transaction_state if @transaction_state&.finalized?
       @previously_new_record
     end
 
     # Returns true if this object has been destroyed, otherwise returns false.
     def destroyed?
-      sync_with_transaction_state if @transaction_state&.finalized?
       @destroyed
     end
 
     # Returns true if the record is persisted, i.e. it's not a new record and it was
     # not destroyed, otherwise returns false.
     def persisted?
-      sync_with_transaction_state if @transaction_state&.finalized?
       !(@new_record || @destroyed)
     end
 
@@ -674,11 +670,8 @@ module ActiveRecord
 
       attributes = attributes.transform_keys do |key|
         name = key.to_s
-        self.class.attribute_aliases[name] || name
-      end
-
-      attributes.each_key do |key|
-        verify_readonly_attribute(key)
+        name = self.class.attribute_aliases[name] || name
+        verify_readonly_attribute(name) || name
       end
 
       id_in_database = self.id_in_database
@@ -711,9 +704,9 @@ module ActiveRecord
     # Returns +self+.
     def increment!(attribute, by = 1, touch: nil)
       increment(attribute, by)
-      change = public_send(attribute) - (attribute_in_database(attribute.to_s) || 0)
+      change = public_send(attribute) - (public_send(:"#{attribute}_in_database") || 0)
       self.class.update_counters(id, attribute => change, touch: touch)
-      clear_attribute_change(attribute) # eww
+      public_send(:"clear_#{attribute}_change")
       self
     end
 
@@ -861,9 +854,10 @@ module ActiveRecord
       _raise_record_not_touched_error unless persisted?
 
       attribute_names = timestamp_attributes_for_update_in_model
-      attribute_names |= names.map!(&:to_s).map! { |name|
+      attribute_names |= names.map! do |name|
+        name = name.to_s
         self.class.attribute_aliases[name] || name
-      }
+      end unless names.empty?
 
       unless attribute_names.empty?
         affected_rows = _touch_row(attribute_names, time)

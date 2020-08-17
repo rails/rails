@@ -62,7 +62,7 @@ class PerRequestDigestCacheTest < ActiveSupport::TestCase
   end
 
   test "template digests are cleared before a request" do
-    assert_called(ActionView::LookupContext::DetailsKey, :clear) do
+    assert_called(ActionView::LookupContext::DetailsKey, :clear, times: 3) do
       get "/customers"
       assert_equal 200, last_response.status
     end

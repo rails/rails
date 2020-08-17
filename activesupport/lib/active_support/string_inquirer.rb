@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/symbol/starts_ends_with"
+
 module ActiveSupport
   # Wrapping a string in this class gives you a prettier way to test
   # for equality. The value returned by <tt>Rails.env</tt> is wrapped
@@ -19,11 +21,11 @@ module ActiveSupport
   class StringInquirer < String
     private
       def respond_to_missing?(method_name, include_private = false)
-        (method_name[-1] == "?") || super
+        method_name.end_with?("?") || super
       end
 
       def method_missing(method_name, *arguments)
-        if method_name[-1] == "?"
+        if method_name.end_with?("?")
           self == method_name[0..-2]
         else
           super

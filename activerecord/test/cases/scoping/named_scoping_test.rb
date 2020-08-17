@@ -64,6 +64,11 @@ class NamedScopingTest < ActiveRecord::TestCase
     assert_equal klazz.to.since.to_a, klazz.since.to.to_a
   end
 
+  def test_define_scope_for_reserved_words
+    assert Topic.true.all?(&:approved?), "all objects should be approved"
+    assert Topic.false.none?(&:approved?), "all objects should not be approved"
+  end
+
   def test_scope_should_respond_to_own_methods_and_methods_of_the_proxy
     assert_respond_to Topic.approved, :limit
     assert_respond_to Topic.approved, :count
@@ -586,7 +591,7 @@ class NamedScopingTest < ActiveRecord::TestCase
     [:destroy_all, :reset, :delete_all].each do |method|
       before = post.comments.containing_the_letter_e
       post.association(:comments).send(method)
-      assert before.object_id != post.comments.containing_the_letter_e.object_id, "CollectionAssociation##{method} should reset the named scopes cache"
+      assert_not_same before, post.comments.containing_the_letter_e, "CollectionAssociation##{method} should reset the named scopes cache"
     end
   end
 

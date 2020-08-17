@@ -136,7 +136,7 @@ module ActiveRecord
             relation.select_values = [ klass.primary_key || table[Arel.star] ]
           end
           # PostgreSQL: ORDER BY expressions must appear in SELECT list when using DISTINCT
-          relation.order_values = []
+          relation.order_values = [] if group_values.empty?
         end
 
         relation.calculate(operation, column_name)
@@ -308,16 +308,24 @@ module ActiveRecord
         result = skip_query_cache_if_necessary { @klass.connection.select_all(query_builder) }
 
         type_cast_calculated_value(result.cast_values.first, operation) do |value|
-          if type = column.try(:type_caster) || klass.attribute_types[column_name.to_s]
-            type.deserialize(value)
-          else
-            value
-          end
+          type = column.try(:type_caster) ||
+            lookup_cast_type_from_join_dependencies(column_name.to_s) || Type.default_value
+          type.deserialize(value)
         end
       end
 
       def execute_grouped_calculation(operation, column_name, distinct) #:nodoc:
         group_fields = group_values
+        group_fields = group_fields.uniq if group_fields.size > 1
+
+        unless group_fields == group_values
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            `#{operation}` with group by duplicated fields does no longer affect to result in Rails 6.2.
+            To migrate to Rails 6.2's behavior, use `uniq!(:group)` to deduplicate group fields
+            (`#{klass.name&.tableize || klass.table_name}.uniq!(:group).#{operation}(#{column_name.inspect})`).
+          MSG
+          group_fields = group_values
+        end
 
         if group_fields.size == 1 && group_fields.first.respond_to?(:to_sym)
           association  = klass._reflect_on_association(group_fields.first)
@@ -379,11 +387,9 @@ module ActiveRecord
           key = key_records[key] if associated
 
           result[key] = type_cast_calculated_value(row[column_alias], operation) do |value|
-            if type ||= column.try(:type_caster) || klass.attribute_types[column_name.to_s]
-              type.deserialize(value)
-            else
-              value
-            end
+            type ||= column.try(:type_caster) ||
+              lookup_cast_type_from_join_dependencies(column_name.to_s) || Type.default_value
+            type.deserialize(value)
           end
         end
       end
@@ -410,14 +416,25 @@ module ActiveRecord
         @klass.type_for_attribute(field_name, &block)
       end
 
+      def lookup_cast_type_from_join_dependencies(name, join_dependencies = build_join_dependencies)
+        each_join_dependencies(join_dependencies) do |join|
+          type = join.base_klass.attribute_types.fetch(name, nil)
+          return type if type
+        end
+        nil
+      end
+
       def type_cast_pluck_values(result, columns)
         cast_types = if result.columns.size != columns.size
           klass.attribute_types
         else
+          join_dependencies = nil
           columns.map.with_index do |column, i|
             column.try(:type_caster) ||
               klass.attribute_types.fetch(name = result.columns[i]) do
-                result.column_types.fetch(name, Type.default_value)
+                join_dependencies ||= build_join_dependencies
+                lookup_cast_type_from_join_dependencies(name, join_dependencies) ||
+                  result.column_types[name] || Type.default_value
               end
           end
         end

@@ -24,7 +24,11 @@ module ActiveModel
           delimiter
         end
 
-        members.send(inclusion_method(members), value)
+        if value.is_a?(Array)
+          value.all? { |v| members.send(inclusion_method(members), v) }
+        else
+          members.send(inclusion_method(members), value)
+        end
       end
 
       def delimiter

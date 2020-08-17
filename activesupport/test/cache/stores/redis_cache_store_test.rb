@@ -17,6 +17,7 @@ class SlowRedis < Redis
   def get(key)
     if /latency/.match?(key)
       sleep 3
+      super
     else
       super
     end
@@ -136,6 +137,14 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     def test_fetch_multi_uses_redis_mget
       assert_called(@cache.redis, :mget, returns: []) do
         @cache.fetch_multi("a", "b", "c") do |key|
+          key * 2
+        end
+      end
+    end
+
+    def test_fetch_multi_with_namespace
+      assert_called_with(@cache.redis, :mget, ["custom-namespace:a", "custom-namespace:b", "custom-namespace:c"], returns: []) do
+        @cache.fetch_multi("a", "b", "c", namespace: "custom-namespace") do |key|
           key * 2
         end
       end
@@ -289,7 +298,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       @cache.redis.set("fu", "baz")
       @cache.clear
       assert_not @cache.exist?("foo")
-      assert @cache.redis.exists("fu")
+      assert @cache.redis.exists?("fu")
     end
 
     test "clear all cache key with Redis::Distributed" do
@@ -301,6 +310,16 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       cache.clear
       assert_not cache.exist?("foo")
       assert_not cache.exist?("fu")
+    end
+  end
+
+  class RawTest < StoreTest
+    test "does not compress values read with \"raw\" enabled" do
+      @cache.write("foo", "bar", raw: true)
+
+      assert_not_called_on_instance_of ActiveSupport::Cache::Entry, :compress! do
+        @cache.read("foo", raw: true)
+      end
     end
   end
 end

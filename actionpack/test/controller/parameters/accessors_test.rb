@@ -19,6 +19,18 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     )
   end
 
+  test "each returns self" do
+    assert_same @params, @params.each { |_| _ }
+  end
+
+  test "each_pair returns self" do
+    assert_same @params, @params.each_pair { |_| _ }
+  end
+
+  test "each_value returns self" do
+    assert_same @params, @params.each_value { |_| _ }
+  end
+
   test "[] retains permitted status" do
     @params.permit!
     assert_predicate @params[:person], :permitted?
@@ -58,6 +70,11 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     end
   end
 
+  test "each without a block returns an enumerator" do
+    assert_kind_of Enumerator, @params.each
+    assert_equal @params, @params.each.to_h
+  end
+
   test "each_pair carries permitted status" do
     @params.permit!
     @params.each_pair { |key, value| assert(value.permitted?) if key == "person" }
@@ -75,6 +92,11 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     end
   end
 
+  test "each_pair without a block returns an enumerator" do
+    assert_kind_of Enumerator, @params.each_pair
+    assert_equal @params, @params.each_pair.to_h
+  end
+
   test "each_value carries permitted status" do
     @params.permit!
     @params.each_value do |value|
@@ -88,6 +110,11 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     end
   end
 
+  test "each_value without a block returns an enumerator" do
+    assert_kind_of Enumerator, @params.each_value
+    assert_equal @params.values, @params.each_value.to_a
+  end
+
   test "each_key converts to hash for permitted" do
     @params.permit!
     @params.each_key { |key| assert_kind_of(String, key) if key == "person" }
@@ -95,6 +122,11 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
 
   test "each_key converts to hash for unpermitted" do
     @params.each_key { |key| assert_kind_of(String, key) if key == "person" }
+  end
+
+  test "each_key without a block returns an enumerator" do
+    assert_kind_of Enumerator, @params.each_key
+    assert_equal @params.keys, @params.each_key.to_a
   end
 
   test "empty? returns true when params contains no key/value pairs" do
@@ -337,7 +369,7 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
 
   test "inspect shows both class name, parameters and permitted flag" do
     assert_equal(
-      '<ActionController::Parameters {"person"=>{"age"=>"32", '\
+      '#<ActionController::Parameters {"person"=>{"age"=>"32", '\
         '"name"=>{"first"=>"David", "last"=>"Heinemeier Hansson"}, ' \
         '"addresses"=>[{"city"=>"Chicago", "state"=>"Illinois"}]}} permitted: false>',
       @params.inspect

@@ -10,7 +10,6 @@ module ActionController
   autoload :API
   autoload :Base
   autoload :Metal
-  autoload :Middleware
   autoload :Renderer
   autoload :FormBuilder
 

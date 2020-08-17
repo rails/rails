@@ -192,12 +192,12 @@ module Arel # :nodoc: all
 
         def visit_Arel_Nodes_With(o, collector)
           collector << "WITH "
-          inject_join o.children, collector, ", "
+          collect_ctes(o.children, collector)
         end
 
         def visit_Arel_Nodes_WithRecursive(o, collector)
           collector << "WITH RECURSIVE "
-          inject_join o.children, collector, ", "
+          collect_ctes(o.children, collector)
         end
 
         def visit_Arel_Nodes_Union(o, collector)
@@ -332,15 +332,14 @@ module Arel # :nodoc: all
             collector << " NOT IN ("
           end
 
-          values = o.casted_values.map { |v| @connection.quote(v) }
+          values = o.casted_values
 
-          expr = if values.empty?
-            @connection.quote(nil)
+          if values.empty?
+            collector << @connection.quote(nil)
           else
-            values.join(",")
+            collector.add_binds(values, &bind_block)
           end
 
-          collector << expr
           collector << ")"
           collector
         end
@@ -691,8 +690,13 @@ module Arel # :nodoc: all
           collector << quote_table_name(join_name) << "." << quote_column_name(o.name)
         end
 
+        BIND_BLOCK = proc { "?" }
+        private_constant :BIND_BLOCK
+
+        def bind_block; BIND_BLOCK; end
+
         def visit_Arel_Nodes_BindParam(o, collector)
-          collector.add_bind(o.value) { "?" }
+          collector.add_bind(o.value, &bind_block)
         end
 
         def visit_Arel_Nodes_SqlLiteral(o, collector)
@@ -728,11 +732,6 @@ module Arel # :nodoc: all
           collector << " #{o.operator} "
           visit o.right, collector
         end
-
-        alias :visit_Arel_Nodes_Addition       :visit_Arel_Nodes_InfixOperation
-        alias :visit_Arel_Nodes_Subtraction    :visit_Arel_Nodes_InfixOperation
-        alias :visit_Arel_Nodes_Multiplication :visit_Arel_Nodes_InfixOperation
-        alias :visit_Arel_Nodes_Division       :visit_Arel_Nodes_InfixOperation
 
         def visit_Arel_Nodes_UnaryOperation(o, collector)
           collector << " #{o.operator} "
@@ -873,6 +872,27 @@ module Arel # :nodoc: all
           collector = visit o.right, collector
           collector << " IS NULL)"
           collector << " THEN 0 ELSE 1 END"
+        end
+
+        def collect_ctes(children, collector)
+          children.each_with_index do |child, i|
+            collector << ", " unless i == 0
+
+            case child
+            when Arel::Nodes::As
+              name = child.left.name
+              relation = child.right
+            when Arel::Nodes::TableAlias
+              name = child.name
+              relation = child.relation
+            end
+
+            collector << quote_table_name(name)
+            collector << " AS "
+            visit relation, collector
+          end
+
+          collector
         end
     end
   end

@@ -188,7 +188,7 @@ module Arel
       describe "when given a Symbol" do
         it "manufactures an attribute if the symbol names an attribute within the relation" do
           column = @relation[:id]
-          _(column.name).must_equal :id
+          _(column.name).must_equal "id"
         end
       end
     end

@@ -488,8 +488,8 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_scope_inherited_properly
-    assert_nothing_raised { Company.of_first_firm }
-    assert_nothing_raised { Client.of_first_firm }
+    assert_nothing_raised { Company.of_first_firm.to_a }
+    assert_nothing_raised { Client.of_first_firm.to_a }
   end
 
   def test_inheritance_with_default_scope
@@ -500,11 +500,6 @@ end
 class InheritanceComputeTypeTest < ActiveRecord::TestCase
   include InheritanceTestHelper
   fixtures :companies
-
-  teardown do
-    self.class.const_remove :FirmOnTheFly rescue nil
-    Firm.const_remove :FirmOnTheFly rescue nil
-  end
 
   def test_instantiation_doesnt_try_to_require_corresponding_file
     without_store_full_sti_class do
@@ -530,6 +525,9 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
       assert_nothing_raised { assert_kind_of Firm::FirmOnTheFly, Firm.find(foo.id) }
       assert_nothing_raised { assert_kind_of Firm::FirmOnTheFly, Firm.find_by!(id: foo.id) }
     end
+  ensure
+    self.class.send(:remove_const, :FirmOnTheFly) rescue nil
+    Firm.send(:remove_const, :FirmOnTheFly) rescue nil
   end
 
   def test_sti_type_from_attributes_disabled_in_non_sti_class
@@ -590,7 +588,7 @@ end
 class InheritanceAttributeMappingTest < ActiveRecord::TestCase
   setup do
     @old_registry = ActiveRecord::Type.registry
-    ActiveRecord::Type.registry = ActiveRecord::Type::AdapterSpecificRegistry.new
+    ActiveRecord::Type.registry = ActiveRecord::Type.registry.dup
     ActiveRecord::Type.register :omg_sti, InheritanceAttributeMappingTest::OmgStiType
     Company.delete_all
     Sponsor.delete_all

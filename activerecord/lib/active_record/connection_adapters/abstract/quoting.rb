@@ -9,7 +9,13 @@ module ActiveRecord
       # Quotes the column value to help prevent
       # {SQL injection attacks}[https://en.wikipedia.org/wiki/SQL_injection].
       def quote(value)
-        value = id_value_for_database(value) if value.is_a?(Base)
+        if value.is_a?(Base)
+          ActiveSupport::Deprecation.warn(<<~MSG)
+            Passing an Active Record object to `quote` directly is deprecated
+            and will be no longer quoted as id value in Rails 6.2.
+          MSG
+          value = value.id_for_database
+        end
 
         _quote(value)
       end
@@ -18,7 +24,13 @@ module ActiveRecord
       # SQLite does not understand dates, so this method will convert a Date
       # to a String.
       def type_cast(value, column = nil)
-        value = id_value_for_database(value) if value.is_a?(Base)
+        if value.is_a?(Base)
+          ActiveSupport::Deprecation.warn(<<~MSG)
+            Passing an Active Record object to `type_cast` directly is deprecated
+            and will be no longer type casted as id value in Rails 6.2.
+          MSG
+          value = value.id_for_database
+        end
 
         if column
           ActiveSupport::Deprecation.warn(<<~MSG)
@@ -185,23 +197,21 @@ module ActiveRecord
       private
         def type_casted_binds(binds)
           case binds.first
-          when ActiveModel::Attribute
-            binds.map { |attr| type_cast(attr.value_for_database) }
           when Array
             binds.map { |column, value| type_cast(value, column) }
           else
-            binds.map { |value| type_cast(value) }
+            binds.map do |value|
+              if ActiveModel::Attribute === value
+                type_cast(value.value_for_database)
+              else
+                type_cast(value)
+              end
+            end
           end
         end
 
         def lookup_cast_type(sql_type)
           type_map.lookup(sql_type)
-        end
-
-        def id_value_for_database(value)
-          if primary_key = value.class.primary_key
-            value.instance_variable_get(:@attributes)[primary_key].value_for_database
-          end
         end
 
         def _quote(value)

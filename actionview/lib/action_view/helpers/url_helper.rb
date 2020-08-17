@@ -549,14 +549,14 @@ module ActionView
         return false unless request.get? || request.head?
 
         check_parameters ||= options.is_a?(Hash) && options.delete(:check_parameters)
-        url_string = URI.parser.unescape(url_for(options)).force_encoding(Encoding::BINARY)
+        url_string = URI::DEFAULT_PARSER.unescape(url_for(options)).force_encoding(Encoding::BINARY)
 
         # We ignore any extra parameters in the request_uri if the
         # submitted URL doesn't have any either. This lets the function
         # work with things like ?order=asc
         # the behaviour can be disabled with check_parameters: true
         request_uri = url_string.index("?") || check_parameters ? request.fullpath : request.path
-        request_uri = URI.parser.unescape(request_uri).force_encoding(Encoding::BINARY)
+        request_uri = URI::DEFAULT_PARSER.unescape(request_uri).force_encoding(Encoding::BINARY)
 
         if url_string.start_with?("/") && url_string != "/"
           url_string.chomp!("/")

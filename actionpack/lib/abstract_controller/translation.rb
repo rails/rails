@@ -4,6 +4,8 @@ require "active_support/core_ext/symbol/starts_ends_with"
 
 module AbstractController
   module Translation
+    mattr_accessor :raise_on_missing_translations, default: false
+
     # Delegates to <tt>I18n.translate</tt>. Also aliased as <tt>t</tt>.
     #
     # When the given key starts with a period, it will be scoped by the current
@@ -20,7 +22,9 @@ module AbstractController
         options[:default] = defaults.flatten
         key = "#{path}.#{action_name}#{key}"
       end
-      I18n.translate(key, **options)
+
+      i18n_raise = options.fetch(:raise, self.raise_on_missing_translations)
+      I18n.translate(key, **options, raise: i18n_raise)
     end
     alias :t :translate
 

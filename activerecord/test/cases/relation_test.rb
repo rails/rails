@@ -50,6 +50,19 @@ module ActiveRecord
     def test_empty_where_values_hash
       relation = Relation.new(FakeKlass)
       assert_equal({}, relation.where_values_hash)
+
+      relation.where!(relation.table[:id].not_eq(10))
+      assert_equal({}, relation.where_values_hash)
+
+      relation.where!(relation.table[:id].is_distinct_from(10))
+      assert_equal({}, relation.where_values_hash)
+    end
+
+    def test_where_values_hash_with_in_clause
+      relation = Relation.new(Post)
+      relation.where!(title: ["foo", "bar", "hello"])
+
+      assert_equal({ "title" => ["foo", "bar", "hello"] }, relation.where_values_hash)
     end
 
     def test_has_values
@@ -411,16 +424,22 @@ module ActiveRecord
       end
     end
 
+    def test_marshal_load_legacy_relation
+      path = File.expand_path(
+        "support/marshal_compatibility_fixtures/legacy_relation.dump",
+        TEST_ROOT
+      )
+      assert_equal 11, Marshal.load(File.read(path)).size
+    end
+
     test "no queries on empty IN" do
-      Post.send(:load_schema)
-      assert_no_queries do
+      assert_queries(0) do
         Post.where(id: []).load
       end
     end
 
     test "can unscope empty IN" do
-      Post.send(:load_schema)
-      assert_queries 1 do
+      assert_queries(1) do
         Post.where(id: []).unscope(where: :id).load
       end
     end

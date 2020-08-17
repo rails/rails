@@ -21,7 +21,7 @@ module ActionView
     #   could become:
     #
     #     <select name="post[category]" id="post_category">
-    #       <option value=""></option>
+    #       <option value="" label=" "></option>
     #       <option value="joke">joke</option>
     #       <option value="poem">poem</option>
     #     </select>
@@ -74,7 +74,6 @@ module ActionView
     #   could become:
     #
     #     <select name="post[category]" id="post_category">
-    #       <option value=""></option>
     #       <option value="joke">joke</option>
     #       <option value="poem">poem</option>
     #       <option disabled="disabled" value="restricted">restricted</option>
@@ -112,7 +111,7 @@ module ActionView
       # would become:
       #
       #   <select name="post[person_id]" id="post_person_id">
-      #     <option value=""></option>
+      #     <option value="" label=" "></option>
       #     <option value="1" selected="selected">David</option>
       #     <option value="2">Eileen</option>
       #     <option value="3">Rafael</option>

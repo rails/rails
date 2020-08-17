@@ -88,11 +88,10 @@ module ActionDispatch
     # :startdoc:
   end
 
-  # \Cookies are read and written through ActionController#cookies.
+  # Read and write data to cookies through ActionController#cookies.
   #
-  # The cookies being read are the ones received along with the request, the cookies
-  # being written will be sent out with the response. Reading a cookie does not get
-  # the cookie object itself back, just the value it holds.
+  # When reading cookie data, the data is read from the HTTP request header, Cookie.
+  # When writing cookie data, the data is sent out in the HTTP response header, Set-Cookie.
   #
   # Examples of writing:
   #
@@ -457,8 +456,11 @@ module ActionDispatch
               ".#{$&}"
             end
           elsif options[:domain].is_a? Array
-            # If host matches one of the supplied domains without a dot in front of it.
-            options[:domain] = options[:domain].find { |domain| request.host.include? domain.sub(/^\./, "") }
+            # If host matches one of the supplied domains.
+            options[:domain] = options[:domain].find do |domain|
+              domain = domain.delete_prefix(".")
+              request.host == domain || request.host.end_with?(".#{domain}")
+            end
           end
         end
     end
@@ -472,7 +474,13 @@ module ActionDispatch
 
       def [](name)
         if data = @parent_jar[name.to_s]
-          parse(name, data, purpose: "cookie.#{name}") || parse(name, data)
+          result = parse(name, data, purpose: "cookie.#{name}")
+
+          if result.nil?
+            parse(name, data)
+          else
+            result
+          end
         end
       end
 

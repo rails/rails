@@ -170,7 +170,7 @@ module ActionView
         def explicit_dependencies
           dependencies = source.scan(EXPLICIT_DEPENDENCY).flatten.uniq
 
-          wildcards, explicits = dependencies.partition { |dependency| dependency[-1] == "*" }
+          wildcards, explicits = dependencies.partition { |dependency| dependency.end_with?("*") }
 
           (explicits + resolve_directories(wildcards)).uniq
         end

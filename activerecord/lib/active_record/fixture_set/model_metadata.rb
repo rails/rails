@@ -21,8 +21,7 @@ module ActiveRecord
       end
 
       def timestamp_column_names
-        @timestamp_column_names ||=
-          %w(created_at created_on updated_at updated_on) & @model_class.column_names
+        @model_class.all_timestamp_attributes_in_model
       end
 
       def inheritance_column_name

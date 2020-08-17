@@ -1399,7 +1399,6 @@ if current_adapter?(:SQLite3Adapter) && !in_memory_db?
 
     def setup
       @old_handler = ActiveRecord::Base.connection_handler
-      @old_handlers = ActiveRecord::Base.connection_handlers
       @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
       db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(ENV["RAILS_ENV"], "readonly", readonly_config)
 
@@ -1413,7 +1412,7 @@ if current_adapter?(:SQLite3Adapter) && !in_memory_db?
     def teardown
       ActiveRecord::Base.configurations = @prev_configs
       ActiveRecord::Base.connection_handler = @old_handler
-      ActiveRecord::Base.connection_handlers = @old_handlers
+      clean_up_connection_handler
     end
 
     def test_uses_writing_connection_for_fixtures

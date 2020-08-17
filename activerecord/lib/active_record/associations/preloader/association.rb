@@ -4,25 +4,22 @@ module ActiveRecord
   module Associations
     class Preloader
       class Association #:nodoc:
-        def initialize(klass, owners, reflection, preload_scope)
+        def initialize(klass, owners, reflection, preload_scope, associate_by_default = true)
           @klass         = klass
           @owners        = owners.uniq(&:__id__)
           @reflection    = reflection
           @preload_scope = preload_scope
+          @associate     = associate_by_default || !preload_scope || preload_scope.empty_scope?
           @model         = owners.first && owners.first.class
         end
 
         def run
-          if !preload_scope || preload_scope.empty_scope?
-            owners.each do |owner|
-              associate_records_to_owner(owner, records_by_owner[owner] || [])
-            end
-          else
-            # Custom preload scope is used and
-            # the association cannot be marked as loaded
-            # Loading into a Hash instead
-            records_by_owner
-          end
+          records = records_by_owner
+
+          owners.each do |owner|
+            associate_records_to_owner(owner, records[owner] || [])
+          end if @associate
+
           self
         end
 
@@ -132,7 +129,9 @@ module ActiveRecord
           end
 
           def reflection_scope
-            @reflection_scope ||= reflection.scope ? reflection.scope_for(klass.unscoped) : klass.unscoped
+            @reflection_scope ||= begin
+              reflection.join_scopes(klass.arel_table, klass.predicate_builder, klass).inject(&:merge!) || klass.unscoped
+            end
           end
 
           def build_scope
@@ -142,7 +141,7 @@ module ActiveRecord
               scope.where!(reflection.type => model.polymorphic_name)
             end
 
-            scope.merge!(reflection_scope) if reflection.scope
+            scope.merge!(reflection_scope) unless reflection_scope.empty_scope?
 
             if preload_scope && !preload_scope.empty_scope?
               scope.merge!(preload_scope)

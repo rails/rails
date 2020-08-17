@@ -6,7 +6,7 @@
   <%- if attribute.password_digest? -%>
   password_digest: <%%= BCrypt::Password.create('secret') %>
   <%- elsif attribute.reference? -%>
-  <%= yaml_key_value(attribute.column_name.sub(/_id$/, ''), attribute.default || name) %>
+  <%= yaml_key_value(attribute.column_name.delete_suffix("_id"), attribute.default || name) %>
   <%- elsif !attribute.virtual? -%>
   <%= yaml_key_value(attribute.column_name, attribute.default) %>
   <%- end -%>

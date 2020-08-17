@@ -38,7 +38,7 @@ module ActiveSupport
         end
       else
         def invoke_method(method, arguments, options, &block)
-          arguments << options if options
+          arguments << options.dup if options
           @context.__send__(method, *arguments, &block)
         end
       end

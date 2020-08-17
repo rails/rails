@@ -705,6 +705,17 @@ Rails
 | `:message`   | The deprecation warning         |
 | `:callstack` | Where the deprecation came from |
 
+Exceptions
+----------
+
+If an exception happens during any instrumentation the payload will include
+information about it.
+
+| Key                 | Value                                                          |
+| ------------------- | -------------------------------------------------------------- |
+| `:exception`        | An array of two elements. Exception class name and the message |
+| `:exception_object` | The exception object                                           |
+
 Creating custom events
 ----------------------
 

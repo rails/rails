@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "rack/utils"
 
 module ActionDispatch
   module Journey
@@ -60,31 +61,31 @@ module ActionDispatch
         get "/foo/:id", id: /\d/, anchor: false, to: "foo#bar"
 
         assert_raises(ActionController::UrlGenerationError) do
-          @formatter.generate(nil, { controller: "foo", action: "bar", id: "10" }, {})
+          @route_set.url_for({ controller: "foo", action: "bar", id: "10" }, nil)
         end
       end
 
       def test_required_parts_are_verified_when_building
         get "/foo/:id", id: /\d+/, anchor: false, to: "foo#bar"
 
-        path, _ = @formatter.generate(nil, { controller: "foo", action: "bar", id: "10" }, {})
+        path, _ = _generate(nil, { controller: "foo", action: "bar", id: "10" }, {})
         assert_equal "/foo/10", path
 
         assert_raises(ActionController::UrlGenerationError) do
-          @formatter.generate(nil, { id: "aa" }, {})
+          _generate(nil, { id: "aa" }, {})
         end
       end
 
       def test_only_required_parts_are_verified
         get "/foo(/:id)", id: /\d/, to: "foo#bar"
 
-        path, _ = @formatter.generate(nil, { controller: "foo", action: "bar", id: "10" }, {})
+        path, _ = _generate(nil, { controller: "foo", action: "bar", id: "10" }, {})
         assert_equal "/foo/10", path
 
-        path, _ = @formatter.generate(nil, { controller: "foo", action: "bar" }, {})
+        path, _ = _generate(nil, { controller: "foo", action: "bar" }, {})
         assert_equal "/foo", path
 
-        path, _ = @formatter.generate(nil, { controller: "foo", action: "bar", id: "aa" }, {})
+        path, _ = _generate(nil, { controller: "foo", action: "bar", id: "aa" }, {})
         assert_equal "/foo/aa", path
       end
 
@@ -93,7 +94,7 @@ module ActionDispatch
         get "/foo/:id", as: route_name, id: /\d+/, to: "foo#bar"
 
         error = assert_raises(ActionController::UrlGenerationError) do
-          @formatter.generate(route_name, {}, {})
+          _generate(route_name, {}, {})
         end
 
         assert_match(/missing required keys: \[:id\]/, error.message)
@@ -103,7 +104,7 @@ module ActionDispatch
         route_name = "gorby_thunderhorse"
 
         error = assert_raises(ActionController::UrlGenerationError) do
-          @formatter.generate(route_name, {}, {})
+          _generate(route_name, {}, {})
         end
 
         assert_no_match(/missing required keys: \[\]/, error.message)
@@ -186,14 +187,14 @@ module ActionDispatch
       def test_required_part_in_recall
         get "/messages/:a/:b", to: "foo#bar"
 
-        path, _ = @formatter.generate(nil, { controller: "foo", action: "bar", a: "a" }, { b: "b" })
+        path, _ = _generate(nil, { controller: "foo", action: "bar", a: "a" }, { b: "b" })
         assert_equal "/messages/a/b", path
       end
 
       def test_splat_in_recall
         get "/*path", to: "foo#bar"
 
-        path, _ = @formatter.generate(nil, { controller: "foo", action: "bar" }, { path: "b" })
+        path, _ = _generate(nil, { controller: "foo", action: "bar" }, { path: "b" })
         assert_equal "/b", path
       end
 
@@ -201,7 +202,7 @@ module ActionDispatch
         get "/messages/:action(/:id(.:format))", to: "foo#bar"
         get "/messages/:id(.:format)", to: "bar#baz"
 
-        path, _ = @formatter.generate(nil, { controller: "foo", id: 10 }, { action: "index" })
+        path, _ = _generate(nil, { controller: "foo", id: 10 }, { action: "index" })
         assert_equal "/messages/index/10", path
       end
 
@@ -211,8 +212,8 @@ module ActionDispatch
         params = { controller: "tasks", format: nil }
         extras = { action: "lol" }
 
-        path, _ = @formatter.generate(nil, params, extras)
-        assert_equal "/tasks", path
+        path, _ = _generate(nil, params, extras)
+        assert_equal "/tasks/index", path
       end
 
       def test_generate_slash
@@ -220,23 +221,23 @@ module ActionDispatch
                    [:action, "show"] ]
         get "/", Hash[params]
 
-        path, _ = @formatter.generate(nil, Hash[params], {})
+        path, _ = _generate(nil, Hash[params], {})
         assert_equal "/", path
       end
 
       def test_generate_id
         get "/:controller(/:action)", to: "foo#bar"
 
-        path, params = @formatter.generate(
+        path, params = _generate(
           nil, { id: 1, controller: "tasks", action: "show" }, {})
         assert_equal "/tasks/show", path
-        assert_equal({ id: 1 }, params)
+        assert_equal({ id: "1" }, params)
       end
 
       def test_generate_escapes
         get "/:controller(/:action)", to: "foo#bar"
 
-        path, _ = @formatter.generate(nil,
+        path, _ = _generate(nil,
           { controller: "tasks",
                  action: "a/b c+d",
         }, {})
@@ -246,7 +247,7 @@ module ActionDispatch
       def test_generate_escapes_with_namespaced_controller
         get "/:controller(/:action)", to: "foo#bar"
 
-        path, _ = @formatter.generate(
+        path, _ = _generate(
           nil, { controller: "admin/tasks",
                  action: "a/b c+d",
         }, {})
@@ -256,14 +257,14 @@ module ActionDispatch
       def test_generate_extra_params
         get "/:controller(/:action)", to: "foo#bar"
 
-        path, params = @formatter.generate(
+        path, params = _generate(
           nil, { id: 1,
                  controller: "tasks",
                  action: "show",
                  relative_url_root: nil
         }, {})
         assert_equal "/tasks/show", path
-        assert_equal({ id: 1, relative_url_root: nil }, params)
+        assert_equal({ id: "1" }, params)
       end
 
       def test_generate_missing_keys_no_matches_different_format_keys
@@ -286,7 +287,7 @@ module ActionDispatch
         message = "No route matches #{Hash[request_parameters.sort_by { |k, _|k.to_s }].inspect}, missing required keys: #{[missing_key.to_sym].inspect}"
 
         error = assert_raises(ActionController::UrlGenerationError) do
-          @formatter.generate(
+          _generate(
             nil, request_parameters, request_parameters)
         end
         assert_equal message, error.message
@@ -295,7 +296,7 @@ module ActionDispatch
       def test_generate_uses_recall_if_needed
         get "/:controller(/:action(/:id))", to: "foo#bar"
 
-        path, params = @formatter.generate(
+        path, params = _generate(
           nil,
           { controller: "tasks", id: 10 },
           { action: "index" })
@@ -306,11 +307,11 @@ module ActionDispatch
       def test_generate_with_name
         get "/:controller(/:action)", to: "foo#bar", as: "tasks"
 
-        path, params = @formatter.generate(
+        path, params = _generate(
           "tasks",
           { controller: "tasks" },
           { controller: "tasks", action: "index" })
-        assert_equal "/tasks", path
+        assert_equal "/tasks/index", path
         assert_equal({}, params)
       end
 
@@ -487,6 +488,16 @@ module ActionDispatch
       end
 
       private
+        def _generate(route_name, options, recall)
+          if recall
+            options = options.merge(_recall: recall)
+          end
+          path = @route_set.path_for(options, route_name)
+          uri = URI.parse path
+          params = Rack::Utils.parse_nested_query(uri.query).symbolize_keys
+          [uri.path, params]
+        end
+
         def get(*args)
           ActiveSupport::Deprecation.silence do
             mapper.get(*args)

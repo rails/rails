@@ -154,6 +154,7 @@ module ActiveRecord
             end
 
             materialize_transactions
+            mark_transaction_written_if_write(sql)
 
             # make sure we carry over any changes to ActiveRecord::Base.default_timezone that have been
             # made since we established the connection

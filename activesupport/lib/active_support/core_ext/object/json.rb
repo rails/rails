@@ -45,7 +45,7 @@ module ActiveSupport
   end
 end
 
-[Object, Array, FalseClass, Float, Hash, Integer, NilClass, String, TrueClass, Enumerable].reverse_each do |klass|
+[Enumerable, Object, Array, FalseClass, Float, Hash, Integer, NilClass, String, TrueClass].reverse_each do |klass|
   klass.prepend(ActiveSupport::ToJsonWithActiveSupportEncoder)
 end
 

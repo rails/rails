@@ -11,30 +11,33 @@ class ActiveStorage::Attachment < ActiveRecord::Base
   self.table_name = "active_storage_attachments"
 
   belongs_to :record, polymorphic: true, touch: true
-  belongs_to :blob, class_name: "ActiveStorage::Blob"
+  belongs_to :blob, class_name: "ActiveStorage::Blob", autosave: true
 
   delegate_missing_to :blob
+  delegate :signed_id, to: :blob
 
-  after_create_commit :mirror_blob_later, :analyze_blob_later, :identify_blob
+  after_create_commit :mirror_blob_later, :analyze_blob_later
   after_destroy_commit :purge_dependent_blob_later
 
   # Synchronously deletes the attachment and {purges the blob}[rdoc-ref:ActiveStorage::Blob#purge].
   def purge
-    delete
+    transaction do
+      delete
+      record&.touch
+    end
     blob&.purge
   end
 
   # Deletes the attachment and {enqueues a background job}[rdoc-ref:ActiveStorage::Blob#purge_later] to purge the blob.
   def purge_later
-    delete
+    transaction do
+      delete
+      record&.touch
+    end
     blob&.purge_later
   end
 
   private
-    def identify_blob
-      blob.identify
-    end
-
     def analyze_blob_later
       blob.analyze_later unless blob.analyzed?
     end
@@ -46,7 +49,6 @@ class ActiveStorage::Attachment < ActiveRecord::Base
     def purge_dependent_blob_later
       blob&.purge_later if dependent == :purge_later
     end
-
 
     def dependent
       record.attachment_reflections[name]&.options[:dependent]

@@ -129,7 +129,7 @@ module RailsGuides
         if guide.end_with?(".md")
           guide.sub(/md\z/, "html")
         else
-          guide.sub(/\.erb\z/, "")
+          guide.delete_suffix(".erb")
         end
       end
 

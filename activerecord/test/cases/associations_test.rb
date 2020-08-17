@@ -19,7 +19,7 @@ require "models/ship"
 require "models/liquid"
 require "models/molecule"
 require "models/electron"
-require "models/man"
+require "models/human"
 require "models/interest"
 require "models/pirate"
 require "models/parrot"
@@ -240,13 +240,13 @@ class AssociationProxyTest < ActiveRecord::TestCase
   end
 
   test "inverses get set of subsets of the association" do
-    man = Man.create
-    man.interests.create
+    human = Human.create
+    human.interests.create
 
-    man = Man.find(man.id)
+    human = Human.find(human.id)
 
     assert_queries(1) do
-      assert_equal man, man.interests.where("1=1").first.man
+      assert_equal human, human.interests.where("1=1").first.human
     end
   end
 
@@ -276,8 +276,10 @@ class AssociationProxyTest < ActiveRecord::TestCase
     david.posts.reload
 
     assert_predicate david.posts, :loaded?
+    assert_predicate david.posts, :loaded
     david.posts.reset
     assert_not_predicate david.posts, :loaded?
+    assert_not_predicate david.posts, :loaded
   end
 end
 
@@ -352,8 +354,23 @@ class OverridingAssociationsTest < ActiveRecord::TestCase
   end
 end
 
+class PreloaderTest < ActiveRecord::TestCase
+  fixtures :posts, :comments
+
+  def test_preload_with_scope
+    post = posts(:welcome)
+
+    preloader = ActiveRecord::Associations::Preloader.new
+    preloader.preload([post], :comments, Comment.where(body: "Thank you for the welcome"))
+
+    assert_predicate post.comments, :loaded?
+    assert_equal [comments(:greetings)], post.comments
+  end
+end
+
 class GeneratedMethodsTest < ActiveRecord::TestCase
   fixtures :developers, :computers, :posts, :comments
+
   def test_association_methods_override_attribute_methods_of_same_name
     assert_equal(developers(:david), computers(:workstation).developer)
     # this next line will fail if the attribute methods module is generated lazily

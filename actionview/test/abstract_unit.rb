@@ -59,8 +59,6 @@ module RenderERBUtils
   end
 
   def render_erb(string)
-    @virtual_path = nil
-
     template = ActionView::Template.new(
       string.strip,
       "test template",
@@ -153,7 +151,7 @@ module ActionController
         define_method(:setup) do
           super()
           @routes = routes
-          @controller.singleton_class.include @routes.url_helpers
+          @controller.singleton_class.include @routes.url_helpers if @controller
         end
       }
       routes

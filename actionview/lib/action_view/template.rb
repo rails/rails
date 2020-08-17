@@ -138,7 +138,7 @@ module ActionView
       @virtual_path      = virtual_path
 
       @variable = if @virtual_path
-        base = @virtual_path[-1] == "/" ? "" : ::File.basename(@virtual_path)
+        base = @virtual_path.end_with?("/") ? "" : ::File.basename(@virtual_path)
         base =~ /\A_?(.*?)(?:\.\w+)*\z/
         $1.to_sym
       end
@@ -176,10 +176,10 @@ module ActionView
     # This method is instrumented as "!render_template.action_view". Notice that
     # we use a bang in this instrumentation because you don't want to
     # consume this in production. This is only slow if it's being listened to.
-    def render(view, locals, buffer = ActionView::OutputBuffer.new, &block)
+    def render(view, locals, buffer = ActionView::OutputBuffer.new, add_to_stack: true, &block)
       instrument_render_template do
         compile!(view)
-        view._run(method_name, self, locals, buffer, &block)
+        view._run(method_name, self, locals, buffer, add_to_stack: add_to_stack, &block)
       end
     rescue => e
       handle_render_error(view, e)
@@ -190,7 +190,7 @@ module ActionView
     end
 
     def short_identifier
-      @short_identifier ||= defined?(Rails.root) ? identifier.sub("#{Rails.root}/", "") : identifier
+      @short_identifier ||= defined?(Rails.root) ? identifier.delete_prefix("#{Rails.root}/") : identifier
     end
 
     def inspect

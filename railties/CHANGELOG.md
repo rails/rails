@@ -1,3 +1,83 @@
+*   Automatically generate abstract class when using multiple databases.
+
+    When generating a scaffold for a multiple database application, Rails will now automatically generate the abstract class for the database when the database argument is passed. This abstract class will include the connection information for the writing configuration and any models generated for that database will automatically inherit from the abstract class.
+
+    Usage:
+
+    ```
+    rails generate scaffold Pet name:string --database=animals
+    ```
+
+    Will create an abstract class for the animals connection.
+
+    ```ruby
+    class AnimalsRecord < ApplicationRecord
+      self.abstract_class = true
+
+      connects_to database: { writing: :animals }
+    end
+    ```
+
+    And generate a `Pet` model that inherits from the new `AnimalsRecord`:
+
+    ```ruby
+    class Pet < AnimalsRecord
+    end
+    ```
+
+    If you already have an abstract class and it follows a different pattern than Rails defaults, you can pass a parent class with the database argument.
+
+    ```
+    rails generate scaffold Pet name:string --database=animals --parent=SecondaryBase
+    ```
+
+    This will ensure the model inherits from the `SecondaryBase` parent instead of `AnimalsRecord`
+
+    ```ruby
+    class Pet < SecondaryBase
+    end
+    ```
+
+    *Eileen M. Uchitelle*, *John Crepezzi*
+
+
+*   Accept params from url to prepopulate the Inbound Emails form in Rails conductor.
+
+    *Chris Oliver*
+
+*   Create a new rails app using a minimal stack.
+
+      `rails new cool_app --minimal`
+
+    All the following are excluded from your minimal stack:
+
+    - action_cable
+    - action_mailbox
+    - action_mailer
+    - action_text
+    - active_job
+    - active_storage
+    - bootsnap
+    - jbuilder
+    - spring
+    - system_tests
+    - turbolinks
+    - webpack
+
+    *Haroon Ahmed*, *DHH*
+
+*   Add default ENV variable option with BACKTRACE to turn off backtrace cleaning when debugging framework code in the
+    generated config/initializers/backtrace_silencers.rb.
+
+      `BACKTRACE=1 ./bin/rails runner "MyClass.perform"`
+
+    *DHH*
+
+*   The autoloading guide for Zeitwerk mode documents how to autoload classes
+    during application boot in a safe way.
+
+    *Haroon Ahmed*, *Xavier Noria*
+
 *   The `classic` autoloader starts its deprecation cycle.
 
     New Rails projects are strongly discouraged from using `classic`, and we recommend that existing projects running on `classic` switch to `zeitwerk` mode when upgrading. Please check the [_Upgrading Ruby on Rails_](https://guides.rubyonrails.org/upgrading_ruby_on_rails.html) guide for tips.

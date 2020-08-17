@@ -7,7 +7,7 @@ require "models/ship_part"
 require "models/bird"
 require "models/parrot"
 require "models/treasure"
-require "models/man"
+require "models/human"
 require "models/interest"
 require "models/owner"
 require "models/pet"
@@ -129,7 +129,7 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     pirate = Pirate.new
     ship_built_first = pirate.build_ship
     pirate.ship_attributes = { name: "Ship 1" }
-    assert_equal ship_built_first.object_id, pirate.ship.object_id
+    assert_same ship_built_first, pirate.ship
   end
 
   def test_do_not_allow_assigning_foreign_key_when_reusing_existing_new_record
@@ -140,19 +140,19 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
   end
 
   def test_reject_if_with_a_proc_which_returns_true_always_for_has_many
-    Man.accepts_nested_attributes_for :interests, reject_if: proc { |attributes| true }
-    man = Man.create(name: "John")
-    interest = man.interests.create(topic: "photography")
-    man.update(interests_attributes: { topic: "gardening", id: interest.id })
+    Human.accepts_nested_attributes_for :interests, reject_if: proc { |attributes| true }
+    human = Human.create(name: "John")
+    interest = human.interests.create(topic: "photography")
+    human.update(interests_attributes: { topic: "gardening", id: interest.id })
     assert_equal "photography", interest.reload.topic
   end
 
   def test_destroy_works_independent_of_reject_if
-    Man.accepts_nested_attributes_for :interests, reject_if: proc { |attributes| true }, allow_destroy: true
-    man = Man.create(name: "Jon")
-    interest = man.interests.create(topic: "the ladies")
-    man.update(interests_attributes: { _destroy: "1", id: interest.id })
-    assert_empty man.reload.interests
+    Human.accepts_nested_attributes_for :interests, reject_if: proc { |attributes| true }, allow_destroy: true
+    human = Human.create(name: "Jon")
+    interest = human.interests.create(topic: "the ladies")
+    human.update(interests_attributes: { _destroy: "1", id: interest.id })
+    assert_empty human.reload.interests
   end
 
   def test_reject_if_is_not_short_circuited_if_allow_destroy_is_false
@@ -169,10 +169,10 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
   end
 
   def test_has_many_association_updating_a_single_record
-    Man.accepts_nested_attributes_for(:interests)
-    man = Man.create(name: "John")
-    interest = man.interests.create(topic: "photography")
-    man.update(interests_attributes: { topic: "gardening", id: interest.id })
+    Human.accepts_nested_attributes_for(:interests)
+    human = Human.create(name: "John")
+    interest = human.interests.create(topic: "photography")
+    human.update(interests_attributes: { topic: "gardening", id: interest.id })
     assert_equal "gardening", interest.reload.topic
   end
 
@@ -186,12 +186,12 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
   end
 
   def test_first_and_array_index_zero_methods_return_the_same_value_when_nested_attributes_are_set_to_update_existing_record
-    Man.accepts_nested_attributes_for(:interests)
-    man = Man.create(name: "John")
-    interest = man.interests.create topic: "gardening"
-    man = Man.find man.id
-    man.interests_attributes = [{ id: interest.id, topic: "gardening" }]
-    assert_equal man.interests.first.topic, man.interests[0].topic
+    Human.accepts_nested_attributes_for(:interests)
+    human = Human.create(name: "John")
+    interest = human.interests.create topic: "gardening"
+    human = Human.find human.id
+    human.interests_attributes = [{ id: interest.id, topic: "gardening" }]
+    assert_equal human.interests.first.topic, human.interests[0].topic
   end
 
   def test_allows_class_to_override_setter_and_call_super
@@ -219,10 +219,10 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
   end
 
   def test_should_not_create_duplicates_with_create_with
-    Man.accepts_nested_attributes_for(:interests)
+    Human.accepts_nested_attributes_for(:interests)
 
     assert_difference("Interest.count", 1) do
-      Man.create_with(
+      Human.create_with(
         interests_attributes: [{ topic: "Pirate king" }]
       ).find_or_create_by!(
         name: "Monkey D. Luffy"
@@ -817,17 +817,17 @@ module NestedAttributesOnACollectionAssociationTests
   end
 
   def test_validate_presence_of_parent_works_with_inverse_of
-    Man.accepts_nested_attributes_for(:interests)
-    assert_equal :man, Man.reflect_on_association(:interests).options[:inverse_of]
-    assert_equal :interests, Interest.reflect_on_association(:man).options[:inverse_of]
+    Human.accepts_nested_attributes_for(:interests)
+    assert_equal :human, Human.reflect_on_association(:interests).options[:inverse_of]
+    assert_equal :interests, Interest.reflect_on_association(:human).options[:inverse_of]
 
     repair_validations(Interest) do
-      Interest.validates_presence_of(:man)
-      assert_difference "Man.count" do
+      Interest.validates_presence_of(:human)
+      assert_difference "Human.count" do
         assert_difference "Interest.count", 2 do
-          man = Man.create!(name: "John",
+          human = Human.create!(name: "John",
                             interests_attributes: [{ topic: "Cars" }, { topic: "Sports" }])
-          assert_equal 2, man.interests.count
+          assert_equal 2, human.interests.count
         end
       end
     end
@@ -839,14 +839,14 @@ module NestedAttributesOnACollectionAssociationTests
   end
 
   def test_numeric_column_changes_from_zero_to_no_empty_string
-    Man.accepts_nested_attributes_for(:interests)
+    Human.accepts_nested_attributes_for(:interests)
 
     repair_validations(Interest) do
       Interest.validates_numericality_of(:zine_id)
-      man = Man.create(name: "John")
-      interest = man.interests.create(topic: "bar", zine_id: 0)
+      human = Human.create(name: "John")
+      interest = human.interests.create(topic: "bar", zine_id: 0)
       assert interest.save
-      assert_not man.update(interests_attributes: { id: interest.id, zine_id: "foo" })
+      assert_not human.update(interests_attributes: { id: interest.id, zine_id: "foo" })
     end
   end
 

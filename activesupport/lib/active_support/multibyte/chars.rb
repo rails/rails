@@ -3,6 +3,7 @@
 require "active_support/json"
 require "active_support/core_ext/string/access"
 require "active_support/core_ext/string/behavior"
+require "active_support/core_ext/symbol/starts_ends_with"
 require "active_support/core_ext/module/delegation"
 
 module ActiveSupport #:nodoc:
@@ -59,7 +60,7 @@ module ActiveSupport #:nodoc:
       # Forward all undefined methods to the wrapped string.
       def method_missing(method, *args, &block)
         result = @wrapped_string.__send__(method, *args, &block)
-        if /!$/.match?(method)
+        if method.end_with?("!")
           self if result
         else
           result.kind_of?(String) ? chars(result) : result

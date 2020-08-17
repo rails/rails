@@ -3,7 +3,7 @@
 require "cases/helper"
 require "models/topic"
 require "models/reply"
-require "models/man"
+require "models/human"
 require "models/interest"
 
 class AssociationValidationTest < ActiveRecord::TestCase
@@ -80,20 +80,20 @@ class AssociationValidationTest < ActiveRecord::TestCase
 
   def test_validates_presence_of_belongs_to_association__parent_is_new_record
     repair_validations(Interest) do
-      # Note that Interest and Man have the :inverse_of option set
-      Interest.validates_presence_of(:man)
-      man = Man.new(name: "John")
-      interest = man.interests.build(topic: "Airplanes")
-      assert interest.valid?, "Expected interest to be valid, but was not. Interest should have a man object associated"
+      # Note that Interest and Human have the :inverse_of option set
+      Interest.validates_presence_of(:human)
+      human = Human.new(name: "John")
+      interest = human.interests.build(topic: "Airplanes")
+      assert interest.valid?, "Expected interest to be valid, but was not. Interest should have a human object associated"
     end
   end
 
   def test_validates_presence_of_belongs_to_association__existing_parent
     repair_validations(Interest) do
-      Interest.validates_presence_of(:man)
-      man = Man.create!(name: "John")
-      interest = man.interests.build(topic: "Airplanes")
-      assert interest.valid?, "Expected interest to be valid, but was not. Interest should have a man object associated"
+      Interest.validates_presence_of(:human)
+      human = Human.create!(name: "John")
+      interest = human.interests.build(topic: "Airplanes")
+      assert interest.valid?, "Expected interest to be valid, but was not. Interest should have a human object associated"
     end
   end
 end

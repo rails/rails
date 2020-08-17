@@ -1053,7 +1053,7 @@ module ActionView
           select_options[:class] = css_class_attribute(type, select_options[:class], @options[:with_css_classes]) if @options[:with_css_classes]
 
           select_html = +"\n"
-          select_html << content_tag("option", "", value: "") + "\n" if @options[:include_blank]
+          select_html << content_tag("option", "", value: "", label: " ") + "\n" if @options[:include_blank]
           select_html << prompt_option_tag(type, @options[:prompt]) + "\n" if @options[:prompt]
           select_html << select_options_as_html
 

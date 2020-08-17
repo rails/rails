@@ -940,8 +940,10 @@ class MigrationTest < ActiveRecord::TestCase
 
       e = assert_raises(ActiveRecord::ConcurrentMigrationError) do
         silence_stream($stderr) do
-          migrator.send(:with_advisory_lock) do
-            ActiveRecord::AdvisoryLockBase.connection.release_advisory_lock(lock_id)
+          migrator.stub(:with_advisory_lock_connection, ->(&block) { block.call(ActiveRecord::Base.connection) }) do
+            migrator.send(:with_advisory_lock) do
+              ActiveRecord::Base.connection.release_advisory_lock(lock_id)
+            end
           end
         end
       end
@@ -1054,6 +1056,23 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       [:name, :qualification, :experience].each { |s| assert_equal :string, column(s).type }
       assert_equal "0", column(:age).default
       assert_equal "This is a comment", column(:birthdate).comment
+    end
+
+    def test_rename_columns
+      with_bulk_change_table do |t|
+        t.string :qualification
+      end
+
+      assert column(:qualification)
+
+      with_bulk_change_table do |t|
+        t.rename :qualification, :experience
+        t.string :qualification_experience
+      end
+
+      assert_not column(:qualification)
+      assert column(:experience)
+      assert column(:qualification_experience)
     end
 
     def test_removing_columns

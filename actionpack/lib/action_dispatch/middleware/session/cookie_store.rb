@@ -10,8 +10,8 @@ module ActionDispatch
     # dramatically faster than the alternatives.
     #
     # Sessions typically contain at most a user_id and flash message; both fit
-    # within the 4K cookie size limit. A CookieOverflow exception is raised if
-    # you attempt to store more than 4K of data.
+    # within the 4096 bytes cookie size limit. A CookieOverflow exception is raised if
+    # you attempt to store more than 4096 bytes of data.
     #
     # The cookie jar used for storage is automatically configured to be the
     # best possible option given your application's configuration.

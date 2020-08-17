@@ -131,7 +131,7 @@ Rails detects files have changed using an evented file monitor (default), or wal
 
 In a Rails console there is no file watcher active regardless of the value of `config.cache_classes`. This is so because, normally, it would be confusing to have code reloaded in the middle of a console session, the same way you generally want an individual request to be served by a consistent, non-changing set of application classes and modules.
 
-However, you can force a reload in the console executing `reload!`:
+However, you can force a reload in the console by executing `reload!`:
 
 ```bash
 $ bin/rails c
@@ -151,9 +151,9 @@ as you can see, the class object stored in the `User` constant is different afte
 
 It is very important to understand that Ruby does not have a way to truly reload classes and modules in memory, and have that reflected everywhere they are already used. Technically, "unloading" the `User` class means removing the `User` constant via `Object.send(:remove_const, "User")`.
 
-Therefore, if you store a reloadable class or module object in a place that is not reloaded, that value is going to become stale.
+Therefore, code that references a reloadable class or module, but that is not executed again on reload, becomes stale. Let's see an example next.
 
-For example, if an initializer stores and caches a certain class object
+Let's consider this initializer:
 
 ```ruby
 # config/initializers/configure_payment_gateway.rb
@@ -162,18 +162,27 @@ $PAYMENT_GATEWAY = Rails.env.production? ? RealGateway : MockedGateway
 # DO NOT DO THIS.
 ```
 
-and `MockedGateway` gets reloaded, `$PAYMENT_GATEWAY` still stores the class object `MockedGateway` evaluated to when the initializer ran. Reloading does not change the class object stored in `$PAYMENT_GATEWAY`.
+The idea would be to use `$PAYMENT_GATEWAY` in the code, and let the initializer set that to the actual implementation dependending on the environment.
 
-Similarly, in the Rails console, if you have a user instance and reload:
+On reload, `MockedGateway` is reloaded, but `$PAYMENT_GATEWAY` is not updated because initializers only run on boot. Therefore, it won't reflect the changes.
+
+There are several ways to do this safely. For instance, the application could define a class method `PaymentGateway.impl` whose definition depends on the environment; or could define `PaymentGateway` to have a parent class or mixin that depends on the environment; or use the same global variable trick, but in a reloader callback, as explained below.
+
+Let's see other situations that involve stale class or module objects.
+
+Check this Rails console session:
 
 ```
-> user = User.new
+> joe = User.new
 > reload!
+> alice = User.new
+> joe.class == alice.class
+false
 ```
 
-the `user` object is an instance of a stale class object. Ruby gives you a new class if you evaluate `User` again, but does not update the class `user` is an instance of.
+`joe` is an instance of the original `User` class. When there is a reload, the `User` constant evaluates to a different, reloaded class. `alice` is an instance of the current one, but `joe` is not, his class is stale. You may define `joe` again, start an IRB subsession, or just launch a new console instead of calling `reload!`.
 
-Another use case of this gotcha is subclassing reloadable classes in a place that is not reloaded:
+Another situation in which you may find this gotcha is subclassing reloadable classes in a place that is not reloaded:
 
 ```ruby
 # lib/vip_user.rb
@@ -184,6 +193,20 @@ end
 if `User` is reloaded, since `VipUser` is not, the superclass of `VipUser` is the original stale class object.
 
 Bottom line: **do not cache reloadable classes or modules**.
+
+### Autoloading when the application boots
+
+Applications can safely autoload constants during boot using a reloader callback:
+
+```
+Rails.application.reloader.to_prepare do
+  $PAYMENT_GATEWAY = Rails.env.production? ? RealGateway : MockedGateway
+end
+```
+
+That block runs when the application boots, and every time code is reloaded.
+
+NOTE: For historical reasons, this callback may run twice. The code it executes must be idempotent.
 
 
 Eager Loading

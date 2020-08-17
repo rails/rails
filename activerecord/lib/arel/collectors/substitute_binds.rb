@@ -20,6 +20,10 @@ module Arel # :nodoc: all
         self << quoter.quote(bind)
       end
 
+      def add_binds(binds)
+        self << binds.map { |bind| quoter.quote(bind) }.join(", ")
+      end
+
       def value
         delegate.value
       end

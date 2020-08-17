@@ -317,7 +317,7 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_database_puts_migrations_in_configured_folder
-    with_secondary_database_configuration do
+    with_database_configuration do
       run_generator ["create_books", "--database=secondary"]
       assert_migration "db/secondary_migrate/create_books.rb" do |content|
         assert_method :change, content do |change|
@@ -328,7 +328,7 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_database_puts_migrations_in_configured_folder_with_aliases
-    with_secondary_database_configuration do
+    with_database_configuration do
       run_generator ["create_books", "--db=secondary"]
       assert_migration "db/secondary_migrate/create_books.rb" do |content|
         assert_method :change, content do |change|

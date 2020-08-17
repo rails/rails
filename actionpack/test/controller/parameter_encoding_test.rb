@@ -15,7 +15,7 @@ class ParameterEncodingController < ActionController::Base
   end
 
   def test_all_values_encoding
-    render body: ::JSON.dump(params.values.map(&:encoding).map(&:name))
+    render body: ::JSON.dump(params.except(:action, :controller).values.map(&:encoding).map(&:name))
   end
 end
 
@@ -44,7 +44,7 @@ class ParameterEncodingTest < ActionController::TestCase
   end
 
   test "does not raise an error when passed a param declared as ASCII-8BIT that contains invalid bytes" do
-    get :test_bar, params: { "bar" => URI.parser.escape("bar\xE2baz".b) }
+    get :test_bar, params: { "bar" => URI::DEFAULT_PARSER.escape("bar\xE2baz".b) }
 
     assert_response :success
     assert_equal "ASCII-8BIT", @response.body

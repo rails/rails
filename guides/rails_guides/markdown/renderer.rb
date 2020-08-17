@@ -1,14 +1,22 @@
 # frozen_string_literal: true
 
+require "rouge"
+
+# Add more common shell commands
+Rouge::Lexers::Shell::BUILTINS << "|bin/rails|brew|bundle|gem|git|node|rails|rake|ruby|sqlite3|yarn"
+
 module RailsGuides
   class Markdown
     class Renderer < Redcarpet::Render::HTML
       cattr_accessor :edge, :version
 
       def block_code(code, language)
+        formatter = Rouge::Formatters::HTML.new
+        lexer = ::Rouge::Lexer.find_fancy(lexer_language(language))
+        code = formatter.format(lexer.lex(code))
         <<-HTML
 <div class="code_container">
-<pre><code class="language-#{class_for(language)}">#{ERB::Util.h(code)}</code></pre>
+<pre><code class="highlight #{lexer_language(language)}">#{code}</code></pre>
 </div>
         HTML
       end
@@ -58,18 +66,16 @@ module RailsGuides
           end
         end
 
-        def class_for(code_type)
+        def lexer_language(code_type)
           case code_type
-          when "ruby", "sql", "plain", "js", "yaml"
-            code_type
-          when "erb", "html+erb"
+          when "html+erb"
             "erb"
-          when "html"
-            "xml" # HTML is understood, but there are .xml rules in the CSS
           when "bash"
-            "shell-session"
+            "console"
+          when nil
+            "plaintext"
           else
-            "plain"
+            ::Rouge::Lexer.find(code_type) ? code_type : "plaintext"
           end
         end
 

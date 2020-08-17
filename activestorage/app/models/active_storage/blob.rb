@@ -35,6 +35,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
   include ActiveStorage::Blob::Representable
 
   self.table_name = "active_storage_blobs"
+  self.signed_id_verifier = ActiveStorage.verifier
 
   MINIMUM_TOKEN_LENGTH = 28
 
@@ -51,6 +52,8 @@ class ActiveStorage::Blob < ActiveRecord::Base
   after_initialize do
     self.service_name ||= self.class.service.name
   end
+
+  after_update_commit :update_service_metadata, if: :content_type_previously_changed?
 
   before_destroy(prepend: true) do
     raise ActiveRecord::InvalidForeignKey if attachments.exists?
@@ -72,8 +75,8 @@ class ActiveStorage::Blob < ActiveRecord::Base
     # that was created ahead of the upload itself on form submission.
     #
     # The signed ID is also used to create stable URLs for the blob through the BlobsController.
-    def find_signed(id, record: nil)
-      find ActiveStorage.verifier.verify(id, purpose: :blob_id)
+    def find_signed!(id, record: nil)
+      super(id, purpose: :blob_id)
     end
 
     def build_after_upload(io:, filename:, content_type: nil, metadata: nil, service_name: nil, identify: true, record: nil) #:nodoc:
@@ -125,12 +128,16 @@ class ActiveStorage::Blob < ActiveRecord::Base
     def generate_unique_secure_token(length: MINIMUM_TOKEN_LENGTH)
       SecureRandom.base36(length)
     end
+
+    # Customize signed ID purposes for backwards compatibility.
+    def combine_signed_id_purposes(purpose)
+      purpose.to_s
+    end
   end
 
   # Returns a signed ID for this blob that's suitable for reference on the client-side without fear of tampering.
-  # It uses the framework-wide verifier on <tt>ActiveStorage.verifier</tt>, but with a dedicated purpose.
   def signed_id
-    ActiveStorage.verifier.generate(id, purpose: :blob_id)
+    super(purpose: :blob_id)
   end
 
   # Returns the key pointing to the file on the service that's associated with this blob. The key is the
@@ -320,6 +327,10 @@ class ActiveStorage::Blob < ActiveRecord::Base
       else
         { content_type: content_type }
       end
+    end
+
+    def update_service_metadata
+      service.update_metadata key, **service_metadata if service_metadata.any?
     end
 end
 

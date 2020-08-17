@@ -93,7 +93,7 @@ Handled at the Action Pack layer:
   means not having to spend time thinking about how to model your API in terms
   of HTTP.
 - URL Generation: The flip side of routing is URL generation. A good API based
-  on HTTP includes URLs (see [the GitHub Gist API](https://developer.github.com/v3/gists/)
+  on HTTP includes URLs (see [the GitHub Gist API](https://docs.github.com/en/rest/reference/gists)
   for an example).
 - Header and Redirection Responses: `head :no_content` and
   `redirect_to user_url(current_user)` come in handy. Sure, you could manually
@@ -315,7 +315,7 @@ and specify the `Content-Type` as `application/json`.
 
 Here's an example in jQuery:
 
-```javascript
+```js
 jQuery.ajax({
   type: 'POST',
   url: '/people',
@@ -350,8 +350,12 @@ Instead of the initializer, you'll have to set the relevant options somewhere be
 built (like `config/application.rb`) and pass them to your preferred middleware, like this:
 
 ```ruby
-config.session_store :cookie_store, key: '_interslice_session' # <-- this also configures session_options for use below
-config.middleware.use ActionDispatch::Cookies # Required for all session management (regardless of session_store)
+# This also configures session_options for use below
+config.session_store :cookie_store, key: '_interslice_session'
+
+# Required for all session management (regardless of session_store)
+config.middleware.use ActionDispatch::Cookies
+
 config.middleware.use config.session_store, config.session_options
 ```
 
@@ -405,7 +409,7 @@ controller modules by default:
 more information regarding this).
 - `ActionController::ParamsWrapper`: Wraps the parameters hash into a nested hash,
   so that you don't have to specify root elements sending POST requests for instance.
-- `ActionController::Head`: Support for returning a response with no content, only headers
+- `ActionController::Head`: Support for returning a response with no content, only headers.
 
 Other plugins may add additional modules. You can get a list of all modules
 included into `ActionController::API` in the rails console:
@@ -433,21 +437,22 @@ Some common modules you might want to add:
 - `AbstractController::Translation`: Support for the `l` and `t` localization
   and translation methods.
 - Support for basic, digest, or token HTTP authentication:
-  * `ActionController::HttpAuthentication::Basic::ControllerMethods`,
-  * `ActionController::HttpAuthentication::Digest::ControllerMethods`,
+  * `ActionController::HttpAuthentication::Basic::ControllerMethods`
+  * `ActionController::HttpAuthentication::Digest::ControllerMethods`
   * `ActionController::HttpAuthentication::Token::ControllerMethods`
 - `ActionView::Layouts`: Support for layouts when rendering.
 - `ActionController::MimeResponds`: Support for `respond_to`.
 - `ActionController::Cookies`: Support for `cookies`, which includes
   support for signed and encrypted cookies. This requires the cookies middleware.
-- `ActionController::Caching`: Support view caching for the API controller. Please notice that
-  you will need to manually specify cache store inside the controller like:
-  ```ruby
-  class ApplicationController < ActionController::API
-    include ::ActionController::Caching
-    self.cache_store = :mem_cache_store
-  end
-  ```
+- `ActionController::Caching`: Support view caching for the API controller. Please note
+  that you will need to manually specify the cache store inside the controller like this:
+
+    ```ruby
+    class ApplicationController < ActionController::API
+      include ::ActionController::Caching
+      self.cache_store = :mem_cache_store
+    end
+    ```
   Rails does *not* pass this configuration automatically.
 
 The best place to add a module is in your `ApplicationController`, but you can

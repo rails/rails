@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/array/extract"
+
 module ActiveRecord
   class Relation
     class WhereClause # :nodoc:
@@ -10,21 +12,25 @@ module ActiveRecord
       end
 
       def +(other)
-        WhereClause.new(
-          predicates + other.predicates,
-        )
+        WhereClause.new(predicates + other.predicates)
       end
 
       def -(other)
-        WhereClause.new(
-          predicates - other.predicates,
-        )
+        WhereClause.new(predicates - other.predicates)
       end
 
-      def merge(other)
-        WhereClause.new(
-          predicates_unreferenced_by(other) + other.predicates,
-        )
+      def |(other)
+        WhereClause.new(predicates | other.predicates)
+      end
+
+      def merge(other, rewhere = nil)
+        predicates = if rewhere
+          except_predicates(other.extract_attributes)
+        else
+          predicates_unreferenced_by(other)
+        end
+
+        WhereClause.new(predicates | other.predicates)
       end
 
       def except(*columns)
@@ -84,7 +90,7 @@ module ActiveRecord
       end
 
       def self.empty
-        @empty ||= new([]).tap(&:referenced_columns).freeze
+        @empty ||= new([]).freeze
       end
 
       def contradiction?
@@ -98,9 +104,12 @@ module ActiveRecord
         end
       end
 
-      def each_attribute(&block)
-        predicates.each do |node|
-          Arel.fetch_attribute(node, &block)
+      def extract_attributes
+        predicates.each_with_object([]) do |node, attrs|
+          attr = extract_attribute(node) || begin
+            node.left if node.equality? && node.left.is_a?(Arel::Predications)
+          end
+          attrs << attr if attr
         end
       end
 
@@ -108,21 +117,32 @@ module ActiveRecord
         attr_reader :predicates
 
         def referenced_columns
-          @referenced_columns ||= begin
-            equality_nodes = predicates.select { |n| equality_node?(n) }
-            Set.new(equality_nodes, &:left)
+          predicates.each_with_object({}) do |node, hash|
+            attr = extract_attribute(node) || begin
+              node.left if equality_node?(node) && node.left.is_a?(Arel::Predications)
+            end
+
+            hash[attr] = node if attr
           end
         end
 
       private
+        def extract_attribute(node)
+          attr_node = nil
+          Arel.fetch_attribute(node) do |attr|
+            return if attr_node&.!= attr # all attr nodes should be the same
+            attr_node = attr
+          end
+          attr_node
+        end
+
         def equalities(predicates)
           equalities = []
 
           predicates.each do |node|
-            case node
-            when Arel::Nodes::Equality
+            if equality_node?(node)
               equalities << node
-            when Arel::Nodes::And
+            elsif node.is_a?(Arel::Nodes::And)
               equalities.concat equalities(node.children)
             end
           end
@@ -131,8 +151,27 @@ module ActiveRecord
         end
 
         def predicates_unreferenced_by(other)
-          predicates.reject do |n|
-            equality_node?(n) && other.referenced_columns.include?(n.left)
+          referenced_columns = other.referenced_columns
+
+          predicates.reject do |node|
+            attr = extract_attribute(node) || begin
+              node.left if equality_node?(node) && node.left.is_a?(Arel::Predications)
+            end
+            next false unless attr
+
+            ref = referenced_columns[attr]
+            next false unless ref
+
+            if equality_node?(node) && equality_node?(ref) || node == ref
+              true
+            else
+              ActiveSupport::Deprecation.warn(<<-MSG.squish)
+                Merging (#{node.to_sql}) and (#{ref.to_sql}) no longer maintain
+                both conditions, and will be replaced by the latter in Rails 6.2.
+                To migrate to Rails 6.2's behavior, use `relation.merge(other, rewhere: true)`.
+              MSG
+              false
+            end
           end
         end
 
@@ -152,15 +191,14 @@ module ActiveRecord
         end
 
         def except_predicates(columns)
+          attrs = columns.extract! { |node| node.is_a?(Arel::Attribute) }
+          non_attrs = columns.extract! { |node| node.is_a?(Arel::Predications) }
+
           predicates.reject do |node|
-            Arel.fetch_attribute(node) do |attr|
-              columns.any? do |column|
-                if column.is_a?(Arel::Attributes::Attribute)
-                  attr == column
-                else
-                  attr.name.to_s == column.to_s
-                end
-              end
+            if !non_attrs.empty? && node.equality? && node.left.is_a?(Arel::Predications)
+              non_attrs.include?(node.left)
+            end || Arel.fetch_attribute(node) do |attr|
+              attrs.include?(attr) || columns.include?(attr.name.to_s)
             end
           end
         end

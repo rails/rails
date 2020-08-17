@@ -165,7 +165,7 @@ module ActionView
       # expire the cache.
       def cache(name = {}, options = {}, &block)
         if controller.respond_to?(:perform_caching) && controller.perform_caching
-          name_options = options.slice(:skip_digest, :virtual_path)
+          name_options = options.slice(:skip_digest)
           safe_concat(fragment_for(cache_fragment_name(name, **name_options), options, &block))
         else
           yield
@@ -205,14 +205,11 @@ module ActionView
       # fragments can be manually bypassed. This is useful when cache fragments
       # cannot be manually expired unless you know the exact key which is the
       # case when using memcached.
-      #
-      # The digest will be generated using +virtual_path:+ if it is provided.
-      #
-      def cache_fragment_name(name = {}, skip_digest: nil, virtual_path: nil, digest_path: nil)
+      def cache_fragment_name(name = {}, skip_digest: nil, digest_path: nil)
         if skip_digest
           name
         else
-          fragment_name_with_digest(name, virtual_path, digest_path)
+          fragment_name_with_digest(name, digest_path)
         end
       end
 
@@ -227,14 +224,11 @@ module ActionView
       end
 
     private
-      def fragment_name_with_digest(name, virtual_path, digest_path)
-        virtual_path ||= @virtual_path
+      def fragment_name_with_digest(name, digest_path)
+        name = controller.url_for(name).split("://").last if name.is_a?(Hash)
 
-        if virtual_path || digest_path
-          name = controller.url_for(name).split("://").last if name.is_a?(Hash)
-
+        if @current_template&.virtual_path || digest_path
           digest_path ||= digest_path_from_template(@current_template)
-
           [ digest_path, name ]
         else
           name
@@ -243,10 +237,10 @@ module ActionView
 
       def fragment_for(name = {}, options = nil, &block)
         if content = read_fragment_for(name, options)
-          @view_renderer.cache_hits[@virtual_path] = :hit if defined?(@view_renderer)
+          @view_renderer.cache_hits[@current_template&.virtual_path] = :hit if defined?(@view_renderer)
           content
         else
-          @view_renderer.cache_hits[@virtual_path] = :miss if defined?(@view_renderer)
+          @view_renderer.cache_hits[@current_template&.virtual_path] = :miss if defined?(@view_renderer)
           write_fragment_for(name, options, &block)
         end
       end

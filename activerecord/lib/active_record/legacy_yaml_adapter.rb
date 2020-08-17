@@ -1,13 +1,17 @@
 # frozen_string_literal: true
 
 module ActiveRecord
-  module LegacyYamlAdapter
+  module LegacyYamlAdapter # :nodoc:
     def self.convert(klass, coder)
       return coder unless coder.is_a?(Psych::Coder)
 
       case coder["active_record_yaml_version"]
       when 1, 2 then coder
       else
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          YAML loading from legacy format older than Rails 5.0 is deprecated
+          and will be removed in Rails 6.2.
+        MSG
         if coder["attributes"].is_a?(ActiveModel::AttributeSet)
           Rails420.convert(klass, coder)
         else
@@ -16,7 +20,7 @@ module ActiveRecord
       end
     end
 
-    module Rails420
+    module Rails420 # :nodoc:
       def self.convert(klass, coder)
         attribute_set = coder["attributes"]
 
@@ -32,7 +36,7 @@ module ActiveRecord
       end
     end
 
-    module Rails41
+    module Rails41 # :nodoc:
       def self.convert(klass, coder)
         attributes = klass.attributes_builder
           .build_from_database(coder["attributes"])

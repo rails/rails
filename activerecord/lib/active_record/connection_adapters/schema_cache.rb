@@ -109,7 +109,7 @@ module ActiveRecord
       # value is the column object.
       def columns_hash(table_name)
         @columns_hash.fetch(table_name) do
-          @columns_hash[deep_deduplicate(table_name)] = columns(table_name).index_by(&:name)
+          @columns_hash[deep_deduplicate(table_name)] = columns(table_name).index_by(&:name).freeze
         end
       end
 

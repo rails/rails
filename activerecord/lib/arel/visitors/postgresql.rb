@@ -41,10 +41,6 @@ module Arel # :nodoc: all
           visit(o.expr, collector) << " )"
         end
 
-        def visit_Arel_Nodes_BindParam(o, collector)
-          collector.add_bind(o.value) { |i| "$#{i}" }
-        end
-
         def visit_Arel_Nodes_GroupingElement(o, collector)
           collector << "( "
           visit(o.expr, collector) << " )"
@@ -92,8 +88,10 @@ module Arel # :nodoc: all
           collector << " NULLS LAST"
         end
 
-        alias :visit_Arel_Nodes_Contains :visit_Arel_Nodes_InfixOperation
-        alias :visit_Arel_Nodes_Overlaps :visit_Arel_Nodes_InfixOperation
+        BIND_BLOCK = proc { |i| "$#{i}" }
+        private_constant :BIND_BLOCK
+
+        def bind_block; BIND_BLOCK; end
 
         # Used by Lateral visitor to enclose select queries in parentheses
         def grouping_parentheses(o, collector)
