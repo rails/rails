@@ -347,8 +347,23 @@ class OverridingAssociationsTest < ActiveRecord::TestCase
   end
 end
 
+class PreloaderTest < ActiveRecord::TestCase
+  fixtures :posts, :comments
+
+  def test_preload_with_scope
+    post = posts(:welcome)
+
+    preloader = ActiveRecord::Associations::Preloader.new
+    preloader.preload([post], :comments, Comment.where(body: "Thank you for the welcome"))
+
+    assert_predicate post.comments, :loaded?
+    assert_equal [comments(:greetings)], post.comments
+  end
+end
+
 class GeneratedMethodsTest < ActiveRecord::TestCase
   fixtures :developers, :computers, :posts, :comments
+
   def test_association_methods_override_attribute_methods_of_same_name
     assert_equal(developers(:david), computers(:workstation).developer)
     # this next line will fail if the attribute methods module is generated lazily

@@ -94,6 +94,10 @@ module ActiveRecord
         end
       end
 
+      def initialize(associate_by_default: true)
+        @associate_by_default = associate_by_default
+      end
+
       private
         # Loads all the given data into +records+ for the +association+.
         def preloaders_on(association, records, scope, polymorphic_parent = false)
@@ -142,7 +146,7 @@ module ActiveRecord
 
         def preloaders_for_reflection(reflection, records, scope)
           records.group_by { |record| record.association(reflection.name).klass }.map do |rhs_klass, rs|
-            preloader_for(reflection, rs).new(rhs_klass, rs, reflection, scope).run
+            preloader_for(reflection, rs).new(rhs_klass, rs, reflection, scope, @associate_by_default).run
           end
         end
 
@@ -157,7 +161,7 @@ module ActiveRecord
         end
 
         class AlreadyLoaded # :nodoc:
-          def initialize(klass, owners, reflection, preload_scope)
+          def initialize(klass, owners, reflection, preload_scope, associate_by_default = true)
             @owners = owners
             @reflection = reflection
           end
