@@ -4,6 +4,26 @@
 
     *fatkodima*
 
+*   Respect the `select` values for eager loading.
+
+    ```ruby
+    post = Post.select("UPPER(title) AS title").first
+    post.title # => "WELCOME TO THE WEBLOG"
+    post.body  # => ActiveModel::MissingAttributeError
+
+    # Rails 6.0 (ignore the `select` values)
+    post = Post.select("UPPER(title) AS title").eager_load(:comments).first
+    post.title # => "Welcome to the weblog"
+    post.body  # => "Such a lovely day"
+
+    # Rails 6.1 (respect the `select` values)
+    post = Post.select("UPPER(title) AS title").eager_load(:comments).first
+    post.title # => "WELCOME TO THE WEBLOG"
+    post.body  # => ActiveModel::MissingAttributeError
+    ```
+
+    *Ryuta Kamizono*
+
 *   Allow attribute's default to be configured but keeping its own type.
 
     ```ruby

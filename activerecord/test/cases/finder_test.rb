@@ -1375,7 +1375,14 @@ class FinderTest < ActiveRecord::TestCase
       limit: 3, order: "posts.id"
     ).to_a
     assert_equal 3, posts.size
-    assert_equal [0, 1, 1], posts.map(&:author_id).sort
+    assert_equal [1, 1, nil], posts.map(&:author_id)
+  end
+
+  def test_custom_select_takes_precedence_over_original_value
+    posts = Post.select("UPPER(title) AS title")
+    assert_equal "WELCOME TO THE WEBLOG", posts.first.title
+    assert_equal "WELCOME TO THE WEBLOG", posts.preload(:comments).first.title
+    assert_equal "WELCOME TO THE WEBLOG", posts.eager_load(:comments).first.title
   end
 
   def test_eager_load_for_no_has_many_with_limit_and_joins_for_has_many

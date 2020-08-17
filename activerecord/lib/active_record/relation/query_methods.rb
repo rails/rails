@@ -1252,7 +1252,7 @@ module ActiveRecord
         end
 
         joins.each_with_index do |join, i|
-          joins[i] = table.create_string_join(Arel.sql(join.strip)) if join.is_a?(String)
+          joins[i] = Arel::Nodes::StringJoin.new(Arel.sql(join.strip)) if join.is_a?(String)
         end
 
         while joins.first.is_a?(Arel::Nodes::Join)

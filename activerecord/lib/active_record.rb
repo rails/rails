@@ -36,7 +36,6 @@ require "active_record/errors"
 module ActiveRecord
   extend ActiveSupport::Autoload
 
-  autoload :AdvisoryLockBase
   autoload :Base
   autoload :Callbacks
   autoload :Core

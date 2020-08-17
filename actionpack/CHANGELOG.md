@@ -1,3 +1,7 @@
+*   Allow `assert_recognizes` routing assertions to work on mounted root routes.
+
+    *Gannon McGibbon*
+
 *   Change default redirection status code for non-GET/HEAD requests to 308 Permanent Redirect for `ActionDispatch::SSL`.
 
     *Alan Tan*, *Oz Ben-David*

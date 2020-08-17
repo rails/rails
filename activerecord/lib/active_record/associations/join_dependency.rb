@@ -34,7 +34,7 @@ module ActiveRecord
         Table = Struct.new(:node, :columns) do # :nodoc:
           def column_aliases
             t = node.table
-            columns.map { |column| t[column.name].as Arel.sql column.alias }
+            columns.map { |column| t[column.name].as(column.alias) }
           end
         end
         Column = Struct.new(:name, :alias)
@@ -80,6 +80,7 @@ module ActiveRecord
 
       def join_constraints(joins_to_add, alias_tracker)
         @alias_tracker = alias_tracker
+        @joined_tables = {}
 
         joins = make_join_constraints(join_root, join_type)
 
@@ -105,13 +106,20 @@ module ActiveRecord
         parents = model_cache[join_root]
 
         column_aliases = aliases.column_aliases(join_root)
-        column_names = explicit_selections(column_aliases, result_set)
+        column_names = []
+
+        result_set.columns.each do |name|
+          column_names << name unless /\At\d+_r\d+\z/.match?(name)
+        end
 
         if column_names.empty?
           column_types = {}
         else
           column_types = result_set.column_types
-          column_types = column_types.slice(*column_names) unless column_types.empty?
+          unless column_types.empty?
+            attribute_types = join_root.attribute_types
+            column_types = column_types.slice(*column_names).delete_if { |k, _| attribute_types.key?(k) }
+          end
           column_aliases += column_names.map! { |name| Aliases::Column.new(name, name) }
         end
 
@@ -134,6 +142,7 @@ module ActiveRecord
       end
 
       def apply_column_aliases(relation)
+        @join_root_alias = relation.select_values.empty?
         relation._select!(-> { aliases.columns })
       end
 
@@ -145,18 +154,18 @@ module ActiveRecord
         attr_reader :join_root, :join_type
 
       private
-        attr_reader :alias_tracker
-
-        def explicit_selections(root_column_aliases, result_set)
-          root_names = root_column_aliases.map(&:name).to_set
-          result_set.columns.each_with_object([]) do |name, result|
-            result << name unless /\At\d+_r\d+\z/.match?(name) || root_names.include?(name)
-          end
-        end
+        attr_reader :alias_tracker, :join_root_alias
 
         def aliases
           @aliases ||= Aliases.new join_root.each_with_index.map { |join_part, i|
-            columns = join_part.column_names.each_with_index.map { |column_name, j|
+            column_names = if join_part == join_root && !join_root_alias
+              primary_key = join_root.primary_key
+              primary_key ? [primary_key] : []
+            else
+              join_part.column_names
+            end
+
+            columns = column_names.each_with_index.map { |column_name, j|
               Aliases::Column.new column_name, "t#{i}_r#{j}"
             }
             Aliases::Table.new(join_part, columns)
@@ -173,15 +182,22 @@ module ActiveRecord
           foreign_table = parent.table
           foreign_klass = parent.base_klass
           child.join_constraints(foreign_table, foreign_klass, join_type, alias_tracker) do |reflection|
-            alias_tracker.aliased_table_for(reflection.klass.arel_table) do
-              table_alias_for(reflection, parent, reflection != child.reflection)
-            end
-          end.concat child.children.flat_map { |c| make_constraints(child, c, join_type) }
-        end
+            table, terminated = @joined_tables[reflection]
+            root = reflection == child.reflection
 
-        def table_alias_for(reflection, parent, join)
-          name = reflection.alias_candidate(parent.table_name)
-          join ? "#{name}_join" : name
+            if table && (!root || !terminated)
+              @joined_tables[reflection] = [table, root] if root
+              next table, true
+            end
+
+            table = alias_tracker.aliased_table_for(reflection.klass.arel_table) do
+              name = reflection.alias_candidate(parent.table_name)
+              root ? name : "#{name}_join"
+            end
+
+            @joined_tables[reflection] ||= [table, root] if join_type == Arel::Nodes::OuterJoin
+            table
+          end.concat child.children.flat_map { |c| make_constraints(child, c, join_type) }
         end
 
         def walk(left, right, join_type)

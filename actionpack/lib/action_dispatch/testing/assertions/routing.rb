@@ -199,7 +199,8 @@ module ActionDispatch
             method = :get
           end
 
-          request = ActionController::TestRequest.create @controller.class
+          controller = @controller if defined?(@controller)
+          request = ActionController::TestRequest.create controller&.class
 
           if %r{://}.match?(path)
             fail_on(URI::InvalidURIError, msg) do

@@ -136,7 +136,6 @@ module ActiveRecord
       end
 
       def deserialize(value)
-        return if value.nil?
         mapping.key(subtype.deserialize(value))
       end
 

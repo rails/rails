@@ -236,6 +236,10 @@ class EnumTest < ActiveRecord::TestCase
     assert_nil @book.reload.status
   end
 
+  test "deserialize nil value to enum which defines nil value to hash" do
+    assert_equal "forgotten", books(:ddd).last_read
+  end
+
   test "assign nil value" do
     @book.status = nil
     assert_nil @book.status

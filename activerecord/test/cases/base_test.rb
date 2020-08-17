@@ -1719,7 +1719,7 @@ class BasicsTest < ActiveRecord::TestCase
 
       assert_match %r/\AWrite query attempted while in readonly mode: INSERT /, conn2_error.message
     ensure
-      ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.default_connection_handler }
+      clean_up_connection_handler
       ActiveRecord::Base.establish_connection(:arunit)
     end
   end
