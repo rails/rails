@@ -978,7 +978,7 @@ using a tool specific to the database into `db/structure.sql`. For example, for
 PostgreSQL, the `pg_dump` utility is used. For MySQL and MariaDB, this file will
 contain the output of `SHOW CREATE TABLE` for the various tables.
 
-To load the schema from `db/structure.sql`, run `bin/rails db:structure:load`.
+To load the schema from `db/structure.sql`, run `bin/rails db:schema:load`.
 Loading this file is done by executing the SQL statements it contains. By
 definition, this will create a perfect copy of the database's structure.
 

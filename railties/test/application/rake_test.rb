@@ -244,7 +244,7 @@ module ApplicationTests
       rails "generate", "scaffold", "user", "username:string"
       rails "db:migrate"
       output = rails("db:test:prepare", "--trace")
-      assert_match(/Execute db:test:load_structure/, output)
+      assert_match(/Execute db:test:load_schema/, output)
     end
 
     def test_rake_dump_structure_should_respect_db_structure_env_variable
