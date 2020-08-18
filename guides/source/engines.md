@@ -465,7 +465,7 @@ commenting functionality as well. To do this, you'll need to generate a comment
 model, a comment controller, and then modify the articles scaffold to display
 comments and allow people to create new ones.
 
-From the application root, run the model generator. Tell it to generate a
+From the engine root, run the model generator. Tell it to generate a
 `Comment` model, with the related table having two columns: an `article_id` integer
 and `text` text column.
 
@@ -561,7 +561,7 @@ end
 This creates a nested route for the comments, which is what the form requires.
 
 The route now exists, but the controller that this route goes to does not. To
-create it, run this command from the application root:
+create it, run this command from the engine root:
 
 ```bash
 $ bin/rails generate controller comments
