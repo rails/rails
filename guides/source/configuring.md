@@ -1429,7 +1429,7 @@ NOTE: There is no guarantee that your initializers will run after all the gem in
 
 NOTE: You can use subfolders to organize your initializers if you like, because Rails will look into the whole file hierarchy from the initializers folder on down.
 
-TIP: While Rails supports numbering of initializer file names for load ordering purposes, a better technique is to place any code that need to load in a specific order within the same file. This reduces file name churn, makes dependencies more explicit, and can help surface new concepts within your application.
+TIP: While Rails supports numbering of initializer file names for load ordering purposes, a better technique is to place any code that needs to load in a specific order within the same file. This reduces file name churn, makes dependencies more explicit, and can help surface new concepts within your application.
 
 Initialization events
 ---------------------
