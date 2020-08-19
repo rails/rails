@@ -205,12 +205,14 @@ module ActiveRecord
 
         configs.group_by(&:env_name).map do |env, config|
           names = config.map(&:name)
+          next if env == "default"
+
           if names.size > 1
             "#{env}: #{names.join(", ")}"
           else
             env
           end
-        end.join("\n")
+        end.compact.join("\n")
       end
 
       def build_db_config_from_raw_config(env_name, name, config)
