@@ -18,6 +18,10 @@ class DelegatedTypeTest < ActiveRecord::TestCase
     assert_equal Comment, @entry_with_comment.entryable_class
   end
 
+  test "role types" do
+    assert_equal ["Message", "Comment"].sort, Entry.entryable_types.sort
+  end
+
   test "delegated type name" do
     assert_equal "message", @entry_with_message.entryable_name
     assert @entry_with_message.entryable_name.message?

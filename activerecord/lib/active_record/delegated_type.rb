@@ -147,6 +147,7 @@ module ActiveRecord
     #
     #   Entry#entryable_class # => +Message+ or +Comment+
     #   Entry#entryable_name  # => "message" or "comment"
+    #   Entry#entryable_types # => ["Message", "Comment"]
     #   Entry.messages        # => Entry.where(entryable_type: "Message")
     #   Entry#message?        # => true when entryable_type == "Message"
     #   Entry#message         # => returns the message record, when entryable_type == "Message", otherwise nil
@@ -176,6 +177,10 @@ module ActiveRecord
       def define_delegated_type_methods(role, types:)
         role_type = "#{role}_type"
         role_id   = "#{role}_id"
+
+        define_singleton_method "#{role}_types" do
+          types
+        end
 
         define_method "#{role}_class" do
           public_send("#{role}_type").constantize
