@@ -722,7 +722,7 @@ module ActiveRecord
       #
       # generates:
       #
-      #   CREATE INDEX suppliers_name_index ON suppliers(name)
+      #   CREATE INDEX index_suppliers_on_name ON suppliers(name)
       #
       # ====== Creating a index which already exists
       #
@@ -730,7 +730,7 @@ module ActiveRecord
       #
       # generates:
       #
-      #   CREATE INDEX IF NOT EXISTS suppliers_name_index ON suppliers(name)
+      #   CREATE INDEX IF NOT EXISTS index_suppliers_on_name ON suppliers(name)
       #
       # Note: Not supported by MySQL.
       #
@@ -740,7 +740,7 @@ module ActiveRecord
       #
       # generates:
       #
-      #   CREATE UNIQUE INDEX accounts_branch_id_party_id_index ON accounts(branch_id, party_id)
+      #   CREATE UNIQUE INDEX index_accounts_on_branch_id_and_party_id ON accounts(branch_id, party_id)
       #
       # ====== Creating a named index
       #
@@ -770,7 +770,7 @@ module ActiveRecord
       #
       # ====== Creating an index with a sort order (desc or asc, asc is the default)
       #
-      #   add_index(:accounts, [:branch_id, :party_id, :surname], order: {branch_id: :desc, party_id: :asc})
+      #   add_index(:accounts, [:branch_id, :party_id, :surname], name: 'by_branch_desc_party', order: {branch_id: :desc, party_id: :asc})
       #
       # generates:
       #
