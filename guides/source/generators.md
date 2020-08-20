@@ -468,7 +468,7 @@ Adding Command Line Arguments
 -----------------------------
 Rails generators can be easily modified to accept custom command line arguments. This functionality comes from [Thor](https://www.rubydoc.info/github/erikhuda/thor/master/Thor/Base/ClassMethods#class_option-instance_method):
 
-```
+```ruby
 class_option :scope, type: :string, default: 'read_products'
 ```
 

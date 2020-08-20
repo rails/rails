@@ -4,8 +4,8 @@
 
     Usage:
 
-    ```
-    rails generate scaffold Pet name:string --database=animals
+    ```bash
+    $ bin/rails generate scaffold Pet name:string --database=animals
     ```
 
     Will create an abstract class for the animals connection.
@@ -27,8 +27,8 @@
 
     If you already have an abstract class and it follows a different pattern than Rails defaults, you can pass a parent class with the database argument.
 
-    ```
-    rails generate scaffold Pet name:string --database=animals --parent=SecondaryBase
+    ```bash
+    $ bin/rails generate scaffold Pet name:string --database=animals --parent=SecondaryBase
     ```
 
     This will ensure the model inherits from the `SecondaryBase` parent instead of `AnimalsRecord`
@@ -205,7 +205,7 @@
 
     Previously:
 
-    ```
+    ```bash
     $ bin/rails g migration add_location_to_users location:references
     ```
 

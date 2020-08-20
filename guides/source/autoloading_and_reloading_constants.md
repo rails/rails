@@ -172,7 +172,7 @@ Let's see other situations that involve stale class or module objects.
 
 Check this Rails console session:
 
-```
+```ruby
 > joe = User.new
 > reload!
 > alice = User.new
@@ -198,7 +198,7 @@ Bottom line: **do not cache reloadable classes or modules**.
 
 Applications can safely autoload constants during boot using a reloader callback:
 
-```
+```ruby
 Rails.application.reloader.to_prepare do
   $PAYMENT_GATEWAY = Rails.env.production? ? RealGateway : MockedGateway
 end

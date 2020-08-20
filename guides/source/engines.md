@@ -1338,7 +1338,7 @@ were inside the engine:
 You can also specify these assets as dependencies of other assets using Asset
 Pipeline require statements in processed files:
 
-```
+```css
 /*
  *= require blorgh/style
 */

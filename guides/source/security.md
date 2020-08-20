@@ -734,7 +734,7 @@ This JavaScript code will simply display an alert box. The next examples do exac
 
 These examples don't do any harm so far, so let's see how an attacker can steal the user's cookie (and thus hijack the user's session). In JavaScript you can use the `document.cookie` property to read and write the document's cookie. JavaScript enforces the same origin policy, that means a script from one domain cannot access cookies of another domain. The `document.cookie` property holds the cookie of the originating web server. However, you can read and write this property, if you embed the code directly in the HTML document (as it happens with XSS). Inject this anywhere in your web application to see your own cookie on the result page:
 
-```
+```html
 <script>document.write(document.cookie);</script>
 ```
 
@@ -798,7 +798,7 @@ As a second step, _it is good practice to escape all output of the application_,
 
 Network traffic is mostly based on the limited Western alphabet, so new character encodings, such as Unicode, emerged, to transmit characters in other languages. But, this is also a threat to web applications, as malicious code can be hidden in different encodings that the web browser might be able to process, but the web application might not. Here is an attack vector in UTF-8 encoding:
 
-```
+```html
 <IMG SRC=&#106;&#97;&#118;&#97;&#115;&#99;&#114;&#105;&#112;&#116;&#58;&#97;
   &#108;&#101;&#114;&#116;&#40;&#39;&#88;&#83;&#83;&#39;&#41;>
 ```
@@ -811,7 +811,7 @@ _In order to understand today's attacks on web applications, it's best to take a
 
 The following is an excerpt from the [Js.Yamanner@m](http://www.symantec.com/security_response/writeup.jsp?docid=2006-061211-4111-99&tabid=1) Yahoo! Mail [worm](http://groovin.net/stuff/yammer.txt). It appeared on June 11, 2006 and was the first webmail interface worm:
 
-```
+```html
 <img src='http://us.i1.yimg.com/us.yimg.com/i/us/nt/ma/ma_mail_1.gif'
   target=""onload="var http_request = false;    var Email = '';
   var IDList = '';   var CRumb = '';   function makeRequest(url, Func, Method,Param) { ...
@@ -843,7 +843,7 @@ So the payload is in the style attribute. But there are no quotes allowed in the
 
 The `eval()` function is a nightmare for restricted list input filters, as it allows the style attribute to hide the word "innerHTML":
 
-```
+```js
 alert(eval('document.body.inne' + 'rHTML'));
 ```
 
@@ -939,7 +939,7 @@ http://www.yourapplication.com/controller/action?referer=path/at/your/app%0d%0aL
 
 Note that `%0d%0a` is URL-encoded for `\r\n` which is a carriage-return and line-feed (CRLF) in Ruby. So the resulting HTTP header for the second example will be the following because the second Location header field overwrites the first.
 
-```
+```http
 HTTP/1.1 302 Moved Temporarily
 (...)
 Location: http://www.malicious.tld
@@ -951,7 +951,7 @@ So _attack vectors for Header Injection are based on the injection of CRLF chara
 
 If Header Injection was possible, Response Splitting might be, too. In HTTP, the header block is followed by two CRLFs and the actual data (usually HTML). The idea of Response Splitting is to inject two CRLFs into a header field, followed by another response with malicious HTML. The response will be:
 
-```
+```http
 HTTP/1.1 302 Found [First standard 302 response]
 Date: Tue, 12 Apr 2005 22:09:07 GMT
 Location:Content-Type: text/html
