@@ -1381,7 +1381,7 @@ You can find more information in the [Unicorn readme](https://bogomips.org/unico
 
 Once you've configured the application server, you must proxy requests to it by configuring your web server appropriately. For example your NGINX config may include:
 
-```
+```nginx
 upstream application_server {
   server 0.0.0.0:8080;
 }

@@ -331,7 +331,7 @@ application server, and you will be placed at the debugger's prompt `(byebug)`.
 Before the prompt, the code around the line that is about to be run will be
 displayed and the current line will be marked by '=>', like this:
 
-```
+```ruby
 [1, 10] in /PathTo/project/app/controllers/articles_controller.rb
     3:
     4:   # GET /articles

@@ -65,7 +65,7 @@ After the installation is complete, a Rails app using Webpacker should have the 
 
     Additionally, this `actiontext.scss` file should be imported into your stylesheet pack.
 
-    ```
+    ```scss
     // application.scss
     @import "./actiontext.scss";
     ```
