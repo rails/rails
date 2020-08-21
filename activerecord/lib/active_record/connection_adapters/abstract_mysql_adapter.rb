@@ -126,6 +126,10 @@ module ActiveRecord
       end
 
       def supports_advisory_locks?
+        suppress(ActiveRecord::StatementInvalid) do
+          return false if ActiveRecord::Base.connection.query("SELECT @@SESSION.sql_mode;").first.first.split(",").include?("STRICT_TRANS_TABLES")
+          return false if ActiveRecord::Base.connection.query("SELECT @@SESSION.sql_mode;").first.first.split(",").include?("STRICT_ALL_TABLES")
+        end
         true
       end
 
