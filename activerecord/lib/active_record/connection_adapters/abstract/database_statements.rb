@@ -165,7 +165,7 @@ module ActiveRecord
       def insert(arel, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [], returning = [])
         sql, binds = to_sql_and_binds(arel, binds)
         value = exec_insert(sql, name, binds, pk, sequence_name, returning)
-        { 'id' => id_value }.merge(last_inserted_values(value))
+        { "id" => id_value }.merge(last_inserted_values(value))
       end
       alias create insert
 
@@ -563,7 +563,7 @@ module ActiveRecord
         def last_inserted_values(result)
           return {} if result.rows.empty?
 
-          Hash[result.columns.zip(result.rows.first).map {|key, value| [key, value]}]
+          Hash[result.columns.zip(result.rows.first).map { |key, value| [key, value] }]
         end
 
         def arel_from_relation(relation)

@@ -976,8 +976,8 @@ module ActiveRecord
         attributes_with_values(attribute_names)
       )
 
-      self.id ||= new_values['id'] if @primary_key
-      self.assign_attributes(new_values.except('id'))
+      self.id ||= new_values["id"] if @primary_key
+      self.assign_attributes(new_values.except("id"))
 
       @new_record = false
       @previously_new_record = true
