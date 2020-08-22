@@ -8,9 +8,9 @@ This guide documents how constant autoloading and reloading works in `classic` m
 After reading this guide, you will know:
 
 * Key aspects of Ruby constants
-* What are the `autoload_paths` and how does eager loading work in production?
+* What the `autoload_paths` are and how eager loading works in production
 * How constant autoloading works
-* What is `require_dependency`
+* What `require_dependency` is
 * How constant reloading works
 * Solutions to common autoloading gotchas
 
