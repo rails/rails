@@ -62,6 +62,10 @@ module ActiveSupport
     def extractable_options?
       true
     end
+
+    def inspect
+      "#<#{self.class.name} #{self}>"
+    end
   end
 
   # +InheritableOptions+ provides a constructor to build an +OrderedOptions+
