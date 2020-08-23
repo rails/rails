@@ -165,7 +165,12 @@ module ActiveRecord
       def insert(arel, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [], returning = [])
         sql, binds = to_sql_and_binds(arel, binds)
         value = exec_insert(sql, name, binds, pk, sequence_name, returning)
-        { "id" => id_value }.merge(last_inserted_values(value))
+
+        if returning.empty?
+          { "id" => id_value || last_inserted_id(value) }
+        else
+          { "id" => id_value }.merge(last_inserted_values(value))
+        end
       end
       alias create insert
 
