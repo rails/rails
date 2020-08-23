@@ -298,7 +298,7 @@ module ActiveRecord
     end
 
     def _select!(*fields) # :nodoc:
-      self.select_values += fields
+      self.select_values |= fields
       self
     end
 
@@ -382,7 +382,7 @@ module ActiveRecord
     # Same as #order but operates on relation in-place instead of copying.
     def order!(*args) # :nodoc:
       preprocess_order_args(args) unless args.empty?
-      self.order_values += args
+      self.order_values |= args
       self
     end
 
@@ -1034,8 +1034,7 @@ module ActiveRecord
     end
 
     def reverse_order! # :nodoc:
-      orders = order_values.uniq
-      orders.compact_blank!
+      orders = order_values.compact_blank
       self.order_values = reverse_sql_order(orders)
       self
     end
@@ -1302,7 +1301,7 @@ module ActiveRecord
 
       def build_select(arel)
         if select_values.any?
-          arel.project(*arel_columns(select_values.uniq))
+          arel.project(*arel_columns(select_values))
         elsif klass.ignored_columns.any?
           arel.project(*klass.column_names.map { |field| table[field] })
         else
@@ -1388,9 +1387,7 @@ module ActiveRecord
       end
 
       def build_order(arel)
-        orders = order_values.uniq
-        orders.compact_blank!
-
+        orders = order_values.compact_blank
         arel.order(*orders) unless orders.empty?
       end
 
