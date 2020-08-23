@@ -522,6 +522,13 @@ class AssetTagHelperTest < ActionView::TestCase
     assert_equal "", @response.headers["Link"]
   end
 
+  def test_should_allow_caller_to_remove_nopush
+    stylesheet_link_tag("http://example.com/style.css", nopush: false)
+    javascript_include_tag("http://example.com/all.js", nopush: false)
+    expected = "<http://example.com/style.css>; rel=preload; as=style,<http://example.com/all.js>; rel=preload; as=script"
+    assert_equal expected, @response.headers["Link"]
+  end
+
   def test_image_path
     ImagePathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end

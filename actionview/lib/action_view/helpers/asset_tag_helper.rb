@@ -87,10 +87,15 @@ module ActionView
         options = sources.extract_options!.stringify_keys
         path_options = options.extract!("protocol", "extname", "host", "skip_pipeline").symbolize_keys
         preload_links = []
+        nopush = options["nopush"].nil? ? true : options.delete("nopush")
 
         sources_tags = sources.uniq.map { |source|
           href = path_to_javascript(source, path_options)
-          preload_links << "<#{href}>; rel=preload; as=script; nopush" unless options["defer"]
+          unless options["defer"]
+            preload_link = "<#{href}>; rel=preload; as=script"
+            preload_link += "; nopush" if nopush
+            preload_links << preload_link
+          end
           tag_options = {
             "src" => href
           }.merge!(options)
@@ -137,10 +142,13 @@ module ActionView
         options = sources.extract_options!.stringify_keys
         path_options = options.extract!("protocol", "host", "skip_pipeline").symbolize_keys
         preload_links = []
+        nopush = options["nopush"].nil? ? true : options.delete("nopush")
 
         sources_tags = sources.uniq.map { |source|
           href = path_to_stylesheet(source, path_options)
-          preload_links << "<#{href}>; rel=preload; as=style; nopush"
+          preload_link = "<#{href}>; rel=preload; as=style"
+          preload_link += "; nopush" if nopush
+          preload_links << preload_link
           tag_options = {
             "rel" => "stylesheet",
             "media" => "screen",
