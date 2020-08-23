@@ -246,6 +246,7 @@ Just as with validations, it is also possible to skip callbacks by using the fol
 * `decrement_counter`
 * `delete`
 * `delete_all`
+* `delete_by`
 * `increment!`
 * `increment_counter`
 * `insert`
