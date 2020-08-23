@@ -90,7 +90,7 @@ module ActionView
 
         sources_tags = sources.uniq.map { |source|
           href = path_to_javascript(source, path_options)
-          preload_links << "<#{href}>; rel=preload; as=script"
+          preload_links << "<#{href}>; rel=preload; as=script; nopush" unless options["defer"]
           tag_options = {
             "src" => href
           }.merge!(options)
@@ -140,7 +140,7 @@ module ActionView
 
         sources_tags = sources.uniq.map { |source|
           href = path_to_stylesheet(source, path_options)
-          preload_links << "<#{href}>; rel=preload; as=style"
+          preload_links << "<#{href}>; rel=preload; as=style; nopush"
           tag_options = {
             "rel" => "stylesheet",
             "media" => "screen",
