@@ -108,7 +108,6 @@ db_namespace = namespace :db do
 
   namespace :_dump do
     ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
-
       # IMPORTANT: This task won't dump the schema if ActiveRecord::Base.dump_schema_after_migration is set to false
       task name do
         db_config = ActiveRecord::DatabaseConfigurations.new(databases).configs_for(env_name: Rails.env, name: name)
