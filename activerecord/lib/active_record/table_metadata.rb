@@ -33,7 +33,8 @@ module ActiveRecord
 
       if reflection && !reflection.polymorphic?
         association_klass = reflection.klass
-        arel_table = association_klass.arel_table.alias(table_name)
+        arel_table = association_klass.arel_table
+        arel_table = arel_table.alias(table_name) if arel_table.name != table_name
         TableMetadata.new(association_klass, arel_table, reflection)
       else
         type_caster = TypeCaster::Connection.new(klass, table_name)
