@@ -211,6 +211,7 @@ The following methods trigger callbacks:
 * `destroy`
 * `destroy!`
 * `destroy_all`
+* `destroy_by`
 * `save`
 * `save!`
 * `save(validate: false)`
