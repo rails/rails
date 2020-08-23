@@ -972,12 +972,16 @@ module ActiveRecord
     def _create_record(attribute_names = self.attribute_names)
       attribute_names = attributes_for_create(attribute_names)
 
-      new_values = self.class._insert_record(
+      result = self.class._insert_record(
         attributes_with_values(attribute_names)
       )
 
-      self.id ||= new_values["id"] if @primary_key
-      self.assign_attributes(new_values.except("id"))
+      if result.is_a?(Hash)
+        self.id ||= result["id"] if @primary_key
+        self.assign_attributes(result.except("id"))
+      else
+        self.id ||= result if @primary_key
+      end
 
       @new_record = false
       @previously_new_record = true

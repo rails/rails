@@ -160,6 +160,9 @@ module ActiveRecord
       # which case the database will attempt to calculate the last inserted
       # id and return that value.
       #
+      # If "returning" param is provided in Postgresql, the method will return
+      # a hash with the values including the id
+      #
       # If the next id was calculated in advance (as in Oracle), it should be
       # passed in as +id_value+.
       def insert(arel, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [], returning = [])
@@ -167,7 +170,7 @@ module ActiveRecord
         value = exec_insert(sql, name, binds, pk, sequence_name, returning)
 
         if returning.empty?
-          { "id" => id_value || last_inserted_id(value) }
+          id_value || last_inserted_id(value)
         else
           { "id" => id_value }.merge(last_inserted_values(value))
         end
