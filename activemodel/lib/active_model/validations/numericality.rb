@@ -181,6 +181,7 @@ module ActiveModel
       # * <tt>:less_than</tt>
       # * <tt>:less_than_or_equal_to</tt>
       # * <tt>:only_integer</tt>
+      # * <tt>:other_than</tt>
       #
       # For example:
       #
