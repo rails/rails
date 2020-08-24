@@ -405,6 +405,7 @@ module ActiveRecord
     # Same as #reorder but operates on relation in-place instead of copying.
     def reorder!(*args) # :nodoc:
       preprocess_order_args(args) unless args.all?(&:blank?)
+      args.uniq!
       self.reordering_value = true
       self.order_values = args
       self
