@@ -513,6 +513,18 @@ class AssetTagHelperTest < ActionView::TestCase
   def test_should_set_preload_links
     stylesheet_link_tag("http://example.com/style.css")
     javascript_include_tag("http://example.com/all.js")
+    expected = "<http://example.com/style.css>; rel=preload; as=style; nopush,<http://example.com/all.js>; rel=preload; as=script; nopush"
+    assert_equal expected, @response.headers["Link"]
+  end
+
+  def test_should_not_preload_links_with_defer
+    javascript_include_tag("http://example.com/all.js", defer: true)
+    assert_equal "", @response.headers["Link"]
+  end
+
+  def test_should_allow_caller_to_remove_nopush
+    stylesheet_link_tag("http://example.com/style.css", nopush: false)
+    javascript_include_tag("http://example.com/all.js", nopush: false)
     expected = "<http://example.com/style.css>; rel=preload; as=style,<http://example.com/all.js>; rel=preload; as=script"
     assert_equal expected, @response.headers["Link"]
   end
