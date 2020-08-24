@@ -425,6 +425,11 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal ["The First Topic", "The Second Topic of the day", "The Third Topic of the day", "The Fourth Topic of the day", "The Fifth Topic of the day"], topics_titles
   end
 
+  def test_reorder_deduplication
+    topics = Topic.reorder("id desc", "id desc")
+    assert_equal ["id desc"], topics.order_values
+  end
+
   def test_finding_with_reorder_by_aliased_attributes
     topics = Topic.order("author_name").reorder(:heading)
     assert_equal 5, topics.to_a.size
