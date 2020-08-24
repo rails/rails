@@ -113,7 +113,7 @@ class AssociationsTest < ActiveRecord::TestCase
 
   def test_association_with_references
     firm = companies(:first_firm)
-    assert_includes firm.association_with_references.references_values, "foo"
+    assert_equal [:foo], firm.association_with_references.references_values
   end
 end
 

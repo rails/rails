@@ -887,7 +887,7 @@ module ActiveRecord
         # always convert table names to downcase as in Oracle quoted table names are in uppercase
         joined_tables.map!(&:downcase)
 
-        !(references_values - joined_tables).empty?
+        !(references_values.map(&:to_s) - joined_tables).empty?
       end
 
       def tables_in_string(string)
