@@ -1604,12 +1604,12 @@ Dynamic Finders
 ---------------
 
 For every field (also known as an attribute) you define in your table,
- Active Record provides a finder method. If you have a field called `first_name` on your `Customer` model for example,
- you get the instance method `find_by_first_name` for free from Active Record. 
- If you also have a `locked` field on the `Customer` model, you also get `find_by_locked` method.
+Active Record provides a finder method. If you have a field called `first_name` on your `Customer` model for example,
+you get the instance method `find_by_first_name` for free from Active Record. 
+If you also have a `locked` field on the `Customer` model, you also get `find_by_locked` method.
 
 You can specify an exclamation point (`!`) on the end of the dynamic finders
- to get them to raise an `ActiveRecord::RecordNotFound` error if they do not return any records, like `Customer.find_by_name!("Ryan")`
+gto get them to raise an `ActiveRecord::RecordNotFound` error if they do not return any records, like `Customer.find_by_name!("Ryan")`
 
 If you want to find both by `name` and `orders_count`, you can chain these finders together by simply typing "`and`" between the fields. 
 For example, `Customer.find_by_first_name_and_orders_count("Ryan", 5)`.
