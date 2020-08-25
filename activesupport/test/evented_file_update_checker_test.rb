@@ -120,6 +120,26 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
     assert_not_predicate checker, :updated?
     assert_not checker.execute_if_updated
   end
+
+  test "does not stop other checkers when nonexistent directory is added later" do
+    dir1 = File.join(tmpdir, "app")
+    dir2 = File.join(tmpdir, "test")
+
+    Dir.mkdir(dir2)
+
+    checker1 = new_checker([], dir1 => ".rb") { }
+    checker2 = new_checker([], dir2 => ".rb") { }
+
+    Dir.mkdir(dir1)
+
+    touch(File.join(dir1, "a.rb"))
+    assert_predicate checker1, :updated?
+
+    assert_not_predicate checker2, :updated?
+
+    touch(File.join(dir2, "a.rb"))
+    assert_predicate checker2, :updated?
+  end
 end
 
 class EventedFileUpdateCheckerPathHelperTest < ActiveSupport::TestCase

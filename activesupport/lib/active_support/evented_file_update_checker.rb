@@ -100,11 +100,12 @@ module ActiveSupport
       def boot!
         normalize_dirs!
 
-        Listen.to(*@dtw, &method(:changed)).start if @dtw.any?
+        @listener = @dtw.any? ? Listen.to(*@dtw, &method(:changed)) : nil
+        @listener&.start
       end
 
       def shutdown!
-        Listen.stop
+        @listener&.stop
       end
 
       def normalize_dirs!
