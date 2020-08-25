@@ -1020,8 +1020,8 @@ ActiveRecord::Schema.define do
     t.string  :polymorphic_human_type
     t.integer :poly_human_without_inverse_id
     t.string  :poly_human_without_inverse_type
-    t.integer :horrible_polymorphic_human_id
-    t.string  :horrible_polymorphic_human_type
+    t.integer :puzzled_polymorphic_human_id
+    t.string  :puzzled_polymorphic_human_type
     t.references :super_human, polymorphic: true, index: false
   end
 
