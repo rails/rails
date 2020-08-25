@@ -41,7 +41,7 @@ class Book < ApplicationRecord
   belongs_to :author
   has_many :reviews
   has_and_belongs_to_many :orders, join_table: 'books_orders'
- 
+
   scope :in_print, -> { where(out_of_print: false) }
   scope :out_of_print, -> { where(out_of_print: true) }
   scope :old, -> { where('year_published < ?', 50.years.ago )}
@@ -835,9 +835,9 @@ You would access the `total_price` for each order object returned like this:
 big_orders = Order.select("created_at, sum(total) as total_price")
                   .group("created_at")
                   .having("sum(total) > ?", 200)
-  
-big_orders[0].total_price  
-# Returns the total price for the first Order object  
+
+big_orders[0].total_price
+# Returns the total price for the first Order object
 ```
 
 Overriding Conditions
@@ -1021,10 +1021,10 @@ Order.none # returns an empty Relation and fires no queries.
 ```ruby
 # The highlighted_reviews method below is expected to always return a Relation.
 Book.first.highlighted_reviews.average(:rating)
-# => Returns average rating of a book 
+# => Returns average rating of a book
 
 class Book
-  # Returns reviews if there are atleast 5, 
+  # Returns reviews if there are atleast 5,
   # else consider this as non-reviewed book
   def highlighted_reviews
     if reviews.count > 5
@@ -1065,7 +1065,7 @@ Optimistic locking allows multiple users to access the same record for edits, an
 
 **Optimistic locking column**
 
-In order to use optimistic locking, the table needs to have a column called `lock_version` of type integer. Each time the record is updated, Active Record increments the `lock_version` column. If an update request is made with a lower value in the `lock_version` field than is currently in the `lock_version` column in the database, the update request will fail with an `ActiveRecord::StaleObjectError`. 
+In order to use optimistic locking, the table needs to have a column called `lock_version` of type integer. Each time the record is updated, Active Record increments the `lock_version` column. If an update request is made with a lower value in the `lock_version` field than is currently in the `lock_version` column in the database, the update request will fail with an `ActiveRecord::StaleObjectError`.
 
 For example:
 
@@ -1226,11 +1226,11 @@ Author.joins(books: [{reviews: { customer: :orders} }, :supplier] )
 This produces:
 
 ```sql
-SELECT * FROM authors 
-  INNER JOIN books ON books.author_id = authors.id 
-  INNER JOIN reviews ON reviews.book_id = books.id 
-  INNER JOIN customers ON customers.id = reviews.customer_id 
-  INNER JOIN orders ON orders.customer_id = customers.id 
+SELECT * FROM authors
+  INNER JOIN books ON books.author_id = authors.id
+  INNER JOIN reviews ON reviews.book_id = books.id
+  INNER JOIN customers ON customers.id = reviews.customer_id
+  INNER JOIN orders ON orders.customer_id = customers.id
 INNER JOIN suppliers ON suppliers.id = books.supplier_id
 ```
 
@@ -1246,7 +1246,7 @@ time_range = (Time.now.midnight - 1.day)..Time.now.midnight
 Customer.joins(:orders).where('orders.created_at' => time_range)
 ```
 
-This will find all customers who have orders that were created yesterday, using a `BETWEEN` SQL expression to compare `created_at`. 
+This will find all customers who have orders that were created yesterday, using a `BETWEEN` SQL expression to compare `created_at`.
 
 An alternative and cleaner syntax is to nest the hash conditions:
 
@@ -1269,7 +1269,7 @@ Customer.left_outer_joins(:reviews).distinct.select('customers.*, COUNT(reviews.
 Which produces:
 
 ```sql
-SELECT DISTINCT customers.*, COUNT(reviews.*) AS reviews_count FROM customers 
+SELECT DISTINCT customers.*, COUNT(reviews.*) AS reviews_count FROM customers
 LEFT OUTER JOIN reviews ON reviews.customer_id = customers.id GROUP BY customers.id
 ```
 
@@ -1432,7 +1432,7 @@ class Book < ApplicationRecord
   end
 end
 ```
- 
+
 These methods will still be accessible on the association objects:
 
 ```ruby
@@ -1522,7 +1522,7 @@ Just like `where` clauses, scopes are merged using `AND` conditions.
 class Book < ApplicationRecord
   scope :in_print, -> { where(out_of_print: false) }
   scope :out_of_print, -> { where(out_of_print: true) }
- 
+
   scope :recent, -> { where('year_published >= ?', Date.current.year - 50 )}
   scope :old, -> { where('year_published < ?', Date.current.year - 50 )}
 end
@@ -1553,19 +1553,19 @@ One important caveat is that `default_scope` will be prepended in
 ```ruby
 class Book < ApplicationRecord
   default_scope { where('year_published >= ?', Date.current.year - 50 )}
-  
+
   scope :in_print, -> { where(out_of_print: false) }
   scope :out_of_print, -> { where(out_of_print: true) }
 end
 
 Book.all
-# SELECT books.* FROM books WHERE (year_published >= 1969)  
+# SELECT books.* FROM books WHERE (year_published >= 1969)
 
 Book.in_print
-# SELECT books.* FROM books WHERE (year_published >= 1969) AND books.out_of_print = true 
+# SELECT books.* FROM books WHERE (year_published >= 1969) AND books.out_of_print = true
 
 Book.where('price > 50')
-# SELECT books.* FROM books WHERE (year_published >= 1969) AND (price > 50) 
+# SELECT books.* FROM books WHERE (year_published >= 1969) AND (price > 50)
 ```
 
 As you can see above the `default_scope` is being merged in both
@@ -1585,10 +1585,10 @@ This method removes all scoping and will do a normal query on the table.
 
 ```ruby
 Book.unscoped.all
-# SELECT books.* FROM books 
+# SELECT books.* FROM books
 
 Book.where(out_of_print: true).unscoped.all
-# SELECT books.* FROM books 
+# SELECT books.* FROM books
 ```
 
 `unscoped` can also accept a block:
@@ -1597,7 +1597,7 @@ Book.where(out_of_print: true).unscoped.all
 Book.unscoped {
   Book.out_of_print
 }
-# SELECT books.* FROM books WHERE books.out_of_print 
+# SELECT books.* FROM books WHERE books.out_of_print
 ```
 
 Dynamic Finders
@@ -1605,30 +1605,30 @@ Dynamic Finders
 
 For every field (also known as an attribute) you define in your table,
 Active Record provides a finder method. If you have a field called `first_name` on your `Customer` model for example,
-you get the instance method `find_by_first_name` for free from Active Record. 
+you get the instance method `find_by_first_name` for free from Active Record.
 If you also have a `locked` field on the `Customer` model, you also get `find_by_locked` method.
 
 You can specify an exclamation point (`!`) on the end of the dynamic finders
 to get them to raise an `ActiveRecord::RecordNotFound` error if they do not return any records, like `Customer.find_by_name!("Ryan")`
 
-If you want to find both by `name` and `orders_count`, you can chain these finders together by simply typing "`and`" between the fields. 
+If you want to find both by `name` and `orders_count`, you can chain these finders together by simply typing "`and`" between the fields.
 For example, `Customer.find_by_first_name_and_orders_count("Ryan", 5)`.
 
 Enums
 -----
 
-An `enum` lets you define an Array of values for an attribute and refer to them by name.  The actual value stored in the database is an integer that has been mapped to one of the values.  
+An `enum` lets you define an Array of values for an attribute and refer to them by name.  The actual value stored in the database is an integer that has been mapped to one of the values.
 
 Declaring an enum will:
 
-* Create scopes that can be used to find all objects that have or do not have one of the enum values 
-* Create an instance method that can be used to determine if an object has a particular value for the enum 
-* Create an instance method that can be used to change the enum value of an object 
+* Create scopes that can be used to find all objects that have or do not have one of the enum values
+* Create an instance method that can be used to determine if an object has a particular value for the enum
+* Create an instance method that can be used to change the enum value of an object
 
 for all possible values of an `enum`.
-  
+
 For example, given this `enum` declaration:
-    
+
 ```ruby
 class Order < ApplicationRecord
   enum status: [:shipped, :being_packaged, :complete, :cancelled]
@@ -1638,9 +1638,9 @@ end
 These [scopes](#scopes) are created automatically and can be used to find all objects with or wihout a particular value for `status`:
 
 ```ruby
-Order.shipped      
-# finds all orders with status == :shipped   
-Order.not_shipped     
+Order.shipped
+# finds all orders with status == :shipped
+Order.not_shipped
 # finds all orders with status != :shipped
 ...
 ```
@@ -1649,9 +1649,9 @@ These instace methods are created automatically and query whether the model has 
 
 ```ruby
 order = Order.first
-order.shipped?       
+order.shipped?
 # Returns true if status == :shipped
-order.complete?      
+order.complete?
 # Returns true if status == :shipped
 ...
 ```
@@ -1661,9 +1661,9 @@ These instance methods are created automatically and will first update the value
 
 ```ruby
 order = Order.first
-order.shipped!   
+order.shipped!
 # =>  UPDATE "orders" SET "status" = ?, "updated_at" = ? WHERE "orders"."id" = ?  [["status", 0], ["updated_at", "2019-01-24 07:13:08.524320"], ["id", 1]]
-# => true  
+# => true
 ...
 ```
 
@@ -1697,9 +1697,9 @@ The result should be something like this:
 
 ```sql
 SELECT customers.id, customers.last_name, reviews.body
-FROM customers 
+FROM customers
 INNER JOIN reviews
-  ON reviews.customer_id = customers.id 
+  ON reviews.customer_id = customers.id
 WHERE (reviews.created_at > '2019-01-08')
 ```
 
@@ -2053,7 +2053,7 @@ assuming that Order has `enum status: [ :shipped, :being_packed, :cancelled ]`
 
 ### Count
 
-If you want to see how many records are in your model's table you could call `Customer.count` and that will return the number. 
+If you want to see how many records are in your model's table you could call `Customer.count` and that will return the number.
 If you want to be more specific and find all the customers with a title present in the database you can use `Customer.count(:title)`.
 
 For options, please see the parent section, [Calculations](#calculations).
@@ -2103,8 +2103,8 @@ For options, please see the parent section, [Calculations](#calculations).
 Running EXPLAIN
 ---------------
 
-You can run EXPLAIN on the queries triggered by relations. EXPLAIN output varies for each database. 
- 
+You can run EXPLAIN on the queries triggered by relations. EXPLAIN output varies for each database.
+
 For example, running
 
 ```ruby
