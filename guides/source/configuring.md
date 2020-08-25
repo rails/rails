@@ -629,7 +629,15 @@ Defaults to `'signed cookie'`.
 
 * `config.action_dispatch.cookies_same_site_protection` configures the default
   value of the `SameSite` attribute when setting cookies. When set to `nil`, the
-  `SameSite` attribute is not added.
+  `SameSite` attribute is not added. To allow the value of the `SameSite` attribute
+  to be configured dynamically based on the request, a proc may be specified.
+  For example:
+
+    ```ruby
+    config.action_dispatch.cookies_same_site_protection = ->(request) do
+      :strict unless request.user_agent == "TestAgent"
+    end
+    ```
 
 * `config.action_dispatch.ssl_default_redirect_status` configures the default
   HTTP status code used when redirecting non-GET/HEAD requests from HTTP to HTTPS
