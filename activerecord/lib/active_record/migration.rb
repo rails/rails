@@ -1397,6 +1397,8 @@ module ActiveRecord
         )
 
         pool.with_connection { |connection| yield(connection) }
+      ensure
+        pool&.disconnect!
       end
 
       MIGRATOR_SALT = 2053462845
