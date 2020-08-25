@@ -297,7 +297,7 @@ class InverseHasOneTests < ActiveRecord::TestCase
   end
 
   def test_trying_to_use_inverses_that_dont_exist_should_raise_an_error
-    assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Human.first.dirty_face }
+    assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Human.first.confused_face }
   end
 end
 
@@ -648,7 +648,7 @@ class InverseBelongsToTests < ActiveRecord::TestCase
   end
 
   def test_trying_to_use_inverses_that_dont_exist_should_raise_an_error
-    assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Face.first.horrible_human }
+    assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Face.first.puzzled_human }
   end
 
   def test_building_has_many_parent_association_inverses_one_record
@@ -766,12 +766,12 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
 
   def test_trying_to_access_inverses_that_dont_exist_shouldnt_raise_an_error
     # Ideally this would, if only for symmetry's sake with other association types
-    assert_nothing_raised { Face.first.horrible_polymorphic_human }
+    assert_nothing_raised { Face.first.puzzled_polymorphic_human }
   end
 
   def test_trying_to_set_polymorphic_inverses_that_dont_exist_at_all_should_raise_an_error
-    # fails because no class has the correct inverse_of for horrible_polymorphic_human
-    assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Face.first.horrible_polymorphic_human = Human.first }
+    # fails because no class has the correct inverse_of for puzzled_polymorphic_human
+    assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Face.first.puzzled_polymorphic_human = Human.first }
   end
 
   def test_trying_to_set_polymorphic_inverses_that_dont_exist_on_the_instance_being_set_should_raise_an_error
