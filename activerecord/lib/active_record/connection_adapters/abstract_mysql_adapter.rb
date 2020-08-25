@@ -424,26 +424,30 @@ module ActiveRecord
       end
 
       def check_constraints(table_name)
-        scope = quoted_scope(table_name)
+        if supports_check_constraints?
+          scope = quoted_scope(table_name)
 
-        chk_info = exec_query(<<~SQL, "SCHEMA")
-          SELECT cc.constraint_name AS 'name',
-                 cc.check_clause AS 'expression'
-          FROM information_schema.check_constraints cc
-          JOIN information_schema.table_constraints tc
-          USING (constraint_schema, constraint_name)
-          WHERE tc.table_schema = #{scope[:schema]}
-            AND tc.table_name = #{scope[:name]}
-            AND cc.constraint_schema = #{scope[:schema]}
-        SQL
+          chk_info = exec_query(<<~SQL, "SCHEMA")
+            SELECT cc.constraint_name AS 'name',
+                  cc.check_clause AS 'expression'
+            FROM information_schema.check_constraints cc
+            JOIN information_schema.table_constraints tc
+            USING (constraint_schema, constraint_name)
+            WHERE tc.table_schema = #{scope[:schema]}
+              AND tc.table_name = #{scope[:name]}
+              AND cc.constraint_schema = #{scope[:schema]}
+          SQL
 
-        chk_info.map do |row|
-          options = {
-            name: row["name"]
-          }
-          expression = row["expression"]
-          expression = expression[1..-2] unless mariadb? # remove parentheses added by mysql
-          CheckConstraintDefinition.new(table_name, expression, options)
+          chk_info.map do |row|
+            options = {
+              name: row["name"]
+            }
+            expression = row["expression"]
+            expression = expression[1..-2] unless mariadb? # remove parentheses added by mysql
+            CheckConstraintDefinition.new(table_name, expression, options)
+          end
+        else
+          raise NotImplementedError
         end
       end
 
