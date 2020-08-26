@@ -1431,13 +1431,26 @@ Some parts of Rails can also be configured externally by supplying environment v
 Using Initializer Files
 -----------------------
 
-After loading the framework and any gems in your application, Rails turns to loading initializers. An initializer is any Ruby file stored under `config/initializers` in your application. You can use initializers to hold configuration settings that should be made after all of the frameworks and gems are loaded, such as options to configure settings for these parts.
+After loading the framework and any gems in your application, Rails turns to
+loading initializers. An initializer is any Ruby file stored under
+`config/initializers` in your application. You can use initializers to hold
+configuration settings that should be made after all of the frameworks and gems
+are loaded, such as options to configure settings for these parts.
 
-NOTE: There is no guarantee that your initializers will run after all the gem initializers, so any initialization code that depends on a given gem having been initialized should go into a `config.after_initialize` block.
+The files in `config/initializers` (and any subdirectories of
+`config/initializers`) are sorted and loaded one by one as part of
+the `load_config_initializers` initializer.
 
-NOTE: You can use subfolders to organize your initializers if you like, because Rails will look into the whole file hierarchy from the initializers folder on down.
+If an initializer has code that relies on code in another initializer, you can
+combine them into a single initializer instead. This makes the dependencies more
+explicit, and can help surface new concepts within your application. Rails also
+supports numbering of initializer file names, but this can lead to file name
+churn. Explicitly loading initializers with `require` is not recommended, since
+it will cause the initializer to get loaded twice.
 
-TIP: While Rails supports numbering of initializer file names for load ordering purposes, a better technique is to place any code that needs to load in a specific order within the same file. This reduces file name churn, makes dependencies more explicit, and can help surface new concepts within your application.
+NOTE: There is no guarantee that your initializers will run after all the gem
+initializers, so any initialization code that depends on a given gem having been
+initialized should go into a `config.after_initialize` block.
 
 Initialization events
 ---------------------
