@@ -17,6 +17,12 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     end
   end
 
+  class SimpleController < ActionController::Base
+    def hello
+      self.response_body = "hello"
+    end
+  end
+
   class Boomer
     attr_accessor :closed
 
@@ -67,7 +73,8 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       when "/pass"
         [404, { "X-Cascade" => "pass" }, self]
       when "/not_found"
-        raise AbstractController::ActionNotFound
+        controller = SimpleController.new
+        raise AbstractController::ActionNotFound.new(nil, controller, :not_found)
       when "/runtime_error"
         raise RuntimeError
       when "/method_not_allowed"
@@ -101,7 +108,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       when "/missing_keys"
         raise ActionController::UrlGenerationError, "No route matches"
       when "/parameter_missing"
-        raise ActionController::ParameterMissing, :missing_param_key
+        raise ActionController::ParameterMissing.new(:missing_param_key, %w(valid_param_key))
       when "/original_syntax_error"
         eval "broke_syntax =" # `eval` need for raise native SyntaxError at runtime
       when "/syntax_error_into_view"
@@ -321,6 +328,22 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_no_match(/<body>/, body)
     assert_equal "application/json", response.media_type
     assert_match(/Mime::Type::InvalidMimeType/, body)
+  end
+
+  if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
+    test "rescue with suggestions" do
+      @app = DevelopmentApp
+
+      get "/not_found", headers: { "action_dispatch.show_exceptions" => true }
+      assert_response 404
+      assert_select("b", /Did you mean\?/)
+      assert_select("li", "hello")
+
+      get "/parameter_missing", headers: { "action_dispatch.show_exceptions" => true }
+      assert_response 400
+      assert_select("b", /Did you mean\?/)
+      assert_select("li", "valid_param_key")
+    end
   end
 
   test "rescue with HTML format for HTML API request" do
