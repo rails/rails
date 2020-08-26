@@ -726,7 +726,6 @@ when using the same Redis server for multiple applications. See the [Redis PubSu
 
 The PostgreSQL adapter uses Active Record's connection pool, and thus the
 application's `config/database.yml` database configuration, for its connection.
-This may change in the future. [#27214](https://github.com/rails/rails/issues/27214)
 
 ### Allowed Request Origins
 
