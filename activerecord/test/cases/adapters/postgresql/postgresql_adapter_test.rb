@@ -16,6 +16,48 @@ module ActiveRecord
         @connection_handler = ActiveRecord::Base.connection_handler
       end
 
+      def test_connection_error
+        assert_raises ActiveRecord::ConnectionNotEstablished do
+          ActiveRecord::Base.postgresql_connection(host: File::NULL)
+        end
+      end
+
+      def test_reconnection_error
+        fake_connection = Class.new do
+          def async_exec(*)
+            [{}]
+          end
+
+          def type_map_for_queries=(_)
+          end
+
+          def type_map_for_results=(_)
+          end
+
+          def exec_params(*)
+            {}
+          end
+
+          def reset
+            raise PG::ConnectionBad
+          end
+
+          def close
+          end
+        end.new
+
+        @conn = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(
+          fake_connection,
+          ActiveRecord::Base.logger,
+          nil,
+          { host: File::NULL }
+        )
+
+        assert_raises ActiveRecord::ConnectionNotEstablished do
+          @conn.reconnect!
+        end
+      end
+
       def test_bad_connection
         assert_raise ActiveRecord::NoDatabaseError do
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")

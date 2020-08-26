@@ -8,8 +8,6 @@ require "mysql2"
 
 module ActiveRecord
   module ConnectionHandling # :nodoc:
-    ER_BAD_DB_ERROR = 1049
-
     # Establishes a connection to the database that's used by all Active Record objects.
     def mysql2_connection(config)
       config = config.symbolize_keys
@@ -21,22 +19,33 @@ module ActiveRecord
         config[:flags] |= Mysql2::Client::FOUND_ROWS
       end
 
-      client = Mysql2::Client.new(config)
-      ConnectionAdapters::Mysql2Adapter.new(client, logger, nil, config)
-    rescue Mysql2::Error => error
-      if error.error_number == ER_BAD_DB_ERROR
-        raise ActiveRecord::NoDatabaseError
-      else
-        raise
-      end
+      ConnectionAdapters::Mysql2Adapter.new(
+        ConnectionAdapters::Mysql2Adapter.new_client(config),
+        logger,
+        nil,
+        config,
+      )
     end
   end
 
   module ConnectionAdapters
     class Mysql2Adapter < AbstractMysqlAdapter
+      ER_BAD_DB_ERROR = 1049
       ADAPTER_NAME = "Mysql2"
 
       include MySQL::DatabaseStatements
+
+      class << self
+        def new_client(config)
+          Mysql2::Client.new(config)
+        rescue Mysql2::Error => error
+          if error.error_number == ConnectionAdapters::Mysql2Adapter::ER_BAD_DB_ERROR
+            raise ActiveRecord::NoDatabaseError
+          else
+            raise ActiveRecord::ConnectionNotEstablished, error.message
+          end
+        end
+      end
 
       def initialize(connection, logger, connection_options, config)
         superclass_config = config.reverse_merge(prepared_statements: false)
@@ -124,7 +133,7 @@ module ActiveRecord
 
       private
         def connect
-          @connection = Mysql2::Client.new(@config)
+          @connection = self.class.new_client(@config)
           configure_connection
         end
 
