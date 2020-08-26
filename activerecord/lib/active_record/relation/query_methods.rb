@@ -1502,9 +1502,9 @@ module ActiveRecord
       #   check_if_method_has_arguments!("references", args)
       #   ...
       # end
-      def check_if_method_has_arguments!(method_name, args, message = "The method .#{method_name}() must contain arguments.")
+      def check_if_method_has_arguments!(method_name, args, message = nil)
         if args.blank?
-          raise ArgumentError, message
+          raise ArgumentError, message || "The method .#{method_name}() must contain arguments."
         elsif block_given?
           yield args
         else
