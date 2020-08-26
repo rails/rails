@@ -64,7 +64,7 @@ module ActiveSupport
     end
 
     def inspect
-      "#<#{self.class.name} #{self}>"
+      "#<#{self.class.name} #{super}>"
     end
   end
 
