@@ -27,6 +27,7 @@ module ActiveRecord
     )
 
     config.active_record.use_schema_cache_dump = true
+    config.active_record.check_schema_cache_dump_version = true
     config.active_record.maintain_test_schema = true
     config.active_record.has_many_inversing = false
 
@@ -126,6 +127,8 @@ To keep using the current cache store, you can turn off cache versioning entirel
     end
 
     initializer "active_record.check_schema_cache_dump" do
+      check_schema_cache_dump_version = config.active_record.delete(:check_schema_cache_dump_version)
+
       if config.active_record.delete(:use_schema_cache_dump)
         config.after_initialize do |app|
           ActiveSupport.on_load(:active_record) do
@@ -139,12 +142,19 @@ To keep using the current cache store, you can turn off cache versioning entirel
             cache = ActiveRecord::ConnectionAdapters::SchemaCache.load_from(filename)
             next if cache.nil?
 
-            current_version = ActiveRecord::Migrator.current_version
-            next if current_version.nil?
+            if check_schema_cache_dump_version
+              current_version = begin
+                ActiveRecord::Migrator.current_version
+              rescue ActiveRecordError => error
+                warn "Failed to load the schema cache because of #{error.class}: #{error.message}"
+                nil
+              end
+              next if current_version.nil?
 
-            if cache.version != current_version
-              warn "Ignoring #{filename} because it has expired. The current schema version is #{current_version}, but the one in the cache is #{cache.version}."
-              next
+              if cache.version != current_version
+                warn "Ignoring #{filename} because it has expired. The current schema version is #{current_version}, but the one in the cache is #{cache.version}."
+                next
+              end
             end
 
             connection_pool.set_schema_cache(cache.dup)
