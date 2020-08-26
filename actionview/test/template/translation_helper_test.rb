@@ -20,6 +20,8 @@ class TranslationHelperTest < ActiveSupport::TestCase
       translations: {
         templates: {
           found: { foo: "Foo" },
+          found_yield_single_argument: { foo: "Foo" },
+          found_yield_block: { foo: "Foo" },
           array: { foo: { bar: "Foo Bar" } },
           default: { foo: "Foo" }
         },
@@ -136,6 +138,14 @@ class TranslationHelperTest < ActiveSupport::TestCase
     assert_equal "Foo", view.render(template: "translations/templates/found").strip
   end
 
+  def test_finds_translation_scoped_by_partial_yielding_single_argument_block
+    assert_equal "Foo", view.render(template: "translations/templates/found_yield_single_argument").strip
+  end
+
+  def test_finds_translation_scoped_by_partial_yielding_translation_and_key
+    assert_equal "translations.templates.found_yield_block.foo: Foo", view.render(template: "translations/templates/found_yield_block").strip
+  end
+
   def test_finds_array_of_translations_scoped_by_partial
     assert_equal "Foo Bar", @view.render(template: "translations/templates/array").strip
   end
@@ -147,6 +157,26 @@ class TranslationHelperTest < ActiveSupport::TestCase
   def test_missing_translation_scoped_by_partial
     expected = '<span class="translation_missing" title="translation missing: en.translations.templates.missing.missing">Missing</span>'
     assert_equal expected, view.render(template: "translations/templates/missing").strip
+  end
+
+  def test_missing_translation_scoped_by_partial_yield_block
+    expected = 'translations.templates.missing_yield_block.missing: <span class="translation_missing" title="translation missing: en.translations.templates.missing_yield_block.missing">Missing</span>'
+    assert_equal expected, view.render(template: "translations/templates/missing_yield_block").strip
+  end
+
+  def test_missing_translation_with_default_scoped_by_partial_yield_block
+    expected = "translations.templates.missing_with_default_yield_block.missing: Default"
+    assert_equal expected, view.render(template: "translations/templates/missing_with_default_yield_block").strip
+  end
+
+  def test_missing_translation_scoped_by_partial_yield_single_argument_block
+    expected = '<span class="translation_missing" title="translation missing: en.translations.templates.missing_yield_single_argument_block.missing">Missing</span>'
+    assert_equal expected, view.render(template: "translations/templates/missing_yield_single_argument_block").strip
+  end
+
+  def test_missing_translation_with_default_scoped_by_partial_yield_single_argument_block
+    expected = "Default"
+    assert_equal expected, view.render(template: "translations/templates/missing_with_default_yield_single_argument_block").strip
   end
 
   def test_translate_does_not_mark_plain_text_as_safe_html

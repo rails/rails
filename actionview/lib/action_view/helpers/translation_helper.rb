@@ -57,6 +57,17 @@ module ActionView
       # that include HTML tags so that you know what kind of output to expect
       # when you call translate in a template and translators know which keys
       # they can provide HTML values for.
+      #
+      # To access the translated text along with the fully resolved
+      # translation key, <tt>translate</tt> accepts a block:
+      #
+      #     <%= translate(".relative_key") do |translation, resolved_key| %>
+      #       <span title="<%= resolved_key %>"><%= translation %></span>
+      #     <% end %>
+      #
+      # This enables annotate translated text to be aware of the scope it was
+      # resolved against.
+      #
       def translate(key, **options)
         unless options[:default].nil?
           remaining_defaults = Array.wrap(options.delete(:default)).compact
@@ -74,21 +85,32 @@ module ActionView
           i18n_raise = true
         end
 
+        fully_resolved_key = scope_key_by_partial(key)
+
         if html_safe_translation_key?(key)
           html_safe_options = options.dup
+
           options.except(*I18n::RESERVED_KEYS).each do |name, value|
             unless name == :count && value.is_a?(Numeric)
               html_safe_options[name] = ERB::Util.html_escape(value.to_s)
             end
           end
-          translation = I18n.translate(scope_key_by_partial(key), **html_safe_options.merge(raise: i18n_raise))
+
+          translation = I18n.translate(fully_resolved_key, **html_safe_options.merge(raise: i18n_raise))
+
           if translation.respond_to?(:map)
-            translation.map { |element| element.respond_to?(:html_safe) ? element.html_safe : element }
+            translated_text = translation.map { |element| element.respond_to?(:html_safe) ? element.html_safe : element }
           else
-            translation.respond_to?(:html_safe) ? translation.html_safe : translation
+            translated_text = translation.respond_to?(:html_safe) ? translation.html_safe : translation
           end
         else
-          I18n.translate(scope_key_by_partial(key), **options.merge(raise: i18n_raise))
+          translated_text = I18n.translate(fully_resolved_key, **options.merge(raise: i18n_raise))
+        end
+
+        if block_given?
+          yield(translated_text, fully_resolved_key)
+        else
+          translated_text
         end
       rescue I18n::MissingTranslationData => e
         if remaining_defaults.present?
@@ -100,13 +122,20 @@ module ActionView
           title = +"translation missing: #{keys.join('.')}"
 
           interpolations = options.except(:default, :scope)
+
           if interpolations.any?
             title << ", " << interpolations.map { |k, v| "#{k}: #{ERB::Util.html_escape(v)}" }.join(", ")
           end
 
           return title unless ActionView::Base.debug_missing_translation
 
-          content_tag("span", keys.last.to_s.titleize, class: "translation_missing", title: title)
+          translated_fallback = content_tag("span", keys.last.to_s.titleize, class: "translation_missing", title: title)
+
+          if block_given?
+            yield(translated_fallback, scope_key_by_partial(key))
+          else
+            translated_fallback
+          end
         end
       end
       alias :t :translate
