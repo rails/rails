@@ -78,6 +78,12 @@ module ActiveSupport
           assert_equal("1,234,567,890.50 - K&#269;", number_helper.number_to_currency("-1234567890.50", unit: "K&#269;", format: "%n %u", negative_format: "%n - %u"))
           assert_equal("0.00", number_helper.number_to_currency(+0.0, unit: "", negative_format: "(%n)"))
           assert_equal("$0", number_helper.number_to_currency(-0.456789, precision: 0))
+          assert_equal("$1,11", number_helper.number_to_currency("1,11"))
+          assert_equal("$0,11", number_helper.number_to_currency("0,11"))
+          assert_equal("$,11", number_helper.number_to_currency(",11"))
+          assert_equal("-$1,11", number_helper.number_to_currency("-1,11"))
+          assert_equal("-$0,11", number_helper.number_to_currency("-0,11"))
+          assert_equal("-$,11", number_helper.number_to_currency("-,11"))
         end
       end
 
