@@ -41,12 +41,38 @@ module ActiveRecord
   end
 
   class InverseOfAssociationNotFoundError < ActiveRecordError #:nodoc:
+    attr_reader :reflection, :associated_class
     def initialize(reflection = nil, associated_class = nil)
       if reflection
+        @reflection = reflection
+        @associated_class = associated_class.nil? ? reflection.klass : associated_class
         super("Could not find the inverse association for #{reflection.name} (#{reflection.options[:inverse_of].inspect} in #{associated_class.nil? ? reflection.class_name : associated_class.name})")
       else
         super("Could not find the inverse association.")
       end
+    end
+
+    class Correction
+      def initialize(error)
+        @error = error
+      end
+
+      def corrections
+        if @error.reflection && @error.associated_class
+          maybe_these = @error.associated_class.reflections.keys
+
+          maybe_these.sort_by { |n|
+            DidYouMean::Jaro.distance(@error.reflection.options[:inverse_of].to_s, n)
+          }.reverse.first(4)
+        else
+          []
+        end
+      end
+    end
+
+    # We may not have DYM, and DYM might not let us register error handlers
+    if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
+      DidYouMean.correct_error(self, Correction)
     end
   end
 
