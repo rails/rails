@@ -230,6 +230,16 @@ module ApplicationTests
       assert_not ActiveRecord::Base.connection.schema_cache.data_sources("posts")
     end
 
+    test "does not expire schema cache dump if check_schema_cache_dump_version is false" do
+      add_to_config <<-RUBY
+        config.active_record.check_schema_cache_dump_version = false
+      RUBY
+      rails %w(generate model post title:string)
+      rails %w(db:migrate db:schema:cache:dump db:rollback)
+      require "#{app_path}/config/environment"
+      assert ActiveRecord::Base.connection_pool.schema_cache.data_sources("posts")
+    end
+
     test "active record establish_connection uses Rails.env if DATABASE_URL is not set" do
       require "#{app_path}/config/environment"
       orig_database_url = ENV.delete("DATABASE_URL")
