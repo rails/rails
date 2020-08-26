@@ -46,34 +46,39 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal "1", 1.second.to_s
   end
 
-  def test_to_minutes
-    assert_in_delta 1440.0, 1.day.to_minutes
-    assert_in_delta 0.5, 30.seconds.to_minutes
+  def test_in_seconds
+    assert_equal 86400.0, 1.day.in_seconds
+    assert_equal 1.week.to_i, 1.week.in_seconds
   end
 
-  def test_to_hours
-    assert_in_delta 24.0, 1.day.to_hours
-    assert_in_delta 336.0, 2.weeks.to_hours
+  def test_in_minutes
+    assert_in_delta 1440.0, 1.day.in_minutes
+    assert_in_delta 0.5, 30.seconds.in_minutes
   end
 
-  def test_to_days
-    assert_in_delta 0.5, 12.hours.to_days
-    assert_in_delta 30.437, 1.month.to_days
+  def test_in_hours
+    assert_in_delta 24.0, 1.day.in_hours
+    assert_in_delta 336.0, 2.weeks.in_hours
   end
 
-  def test_to_weeks
-    assert_in_delta 8.696, 2.months.to_weeks
-    assert_in_delta 52.178, 1.year.to_weeks
+  def test_in_days
+    assert_in_delta 0.5, 12.hours.in_days
+    assert_in_delta 30.437, 1.month.in_days
   end
 
-  def test_to_months
-    assert_in_delta 2.07, 9.weeks.to_months
-    assert_in_delta 12.0, 1.year.to_months
+  def test_in_weeks
+    assert_in_delta 8.696, 2.months.in_weeks
+    assert_in_delta 52.178, 1.year.in_weeks
   end
 
-  def test_to_years
-    assert_in_delta 0.082, 30.days.to_years
-    assert_in_delta 1.0, 365.days.to_years
+  def test_in_months
+    assert_in_delta 2.07, 9.weeks.in_months
+    assert_in_delta 12.0, 1.year.in_months
+  end
+
+  def test_in_years
+    assert_in_delta 0.082, 30.days.in_years
+    assert_in_delta 1.0, 365.days.in_years
   end
 
   def test_eql

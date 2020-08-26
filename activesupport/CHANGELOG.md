@@ -1,3 +1,9 @@
+*   Add `ActiveSupport::Duration` conversion methods
+
+    `in_seconds`, `in_minutes`, `in_hours`, `in_days`, `in_weeks`, `in_months`, and `in_years` return the respective duration covered.
+
+    *Jason York*
+
 *   Fixed issue in `ActiveSupport::Cache::RedisCacheStore` not passing options
     to `read_multi` causing `fetch_multi` to not work properly
 
