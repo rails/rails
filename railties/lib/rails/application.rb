@@ -421,7 +421,7 @@ module Rails
       end
     end
 
-    attr_writer :secrets
+    attr_writer :secrets, :credentials
 
     # The secret_key_base is used as the input secret to the application's key generator, which in turn
     # is used to create all MessageVerifiers/MessageEncryptors, including the ones that sign and encrypt cookies.
