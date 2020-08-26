@@ -905,25 +905,6 @@ module ActiveRecord
     end
 
     class DatabaseTasksMigrateTest < DatabaseTasksMigrationTestCase
-      def test_can_migrate_from_pending_migration_error_action_dispatch
-        verbose, version = ENV["VERBOSE"], ENV["VERSION"]
-        ENV["VERSION"] = "2"
-        ENV["VERBOSE"] = "false"
-
-        # run down migration because it was already run on copied db
-        assert_empty capture_migration_output
-
-        ENV.delete("VERSION")
-        ENV.delete("VERBOSE")
-
-        # re-run up migration
-        assert_includes(capture(:stdout) do
-          ActiveSupport::ActionableError.dispatch ActiveRecord::PendingMigrationError, "Run pending migrations"
-        end, "migrating")
-      ensure
-        ENV["VERBOSE"], ENV["VERSION"] = verbose, version
-      end
-
       def test_migrate_set_and_unset_empty_values_for_verbose_and_version_env_vars
         verbose, version = ENV["VERBOSE"], ENV["VERSION"]
 
