@@ -58,7 +58,7 @@ module ActionView
       # when you call translate in a template and translators know which keys
       # they can provide HTML values for.
       #
-      # Finally, to access the translated text along with the fully resolved
+      # To access the translated text along with the fully resolved
       # translation key, <tt>translate</tt> accepts a block:
       #
       #     <%= translate(".relative_key") do |translation, resolved_key| %>
@@ -86,16 +86,18 @@ module ActionView
         end
 
         fully_resolved_key = scope_key_by_partial(key)
-        translated_text = options.fetch(:default, "")
 
         if html_safe_translation_key?(key)
           html_safe_options = options.dup
+
           options.except(*I18n::RESERVED_KEYS).each do |name, value|
             unless name == :count && value.is_a?(Numeric)
               html_safe_options[name] = ERB::Util.html_escape(value.to_s)
             end
           end
+
           translation = I18n.translate(fully_resolved_key, **html_safe_options.merge(raise: i18n_raise))
+
           if translation.respond_to?(:map)
             translated_text = translation.map { |element| element.respond_to?(:html_safe) ? element.html_safe : element }
           else
@@ -120,6 +122,7 @@ module ActionView
           title = +"translation missing: #{keys.join('.')}"
 
           interpolations = options.except(:default, :scope)
+
           if interpolations.any?
             title << ", " << interpolations.map { |k, v| "#{k}: #{ERB::Util.html_escape(v)}" }.join(", ")
           end
