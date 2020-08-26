@@ -303,11 +303,11 @@ class InverseHasOneTests < ActiveRecord::TestCase
   if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
     def test_trying_to_use_inverses_that_dont_exist_should_have_suggestions_for_fix
       error = assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) {
-        Human.first.dirty_face
+        Human.first.confused_face
       }
 
       assert_match "Did you mean?", error.message
-      assert_equal "horrible_human", error.corrections.first
+      assert_equal "super_human", error.corrections.first
     end
   end
 end
@@ -665,11 +665,11 @@ class InverseBelongsToTests < ActiveRecord::TestCase
   if defined?(DidYouMean) && DidYouMean.respond_to?(:correct_error)
     def test_trying_to_use_inverses_that_dont_exist_should_have_suggestions_for_fix
       error = assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) {
-        Face.first.horrible_human
+        Face.first.puzzled_human
       }
 
       assert_match "Did you mean?", error.message
-      assert_equal "polymorphic_face", error.corrections.first
+      assert_equal "confused_face", error.corrections.first
     end
   end
 
