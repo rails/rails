@@ -5,16 +5,16 @@ require "active_support/core_ext/object/duplicable"
 module ActiveModel
   class Attribute # :nodoc:
     class << self
-      def from_database(name, value_before_type_cast, type, value = nil)
-        FromDatabase.new(name, value_before_type_cast, type, nil, value)
+      def from_database(name, value, type)
+        FromDatabase.new(name, value, type)
       end
 
-      def from_user(name, value_before_type_cast, type, original_attribute = nil)
-        FromUser.new(name, value_before_type_cast, type, original_attribute)
+      def from_user(name, value, type, original_attribute = nil)
+        FromUser.new(name, value, type, original_attribute)
       end
 
-      def with_cast_value(name, value_before_type_cast, type)
-        WithCastValue.new(name, value_before_type_cast, type)
+      def with_cast_value(name, value, type)
+        WithCastValue.new(name, value, type)
       end
 
       def null(name)
@@ -30,12 +30,11 @@ module ActiveModel
 
     # This method should not be called directly.
     # Use #from_database or #from_user
-    def initialize(name, value_before_type_cast, type, original_attribute = nil, value = nil)
+    def initialize(name, value_before_type_cast, type, original_attribute = nil)
       @name = name
       @value_before_type_cast = value_before_type_cast
       @type = type
       @original_attribute = original_attribute
-      @value = value unless value.nil?
     end
 
     def value
