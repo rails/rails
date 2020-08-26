@@ -727,6 +727,10 @@ when using the same Redis server for multiple applications. See the [Redis PubSu
 The PostgreSQL adapter uses Active Record's connection pool, and thus the
 application's `config/database.yml` database configuration, for its connection.
 
+Action Cable will take an extra connection from the connection pool beyond the
+configured size, and keep it for the lifetime of each process. Keep this in
+mind when designing your infrastructure and configuring connection limits.
+
 ### Allowed Request Origins
 
 Action Cable will only accept requests from specified origins, which are
