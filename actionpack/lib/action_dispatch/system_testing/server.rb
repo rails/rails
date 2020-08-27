@@ -20,7 +20,7 @@ module ActionDispatch
         end
 
         def set_server
-          Capybara.server = :puma, { Silent: self.class.silence_puma } if Capybara.server == Capybara.servers[:default]
+          Capybara.server = :puma, { Silent: self.class.silence_puma, Threads: '0:1' } if Capybara.server == Capybara.servers[:default]
         end
 
         def set_port
