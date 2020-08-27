@@ -72,7 +72,11 @@ module ActionView
               value.each_pair do |k, v|
                 next if v.nil?
                 output << sep
-                output << prefix_tag_option(key, k, v, escape)
+                if key.to_s == "aria" && v.is_a?(Array)
+                  output << tag_option("aria-#{k.to_s.dasherize}", v, escape)
+                else
+                  output << prefix_tag_option(key, k, v, escape)
+                end
               end
             elsif type == :boolean
               if value
@@ -161,7 +165,7 @@ module ActionView
       #   tag.input type: 'text', disabled: true
       #   # => <input type="text" disabled="disabled">
       #
-      # HTML5 <tt>data-*</tt> attributes can be set with a single +data+ key
+      # HTML5 <tt>data-*</tt> and <tt>aria-*</tt> attributes can be set with a single +data+ key
       # pointing to a hash of sub-attributes.
       #
       # To play nicely with JavaScript conventions, sub-attributes are dasherized.
@@ -178,6 +182,19 @@ module ActionView
       #
       #   tag.div data: { city_state: %w( Chicago IL ) }
       #   # => <div data-city-state="[&quot;Chicago&quot;,&quot;IL&quot;]"></div>
+      #
+      # ARIA Array attribute values are space separated to be treated as <tt>DOMTokenList</tt> values.
+      # This is useful when declaring lists of label text identifiers in <tt>aria-labelledby</tt> or <tt>aria-describedby</tt>.
+      #
+      #   tag.input type: 'checkbox', name: 'published', aria: {
+      #     labelledby: ['published_context', 'published_label'],
+      #     describedby: ['published_errors']
+      #   }
+      #   #=> <input
+      #         type="checkbox" name="published"
+      #         aria-labelledby="published_context published_label"
+      #         aria-describedby="published_errors"
+      #       >
       #
       # The generated attributes are escaped by default. This can be disabled using
       # +escape_attributes+.

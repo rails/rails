@@ -435,11 +435,12 @@ class TagHelperTest < ActionView::TestCase
 
   def test_aria_attributes
     ["aria", :aria].each { |aria|
-      assert_dom_equal '<a aria-a-float="3.14" aria-a-big-decimal="-123.456" aria-a-number="1" aria-array="[1,2,3]" aria-hash="{&quot;key&quot;:&quot;value&quot;}" aria-string-with-quotes="double&quot;quote&quot;party&quot;" aria-string="hello" aria-symbol="foo" />',
+      assert_dom_equal '<a aria-a-float="3.14" aria-a-big-decimal="-123.456" aria-a-number="1" aria-array="1 2 3" aria-hash="{&quot;key&quot;:&quot;value&quot;}" aria-string-with-quotes="double&quot;quote&quot;party&quot;" aria-string="hello" aria-symbol="foo" />',
         tag("a", aria => { a_float: 3.14, a_big_decimal: BigDecimal("-123.456"), a_number: 1, string: "hello", symbol: :foo, array: [1, 2, 3], hash: { key: "value" }, string_with_quotes: 'double"quote"party"' })
-      assert_dom_equal '<a aria-a-float="3.14" aria-a-big-decimal="-123.456" aria-a-number="1" aria-array="[1,2,3]" aria-hash="{&quot;key&quot;:&quot;value&quot;}" aria-string-with-quotes="double&quot;quote&quot;party&quot;" aria-string="hello" aria-symbol="foo" />',
-        tag.a(aria: { a_float: 3.14, a_big_decimal: BigDecimal("-123.456"), a_number: 1, string: "hello", symbol: :foo, array: [1, 2, 3], hash: { key: "value" }, string_with_quotes: 'double"quote"party"' })
     }
+
+    assert_dom_equal '<a aria-a-float="3.14" aria-a-big-decimal="-123.456" aria-a-number="1" aria-array="1 2 3" aria-hash="{&quot;key&quot;:&quot;value&quot;}" aria-string-with-quotes="double&quot;quote&quot;party&quot;" aria-string="hello" aria-symbol="foo" />',
+      tag.a(aria: { a_float: 3.14, a_big_decimal: BigDecimal("-123.456"), a_number: 1, string: "hello", symbol: :foo, array: [1, 2, 3], hash: { key: "value" }, string_with_quotes: 'double"quote"party"' })
   end
 
   def test_link_to_data_nil_equal

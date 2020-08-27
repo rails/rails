@@ -1,3 +1,16 @@
+*  Serialize `aria:` and `"aria" =>` namespaced `Array` attributes passed to
+   `ActionView::Helpers::TagHelper#tag`as `" "`-delimited Strings:
+
+      tag.input type: 'checkbox', name: 'published', aria: {
+        labelledby: ['published_context', 'published_label'],
+        describedby: ['published_errors']
+      }
+      #=> <input
+      #     type="checkbox" name="published"
+      #     aria-labelledby="published_context published_label"
+      #     aria-describedby="published_errors"
+      #   >
+
 *   `ActionView::Helpers::TranslationHelper#translate` accepts a block, yielding
     the translated text and the fully resolved translation key:
 
