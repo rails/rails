@@ -16,11 +16,12 @@ module ActionView
       attr_accessor :request, :response, :params
 
       class << self
-        attr_writer :controller_path
+        # Overrides AbstractController::Base#controller_path
+        attr_accessor :controller_path
       end
 
       def controller_path=(path)
-        self.class.controller_path = (path)
+        self.class.controller_path = path
       end
 
       def initialize
@@ -101,7 +102,7 @@ module ActionView
       end
 
       def setup_with_controller
-        @controller = ActionView::TestCase::TestController.new
+        @controller = Class.new(ActionView::TestCase::TestController).new
         @request = @controller.request
         @view_flow = ActionView::OutputFlow.new
         # empty string ensures buffer has UTF-8 encoding as
