@@ -379,6 +379,7 @@ module ActionDispatch
     def GET
       fetch_header("action_dispatch.request.query_parameters") do |k|
         rack_query_params = super || {}
+        rack_query_params = Request::Utils.set_binary_encoding(self, rack_query_params)
         # Check for non UTF-8 parameter values, which would cause errors later
         Request::Utils.check_param_encoding(rack_query_params)
         set_header k, Request::Utils.normalize_encode_params(rack_query_params)
@@ -394,6 +395,7 @@ module ActionDispatch
         pr = parse_formatted_parameters(params_parsers) do |params|
           super || {}
         end
+        pr = Request::Utils.set_binary_encoding(self, pr)
         self.request_parameters = Request::Utils.normalize_encode_params(pr)
       end
     rescue Rack::Utils::ParameterTypeError, Rack::Utils::InvalidParameterError => e
