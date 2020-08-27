@@ -15,10 +15,6 @@ module ActionDispatch
         #
         # The screenshot will be displayed in your console, if supported.
         #
-        # You can set the +RAILS_SYSTEM_TESTING_SCREENSHOT_HTML+ environment variable to
-        # save the HTML from the page that is being screenhoted so you can investigate the
-        # elements on the page at the time of the screenshot
-        #
         # You can set the +RAILS_SYSTEM_TESTING_SCREENSHOT+ environment variable to
         # control the output. Possible values are:
         # * [+simple+ (default)]    Only displays the screenshot path.
@@ -49,7 +45,7 @@ module ActionDispatch
           attr_accessor :_screenshot_counter
 
           def save_html?
-            ENV["RAILS_SYSTEM_TESTING_SCREENSHOT_HTML"] == "1"
+            true
           end
 
           def increment_unique
