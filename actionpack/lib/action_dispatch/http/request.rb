@@ -396,6 +396,7 @@ module ActionDispatch
           super || {}
         end
         pr = Request::Utils.set_binary_encoding(self, pr)
+        Request::Utils.check_param_encoding(pr)
         self.request_parameters = Request::Utils.normalize_encode_params(pr)
       end
     rescue Rack::Utils::ParameterTypeError, Rack::Utils::InvalidParameterError => e

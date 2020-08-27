@@ -1051,6 +1051,43 @@ class RequestParameters < BaseRequestTest
     assert_raises(ActionController::BadRequest) { request.parameters }
   end
 
+  test "POST parameters containing invalid UTF8 character" do
+    data = "foo=%81E"
+    request = stub_request(
+      "REQUEST_METHOD" => "POST",
+      "CONTENT_LENGTH" => data.length,
+      "CONTENT_TYPE" => "application/x-www-form-urlencoded; charset=utf-8",
+      "rack.input" => StringIO.new(data)
+    )
+
+    err = assert_raises(ActionController::BadRequest) { request.parameters }
+
+    assert_predicate err.message, :valid_encoding?
+    assert_equal "Invalid request parameters: Invalid encoding for parameter: �E", err.message
+  end
+
+  test "query parameters specified as ASCII_8BIT encoded do not raise InvalidParameterError" do
+    request = stub_request("QUERY_STRING" => "foo=%81E")
+
+    ActionDispatch::Request::Utils.stub(:set_binary_encoding, { "foo" => "\x81E".b }) do
+      request.parameters
+    end
+  end
+
+  test "POST parameters specified as ASCII_8BIT encoded do not raise InvalidParameterError" do
+    data = "foo=%81E"
+    request = stub_request(
+      "REQUEST_METHOD" => "POST",
+      "CONTENT_LENGTH" => data.length,
+      "CONTENT_TYPE" => "application/x-www-form-urlencoded; charset=utf-8",
+      "rack.input" => StringIO.new(data)
+    )
+
+    ActionDispatch::Request::Utils.stub(:set_binary_encoding, { "foo" => "\x81E".b }) do
+      request.parameters
+    end
+  end
+
   test "parameters not accessible after rack parse error 1" do
     request = stub_request(
       "REQUEST_METHOD" => "POST",

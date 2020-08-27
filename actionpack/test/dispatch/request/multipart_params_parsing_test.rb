@@ -118,6 +118,8 @@ class MultipartParamsParsingTest < ActionDispatch::IntegrationTest
   end
 
   test "parses mixed files" do
+    TestController.class_eval { skip_parameter_encoding :parse }
+
     params = parse_multipart("mixed_files")
     assert_equal %w(files foo), params.keys.sort
     assert_equal "bar", params["foo"]
