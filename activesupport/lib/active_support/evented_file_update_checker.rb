@@ -39,52 +39,31 @@ module ActiveSupport
         raise ArgumentError, "A block is required to initialize an EventedFileUpdateChecker"
       end
 
-      @ph    = PathHelper.new
-      @files = files.map { |f| @ph.xpath(f) }.to_set
-
-      @dirs = {}
-      dirs.each do |dir, exts|
-        @dirs[@ph.xpath(dir)] = Array(exts).map { |ext| @ph.normalize_extension(ext) }
-      end
-
-      @block      = block
-      @updated    = Concurrent::AtomicBoolean.new(false)
-      @lcsp       = @ph.longest_common_subpath(@dirs.keys)
-      @pid        = Process.pid
-      @boot_mutex = Mutex.new
-
-      dtw = directories_to_watch
-      @dtw, @missing = dtw.partition(&:exist?)
-
-      boot!
+      @block = block
+      @pid = Process.pid
+      @core = Core.new(files, dirs)
+      ObjectSpace.define_finalizer(self, @core.finalizer)
     end
 
     def updated?
-      @boot_mutex.synchronize do
+      @core.mutex.synchronize do
         if @pid != Process.pid
-          boot!
+          @core.start
           @pid = Process.pid
-          @updated.make_true
+          @core.updated.make_true
         end
       end
 
-      if @missing.any?(&:exist?)
-        @boot_mutex.synchronize do
-          appeared, @missing = @missing.partition(&:exist?)
-          shutdown!
-
-          @dtw += appeared
-          boot!
-
-          @updated.make_true
-        end
+      if @core.restart?
+        @core.thread_safely(&:restart)
+        @core.updated.make_true
       end
 
-      @updated.true?
+      @core.updated.true?
     end
 
     def execute
-      @updated.make_false
+      @core.updated.make_false
       @block.call
     end
 
@@ -96,16 +75,56 @@ module ActiveSupport
       end
     end
 
-    private
-      def boot!
-        normalize_dirs!
+    class Core
+      attr_reader :updated, :mutex
 
+      def initialize(files, dirs)
+        @ph = PathHelper.new
+        @files = files.map { |file| @ph.xpath(file) }.to_set
+
+        @dirs = dirs.each_with_object({}) do |(dir, exts), hash|
+          hash[@ph.xpath(dir)] = Array(exts).map { |ext| @ph.normalize_extension(ext) }.to_set
+        end
+
+        @common_path = @ph.longest_common_subpath(@dirs.keys)
+
+        @dtw = directories_to_watch
+        @missing = []
+
+        @updated = Concurrent::AtomicBoolean.new(false)
+        @mutex = Mutex.new
+
+        start
+      end
+
+      def finalizer
+        proc { stop }
+      end
+
+      def thread_safely
+        @mutex.synchronize do
+          yield self
+        end
+      end
+
+      def start
+        normalize_dirs!
+        @dtw, @missing = [*@dtw, *@missing].partition(&:exist?)
         @listener = @dtw.any? ? Listen.to(*@dtw, &method(:changed)) : nil
         @listener&.start
       end
 
-      def shutdown!
+      def stop
         @listener&.stop
+      end
+
+      def restart
+        stop
+        start
+      end
+
+      def restart?
+        @missing.any?(&:exist?)
       end
 
       def normalize_dirs!
@@ -115,7 +134,7 @@ module ActiveSupport
       end
 
       def changed(modified, added, removed)
-        unless updated?
+        unless @updated.true?
           @updated.make_true if (modified + added + removed).any? { |f| watching?(f) }
         end
       end
@@ -135,7 +154,7 @@ module ActiveSupport
 
             if matching && (matching.empty? || matching.include?(ext))
               break true
-            elsif dir == @lcsp || dir.root?
+            elsif dir == @common_path || dir.root?
               break false
             end
           end
@@ -154,6 +173,7 @@ module ActiveSupport
 
         @ph.filter_out_descendants(dtw)
       end
+    end
 
       class PathHelper
         def xpath(path)

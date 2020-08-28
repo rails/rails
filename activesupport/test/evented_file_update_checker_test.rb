@@ -2,6 +2,7 @@
 
 require_relative "abstract_unit"
 require "pathname"
+require "weakref"
 require_relative "file_update_checker_shared_tests"
 
 class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
@@ -75,6 +76,18 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
     assert_predicate checker, :updated?
 
     Process.wait(pid)
+  end
+
+  test "can be garbage collected" do
+    previous_threads = Thread.list
+    checker_ref = WeakRef.new(ActiveSupport::EventedFileUpdateChecker.new([], tmpdir => ".rb") { })
+    listener_threads = Thread.list - previous_threads
+
+    wait # Wait for listener thread to start processing events.
+    GC.start
+
+    assert_not_predicate checker_ref, :weakref_alive?
+    assert_empty Thread.list & listener_threads
   end
 
   test "should detect changes through symlink" do
