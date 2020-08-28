@@ -47,10 +47,6 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
     touch_reader, touch_writer = IO.pipe
 
     pid = fork do
-      assert_predicate checker, :updated?
-
-      # Clear previous check value.
-      checker.execute
       assert_not_predicate checker, :updated?
 
       # Fork is booted, ready for file to be touched

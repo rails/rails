@@ -4,6 +4,7 @@ require "set"
 require "pathname"
 require "concurrent/atomic/atomic_boolean"
 require "listen"
+require "active_support/fork_tracker"
 
 module ActiveSupport
   # Allows you to "listen" to changes in a file system.
@@ -40,20 +41,11 @@ module ActiveSupport
       end
 
       @block = block
-      @pid = Process.pid
       @core = Core.new(files, dirs)
       ObjectSpace.define_finalizer(self, @core.finalizer)
     end
 
     def updated?
-      @core.mutex.synchronize do
-        if @pid != Process.pid
-          @core.start
-          @pid = Process.pid
-          @core.updated.make_true
-        end
-      end
-
       if @core.restart?
         @core.thread_safely(&:restart)
         @core.updated.make_true
@@ -76,7 +68,7 @@ module ActiveSupport
     end
 
     class Core
-      attr_reader :updated, :mutex
+      attr_reader :updated
 
       def initialize(files, dirs)
         @files = files.map { |file| Pathname(file).expand_path }.to_set
@@ -94,10 +86,14 @@ module ActiveSupport
         @mutex = Mutex.new
 
         start
+        @after_fork = ActiveSupport::ForkTracker.after_fork { start }
       end
 
       def finalizer
-        proc { stop }
+        proc do
+          stop
+          ActiveSupport::ForkTracker.unregister(@after_fork)
+        end
       end
 
       def thread_safely
