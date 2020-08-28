@@ -709,6 +709,12 @@ class FormHelperTest < ActionView::TestCase
       '<input name="post[secret]" type="hidden" value="true" /><input id="post_secret" name="post[secret]" type="checkbox" value="false" />',
       check_box("post", "secret", {}, false, true)
     )
+
+    @post.secret = false
+    assert_dom_equal(
+      '<input name="post[secret]" type="hidden" value="false" /><input id="post_secret" name="post[secret]" type="checkbox" value="true" />',
+      check_box("post", "secret", {}, true, false)
+    )
   end
 
   def test_check_box_with_explicit_checked_and_unchecked_values_when_object_value_is_integer
