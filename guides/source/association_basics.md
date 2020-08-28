@@ -1614,7 +1614,7 @@ The `collection.size` method returns the number of objects in the collection.
 
 ##### `collection.find(...)`
 
-The `collection.find` method finds objects within the collection. It uses the same syntax and options as
+The `collection.find` method finds objects within the collection's table. It uses the same syntax and options as
 [`ActiveRecord::Base.find`](https://api.rubyonrails.org/classes/ActiveRecord/FinderMethods.html#method-i-find).
 
 ```ruby
@@ -1633,7 +1633,7 @@ The `collection.where` method finds objects within the collection based on the c
 ##### `collection.exists?(...)`
 
 The `collection.exists?` method checks whether an object meeting the supplied
-conditions exists in the collection. It uses the same syntax and options as
+conditions exists in the collection's table. It uses the same syntax and options as
 [`ActiveRecord::Base.exists?`](https://api.rubyonrails.org/classes/ActiveRecord/FinderMethods.html#method-i-exists-3F).
 
 ##### `collection.build(attributes = {}, ...)`
@@ -2161,7 +2161,7 @@ The `collection.size` method returns the number of objects in the collection.
 
 ##### `collection.find(...)`
 
-The `collection.find` method finds objects within the collection. It uses the same syntax and options as
+The `collection.find` method finds objects within the collection's table. It uses the same syntax and options as
 [`ActiveRecord::Base.find`](https://api.rubyonrails.org/classes/ActiveRecord/FinderMethods.html#method-i-find).
 
 ```ruby
@@ -2179,7 +2179,7 @@ The `collection.where` method finds objects within the collection based on the c
 ##### `collection.exists?(...)`
 
 The `collection.exists?` method checks whether an object meeting the supplied
-conditions exists in the collection. It uses the same syntax and options as
+conditions exists in the collection's table. It uses the same syntax and options as
 [`ActiveRecord::Base.exists?`](https://api.rubyonrails.org/classes/ActiveRecord/FinderMethods.html#method-i-exists-3F).
 
 ##### `collection.build(attributes = {})`
