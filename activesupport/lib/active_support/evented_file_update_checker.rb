@@ -79,14 +79,13 @@ module ActiveSupport
       attr_reader :updated, :mutex
 
       def initialize(files, dirs)
-        @ph = PathHelper.new
-        @files = files.map { |file| @ph.xpath(file) }.to_set
+        @files = files.map { |file| Pathname(file).expand_path }.to_set
 
         @dirs = dirs.each_with_object({}) do |(dir, exts), hash|
-          hash[@ph.xpath(dir)] = Array(exts).map { |ext| @ph.normalize_extension(ext) }.to_set
+          hash[Pathname(dir).expand_path] = Array(exts).map { |ext| ext.to_s.sub(/\A\.?/, ".") }.to_set
         end
 
-        @common_path = @ph.longest_common_subpath(@dirs.keys)
+        @common_path = common_path(@dirs.keys)
 
         @dtw = directories_to_watch
         @missing = []
@@ -140,14 +139,14 @@ module ActiveSupport
       end
 
       def watching?(file)
-        file = @ph.xpath(file)
+        file = Pathname(file)
 
         if @files.member?(file)
           true
         elsif file.directory?
           false
         else
-          ext = @ph.normalize_extension(file.extname)
+          ext = file.extname
 
           file.dirname.ascend do |dir|
             matching = @dirs[dir]
@@ -162,76 +161,14 @@ module ActiveSupport
       end
 
       def directories_to_watch
-        dtw = @files.map(&:dirname) + @dirs.keys
-        dtw.compact!
-        dtw.uniq!
+        dtw = @dirs.keys | @files.map(&:dirname)
+        accounted_for = dtw.to_set + Gem.path.map { |path| Pathname(path) }
+        dtw.reject { |dir| dir.ascend.drop(1).any? { |parent| accounted_for.include?(parent) } }
+      end
 
-        normalized_gem_paths = Gem.path.map { |path| File.join path, "" }
-        dtw = dtw.reject do |path|
-          normalized_gem_paths.any? { |gem_path| path.to_path.start_with?(gem_path) }
-        end
-
-        @ph.filter_out_descendants(dtw)
+      def common_path(paths)
+        paths.map { |path| path.ascend.to_a }.reduce(&:&)&.first
       end
     end
-
-      class PathHelper
-        def xpath(path)
-          Pathname.new(path).expand_path
-        end
-
-        def normalize_extension(ext)
-          ext.to_s.delete_prefix(".")
-        end
-
-        # Given a collection of Pathname objects returns the longest subpath
-        # common to all of them, or +nil+ if there is none.
-        def longest_common_subpath(paths)
-          return if paths.empty?
-
-          lcsp = Pathname.new(paths[0])
-
-          paths[1..-1].each do |path|
-            until ascendant_of?(lcsp, path)
-              if lcsp.root?
-                # If we get here a root directory is not an ascendant of path.
-                # This may happen if there are paths in different drives on
-                # Windows.
-                return
-              else
-                lcsp = lcsp.parent
-              end
-            end
-          end
-
-          lcsp
-        end
-
-        # Filters out directories which are descendants of others in the collection (stable).
-        def filter_out_descendants(dirs)
-          return dirs if dirs.length < 2
-
-          dirs_sorted_by_nparts = dirs.sort_by { |dir| dir.each_filename.to_a.length }
-          descendants = []
-
-          until dirs_sorted_by_nparts.empty?
-            dir = dirs_sorted_by_nparts.shift
-
-            dirs_sorted_by_nparts.reject! do |possible_descendant|
-              ascendant_of?(dir, possible_descendant) && descendants << possible_descendant
-            end
-          end
-
-          # Array#- preserves order.
-          dirs - descendants
-        end
-
-        private
-          def ascendant_of?(base, other)
-            base != other && other.ascend do |ascendant|
-              break true if base == ascendant
-            end
-          end
-      end
   end
 end
