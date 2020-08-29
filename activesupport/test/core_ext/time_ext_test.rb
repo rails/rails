@@ -890,6 +890,15 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Time.utc(2000, 1, 1, 0, 0, 0), Time.at(ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 0), ActiveSupport::TimeZone["UTC"]), 0)
   end
 
+  def test_at_with_time_precision
+    time_with_nsec = Time.at(500000000, 123456789, :nsec)
+    time_with_zone = ActiveSupport::TimeWithZone.new(time_with_nsec, ActiveSupport::TimeZone["UTC"])
+    assert_equal time_with_zone, Time.at(time_with_zone)
+    assert_equal time_with_zone.to_r, Time.at(time_with_zone).to_r
+    assert_equal time_with_zone.to_f, Time.at(time_with_zone).to_f
+    assert_equal time_with_zone.nsec, Time.at(time_with_zone).nsec
+  end
+
   def test_at_with_time_with_zone_returns_local_time
     with_env_tz "US/Eastern" do
       twz = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 0), ActiveSupport::TimeZone["London"])

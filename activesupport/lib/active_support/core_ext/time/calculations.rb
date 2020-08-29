@@ -47,8 +47,10 @@ class Time
       # Time.at can be called with a time or numerical value
       time_or_number = args.first
 
-      if time_or_number.is_a?(ActiveSupport::TimeWithZone) || time_or_number.is_a?(DateTime)
-        at_without_coercion(time_or_number.to_f).getlocal
+      if time_or_number.is_a?(ActiveSupport::TimeWithZone)
+        at_without_coercion(time_or_number).getlocal
+      elsif time_or_number.is_a?(DateTime)
+        at_without_coercion(time_or_number.to_time).getlocal
       else
         at_without_coercion(time_or_number)
       end
