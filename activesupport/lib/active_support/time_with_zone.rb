@@ -465,6 +465,16 @@ module ActiveSupport
       utc.to_r
     end
 
+    # Ruby protocol for +Time.at+ requires +to_int+ to be defined.
+    # In case +to_int+ is not defined, +Time.at+ performs a lossy
+    # conversion that is causing the loss of nanosecond precision.
+    # The return value doesn't matter, since `Time.at` never calls
+    # the method, it only checks if the object responds to it to
+    # make a distinction between a Time-like object and an object
+    # that coincidentally responds to +to_r+, like a String.
+    def to_int
+    end
+
     # Returns an instance of DateTime with the timezone's UTC offset
     #
     #   Time.zone.now.to_datetime                         # => Tue, 18 Aug 2015 02:32:20 +0000
