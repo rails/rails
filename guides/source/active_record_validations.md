@@ -533,9 +533,9 @@ to map the association. This way, it is not only checked that the foreign key
 is not empty but also that the referenced object exists.
 
 ```ruby
-class LineItem < ApplicationRecord
-  belongs_to :order
-  validates :order, presence: true
+class Supplier < ApplicationRecord
+  has_one :account
+  validates :account, presence: true
 end
 ```
 
