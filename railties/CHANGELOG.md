@@ -1,3 +1,9 @@
+*   The `zeitwerk` autoloader is now enabled by default on TruffleRuby.
+
+    Please make sure you are running at least TruffleRuby 20.3 or use TruffleRuby development builds.
+
+    *Benoit Daloze*
+
 *   Automatically generate abstract class when using multiple databases.
 
     When generating a scaffold for a multiple database application, Rails will now automatically generate the abstract class for the database when the database argument is passed. This abstract class will include the connection information for the writing configuration and any models generated for that database will automatically inherit from the abstract class.
