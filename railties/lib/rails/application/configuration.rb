@@ -128,7 +128,7 @@ module Rails
         when "6.0"
           load_defaults "5.2"
 
-          self.autoloader = :zeitwerk if RUBY_ENGINE == "ruby"
+          self.autoloader = :zeitwerk if %w[ruby truffleruby].include?(RUBY_ENGINE)
 
           if respond_to?(:action_view)
             action_view.default_enforce_utf8 = false
