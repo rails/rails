@@ -25,6 +25,10 @@ module ApplicationTests
       assert $task_loaded
     end
 
+    test "framework tasks are evaluated only once" do
+      assert_equal ["Rails version"], rails("about").scan(/^Rails version/)
+    end
+
     test "task backtrace is silenced" do
       add_to_config <<-RUBY
         rake_tasks do
