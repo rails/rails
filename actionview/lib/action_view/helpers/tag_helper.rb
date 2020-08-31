@@ -305,18 +305,23 @@ module ActionView
         end
       end
 
-      # Returns a string of class names built from +args+.
+      # Returns a string of tokens built from +args+.
       #
       # ==== Examples
-      #   class_names("foo", "bar")
+      #   token_list("foo", "bar")
       #    # => "foo bar"
-      #   class_names({ foo: true, bar: false })
+      #   token_list("foo", "foo bar")
+      #    # => "foo bar"
+      #   token_list({ foo: true, bar: false })
       #    # => "foo"
-      #   class_names(nil, false, 123, "", "foo", { bar: true })
+      #   token_list(nil, false, 123, "", "foo", { bar: true })
       #    # => "123 foo bar"
-      def class_names(*args)
-        safe_join(build_tag_values(*args), " ")
+      def token_list(*args)
+        tokens = build_tag_values(*args).flat_map { |value| value.to_s.split(/\s+/) }.uniq
+
+        safe_join(tokens, " ")
       end
+      alias_method :class_names, :token_list
 
       # Returns a CDATA section with the given +content+. CDATA sections
       # are used to escape blocks of text containing characters which would

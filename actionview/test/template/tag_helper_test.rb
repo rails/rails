@@ -344,16 +344,23 @@ class TagHelperTest < ActionView::TestCase
     assert_equal "<p class=\"song play>\">limelight</p>", str
   end
 
-  def test_class_names
-    assert_equal "song play", class_names(["song", { "play": true }])
-    assert_equal "song", class_names({ "song": true, "play": false })
-    assert_equal "song", class_names([{ "song": true }, { "play": false }])
-    assert_equal "song", class_names({ song: true, play: false })
-    assert_equal "song", class_names([{ song: true }, nil, false])
-    assert_equal "song", class_names(["song", { foo: false }])
-    assert_equal "song play", class_names({ "song": true, "play": true })
-    assert_equal "", class_names({ "song": false, "play": false })
-    assert_equal "123", class_names(nil, "", false, 123, { "song": false, "play": false })
+  def test_token_list_and_class_names
+    [:token_list, :class_names].each do |helper_method|
+      helper = ->(*arguments) { public_send(helper_method, *arguments) }
+
+      assert_equal "song play", helper.(["song", { "play": true }])
+      assert_equal "song", helper.({ "song": true, "play": false })
+      assert_equal "song", helper.([{ "song": true }, { "play": false }])
+      assert_equal "song", helper.({ song: true, play: false })
+      assert_equal "song", helper.([{ song: true }, nil, false])
+      assert_equal "song", helper.(["song", { foo: false }])
+      assert_equal "song play", helper.({ "song": true, "play": true })
+      assert_equal "", helper.({ "song": false, "play": false })
+      assert_equal "123", helper.(nil, "", false, 123, { "song": false, "play": false })
+      assert_equal "song", helper.("song", "song")
+      assert_equal "song", helper.("song song")
+      assert_equal "song", helper.("song\nsong")
+    end
   end
 
   def test_content_tag_with_data_attributes
