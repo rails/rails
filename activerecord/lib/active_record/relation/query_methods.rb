@@ -238,8 +238,6 @@ module ActiveRecord
     end
 
     def references!(*table_names) # :nodoc:
-      table_names.map!(&:to_s)
-
       self.references_values |= table_names
       self
     end
@@ -1293,7 +1291,7 @@ module ActiveRecord
         unless association_joins.empty? && stashed_joins.empty?
           alias_tracker = alias_tracker(leading_joins + join_nodes, aliases)
           join_dependency = construct_join_dependency(association_joins, join_type)
-          join_sources.concat(join_dependency.join_constraints(stashed_joins, alias_tracker))
+          join_sources.concat(join_dependency.join_constraints(stashed_joins, alias_tracker, references_values))
         end
 
         join_sources.concat(join_nodes) unless join_nodes.empty?

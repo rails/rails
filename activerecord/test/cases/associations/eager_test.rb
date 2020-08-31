@@ -199,6 +199,22 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_no_queries { authors.map(&:post) }
   end
 
+  def test_type_cast_in_where_references_association_name
+    parent = comments(:greetings)
+    child = parent.children.create!(label: "child", body: "hi", post_id: parent.post_id)
+
+    comment = Comment.includes(:children).where("children.label": "child").last
+
+    assert_equal parent, comment
+    assert_equal [child], comment.children
+  end
+
+  def test_attribute_alias_in_where_references_association_name
+    firm = Firm.includes(:clients).where("clients.new_name": "Summit").last
+    assert_equal companies(:first_firm), firm
+    assert_equal [companies(:first_client)], firm.clients
+  end
+
   def test_calculate_with_string_in_from_and_eager_loading
     assert_equal 10, Post.from("authors, posts").eager_load(:comments).where("posts.author_id = authors.id").count
   end

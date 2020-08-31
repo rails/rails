@@ -78,9 +78,14 @@ module ActiveRecord
         join_root.drop(1).map!(&:reflection)
       end
 
-      def join_constraints(joins_to_add, alias_tracker)
+      def join_constraints(joins_to_add, alias_tracker, references)
         @alias_tracker = alias_tracker
         @joined_tables = {}
+        @references = {}
+
+        references.each do |table_name|
+          @references[table_name.to_sym] = table_name if table_name.is_a?(String)
+        end unless references.empty?
 
         joins = make_join_constraints(join_root, join_type)
 
@@ -190,7 +195,9 @@ module ActiveRecord
               next table, true
             end
 
-            table = alias_tracker.aliased_table_for(reflection.klass.arel_table) do
+            table_name = @references[reflection.name.to_sym]
+
+            table = alias_tracker.aliased_table_for(reflection.klass.arel_table, table_name) do
               name = reflection.alias_candidate(parent.table_name)
               root ? name : "#{name}_join"
             end
