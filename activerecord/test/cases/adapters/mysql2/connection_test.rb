@@ -67,7 +67,7 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   def test_quote_after_disconnect
     @connection.disconnect!
 
-    assert_raise(Mysql2::Error) do
+    assert_raise(ActiveRecord::StatementInvalid) do
       @connection.quote("string")
     end
   end

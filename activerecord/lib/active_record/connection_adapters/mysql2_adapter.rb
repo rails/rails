@@ -101,6 +101,8 @@ module ActiveRecord
 
       def quote_string(string)
         @connection.escape(string)
+      rescue Mysql2::Error => error
+        raise translate_exception(error, message: error.message, sql: "<escape>", binds: [])
       end
 
       #--
