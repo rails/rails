@@ -45,9 +45,21 @@ class ActiveStorage::Analyzer::VideoAnalyzerTest < ActiveSupport::TestCase
     assert_nil metadata[:display_aspect_ratio]
   end
 
+  test "analyzing a video with a container-specified duration" do
+    blob = create_file_blob(filename: "video.webm", content_type: "video/webm")
+    metadata = extract_metadata_from(blob)
+
+    assert_equal 640, metadata[:width]
+    assert_equal 480, metadata[:height]
+    assert_equal 5.229000, metadata[:duration]
+  end
+
   test "analyzing a video without a video stream" do
     blob = create_file_blob(filename: "video_without_video_stream.mp4", content_type: "video/mp4")
     metadata = extract_metadata_from(blob)
-    assert_equal({ "analyzed" => true, "identified" => true }, metadata)
+
+    assert_not_includes metadata, :width
+    assert_not_includes metadata, :height
+    assert_equal 1.022000, metadata[:duration]
   end
 end
