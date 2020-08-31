@@ -128,7 +128,7 @@ module Rails
         when "6.0"
           load_defaults "5.2"
 
-          self.autoloader = :zeitwerk if %w[ruby truffleruby].include?(RUBY_ENGINE)
+          self.autoloader = :zeitwerk if RUBY_ENGINE == "ruby"
 
           if respond_to?(:action_view)
             action_view.default_enforce_utf8 = false
@@ -159,6 +159,8 @@ module Rails
           end
         when "6.1"
           load_defaults "6.0"
+
+          self.autoloader = :zeitwerk if %w[ruby truffleruby].include?(RUBY_ENGINE)
 
           if respond_to?(:active_record)
             active_record.has_many_inversing = true
