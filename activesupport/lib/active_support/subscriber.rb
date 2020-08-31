@@ -45,22 +45,30 @@ module ActiveSupport
       end
 
       # Detach the subscriber from a namespace.
-      def detach_from(namespace, notifier = ActiveSupport::Notifications)
+      #
+      # Optionally, an array of symbols can be supplied to +events+. This allows
+      # a subscriber to detach from notifications for specific methods in the namespace, while
+      # still receiving events for others.
+      def detach_from(namespace, notifier = ActiveSupport::Notifications, events: [])
         @namespace  = namespace
         @subscriber = find_attached_subscriber
         @notifier   = notifier
 
         return unless subscriber
 
-        subscribers.delete(subscriber)
+        if events.any?
+          events.each { |event| remove_event_subscriber(event) }
+        else
+          # Remove event subscribers of all existing methods on the class.
+          subscriber.public_methods(false).each do |event|
+            remove_event_subscriber(event)
+          end
 
-        # Remove event subscribers of all existing methods on the class.
-        subscriber.public_methods(false).each do |event|
-          remove_event_subscriber(event)
+          # Reset notifier so that event subscribers will not add for new methods added to the class.
+          @notifier = nil
         end
 
-        # Reset notifier so that event subscribers will not add for new methods added to the class.
-        @notifier = nil
+        subscribers.delete(subscriber) unless subscriber.patterns.any?
       end
 
       # Adds event subscribers for all new methods added to the class.
