@@ -1,3 +1,17 @@
+*   Allow `where` references association names as joined table name aliases.
+
+    ```ruby
+    class Comment < ActiveRecord::Base
+      enum label: [:default, :child]
+      has_many :children, class_name: "Comment", foreign_key: :parent_id
+    end
+
+    # ... FROM comments LEFT OUTER JOIN comments children ON ... WHERE children.label = 1
+    Comment.includes(:children).where("children.label": "child")
+    ```
+
+    *Ryuta Kamizono*
+
 *   Support storing demodulized class name for polymorphic type.
 
     Before Rails 6.1, storing demodulized class name is supported only for STI type
