@@ -573,7 +573,11 @@ module ActionDispatch
                           :trailing_slash, :anchor, :params, :only_path, :script_name]
 
       def _generate_prefix(options = {})
-        nil
+        # In Ruby 2.7 several core methods now return frozen, deduplicated String instead of
+        # generating it every time the string is requested.
+        # It this method will return nil and then converted to .to_s will fail with
+        # FrozenError (can't modify frozen String: "")
+        RUBY_VERSION.to_f < 2.7 ? nil : ''
       end
 
       def url_for(options)
