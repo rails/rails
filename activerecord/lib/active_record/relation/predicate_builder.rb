@@ -118,18 +118,18 @@ module ActiveRecord
               values = values.map do |object|
                 object.respond_to?(aggr_attr) ? object.public_send(aggr_attr) : object
               end
-              build(table.arel_table[column_name], values)
+              self[column_name, values]
             else
               queries = values.map do |object|
                 mapping.map do |field_attr, aggregate_attr|
-                  build(table.arel_table[field_attr], object.try!(aggregate_attr))
+                  self[field_attr, object.try!(aggregate_attr)]
                 end
               end
 
               grouping_queries(queries)
             end
           else
-            build(table.arel_table[key], value)
+            self[key, value]
           end
         end
       end
