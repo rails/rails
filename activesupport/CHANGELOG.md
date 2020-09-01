@@ -1,3 +1,20 @@
+*  `ActiveSupport::Subscriber#detach_from` updated to take an `events:` argument, allowing
+    subscribers to detach from specific methods in a namespace while still receiving events for others.
+
+    ```ruby
+    class StatsSubscriber < ActiveSupport::Subscriber
+        attach_to :active_record
+    
+        def sql(event)
+            Statsd.timing("sql.#{event.payload[:name]}", event.duration)
+        end
+
+        detach_from: :active_record, events: [:sql]
+    end
+    ```
+
+    *Adrianna Chang*
+
 *   Add `ActiveSupport::Duration` conversion methods
 
     `in_seconds`, `in_minutes`, `in_hours`, `in_days`, `in_weeks`, `in_months`, and `in_years` return the respective duration covered.
