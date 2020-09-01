@@ -34,6 +34,10 @@ module ActiveJob
       ActiveSupport.on_load(:action_dispatch_integration_test) do
         include ActiveJob::TestHelper
       end
+
+      ActiveSupport.on_load(:active_record) do
+        self.destroy_later_job = ActiveRecord::DestroyJob
+      end
     end
 
     initializer "active_job.set_reloader_hook" do |app|

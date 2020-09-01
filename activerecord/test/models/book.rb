@@ -20,8 +20,6 @@ class Book < ActiveRecord::Base
   enum cover: { hard: "hard", soft: "soft" }
   enum boolean_status: { enabled: true, disabled: false }
 
-  destroy_later after: 30.days, if: -> { status_previously_changed? && published? }, ensuring: :published?
-
   def published!
     super
     "do publish work..."

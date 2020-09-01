@@ -291,6 +291,12 @@ ActiveRecord::Schema.define do
     t.string :name
   end
 
+  create_table :destroy_later_parents, force: true, id: false do |t|
+    t.primary_key :parent_id
+    t.string :name
+    t.integer :tags_count, default: 0
+  end
+
   create_table :developers, force: true do |t|
     t.string   :name
     t.string   :first_name
@@ -991,6 +997,9 @@ ActiveRecord::Schema.define do
 
   create_table :tyres, force: true do |t|
     t.integer :car_id
+  end
+
+  create_table :unused_destroy_laters, force: true do |t|
   end
 
   create_table :variants, force: true do |t|

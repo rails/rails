@@ -2223,6 +2223,18 @@ module ApplicationTests
       assert_includes ActiveJob::Serializers.serializers, DummySerializer
     end
 
+    test "active record job queue is set" do
+      app "development"
+
+      assert_equal ActiveSupport::InheritableOptions.new(destroy: :active_record_destroy), ActiveRecord::Base.queues
+    end
+
+    test "destroy later job should be loaded in configs" do
+      app "development"
+
+      assert_equal ActiveRecord::DestroyJob, ActiveRecord::Base.destroy_later_job
+    end
+
     test "ActionView::Helpers::FormTagHelper.default_enforce_utf8 is false by default" do
       app "development"
       assert_equal false, ActionView::Helpers::FormTagHelper.default_enforce_utf8

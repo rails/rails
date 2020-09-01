@@ -53,8 +53,6 @@ class Pirate < ActiveRecord::Base
 
   validates_presence_of :catchphrase
 
-  destroy_later after: 10.days
-
   def ship_log
     @ship_log ||= []
   end

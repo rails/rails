@@ -26,7 +26,6 @@
 require "active_support"
 require "active_support/rails"
 require "active_model"
-require "active_job"
 require "arel"
 require "yaml"
 

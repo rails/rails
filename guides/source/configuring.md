@@ -464,6 +464,8 @@ in controllers and views. This defaults to `false`.
 * `config.active_record.has_many_inversing` enables setting the inverse record
   when traversing `belongs_to` to `has_many` associations.
 
+* `config.active_record.destroy_later_job` allows specifying the job that will be used to destroy the record in background. It defaults to `ActiveRecord::DestroyJob`.
+
 * `config.active_record.queues.destroy` allows specifying the Active Job queue to use for destroy jobs. It defaults to `:active_record_destroy`.
 
 The MySQL adapter adds one additional configuration option:

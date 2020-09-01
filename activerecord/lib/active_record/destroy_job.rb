@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module ActiveRecord
+  # Job to destroy a record in background.
   class DestroyJob < ActiveJob::Base
     queue_as { ActiveRecord::Base.queues[:destroy] }
 
