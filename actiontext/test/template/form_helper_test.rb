@@ -110,4 +110,18 @@ class ActionText::FormHelperTest < ActionView::TestCase
       "</form>",
       output_buffer
   end
+
+  test "form with rich text area with value" do
+    form_with model: Message.new, scope: :message do |form|
+      form.rich_text_area :title, value: "<h1>hello world</h1>"
+    end
+
+    assert_dom_equal \
+      '<form action="/messages" accept-charset="UTF-8" data-remote="true" method="post">' \
+        '<input type="hidden" name="message[title]" id="message_title_trix_input_message" value="&lt;h1&gt;hello world&lt;/h1&gt;" />' \
+        '<trix-editor id="message_title" input="message_title_trix_input_message" class="trix-content" data-direct-upload-url="http://test.host/rails/active_storage/direct_uploads" data-blob-url-template="http://test.host/rails/active_storage/blobs/redirect/:signed_id/:filename">' \
+        "</trix-editor>" \
+      "</form>",
+      output_buffer
+  end
 end
