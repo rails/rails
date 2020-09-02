@@ -343,15 +343,12 @@ module ApplicationTests
         db_migrate_and_status database_url_db_name
       end
 
-      def db_schema_dump(database: nil)
+      def db_schema_dump
         Dir.chdir(app_path) do
           args = ["generate", "model", "book", "title:string"]
-          args << "--database=#{database}" if database
           rails args
           rails "db:migrate", "db:schema:dump"
-          dump_name = database ? "#{database}_schema.rb" : "schema.rb"
-          schema_dump = File.read("db/#{dump_name}")
-          assert_match(/create_table \"books\"/, schema_dump)
+          assert_match(/create_table \"books\"/, File.read("db/schema.rb"))
         end
       end
 
@@ -428,16 +425,16 @@ module ApplicationTests
             development:
               some_entry:
                 <<: *default
-                database: db/development_other.sqlite3
-                migrations_paths: db/some_entry_migrate
-              primary:
-                <<: *default
                 database: db/development.sqlite3
+              another_entry:
+                <<: *default
+                database: db/another_entry_development.sqlite3
+                migrations_paths: db/another_entry_migrate
             YAML
           end
         end
 
-        db_schema_dump(database: "some_entry")
+        db_schema_dump
         db_schema_cache_dump
       end
 

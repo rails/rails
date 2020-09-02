@@ -21,9 +21,9 @@ so you don't have to store your data all in one place.
 
 At this time the following features are supported:
 
-* Multiple primary databases and a replica for each
+* Multiple writer databases and a replica for each
 * Automatic connection switching for the model you're working with
-* Automatic swapping between the primary and replica depending on the HTTP verb
+* Automatic swapping between the writer and replica depending on the HTTP verb
 and recent writes
 * Rails tasks for creating, dropping, migrating, and interacting with the multiple
 databases
@@ -40,7 +40,7 @@ The following features are not (yet) supported:
 While Rails tries to do most of the work for you there are still some steps you'll
 need to do to get your application ready for multiple databases.
 
-Let's say we have an application with a single primary database and we need to add a
+Let's say we have an application with a single writer database and we need to add a
 new database for some new tables we're adding. The name of the new database will be
 "animals".
 
@@ -53,8 +53,15 @@ production:
   adapter: mysql
 ```
 
-Let's add a replica for the primary, a new writer called animals and a replica for that
-as well. To do this we need to change our `database.yml` from a 2-tier to a 3-tier config.
+Let's add a replica for the first configuration, and a second database called animals and a
+replica for that as well. To do this we need to change our `database.yml` from a 2-tier
+to a 3-tier config.
+
+If a primary configuration is provided this will be used as the "default" configuration. If
+there is no configuration named "primary" Rails will use the first configuration for an
+environment. The default configurations will use the default Rails filenames. For example
+primary configurations will use `schema.rb` for the schema file whereas all other entries
+will use `[CONFIGURATION_NAMESPACE]_schema.rb` for the filename.
 
 ```yaml
 production:
@@ -81,15 +88,17 @@ production:
 
 When using multiple databases there are a few important settings.
 
-First, the database name for the primary and replica should be the same because they contain
-the same data. Second, the username for the primary and replica should be different, and the
-replica user's permissions should be to read and not write.
+First, the database name for the `primary` and `primary_replica` should be the same because they contain
+the same data. This is also the case for `animals` and `animals_replica`.
+
+Second, the username for the writers and replicas should be different, and the
+replica user's permissions should be set to only read and not write.
 
 When using a replica database you need to add a `replica: true` entry to the replica in the
 `database.yml`. This is because Rails otherwise has no way of knowing which one is a replica
-and which one is the primary.
+and which one is the writer.
 
-Lastly, for new primary databases you need to set the `migrations_paths` to the directory
+Lastly, for new writer databases you need to set the `migrations_paths` to the directory
 where you will store migrations for that database. We'll look more at `migrations_paths`
 later on in this guide.
 
@@ -227,13 +236,13 @@ use a different parent class.
 Finally, in order to use the read-only replica in your application you'll need to activate
 the middleware for automatic switching.
 
-Automatic switching allows the application to switch from the primary to replica or replica
-to primary based on the HTTP verb and whether there was a recent write.
+Automatic switching allows the application to switch from the writer to replica or replica
+to writer based on the HTTP verb and whether there was a recent write.
 
 If the application is receiving a POST, PUT, DELETE, or PATCH request the application will
-automatically write to the primary. For the specified time after the write, the application
-will read from the primary. For a GET or HEAD request the application will read from the
-replica unless there was a recent write.
+automatically write to the writer database. For the specified time after the write, the
+application will read from the primary. For a GET or HEAD request the application will read
+from the replica unless there was a recent write.
 
 To activate the automatic connection switching middleware, add or uncomment the following
 lines in your application config.
@@ -245,7 +254,7 @@ config.active_record.database_resolver_context = ActiveRecord::Middleware::Datab
 ```
 
 Rails guarantees "read your own write" and will send your GET or HEAD request to the
-primary if it's within the `delay` window. By default the delay is set to 2 seconds. You
+writer if it's within the `delay` window. By default the delay is set to 2 seconds. You
 should change this based on your database infrastructure. Rails doesn't guarantee "read
 a recent write" for other users within the delay window and will send GET and HEAD requests
 to the replicas unless they wrote recently.
@@ -274,7 +283,7 @@ config.active_record.database_resolver_context = MyCookieResolver
 
 ## Using manual connection switching
 
-There are some cases where you may want your application to connect to a primary or a replica
+There are some cases where you may want your application to connect to a writer or a replica
 and the automatic connection switching isn't adequate. For example, you may know that for a
 particular request you always want to send the request to a replica, even when you are in a
 POST request path.
