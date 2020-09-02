@@ -1,5 +1,5 @@
-*  `ActiveSupport::Subscriber#detach_from` updated to take an `events:` argument, allowing
-    subscribers to detach from specific methods in a namespace while still receiving events for others.
+*  `ActiveSupport::Subscriber#detach_from` now accepts an `events:` argument that allows
+    subscribers to detach from specific methods in a namespace while still receiving events from others.
 
     ```ruby
     class StatsSubscriber < ActiveSupport::Subscriber
@@ -9,7 +9,7 @@
         Statsd.timing("sql.#{event.payload[:name]}", event.duration)
       end
 
-      detach_from: :active_record, events: [:sql]
+      detach_from :active_record, events: [:sql]
     end
     ```
 
