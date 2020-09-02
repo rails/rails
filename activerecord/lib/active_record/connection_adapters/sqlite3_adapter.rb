@@ -475,18 +475,17 @@ module ActiveRecord
         end
 
         def translate_exception(exception, message:, sql:, binds:)
+          case exception.message
           # SQLite 3.8.2 returns a newly formatted error message:
           #   UNIQUE constraint failed: *table_name*.*column_name*
           # Older versions of SQLite return:
           #   column *column_name* is not unique
-          if exception.message.match?(/(column(s)? .* (is|are) not unique|UNIQUE constraint failed: .*)/i)
+          when /column(s)? .* (is|are) not unique/, /UNIQUE constraint failed: .*/
             RecordNotUnique.new(message, sql: sql, binds: binds)
-          elsif exception.message.match?(/(.* may not be NULL|NOT NULL constraint failed: .*)/i)
+          when /.* may not be NULL/, /NOT NULL constraint failed: .*/
             NotNullViolation.new(message, sql: sql, binds: binds)
-          elsif exception.message.match?(/FOREIGN KEY constraint failed/i)
+          when /FOREIGN KEY constraint failed/i
             InvalidForeignKey.new(message, sql: sql, binds: binds)
-          elsif exception.message.match?(/called on a closed database/i)
-            ConnectionNotEstablished.new(exception)
           else
             super
           end
