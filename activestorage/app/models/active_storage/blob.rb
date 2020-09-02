@@ -35,7 +35,6 @@ class ActiveStorage::Blob < ActiveRecord::Base
   include ActiveStorage::Blob::Representable
 
   self.table_name = "active_storage_blobs"
-  self.signed_id_verifier = ActiveStorage.verifier
 
   MINIMUM_TOKEN_LENGTH = 28
 
@@ -130,8 +129,16 @@ class ActiveStorage::Blob < ActiveRecord::Base
     end
 
     # Customize signed ID purposes for backwards compatibility.
-    def combine_signed_id_purposes(purpose)
+    def combine_signed_id_purposes(purpose) #:nodoc:
       purpose.to_s
+    end
+
+    # Customize the default signed ID verifier for backwards compatibility.
+    #
+    # We override the reader (.signed_id_verifier) instead of just calling the writer (.signed_id_verifier=)
+    # to guard against the case where ActiveStorage.verifier isn't yet initialized at load time.
+    def signed_id_verifier #:nodoc:
+      @signed_id_verifier ||= ActiveStorage.verifier
     end
   end
 
