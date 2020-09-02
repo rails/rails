@@ -22,7 +22,7 @@ class TestDisconnectedAdapter < ActiveRecord::TestCase
     test "can't execute statements while disconnected" do
       @connection.execute "SELECT count(*) from products"
       @connection.disconnect!
-      assert_raises(ActiveRecord::ConnectionNotEstablished) do
+      assert_raises(ActiveRecord::StatementInvalid) do
         silence_warnings do
           @connection.execute "SELECT count(*) from products"
         end

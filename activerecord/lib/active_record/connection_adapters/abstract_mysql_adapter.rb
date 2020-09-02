@@ -650,12 +650,6 @@ module ActiveRecord
 
         def translate_exception(exception, message:, sql:, binds:)
           case error_number(exception)
-          when nil
-            if exception.message.match?(/MySQL client is not connected/i)
-              ConnectionNotEstablished.new(exception)
-            else
-              super
-            end
           when ER_DB_CREATE_EXISTS
             DatabaseAlreadyExists.new(message, sql: sql, binds: binds)
           when ER_DUP_ENTRY

@@ -58,7 +58,7 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   def test_execute_after_disconnect
     @connection.disconnect!
 
-    error = assert_raise(ActiveRecord::ConnectionNotEstablished) do
+    error = assert_raise(ActiveRecord::StatementInvalid) do
       @connection.execute("SELECT 1")
     end
     assert_kind_of Mysql2::Error, error.cause
@@ -67,7 +67,7 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   def test_quote_after_disconnect
     @connection.disconnect!
 
-    assert_raise(ActiveRecord::ConnectionNotEstablished) do
+    assert_raise(ActiveRecord::StatementInvalid) do
       @connection.quote("string")
     end
   end
