@@ -3,13 +3,13 @@
 
     ```ruby
     class StatsSubscriber < ActiveSupport::Subscriber
-        attach_to :active_record
+      attach_to :active_record
     
-        def sql(event)
-            Statsd.timing("sql.#{event.payload[:name]}", event.duration)
-        end
+      def sql(event)
+        Statsd.timing("sql.#{event.payload[:name]}", event.duration)
+      end
 
-        detach_from: :active_record, events: [:sql]
+      detach_from: :active_record, events: [:sql]
     end
     ```
 

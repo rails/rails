@@ -48,17 +48,37 @@ class TestSubscriber3 < ActiveSupport::Subscriber
   end
 
   def open_party(event)
-    puts event.inspect
     events << event
   end
 
   def another_open_party(event)
-    puts event.inspect
     events << event
   end
 
   detach_from :doodle, events: [:open_party]
 end
+
+class TestSubscriber4 < ActiveSupport::Subscriber
+  attach_to :doodle
+
+  cattr_reader :events
+
+  def self.clear
+    @@events = []
+  end
+
+  def open_party(event)
+    events << event
+  end
+
+  def another_open_party(event)
+    events << event
+  end
+
+  detach_from :doodle, events: [:events]
+  detach_from :doodle, events: [:open_party, :another_open_party]
+end
+
 
 # Monkey patch subscriber to test that only one subscriber per method is added.
 class TestSubscriber
@@ -73,6 +93,7 @@ class SubscriberTest < ActiveSupport::TestCase
     TestSubscriber.clear
     TestSubscriber2.clear
     TestSubscriber3.clear
+    TestSubscriber4.clear
   end
 
   def test_attaches_subscribers
@@ -109,6 +130,15 @@ class SubscriberTest < ActiveSupport::TestCase
   end
 
   def test_detach_from_does_not_remove_subscriber_if_only_detaching_from_some_events
-    assert_equal 2, ActiveSupport::Subscriber.subscribers.count
+    assert TestSubscriber3.subscribers.find { |subscriber| subscriber.is_a?(TestSubscriber3) }
+  end
+
+  def test_detach_from_with_events_can_be_called_multiple_times_in_a_row
+    ActiveSupport::Notifications.instrument("open_party.doodle")
+    ActiveSupport::Notifications.instrument("another_open_party.doodle")
+
+    assert_equal [], TestSubscriber4.events
+
+    assert_nil TestSubscriber4.subscribers.find { |subscriber| subscriber.is_a?(TestSubscriber4) }
   end
 end

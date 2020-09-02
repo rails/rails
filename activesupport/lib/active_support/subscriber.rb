@@ -63,12 +63,13 @@ module ActiveSupport
           subscriber.public_methods(false).each do |event|
             remove_event_subscriber(event)
           end
-
-          # Reset notifier so that event subscribers will not add for new methods added to the class.
-          @notifier = nil
         end
 
-        subscribers.delete(subscriber) unless subscriber.patterns.any?
+        unless subscriber.patterns.any?
+          # Reset notifier so that event subscribers will not add for new methods added to the class.
+          @notifier = nil
+          subscribers.delete(subscriber)
+        end
       end
 
       # Adds event subscribers for all new methods added to the class.
