@@ -431,6 +431,10 @@ module ActionDispatch
       super || scheme == "wss"
     end
 
+    def inspect # :nodoc:
+      "#<#{self.class.name} #{method} #{original_url.dump} for #{remote_ip}>"
+    end
+
     private
       def check_method(name)
         HTTP_METHOD_LOOKUP[name] || raise(ActionController::UnknownHttpMethod, "#{name}, accepted HTTP methods are #{HTTP_METHODS[0...-1].join(', ')}, and #{HTTP_METHODS[-1]}")

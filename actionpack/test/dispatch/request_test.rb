@@ -1290,3 +1290,17 @@ class EarlyHintsRequestTest < BaseRequestTest
     assert_equal expected_hints, early_hints
   end
 end
+
+class RequestInspectTest < BaseRequestTest
+  test "inspect" do
+    request = stub_request(
+      "REQUEST_METHOD" => "POST",
+      "REMOTE_ADDR" => "1.2.3.4",
+      "HTTP_X_FORWARDED_PROTO" => "https",
+      "HTTP_X_FORWARDED_HOST" => "example.com:443",
+      "PATH_INFO" => "/path/",
+      "QUERY_STRING" => "q=1"
+    )
+    assert_match %r(#<ActionDispatch::Request POST "https://example.com/path/\?q=1" for 1.2.3.4>), request.inspect
+  end
+end
