@@ -477,8 +477,14 @@ How files are autoloaded depends on `eager_load` and `cache_classes` config sett
  * In **production**, however, you want consistency and thread-safety and can live with a longer boot time. So `eager_load` is set to `true`, and then during boot (before the app is ready to receive requests) Rails loads all files in the `eager_load_paths`  and then turns off auto loading (NB: autoloading may be needed during eager loading). Not autoloading after boot is a `good thing`, as autoloading can cause the app to be have thread-safety problems.
  * In **test**, for speed of execution (of individual tests) `eager_load` is `false`, so Rails follows development behaviour.
 
-What is described above are the defaults with a newly generated Rails app. There are multiple ways this can be configured differently (see [Configuring Rails Applications](configuring.html#rails-general-configuration).
-). But using `autoload_paths` on its own  in the past (before Rails 5) developers might configure `autoload_paths` to add in extra locations (e.g. `lib` which used to be an autoload path list years ago, but no longer is).  However this is now discouraged for most purposes, as it is likely to lead to production-only errors. It is possible to add new locations to both `config.eager_load_paths` and `config.autoload_paths` but use at your own risk.
+What is described above are the defaults with a newly generated Rails app.
+There are multiple ways this can be configured differently (see [Configuring
+Rails Applications](configuring.html#rails-general-configuration).). Before
+Rails 5 developers might configure `autoload_paths` to add in extra locations
+(e.g. `lib` which used to be an autoload path list years ago, but no longer
+is). However this is now discouraged for most purposes, as it is likely to
+lead to production-only errors. It is possible to add new locations to both
+`config.eager_load_paths` and `config.autoload_paths` but use at your own risk.
 
 See also [Autoloading in the Test Environment](#autoloading-in-the-test-environment).
 
