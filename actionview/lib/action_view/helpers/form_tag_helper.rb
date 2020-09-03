@@ -897,16 +897,15 @@ module ActionView
         end
 
         def set_default_disable_with(value, tag_options)
-          return unless ActionView::Base.automatically_disable_submit_tag
           data = tag_options["data"]
 
-          unless tag_options["data-disable-with"] == false || (data && data["disable_with"] == false)
+          if tag_options["data-disable-with"] == false || (data && data["disable_with"] == false)
+            data.delete("disable_with") if data
+          elsif ActionView::Base.automatically_disable_submit_tag
             disable_with_text = tag_options["data-disable-with"]
             disable_with_text ||= data["disable_with"] if data
             disable_with_text ||= value.to_s.clone
             tag_options.deep_merge!("data" => { "disable_with" => disable_with_text })
-          else
-            data.delete("disable_with") if data
           end
 
           tag_options.delete("data-disable-with")
