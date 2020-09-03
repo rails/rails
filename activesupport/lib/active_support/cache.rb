@@ -617,13 +617,7 @@ module ActiveSupport
         # Deletes multiples entries in the cache implementation. Subclasses MAY
         # implement this method.
         def delete_multi_entries(entries, **options)
-          entries.inject(0) do |sum, key|
-            if delete_entry(key, **options)
-              sum + 1
-            else
-              sum
-            end
-          end
+          entries.count { |key| delete_entry(key, **options) }
         end
 
         # Merges the default options with ones specific to a method call.
@@ -687,7 +681,7 @@ module ActiveSupport
               expanded_key(key.first)
             end
           when Hash
-            key.collect { |k, v| "#{k}=#{v}" }.sort
+            key.collect { |k, v| "#{k}=#{v}" }.sort!
           else
             key
           end.to_param
@@ -700,7 +694,7 @@ module ActiveSupport
         def expanded_version(key)
           case
           when key.respond_to?(:cache_version) then key.cache_version.to_param
-          when key.is_a?(Array)                then key.map { |element| expanded_version(element) }.compact.to_param
+          when key.is_a?(Array)                then key.map { |element| expanded_version(element) }.compact!.to_param
           when key.respond_to?(:to_a)          then expanded_version(key.to_a)
           end
         end
