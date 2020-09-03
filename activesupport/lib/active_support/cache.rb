@@ -694,7 +694,7 @@ module ActiveSupport
         def expanded_version(key)
           case
           when key.respond_to?(:cache_version) then key.cache_version.to_param
-          when key.is_a?(Array)                then key.map { |element| expanded_version(element) }.compact!.to_param
+          when key.is_a?(Array)                then key.map { |element| expanded_version(element) }.tap(&:compact!).to_param
           when key.respond_to?(:to_a)          then expanded_version(key.to_a)
           end
         end
