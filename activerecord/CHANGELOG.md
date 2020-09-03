@@ -1,3 +1,9 @@
+*   Ensure the default configuration is considered primary or first for an environment
+
+    If a multiple database application provides a configuration named primary, that will be treated as default. In applications that do not have a primary entry, the default database configuration will be the first configuration for an environment.
+
+    *Eileen M. Uchitelle*
+
 *   Allow `where` references association names as joined table name aliases.
 
     ```ruby

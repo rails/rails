@@ -812,6 +812,21 @@ module ApplicationTests
 
         db_create_and_drop_namespace("primary", "db/development.sqlite3")
       end
+
+      test "a thing" do
+        app_file "config/database.yml", <<-YAML
+          development:
+            default:
+              database: db/default.sqlite3
+              adapter: sqlite3
+            animals:
+              database: db/develoment_animals.sqlite3
+              adapter: sqlite3
+              migrations_paths: db/animals_migrate
+        YAML
+
+        db_migrate_and_schema_dump_and_load
+      end
     end
   end
 end
