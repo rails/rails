@@ -50,6 +50,7 @@ class DeleteAllTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::ActiveRecordError) { Author.distinct.delete_all }
     assert_raises(ActiveRecord::ActiveRecordError) { Author.group(:name).delete_all }
     assert_raises(ActiveRecord::ActiveRecordError) { Author.having("SUM(id) < 3").delete_all }
+    assert_raises(ActiveRecord::ActiveRecordError) { Author.from("(SELECT * FROM authors) AS authors").delete_all }
   end
 
   def test_delete_all_with_joins_and_where_part_is_hash
