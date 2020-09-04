@@ -19,7 +19,10 @@ db_namespace = namespace :db do
   end
 
   task load_config: :environment do
-    ActiveRecord::Base.configurations       = ActiveRecord::Tasks::DatabaseTasks.database_configuration || {}
+    if ActiveRecord::Base.configurations.empty?
+      ActiveRecord::Base.configurations = ActiveRecord::Tasks::DatabaseTasks.database_configuration
+    end
+
     ActiveRecord::Migrator.migrations_paths = ActiveRecord::Tasks::DatabaseTasks.migrations_paths
   end
 
