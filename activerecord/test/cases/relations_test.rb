@@ -306,6 +306,11 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal topics(:third).title, topics.first.title
   end
 
+  def test_reverse_arel_order_with_function
+    topics = Topic.order(Topic.arel_table[:title].lower).reverse_order
+    assert_equal topics(:third).title, topics.first.title
+  end
+
   def test_reverse_arel_assoc_order_with_function
     topics = Topic.order(Arel.sql("lower(title)") => :asc).reverse_order
     assert_equal topics(:third).title, topics.first.title
