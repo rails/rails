@@ -147,6 +147,10 @@ class ControllerInstanceTests < ActiveSupport::TestCase
   ensure
     ActionDispatch::Response.default_headers = original_default_headers
   end
+
+  def test_inspect
+    assert_match(/\A#<EmptyController:0x[0-9a-f]+>\z/, @empty.inspect)
+  end
 end
 
 class PerformActionTest < ActionController::TestCase
