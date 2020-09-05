@@ -363,6 +363,14 @@ module ActiveSupport
     end
 
     private
+      if Symbol.method_defined?(:name)
+        using Module.new {
+          refine Symbol do
+            alias :to_s :name
+          end
+        }
+      end
+
       def convert_key(key)
         key.kind_of?(Symbol) ? key.to_s : key
       end
