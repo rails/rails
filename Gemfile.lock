@@ -417,6 +417,8 @@ GEM
       unicode-display_width (>= 1.4.0, < 2.0)
     rubocop-ast (0.3.0)
       parser (>= 2.7.1.4)
+    rubocop-packaging (0.4.0)
+      rubocop (~> 0.89)
     rubocop-performance (1.6.1)
       rubocop (>= 0.71.0)
     rubocop-rails (2.5.2)
@@ -589,6 +591,7 @@ DEPENDENCIES
   rexml
   rouge
   rubocop (>= 0.90)
+  rubocop-packaging
   rubocop-performance
   rubocop-rails
   sass-rails
